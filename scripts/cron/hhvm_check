@@ -7,13 +7,20 @@ then
     echo "HHVM borked"
     monit hhvm restart
 else
-    # If HHVM loads scripts partway through them being updated, then it can end up with a cached one which causes errors.
-    # Spot this and touch the script to trigger a reload.
-    tail /var/log/hhvm/error.log | grep "Fatal error"
-
+    tail /var/log/hhvm/error.log | grep "Failed to get socket"
     if [ $? -eq 0 ]
     then
-        echo "Fatal error found - touch"
-        find /var/www/iznik -name \*.php -exec touch {} \;
+        echo "HHVM borked"
+        monit hhvm restart
+    else
+        # If HHVM loads scripts partway through them being updated, then it can end up with a cached one which causes errors.
+        # Spot this and touch the script to trigger a reload.
+        tail /var/log/hhvm/error.log | grep "Fatal error"
+
+        if [ $? -eq 0 ]
+        then
+            echo "Fatal error found - touch"
+            find /var/www/iznik -name \*.php -exec touch {} \;
+        fi
     fi
 fi
