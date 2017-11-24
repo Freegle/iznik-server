@@ -212,7 +212,8 @@ class groupTest extends IznikTestCase {
         $membs = $g->getMembers();
         error_log(var_export($membs, TRUE));
         assertEquals('-testid1', $membs[0]['yahooUserId']);
-        assertEquals('test12@test.com', $membs[0]['otheremails'][0]['email']);
+        assertEquals('test12@test.com', $membs[0]['email']);
+        assertEquals('test11@test.com', $membs[0]['otheremails'][0]['email']);
 
         # Test that the merge history is there.
         $this->waitBackground();
