@@ -2278,20 +2278,35 @@ class User extends Entity
                         $rc = $rc2 && $rc ? $rc2 : 0;
                     }
 
-                    # Merge the emails.  Both might have a primary address; id1 wins.  There is a unique index, so there
-                    # can't be a conflict on email.
+                    # Merge the emails.  Both might have a primary address; if so then id1 wins.
+                    # There is a unique index, so there can't be a conflict on email.
                     if ($rc) {
                         $primary = NULL;
+                        $foundprim = FALSE;
                         $sql = "SELECT * FROM users_emails WHERE userid = $id2 AND preferred = 1;";
                         $emails = $this->dbhr->preQuery($sql);
                         foreach ($emails as $email) {
                             $primary = $email['id'];
+                            $foundprim = TRUE;
                         }
 
                         $sql = "SELECT * FROM users_emails WHERE userid = $id1 AND preferred = 1;";
                         $emails = $this->dbhr->preQuery($sql);
                         foreach ($emails as $email) {
                             $primary = $email['id'];
+                            $foundprim = TRUE;
+                        }
+
+                        if (!$foundprim) {
+                            # No primary.  Whatever we would choose for id1 should become the new one.
+                            $pemail = $u1->getEmailPreferred();
+                            $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
+                                $pemail
+                            ]);
+
+                            foreach ($emails as $email) {
+                                $primary = $email['id'];
+                            }
                         }
 
                         #error_log("Merge emails");
@@ -2332,7 +2347,7 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE users_phones SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_requests SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE users_requests SET completedby = $id1 WHERE completedby = $id2;");
+                        $this->dbhm->preExec(   "UPDATE IGNORE users_requests SET completedby = $id1 WHERE completedby = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_searches SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE newsfeed SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE messages_reneged SET userid = $id1 WHERE userid = $id2;");
