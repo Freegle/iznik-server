@@ -7,7 +7,7 @@ define([
     'backform',
     'iznik/views/modal',
     'bootstrap-switch'
-], function($, _, Backbone, moment, Iznik, Backform) {
+], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
 

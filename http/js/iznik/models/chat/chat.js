@@ -3,11 +3,14 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'persist-min',
     'jquery-visibility'
 ], function($, _, Backbone, Iznik) {
     // We have a single send queue shared across chat rooms.
     var trigger = new Iznik.Model();
     var sending = [];
+
+    var Storage = new Persist.Store("Iznik");
 
     function log() {
         try {
