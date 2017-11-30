@@ -183,10 +183,11 @@ class Group extends Entity
                 return(NULL);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded, licenserequired) VALUES (?, ?, NOW(),?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded, licenserequired, onyahoo) VALUES (?, ?, NOW(),?,?)", [
                 $shortname,
                 $type,
-                $type != Group::GROUP_FREEGLE ? 0 : 1
+                $type != Group::GROUP_FREEGLE ? 0 : 1,
+                $type != Group::GROUP_FREEGLE ? 1 : 0
             ]);
 
             $id = $this->dbhm->lastInsertId();
