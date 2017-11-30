@@ -37,8 +37,14 @@ requirejs.config({
         "combodate": {
             deps: [ 'moment' ]
         },
+        "backform": {
+            deps: [ 'backbone' ]
+        },
         'moment': {
             exports: 'moment'
+        },
+        'react-dom': {
+            deps: [ 'react' ]
         },
         "jquery.dd": [ "jquery" ],
         "jquery.geocomplete": [ "jquery" ],
