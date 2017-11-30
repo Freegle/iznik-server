@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
-for ($i = 1; $i < 36; $i++) {
+for ($i = 400; $i < 533; $i++) {
     $date = date('Y-m-d', strtotime("$i days ago"));
     error_log($date);
 
@@ -14,6 +14,6 @@ for ($i = 1; $i < 36; $i++) {
     foreach ($groups as $group) {
         error_log("...{$group['nameshort']}");
         $s = new Stats($dbhr, $dbhm, $group['id']);
-        $s->generate($date);
+        $s->generate($date, [Stats::OUTCOMES]);
     }
 }

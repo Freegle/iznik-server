@@ -28,6 +28,7 @@ class Stats
     CONST SEARCHES = 'Searches';
     CONST ACTIVITY = 'Activity';
     CONST WEIGHT = 'Weight';
+    CONST OUTCOMES = 'Outcomes';
 
     CONST TYPE_COUNT = 1;
     CONST TYPE_BREAKDOWN = 2;
@@ -66,6 +67,16 @@ class Stats
 
     public function generate($date, $type = NULL)
     {
+        if ($type === NULL || in_array(Stats::OUTCOMES, $type)) {
+            $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_outcomes.msgid = messages_groups.msgid WHERE groupid = ? AND DATE(messages_outcomes.timestamp) = ? AND messages_outcomes.outcome IN (?, ?);", [
+                $this->groupid,
+                $date,
+                Message::OUTCOME_TAKEN,
+                Message::OUTCOME_RECEIVED
+            ])[0]['count'];
+            $this->setCount($date, Stats::OUTCOMES, $count);
+        }
+
         if ($type === NULL || in_array(Stats::APPROVED_MESSAGE_COUNT, $type)) {
             # Counts are a specific day
             $activity = 0;

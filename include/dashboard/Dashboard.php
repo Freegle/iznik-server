@@ -99,10 +99,9 @@ class Dashboard {
 
         # And the total successful outcomes per month.
         $mysqltime = date("Y-m-01", strtotime("13 months ago"));
-        $ret['OutcomesPerMonth'] = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count, CONCAT(YEAR(timestamp), '-', LPAD(MONTH(timestamp), 2, '0')) AS date FROM messages_outcomes INNER JOIN messages_groups ON messages_outcomes.msgid = messages_groups.msgid WHERE groupid IN (" . implode(',', $groupids) . ") AND messages_outcomes.timestamp > ? AND messages_outcomes.outcome IN (?, ?) GROUP BY date ORDER BY date ASC;", [
+        $ret['OutcomesPerMonth'] = $this->dbhr->preQuery("SELECT SUM(count) AS count, CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) AS date FROM stats WHERE groupid IN (" . implode(',', $groupids) . ") AND stats.date > ? AND stats.type = ? GROUP BY YEAR(date), MONTH(date) ORDER BY date ASC;", [
             $mysqltime,
-            Message::OUTCOME_TAKEN,
-            Message::OUTCOME_RECEIVED
+            Stats::OUTCOMES
         ]);
 
         if ($groupid) {
