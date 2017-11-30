@@ -10,7 +10,9 @@ if (!(($call == 'image' || $call == 'profile') && $type == 'GET')) {
     @header('Content-type: application/json');
 }
 
-@header('Access-Control-Allow-Origin: *');
+$dom = array_key_exists('HTTP_ORIGIN', $_SERVER) ? $_SERVER['HTTP_ORIGIN'] : NULL;
+$allow = $dom ? "$dom" : '*';
+@header("Access-Control-Allow-Origin: $allow");
 @header('Access-Control-Allow-Headers: ' . $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
 @header('Access-Control-Allow-Credentials: true');
 @header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
