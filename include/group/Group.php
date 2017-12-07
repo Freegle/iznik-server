@@ -548,6 +548,11 @@ class Group extends Entity
                 'eventsallowed' => 1
             ];
 
+            # Sort so that we have a deterministic order for UT.
+            usort($others, function($a, $b) {
+                return(strcmp($a['email'], $b['email']));
+            });
+
             $thisone['settings']['configid'] = $member['configid'];
             $thisone['email'] = $email;
             $thisone['groupid'] = $member['groupid'];

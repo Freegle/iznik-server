@@ -212,8 +212,8 @@ class groupTest extends IznikTestCase {
         $membs = $g->getMembers();
         error_log(var_export($membs, TRUE));
         assertEquals('-testid1', $membs[0]['yahooUserId']);
-        assertEquals('test12@test.com', $membs[0]['email']);
-        assertEquals('test11@test.com', $membs[0]['otheremails'][0]['email']);
+        assertEquals('test11@test.com', $membs[0]['email']);
+        assertEquals('test12@test.com', $membs[0]['otheremails'][1]['email']);
 
         # Test that the merge history is there.
         $this->waitBackground();
@@ -285,11 +285,11 @@ class groupTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        $eid = $this->user->addEmail('test@test.com');
         $this->user->addMembership($id);
 
         # Error in preExec
-        $g = Group::get($this->dbhr, $this->dbhm, $id);
+        $g = Group::get($this->dbhm, $this->dbhm, $id);
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
                 "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
@@ -312,7 +312,7 @@ class groupTest extends IznikTestCase {
         $members = $g->getMembers();
         assertEquals(1, count($members));
         error_log("Members " . var_export($members, true));
-        assertEquals(0, count($members[0]['otheremails']));
+        assertEquals(1, count($members[0]['otheremails']));
 
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
@@ -335,7 +335,7 @@ class groupTest extends IznikTestCase {
 
         $members = $g->getMembers();
         assertEquals(1, count($members));
-        assertEquals(0, count($members[0]['otheremails']));
+        assertEquals(1, count($members[0]['otheremails']));
 
         error_log(__METHOD__ . " end");
     }

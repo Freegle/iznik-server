@@ -437,6 +437,10 @@ class Spam {
                 }
             }
 
+            uasort($others, function($a, $b) {
+                return(strcmp($a['email'], $b['email']));
+            });
+
             $spammer['user']['otheremails'] = $others;
 
             if ($spammer['byuserid']) {
