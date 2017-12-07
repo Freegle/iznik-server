@@ -87,7 +87,9 @@ function message() {
 
             if ($m) {
                 if ($_REQUEST['type'] == 'GET') {
-                    $atts = $m->getPublic($messagehistory, FALSE);
+                    # We get the message without checking access here to get the message body; then we will filter
+                    # using canSee.
+                    $atts = $m->getPublic($messagehistory, FALSE, TRUE);
                     $cansee = $m->canSee($atts);
 
                     # We want to return the groups info even if we can't see the message, so that we can tell them
