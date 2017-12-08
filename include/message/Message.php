@@ -2316,7 +2316,7 @@ class Message
                 $rc = $this->dbhm->preExec("UPDATE messages SET deleted = NOW(), messageid = NULL WHERE id = ?;", [ $this->id ]);
 
                 # Remove from the search index.
-                $this->s->delete($this->id);
+                $this->deindex();
             }
         }
 
@@ -2329,6 +2329,10 @@ class Message
             # Add into the search index.
             $this->s->add($this->id, $this->subject, strtotime($group['arrival']), $group['groupid']);
         }
+    }
+
+    public function deindex() {
+        $this->s->delete($this->id);
     }
 
     public function findEarlierCopy($groupid, $pendingid, $approvedid) {
