@@ -301,7 +301,7 @@ class Spam {
         $this->getSpamWords();
         foreach ($this->spamwords as $word) {
             if (strlen(trim($word['word'])) > 0) {
-                $exp = '/\b' . preg_quote($word['word']) . '\b/';
+                $exp = '/\b' . preg_quote($word['word']) . '\b/i';
                 if ($word['action'] == 'Spam' &&
                     preg_match($exp, $message) &&
                     (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {

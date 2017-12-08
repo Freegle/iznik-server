@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
 $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
-$messages = $dbhr->preQuery("SELECT chat_messages.*, users.fullname FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid WHERE chat_messages.date >= '$mysqltime';");
+$messages = $dbhr->preQuery("SELECT chat_messages.*, users.fullname FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid WHERE chat_messages.date >= '$mysqltime' AND reviewrequired = 1 AND reviewrejected = 0;");
 $total = count($messages);
 $count = 0;
 $spam = 0;
@@ -24,25 +24,11 @@ foreach ($messages as $message) {
 
     if ($gotcha) {
         $spam++;
-    } else {
-        $ham++;
-    }
-
-    $count++;
-
-    if ($message['reviewrejected'] && $u->isModerator()) {
-        error_log("Reset marked as rejected from mod #{$message['id']} review $gotcha from {$message['fullname']} snippet $snippet;");
-        $dbhm->preExec("UPDATE chat_messages SET reviewrejected = 0, reviewrequired = 0 WHERE id = ?;", [ $message['id']]);
-    }
-
-    if ($gotcha && !$message['reviewrejected'] && !$u->isModerator()) {
-        error_log("New spam for #{$message['id']} review $gotcha from {$message['fullname']} snippet $snippet");
+        error_log("Spam: $snippet");
         $dbhm->preExec("UPDATE chat_messages SET reviewrejected = 1, reviewrequired = 0 WHERE id = ?;", [ $message['id']]);
-    }
-
-    if (!$gotcha && !$message['reviewedby'] && $message['reviewrejected']) {
-        error_log("Reset spam for #{$message['id']} {$message['date']} review $gotcha from {$message['fullname']} snippet $snippet");
-        $dbhm->preExec("UPDATE chat_messages SET reviewrejected = 0, reviewrequired = 0 WHERE id = ?;", [ $message['id']]);
+    } else {
+        error_log("Not spam: $snippet");
+        $ham++;
     }
 }
 
