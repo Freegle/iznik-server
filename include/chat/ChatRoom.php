@@ -1305,6 +1305,7 @@ class ChatRoom extends Entity
                                             $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
                                         $sendname = $fromname;
                                     } else {
+                                        $url = $thisu->loginLink($site, $member['userid'], '/modtools/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
                                         $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
                                         $sendname = 'Reply All';
                                     }
