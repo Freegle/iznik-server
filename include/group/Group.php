@@ -1131,16 +1131,18 @@ class Group extends Entity
             }
         }
 
-        # Now find messages which are missing on the client, i.e. present in $collections but not present in
+        # Now find recent messages which are missing on the client, i.e. present in $collections but not present in
         # $messages.
         /** @var MessageCollection $c */
         foreach ($cs as $c) {
-            $sql = "SELECT id, source, fromaddr, yahoopendingid, yahooapprovedid, subject, date, messageid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;";
+            $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
+            $sql = "SELECT id, source, fromaddr, yahoopendingid, yahooapprovedid, subject, date, messageid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 WHERE messages_groups.arrival > ?;";
             $ourmsgs = $this->dbhr->preQuery(
                 $sql,
                 [
                     $this->id,
-                    $c->getCollection()[0]
+                    $c->getCollection()[0],
+                    $mysqltime
                 ]
             );
 
