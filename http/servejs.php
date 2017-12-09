@@ -1,4 +1,5 @@
 <?php
+# TODO Retire once moved to webpack.
 define('IZNIK_BASE', dirname(__FILE__) . '/..');
 
 # To improve performance on the client, we catch templates in the JS we serve up.  This avoids us fetching the
