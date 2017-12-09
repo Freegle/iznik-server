@@ -35,7 +35,8 @@ class Authority extends Entity
         'UTW' => 'Unitary Authority Ward',
         'WAE' => 'Welsh Assembly Electoral Region',
         'WAC' => 'Welsh Assembly Constituency',
-        'WMC' => 'Westminster Constituency'
+        'WMC' => 'Westminster Constituency',
+        'WST' => 'Waste Authority'
     ];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
