@@ -43,7 +43,7 @@ class ChatRoom extends Entity
     }
 
     # This can be overridden in UT.
-    public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html)
+    public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html, $fromuid = NULL)
     {
         $_SERVER['SERVER_NAME'] = USER_DOMAIN;
         $message = Swift_Message::newInstance()
@@ -60,6 +60,10 @@ class ChatRoom extends Entity
         $headers = $message->getHeaders();
 
         $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id, User::SRC_CHATNOTIF));
+
+        if ($fromuid) {
+            $headers->addTextHeader('X-Freegle-From-UID', $fromuid);
+        }
 
         return ($message);
     }
@@ -1118,6 +1122,7 @@ class ChatRoom extends Entity
                     $lastfrom = 0;
                     $lastmsg = NULL;
                     $justmine = TRUE;
+                    $fromuid = NULL;
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
                         $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
@@ -1208,6 +1213,7 @@ class ChatRoom extends Entity
                             if (!$lastmsg || $lastmsg != $thisone) {
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
+                                $fromuid = $messageu->getId();
 
                                 #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
                                 if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
@@ -1293,6 +1299,8 @@ class ChatRoom extends Entity
                             #   added.
                             $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
 
+                            $fromuid = NULL;
+
                             switch ($chattype) {
                                 case ChatRoom::TYPE_USER2USER:
                                     $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
@@ -1332,7 +1340,8 @@ class ChatRoom extends Entity
                                         $replyto,
                                         $subject,
                                         $textsummary,
-                                        $thisu->getOurEmail() ? $html : NULL);
+                                        $thisu->getOurEmail() ? $html : NULL,
+                                        $fromuid);
                                     $this->mailer($message);
 
                                     if ($ccit) {
