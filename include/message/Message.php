@@ -555,12 +555,8 @@ class Message
         #   - we're a member, or
         #   - we have publish consent
         # - it's a TrashNothing message (the TN TOS allows this).
-        # - it's not on any group and we're a mod (to allow access to chat message review bodies
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        $mod = $me && $me->isModerator();
-
         $role = $atts['myrole'];
-        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $this->getSourceheader() == Message::PLATFORM || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE || (count($atts['groups'] == 0 && $mod));
+        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $this->getSourceheader() == Message::PLATFORM || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE;
 
         if (!$cansee) {
             foreach ($atts['groups'] as $group) {

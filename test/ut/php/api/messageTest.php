@@ -65,6 +65,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'collection' => 'Approved'
         ]);
+        error_log("Message returned when logged out " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
         assertFalse(array_key_exists('fromuser', $ret['message']));
