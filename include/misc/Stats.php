@@ -390,7 +390,7 @@ class Stats
             $counts = $this->dbhr->preQuery($sql,
                 [
                     # Activity stats only start from when we started tracking searches.
-                    $type == Stats::ACTIVITY ? '2016-12-21' : $start,
+                    $type == Stats::ACTIVITY && strtotime($start) < strtotime('2016-12-21') ? '2016-12-21' : $start,
                     $end,
                     $type
                 ]);
