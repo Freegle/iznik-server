@@ -2,7 +2,6 @@
 define('IZNIK_BASE', dirname(__FILE__) . '/..');
 require_once('/etc/iznik.conf');
 require_once(IZNIK_BASE . '/include/config.php');
-require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
 header("Cache-Control: max-age=0, no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
