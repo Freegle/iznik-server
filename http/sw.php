@@ -9,20 +9,9 @@ header("Expires: Wed, 11 Jan 1984 05:00:00 GMT");
 header('Content-type: text/javascript'); 
 
 ?>
-// Our ServiceWorker is used for two purposes:
-// - To hold the push subscription.  Unfortunately localStorage isn't allowed in service workers and
-//   so we need to use indexedDB.  This allows us to receive push notifications from the server, and display them to
-//   the client (most useful on mobile).
-// - To cache our application to speed up page loads and (in time) work offline.  The use of service workers is a
-//   better approach than using appcache, which is initially appealing but turns into a nightmare.  The great thing
-///  about service workers is that a fetch occurs whenever the browser wants to retrieve something.  This is fantastic,
-//   because it allows us to intercept them and return cached versions.  There's a nice tutorial about this
-//   at https://www.smashingmagazine.com/2016/02/making-a-service-worker/.
-
-var currentVersion = <?php echo getVersion(); ?>;
-var lastVersion = null;
-
-// Get our initial data for version and pushsub.
+// We hold the push subscription.  Unfortunately localStorage isn't allowed in service workers and
+// so we need to use indexedDB.  This allows us to receive push notifications from the server, and display them to
+// the client (most useful on mobile).
 const request = indexedDB.open( 'iznikDB', 1 );
 var db;
 var pushsub = null;
@@ -46,54 +35,6 @@ request.onsuccess = function() {
             console.log("Retrieved pushsub", pushsub);
         }
     }
-
-    var request2 =  objectStore.get('version');
-    request2.onsuccess = function(event) {
-        function preCache(opts) {
-            var cacheKey = cacheName('static', opts);
-            return caches.open(cacheKey)
-                .then(cache => cache.addAll(opts.staticCacheItems));
-        }
-
-        lastVersion = request2.result ? request2.result.value : null;
-        console.log("Retrieved version", lastVersion);
-
-        if (currentVersion != lastVersion) {
-            console.log("Version changed");
-            caches.keys().then(function (cacheKeys) {
-                    // We want to delete everything.
-                    console.log("Cache to delete", cacheKeys);
-                    cacheKeys.map(function (oldKey) {
-                    console.log("Delete", oldKey);
-                    caches.delete(oldKey);
-
-                    var request = db.transaction(['swdata'], 'readwrite')
-                        .objectStore('swdata')
-                        .put({id: 'version', value: currentVersion});
-
-                    request.onsuccess = function (e) {
-                        console.log("Saved new version", currentVersion);
-                    };
-
-                    request.onerror = function (e) {
-                        console.error("Failed to save new version", e);
-                        e.preventDefault();
-                    };
-
-                    // Now precache anything we want.
-                    preCache(cacheConfig);
-                });
-            });
-        } else {
-            // The version is the same.  Make sure we have anything we need in the cache.
-            console.log("Version unchanged");
-            preCache(cacheConfig);
-        }
-
-        request2.onerror = function(event) {
-            console.log("Get version error", event);
-        }
-    }
 };
 
 request.onupgradeneeded = function(event) {
@@ -105,20 +46,6 @@ request.onerror = function(event) {
     console.log("SW IndexedDB error", event);
 }
 
-self.addEventListener('install', function(event) {
-    console.log("SW installed");
-    function onInstall(event, opts) {
-        var cacheKey = cacheName('static', opts);
-        return caches.open(cacheKey).then(function (cache) {
-            return cache.addAll(opts.staticCacheItems);
-        });
-    }
-
-    event.waitUntil(onInstall(event, cacheConfig).then(function () {
-        return self.skipWaiting();
-    }));
-});
-
 self.addEventListener('activate', function(event) {
     console.log("SW activated");
     return self.clients.claim();
@@ -128,18 +55,6 @@ self.addEventListener('message', function(event) {
     console.log("SW got message", event.data, event.data.type);
     
     switch(event.data.type) {
-        case 'clearcache': {
-            console.log("SW Clear cache");
-            caches.keys().then(function (cacheKeys) {
-                // We want to delete everything.
-                console.log("SW Cache to delete", cacheKeys);
-                cacheKeys.map(function (oldKey) {
-                    caches.delete(oldKey);
-                });
-            });
-            break;
-        }
-
         case 'subscription': {
             // We have been passed our push notification subscription, which we may use to authenticate ourselves
             // to the server when processing notifications.
@@ -342,115 +257,4 @@ self.addEventListener('notificationclick', function(event) {
         if (clients.openWindow)
             return clients.openWindow(url + '?src=pushnotif');
     }));
-});
-
-// Now we're into our fetch cache.
-//
-
-function cacheName(key, opts) {
-    // We just use the key; when our version number changes we will wipe out the cache, so we don't need
-    // versioning in here.
-    return key;
-}
-
-function addToCache(cacheKey, request, response) {
-    if (response.ok) {
-        var copy = response.clone();
-        caches.open(cacheKey).then(function (cache) {
-            try {
-                cache.put(request, copy);
-            } catch (e) {
-                console.error("SW cache error", e.message);
-            }
-        });
-    }
-    return response;
-}
-
-function fetchFromCache(event) {
-    return caches.match(event.request).then(function (response) {
-        if (!response) {
-            // console.log("SW not in cache", event.request.url);
-            throw Error(event.request.url + ' not found in cache');
-        }
-
-        //console.log("SW found in cache", event.request.url, response);
-        response.fromCache = true;
-
-        return response;
-    });
-}
-
-function offlineResponse(resourceType, opts) {
-    if (resourceType === 'image') {
-        return new Response(opts.offlineImage, { headers: { 'Content-Type': 'image/svg+xml' } });
-    } else if (resourceType === 'content') {
-        return caches.match(opts.offlinePage);
-    }
-    return undefined;
-}
-
-self.addEventListener('fetch', function(event) {
-
-try {
-
-    function shouldHandleFetch(event, opts) {
-        // We want to cache:
-        // - GET requests only
-        // - Not the SW itself.
-        // - Any file on our own domain which is not an API call, or an image (because
-        //   we generate a lot of images and might fill our cache).
-        var request = event.request;
-        var url = new URL(request.url);
-        var p = url.pathname.lastIndexOf('/');
-        var dot = url.pathname.indexOf('.', p+1);
-        var ret = request.method === 'GET' &&
-            (url.origin === self.location.origin &&
-                dot != -1 &&
-                url.pathname.indexOf('sw.js') === -1 &&
-                url.pathname.indexOf('img_') === -1 &&
-                url.pathname.indexOf('/api') === -1 &&
-                url.pathname.indexOf('/maintenance') === -1 &&
-                url.pathname.indexOf('/subscribe') === -1)
-        ;
-        // console.log("Should handle", url, ret);
-
-        return(ret);
-    }
-
-    function onFetch(event, opts) {
-        var request = event.request;
-        var acceptHeader = request.headers.get('Accept');
-        var resourceType = 'static';
-        var cacheKey;
-
-        if (acceptHeader.indexOf('text/html') !== -1) {
-            resourceType = 'content';
-        } else if (acceptHeader.indexOf('image') !== -1) {
-            resourceType = 'image';
-        }
-
-        cacheKey = cacheName(resourceType, opts);
-
-        // Whatever the resourceType, we want to return a cached version first if we have it.
-        event.respondWith(fetchFromCache(event).catch(function () {
-            return fetch(request);
-        }).then(function (response) {
-            if (!response.fromCache) {
-                // Only add to the cache if we didn't get it from there.
-                return addToCache(cacheKey, request, response);
-            } else {
-                return response;
-            }
-        }).catch(function () {
-            return offlineResponse(resourceType, opts);
-        }));
-    }
-
-    if (shouldHandleFetch(event, cacheConfig)) {
-        onFetch(event, cacheConfig);
-    }
-} catch (e) {
-    console.log("Fetch exception", e);
-}
 });

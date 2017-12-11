@@ -56,6 +56,10 @@ if (count($opts) == 0) {
                                 return document.body.outerHTML;
                             });
                             fs.write('{$file_name}', bodyhtml, 'w');
+                            var headhtml = page.evaluate(function() {
+                                return document.head.innerHTML;
+                            });
+                            fs.write('{$file_name}.head', headhtml, 'w');
                             var title = page.evaluate(function() {
                                 var tits = document.getElementsByClassName('js-pagetitle');
                                 if (tits.length > 0) {
@@ -100,13 +104,15 @@ if (count($opts) == 0) {
         file_put_contents($job_file, $src);
         $op = [];
         exec("phantomjs --ssl-protocol=tlsv1 $job_file 2>&1", $op);
-        $html = file_get_contents($file_name);
+        $body = trim(file_get_contents($file_name));
+        $head = trim(file_get_contents($file_name . ".head"));
         $title = file_get_contents("$file_name.title");
         $desc = file_get_contents("$file_name.description");
 
-        if ($html && strlen($html) > 100) {
-            $rc = $dbhm->preExec("UPDATE prerender SET html = ?, title = ?, description = ? WHERE id = ?;", [
-                $html,
+        if ($body && strlen($body) > 100) {
+            $rc = $dbhm->preExec("UPDATE prerender SET html = ?, head = ?, title = ?, description = ? WHERE id = ?;", [
+                $body,
+                $head,
                 strlen($title) > 0 ? $title : NULL,
                 strlen($desc) > 0 ? $desc : NULL,
                 $page['id']]);
@@ -116,6 +122,7 @@ if (count($opts) == 0) {
                 error_log("...failed to save");
             }
             unlink($file_name);
+            unlink("$file_name.head");
             unlink("$file_name.title");
             unlink("$file_name.description");
             unlink($job_file);
