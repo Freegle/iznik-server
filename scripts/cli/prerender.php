@@ -103,7 +103,7 @@ if (count($opts) == 0) {
 
         file_put_contents($job_file, $src);
         $op = [];
-        exec("phantomjs --ssl-protocol=tlsv1 $job_file 2>&1", $op);
+        exec("phantomjs --ssl-protocol=any $job_file 2>&1", $op);
         $body = trim(file_get_contents($file_name));
         $head = trim(file_get_contents($file_name . ".head"));
         $title = file_get_contents("$file_name.title");
