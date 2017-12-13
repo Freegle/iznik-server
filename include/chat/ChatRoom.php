@@ -1088,7 +1088,6 @@ class ChatRoom extends Entity
             $lastmaxmailed = $r->lastMailedToAll();
             $maxmailednow = 0;
             $notmailed = $r->getMembersStatus($chatatts['lastmsg']);
-            $ccit = FALSE;
 
             #error_log("Notmailed " . count($notmailed));
 
@@ -1236,7 +1235,6 @@ class ChatRoom extends Entity
                                     $path = $a->getPath(FALSE);
                                     $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
                                     $textsummary .= "Here's a picture: $path\r\n";
-                                    $ccit = TRUE;
                                 } else if ($collurl) {
                                     $textsummary .= $thisone . "\r\n$collurl\r\n";
                                     $htmlsummary .= nl2br($thisone) . '<br><br><a href="' . $collurl . '">' . $collurl . "</a><br>";
@@ -1299,8 +1297,6 @@ class ChatRoom extends Entity
                             #   added.
                             $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
 
-                            $fromuid = NULL;
-
                             switch ($chattype) {
                                 case ChatRoom::TYPE_USER2USER:
                                     $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
@@ -1343,11 +1339,6 @@ class ChatRoom extends Entity
                                         $thisu->getOurEmail() ? $html : NULL,
                                         $fromuid);
                                     $this->mailer($message);
-
-                                    if ($ccit) {
-                                        error_log("CC image message");
-                                        $message->setBcc('log@ehibbert.org.uk');
-                                    }
 
                                     $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                         $lastmsgemailed,
