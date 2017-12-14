@@ -1751,6 +1751,7 @@ class User extends Entity
             $modships = $me ? $me->getModeratorships() : [];
             $modships = count($modships) == 0 ? [0] : $modships;
             $sql = "SELECT COUNT(*) AS count FROM `users_modmails` WHERE userid = ? AND groupid IN (" . implode(',', $modships) . ");";
+            error_log("Find modmails $sql");
             $modmails = count($modships) == 0 ? [ [ 'count' => 0 ]] : $this->dbhr->preQuery($sql, [ $this->id ]);
             $atts['modmails'] = $modmails[0]['count'];
 
