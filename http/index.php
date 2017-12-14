@@ -97,7 +97,7 @@ if (pres('src', $_REQUEST)) {
 # use that.  Otherwise we just use what's in index.html.
 $prerender = NULL;
 
-error_log("Consider pre-render " . presdef('id', $_SESSION, 'no id'));
+#error_log("Consider pre-render " . presdef('id', $_SESSION, 'no id'));
 
 if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
     $url = "https://" . $_SERVER['HTTP_HOST'] . presdef('REQUEST_URI', $_SERVER, '');
@@ -117,12 +117,12 @@ if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
 }
 
 if ($prerender) {
-    error_log("Pre-render $url");
+    #error_log("Pre-render $url");
     $head = $prerender['head'];
     $body = $prerender['html'];
     echo "<!DOCTYPE HTML><html><head>$head</head>$body</html>";
 } else {
-    error_log("No pre-render");
+    #error_log("No pre-render");
     $indexhtml = file_get_contents('./index.html');
     echo $indexhtml;
 }
