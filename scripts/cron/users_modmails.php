@@ -24,10 +24,10 @@ foreach ($logs as $log) {
 # Prune old ones.
 $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
 
-$counts = $dbhr->preQuery("SELECT id FROM users_modmails WHERE timestamp < ?;", [
+$logs = $dbhr->preQuery("SELECT id FROM users_modmails WHERE timestamp < ?;", [
     $mysqltime
 ]);
 
 foreach ($logs as $log) {
-    $dbhm->preExec("DELETE FROM logs WHERE id = ?;", [ $log['id'] ], FALSE);
+    $dbhm->preExec("DELETE FROM users_modmails WHERE id = ?;", [ $log['id'] ], FALSE);
 }
