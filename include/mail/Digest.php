@@ -165,7 +165,7 @@ class Digest
                     $msghtml = digest_message($msg, $msg['id'], TRUE, $replyto);
                     $html = digest_single($msghtml,
                         'https://' . USER_SITE,
-                        USERLOGO,
+                        'https://www.ilovefreegle.org/images/user_christmas_animated.gif',
                         $gatts['namedisplay'],
                         $msg['subject']
                     );
@@ -223,7 +223,7 @@ class Digest
                     $unavailablehtml,
                     'https://' . USER_SITE,
                     USER_DOMAIN,
-                    USERLOGO,
+                    'https://www.ilovefreegle.org/images/user_christmas_animated.gif',
                     $gatts['namedisplay'],
                     $subject,
                     $gatts['namedisplay'],
