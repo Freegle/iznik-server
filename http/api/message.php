@@ -59,7 +59,7 @@ function message() {
                             $m = NULL;
                         } else {
                             $groups = $m->getGroups();
-                            if (count($groups) == 0 || !$groupid || !$me->isModOrOwner($m->getGroups()[0])) {
+                            if (count($groups) == 0 || !$groupid || ($me && !$me->isModOrOwner($m->getGroups()[0]))) {
                                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
                                 $m = NULL;
                             }
@@ -88,7 +88,7 @@ function message() {
             if ($m) {
                 if ($_REQUEST['type'] == 'GET') {
                     $atts = $m->getPublic($messagehistory, FALSE);
-                    $mod = $me->isModerator();
+                    $mod = $me && $me->isModerator();
 
                     if ($mod && count($atts['groups']) == 0) {
                         $atts['message'] = $m->getPrivate('message');
