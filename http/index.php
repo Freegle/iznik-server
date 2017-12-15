@@ -108,7 +108,7 @@ if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
     #$url = str_replace('https://iznik.', 'https://www.', $url);
     #$url = str_replace('https://dev.', 'https://www.', $url);
 
-    error_log("Check for pre-render $url");
+    #error_log("Check for pre-render $url");
     $prerenders = $dbhr->preQuery("SELECT * FROM prerender WHERE url = ?;", [ $url ]);
 
     if (count($prerenders) > 0 && $prerenders[0]['html']) {
