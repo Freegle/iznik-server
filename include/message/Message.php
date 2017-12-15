@@ -846,8 +846,8 @@ class Message
 
         if ($role == User::ROLE_NONMEMBER) {
             # For non-members we want to strip out any potential phone numbers or email addresses.
-            $ret['textbody'] = preg_replace('/[0-9]{4,}/', 'xxx', $ret['textbody']);
-            $ret['textbody'] = preg_replace('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i', 'xxx@xxx.com', $ret['textbody']);
+            $ret['textbody'] = preg_replace('/[0-9]{4,}/', '***', $ret['textbody']);
+            $ret['textbody'] = preg_replace('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i', '***@***.com', $ret['textbody']);
 
             # We can't do this in HTML, so just zap it.
             $ret['htmlbody'] = NULL;
