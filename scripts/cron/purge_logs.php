@@ -15,6 +15,9 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
+# Delete any old plugin work for non-Yahoo groups
+$dbhm->preExec("DELETE FROM `plugin` WHERE groupid IN (SELECT id FROM groups WHERE onyahoo = 0)");
+
 # Don't keep user creation logs indefinitely - the reason we created a user is only really relevant for diagnosis,
 error_log("Purge user creation logs");
 
