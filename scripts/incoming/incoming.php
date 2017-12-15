@@ -64,7 +64,7 @@ if (preg_match('/List-Unsubscribe: <mailto:(.*)-unsubscribe@yahoogroups.co/', $m
 
         error_log("Turn off incoming mails for $envto on $groupname => #$gid " . $g->getPrivate('nameshort'));
 
-        if (ourDomain($envto)) {
+        if (ourDomain($envto) && $g->onYahoo()) {
             # If we got such a mail, it means that we were an approved member at the time it was sent.  If we have a
             # message queued for a Yahoo membership, then this is a chance to send it.  It might be that we aren't
             # finding out about when a membership is approved because the group doesn't send files we recognise or
