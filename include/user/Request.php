@@ -82,7 +82,7 @@ class Request extends Entity
     public function listOutstanding() {
         $ret = [];
 
-        $requests = $this->dbhr->preQuery("SELECT id FROM users_requests WHERE completed IS NULL;");
+        $requests = $this->dbhr->preQuery("SELECT id FROM users_requests WHERE completed IS NULL AND paid = 1;");
 
         foreach ($requests as $request) {
             $r = new Request($this->dbhr, $this->dbhm, $request['id']);
