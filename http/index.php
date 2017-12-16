@@ -124,6 +124,125 @@ if ($prerender) {
 } else {
     #error_log("No pre-render");
     $indexhtml = file_get_contents('./index.html');
+
+    # We need to put in og: tags.
+    $title = SITE_NAME;
+    $desc = SITE_DESC;
+    $image = USERLOGO;;
+
+    if (preg_match('/\/explore\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # Individual group - preview with name, tagline, image.
+        require_once(IZNIK_BASE . '/include/group/Group.php');
+        $g = Group::get($dbhr, $dbhm);
+        $gid = $g->findByShortName($matches[1]);
+        if ($gid) {
+            $g = Group::get($dbhr, $dbhm, $gid);
+            $atts = $g->getPublic();
+            $groupdescdef = "Give and Get Stuff for Free on {$atts['namedisplay']}";
+
+            $title = $atts['namedisplay'];
+            $desc = presdef('tagline', $atts, $groupdescdef);
+            $image = presdef('profile', $atts, USERLOGO);
+        }
+    } else if (preg_match('/\/message\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # Individual message - preview with subject and photo.
+        require_once(IZNIK_BASE . '/include/message/Message.php');
+        $m = new Message($dbhr, $dbhm, intval($matches[1]));
+        if ($m->getID()) {
+            $atts = $m->getPublic();
+
+            if ($m->canSee($atts)) {
+                $rsptext = '';
+                if ($m->getType() == Message::TYPE_OFFER) {
+                    $rsptext = "Interested?  Click here to reply.  Everything on Freegle is free.  ";
+                } else if ($m->getType() == Message::TYPE_WANTED) {
+                    $rsptext = "Got one?  Click here to reply.  Everything on Freegle is free.  ";
+                }
+
+                $title = $atts['subject'];;
+                $desc = $rsptext;
+                $image = (count($atts['attachments']) > 0 && pres('path', $atts['attachments'][0])) ? $atts['attachments'][0]['path'] : USERLOGO;
+            }
+        }
+    } else if (preg_match('/\/communityevent\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # Community event - preview with title and description
+        require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+        $e = new CommunityEvent($dbhr, $dbhm, intval($matches[1]));
+
+        if ($e->getID()) {
+            $atts = $e->getPublic();
+            $photo = presdef('photo', $atts, NULL);
+
+            $title = $atts['title'];
+            $desc = $atts['title'];
+            $image = $photo ? $photo['path'] : USERLOGO;
+        }
+    } else if (preg_match('/\/story\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # Story - preview with headline and description
+        require_once(IZNIK_BASE . '/include/user/Story.php');
+        $s = new Story($dbhr, $dbhm, intval($matches[1]));
+
+        if ($s->getID()) {
+            $atts = $s->getPublic();
+            $photo = presdef('photo', $atts, NULL);
+
+            $title = $atts['headline'];
+            $desc = "Click to read more";
+            $image = $photo ? $photo['path'] : USERLOGO;
+        }
+    } else if (preg_match('/\/chat\/(.*)\/external/', $_SERVER["REQUEST_URI"], $matches)) {
+        # External link to a chat reply.
+        require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+
+        $title = "Click to read your reply";
+        $desc = "We passed on your message and got a reply - click here to read it.";
+    } else if (preg_match('/\/newsfeed\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # External link to a newsfeed thread.
+        require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
+        $n = new Newsfeed($dbhr, $dbhm, $matches[1]);
+
+        $title = 'A discussion on ' . SITE_NAME;
+        $desc = '';
+        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png?a=1";
+
+        if ($n->getId()) {
+            $atts = $n->getPublic();
+            $desc = preg_replace('/\\\\\\\\u.*\\\\\\\\u/', '', $atts['message']);
+
+            if ($atts['user']) {
+                $title = $atts['user']['displayname'] . "'s discussion on " . SITE_NAME;
+                $image = $atts['user']['profile']['url'];
+            }
+        }
+    } else if (preg_match('/\/streetwhack(\/.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        $title = "Streetwhack!";
+        $desc = "How popular is your streetname?  Is it a streetwhack - a one-off?  Or are there lots across the UK?  Find out now...";
+        $count = presdef(1, $matches, NULL);
+        $count = $count ? str_replace('/', '', $count) : NULL;
+
+        if ($count) {
+            $p = strpos($count, '?');
+            $count = $p != -1 ? substr($count, 0, $p) : $count;
+        }
+
+        $countdesc = "";
+        if ($count == 1) {
+            $countdesc = "I'm a streetwhack!  Are you?\n\n";
+        } else if ($count > 0) {
+            $countdesc = "$count streets across the UK have the same name as mine.  How about you?\n\n";
+        }
+
+        $desc = "$countdesc $desc";
+    }
+
+    # Splice them in.
+    $title = htmlentities($title);
+    $desc = htmlentities(preg_replace("/[\r\n]*/","",$desc));
+
+    $indexhtml = preg_replace('/\<title\>.*?\<\/title\>/', "<title>" . htmlentities($title) . "</title>", $indexhtml);
+    $prehead = '<meta itemprop="title" content="' . $title . '"/><meta name="description" content="' . $desc . '"/><meta property="og:description" content="' . $desc . '" /><meta property="og:title" content="' . $title . '"/><meta property="og:image" content="' . $image . '"/>';
+    $indexhtml = str_replace('</head>', "$prehead</head>", $indexhtml);
+
     echo $indexhtml;
 }
 ?>
