@@ -1480,7 +1480,7 @@ class User extends Entity
             # Find the group of which we are a member which is closest to our location.  We do this because generally
             # the number of groups we're in is small and therefore this will be quick, whereas the groupsNear call is
             # fairly slow.
-            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND (poly IS NOT NULL OR polyofficial IS NOT NULL) ORDER BY ST_distance(POINT(?, ?), GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END)) ASC LIMIT 1;";
+            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND (poly IS NOT NULL OR polyofficial IS NOT NULL) AND onmap = 1 ORDER BY ST_distance(POINT(?, ?), GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END)) ASC LIMIT 1;";
             $groups = $this->dbhr->preQuery($sql, [
                 $this->id,
                 $lng,
