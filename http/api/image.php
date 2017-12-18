@@ -13,6 +13,7 @@ function image() {
     $communityevent = presdef('communityevent', $_REQUEST, NULL);
     $chatmessage = presdef('chatmessage', $_REQUEST, NULL);
     $user = presdef('user', $_REQUEST, NULL);
+    $newsfeed = presdef('newsfeed', $_REQUEST, NULL);
 
     $sizelimit = 800;
     
@@ -31,6 +32,9 @@ function image() {
     } else if ($user) {
         $type = Attachment::TYPE_USER;
         $shorttype = '_u';
+    } else if ($newsfeed) {
+        $type = Attachment::TYPE_NEWSFEED;
+        $shorttype = '_f';
     } else {
         $type = Attachment::TYPE_MESSAGE;
         $shorttype = '';

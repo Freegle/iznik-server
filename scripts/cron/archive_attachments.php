@@ -13,7 +13,21 @@ $lockh = lockScript(basename(__FILE__));
 # place to store large amounts of image data);
 $sql = "SELECT id FROM chat_images WHERE archived = 0;";
 $atts = $dbhr->preQuery($sql);
-error_log(count($atts) . " to archive");
+error_log(count($atts) . " chat images to archive");
+$count = 0;
+$total = count($atts);
+
+foreach ($atts as $att) {
+    $a = new Attachment($dbhr, $dbhm, $att['id'], Attachment::TYPE_CHAT_MESSAGE);
+    $a->archive();
+
+    $count++;
+    error_log("...$count / $total");
+}
+
+$sql = "SELECT id FROM newsfeed_images WHERE archived = 0;";
+$atts = $dbhr->preQuery($sql);
+error_log(count($atts) . " newsfeed images to archive");
 $count = 0;
 $total = count($atts);
 

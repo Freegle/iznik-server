@@ -281,6 +281,15 @@ class Newsfeed extends Entity
                 }
             }
 
+            if (pres('imageid', $entry)) {
+                $a = new Attachment($this->dbhr, $this->dbhm, $entry['imageid'], Attachment::TYPE_NEWSFEED);
+
+                $entry['image'] = [
+                    'id' => $entry['imageid'],
+                    'path' => $a->getPath(FALSE),
+                    'paththumb' => $a->getPath(TRUE)
+                ];
+            }
 
             $entry['timestamp'] = ISODate($entry['timestamp']);
 

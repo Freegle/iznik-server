@@ -26,13 +26,13 @@ class Attachment
         return $this->id;
     }
 
-    
     const TYPE_MESSAGE = 'Message';
     const TYPE_GROUP = 'Group';
     const TYPE_NEWSLETTER = 'Newsletter';
     const TYPE_COMMUNITY_EVENT = 'CommunityEvent';
     const TYPE_CHAT_MESSAGE = 'ChatMessage';
     const TYPE_USER = 'User';
+    const TYPE_NEWSFEED = 'Newsfeed';
 
     /**
      * @return mixed
@@ -60,6 +60,7 @@ class Attachment
             case Attachment::TYPE_COMMUNITY_EVENT: $name = 'cimg'; break;
             case Attachment::TYPE_CHAT_MESSAGE: $name = 'mimg'; break;
             case Attachment::TYPE_USER: $name = 'uimg'; break;
+            case Attachment::TYPE_NEWSFEED: $name = 'fimg'; break;
         }
 
         $name = $thumb ? "t$name" : $name;
@@ -98,6 +99,7 @@ class Attachment
             case Attachment::TYPE_COMMUNITY_EVENT: $this->table = 'communityevents_images'; $this->idatt = 'eventid'; break;
             case Attachment::TYPE_CHAT_MESSAGE: $this->table = 'chat_images'; $this->idatt = 'chatmsgid'; break;
             case Attachment::TYPE_USER: $this->table = 'users_images'; $this->idatt = 'userid'; break;
+            case Attachment::TYPE_NEWSFEED: $this->table = 'newsfeed_images'; $this->idatt = 'newsfeedid'; break;
         }
 
         if ($id) {
@@ -168,6 +170,7 @@ class Attachment
                 switch ($this->type) {
                     case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
                     case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
+                    case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
                 }
 
                 if ($name) {
@@ -225,6 +228,7 @@ class Attachment
                 switch ($this->type) {
                     case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
                     case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
+                    case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
                 }
 
                 $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";

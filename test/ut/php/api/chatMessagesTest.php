@@ -302,7 +302,7 @@ class chatMessagesAPITest extends IznikAPITestCase
                 'type' => 'image/jpeg'
             ],
             'chatmessage' => 1,
-            'imgtype' => 'ChatMessage'
+            'imgtype' => Attachment::TYPE_CHAT_MESSAGE
         ]);
 
         assertEquals(0, $ret['ret']);
