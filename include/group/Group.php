@@ -1279,7 +1279,7 @@ class Group extends Entity
                 $group['modsmail'] = $group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
             }
 
-            if ($support && $group['authorityid']) {
+            if ($support && pres('authorityid', $group)) {
                 $auths = $this->dbhr->preQuery("SELECT * FROM authorities WHERE id = ?;", [
                     $group['authorityid']
                 ]);
