@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 global $dbhr, $dbhm;
 
 # Legacy code to redirect old plugin links to new explore links.
-$id = presdef('groupid', $_REQUEST);
+$id = presdef('groupid', $_REQUEST, 0);
 
 if ($id) {
     $g = new Group($dbhr, $dbhm, $id);
