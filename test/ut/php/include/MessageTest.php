@@ -471,7 +471,7 @@ And something after it.', $stripped);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $atts = $m->getPublic();
-        assertEquals('Hey. xxx xxx and xxx@xxx.com.', $atts['textbody']);
+        assertEquals('Hey. *** *** and ***@***.com.', $atts['textbody']);
 
         error_log(__METHOD__ . " end");
     }
