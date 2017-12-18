@@ -72,6 +72,7 @@ function newsfeed() {
                 $replyto = pres('replyto', $_REQUEST) ? intval($_REQUEST['replyto']) : NULL;
                 $action = presdef('action', $_REQUEST, NULL);
                 $reason = presdef('reason', $_REQUEST, NULL);
+                $imageid = intval(presdef('imageid', $_REQUEST, NULL));
 
                 if ($action == 'Love') {
                     $n->like();
@@ -162,7 +163,7 @@ function newsfeed() {
                     $s = new Spam($dbhr, $dbhm);
                     $spammers = $s->getSpammerByUserid($me->getId());
                     if (!$spammers) {
-                        $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
+                        $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, $imageid, NULL, $replyto, NULL);
                     }
 
                     $ret = [

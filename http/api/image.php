@@ -19,25 +19,18 @@ function image() {
     
     if ($chatmessage) {
         $type = Attachment::TYPE_CHAT_MESSAGE;
-        $shorttype = '_m';
     } else if ($communityevent) {
         $type = Attachment::TYPE_COMMUNITY_EVENT;
-        $shorttype = '_c';
     } else if ($newsletter) {
         $type = Attachment::TYPE_NEWSLETTER;
-        $shorttype = '_n';
     } else if ($group) {
         $type = Attachment::TYPE_GROUP;
-        $shorttype = '_g';
     } else if ($user) {
         $type = Attachment::TYPE_USER;
-        $shorttype = '_u';
     } else if ($newsfeed) {
         $type = Attachment::TYPE_NEWSFEED;
-        $shorttype = '_f';
     } else {
         $type = Attachment::TYPE_MESSAGE;
-        $shorttype = '';
     }
 
     switch ($_REQUEST['type']) {
