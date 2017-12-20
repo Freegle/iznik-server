@@ -21,9 +21,6 @@ class Story extends Entity
     const LIKE = 'Like';
     const UNLIKE = 'Unlike';
 
-    # TODO Generic
-    private $exclude = [ 'freecycle', 'freecycling' ];
-
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'users_stories', 'story', $this->publicatts);
@@ -127,6 +124,7 @@ class Story extends Entity
 
     public function getForReview($groupids, $newsletter) {
         $sql = $newsletter ? ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC") : ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (" . implode(',', $groupids) . ") AND reviewed = 0 ORDER BY date DESC");
+        error_log("Storyies $sql");
         $ids = $this->dbhr->preQuery($sql);
         $ret = [];
 
@@ -139,12 +137,25 @@ class Story extends Entity
     }
 
     public function getReviewCount($newsletter) {
-        $sql = $newsletter ? "SELECT COUNT(DISTINCT(users_stories.id)) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC" : ("SELECT COUNT(DISTINCT users_stories.id) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner')) AND reviewed = 0 ORDER BY date DESC;");
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
-        $ids = $this->dbhr->preQuery($sql, [
-            $myid
-        ]);
+
+        if ($newsletter) {
+            $sql = "SELECT COUNT(DISTINCT(users_stories.id)) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC";
+        } else {
+            $mygroups = $me->getMemberships(TRUE);
+            $groupids = [0];
+            foreach ($mygroups as $mygroup) {
+                # This group might have turned stories off.
+                $g = new Group($this->dbhr, $this->dbhm, $mygroup['id']);
+                if ($g->getSetting('stories', 1)) {
+                    $groupids[] = $mygroup['id'];
+                }
+            }
+
+            $sql = "SELECT COUNT(DISTINCT users_stories.id) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (" . implode(',', $groupids) . ") AND reviewed = 0 ORDER BY date DESC;";
+        }
+
+        $ids = $this->dbhr->preQuery($sql);
         return($ids[0]['count']);
     }
 
@@ -167,17 +178,8 @@ class Story extends Entity
             if (!$story) {
                 unset($thisone['story']);
             }
-            $include = TRUE;
 
-            foreach ($this->exclude as $word) {
-                if (stripos($thisone['headline'], $word) !== FALSE || (pres('story', $thisone) && stripos($thisone['story'], $word) !== FALSE)) {
-                    $include = FALSE;
-                }
-            }
-
-            if ($include) {
-                $ret[] = $thisone;
-            }
+            $ret[] = $thisone;
         }
 
         return($ret);
@@ -263,20 +265,10 @@ class Story extends Entity
             $s = new Story($this->dbhr, $this->dbhm, $story['id']);
             $atts = $s->getPublic();
 
-            $include = TRUE;
-
-            foreach ($this->exclude as $word) {
-                if (stripos($atts['headline'], $word) !== FALSE || (pres('story', $atts) && stripos($atts['story'], $word) !== FALSE)) {
-                    $include = FALSE;
-                }
-            }
-
-            if ($include) {
-                $html .= story_one($atts['groupname'], $atts['headline'], $atts['story']);
-                $text = $atts['headline'] . "\nFrom a freegler on {$atts['groupname']}\n\n{$atts['story']}\n\n";
-                $this->dbhm->preExec("UPDATE users_stories SET mailedtocentral = 1 WHERE id = ?;", [ $story['id'] ]);
-                $count++;
-            }
+            $html .= story_one($atts['groupname'], $atts['headline'], $atts['story']);
+            $text = $atts['headline'] . "\nFrom a freegler on {$atts['groupname']}\n\n{$atts['story']}\n\n";
+            $this->dbhm->preExec("UPDATE users_stories SET mailedtocentral = 1 WHERE id = ?;", [ $story['id'] ]);
+            $count++;
         }
 
         if ($count > 0) {
@@ -331,17 +323,7 @@ class Story extends Entity
                 $s = new Story($this->dbhr, $this->dbhm, $story['id']);
                 $atts = $s->getPublic();
 
-                $include = TRUE;
-
-                foreach ($this->exclude as $word) {
-                    if (stripos($atts['headline'], $word) !== FALSE || (pres('story', $atts) && stripos($atts['story'], $word) !== FALSE)) {
-                        $include = FALSE;
-                    }
-                }
-
-                if ($include) {
-                    $count++;
-                }
+                $count++;
 
                 $n->addArticle(Newsletter::TYPE_ARTICLE, $count, story_one($atts['groupname'], $atts['headline'], $atts['story'], FALSE), NULL);
                 $this->dbhm->preExec("UPDATE users_stories SET mailedtomembers = 1 WHERE id = ?;", [ $story['id'] ]);
