@@ -178,6 +178,66 @@ class userAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testHoliday() {
+        error_log(__METHOD__);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'groupid' => $this->groupid,
+            'onholidaytill' => '2017-12-25'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = ?;", [ $this->uid ]);
+        User::clearCache($this->uid);
+
+        # Shouldn't be able to do this as a member
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'groupid' => $this->groupid,
+            'onholidaytill' => '2017-12-25'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid2
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertFalse(pres('onholidaytill', $ret['user']));
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'groupid' => $this->groupid,
+            'onholidaytill' => '2017-12-25'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid2,
+            'onholidaytill' => '2017-12-25'
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals('2017-12-25T00:00:00Z', $ret['user']['onholidaytill']);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'groupid' => $this->groupid,
+            'onholidaytill' => NULL
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid2
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertFalse(pres('onholidaytill', $ret['user']));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testPassword() {
         error_log(__METHOD__);
 

@@ -158,7 +158,7 @@ function user() {
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            #error_log("Owner? " . $me->isModOrOwner($groupid) . " admin " . $me->isAdminOrSupport());
+            #error_log("Owner of $groupid? " . $me->isModOrOwner($groupid) . " admin " . $me->isAdminOrSupport());
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
                 if ($suspectcount !== NULL) {
                     $u->setPrivate('suspectcount', $suspectcount);
@@ -240,6 +240,10 @@ function user() {
                     # Can only set the password of users, to prevent us using that to gain access to
                     # accounts with admin rights.
                     $u->addLogin(User::LOGIN_NATIVE, $u->getId(), $password);
+                }
+
+                if (array_key_exists('onholidaytill', $_REQUEST)) {
+                    $u->setPrivate('onholidaytill', presdef('onholidaytill', $_REQUEST, NULL));
                 }
 
                 $ret = [
