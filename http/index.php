@@ -121,10 +121,13 @@ if ($prerender) {
     $body = $prerender['html'];
     $indexhtml = "<!DOCTYPE HTML><html><head>$head</head>$body</html>";
 
-    # Google init map have put some stuff in which will cause JS errors if we execute as is.
-    $indexhtml = preg_replace('/\<script type="text\/javascript" charset="UTF-8" src="https:\/\/maps.googleapis.com.*?<\/script>/m', '', $indexhtml);
-    $indexhtml = preg_replace('/\<script src="https:\/\/apis.google.com\/\_.*?<\/script>/m', '', $indexhtml);
-    $indexhtml = str_replace(' gapi_processed="true"', '', $indexhtml);
+    if (!MODTOOLS) {
+        # Google init map have put some stuff in which will cause JS errors if we execute as is.
+        #$indexhtml = preg_replace('/\<script type="text\/javascript" charset="UTF-8" src="https:\/\/maps.googleapis.com.*?<\/script>/m', '', $indexhtml);
+        $indexhtml = preg_replace('/\<script src="https:\/\/apis.google.com\/\_.*?<\/script>/m', '', $indexhtml);
+        $indexhtml = str_replace(' gapi_processed="true"', '', $indexhtml);
+    }
+
     echo $indexhtml;
 } else {
     #error_log("No pre-render");
