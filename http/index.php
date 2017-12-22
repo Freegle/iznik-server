@@ -104,9 +104,8 @@ if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
 
     # If we are on the development (aka debug) or staging (aka dev) sites then pre-render the
     # corresponding info from the live site.
-    # TODO Enable this once webpack is live.
-    #$url = str_replace('https://iznik.', 'https://www.', $url);
-    #$url = str_replace('https://dev.', 'https://www.', $url);
+    $url = str_replace('https://iznik.', 'https://www.', $url);
+    $url = str_replace('https://dev.', 'https://www.', $url);
 
     #error_log("Check for pre-render $url");
     $prerenders = $dbhr->preQuery("SELECT * FROM prerender WHERE url = ?;", [ $url ]);
@@ -120,7 +119,13 @@ if ($prerender) {
     #error_log("Pre-render $url");
     $head = $prerender['head'];
     $body = $prerender['html'];
-    echo "<!DOCTYPE HTML><html><head>$head</head>$body</html>";
+    $indexhtml = "<!DOCTYPE HTML><html><head>$head</head>$body</html>";
+
+    # Google init map have put some stuff in which will cause JS errors if we execute as is.
+    $indexhtml = preg_replace('/\<script type="text\/javascript" charset="UTF-8" src="https:\/\/maps.googleapis.com.*?<\/script>/m', '', $indexhtml);
+    $indexhtml = preg_replace('/\<script src="https:\/\/apis.google.com\/\_.*?<\/script>/m', '', $indexhtml);
+    $indexhtml = str_replace(' gapi_processed="true"', '', $indexhtml);
+    echo $indexhtml;
 } else {
     #error_log("No pre-render");
     $indexhtml = file_get_contents('./index.html');
