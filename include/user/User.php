@@ -1644,6 +1644,7 @@ class User extends Entity
 
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
         $atts['settings']['notificationmails'] = array_key_exists('notificationmails', $atts['settings']) ? $atts['settings']['notificationmails'] : TRUE;
+        $atts['settings']['modnotifs'] = array_key_exists('modnotifs', $atts['settings']) ? $atts['settings']['modnotifs'] : 4;
 
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
@@ -2351,6 +2352,7 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE users_stories_likes SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_stories_requested SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_thanks SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE modnotifs SET userid = $id1 WHERE userid = $id2;");
 
                         # Merge chat rooms.  There might have be two separate rooms already, which means that we need
                         # to make sure that messages from both end up in the same one.

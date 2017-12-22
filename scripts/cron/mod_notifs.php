@@ -1,0 +1,182 @@
+<?php
+
+require_once dirname(__FILE__) . '/../../include/config.php';
+require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/mailtemplates/modnotif.php');
+
+date_default_timezone_set('Europe/London');
+$hour = date("H");
+
+error_log("Hour of day is $hour");
+$mail = [];
+
+#if ($hour >= 8 && $hour <= 21)
+{
+    $sql = "SELECT id, nameshort FROM groups WHERE `type` = ? AND onhere = 1 AND publish = 1 AND id IN (21354, 21589, 21555, 21423, 21306, 126539, 21548, 21261) ORDER BY nameshort ASC;";
+
+    $groups = $dbhr->preQuery($sql, [
+        Group::GROUP_FREEGLE
+    ]);
+
+    foreach ($groups as $group) {
+        error_log("{$group['nameshort']}");
+        $g = new Group($dbhr, $dbhm, $group['id']);
+        $mods = $g->getMods();
+
+        foreach ($mods as $mod) {
+            # Check if active.
+            $u = new User($dbhr, $dbhm, $mod);
+            $email = $u->getEmailPreferred();
+
+            $approved = $dbhr->preQuery("SELECT DATEDIFF(NOW(), MAX(arrival)) AS activeago FROM messages_groups WHERE groupid = ? AND approvedby = ?;", [ $group['id'], $mod ] );
+            #error_log("SELECT DATEDIFF(NOW(), MAX(arrival)) AS activeago FROM messages_groups WHERE groupid = {$group['id']} AND approvedby = $mod");
+            $lastactive = $approved[0]['activeago'];
+
+            if ($u->activeModForGroup($group['id'])) {
+                $minage = $u->getSetting('modnotifs', 4);
+
+                if (!$minage) {
+                    error_log("...off for mod $email " .  $u->getName() . " last active $lastactive");
+                } else if ($lastactive === '0' || (intval($lastactive) && $lastactive <= 90)) {
+                    error_log("...active mod $email " .  $u->getName() . " last active $lastactive");
+
+                    $c = new ChatMessage($dbhr, $dbhm);
+                    $cr = $c->getReviewCount($u, $minage > 0 ? $minage : NULL)['chatreview'];
+
+                    $now = date("Y-m-d H:i:s", time());
+                    $minageq = date("Y-m-d H:i:s", strtotime("$minage hours ago"));
+                    $earliest = date ("Y-m-d", strtotime("Midnight 31 days ago"));
+
+                    error_log("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = {$group['id']} AND messages_groups.collection = 'Pending' AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL " . ($minage > 0 ? "AND messages_groups.arrival < '$minageq'" : '') . ";");
+                    $work = [
+                        'Pending Messages' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL " . ($minage > 0 ? "AND messages_groups.arrival < '$minageq'" : '') . ";", [
+                            $group['id'],
+                            MessageCollection::PENDING
+                        ])[0]['count'],
+                        'Spam Messages' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.arrival >= '$earliest' AND messages_groups.deleted = 0 AND messages.heldby IS NULL " . ($minage > 0 ? "AND messages_groups.arrival < '$minageq'" : '') . ";", [
+                            $group['id'],
+                            MessageCollection::SPAM
+                        ])[0]['count'],
+                        'Pending Members' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NULL " . ($minage > 0 ? " AND memberships.added < '$minageq'" : '') . ";", [
+                            $group['id'],
+                            MembershipCollection::PENDING
+                        ])[0]['count'],
+                        'Pending Community Events' => $dbhr->preQuery("SELECT COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? " . ($minage > 0 ? "AND added < '$minageq'" : '') . ";", [
+                            $group['id'],
+                            $now
+                        ])[0]['count'],
+                        'Pending Volunteering Opportunities' => $dbhr->preQuery("SELECT COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid = ? AND volunteering.pending = 1 AND volunteering.deleted = 0 AND volunteering.expired = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) " . ($minage > 0 ? " AND added < '$minageq'" : '') . ";", [
+                            $group['id'],
+                            $now,
+                            $now
+                        ])[0]['count'],
+                        'Spam Members' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM users INNER JOIN memberships ON memberships.groupid = ? AND memberships.userid = users.id WHERE suspectcount > 0 " . ($minage > 0 ? " AND memberships.added < '$minageq'" : '') . ";", [
+                            $group['id'],
+                        ])[0]['count'],
+                    ];
+
+                    $total = 0;
+                    $nonzero = [];
+                    error_log(var_export($work, TRUE));
+                    foreach ($work as $key => $val) {
+                        if ($val) {
+                            $total += $val;
+                            $nonzero[$key] = $val;
+                        }
+                    }
+                    error_log(var_export($nonzero, TRUE));
+
+                    if ($total || $cr) {
+                        # Some work for this mod.
+                        if (!array_key_exists($mod, $mail)) {
+                            $mail[$mod] = [
+                                'email' => $email
+                            ];
+                        }
+
+                        if ($cr) {
+                            $mail[$mod]['Chat Messages for Review'] = $cr;
+                        }
+
+                        if ($total) {
+                            $mail[$mod]['groups'][$group['nameshort']] = $nonzero;
+                        }
+                    }
+                } else {
+                    error_log("...idle mod  $email " .  $u->getName() . " last active $lastactive min age $minage");
+                }
+            } else {
+                error_log("...backup mod $email " . $u->getName() . " last active $lastactive");
+            }
+        }
+    }
+}
+
+$textsumm = "There's work to do on ModTools:\r\n\r\n";
+$htmlsumm = '';
+$sent = 0;
+
+foreach ($mail as $id => $work) {
+    $cr = presdef('Chat Messages for Review', $work, 0);
+    $total = $cr;
+
+    if ($cr) {
+        $textsumm .= "You have $cr chat message" . ($cr > 1 ? 's': '') . " to review.\r\n\r\n";
+        $htmlsumm .= "<p>You have <b>$cr</b> chat message" . ($cr > 1 ? 's': '') . " to review.</p>";
+    }
+
+    foreach ($work['groups'] as $name => $groupwork) {
+        $textsumm .= "\r\n{$name}\r\n:";
+        $htmlsumm .= "<p>{$name}</p><ul>";
+
+        foreach ($groupwork as $key => $val) {
+            $textsumm .= "$key: $val\r\n";
+            $htmlsumm .= "<li>$key: <b>$val</b></li>";
+            $total += $val;
+        }
+
+        $htmlsumm .= '</ul>';
+    }
+
+
+    $textsumm .= "\r\nThese mails are fairly new.  You can control how often you get them or turn them off entirely from https://" . MOD_SITE . "/modtools/settings\r\n";
+
+    # Now see if this is what we have already sent.
+    $last = NULL;
+
+    $ms = $dbhr->preQuery("SELECT * FROM modnotifs WHERE userid = ?;", [
+        $id
+    ]);
+    foreach ($ms as $m) {
+        $last = $m['data'];
+    }
+
+    if ($textsumm != $last) {
+        $dbhm->preExec("REPLACE INTO modnotifs (userid, data) VALUES (?, ?);", [
+            $id,
+            $textsumm
+        ]);
+
+        $html = modnotif(MOD_SITE,  MODLOGO, $htmlsumm);
+
+        $message = Swift_Message::newInstance()
+            ->setSubject("MODERATE: $total thing" . ($total == 1 ? '' : 's') . " to do")
+            ->setFrom([NOREPLY_ADDR => 'ModTools'])
+            ->setReturnPath(NOREPLY_ADDR)
+            ->setTo([ 'edward@ehibbert.org.uk' => $u->getName() ])
+            ->setBody($textsumm)
+            ->addPart($html, 'text/html');
+
+        list ($transport, $mailer) = getMailer();
+        $mailer->send($message);
+
+        $sent++;
+    }
+}
+
+error_log("Sent $sent");
+
