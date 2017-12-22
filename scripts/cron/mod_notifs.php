@@ -11,12 +11,11 @@ require_once(IZNIK_BASE . '/mailtemplates/modnotif.php');
 date_default_timezone_set('Europe/London');
 $hour = date("H");
 
-error_log("Hour of day is $hour");
 $mail = [];
 
 #if ($hour >= 8 && $hour <= 21)
 {
-    $sql = "SELECT id, nameshort FROM groups WHERE `type` = ? AND onhere = 1 AND publish = 1 AND id IN (21354, 21589, 21555, 21423, 21306, 126539, 21548, 21261) ORDER BY nameshort ASC;";
+    $sql = "SELECT id, nameshort FROM groups WHERE `type` = ? AND onhere = 1 AND publish = 1 AND id IN (21354, 21589, 21555, 21423, 21306, 126539, 21548, 21261, 386072, 407623) ORDER BY nameshort ASC;";
 
     $groups = $dbhr->preQuery($sql, [
         Group::GROUP_FREEGLE
@@ -51,7 +50,6 @@ $mail = [];
                     $minageq = date("Y-m-d H:i:s", strtotime("$minage hours ago"));
                     $earliest = date ("Y-m-d", strtotime("Midnight 31 days ago"));
 
-                    error_log("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = {$group['id']} AND messages_groups.collection = 'Pending' AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL " . ($minage > 0 ? "AND messages_groups.arrival < '$minageq'" : '') . ";");
                     $work = [
                         'Pending Messages' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL " . ($minage > 0 ? "AND messages_groups.arrival < '$minageq'" : '') . ";", [
                             $group['id'],
@@ -81,14 +79,13 @@ $mail = [];
 
                     $total = 0;
                     $nonzero = [];
-                    error_log(var_export($work, TRUE));
+
                     foreach ($work as $key => $val) {
                         if ($val) {
                             $total += $val;
                             $nonzero[$key] = $val;
                         }
                     }
-                    error_log(var_export($nonzero, TRUE));
 
                     if ($total || $cr) {
                         # Some work for this mod.
@@ -162,12 +159,15 @@ foreach ($mail as $id => $work) {
         ]);
 
         $html = modnotif(MOD_SITE,  MODLOGO, $htmlsumm);
+        $subj = "MODERATE: $total thing" . ($total == 1 ? '' : 's') . " to do";
+
+        error_log("...{$work['email']} $subj");
 
         $message = Swift_Message::newInstance()
-            ->setSubject("MODERATE: $total thing" . ($total == 1 ? '' : 's') . " to do")
+            ->setSubject($subj)
             ->setFrom([NOREPLY_ADDR => 'ModTools'])
             ->setReturnPath(NOREPLY_ADDR)
-            ->setTo([ 'edward@ehibbert.org.uk' => $u->getName() ])
+            ->setTo([ $work['email'] => $u->getName() ])
             ->setBody($textsumm)
             ->addPart($html, 'text/html');
 
