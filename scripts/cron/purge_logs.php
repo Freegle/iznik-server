@@ -16,7 +16,7 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 ));
 
 # Delete any old plugin work for non-Yahoo groups
-$dbhm->preExec("DELETE FROM `plugin` WHERE groupid IN (SELECT id FROM groups WHERE onyahoo = 0)");
+$dbhm->exec("DELETE FROM `plugin` WHERE groupid IN (SELECT id FROM groups WHERE onyahoo = 0)");
 
 # Don't keep user creation logs indefinitely - the reason we created a user is only really relevant for diagnosis,
 error_log("Purge user creation logs");
@@ -29,7 +29,7 @@ try {
         $count = $dbhm->exec($sql);
         $total += $count;
         error_log("...$total");
-        set_time_limit(60);
+        set_time_limit(600);
     } while ($count > 0);
 } catch (Exception $e) {
     error_log("Failed to delete non-Freegle logs " . $e->getMessage());
@@ -44,7 +44,7 @@ try {
         $count = $dbhm->exec("DELETE FROM logs_emails WHERE `timestamp` < '$start' LIMIT 1000;");
         $total += $count;
         error_log("...$total");
-        set_time_limit(60);
+        set_time_limit(600);
     } while ($count > 0);
 } catch (Exception $e) {
     error_log("Failed to delete email logs logs " . $e->getMessage());
@@ -63,7 +63,7 @@ try {
             $count = $dbhm->exec("DELETE FROM logs WHERE `timestamp` < '$start' AND groupid IS NOT NULL AND groupid = {$group['id']} LIMIT 1000;");
             $total += $count;
             error_log("...$total");
-            set_time_limit(60);
+            set_time_limit(600);
         } while ($count > 0);
     }
 } catch (Exception $e) {
@@ -103,7 +103,7 @@ try {
         $count = $dbhm->exec("DELETE FROM logs_src WHERE `date` < '$start' LIMIT 1000;");
         $total += $count;
         error_log("...$total");
-        set_time_limit(60);
+        set_time_limit(600);
     } while ($count > 0);
 } catch (Exception $e) {
     error_log("Failed to delete src logs " . $e->getMessage());
@@ -119,7 +119,7 @@ try {
         $count = $dbhm->exec("DELETE FROM logs WHERE `timestamp` < '$start' AND TYPE = 'Plugin' LIMIT 1000;");
         $total += $count;
         error_log("...$total");
-        set_time_limit(60);
+        set_time_limit(600);
     } while ($count > 0);
 } catch (Exception $e) {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
@@ -132,7 +132,7 @@ try {
         $count = $dbhm->exec("DELETE FROM logs_api WHERE `date` < '$start' LIMIT 1000;");
         $total += $count;
         error_log("...$total");
-        set_time_limit(60);
+        set_time_limit(600);
     } while ($count > 0);
 } catch (Exception $e) {
     error_log("Failed to delete API logs " . $e->getMessage());
@@ -146,7 +146,7 @@ try {
     do {
         $count = $dbhm->exec("DELETE FROM logs_sql WHERE `date` < '$start' LIMIT 1000;");
         $total += $count;
-        set_time_limit(60);
+        set_time_limit(600);
         error_log("...$total");
     } while ($count > 0);
 } catch (Exception $e) {
