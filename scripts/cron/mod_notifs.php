@@ -30,6 +30,7 @@ $mail = [];
             # Check if active.
             $u = new User($dbhr, $dbhm, $mod);
             $email = $u->getEmailPreferred();
+            $name = $u->getName();
 
             $approved = $dbhr->preQuery("SELECT DATEDIFF(NOW(), MAX(arrival)) AS activeago FROM messages_groups WHERE groupid = ? AND approvedby = ?;", [ $group['id'], $mod ] );
             #error_log("SELECT DATEDIFF(NOW(), MAX(arrival)) AS activeago FROM messages_groups WHERE groupid = {$group['id']} AND approvedby = $mod");
@@ -89,7 +90,8 @@ $mail = [];
                         # Some work for this mod.
                         if (!array_key_exists($mod, $mail)) {
                             $mail[$mod] = [
-                                'email' => $email
+                                'email' => $email,
+                                'name' => $name
                             ];
                         }
 
@@ -177,7 +179,7 @@ foreach ($mail as $id => $work) {
             ->setSubject($subj)
             ->setFrom([NOREPLY_ADDR => 'ModTools'])
             ->setReturnPath(NOREPLY_ADDR)
-            ->setTo([ $work['email'] => $u->getName() ])
+            ->setTo([ $work['email'] => $work['name'] ])
             ->setBody($textsumm)
             ->addPart($html, 'text/html');
 
