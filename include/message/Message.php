@@ -38,6 +38,7 @@ class Message
 
     // Bounce checks.
     private $bounce_subjects = [
+        "Unable to deliver your message",
         "Mail delivery failed",
         "Delivery Status Notification",
         "Undelivered Mail Returned to Sender",
