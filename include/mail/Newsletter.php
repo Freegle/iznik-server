@@ -109,8 +109,7 @@ class Newsletter extends Entity
                     $a = new Attachment($this->dbhr, $this->dbhm, $photo, Attachment::TYPE_NEWSLETTER);
                     $article['photo'] = $a->getPublic();
 
-                    # We want a 250px wide image
-                    $article['photo']['path'] .= '?w=250';
+                    $article['photo']['path'] .= '?w=' . $article['width'];
                 }
 
                 $html .= newsletter_article($article);
