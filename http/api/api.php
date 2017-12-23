@@ -157,7 +157,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     $id = pres('id', $_SESSION);
     $last = presdef('lastaccessupdate', $_SESSION, 0);
     if ($id && (time() - $last > 60)) {
-        $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id; DELETE FROM modnotifs WHERE userid = $id;");
+        $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
         $_SESSION['lastaccessupdate'] = time();
     }
 

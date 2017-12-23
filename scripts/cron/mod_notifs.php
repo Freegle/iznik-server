@@ -38,11 +38,9 @@ $mail = [];
             if ($u->activeModForGroup($group['id'])) {
                 $minage = $u->getSetting('modnotifs', 4);
 
-                if (!$minage) {
+                if ($minage < 0) {
                     error_log("...off for mod $email " .  $u->getName() . " last active $lastactive");
                 } else if ($lastactive === '0' || (intval($lastactive) && $lastactive <= 90)) {
-                    error_log("...active mod $email " .  $u->getName() . " last active $lastactive");
-
                     $c = new ChatMessage($dbhr, $dbhm);
                     $cr = $c->getReviewCount($u, $minage > 0 ? $minage : NULL)['chatreview'];
 
@@ -103,21 +101,26 @@ $mail = [];
                             $mail[$mod]['groups'][$group['nameshort']] = $nonzero;
                         }
                     }
+
+                    error_log("...active mod $email " .  $u->getName() . " last active $lastactive min age $minage total $total cr $cr");
                 } else {
                     error_log("...idle mod  $email " .  $u->getName() . " last active $lastactive min age $minage");
                 }
             } else {
-                error_log("...backup mod $email " . $u->getName() . " last active $lastactive");
+                error_log("...backup mod $email " . $u->getName() . " last active $lastactive min age $minage");
             }
         }
     }
 }
 
-$textsumm = "There's work to do on ModTools:\r\n\r\n";
-$htmlsumm = '';
+error_log("Send mails...");
+
 $sent = 0;
 
 foreach ($mail as $id => $work) {
+    $textsumm = "There's work to do on ModTools:\r\n\r\n";
+    $htmlsumm = '';
+
     $cr = presdef('Chat Messages for Review', $work, 0);
     $total = $cr;
 
@@ -148,11 +151,18 @@ foreach ($mail as $id => $work) {
     $ms = $dbhr->preQuery("SELECT * FROM modnotifs WHERE userid = ?;", [
         $id
     ]);
+
     foreach ($ms as $m) {
         $last = $m['data'];
     }
 
-    if ($textsumm != $last) {
+    if (!$last || strcmp($textsumm, $last) !== 0) {
+        # This isn't quite right.  It means that if (say) we have 1 item of work, send a notification, mod, get
+        # another item of work, then we won't send another notification until the next one comes in and it differs.
+        # That's more likely to occur if you have it set to immediate.  Deleting this when we do a relevant mod op
+        # wouldn't be ideal either, as we might then get notifs for the work we'd already had a chance to see.  So
+        # really we ought to keep track of the latest item of work that we have notified for.
+        # TODO
         $dbhm->preExec("REPLACE INTO modnotifs (userid, data) VALUES (?, ?);", [
             $id,
             $textsumm
@@ -161,7 +171,7 @@ foreach ($mail as $id => $work) {
         $html = modnotif(MOD_SITE,  MODLOGO, $htmlsumm);
         $subj = "MODERATE: $total thing" . ($total == 1 ? '' : 's') . " to do";
 
-        error_log("...{$work['email']} $subj");
+        error_log("...#$id {$work['email']} $subj");
 
         $message = Swift_Message::newInstance()
             ->setSubject($subj)
@@ -175,6 +185,8 @@ foreach ($mail as $id => $work) {
         $mailer->send($message);
 
         $sent++;
+    } else {
+        #error_log("Skip, same");
     }
 }
 
