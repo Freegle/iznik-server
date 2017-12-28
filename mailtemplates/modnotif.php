@@ -56,7 +56,6 @@ EOT;
                                                                 <tr>
                                                                     <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
                                                                         <p>Hello.  There's work to do on ModTools...</p>
-                                                                        <p>(This is still being tested.  Sometimes someone else will get in and deal with it before you read this, but if you have reason to think that these mails are getting it wrong, please let Edward know.)</p>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
