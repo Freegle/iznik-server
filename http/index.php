@@ -99,9 +99,9 @@ $prerender = NULL;
 
 #error_log("Consider pre-render " . presdef('id', $_SESSION, 'no id'));
 
-if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
-    $url = "https://" . $_SERVER['HTTP_HOST'] . presdef('REQUEST_URI', $_SERVER, '');
+$url = "https://" . $_SERVER['HTTP_HOST'] . presdef('REQUEST_URI', $_SERVER, '');
 
+if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
     # If we are on the development (aka debug) or staging (aka dev) sites then pre-render the
     # corresponding info from the live site.
     $url = str_replace('https://iznik.', 'https://www.', $url);
@@ -119,7 +119,21 @@ if ($prerender) {
     #error_log("Pre-render $url");
     $head = $prerender['head'];
     $body = $prerender['html'];
-    $indexhtml = "<!DOCTYPE HTML><html><head>$head</head>$body</html>";
+    $uri = presdef('REQUEST_URI', $_SERVER, '/');
+
+    # We have to serve up google ads in the static page, as Google wants context-specific ads.  Don't do it on the
+    # front page as that looks lame.
+    #
+    # TODO For now just do on explore page until we know how it looks.
+    $adsense = (strpos($uri, '/explore') === 0) ? '<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+            google_ad_client: "' . ADSENSE_CLIENT  . '",
+            enable_page_level_ads: true
+        });
+    </script>' : '';
+
+    $indexhtml = "<!DOCTYPE HTML><html><head>{$head}{$adsense}</head>$body</html>";
 
     if (!MODTOOLS) {
         # Google init map have put some stuff in which will cause JS errors if we execute as is.
