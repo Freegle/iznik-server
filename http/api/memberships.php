@@ -168,7 +168,7 @@ function memberships() {
                 $userid = $userid ? $userid : ($me ? $me->getId() : NULL);
                 $u = User::get($dbhr, $dbhm, $userid);
 
-                if ($u && $me && $u->getId() && $me->getId()) {
+                if ($u && $me && $u->getId() && $me->getId() && $groupid) {
                     $g = Group::get($dbhr, $dbhm, $groupid);
 
                     if ($userid && $userid != $me->getId()) {
