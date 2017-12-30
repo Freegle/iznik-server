@@ -13,7 +13,7 @@ $hour = date("H");
 
 $mail = [];
 
-#if ($hour >= 8 && $hour <= 21)
+if ($hour >= 8 && $hour <= 21)
 {
     $sql = "SELECT id, nameshort FROM groups WHERE `type` = ? AND onhere = 1 AND publish = 1 ORDER BY nameshort ASC;";
 
