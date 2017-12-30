@@ -121,17 +121,13 @@ if ($prerender) {
     $body = $prerender['html'];
     $uri = presdef('REQUEST_URI', $_SERVER, '/');
 
-    # We have to serve up google ads in the static page, as Google wants context-specific ads.  Don't do it on the
-    # front page as that looks lame.
-    #
-    # TODO For now just do on explore page until we know how it looks.
-    $adsense = (strpos($uri, '/explore') === 0) ? '<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    # Load the AdSense script.  The actual ads are inserted in the views.
+    $adsense = '<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     <script>
     (adsbygoogle = window.adsbygoogle || []).push({
-            google_ad_client: "' . ADSENSE_CLIENT  . '",
-            enable_page_level_ads: true
+            google_ad_client: "' . ADSENSE_CLIENT  . '"
         });
-    </script>' : '';
+    </script>';
 
     $indexhtml = "<!DOCTYPE HTML><html><head>{$head}{$adsense}</head>$body</html>";
 
