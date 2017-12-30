@@ -1967,7 +1967,6 @@ class Message
         $ret = [];
         $delq = $includedeleted ? "" : " AND deleted = 0";
         $sql = "SELECT " . ($justids ? 'groupid' : '*') . " FROM messages_groups WHERE msgid = ? $delq;";
-        error_log("$sql, {$this->id}");
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
         foreach ($groups as $group) {
             $ret[] = $justids ? $group['groupid'] : $group;
