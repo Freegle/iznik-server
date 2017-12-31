@@ -72,8 +72,11 @@ foreach ($totalact as $total) {
             $group['id']
         ]);
 
-        # Calculate fundraising target.  Round up to £50.
-        $portion = ceil($pc * $target / 1000) * 10;
+        # Calculate fundraising target.  Our fair share would be $pc * $target / 100, but we stretch that out a bit
+        # because the larger groups are likely to include more affluent people.
+        #
+        # Round up to £50 for small groups.
+        $portion = ceil($pc * $target / 100) * 10;
         $portion = max(50, $portion);
         error_log("{$group['nameshort']} target £$portion");
         $fundingcalc += $portion;
