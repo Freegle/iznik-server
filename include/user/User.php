@@ -3692,7 +3692,7 @@ class User extends Entity
         return($ret);
     }
 
-    public function getLatLng($usedef = TRUE) {
+    public function getLatLng($usedef = TRUE, $usegroup = TRUE) {
         $s = $this->getPrivate('settings');
         $lat = NULL;
         $lng = NULL;
@@ -3716,7 +3716,7 @@ class User extends Entity
             }
         }
 
-        if (!$lat) {
+        if (!$lat && $usegroup) {
             # Try for user groups
             $membs = $this->getMemberships();
 

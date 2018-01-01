@@ -40,6 +40,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
+require_once(IZNIK_BASE . '/include/message/Visualise.php');
 require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/user/Request.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');
@@ -117,6 +118,7 @@ require_once(IZNIK_BASE . '/http/api/volunteering.php');
 require_once(IZNIK_BASE . '/http/api/notification.php');
 require_once(IZNIK_BASE . '/http/api/mentions.php');
 require_once(IZNIK_BASE . '/http/api/logs.php');
+require_once(IZNIK_BASE . '/http/api/visualise.php');
 
 use GeoIp2\Database\Reader;
 
@@ -377,6 +379,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'mentions':
                     $ret = mentions();
+                    break;
+                case 'visualise':
+                    $ret = visualise();
                     break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);
