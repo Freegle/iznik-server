@@ -100,7 +100,7 @@ class EventDigest
                         $datetime->setTimezone($tz2);
                         $datestr = $datetime->format('D, jS F g:ia');
 
-                        $textsumm .= $atts['title'] . " starts $datestr at " . $atts['location'] . "\r\n";
+                        $textsumm .= $atts['title'] . " starts $datestr at " . $atts['location'] . " - for details see https://" . USER_SITE . "//communityevent/{$atts['id']}&src=eventdigest\r\n\r\n";
 
                         # Only send the first occurrence that happens in this period.
                         break;
