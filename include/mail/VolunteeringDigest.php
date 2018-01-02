@@ -99,7 +99,7 @@ class VolunteeringDigest
                     $atts = $e->getPublic();
                     $htmlsumm .= digest_volunteering($atts);
                     error_log("{$atts['id']} {$atts['title']}");
-                    $textsumm .= $atts['title'] . " at " . $atts['location'] . "\r\n";
+                    $textsumm .= $atts['title'] . " at " . $atts['location'] . " - for details see https://" . USER_SITE . "/volunteering/{$atts['id']}&src=voldigest\r\n\r\n";
                 }
             }
 
