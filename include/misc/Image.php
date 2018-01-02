@@ -74,4 +74,38 @@ class Image {
 
         return($data);
     }
+
+    public function getDataPNG() {
+        $data = NULL;
+
+        if ($this->img) {
+            ob_start();
+            imagepng($this->img, null);
+            $data = ob_get_contents();
+            ob_end_clean();
+        }
+
+        return($data);
+    }
+
+    public function circle($radius) {
+        $d = imagecreatetruecolor($radius, $radius);
+        imagecopy($d, $this->img, 0, 0, 0, 0, $radius, $radius);
+
+        $mask = imagecreatetruecolor($radius, $radius);
+        $maskTransparent = imagecolorallocate($mask, 255, 0, 255);
+        imagecolortransparent($mask, $maskTransparent);
+        imagefilledellipse($mask, $radius / 2, $radius / 2, $radius, $radius, $maskTransparent);
+
+        imagecopymerge($d, $mask, 0, 0, 0, 0, $radius, $radius, 100);
+
+        $dstTransparent = imagecolorallocate($d, 255, 0, 255);
+        imagefill($d, 0, 0, $dstTransparent);
+        imagefill($d, $radius - 1, 0, $dstTransparent);
+        imagefill($d, 0, $radius - 1, $dstTransparent);
+        imagefill($d, $radius - 1, $radius - 1, $dstTransparent);
+        imagecolortransparent($d, $dstTransparent);
+
+        $this->img = $d;
+    }
 }

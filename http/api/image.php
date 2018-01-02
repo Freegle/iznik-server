@@ -1,4 +1,5 @@
 <?php
+
 function image() {
     global $dbhr, $dbhm;
 
@@ -14,6 +15,7 @@ function image() {
     $chatmessage = presdef('chatmessage', $_REQUEST, NULL);
     $user = presdef('user', $_REQUEST, NULL);
     $newsfeed = presdef('newsfeed', $_REQUEST, NULL);
+    $circle = presdef('circle', $_REQUEST, NULL);
 
     $sizelimit = 800;
     
@@ -53,11 +55,20 @@ function image() {
                     $i->scale($w, $h);
                 }
 
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'img' => $i->getData()
-                ];
+                if ($circle) {
+                    $i->circle($w);
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'img' => $i->getDataPNG()
+                    ];
+                } else {
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'img' => $i->getData()
+                    ];
+                }
             }
 
             break;
