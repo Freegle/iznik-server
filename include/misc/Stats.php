@@ -68,8 +68,9 @@ class Stats
     public function generate($date, $type = NULL)
     {
         if ($type === NULL || in_array(Stats::OUTCOMES, $type)) {
-            $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_outcomes.msgid = messages_groups.msgid WHERE groupid = ? AND DATE(messages_outcomes.timestamp) = ? AND messages_outcomes.outcome IN (?, ?);", [
+            $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_outcomes.msgid = messages_groups.msgid WHERE groupid = ? AND messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND messages_outcomes.outcome IN (?, ?);", [
                 $this->groupid,
+                $date,
                 $date,
                 Message::OUTCOME_TAKEN,
                 Message::OUTCOME_RECEIVED
@@ -80,9 +81,10 @@ class Stats
         if ($type === NULL || in_array(Stats::APPROVED_MESSAGE_COUNT, $type)) {
             # Counts are a specific day
             $activity = 0;
-            $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messageid)) AS count FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE groupid = ? AND DATE(messages.arrival) = ? AND collection = ?;",
+            $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messageid)) AS count FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE groupid = ? AND messages.arrival >= ? AND DATE(messages.arrival) = ? AND collection = ?;",
                 [
                     $this->groupid,
+                    $date,
                     $date,
                     MessageCollection::APPROVED
                 ])[0]['count'];
@@ -102,8 +104,9 @@ class Stats
 
         if ($type === NULL || in_array(Stats::SPAM_MESSAGE_COUNT, $type)) {
             $this->setCount($date, Stats::SPAM_MESSAGE_COUNT,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM `logs` WHERE DATE(timestamp) = ?  AND `groupid` = ? AND logs.type = 'Message' AND subtype = 'ClassifiedSpam';",
+                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM `logs` WHERE timestamp >= ? AND DATE(timestamp) = ?  AND `groupid` = ? AND logs.type = 'Message' AND subtype = 'ClassifiedSpam';",
                     [
+                        $date,
                         $date,
                         $this->groupid
                     ])[0]['count']);
@@ -111,17 +114,19 @@ class Stats
 
         if ($type === NULL || in_array(Stats::SPAM_MEMBER_COUNT, $type)) {
             $this->setCount($date, Stats::SPAM_MEMBER_COUNT,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM `logs` INNER JOIN spam_users ON logs.user = spam_users.userid AND collection = 'Spammer' WHERE groupid = ? AND DATE(logs.timestamp) = ? AND logs.type = 'Group' AND `subtype` = 'Left';",
+                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM `logs` INNER JOIN spam_users ON logs.user = spam_users.userid AND collection = 'Spammer' WHERE groupid = ? AND logs.timestamp >= ? AND date(logs.timestamp) = ? AND logs.type = 'Group' AND `subtype` = 'Left';",
                     [
                         $this->groupid,
+                        $date,
                         $date
                     ])[0]['count']);
         }
 
         if ($type === NULL || in_array(Stats::SUPPORTQUERIES_COUNT, $type)) {
             $this->setCount($date, Stats::SUPPORTQUERIES_COUNT,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_rooms WHERE DATE(created) = ? AND groupid = ?;",
+                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_rooms WHERE created >= ? AND date(created) = ? AND groupid = ?;",
                     [
+                        $date,
                         $date,
                         $this->groupid
                     ])[0]['count']);
@@ -129,8 +134,9 @@ class Stats
 
         if ($type === NULL || in_array(Stats::FEEDBACK_HAPPY, $type)) {
             $this->setCount($date, Stats::FEEDBACK_HAPPY,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
+                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
                     [
+                        $date,
                         $date,
                         $this->groupid,
                         Stats::FEEDBACK_HAPPY
@@ -139,8 +145,9 @@ class Stats
 
         if ($type === NULL || in_array(Stats::FEEDBACK_FINE, $type)) {
             $this->setCount($date, Stats::FEEDBACK_FINE,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
+                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
                     [
+                        $date,
                         $date,
                         $this->groupid,
                         Stats::FEEDBACK_FINE
@@ -149,8 +156,9 @@ class Stats
 
         if ($type === NULL || in_array(Stats::FEEDBACK_UNHAPPY, $type)) {
             $this->setCount($date, Stats::FEEDBACK_UNHAPPY,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
+                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
                     [
+                        $date,
                         $date,
                         $this->groupid,
                         Stats::FEEDBACK_UNHAPPY
@@ -243,7 +251,8 @@ class Stats
 
         if ($type === NULL || in_array(Stats::SEARCHES, $type)) {
             # Searches need a bit more work.  We're looking for searches which hit this group.
-            $searches = $this->dbhr->preQuery("SELECT * FROM search_history WHERE DATE(date) = ?;", [
+            $searches = $this->dbhr->preQuery("SELECT * FROM search_history WHERE date >= ? AND DATE(date) = ?;", [
+                $date,
                 $date
             ]);
 
@@ -271,8 +280,9 @@ class Stats
             #
             # This will tail off a bit towards the current time as items won't be taken for a while.
             $avg = $this->dbhr->preQuery("SELECT SUM(popularity * weight) / SUM(popularity) AS average FROM items WHERE weight IS NOT NULL AND weight != 0")[0]['average'];
-            $sql = "SELECT DISTINCT messages_outcomes.msgid, weight, subject FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN messages_items ON messages_outcomes.msgid = messages_items.msgid LEFT JOIN items ON items.id = messages_items.itemid WHERE DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND outcome IN ('Taken', 'Received');";
+            $sql = "SELECT DISTINCT messages_outcomes.msgid, weight, subject FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN messages_items ON messages_outcomes.msgid = messages_items.msgid LEFT JOIN items ON items.id = messages_items.itemid WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND outcome IN ('Taken', 'Received');";
             $msgs = $this->dbhr->preQuery($sql, [
+                $date,
                 $date,
                 $this->groupid
             ]);

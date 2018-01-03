@@ -87,7 +87,8 @@ foreach ($totalact as $total) {
         ]);
 
         # We decide if they're active on here by whether they've had a Yahoo member sync or approved a message.
-        $acts = $dbhr->preQuery("SELECT MAX(timestamp) AS moderated FROM logs WHERE groupid = ? AND logs.type = 'Message' AND subtype = 'Approved';", [ $group['id'] ]);
+        $timeq = $group['lastmodactive'] ? ("timestamp >= '" . date("Y-m-d H:i:s", strtotime($group['lastmodactive'])) . "' AND ") : '';
+        $acts = $dbhr->preQuery("SELECT MAX(timestamp) AS moderated FROM logs WHERE $timeq groupid = ? AND logs.type = 'Message' AND subtype = 'Approved';", [ $group['id'] ]);
         $lastmodactive = NULL;
 
         foreach ($acts as $act) {
@@ -114,7 +115,8 @@ foreach ($totalact as $total) {
         ]);
 
         # Find the last auto-approved message
-        $logs = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM logs INNER JOIN messages_groups ON logs.msgid = messages_groups.msgid WHERE messages_groups.groupid = ? AND logs.type = 'Message' AND logs.subtype = 'Autoapproved';", [
+        $timeq = $group['lastautoapprove'] ? ("timestamp >= '" . date("Y-m-d H:i:s", strtotime($group['lastautoapprove'])) . "' AND ") : '';
+        $logs = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM logs INNER JOIN messages_groups ON logs.msgid = messages_groups.msgid WHERE $timeq messages_groups.groupid = ? AND logs.type = 'Message' AND logs.subtype = 'Autoapproved';", [
             $group['id']
         ]);
         $dbhm->preExec("UPDATE groups SET lastautoapprove = ? WHERE id = ?;", [
