@@ -8,7 +8,7 @@ function visualise() {
     $swlng = presdef('swlng', $_REQUEST, NULL);
     $nelat = presdef('nelat', $_REQUEST, NULL);
     $nelng = presdef('nelng', $_REQUEST, NULL);
-    $limit = intval(presdef($_REQUEST, 'limit', 100));
+    $limit = intval(presdef($_REQUEST, 'limit', 5));
     $age = presdef('age', $_REQUEST, '7 days ago');
 
     switch ($_REQUEST['type']) {

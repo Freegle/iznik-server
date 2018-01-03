@@ -159,7 +159,7 @@ class Visualise extends Entity
         return($ret);
     }
 
-    public function getMessages($swlat, $swlng , $nelat, $nelng, $ago = "midnight 7 days ago", $limit = 100) {
+    public function getMessages($swlat, $swlng , $nelat, $nelng, $ago = "midnight 7 days ago", $limit = 5) {
         $mysqltime = date("Y-m-d H:i:s", strtotime($ago));
         error_log("GetMessages $swlat, $swlng, $nelat, $nelng");
 
