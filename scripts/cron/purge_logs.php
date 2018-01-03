@@ -15,6 +15,22 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
+# Delete old email bounces.  Any genuinely bouncing emails will result in the user being set as bouncing = 1 fairly
+# rapidly.
+try {
+    error_log("Old bounces:");
+    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM bounces_emails WHERE `date` < '$start' LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+        set_time_limit(600);
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete bounce emails" . $e->getMessage());
+}
+
 # Delete any old plugin work for non-Yahoo groups
 $dbhm->exec("DELETE FROM `plugin` WHERE groupid IN (SELECT id FROM groups WHERE onyahoo = 0)");
 
