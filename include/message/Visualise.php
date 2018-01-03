@@ -54,43 +54,69 @@ class Visualise extends Entity
             error_log("#{$msg['id']}");
             $tlid = NULL;
             $flid = NULL;
+            $ok = TRUE;
 
             $fu = new User($this->dbhr, $this->dbhm, $msg['fromuser']);
+            $s = $fu->getPrivate('settings');
+
+            if ($s) {
+                $settings = json_decode($s, TRUE);
+                if (array_key_exists('useprofile', $settings) && !$settings['useprofile']) {
+                    # Giver doesn't want their profile pic visible.  They're probably sensitive about
+                    # privacy, so even though we could show their approx location and default profile
+                    # in accordance with our privacy profile, skip this message.  We don't need every
+                    # last message to produce something useful.
+                    $ok = FALSE;
+                }
+            }
+
             $atts = $fu->getPublic();
             $fu->ensureAvatar($atts);
             list ($flat, $flng) = $fu->getLatLng(FALSE, FALSE);
 
             $tu = new User($this->dbhr, $this->dbhm, $msg['userid']);
-            $atts = $fu->getPublic();
-            $tu->ensureAvatar($atts);
-            list ($tlat, $tlng) = $tu->getLatLng(FALSE, FALSE);
+            $s = $tu->getPrivate('settings');
 
-            # If we know precise locations for these users.
-            if (($flat || $flng) && ($tlat || $tlng)) {
-                $this->create(
-                    $msg['id'],
-                    $msg['attid'],
-                    $msg['timestamp'],
-                    $msg['fromuser'],
-                    $msg['userid'],
-                    $flat,
-                    $flng,
-                    $tlat,
-                    $tlng
-                );
+            if ($s) {
+                $settings = json_decode($s, TRUE);
+                if (array_key_exists('useprofile', $settings) && !$settings['useprofile']) {
+                    # Taker doesn't want their profile pic visible.  See above.
+                    $ok = FALSE;
+                }
             }
 
-            # Find other people who replied and make sure they have avatars
-            $others = $this->dbhr->preQuery("SELECT DISTINCT userid FROM chat_messages WHERE refmsgid = ? AND userid != ? AND userid != ?", [
-                $msg['id'],
-                $msg['userid'],
-                $msg['fromuser']
-            ]);
+            if ($ok) {
+                $atts = $fu->getPublic();
+                $tu->ensureAvatar($atts);
+                list ($tlat, $tlng) = $tu->getLatLng(FALSE, FALSE);
 
-            foreach ($others as $other) {
-                $u = User::get($this->dbhr, $this->dbhm, $other['userid']);
-                $atts = $u->getPublic();
-                $u->ensureAvatar($atts);
+                # If we know precise locations for these users.
+                if (($flat || $flng) && ($tlat || $tlng)) {
+                    $this->create(
+                        $msg['id'],
+                        $msg['attid'],
+                        $msg['timestamp'],
+                        $msg['fromuser'],
+                        $msg['userid'],
+                        $flat,
+                        $flng,
+                        $tlat,
+                        $tlng
+                    );
+                }
+
+                # Find other people who replied and make sure they have avatars
+                $others = $this->dbhr->preQuery("SELECT DISTINCT userid FROM chat_messages WHERE refmsgid = ? AND userid != ? AND userid != ?", [
+                    $msg['id'],
+                    $msg['userid'],
+                    $msg['fromuser']
+                ]);
+
+                foreach ($others as $other) {
+                    $u = User::get($this->dbhr, $this->dbhm, $other['userid']);
+                    $atts = $u->getPublic();
+                    $u->ensureAvatar($atts);
+                }
             }
         }
     }
