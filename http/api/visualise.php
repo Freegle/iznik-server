@@ -9,18 +9,19 @@ function visualise() {
     $nelat = presdef('nelat', $_REQUEST, NULL);
     $nelng = presdef('nelng', $_REQUEST, NULL);
     $limit = intval(presdef($_REQUEST, 'limit', 5));
-    $age = presdef('age', $_REQUEST, '7 days ago');
+    $ctx = presdef('context', $_REQUEST, NULL);
 
     switch ($_REQUEST['type']) {
         case 'GET': {
             $v = new Visualise($dbhr, $dbhm);
 
-            $vs = $v->getMessages($swlat, $swlng, $nelat, $nelng, $age, $limit);
+            $vs = $v->getMessages($swlat, $swlng, $nelat, $nelng, $limit, $ctx);
 
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',
-                'list' => $vs
+                'list' => $vs,
+                'context' => $ctx
             ];
             break;
         }

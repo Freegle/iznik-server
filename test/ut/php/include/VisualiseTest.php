@@ -79,7 +79,8 @@ class visualiseTest extends IznikTestCase {
         $v->scanMessages('1 hour ago');
 
         # Get the visualised messages.
-        $viss = $v->getMessages(8.5, 179, 8.7, 180, '1 hour ago');
+        $ctx = NULL;
+        $viss = $v->getMessages(8.5, 179, 8.7, 180, 100, $ctx);
 
         $found = FALSE;
 

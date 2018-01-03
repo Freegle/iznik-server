@@ -159,15 +159,13 @@ class Visualise extends Entity
         return($ret);
     }
 
-    public function getMessages($swlat, $swlng , $nelat, $nelng, $ago = "midnight 7 days ago", $limit = 5) {
-        $mysqltime = date("Y-m-d H:i:s", strtotime($ago));
-        error_log("GetMessages $swlat, $swlng, $nelat, $nelng");
+    public function getMessages($swlat, $swlng , $nelat, $nelng, $limit = 5, &$ctx) {
+        $ctxq = $ctx ? (" id < " . intval($ctx) . ' AND ') : '';
 
         $ret = [];
 
         if (($swlat || $swlng) && ($nelat || $nelng)) {
-            $vs = $this->dbhr->preQuery("SELECT id FROM visualise WHERE timestamp >= ? AND fromlat BETWEEN ? AND ? AND fromlng BETWEEN ? AND ? ORDER BY timestamp DESC LIMIT $limit;", [
-                $mysqltime,
+            $vs = $this->dbhr->preQuery("SELECT id FROM visualise WHERE $ctxq fromlat BETWEEN ? AND ? AND fromlng BETWEEN ? AND ? ORDER BY id DESC LIMIT $limit;", [
                 $swlat,
                 $nelat,
                 $swlng,
@@ -177,6 +175,7 @@ class Visualise extends Entity
             foreach ($vs as $v) {
                 $av = new Visualise($this->dbhr, $this->dbhm, $v['id']);
                 $ret[] = $av->getPublic();
+                $ctx = $v['id'];
             }
         }
 
