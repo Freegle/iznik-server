@@ -166,7 +166,7 @@ class Visualise extends Entity
         $ret = [];
 
         if (($swlat || $swlng) && ($nelat || $nelng)) {
-            $vs = $this->dbhr->preQuery("SELECT id FROM visualise WHERE timestamp >= ? AND fromlat BETWEEN ? AND ? AND fromlng BETWEEN ? AND ? LIMIT $limit;", [
+            $vs = $this->dbhr->preQuery("SELECT id FROM visualise WHERE timestamp >= ? AND fromlat BETWEEN ? AND ? AND fromlng BETWEEN ? AND ? ORDER BY timestamp DESC LIMIT $limit;", [
                 $mysqltime,
                 $swlat,
                 $nelat,
