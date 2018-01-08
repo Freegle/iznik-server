@@ -54,9 +54,11 @@ if (count($opts) != 1) {
             
             $epoch = strtotime($date);
 
-            if ($amount > 0) {
+            if ($amount > 0 && $amount < 10000) {
                 # Ignore debits, otherwise we'll delete old donations.  This will mean that cancelled donations
                 # still get counted, but that isn't a significant amount.
+                #
+                # Ignore unconvincing high donations - we sometimes see 99999999.99.
                 $mindate = (!$minepoch || $epoch < $minepoch) ? $date : $mindate;
                 $minepoch = (!$minepoch || $epoch < $minepoch) ? $epoch : $minepoch;
             }
