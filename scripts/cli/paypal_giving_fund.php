@@ -31,7 +31,7 @@ if (count($opts) != 1) {
             $date = $fields[0];
             $name = $fields[1];
             $email = $fields[2];
-            $amount = $fields[5];
+            $amount = $fields[7];
 
             # Invent a unique transaction ID because we might rerun on the same data.
             $txid = $date . $email . count($donations);
