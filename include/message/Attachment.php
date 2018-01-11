@@ -186,7 +186,7 @@ class Attachment
 
                         $rc = TRUE;
                     } else {
-                        error_log("...failed to create image");
+                        error_log("...failed to create image {$this->id}");
                     }
                 }
 
@@ -361,6 +361,10 @@ class Attachment
     }
 
     public function setPrivate($att, $val) {
-        $rc = $this->dbhm->preExec("UPDATE {$this->table} SET `$att` = ? WHERE id = {$this->id};", [$val]);
+        $this->dbhm->preExec("UPDATE {$this->table} SET `$att` = ? WHERE id = {$this->id};", [$val]);
+    }
+
+    public function delete() {
+        $this->dbhm->preExec("DELETE FROM {$this->table} WHERE id = {$this->id};");
     }
 }
