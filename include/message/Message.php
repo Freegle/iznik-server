@@ -53,6 +53,7 @@ class Message
         "Inactive account",
         "Change of email",
         "Unable to process your message",
+        "Unable to process the message",
         "Has decided to leave the company",
         "No longer a valid",
         "does not exist",
