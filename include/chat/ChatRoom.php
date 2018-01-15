@@ -871,6 +871,7 @@ class ChatRoom extends Entity
 
         $ret = [];
         $lastuser = NULL;
+        $lastdate = NULL;
         $lastmsg = NULL;
 
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -908,6 +909,7 @@ class ChatRoom extends Entity
 
                     if (count($ret) > 0) {
                         $ret[count($ret) - 1]['sameasnext'] = ($lastuser === $msg['userid']);
+                        $ret[count($ret) - 1]['gap'] = (strtotime($atts['date']) - strtotime($lastdate)) / 3600 > 1;
                     }
 
                     if (!array_key_exists($msg['userid'], $users)) {
@@ -917,6 +919,7 @@ class ChatRoom extends Entity
 
                     $ret[] = $atts;
                     $lastuser = $msg['userid'];
+                    $lastdate = $atts['date'];
                 }
             }
         }
