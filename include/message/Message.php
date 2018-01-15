@@ -2665,11 +2665,11 @@ class Message
         }
 
         # Or we might have some headers
-        $textbody = preg_replace('/To:.*?$/is', '', $textbody);
-        $textbody = preg_replace('/From:.*?$/is', '', $textbody);
-        $textbody = preg_replace('/Sent:.*?$/is', '', $textbody);
-        $textbody = preg_replace('/Date:.*?$/is', '', $textbody);
-        $textbody = preg_replace('/Subject:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/[\r\n]To:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/[\r\n]From:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/[\r\n]Sent:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/[\r\n]Date:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/[\r\n]Subject:.*?$/is', '', $textbody);
 
         # Get rid of sigs
         $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);

@@ -461,6 +461,12 @@ And something after it.', $stripped);
         $stripped = $m->stripQuoted();
         assertEquals('Ok, here\'s a reply.', $stripped);
 
+        $msg = $this->unique(file_get_contents('msgs/notif_reply_text9'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals("Ok, here's a reply to:\r\n\r\nSomewhere.", $stripped);
+
         error_log(__METHOD__ . " end");
     }
     
