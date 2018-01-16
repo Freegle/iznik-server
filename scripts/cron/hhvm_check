@@ -21,6 +21,8 @@ else
         then
             echo "Fatal error found - touch"
             find /var/www/iznik -name \*.php -exec touch {} \;
+            find /var/www/iznik.fd.live -name \*.php -exec touch {} \;
+            find /var/www/iznik.mt.live -name \*.php -exec touch {} \;
         fi
     fi
 fi
