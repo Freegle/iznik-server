@@ -80,7 +80,8 @@ class Message
         "please note his new address",
         "this account is no longer in use",
         "Sorry, we were unable to deliver your message",
-        "this email address is no longer in use"
+        "this email address is no longer in use",
+        "we are unable to process the message"
     ];
     
     // Autoreply checks.
