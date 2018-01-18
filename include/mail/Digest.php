@@ -105,7 +105,7 @@ class Digest
 
             # Find the cut-off time for the earliest message we want to include.  If we've not sent anything for this
             # group/frequency before then ensure we don't send anything older than a day.
-            $oldest = " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
+            $oldest = pres('ended', $track) ? '' : " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
 
             # We record where we got up to using arrival.  We don't use msgid because the arrival gets reset when
             # we repost, but the msgid remains the same, and we want to send out messages which have been reposted
