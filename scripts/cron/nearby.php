@@ -14,7 +14,7 @@ $lockh = lockScript(basename(__FILE__));
 $n = new Nearby($dbhr, $dbhm);
 $count = 0;
 
-$groups = $dbhr->preQuery("SELECT groups.id, groups.nameshort FROM groups WHERE groups.type = 'Freegle' AND publish = 1 ORDER BY LOWER(nameshort) ASC;");
+$groups = $dbhr->preQuery("SELECT groups.id, groups.nameshort FROM groups WHERE groups.type = 'Freegle' AND publish = 1 AND onhere = 1 ORDER BY LOWER(nameshort) ASC;");
 foreach ($groups as $group) {
     error_log($group['nameshort']);
     $thiscount = $n->messages($group['id']);
