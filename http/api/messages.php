@@ -109,11 +109,11 @@ function messages() {
                             if ($nearlocation) {
                                 # We need to look in the groups near this location.
                                 $l = new Location($dbhr, $dbhm, $nearlocation);
-                                $groups = $l->groupsNear();
+                                $searchgroups = $l->groupsNear();
                             }
 
                             do {
-                                $searched = $m->search($search, $ctx, $limit, NULL, $groups, $nearlocation, $exactonly);
+                                $searched = $m->search($search, $ctx, $limit, NULL, $searchgroups, $nearlocation, $exactonly);
                                 list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, NULL);
                                 # We might have excluded all the messages we found; if so, keep going.
                             } while (count($searched) > 0 && count($msgs) == 0);
