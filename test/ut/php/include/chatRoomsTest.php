@@ -408,6 +408,20 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testEmojiSplit()
+    {
+        error_log(__METHOD__);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+
+        self::assertEquals('Test', $r->splitEmoji('Test'));
+        self::assertEquals('\\u1f923\\u', $r->splitEmoji('\\u1f923\\u'));
+        self::assertEquals('Test', $r->splitEmoji('Test\\u1f923\\u'));
+        self::assertEquals('Test', $r->splitEmoji('\\u1f923\\uTest'));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testBlock() {
         error_log(__METHOD__ );
 

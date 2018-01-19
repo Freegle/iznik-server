@@ -354,11 +354,29 @@ class ChatRoom extends Entity
                 case ChatMessage::TYPE_NUDGE: $ret['snippet'] = 'Nudged'; break;
                 case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Scheduling collection...'; break;
                 case ChatMessage::TYPE_SCHEDULE_UPDATED: $ret['snippet'] = 'Schedule updated...'; break;
-                default: $ret['snippet'] = substr($last['message'], 0, 30); break;
+                default: {
+                    # We don't want to land in the middle of an encoded emoji otherwise it will display
+                    # wrongly.
+                    $msg = $last['message'];
+                    $msg = $this->splitEmoji($msg);
+
+                    $ret['snippet'] = substr($msg, 0, 30);
+                    break;
+                }
             }
         }
 
         return ($ret);
+    }
+
+    public function splitEmoji($msg) {
+        $without = preg_replace('/\\\\u.*?\\\\u/', '', $msg);
+
+        # If we have something other than emojis, return that.  Otherwise return the emoji(s) which will be
+        # rendered in the client.
+        $msg = strlen($without) ? $without : $msg;
+
+        return $msg;
     }
 
     public function lastSeenForUser($userid)
@@ -1128,6 +1146,11 @@ class ChatRoom extends Entity
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
                         $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
+
+                        # Convert all emojis to smilies.  Obviously that's not right, but most of them are, and we want
+                        # to get rid of the unicode.
+                        $unmailedmsg['message'] = preg_replace('/\\\\u.*?\\\\u/', ':-)', $unmailedmsg['message']);
+
                         $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
                         $collurl = NULL;
 
