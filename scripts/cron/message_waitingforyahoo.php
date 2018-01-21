@@ -31,6 +31,24 @@ foreach ($messages as $message) {
     ]);
 }
 
+# We might have messages which were stranded waiting for a membership at the point when we switched a group to native.
+
+$sql = "SELECT messages_groups.msgid AS id, groups.id AS groupid FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid WHERE collection = ? AND onyahoo = 0;";
+$messages = $dbhr->preQuery($sql, [
+    MessageCollection::QUEUED_YAHOO_USER
+]);
+
+foreach ($messages as $message) {
+    # Group is no longer on Yahoo, so we no longer need to wait for this message to have a membership
+    # approved.  Move it to pending.
+    error_log("#{$message['id']} no longer on Yahoo");
+    $dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?;", [
+        MessageCollection::PENDING,
+        $message['id'],
+        $message['groupid']
+    ]);
+}
+
 # Look for messages which were queued and can now be sent.  This fallback catches cases where Yahoo doesn't let us know
 # that someone is now a member, but we find out via other means (e.g. plugin) or time out waiting.
 $sql = "SELECT messages.id, messages.date, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS ago, messages.subject, messages.fromaddr, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE collection = ? AND messages_outcomes.msgid IS NULL;";
@@ -45,6 +63,9 @@ $rejected = 0;
 foreach ($messages as $message) {
     try {
         $m = new Message($dbhr, $dbhm, $message['id']);
+
+        $g = new Group($dbhr, $dbhm, $message['groupid']);
+
         $outcome = $m->hasOutcome();
 
         if ($outcome) {
@@ -58,6 +79,7 @@ foreach ($messages as $message) {
 
             if ($uid) {
                 $u = User::get($dbhr, $dbhm, $uid);
+
                 list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE, TRUE);
 
                 # If the message has been hanging around for a while, it might be that Yahoo has blocked our
