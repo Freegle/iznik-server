@@ -518,6 +518,14 @@ And something after it.', $stripped);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isAutoreply());
 
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($id, $already) = $m->save();
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('fromaddr', 'notify@yahoogroups.com');
+        assertTrue($m->isAutoreply());
+
         error_log(__METHOD__ . " end");
     }
 
