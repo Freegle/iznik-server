@@ -100,7 +100,7 @@ function chatmessages() {
                         $type = pres('modnote', $_REQUEST) ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_DEFAULT;
                     }
 
-                    $id = $m->create($roomid,
+                    $id = $m->checkDup($roomid,
                         $me->getId(),
                         $message,
                         $type,
@@ -111,24 +111,44 @@ function chatmessages() {
                         $refchatid,
                         $imageid);
 
-                    $ret = ['ret' => 3, 'status' => 'Message create failed'];
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'id' => $id
+                    ];
 
-                    if ($id) {
-                        if ($refmsgid) {
-                            # If the refmsg has completed or is promised to someone else, then no need to
-                            # email notify the recipient.
-                            $refm = new Message($dbhr, $dbhm, $refmsgid);
-                            $promisedto = $refm->promisedTo();
+                    if (!$id) {
+                        $id = $m->create($roomid,
+                            $me->getId(),
+                            $message,
+                            $type,
+                            $refmsgid,
+                            TRUE,
+                            NULL,
+                            $reportreason,
+                            $refchatid,
+                            $imageid);
 
-                            if ($refm->hasOutcome() || ($promisedto && $promisedto != $me->getId())) {
-                                $r->mailedLastForUser($refm->getFromuser());
+                        $ret = ['ret' => 3, 'status' => 'Message create failed'];
+
+                        if ($id) {
+                            if ($refmsgid) {
+                                # If the refmsg has completed or is promised to someone else, then no need to
+                                # email notify the recipient.
+                                $refm = new Message($dbhr, $dbhm, $refmsgid);
+                                $promisedto = $refm->promisedTo();
+
+                                if ($refm->hasOutcome() || ($promisedto && $promisedto != $me->getId())) {
+                                    $r->mailedLastForUser($refm->getFromuser());
+                                }
                             }
+
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                                'id' => $id
+                            ];
                         }
-                        $ret = [
-                            'ret' => 0,
-                            'status' => 'Success',
-                            'id' => $id
-                        ];
                     }
                 }
             }

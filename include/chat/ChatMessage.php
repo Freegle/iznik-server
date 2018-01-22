@@ -102,6 +102,29 @@ class ChatMessage extends Entity
         }
     }
 
+    public function checkDup($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $scheduleid = NULL) {
+        $dup = NULL;
+
+        # Check last message in the chat to see whether we have a duplicate.
+        $lasts = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? ORDER BY id DESC LIMIT 1;", [
+            $chatid
+        ]);
+
+        foreach ($lasts as $last) {
+            if ($userid = $last['userid'] &&
+                $type == $last['type'] &&
+                $refmsgid == $last['refmsgid'] &&
+                $refchatid == $last['refchatid'] &&
+                $imageid == $last['imageid'] &&
+                $facebookid == $last['facebookid'] &&
+                $scheduleid == $last['scheduleid']) {
+                $dup = $last['id'];
+            }
+        }
+
+        return($dup);
+    }
+
     public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $scheduleid = NULL) {
         try {
             $review = 0;

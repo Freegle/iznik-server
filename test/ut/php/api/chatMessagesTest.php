@@ -213,6 +213,18 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $mid1 = $ret['id'];
 
+        # Duplicate
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test',
+            'refmsgid' => $refmsgid,
+            'dup' => TRUE
+        ]);
+        error_log("Dup create message " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        assertEquals($mid1, $ret['id']);
+
         # Check that the email was suppressed.
         error_log("Check for suppress of $mid1 to {$this->uid2}");
         $ret = $this->call('chatrooms', 'POST', [
