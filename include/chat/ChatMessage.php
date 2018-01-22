@@ -111,8 +111,9 @@ class ChatMessage extends Entity
         ]);
 
         foreach ($lasts as $last) {
-            if ($userid = $last['userid'] &&
+            if ($userid == $last['userid'] &&
                 $type == $last['type'] &&
+                $last['message'] == $message &&
                 $refmsgid == $last['refmsgid'] &&
                 $refchatid == $last['refchatid'] &&
                 $imageid == $last['imageid'] &&
