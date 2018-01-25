@@ -106,6 +106,8 @@ function messages() {
                             # Not an id search
                             $m = new Message($dbhr, $dbhm);
 
+                            $searchgroups = $groupid ? [ $groupid ] : NULL;
+
                             if ($nearlocation) {
                                 # We need to look in the groups near this location.
                                 $l = new Location($dbhr, $dbhm, $nearlocation);
