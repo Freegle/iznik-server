@@ -1291,5 +1291,20 @@ class Group extends Entity
         }
 
         return($groups);
-   }
+    }
+
+    public function moveToNative() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $email = $me ? $me->getEmailPreferred() : MODERATOR_EMAIL;
+
+        # We are switching a group over from being on Yahoo to not being.  Enshrine the owner/
+        # mod roles and moderation status.
+        $this->setNativeRoles();
+        $this->setNativeModerationStatus();
+
+        #  Notify TrashNothing so that it can also do that, and talk to us rather than Yahoo.
+        $url = "https://trashnothing.com/modtools/api/switch-to-freegle-direct?key=" . TNKEY . "&group_id=" . $this->getPrivate('nameshort') . "&moderator_email=" . $email;
+        $rsp = file_get_contents($url);
+        error_log("Move to FD on TN " . var_export($rsp, TRUE));
+    }
 }

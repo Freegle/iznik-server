@@ -164,15 +164,7 @@ function group() {
                         $nowonyahoo = $g->onYahoo();
 
                         if ($wasonyahoo && !$nowonyahoo) {
-                            # We are switching a group over from being on Yahoo to not being.  Enshrine the owner/
-                            # mod roles and moderation status.
-                            $g->setNativeRoles();
-                            $g->setNativeModerationStatus();
-
-                            #  Notify TrashNothing so that it can also do that, and talk to us rather than Yahoo.
-                            $url = "https://trashnothing.com/modtools/api/switch-to-freegle-direct?key=" . TNKEY . "&group_id=" . $g->getPrivate('nameshort') . "&moderator_email=" . $me->getEmailPreferred();
-                            $rsp = file_get_contents($url);
-                            error_log("Move to FD on TN " . var_export($rsp, TRUE));
+                            $g->moveToNative();
                         } else if (!$wasonyahoo  && $nowonyahoo) {
                             # We are switching a group over from being on here to Yahoo.  This is poorly tested.
                             $url = "https://trashnothing.com/modtools/api/switch-to-yahoo-groups?key=" . TNKEY . "&group_id=" . $g->getPrivate('nameshort') . "&moderator_email=" . $me->getEmailPreferred();

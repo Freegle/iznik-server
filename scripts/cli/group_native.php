@@ -17,12 +17,7 @@ if (count($opts) < 1) {
 
     if ($id) {
         $g = Group::get($dbhr, $dbhm, $id);
-        $g->setNativeRoles();
-        $g->setNativeRoles();
-
-        #  Notify TrashNothing so that it can also do that, and talk to us rather than Yahoo.
-        $url = "https://trashnothing.com/modtools/api/switch-to-freegle-direct?key=" . TNKEY . "&group_id=" . $g->getPrivate('nameshort') . "&moderator_email=" . $me->getEmailPreferred();
-        $rsp = file_get_contents($url);
-        error_log("Move to FD on TN " . var_export($rsp, TRUE));
+        $g->moveToNative();
+        $g->setPrivate('onyahoo', 0);
     }
 }
