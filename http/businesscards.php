@@ -52,13 +52,13 @@ try {
                 error_log("Verified");
                 # Valid payment
                 if (($payment_currency == 'GBP') && (intval($payment_amount) >= 1)) {
-                    error_log("Valid amount for $custom");
+                    error_log("Valid amount $payment_amount for $custom");
                     # For a valid amount.
                     #
                     # Find the latest request from that user and mark it as paid.
                     $dbhm->preExec("UPDATE users_requests SET paid = 1, amount = ? WHERE userid = ? AND paid = 0 ORDER BY date DESC LIMIT 1;", [
-                        $custom,
-                        $payment_amount
+                        $payment_amount,
+                        $custom
                     ]);
                 } else {
                     mail("log@ehibbert.org.uk", "Payment failed", var_export($_POST, TRUE), NULL, '-fnoreply@modtools.org');
