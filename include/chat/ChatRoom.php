@@ -903,14 +903,17 @@ class ChatRoom extends Entity
         }
 
         $lastmsg = NULL;
+        $lastref = NULL;
 
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
             $atts = $m->getPublic();
+            $refmsgid = $m->getPrivate('refmsgid');
 
             # We can get duplicate messages for a variety of reasons; suppress.
-            if (!$lastmsg || $atts['message'] != $lastmsg) {
+            if (!$lastmsg || $atts['message'] != $lastmsg || $lastref != $refmsgid) {
                 $lastmsg = $atts['message'];
+                $lastref = $refmsgid;
 
                 if ($atts['reviewrequired'] && $msg['userid'] != $myid && !$modaccess) {
                     # This message is held for review, and we didn't send it.  So we shouldn't see it.
