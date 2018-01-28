@@ -80,7 +80,7 @@ class Nearby
 
                                         $subj = $u->getName() . " ($miles mile" . ($miles != 1 ? 's' : '') . " away) needs your help!";
                                         $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
-                                        $textbody = "$name, who's just $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $m->getSubject() . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby";
+                                        $textbody = "$name, who's just $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $m->getSubject() . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby\r\nIf you don't want to get these suggestions, mail $noemail.";
 
                                         $email = $u2->getEmailPreferred();
                                         $html = relevant_nearby(USER_SITE, USERLOGO, $name, $miles, $m->getSubject(), $msg['id'], $msg['type'], $email, $noemail);
