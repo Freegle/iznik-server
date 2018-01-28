@@ -6,16 +6,50 @@
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 
 $lockh = lockScript(basename(__FILE__));
 
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
+$dbhmold = $dbhm;
+
 $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
+
+$dsn = "mysql:host={$dbconfig['host']};dbname=information_schema;charset=utf8";
+
+$dbhschema = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_EMULATE_PREPARES => FALSE
+));
+
+$sql = "SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'messages' AND table_schema = '" . SQLDB . "';";
+$schema = $dbhschema->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+# Purge Yahoo notify messages
+$start = date('Y-m-d', strtotime("midnight 2 days ago"));
+error_log("Purge Yahoo notify messages before $start");
+$total = 0;
+
+$m = new Message($dbhmold, $dbhmold);
+
+do {
+    $sql = "SELECT messages.id FROM messages WHERE fromaddr = 'notify@yahoogroups.com' AND date <= '$start' LIMIT 1000;";
+    $msgs = $dbhm->query($sql)->fetchAll();
+    foreach ($msgs as $msg) {
+        #error_log($msg['id']);
+        $m->quickDelete($schema, $msg['id']);
+        $total++;
+
+        if ($total % 10 == 0) {
+            error_log("...$total");
+        }
+    }
+} while (count($msgs) > 0);
 
 # Purge old messages_history - it's only used for spam checking so we don't need to keep it indefinitely.
 $start = date('Y-m-d', strtotime("midnight 31 days ago"));
@@ -103,10 +137,10 @@ error_log("Purge non-Freegle before $start");
 
 $total = 0;
 do {
-    $sql = "SELECT messages.id FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid INNER JOIN groups ON messages_groups.groupid = groups.id WHERE `date` <= '$start' AND groups.type != 'Freegle' LIMIT 1000;";
+    $sql = "SELECT msgid FROM messages_groups INNER JOIN groups ON messages_groups.groupid = groups.id WHERE `arrival` <= '$start' AND groups.type != 'Freegle' LIMIT 1000;";
     $msgs = $dbhm->query($sql)->fetchAll();
     foreach ($msgs as $msg) {
-        $dbhm->exec("DELETE FROM messages WHERE id = {$msg['id']};");
+        $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
         $total++;
 
         if ($total % 1000 == 0) {
@@ -119,11 +153,12 @@ error_log("Deleted $total");
 
 # Now purge messages which have been deleted - we keep them for a while for PD purposes.
 $start = date('Y-m-d', strtotime("midnight 2 days ago"));
+$end = date('Y-m-d', strtotime("midnight 31 days ago"));
 error_log("Purge deleted messages before $start");
 $total = 0;
 
 do {
-    $sql = "SELECT messages.id FROM messages WHERE deleted IS NOT NULL AND deleted <= '$start' LIMIT 1000;";
+    $sql = "SELECT messages.id FROM messages WHERE date >= '$end' AND deleted IS NOT NULL AND deleted <= '$start' LIMIT 1000;";
     $msgs = $dbhm->query($sql)->fetchAll();
     foreach ($msgs as $msg) {
         $dbhm->exec("DELETE FROM messages WHERE id = {$msg['id']};");
@@ -132,6 +167,43 @@ do {
         if ($total % 1000 == 0) {
             error_log("...$total");
         }
+    }
+} while (count($msgs) > 0);
+
+# We don't need the HTML content or full message for old messages - we're primarily interested in the text body, and
+# these are large attributes.
+$start = date('Y-m-d', strtotime("midnight 2 days ago"));
+$end = date('Y-m-d', strtotime("midnight 31 days ago"));
+error_log("Purge HTML body for messages before $start");
+$total = 0;
+$id = NULL;
+
+do {
+    $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND htmlbody IS NOT NULL;";
+    $msgs = $dbhr->preQuery($sql);
+    error_log("Found " . count($msgs));
+    foreach ($msgs as $msg) {
+        $sql = "UPDATE messages SET htmlbody = NULL WHERE id = {$msg['id']};";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$id = $total");
+    }
+} while (count($msgs) > 0);
+
+error_log("Purge message for messages before $start");
+$start = date('Y-m-d', strtotime("midnight 30 days ago"));
+$end = date('Y-m-d', strtotime("midnight 60 days ago"));
+$total = 0;
+$id = NULL;
+
+do {
+    $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND message IS NOT NULL;";
+    $msgs = $dbhr->preQuery($sql);
+    foreach ($msgs as $msg) {
+        $sql = "UPDATE messages SET message = NULL WHERE id = {$msg['id']};";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$id = $total");
     }
 } while (count($msgs) > 0);
 
@@ -154,43 +226,5 @@ do {
 } while (count($msgs) > 0);
 
 error_log("Deleted $total");
-
-# We don't need the HTML content or full message for old messages - we're primarily interested in the text body, and
-# these are large attributes.
-$start = date('Y-m-d', strtotime("midnight 2 days ago"));
-error_log("Purge HTML body for messages before $start");
-$total = 0;
-$id = NULL;
-
-do {
-    $idq = $id ? " id < $id AND " : "";
-    $sql = "SELECT id FROM messages WHERE $idq arrival <= '$start' AND htmlbody IS NOT NULL ORDER BY id DESC LIMIT 1;";
-    $msgs = $dbhr->preQuery($sql);
-    foreach ($msgs as $msg) {
-        $id = !$id ? $msg['id'] : min($id, $msg['id']);
-        $sql = "UPDATE messages SET htmlbody = NULL WHERE id <= {$msg['id']} AND htmlbody IS NOT NULL ORDER BY id DESC LIMIT 1000;";
-        $count = $dbhm->exec($sql);
-        $total += $count;
-        error_log("...$id = $total");
-    }
-} while (count($msgs) > 0);
-
-error_log("Purge message for messages before $start");
-$start = date('Y-m-d', strtotime("midnight 30 days ago"));
-$total = 0;
-$id = NULL;
-
-do {
-    $idq = $id ? " id < $id AND " : "";
-    $sql = "SELECT id FROM messages WHERE $idq arrival <= '$start' AND message IS NOT NULL ORDER BY id DESC LIMIT 1;";
-    $msgs = $dbhr->preQuery($sql);
-    foreach ($msgs as $msg) {
-        $id = !$id ? $msg['id'] : min($id, $msg['id']);
-        $sql = "UPDATE messages SET message = NULL WHERE id <= {$msg['id']} AND message IS NOT NULL ORDER BY id DESC LIMIT 1000;";
-        $count = $dbhm->exec($sql);
-        $total += $count;
-        error_log("...$id = $total");
-    }
-} while (count($msgs) > 0);
 
 unlockScript($lockh);

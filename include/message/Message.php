@@ -3914,4 +3914,24 @@ class Message
             ]);
         }
     }
+
+    public function quickDelete($schema, $id) {
+        # This bypasses referential integrity checks, but honours them by querying the schema.  It's intended for
+        # when we are deleting large numbers of messages and want to avoid blocking the server because of
+        # cascaded deletes.  This is particularly true on a Percona cluster where a stream of DELETE ops tends
+        # to cripple things.
+        $this->dbhm->preExec("SET FOREIGN_KEY_CHECKS=0;", NULL, FALSE);
+        $this->dbhr->preQuery("USE iznik;");
+
+        foreach ($schema as $table) {
+            $todel = $this->dbhm->preQuery("SELECT {$table['COLUMN_NAME']} FROM {$table['TABLE_NAME']} WHERE {$table['COLUMN_NAME']} = $id", NULL, FALSE, FALSE);
+            #error_log("$id ..." . count($todel) . " from {$table['TABLE_NAME']}");
+            if (count($todel) > 0) {
+                $this->dbhm->preExec("DELETE FROM {$table['TABLE_NAME']} WHERE {$table['COLUMN_NAME']} = $id", NULL, FALSE);
+            }
+        }
+        
+        $this->dbhm->preExec("DELETE FROM messages WHERE id = $id;", NULL, FALSE);
+        $this->dbhm->preExec("SET FOREIGN_KEY_CHECKS=1;", NULL, FALSE);
+    }
 }
