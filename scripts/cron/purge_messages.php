@@ -8,6 +8,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
@@ -191,3 +193,4 @@ do {
     }
 } while (count($msgs) > 0);
 
+unlockScript($lockh);
