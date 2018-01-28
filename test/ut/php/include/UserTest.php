@@ -988,18 +988,70 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-//
-//    public function testSpecial() {
-//        error_log(__METHOD__);
-//
-//        $u = User::get($this->dbhr, $this->dbhm);
-//        $uid = $u->findByEmail('chris@phdcc.com');
-//        $u = User::get($this->dbhr, $this->dbhm, $uid);
-//
-//        list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup(21560, TRUE, TRUE);
-//        error_log("Eid is $eidforgroup");
-//
-//        error_log(__METHOD__ . " end");
-//    }
+
+    public function testFreegleMembership() {
+        error_log(__METHOD__);
+
+        $u1 = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u1->create('Test', 'User', 'A freegler');
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $u2 = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create('Test', 'User', 'A freegler');
+
+        # Check that if we are a mod on a Freegle group we can see membership of other Freegle groups.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid1 = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid2 = $g->create('testgroup2', Group::GROUP_FREEGLE);
+
+        $u1->addMembership($gid1, User::ROLE_MODERATOR);
+
+        $u2->addMembership($gid2, User::ROLE_MEMBER);
+
+        # Make the membership look old otherwise it will show up anyway.
+        $u2->setMembershipAtt($gid2, 'added', '2001-01-01');
+
+        assertTrue($u1->login('testpw'));
+
+        $ctx = NULL;
+        $atts = $u2->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, TRUE);
+        self::assertEquals(1, count($atts['memberof']));
+        self::assertEquals($gid2, $atts['memberof'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testNonFreegleMembership() {
+        error_log(__METHOD__);
+
+        $u1 = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u1->create('Test', 'User', 'A freegler');
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $u2 = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create('Test', 'User', 'A freegler');
+
+        # Check that if we are a mod on a Freegle group we can see membership of other Freegle groups.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid1 = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid2 = $g->create('testgroup2', Group::GROUP_REUSE);
+
+        $u1->addMembership($gid1, User::ROLE_MODERATOR);
+
+        $u2->addMembership($gid2, User::ROLE_MEMBER);
+
+        # Make the membership look old otherwise it will show up anyway.
+        $u2->setMembershipAtt($gid2, 'added', '2001-01-01');
+
+        assertTrue($u1->login('testpw'));
+
+        $ctx = NULL;
+        $atts = $u2->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, TRUE);
+        self::assertEquals(0, count($atts['memberof']));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

@@ -831,7 +831,7 @@ class User extends Entity
         if (!$this->memberships) {
             $this->memberships = [];
 
-            $membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = ?;", [ $this->id ]);
+            $membs = $this->dbhr->preQuery("SELECT memberships.*, groups.type FROM memberships INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ?;", [ $this->id ]);
             foreach ($membs as $memb) {
                 $this->memberships[$memb['groupid']] = $memb;
             }
@@ -1901,6 +1901,8 @@ class User extends Entity
                 $atts['comments'] = $this->getComments();
             }
 
+            $freeglemod = $me->isFreegleMod();
+
             if ($this->user['suspectcount'] > 0) {
                 # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
                 # - has a system role which allows it
@@ -1912,6 +1914,8 @@ class User extends Entity
                 # the case where you have two emails and one is approved and the other pending.
                 $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, memberships_yahoo.added AS yadded, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
+                $freeglemod = $me->isFreegleMod();
+
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
                     $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
@@ -1936,7 +1940,10 @@ class User extends Entity
 
                     $memberof[] = $thisone;
 
-                    if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                    # We can see this membership if we're a mod on the group, or we're a mod on a Freegle group
+                    # and this is one.
+                    if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR ||
+                        ($group['type'] == Group::GROUP_FREEGLE && $freeglemod)) {
                         $visible = TRUE;
                     }
                 }
@@ -1957,7 +1964,8 @@ class User extends Entity
                 # allows us to spot abuse) and any which are on our groups.
                 $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
                 $modids = array_merge([0], $me->getModeratorships());
-                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, memberships_yahoo.added AS yadded, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+                $freegleq = $freeglemod ? " OR groups.type = 'Freegle' " : '';
+                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, memberships_yahoo.added AS yadded, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq);";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 $memberof = [];
 
@@ -3733,5 +3741,20 @@ class User extends Entity
         }
 
         return([$lat, $lng]);
+    }
+
+    public function isFreegleMod() {
+        $ret = FALSE;
+
+        $this->cacheMemberships();
+
+        foreach ($this->memberships as $mem) {
+            var_dump($mem);
+            if ($mem['type'] == Group::GROUP_FREEGLE && ($mem['role'] == User::ROLE_OWNER || $mem['role'] == User::ROLE_MODERATOR)) {
+                $ret = TRUE;
+            }
+        }
+
+        return($ret);
     }
 }
