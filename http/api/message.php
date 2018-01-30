@@ -36,6 +36,7 @@ function message() {
     $userid = $userid ? $userid : NULL;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
+    $ischat = FALSE;
 
     switch ($_REQUEST['type']) {
         case 'GET':
@@ -77,6 +78,16 @@ function message() {
                             }
                         }
                         break;
+                    case MessageCollection::CHAT:
+                        # We can see the original message for a chat if we're a mod.  This is used in chat
+                        # message review when we want to show the source.
+                        if (!$me || !$me->isModerator() || !$m->isChatByEmail()) {
+                            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                            $m = NULL;
+                        } else {
+                            $ischat = TRUE;
+                        }
+                        break;
                     default:
                         # If they don't say what they're doing properly, they can't do it.
                         $m = NULL;
@@ -94,7 +105,7 @@ function message() {
                         $atts['message'] = $m->getPrivate('message');
                     }
 
-                    $cansee = $m->canSee($atts);
+                    $cansee = $m->canSee($atts) || $ischat;
 
                     # We want to return the groups info even if we can't see the message, so that we can tell them
                     # which group to join.

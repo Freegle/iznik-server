@@ -1977,6 +1977,11 @@ class Message
         return($ret);
     }
 
+    public function isChatByEmail() {
+        $refs = $this->dbhr->preQuery("SELECT * FROM chat_messages_byemail WHERE msgid = ?;", [ $this->id ]);
+        return(count($refs) > 0);
+    }
+
     public function isPending($groupid) {
         $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? AND groupid = ? AND collection = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [

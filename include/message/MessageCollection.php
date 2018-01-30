@@ -17,6 +17,7 @@ class MessageCollection
     const QUEUED_YAHOO_USER = 'QueuedYahooUser'; # Awaiting a user on the Yahoo group before it can be sent
     const REJECTED = 'Rejected'; # Rejected by mod; user can see and resend.
     const ALLUSER = 'AllUser';
+    const CHAT = 'Chat'; # Chat message
     const OWNPOSTS = 120;
 
     /** @var  $dbhr LoggedPDO */

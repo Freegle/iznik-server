@@ -2130,7 +2130,6 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
-
     public function testIntendedRepost()
     {
         error_log(__METHOD__);
@@ -2183,6 +2182,66 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan($arrival, $arrival2);
 
         $m->delete("UT delete");
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testChatSource()
+    {
+        error_log(__METHOD__);
+
+        # Create a group we're on
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1);
+
+        # Put a message on the group.
+        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Create a chat reply by email.
+        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = str_replace('Re: Basic test', 'Re: OFFER: a test item (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        # Try logged out
+        error_log("Logged out");
+        $ret = $this->call('message', 'GET', [
+            'id' => $replyid,
+            'collection' => 'Chat'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Try to get not as a mod.
+        error_log("Logged in");
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('message', 'GET', [
+            'id' => $replyid,
+            'collection' => 'Chat'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Try as mod
+        error_log("As mod");
+        $u->addMembership($group1, User::ROLE_MODERATOR);
+        $ret = $this->call('message', 'GET', [
+            'id' => $replyid,
+            'collection' => 'Chat'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($replyid, $ret['message']['id']);
 
         error_log(__METHOD__ . " end");
     }
