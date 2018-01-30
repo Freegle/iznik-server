@@ -3749,7 +3749,6 @@ class User extends Entity
         $this->cacheMemberships();
 
         foreach ($this->memberships as $mem) {
-            var_dump($mem);
             if ($mem['type'] == Group::GROUP_FREEGLE && ($mem['role'] == User::ROLE_OWNER || $mem['role'] == User::ROLE_MODERATOR)) {
                 $ret = TRUE;
             }
