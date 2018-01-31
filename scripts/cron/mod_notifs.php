@@ -8,6 +8,8 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/modnotif.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 date_default_timezone_set('Europe/London');
 $hour = date("H");
 
@@ -196,3 +198,4 @@ foreach ($mail as $id => $work) {
 
 error_log("Sent $sent");
 
+unlockScript($lockh);
