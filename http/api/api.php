@@ -105,6 +105,7 @@ require_once(IZNIK_BASE . '/http/api/user.php');
 require_once(IZNIK_BASE . '/http/api/chatrooms.php');
 require_once(IZNIK_BASE . '/http/api/chatmessages.php');
 require_once(IZNIK_BASE . '/http/api/locations.php');
+require_once(IZNIK_BASE . '/http/api/logo.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/profile.php');
 require_once(IZNIK_BASE . '/http/api/event.php');
@@ -325,6 +326,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'locations':
                     $ret = locations();
+                    break;
+                case 'logo':
+                    $ret = logo();
                     break;
                 case 'modconfig':
                     $ret = modconfig();
