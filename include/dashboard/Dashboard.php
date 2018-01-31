@@ -18,9 +18,12 @@ class Dashboard {
         $this->stats = new Stats($dbhr, $dbhm);
     }
 
-    public function get($systemwide, $allgroups, $groupid, $region, $type, $start = '30 days ago') {
+    public function get($systemwide, $allgroups, $groupid, $region, $type, $start = '30 days ago', $force = FALSE, $key = NULL) {
         $groupids = [];
         $overlaps = [];
+        $usecache = NULL;
+        $typeq = $type ? " AND `type` = " . $this->dbhr->quote($type) : '';
+        $startq = " AND start = " . $this->dbhr->quote($start);
 
         # Get the possible groups.
         if ($systemwide) {
@@ -29,6 +32,8 @@ class Dashboard {
                 $groupids[] = $group['id'];
                 $overlaps[$group['id']] = 1;
             }
+
+            $usecache = "SELECT * FROM users_dashboard WHERE systemwide = 1 $typeq $startq;";
         } else if ($region) {
             $groups = $this->dbhr->preQuery("SELECT groups.id FROM groups WHERE region LIKE ?;", [ $region ]);
             foreach ($groups as $group) {
@@ -37,8 +42,12 @@ class Dashboard {
             }
         } else if ($groupid) {
             $groupids[] = $groupid;
+
+            $usecache = "SELECT * FROM users_dashboard WHERE groupid = " . intval($groupid) . " $typeq $startq;";
         } else if ($this->me && $allgroups) {
             $groupids = $this->me->getModeratorships();
+
+            $usecache = "SELECT * FROM users_dashboard WHERE userid = " . $this->me->getId() . " $typeq $startq;";
         }
 
         $groupids = count($groupids) == 0 ? [0] : $groupids;
@@ -52,7 +61,40 @@ class Dashboard {
             }
         }
 
-        $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids, $start, "today", $systemwide);
+        $ret = NULL;
+
+        if ($usecache) {
+            $cached = $this->dbhr->preQuery($usecache);
+
+            if (count($cached) > 0) {
+                $ret = json_decode($cached[0]['data'], TRUE);
+            }
+        }
+
+        $new = FALSE;
+
+        if (!$ret) {
+            $new = TRUE;
+            $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids, $start, "today", $systemwide);
+        }
+
+        if (($new && !$region) || $force) {
+            # Save for next time.  Don't save regions.
+            #
+            # This will be updated via dashboard.php cron script once a day.
+            #
+            # Can't use a MySQL unique index on the separate values as some are NULL, and unique doesn't work well.
+            $key = $key ? $key : ("$type-" . ($this->me ? $this->me->getId() : '') . "-$systemwide-$groupid-$start");
+            $this->dbhm->preExec("REPLACE INTO users_dashboard (`key`, `type`, userid, systemwide, groupid, start, data) VALUES (?, ?, ?, ?, ?, ?, ?);", [
+                $key,
+                $type,
+                $this->me ? $this->me->getId() : NULL,
+                $systemwide,
+                $groupid,
+                $start,
+                json_encode($ret)
+            ]);
+        }
 
         if ($groupid) {
             if ($this->me && $this->me->isModerator()) {

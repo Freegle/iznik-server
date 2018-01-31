@@ -91,6 +91,15 @@ class dashboardTest extends IznikAPITestCase {
         $dash = $ret['dashboard'];
         assertGreaterThan(0, $dash['ApprovedMessageCount']);
 
+        # And again for cache code.
+        $ret = $this->call('dashboard', 'GET', [
+            'allgroups' => TRUE,
+            'grouptype' => 'Other'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $dash = $ret['dashboard'];
+        assertGreaterThan(0, $dash['ApprovedMessageCount']);
+
         # ...but not if we ask for the wrong type
         $ret = $this->call('dashboard', 'GET', [
             'allgroups' => TRUE,
