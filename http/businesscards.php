@@ -60,6 +60,8 @@ try {
                         $payment_amount,
                         $custom
                     ]);
+
+                    error_log("Affected " . $dbhm->rowsAffected());
                 } else {
                     mail("log@ehibbert.org.uk", "Payment failed", var_export($_POST, TRUE), NULL, '-fnoreply@modtools.org');
                 }
