@@ -1901,7 +1901,7 @@ class User extends Entity
                 $atts['comments'] = $this->getComments();
             }
 
-            $freeglemod = $me->isFreegleMod();
+            $freeglemod = $me && $me->isFreegleMod();
 
             if ($this->user['suspectcount'] > 0) {
                 # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
