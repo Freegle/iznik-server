@@ -1,17 +1,19 @@
 <?php
 
-if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
-    $maint = file_get_contents(IZNIK_BASE . '/http/maintenance_off.html');
-    echo $maint;
-    exit(0);
-}
-
 try {
     header('Access-Control-Allow-Origin: *');
     date_default_timezone_set('UTC');
     session_start();
     define( 'BASE_DIR', dirname(__FILE__) . '/..' );
     require_once(BASE_DIR . '/include/config.php');
+
+    if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
+        header('HTTP/1.1 503 Service Temporarily Unavailable');
+        header('Status: 503 Service Temporarily Unavailable');
+        header('Retry-After: 300');
+        exit(0);
+    }
+
     require_once(IZNIK_BASE . '/include/utils.php');
     require_once(IZNIK_BASE . '/include/db.php');
     require_once(IZNIK_BASE . '/include/session/Yahoo.php');
@@ -68,8 +70,8 @@ try {
         $f->loadCanvas();
     }
 
-# Depending on rewrites we might not have set up $_REQUEST.
-    if (strpos($_SERVER['REQUEST_URI'], '?') !== FALSE) {
+    # Depending on rewrites we might not have set up $_REQUEST.
+    if (strpos(presdef('REQUEST_URI', $_SERVER, ''), '?') !== FALSE) {
         list($path, $qs) = explode("?", $_SERVER["REQUEST_URI"], 2);
         parse_str($qs, $qss);
         $_REQUEST = array_merge($_REQUEST, $qss);
@@ -276,8 +278,10 @@ try {
         echo $indexhtml;
     }
 } catch (Exception $e) {
-    $maint = file_get_contents(IZNIK_BASE . '/http/maintenance_off.html');
-    echo $maint;
+    # Make whatever went wrong look like a maintenance issue.
+    header('HTTP/1.1 503 Service Temporarily Unavailable');
+    header('Status: 503 Service Temporarily Unavailable');
+    header('Retry-After: 300');//300 seconds
 }
 
 ?>
