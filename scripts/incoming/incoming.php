@@ -130,6 +130,14 @@ if ($cont) {
         error_log("From Yahoo System");
         $id = $r->received(Message::YAHOO_SYSTEM, $envfrom, $envto, $msg);
         $rc = $r->route();
+    } else if (stripos($envfrom, 'devnull@yahoo.com') !== FALSE &&
+        (stripos($msg, 'your membership has not been approved') !== FALSE ||
+         stripos($msg, 'You are already subscribed') !== FALSE ||
+         stripos($msg, 'by invitation only') !== FALSE ||
+         stripos($msg, 'The email address used to send your message is not subscribed ') !== FALSE)) {
+        # System message about things going awry, e.g. not subscribed, not yet approved.  Don't clog the DB with
+        # these.
+        error_log("Yahoo System awry from $envfrom");
     } else {
         error_log("Email");
         $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg);
