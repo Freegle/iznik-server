@@ -431,32 +431,42 @@ class Location extends Entity
     }
 
     public function closestPostcode($lat, $lng) {
-        # Find the grids nearest to this lat/lng
-        $sql = "SELECT id FROM locations_grids WHERE ABS(swlat - ?) <= 0.2 AND ABS(swlng - ?) <= 0.2 OR ABS(nelat - ?) <= 0.2 AND ABS(nelng - ?) <= 0.2;";
-        $grids = $this->dbhr->preQuery($sql, [ $lat, $lng, $lat, $lng ]);
-        $gridids = [0];
-        foreach ($grids as $grid) {
-            $gridids[] = $grid['id'];
-        }
-
-        $sql = "SELECT id, name, areaid, lat, lng, ST_distance(geometry, Point(?,?)) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Postcode' ORDER BY ST_distance(geometry, Point(?,?)) ASC LIMIT 1;";
-        #error_log("$sql, $lng, $lat");
-        $locs = $this->dbhr->preQuery($sql, [ $lng, $lat, $lng, $lat ]);
-
+        # Find the grids nearest to this lat/lng.  We use our spatial index to narrow down the locations to search
+        # through; we start off very close to the point and work outwards. That way in densely postcoded areas we
+        # have a fast query, and in less dense areas we have some queries which are quick but don't return anything.
+        $scan = 0.00001953125;
         $ret = NULL;
 
-        if (count($locs) == 1) {
-            $ret = $locs[0];
+        do {
+            $sql = "SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point(?, ?)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(envelope(linestring(point(?, ?), point(?, ?))), locations_spatial.geometry) AND type = 'Postcode' ORDER BY ST_distance(locations_spatial.geometry, Point(?, ?)) ASC LIMIT 1;";
+            #error_log("SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point($lng, $lng)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(envelope(linestring(point(" . ($lng - $scan) . ", " . ($lat - $scan) . "), point(" . ($lng + $scan) . ", "  . ($lat + $scan) . "))), locations_spatial.geometry) ORDER BY ST_distance(locations_spatial.geometry, Point($lng, $lat)) ASC LIMIT 1;");
+            $locs = $this->dbhr->preQuery($sql, [
+                $lng,
+                $lat,
+                $lng - $scan,
+                $lat - $scan,
+                $lng + $scan,
+                $lat + $scan,
+                $lng,
+                $lat
+            ]);
 
-            if ($ret['areaid']) {
-                $l = new Location($this->dbhr, $this->dbhm, $ret['areaid']);
-                $ret['area'] = $l->getPublic();
-                unset($ret['areaid']);
+            if (count($locs) == 1) {
+                $ret = $locs[0];
+
+                if ($ret['areaid']) {
+                    $l = new Location($this->dbhr, $this->dbhm, $ret['areaid']);
+                    $ret['area'] = $l->getPublic();
+                    unset($ret['areaid']);
+                }
+
+                $l = new Location($this->dbhr, $this->dbhm, $ret['id']);
+                $ret['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
+                break;
             }
 
-            $l = new Location($this->dbhr, $this->dbhm, $ret['id']);
-            $ret['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
-        }
+            $scan *= 2;
+        } while ($scan <= 0.2);
 
         return($ret);
     }

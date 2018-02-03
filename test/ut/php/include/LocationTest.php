@@ -224,6 +224,9 @@ class locationTest extends IznikTestCase {
         $loc = $l->closestPostcode(53.856556299999994, -2.6401651999999998);
         assertEquals("PR3 2NE", $loc['name']);
 
+        $loc = $l->closestPostcode(51.530687199999996, 0.146932);
+        assertEquals("RM9 6SR", $loc['name']);
+
         error_log(__METHOD__ . " end");
     }
 
