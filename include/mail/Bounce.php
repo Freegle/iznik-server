@@ -96,6 +96,7 @@ class Bounce
                                         $code,
                                         $this->isPermanent($code)
                                     ]);
+
                                     $ret = TRUE;
                                 }
                             }
@@ -126,23 +127,32 @@ class Bounce
             'user' => $id
         ]);
 
+        error_log("...suspend mail to $id");
+
         $this->dbhm->preExec("UPDATE users SET bouncing = 1 WHERE id = ?;", [  $id ]);
     }
 
     public function suspendMail($id = NULL, $permthreshold = 3, $allthreshold = 50) {
         $idq = $id ? " AND userid = $id " : "";
-        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE permanent = 1 AND users_emails.preferred = 1 AND reset = 0 GROUP BY userid ORDER BY count DESC;");
+        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, email, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE permanent = 1 AND reset = 0 GROUP BY userid ORDER BY count DESC;");
 
+        # For both perm and temp bounces we only want to suspend the user if the bounces refer to the preferred email.
+        # But for some legacy users we might not have users_email.preferred = 1 entry, so we can't use that - instead
+        # get the preferred email and compare it.
         foreach ($users as $user) {
-            if ($user['count'] >= $permthreshold) {
+            $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+
+            if ($user['count'] >= $permthreshold && $user['email'] == $u->getEmailPreferred()) {
                 $this->suspend($user['userid']);
             }
         }
 
-        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE reset = 0 AND users_emails.preferred = 1 GROUP BY userid ORDER BY count DESC;");
+        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE reset = 0 GROUP BY userid ORDER BY count DESC;");
 
         foreach ($users as $user) {
-            if ($user['count'] >= $allthreshold) {
+            $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+
+            if ($user['count'] >= $allthreshold && $user['email'] == $u->getEmailPreferred()) {
                 $this->suspend($user['userid']);
             }
         }
