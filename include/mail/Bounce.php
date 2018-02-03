@@ -147,7 +147,7 @@ class Bounce
             }
         }
 
-        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE reset = 0 GROUP BY userid ORDER BY count DESC;");
+        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, email, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE reset = 0 GROUP BY userid ORDER BY count DESC;");
 
         foreach ($users as $user) {
             $u = new User($this->dbhr, $this->dbhm, $user['userid']);
