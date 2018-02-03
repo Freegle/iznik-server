@@ -88,11 +88,7 @@ try {
     }
 
     if (pres('src', $_REQUEST)) {
-        $dbhm->preExec("INSERT INTO logs_src (src, userid, session) VALUES (?, ?, ?);", [
-            $_REQUEST['src'],
-            presdef('id', $_SESSION, NULL),
-            session_id()
-        ]);
+        $dbhm->background("INSERT INTO logs_src (src, userid, session) VALUES (" . $dbhm->quote($_REQUEST['src']) . ", " . $dbhm->quote(presdef('id', $_SESSION, NULL)) . ", " . $dbhm->quote(session_id()) . ");");
 
         # Record in the session, as we might later create a user.
         $_SESSION['src'] = $_REQUEST['src'];
