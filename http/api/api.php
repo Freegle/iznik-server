@@ -471,7 +471,12 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 $apicallretries++;
 
                 if ($apicallretries >= API_RETRIES) {
-                    echo json_encode(array('ret' => 997, 'status' => 'DB operation failed after retry', 'exception' => $e->getMessage()));
+                    if (strpos($e->getMessage(), 'WSREP has not yet prepared node for application') !== FALSE) {
+                        # Our cluster is sick.  Make it look like maintenance.
+                        echo json_encode(array('ret' => 111, 'status' => 'Cluster not operational'));
+                    } else {
+                        echo json_encode(array('ret' => 997, 'status' => 'DB operation failed after retry', 'exception' => $e->getMessage()));
+                    }
                 }
             } else {
                 # Something else.
