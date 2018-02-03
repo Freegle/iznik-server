@@ -438,18 +438,18 @@ class Location extends Entity
         $ret = NULL;
 
         do {
-            $sql = "SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point(?, ?)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(envelope(linestring(point(?, ?), point(?, ?))), locations_spatial.geometry) AND type = 'Postcode' ORDER BY ST_distance(locations_spatial.geometry, Point(?, ?)) ASC LIMIT 1;";
-            #error_log("SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point($lng, $lng)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(envelope(linestring(point(" . ($lng - $scan) . ", " . ($lat - $scan) . "), point(" . ($lng + $scan) . ", "  . ($lat + $scan) . "))), locations_spatial.geometry) ORDER BY ST_distance(locations_spatial.geometry, Point($lng, $lat)) ASC LIMIT 1;");
+            $sql = "SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point(?, ?)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(envelope(linestring(point(?, ?), point(?, ?))), locations_spatial.geometry) AND type = 'Postcode' ORDER BY dist ASC LIMIT 1;";
+            #error_log("SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point($lng, $lng)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(envelope(linestring(point(" . ($lng - $scan) . ", " . ($lat - $scan) . "), point(" . ($lng + $scan) . ", "  . ($lat + $scan) . "))), locations_spatial.geometry) ORDER BY dist ASC LIMIT 1;");
             $locs = $this->dbhr->preQuery($sql, [
                 $lng,
                 $lat,
                 $lng - $scan,
                 $lat - $scan,
                 $lng + $scan,
-                $lat + $scan,
-                $lng,
-                $lat
+                $lat + $scan
             ]);
+
+            error_log("Found " . count($locs));
 
             if (count($locs) == 1) {
                 $ret = $locs[0];
