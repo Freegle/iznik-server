@@ -449,6 +449,28 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
         assertEquals($mid2, $ret['chatmessages'][1]['id']);
 
+        # Test hold/unhold.
+        error_log("Hold");
+        assertFalse(pres('held', $ret['chatmessages'][0]));
+        $ret = $this->call('chatmessages', 'POST', [
+            'id' => $mid1,
+            'action' => 'Hold'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('chatmessages', 'GET', []);
+        #error_log("After hold " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        self::assertEquals($this->user3->getId(), $ret['chatmessages'][0]['held']['id']);
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'id' => $mid1,
+            'action' => 'Release'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('chatmessages', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertFalse(pres('held', $ret['chatmessages'][0]));
+
         # Approve the first
         $ret = $this->call('chatmessages', 'POST', [
             'action' => 'Approve',

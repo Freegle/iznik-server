@@ -2,9 +2,6 @@
 function chatmessages() {
     global $dbhr, $dbhm;
 
-//    $dbhr->setErrorLog(TRUE);
-//    $dbhm->setErrorLog(TRUE);
-
     $roomid = intval(presdef('roomid', $_REQUEST, NULL));
     $message = presdef('message', $_REQUEST, NULL);
     $refmsgid = presdef('refmsgid', $_REQUEST, NULL);
@@ -82,6 +79,18 @@ function chatmessages() {
                     ];
                 } else if ($action == ChatMessage::ACTION_REJECT && $id) {
                     $m->reject($id);
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == ChatMessage::ACTION_HOLD && $id) {
+                    $m->hold($id);
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == ChatMessage::ACTION_RELEASE && $id) {
+                    $m->release($id);
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success'

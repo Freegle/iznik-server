@@ -30,6 +30,8 @@ class ChatMessage extends Entity
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_REJECT = 'Reject';
+    const ACTION_HOLD = 'Hold';
+    const ACTION_RELEASE = 'Release';
 
     /** @var  $log Log */
     private $log;
@@ -355,6 +357,35 @@ class ChatMessage extends Entity
             'chatreview' => $showcount,
             'chatreviewother' => $dontshowcount
         ]);
+    }
+
+    public function hold($id) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        # We can only hold if we can see this message for review.
+        $sql = "SELECT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
+        $msgs = $this->dbhr->preQuery($sql, [ $myid, $id ]);
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("REPLACE INTO chat_messages_held (msgid, userid) VALUES (?, ?);", [
+                $id,
+                $me->getId()
+            ]);
+        }
+    }
+
+    public function release($id) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        # We can only release if we can see this message for review.
+        $sql = "SELECT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
+        $msgs = $this->dbhr->preQuery($sql, [ $myid, $id ]);
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("DELETE FROM chat_messages_held WHERE msgid = ?;", [
+                $id
+            ]);
+        }
     }
 
     public function delete() {
