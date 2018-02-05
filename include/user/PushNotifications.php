@@ -130,6 +130,7 @@ class PushNotifications
                             stream_set_blocking($fp, 0);
                             $result = fwrite($fp, $msg, strlen($msg));
                             fclose($fp);
+                            #error_log("IOS Notification for $userid result " . var_export($result, TRUE));
                         }
                     } catch (Exception $e) { error_log("Exception " . $e->getMessage()); }
 
