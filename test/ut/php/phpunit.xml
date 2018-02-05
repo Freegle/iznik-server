@@ -6,8 +6,8 @@
     </testsuites>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">/var/www/iznik/http/api</directory>
-            <directory suffix=".php">/var/www/iznik/include</directory>
+            <directory suffix=".php">/var/www/iznik.mt.dbg/http/api</directory>
+            <directory suffix=".php">/var/www/iznik.mt.dbg/include</directory>
             <exclude>
                 <directory suffix=".php">lib</directory>
             </exclude>
