@@ -525,8 +525,8 @@ class ChatRoom extends Entity
                 #error_log("Add " . count($rooms) . " user to user chats using $sql");
             }
 
-            if (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes)) {
-                # We want chats marked by groupid for which we are a member.
+            if (MODTOOLS && (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes))) {
+                # We want chats marked by groupid for which we are a member.  This is mod-only function.
                 $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (status IS NULL OR status != 'Closed') $countq;";
                 #error_log("Group chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
