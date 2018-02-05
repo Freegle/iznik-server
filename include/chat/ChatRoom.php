@@ -475,9 +475,6 @@ class ChatRoom extends Entity
         $ret = [];
 
         if ($userid) {
-            $u = User::get($this->dbhr, $this->dbhm, $userid);
-            $typeq = $chattypes ? (" AND chattype IN ('" . implode("','", $chattypes) . "') ") : '';
-
             # The chats we can see are:
             # - either for a group (possibly a modonly one)
             # - a conversation between two users that we have not closed
@@ -519,8 +516,10 @@ class ChatRoom extends Entity
             }
 
             if (!$chattypes || in_array(ChatRoom::TYPE_USER2USER, $chattypes)) {
-                # We want chats where we are one of the users.  If the chat is closed or blocked we don't want to see it.
-                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' AND (status IS NULL OR status NOT IN ('Closed', 'Blocked')) $countq;";
+                # We want chats where we are one of the users.  If the chat is closed or blocked we don't want to see
+                # it unless we're on MT.
+                $statusq = MODTOOLS ? '' : "AND (status IS NULL OR status NOT IN ('Closed', 'Blocked'))";
+                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' $statusq $countq;";
                 #error_log("User chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid, $userid]));
                 #error_log("Add " . count($rooms) . " user to user chats using $sql");
