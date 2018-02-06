@@ -630,5 +630,41 @@ class messagesTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testPendingWithdraw() {
+        error_log(__METHOD__);
+
+        # Set up a pending message on a native group.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 0);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->addMembership($gid);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $mid = $r->received(Message::EMAIL, 'from@test.com', 'testgroup@groups.ilovefreegle.org', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        error_log("From " . $m->getFromuser() . "," . $m->getFromaddr());
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_WITHDRAWN
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(TRUE, $ret['deleted']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

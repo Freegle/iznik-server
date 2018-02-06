@@ -551,6 +551,25 @@ function message() {
                                 case Message::OUTCOME_WITHDRAWN: {
                                     $m->withdraw($comment, $happiness, $userid);
                                     $ret = ['ret' => 0, 'status' => 'Success'];
+
+                                    # The message might still be pending.
+                                    $groups = $m->getGroups(FALSE, TRUE);
+
+                                    foreach ($groups as $gid) {
+                                        if ($m->isPending($gid)) {
+                                            $g = Group::get($dbhr, $dbhm, $gid);
+
+                                            if (!$g->onYahoo()) {
+                                                # For native groups, if a message is withdrawn while it's pending
+                                                # we might as well delete it.
+                                                $m->delete("Withdrawn pending");
+                                                $ret['deleted'] = TRUE;
+                                            }
+                                        } else {
+                                            $m->withdraw($comment, $happiness, $userid);
+                                        }
+                                    }
+
                                     break;
                                 }
                             }
