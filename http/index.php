@@ -128,17 +128,7 @@ try {
         $uri = presdef('REQUEST_URI', $_SERVER, '/');
 
         # Load the AdSense script.  The actual ads are inserted in the views.
-        $adsense = '<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-    <script>
-    try {
-        (adsbygoogle = window.adsbygoogle || []).push({
-            google_ad_client: "' . ADSENSE_CLIENT  . '"
-        });        
-    } catch (e) {
-        console.log("Ads blocked?", e);
-    }
-    </script>';
-
+        $adsense = '<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>';
         $indexhtml = "<!DOCTYPE HTML><html><head>{$head}{$adsense}</head>$body</html>";
 
         if (!MODTOOLS) {
