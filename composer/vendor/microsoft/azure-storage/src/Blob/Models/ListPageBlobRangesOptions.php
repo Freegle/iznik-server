@@ -25,6 +25,7 @@
 namespace MicrosoftAzure\Storage\Blob\Models;
 
 use MicrosoftAzure\Storage\Common\Internal\Validate;
+use MicrosoftAzure\Storage\Common\Models\Range;
 
 /**
  * Optional parameters for listPageBlobRanges wrapper
@@ -38,52 +39,10 @@ use MicrosoftAzure\Storage\Common\Internal\Validate;
  */
 class ListPageBlobRangesOptions extends BlobServiceOptions
 {
-    /**
-     * @var string
-     */
-    private $_leaseId;
-    
-    /**
-     * @var string
-     */
-    private $_snapshot;
-    
-    /**
-     * @var integer
-     */
+    private $snapshot;
+    private $range;
     private $_rangeStart;
-    
-    /**
-     * @var integer
-     */
     private $_rangeEnd;
-    
-    /**
-     * @var AccessCondition
-     */
-    private $_accessCondition;
-    
-    /**
-     * Gets lease Id for the blob
-     *
-     * @return string
-     */
-    public function getLeaseId()
-    {
-        return $this->_leaseId;
-    }
-    
-    /**
-     * Sets lease Id for the blob
-     *
-     * @param string $leaseId the blob lease id.
-     *
-     * @return void
-     */
-    public function setLeaseId($leaseId)
-    {
-        $this->_leaseId = $leaseId;
-    }
     
     /**
      * Gets blob snapshot.
@@ -92,7 +51,7 @@ class ListPageBlobRangesOptions extends BlobServiceOptions
      */
     public function getSnapshot()
     {
-        return $this->_snapshot;
+        return $this->snapshot;
     }
 
     /**
@@ -104,74 +63,28 @@ class ListPageBlobRangesOptions extends BlobServiceOptions
      */
     public function setSnapshot($snapshot)
     {
-        $this->_snapshot = $snapshot;
+        $this->snapshot = $snapshot;
     }
-    
+
     /**
-     * Gets rangeStart
+     * Gets Blob range.
      *
-     * @return integer
+     * @return Range
      */
-    public function getRangeStart()
+    public function getRange()
     {
-        return $this->_rangeStart;
+        return $this->range;
     }
-    
+
     /**
-     * Sets rangeStart
+     * Sets Blob range.
      *
-     * @param integer $rangeStart the blob lease id.
+     * @param Range $range value.
      *
      * @return void
      */
-    public function setRangeStart($rangeStart)
+    public function setRange(Range $range)
     {
-        Validate::isInteger($rangeStart, 'rangeStart');
-        $this->_rangeStart = $rangeStart;
-    }
-    
-    /**
-     * Gets rangeEnd
-     *
-     * @return integer
-     */
-    public function getRangeEnd()
-    {
-        return $this->_rangeEnd;
-    }
-    
-    /**
-     * Sets rangeEnd
-     *
-     * @param integer $rangeEnd range end value in bytes
-     *
-     * @return void
-     */
-    public function setRangeEnd($rangeEnd)
-    {
-        Validate::isInteger($rangeEnd, 'rangeEnd');
-        $this->_rangeEnd = $rangeEnd;
-    }
-    
-    /**
-     * Gets access condition
-     *
-     * @return AccessCondition
-     */
-    public function getAccessCondition()
-    {
-        return $this->_accessCondition;
-    }
-    
-    /**
-     * Sets access condition
-     *
-     * @param AccessCondition $accessCondition value to use.
-     *
-     * @return void
-     */
-    public function setAccessCondition(AccessCondition $accessCondition)
-    {
-        $this->_accessCondition = $accessCondition;
+        $this->range = $range;
     }
 }

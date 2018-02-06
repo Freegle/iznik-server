@@ -24,10 +24,8 @@
 
 namespace MicrosoftAzure\Storage\Common\Models;
 
-use MicrosoftAzure\Storage\Common\Models\ServiceProperties;
-
 /**
- * Result from calling GetQueueProperties REST wrapper.
+ * Result from calling GetServiceProperties REST wrapper.
  *
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Models
@@ -43,13 +41,14 @@ class GetServicePropertiesResult
     /**
      * Creates object from $parsedResponse.
      *
+     * @internal
      * @param array $parsedResponse XML response parsed into array.
      *
      * @return \MicrosoftAzure\Storage\Common\Models\GetServicePropertiesResult
      */
     public static function create(array $parsedResponse)
     {
-        $result                     = new GetServicePropertiesResult();
+        $result = new GetServicePropertiesResult();
         $result->setValue(ServiceProperties::create($parsedResponse));
         
         return $result;

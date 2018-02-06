@@ -14,6 +14,7 @@
  *
  * PHP version 5
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -24,8 +25,6 @@
  
 namespace MicrosoftAzure\Storage\Common\Internal;
 
-use MicrosoftAzure\Storage\Common\Internal\Resources;
-use MicrosoftAzure\Storage\Common\Internal\Validate;
 use MicrosoftAzure\Storage\Common\Internal\IMiddleware;
 
 /**
@@ -51,21 +50,16 @@ class RestProxy
     protected $dataSerializer;
     
     /**
-     * @var string
-     */
-    private $_uri;
-    
-    /**
      * Initializes new RestProxy object.
      *
      * @param Serialization\ISerializer $dataSerializer The data serializer.
-     * @param string                    $uri            The uri of the service.
      */
-    public function __construct(Serialization\ISerializer $dataSerializer = null, $uri)
+    public function __construct(Serialization\ISerializer $dataSerializer = null)
     {
         $this->middlewares    = array();
         $this->dataSerializer = $dataSerializer;
-        $this->_uri           = $uri;
+        //For logging the request and responses.
+        // $this->middlewares[] = new HistoryMiddleware('.\\messages.log');
     }
     
     /**
@@ -76,28 +70,6 @@ class RestProxy
     public function getMiddlewares()
     {
         return $this->middlewares;
-    }
-
-    /**
-     * Gets the Uri of the service.
-     *
-     * @return string
-     */
-    public function getUri()
-    {
-        return $this->_uri;
-    }
-
-    /**
-     * Sets the Uri of the service.
-     *
-     * @param string $uri The URI of the request.
-     *
-     * @return void
-     */
-    public function setUri($uri)
-    {
-        $this->_uri = $uri;
     }
 
     /**
@@ -127,8 +99,8 @@ class RestProxy
     protected function addOptionalQueryParam(array &$queryParameters, $key, $value)
     {
         Validate::isArray($queryParameters, 'queryParameters');
-        Validate::isString($key, 'key');
-        Validate::isString($value, 'value');
+        Validate::canCastAsString($key, 'key');
+        Validate::canCastAsString($value, 'value');
                 
         if (!is_null($value) && Resources::EMPTY_STRING !== $value) {
             $queryParameters[$key] = $value;
@@ -149,8 +121,8 @@ class RestProxy
     protected function addOptionalHeader(array &$headers, $key, $value)
     {
         Validate::isArray($headers, 'headers');
-        Validate::isString($key, 'key');
-        Validate::isString($value, 'value');
+        Validate::canCastAsString($key, 'key');
+        Validate::canCastAsString($value, 'value');
                 
         if (!is_null($value) && Resources::EMPTY_STRING !== $value) {
             $headers[$key] = $value;

@@ -24,7 +24,7 @@
 
 namespace MicrosoftAzure\Storage\Common\Internal\Middlewares;
 
-use MicrosoftAzure\Storage\Common\Internal\Middlewares\MiddlewareBase;
+use MicrosoftAzure\Storage\Common\Middlewares\MiddlewareBase;
 use MicrosoftAzure\Storage\Common\Internal\Authentication\IAuthScheme;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 use Psr\Http\Message\RequestInterface;
@@ -34,35 +34,19 @@ use Psr\Http\Message\RequestInterface;
  * and to sign the request with provided authentication scheme. This middleware
  * is by default applied to each of the request.
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
  * @copyright 2017 Microsoft Corporation
  * @license   https://github.com/azure/azure-storage-php/LICENSE
- * @version   Release: 0.12.1
  * @link      https://github.com/azure/azure-storage-php
  */
 class CommonRequestMiddleware extends MiddlewareBase
 {
-
-    /**
-     * @var MicrosoftAzure\Storage\Common\Internal\Authentication\IAuthScheme
-     */
     private $authenticationScheme;
-
-    /**
-     * @var array
-     */
     private $headers;
-
-    /**
-     * @var string
-     */
     private $msVersion;
-
-    /**
-     * @var string
-     */
     private $userAgent;
 
     /**
@@ -73,7 +57,7 @@ class CommonRequestMiddleware extends MiddlewareBase
      * @param array       $headers              The headers to be added.
      */
     public function __construct(
-        IAuthScheme $authenticationScheme,
+        IAuthScheme $authenticationScheme = null,
         array $headers = array()
     ) {
         $this->authenticationScheme = $authenticationScheme;
@@ -120,8 +104,10 @@ class CommonRequestMiddleware extends MiddlewareBase
         if (!$result->hasHeader(Resources::X_MS_REQUEST_ID)) {
             $result = $result->withHeader(Resources::X_MS_REQUEST_ID, \uniqid());
         }
-        //Signing the request.
-        return $this->authenticationScheme->signRequest($result);
+        //Sign the request if authentication scheme is not null.
+        $request = $this->authenticationScheme == null ?
+            $request : $this->authenticationScheme->signRequest($result);
+        return $request;
     }
 
     /**

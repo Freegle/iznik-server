@@ -29,6 +29,7 @@ namespace MicrosoftAzure\Storage\Common\Internal;
  * strings are defined here:
  * www.connectionstrings.com/articles/show/important-rules-for-connection-strings
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -43,24 +44,9 @@ class ConnectionStringParser
     const EXPECT_VALUE      = 'ExpectValue';
     const EXPECT_SEPARATOR  = 'ExpectSeparator';
 
-    /**
-     * @var string
-     */
     private $_argumentName;
-    
-    /**
-     * @var string
-     */
     private $_value;
-    
-    /**
-     * @var integer
-     */
     private $_pos;
-    
-    /**
-     * @var string
-     */
     private $_state;
     
     /**
@@ -71,14 +57,12 @@ class ConnectionStringParser
      * @param string $connectionString Connection string.
      *
      * @return array
-     *
-     * @static
      */
     public static function parseConnectionString($argumentName, $connectionString)
     {
-        Validate::isString($argumentName, 'argumentName');
+        Validate::canCastAsString($argumentName, 'argumentName');
         Validate::notNullOrEmpty($argumentName, 'argumentName');
-        Validate::isString($connectionString, 'connectionString');
+        Validate::canCastAsString($connectionString, 'connectionString');
         Validate::notNullOrEmpty($connectionString, 'connectionString');
         
         $parser = new ConnectionStringParser($argumentName, $connectionString);
@@ -177,7 +161,7 @@ class ConnectionStringParser
         $arguments = func_get_args();
         
         // Remove first and second arguments (position and error string)
-        unset($arguments[0],  $arguments[1]);
+        unset($arguments[0], $arguments[1]);
         
         // Create a short error message.
         $errorString = vsprintf($errorString, $arguments);

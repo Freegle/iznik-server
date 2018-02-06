@@ -25,9 +25,9 @@
 namespace MicrosoftAzure\Storage\Blob\Models;
 
 use MicrosoftAzure\Storage\Common\Internal\Resources;
-use MicrosoftAzure\Storage\Blob\Models\Blob;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Common\Internal\InvalidArgumentTypeException;
+use MicrosoftAzure\Storage\Common\MarkerContinuationTokenTrait;
+use MicrosoftAzure\Storage\Common\Models\MarkerContinuationToken;
 
 /**
  * Hold result of calliing listBlobs wrapper.
@@ -41,54 +41,28 @@ use MicrosoftAzure\Storage\Common\Internal\InvalidArgumentTypeException;
  */
 class ListBlobsResult
 {
-    /**
-     * @var array
-     */
-    private $_blobPrefixes;
-            
-    /**
-     * @var Blob[]
-     */
-    private $_blobs;
-    
-    /**
-     * @var string
-     */
-    private $_delimiter;
-    
-    /**
-     * @var string
-     */
-    private $_prefix;
-    
-    /**
-     * @var string
-     */
-    private $_marker;
-    
-    /**
-     * @var string
-     */
-    private $_nextMarker;
-    
-    /**
-     * @var integer
-     */
-    private $_maxResults;
-    
-    /**
-     * @var string
-     */
-    private $_containerName;
+    use MarkerContinuationTokenTrait;
+
+    private $blobPrefixes;
+    private $blobs;
+    private $delimiter;
+    private $prefix;
+    private $marker;
+    private $maxResults;
+    private $containerName;
 
     /**
      * Creates ListBlobsResult object from parsed XML response.
      *
-     * @param array $parsed XML response parsed into array.
+     * @param array  $parsed      XML response parsed into array.
+     * @param string $location       Contains the location for the previous
+     *                               request.
+     *
+     * @internal
      *
      * @return ListBlobsResult
      */
-    public static function create(array $parsed)
+    public static function create(array $parsed, $location = '')
     {
         $result                 = new ListBlobsResult();
         $serviceEndpoint        = Utilities::tryGetKeysChainValue(
@@ -110,10 +84,19 @@ class ListBlobsResult
             $parsed,
             Resources::QP_MARKER
         ));
-        $result->setNextMarker(Utilities::tryGetValue(
-            $parsed,
-            Resources::QP_NEXT_MARKER
-        ));
+
+        $nextMarker =
+            Utilities::tryGetValue($parsed, Resources::QP_NEXT_MARKER);
+
+        if ($nextMarker != null) {
+            $result->setContinuationToken(
+                new MarkerContinuationToken(
+                    $nextMarker,
+                    $location
+                )
+            );
+        }
+
         $result->setMaxResults(intval(
             Utilities::tryGetValue($parsed, Resources::QP_MAX_RESULTS, 0)
         ));
@@ -138,7 +121,7 @@ class ListBlobsResult
             $blob->setUrl($serviceEndpoint . $containerName . '/' . $value['Name']);
             $blob->setSnapshot(Utilities::tryGetValue($value, 'Snapshot'));
             $blob->setProperties(
-                BlobProperties::create(
+                BlobProperties::createFromXml(
                     Utilities::tryGetValue($value, 'Properties')
                 )
             );
@@ -175,7 +158,7 @@ class ListBlobsResult
      */
     public function getBlobs()
     {
-        return $this->_blobs;
+        return $this->blobs;
     }
     
     /**
@@ -187,9 +170,9 @@ class ListBlobsResult
      */
     protected function setBlobs(array $blobs)
     {
-        $this->_blobs = array();
+        $this->blobs = array();
         foreach ($blobs as $blob) {
-            $this->_blobs[] = clone $blob;
+            $this->blobs[] = clone $blob;
         }
     }
     
@@ -200,7 +183,7 @@ class ListBlobsResult
      */
     public function getBlobPrefixes()
     {
-        return $this->_blobPrefixes;
+        return $this->blobPrefixes;
     }
     
     /**
@@ -212,9 +195,9 @@ class ListBlobsResult
      */
     protected function setBlobPrefixes(array $blobPrefixes)
     {
-        $this->_blobPrefixes = array();
+        $this->blobPrefixes = array();
         foreach ($blobPrefixes as $blob) {
-            $this->_blobPrefixes[] = clone $blob;
+            $this->blobPrefixes[] = clone $blob;
         }
     }
 
@@ -225,7 +208,7 @@ class ListBlobsResult
      */
     public function getPrefix()
     {
-        return $this->_prefix;
+        return $this->prefix;
     }
 
     /**
@@ -237,7 +220,7 @@ class ListBlobsResult
      */
     protected function setPrefix($prefix)
     {
-        $this->_prefix = $prefix;
+        $this->prefix = $prefix;
     }
     
     /**
@@ -247,7 +230,7 @@ class ListBlobsResult
      */
     public function getDelimiter()
     {
-        return $this->_delimiter;
+        return $this->delimiter;
     }
 
     /**
@@ -259,7 +242,7 @@ class ListBlobsResult
      */
     protected function setDelimiter($delimiter)
     {
-        $this->_delimiter = $delimiter;
+        $this->delimiter = $delimiter;
     }
 
     /**
@@ -269,7 +252,7 @@ class ListBlobsResult
      */
     public function getMarker()
     {
-        return $this->_marker;
+        return $this->marker;
     }
 
     /**
@@ -281,7 +264,7 @@ class ListBlobsResult
      */
     protected function setMarker($marker)
     {
-        $this->_marker = $marker;
+        $this->marker = $marker;
     }
 
     /**
@@ -291,7 +274,7 @@ class ListBlobsResult
      */
     public function getMaxResults()
     {
-        return $this->_maxResults;
+        return $this->maxResults;
     }
 
     /**
@@ -303,31 +286,9 @@ class ListBlobsResult
      */
     protected function setMaxResults($maxResults)
     {
-        $this->_maxResults = $maxResults;
+        $this->maxResults = $maxResults;
     }
 
-    /**
-     * Gets next marker.
-     *
-     * @return string
-     */
-    public function getNextMarker()
-    {
-        return $this->_nextMarker;
-    }
-
-    /**
-     * Sets next marker.
-     *
-     * @param string $nextMarker value.
-     *
-     * @return void
-     */
-    protected function setNextMarker($nextMarker)
-    {
-        $this->_nextMarker = $nextMarker;
-    }
-    
     /**
      * Gets container name.
      *
@@ -335,7 +296,7 @@ class ListBlobsResult
      */
     public function getContainerName()
     {
-        return $this->_containerName;
+        return $this->containerName;
     }
 
     /**
@@ -347,6 +308,6 @@ class ListBlobsResult
      */
     protected function setContainerName($containerName)
     {
-        $this->_containerName = $containerName;
+        $this->containerName = $containerName;
     }
 }

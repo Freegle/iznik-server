@@ -39,14 +39,8 @@ use MicrosoftAzure\Storage\Common\Internal\Resources;
  */
 class QueryTablesResult
 {
-    /**
-     * @var string
-     */
-    private $_nextTableName;
-    
-    /**
-     * @var array
-     */
+    use TableContinuationTokenTrait;
+
     private $_tables;
     
     /**
@@ -55,6 +49,8 @@ class QueryTablesResult
      * @param array $headers The HTTP response headers
      * @param array $entries The table entriess
      *
+     * @internal
+     *
      * @return QueryTablesResult
      */
     public static function create(array $headers, array $entries)
@@ -62,37 +58,25 @@ class QueryTablesResult
         $result  = new QueryTablesResult();
         $headers = array_change_key_case($headers);
         
-        $result->setNextTableName(
-            Utilities::tryGetValue(
-                $headers,
-                Resources::X_MS_CONTINUATION_NEXTTABLENAME
-            )
-        );
         $result->setTables($entries);
+
+        $nextTableName = Utilities::tryGetValue(
+            $headers,
+            Resources::X_MS_CONTINUATION_NEXTTABLENAME
+        );
+
+        if ($nextTableName != null) {
+            $result->setContinuationToken(
+                new TableContinuationToken(
+                    $nextTableName,
+                    '',
+                    '',
+                    Utilities::getLocationFromHeaders($headers)
+                )
+            );
+        }
         
         return $result;
-    }
-    
-    /**
-     * Gets nextTableName
-     *
-     * @return string
-     */
-    public function getNextTableName()
-    {
-        return $this->_nextTableName;
-    }
-    
-    /**
-     * Sets nextTableName
-     *
-     * @param string $nextTableName value
-     *
-     * @return void
-     */
-    protected function setNextTableName($nextTableName)
-    {
-        $this->_nextTableName = $nextTableName;
     }
     
     /**

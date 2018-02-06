@@ -26,10 +26,13 @@ namespace MicrosoftAzure\Storage\Queue\Internal;
 
 use MicrosoftAzure\Storage\Queue\Models as QueueModels;
 use MicrosoftAzure\Storage\Common\Models\ServiceProperties;
+use MicrosoftAzure\Storage\Common\Models\ServiceOptions;
+use MicrosoftAzure\Storage\Common\Models\GetServiceStats;
 
 /**
  * This interface has all REST APIs provided by Windows Azure for queue service
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Queue\Internal
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -41,62 +44,82 @@ use MicrosoftAzure\Storage\Common\Models\ServiceProperties;
 interface IQueue
 {
     /**
-     * Gets the properties of the Queue service.
+     * Gets the properties of the service.
      *
-     * @param QueueModels\QueueServiceOptions $options The optional parameters.
+     * @param ServiceOptions $options The optional parameters.
      *
      * @return \MicrosoftAzure\Storage\Common\Models\GetServicePropertiesResult
      */
     public function getServiceProperties(
-        QueueModels\QueueServiceOptions $options = null
+        ServiceOptions $options = null
     );
 
     /**
-     * Creates promise to get the properties of the Queue service.
+     * Creates promise to get the properties of the service.
      *
-     * @param QueueModels\QueueServiceOptions $options The optional parameters.
+     * @param ServiceOptions $options The optional parameters.
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      */
     public function getServicePropertiesAsync(
-        QueueModels\QueueServiceOptions $options = null
+        ServiceOptions $options = null
     );
 
     /**
-     * Sets the properties of the Queue service.
+     * Sets the properties of the service.
      *
      * It's recommended to use getServiceProperties, alter the returned object and
      * then use setServiceProperties with this altered object.
      *
-     * @param ServiceProperties               $serviceProperties The new service
-     *                                                           properties.
-     * @param QueueModels\QueueServiceOptions $options           The optional
-     *                                                           parameters.
+     * @param ServiceProperties $serviceProperties The new service properties.
+     * @param ServiceOptions    $options           The optional parameters.
      *
      * @return void
      */
     public function setServiceProperties(
         ServiceProperties $serviceProperties,
-        QueueModels\QueueServiceOptions $options = null
+        ServiceOptions $options = null
     );
 
     /**
-     * Creates promise to set the properties of the Queue service.
+     * Creates promise to set the properties of the service.
      *
      * It's recommended to use getServiceProperties, alter the returned object and
      * then use setServiceProperties with this altered object.
      *
-     * @param ServiceProperties               $serviceProperties The new service
-     *                                                           properties.
-     * @param QueueModels\QueueServiceOptions $options           The optional
-     *                                                           parameters.
+     * @param ServiceProperties $serviceProperties The new service properties.
+     * @param ServiceOptions    $options           The optional parameters.
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      */
     public function setServicePropertiesAsync(
         ServiceProperties $serviceProperties,
-        QueueModels\QueueServiceOptions $options = null
+        ServiceOptions $options = null
     );
+
+    /**
+     * Retieves statistics related to replication for the service. The operation
+     * will only be sent to secondary location endpoint.
+     *
+     * @param  ServiceOptions|null $options The options this operation sends with.
+     *
+     * @return GetServiceStatsResult
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/get-queue-service-stats
+     */
+    public function getServiceStats(ServiceOptions $options = null);
+
+    /**
+     * Creates promise that retrieves statistics related to replication for the
+     * service. The operation will only be sent to secondary location endpoint.
+     *
+     * @param  ServiceOptions|null $options The options this operation sends with.
+     *
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     *
+     * @see  https://docs.microsoft.com/en-us/rest/api/storageservices/get-queue-service-stats
+     */
+    public function getServiceStatsAsync(ServiceOptions $options = null);
 
     /**
      * Creates a new queue under the storage account.
@@ -234,7 +257,7 @@ interface IQueue
      * @param string                           $messageText The message contents.
      * @param QueueModels\CreateMessageOptions $options     The optional parameters.
      *
-     * @return void
+     * @return QueueModels\CreateMessageResult
      */
     public function createMessage(
         $queueName,
@@ -443,6 +466,70 @@ interface IQueue
      */
     public function clearMessagesAsync(
         $queueName,
+        QueueModels\QueueServiceOptions $options = null
+    );
+
+    /**
+     * Gets the access control list (ACL)
+     *
+     * @param string                          $queue   The queue name.
+     * @param QueueModels\QueueServiceOptions $options The optional parameters.
+     *
+     * @return QueueModels\QueueACL
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/get-queue-acl
+     */
+    public function getQueueAcl(
+        $queue,
+        QueueModels\QueueServiceOptions $options = null
+    );
+
+    /**
+     * Creates the promise to gets the access control list (ACL)
+     *
+     * @param string                          $queue   The queue name.
+     * @param QueueModels\QueueServiceOptions $options The optional parameters.
+     *
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/get-queue-acl
+     */
+    public function getQueueAclAsync(
+        $queue,
+        QueueModels\QueueServiceOptions $options = null
+    );
+
+    /**
+     * Sets the ACL.
+     *
+     * @param string                          $queue   name
+     * @param QueueModels\QueueACL            $acl     access control list
+     * @param QueueModels\QueueServiceOptions $options optional parameters
+     *
+     * @return void
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/set-queue-acl
+     */
+    public function setQueueAcl(
+        $queue,
+        QueueModels\QueueACL $acl,
+        QueueModels\QueueServiceOptions $options = null
+    );
+
+    /**
+     * Creates promise to set the ACL
+     *
+     * @param string                     $queue   name
+     * @param QueueModels\QueueACL            $acl     access control list
+     * @param QueueModels\QueueServiceOptions $options optional parameters
+     *
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/set-queue-acl
+     */
+    public function setQueueAclAsync(
+        $queue,
+        QueueModels\QueueACL $acl,
         QueueModels\QueueServiceOptions $options = null
     );
 }

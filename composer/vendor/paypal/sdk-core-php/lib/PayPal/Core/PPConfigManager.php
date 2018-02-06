@@ -13,6 +13,7 @@ class PPConfigManager
     //default config values
     public static $defaults = array(
       "http.ConnectionTimeOut" => "30",
+      "http.TimeOut"           => "60",
       "http.Retry"             => "5",
     );
 

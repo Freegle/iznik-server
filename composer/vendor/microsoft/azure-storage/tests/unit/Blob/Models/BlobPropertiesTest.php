@@ -21,7 +21,7 @@
  * @license   https://github.com/azure/azure-storage-php/LICENSE
  * @link      https://github.com/azure/azure-storage-php
  */
-namespace MicrosoftAzure\Storage\Tests\unit\Blob\Models;
+namespace MicrosoftAzure\Storage\Tests\Unit\Blob\Models;
 
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
 use MicrosoftAzure\Storage\Blob\Models\BlobProperties;
@@ -40,7 +40,7 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
 class BlobPropertiesTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::create
+     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::createFromHttpHeaders
      */
     public function testCreate()
     {
@@ -50,7 +50,7 @@ class BlobPropertiesTest extends \PHPUnit_Framework_TestCase
         $expectedDate = Utilities::rfc1123ToDateTime($expected['Last-Modified']);
         
         // Test
-        $actual = BlobProperties::create($expected);
+        $actual = BlobProperties::createFromHttpHeaders($expected);
         
         // Assert
         $this->assertEquals($expectedDate, $actual->getLastModified());
@@ -64,6 +64,9 @@ class BlobPropertiesTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(intval($expected['x-ms-blob-sequence-number']), $actual->getSequenceNumber());
         $this->assertEquals($expected['x-ms-blob-type'], $actual->getBlobType());
         $this->assertEquals($expected['x-ms-lease-status'], $actual->getLeaseStatus());
+        $this->assertEquals(Utilities::toBoolean($expected['x-ms-server-encrypted']), $actual->getServerEncrypted());
+        $this->assertEquals(Utilities::toBoolean($expected['x-ms-incremental-copy']), $actual->getIncrementalCopy());
+        $this->assertEquals($expected['x-ms-copy-destination-snapshot'], $actual->getCopyDestinationSnapshot());
     }
     
     /**
@@ -229,6 +232,24 @@ class BlobPropertiesTest extends \PHPUnit_Framework_TestCase
     }
     
     /**
+     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::setContentDisposition
+     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::getContentDisposition
+     */
+    public function testSetContentDisposition()
+    {
+        // Setup
+        $expected = '0x8CAFB82EFF70C46';
+        $properties = new BlobProperties();
+        $properties->setContentDisposition($expected);
+        
+        // Test
+        $properties->setContentDisposition($expected);
+        
+        // Assert
+        $this->assertEquals($expected, $properties->getContentDisposition());
+    }
+    
+    /**
      * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::setBlobType
      * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::getBlobType
      */
@@ -273,12 +294,71 @@ class BlobPropertiesTest extends \PHPUnit_Framework_TestCase
         // Setup
         $expected = 123;
         $properties = new BlobProperties();
-        $properties->setSequenceNumber($expected);
-        
+
         // Test
         $properties->setSequenceNumber($expected);
         
         // Assert
         $this->assertEquals($expected, $properties->getSequenceNumber());
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::setCopyDestinationSnapshot
+     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::getCopyDestinationSnapshot
+     */
+    public function testSetCopyDestinationSnapshot()
+    {
+        // Setup
+        $expected = '2017-09-07T06:57:06.0830478Z';
+        $properties = new BlobProperties();
+
+        // Test
+        $properties->setCopyDestinationSnapshot($expected);
+
+        // Assert
+        $this->assertEquals($expected, $properties->getCopyDestinationSnapshot());
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::setIncrementalCopy
+     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::getIncrementalCopy
+     */
+    public function testSetIncrementalCopy()
+    {
+        // Setup
+        $expected = true;
+        $properties = new BlobProperties();
+
+        // Test
+        $properties->setIncrementalCopy($expected);
+
+        // Assert
+        $this->assertEquals($expected, $properties->getIncrementalCopy());
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::setServerEncrypted
+     * @covers MicrosoftAzure\Storage\Blob\Models\BlobProperties::getServerEncrypted
+     */
+    public function tesSetServerEncrypted()
+    {
+        // Setup
+        $expectedTrue = true;
+        $expectedFalse = false;
+        $expectedNull = null;
+
+        $propertiesTrue = new BlobProperties();
+        $propertiesFalse = new BlobProperties();
+        $propertiesNull = new BlobProperties();
+
+        // Test
+        $propertiesTrue->setServerEncrypted($expectedTrue);
+        $propertiesFalse->setServerEncrypted($expectedFalse);
+        $propertiesNull->setServerEncrypted($expectedNull);
+
+        // Assert
+        $this->assertEquals($expectedTrue, $propertiesTrue->getServerEncrypted());
+        $this->assertEquals($propertiesFalse, $propertiesFalse->getServerEncrypted());
+        $this->assertEquals($propertiesNull, $propertiesNull->getServerEncrypted());
     }
 }

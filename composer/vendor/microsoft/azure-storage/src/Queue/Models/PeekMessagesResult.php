@@ -24,7 +24,6 @@
 
 namespace MicrosoftAzure\Storage\Queue\Models;
 
-use MicrosoftAzure\Storage\Queue\Models\MicrosoftAzureQueueMessage;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 
@@ -40,17 +39,14 @@ use MicrosoftAzure\Storage\Common\Internal\Resources;
  */
 class PeekMessagesResult
 {
-    /**
-     * Holds all message entries.
-     *
-     * @var array
-     */
-    private $_queueMessages;
+    private $queueMessages;
     
     /**
      * Creates PeekMessagesResult object from parsed XML response.
      *
      * @param array $parsedResponse XML response parsed into array.
+     *
+     * @internal
      *
      * @return PeekMessagesResult
      */
@@ -64,7 +60,7 @@ class PeekMessagesResult
                 $parsedResponse[Resources::QP_QUEUE_MESSAGE]
             );
             foreach ($rawMessages as $value) {
-                $message = MicrosoftAzureQueueMessage::createFromPeekMessages($value);
+                $message = QueueMessage::createFromPeekMessages($value);
                 
                 $queueMessages[] = $message;
             }
@@ -77,13 +73,13 @@ class PeekMessagesResult
     /**
      * Gets queueMessages field.
      *
-     * @return integer
+     * @return QueueMessage[]
      */
     public function getQueueMessages()
     {
         $clonedMessages = array();
         
-        foreach ($this->_queueMessages as $value) {
+        foreach ($this->queueMessages as $value) {
             $clonedMessages[] = clone $value;
         }
         
@@ -93,12 +89,14 @@ class PeekMessagesResult
     /**
      * Sets queueMessages field.
      *
-     * @param integer $queueMessages value to use.
+     * @param QueueMessage[] $queueMessages value to use.
+     *
+     * @internal
      *
      * @return void
      */
     protected function setQueueMessages($queueMessages)
     {
-        $this->_queueMessages = $queueMessages;
+        $this->queueMessages = $queueMessages;
     }
 }

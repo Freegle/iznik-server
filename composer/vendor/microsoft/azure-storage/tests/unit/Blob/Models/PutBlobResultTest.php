@@ -21,7 +21,7 @@
  * @license   https://github.com/azure/azure-storage-php/LICENSE
  * @link      https://github.com/azure/azure-storage-php
  */
-namespace MicrosoftAzure\Storage\Tests\unit\Blob\Models;
+namespace MicrosoftAzure\Storage\Tests\Unit\Blob\Models;
 
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
@@ -47,6 +47,8 @@ class PutBlobResultTest extends \PHPUnit_Framework_TestCase
      * @covers MicrosoftAzure\Storage\Blob\Models\PutBlobResult::getETag
      * @covers MicrosoftAzure\Storage\Blob\Models\PutBlobResult::setContentMD5
      * @covers MicrosoftAzure\Storage\Blob\Models\PutBlobResult::getContentMD5
+     * @covers MicrosoftAzure\Storage\Blob\Models\PutBlobResult::setRequestServerEncrypted
+     * @covers MicrosoftAzure\Storage\Blob\Models\PutBlobResult::getRequestServerEncrypted
      */
     public function testCreate()
     {
@@ -62,5 +64,6 @@ class PutBlobResultTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expectedDate, $actual->getLastModified());
         $this->assertEquals($expected['Etag'], $actual->getETag());
         $this->assertEquals($expected['Content-MD5'], $actual->getContentMD5());
+        $this->assertEquals(Utilities::toBoolean($expected['x-ms-request-server-encrypted']), $actual->getRequestServerEncrypted());
     }
 }

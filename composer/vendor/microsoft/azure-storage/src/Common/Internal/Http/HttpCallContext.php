@@ -27,10 +27,12 @@ namespace MicrosoftAzure\Storage\Common\Internal\Http;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 use MicrosoftAzure\Storage\Common\Internal\Validate;
+use MicrosoftAzure\Storage\Common\Models\ServiceOptions;
 
 /**
  * Holds basic elements for making HTTP call.
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal\Http
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -40,66 +42,15 @@ use MicrosoftAzure\Storage\Common\Internal\Validate;
  */
 class HttpCallContext
 {
-    /**
-     * The HTTP method used to make this call.
-     *
-     * @var string
-     */
     private $_method;
-    
-    /**
-     * HTTP request headers.
-     *
-     * @var array
-     */
     private $_headers;
-    
-    /**
-     * The URI query parameters.
-     *
-     * @var array
-     */
     private $_queryParams;
-
-    /**
-     * The HTTP POST parameters.
-     *
-     * @var array
-     */
     private $_postParameters;
-    
-    /**
-     * @var string
-     */
     private $_uri;
-    
-    /**
-     * The URI path.
-     *
-     * @var string
-     */
     private $_path;
-    
-    /**
-     * The expected status codes.
-     *
-     * @var array
-     */
     private $_statusCodes;
-    
-    /**
-     * The HTTP request body.
-     *
-     * @var string
-     */
     private $_body;
-
-    /**
-     * The request option this context will be sent with
-     *
-     * @var array
-     */
-    private $_requestOptions;
+    private $_serviceOptions;
     
     /**
      * Default constructor.
@@ -114,7 +65,7 @@ class HttpCallContext
         $this->_postParameters = array();
         $this->_statusCodes    = array();
         $this->_headers        = array();
-        $this->_requestOptions = array();
+        $this->_serviceOptions = new ServiceOptions();
     }
     
     /**
@@ -136,7 +87,7 @@ class HttpCallContext
      */
     public function setMethod($method)
     {
-        Validate::isString($method, 'method');
+        Validate::canCastAsString($method, 'method');
         
         $this->_method = $method;
     }
@@ -214,7 +165,7 @@ class HttpCallContext
      */
     public function setUri($uri)
     {
-        Validate::isString($uri, 'uri');
+        Validate::canCastAsString($uri, 'uri');
         
         $this->_uri = $uri;
     }
@@ -238,7 +189,7 @@ class HttpCallContext
      */
     public function setPath($path)
     {
-        Validate::isString($path, 'path');
+        Validate::canCastAsString($path, 'path');
         
         $this->_path = $path;
     }
@@ -287,7 +238,7 @@ class HttpCallContext
      */
     public function setBody($body)
     {
-        Validate::isString($body, 'body');
+        Validate::canCastAsString($body, 'body');
         
         $this->_body = $body;
     }
@@ -302,8 +253,8 @@ class HttpCallContext
      */
     public function addHeader($name, $value)
     {
-        Validate::isString($name, 'name');
-        Validate::isString($value, 'value');
+        Validate::canCastAsString($name, 'name');
+        Validate::canCastAsString($value, 'value');
         
         $this->_headers[$name] = $value;
     }
@@ -320,8 +271,8 @@ class HttpCallContext
      */
     public function addOptionalHeader($name, $value)
     {
-        Validate::isString($name, 'name');
-        Validate::isString($value, 'value');
+        Validate::canCastAsString($name, 'name');
+        Validate::canCastAsString($value, 'value');
         
         if (!empty($value)) {
             $this->_headers[$name] = $value;
@@ -337,7 +288,7 @@ class HttpCallContext
      */
     public function removeHeader($name)
     {
-        Validate::isString($name, 'name');
+        Validate::canCastAsString($name, 'name');
         Validate::notNullOrEmpty($name, 'name');
         
         unset($this->_headers[$name]);
@@ -353,8 +304,8 @@ class HttpCallContext
      */
     public function addQueryParameter($name, $value)
     {
-        Validate::isString($name, 'name');
-        Validate::isString($value, 'value');
+        Validate::canCastAsString($name, 'name');
+        Validate::canCastAsString($value, 'value');
         
         $this->_queryParams[$name] = $value;
     }
@@ -394,8 +345,8 @@ class HttpCallContext
      */
     public function addOptionalQueryParameter($name, $value)
     {
-        Validate::isString($name, 'name');
-        Validate::isString($value, 'value');
+        Validate::canCastAsString($name, 'name');
+        Validate::canCastAsString($value, 'value');
         
         if (!empty($value)) {
             $this->_queryParams[$name] = $value;
@@ -429,28 +380,28 @@ class HttpCallContext
     }
 
     /**
-     * Gets the saved request options
+     * Gets the saved service options
      *
-     * @return array
+     * @return ServiceOptions
      */
-    public function getRequestOptions()
+    public function getServiceOptions()
     {
-        if ($this->_requestOptions == null) {
-            $this->_requestOptions = [];
+        if ($this->_serviceOptions == null) {
+            $this->_serviceOptions = new ServiceOptions();
         }
-        return $this->_requestOptions;
+        return $this->_serviceOptions;
     }
 
     /**
-     * Sets the request options
+     * Sets the service options
      *
-     * @param array $requestOptions the request options to be set.
+     * @param ServiceOptions $serviceOptions the service options to be set.
      *
      * @return void
      */
-    public function setRequestOptions(array $requestOptions)
+    public function setServiceOptions(ServiceOptions $serviceOptions)
     {
-        $this->_requestOptions = $requestOptions;
+        $this->_serviceOptions = $serviceOptions;
     }
     
     /**

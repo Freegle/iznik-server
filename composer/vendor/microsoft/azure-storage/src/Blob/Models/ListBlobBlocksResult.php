@@ -40,35 +40,12 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  */
 class ListBlobBlocksResult
 {
-    /**
-     * @var \DateTime
-     */
-    private $_lastModified;
-    
-    /**
-     * @var string
-     */
-    private $_etag;
-    
-    /**
-     * @var string
-     */
-    private $_contentType;
-    
-    /**
-     * @var integer
-     */
-    private $_contentLength;
-    
-    /**
-     * @var array
-     */
-    private $_committedBlocks;
-    
-    /**
-     * @var array
-     */
-    private $_uncommittedBlocks;
+    private $lastModified;
+    private $etag;
+    private $contentType;
+    private $contentLength;
+    private $committedBlocks;
+    private $uncommittedBlocks;
     
     /**
      * Gets block entries from parsed response
@@ -78,7 +55,7 @@ class ListBlobBlocksResult
      *
      * @return array
      */
-    private static function _getEntries(array $parsed, $type)
+    private static function getEntries(array $parsed, $type)
     {
         $entries = array();
         
@@ -106,6 +83,8 @@ class ListBlobBlocksResult
      * @param array $headers HTTP response headers
      * @param array $parsed  HTTP response body in array representation
      *
+     * @internal
+     *
      * @return ListBlobBlocksResult
      */
     public static function create(array $headers, array $parsed)
@@ -128,11 +107,11 @@ class ListBlobBlocksResult
             Utilities::tryGetValue($clean, Resources::CONTENT_TYPE)
         );
         
-        $result->_uncommittedBlocks = self::_getEntries(
+        $result->uncommittedBlocks = self::getEntries(
             $parsed,
             'UncommittedBlocks'
         );
-        $result->_committedBlocks   = self::_getEntries($parsed, 'CommittedBlocks');
+        $result->committedBlocks   = self::getEntries($parsed, 'CommittedBlocks');
         
         return $result;
     }
@@ -144,7 +123,7 @@ class ListBlobBlocksResult
      */
     public function getLastModified()
     {
-        return $this->_lastModified;
+        return $this->lastModified;
     }
 
     /**
@@ -157,7 +136,7 @@ class ListBlobBlocksResult
     protected function setLastModified(\DateTime $lastModified)
     {
         Validate::isDate($lastModified);
-        $this->_lastModified = $lastModified;
+        $this->lastModified = $lastModified;
     }
 
     /**
@@ -167,7 +146,7 @@ class ListBlobBlocksResult
      */
     public function getETag()
     {
-        return $this->_etag;
+        return $this->etag;
     }
 
     /**
@@ -179,7 +158,7 @@ class ListBlobBlocksResult
      */
     protected function setETag($etag)
     {
-        $this->_etag = $etag;
+        $this->etag = $etag;
     }
     
     /**
@@ -189,7 +168,7 @@ class ListBlobBlocksResult
      */
     public function getContentType()
     {
-        return $this->_contentType;
+        return $this->contentType;
     }
 
     /**
@@ -201,7 +180,7 @@ class ListBlobBlocksResult
      */
     protected function setContentType($contentType)
     {
-        $this->_contentType = $contentType;
+        $this->contentType = $contentType;
     }
     
     /**
@@ -211,7 +190,7 @@ class ListBlobBlocksResult
      */
     public function getContentLength()
     {
-        return $this->_contentLength;
+        return $this->contentLength;
     }
 
     /**
@@ -224,7 +203,7 @@ class ListBlobBlocksResult
     protected function setContentLength($contentLength)
     {
         Validate::isInteger($contentLength, 'contentLength');
-        $this->_contentLength = $contentLength;
+        $this->contentLength = $contentLength;
     }
     
     /**
@@ -234,7 +213,7 @@ class ListBlobBlocksResult
      */
     public function getUncommittedBlocks()
     {
-        return $this->_uncommittedBlocks;
+        return $this->uncommittedBlocks;
     }
     
     /**
@@ -246,7 +225,7 @@ class ListBlobBlocksResult
      */
     protected function setUncommittedBlocks(array $uncommittedBlocks)
     {
-        $this->_uncommittedBlocks = $uncommittedBlocks;
+        $this->uncommittedBlocks = $uncommittedBlocks;
     }
     
     /**
@@ -256,7 +235,7 @@ class ListBlobBlocksResult
      */
     public function getCommittedBlocks()
     {
-        return $this->_committedBlocks;
+        return $this->committedBlocks;
     }
     
     /**
@@ -268,6 +247,6 @@ class ListBlobBlocksResult
      */
     protected function setCommittedBlocks(array $committedBlocks)
     {
-        $this->_committedBlocks = $committedBlocks;
+        $this->committedBlocks = $committedBlocks;
     }
 }

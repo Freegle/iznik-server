@@ -22,12 +22,13 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\framework;
+namespace MicrosoftAzure\Storage\Tests\Framework;
 
+use MicrosoftAzure\Storage\Blob\Models\Container;
 use MicrosoftAzure\Storage\Tests\Framework\ServiceRestProxyTestBase;
 use MicrosoftAzure\Storage\Blob\Models\CreateContainerOptions;
 use MicrosoftAzure\Storage\Blob\Models\ListContainersOptions;
-use MicrosoftAzure\Storage\Common\ServiceException;
+use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
 
 /**
  * TestBase class for each unit test class.
@@ -106,6 +107,21 @@ class BlobServiceRestProxyTestBase extends ServiceRestProxyTestBase
         }
     }
 
+    public function deleteAllStorageContainers()
+    {
+        $this->deleteContainers($this->listContainers());
+    }
+
+    public function existInContainerArray($containerName, $containers)
+    {
+        foreach ($containers as $container) {
+            if ($container->getName() === $containerName) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function deleteContainer($containerName)
     {
         if (($key = array_search($containerName, $this->_createdContainers)) !== false) {
@@ -118,7 +134,7 @@ class BlobServiceRestProxyTestBase extends ServiceRestProxyTestBase
     {
         $containers = $this->listContainers($containerPrefix);
         foreach ($containerList as $container) {
-            if ((array_search($container, $containers) === true)) {
+            if (in_array($container, $containers)) {
                 $this->deleteContainer($container);
             }
         }

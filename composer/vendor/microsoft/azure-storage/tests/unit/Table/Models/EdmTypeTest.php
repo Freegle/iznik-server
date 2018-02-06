@@ -21,7 +21,7 @@
  * @license   https://github.com/azure/azure-storage-php/LICENSE
  * @link      https://github.com/azure/azure-storage-php
  */
-namespace MicrosoftAzure\Storage\Tests\unit\Table\Models;
+namespace MicrosoftAzure\Storage\Tests\Unit\Table\Models;
 
 use MicrosoftAzure\Storage\Table\Models\EdmType;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
@@ -209,6 +209,29 @@ class EdmTypeTest extends \PHPUnit_Framework_TestCase
         
         // Assert
         $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Table\Models\EdmType::validateEdmValue
+     */
+    public function testValidateEdmValueWithDouble()
+    {
+        // Setup
+        $type      = EdmType::DOUBLE;
+        $values    = array();
+        $values[]  = 1;
+        $values[]  = PHP_INT_MAX;
+        $values[]  = pi();
+        $values[]  = 1.0;
+        $expected  = true;
+        
+        // Test
+        foreach ($values as $value) {
+            $actual = EdmType::validateEdmValue($type, $value);
+        
+            // Assert
+            $this->assertEquals($expected, $actual);
+        }
     }
     
     /**

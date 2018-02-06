@@ -26,8 +26,8 @@ namespace MicrosoftAzure\Storage\Blob\Models;
 
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Blob\Models\Container;
-use MicrosoftAzure\Storage\Tests\Unit\Common\Internal\UtilitiesTest;
+use MicrosoftAzure\Storage\Common\Models\MarkerContinuationToken;
+use MicrosoftAzure\Storage\Common\MarkerContinuationTokenTrait;
 
 /**
  * Container to hold list container response object.
@@ -41,44 +41,26 @@ use MicrosoftAzure\Storage\Tests\Unit\Common\Internal\UtilitiesTest;
  */
 class ListContainersResult
 {
-    /**
-     * @var array
-     */
-    private $_containers;
-    
-    /**
-     * @var string
-     */
-    private $_prefix;
-    
-    /**
-     * @var string
-     */
-    private $_marker;
-    
-    /**
-     * @var string
-     */
-    private $_nextMarker;
-    
-    /**
-     * @var integer
-     */
-    private $_maxResults;
-    
-    /**
-     * @var string
-     */
-    private $_accountName;
+    use MarkerContinuationTokenTrait;
+
+    private $containers;
+    private $prefix;
+    private $marker;
+    private $maxResults;
+    private $accountName;
 
     /**
      * Creates ListBlobResult object from parsed XML response.
      *
-     * @param array $parsedResponse XML response parsed into array.
+     * @param array  $parsedResponse XML response parsed into array.
+     * @param string $location       Contains the location for the previous
+     *                               request.
+     *
+     * @internal
      *
      * @return ListContainersResult
      */
-    public static function create(array $parsedResponse)
+    public static function create(array $parsedResponse, $location = '')
     {
         $result               = new ListContainersResult();
         $serviceEndpoint      = Utilities::tryGetKeysChainValue(
@@ -97,10 +79,19 @@ class ListContainersResult
             $parsedResponse,
             Resources::QP_MARKER
         ));
-        $result->setNextMarker(Utilities::tryGetValue(
-            $parsedResponse,
-            Resources::QP_NEXT_MARKER
-        ));
+
+        $nextMarker =
+            Utilities::tryGetValue($parsedResponse, Resources::QP_NEXT_MARKER);
+
+        if ($nextMarker != null) {
+            $result->setContinuationToken(
+                new MarkerContinuationToken(
+                    $nextMarker,
+                    $location
+                )
+            );
+        }
+        
         $result->setMaxResults(Utilities::tryGetValue(
             $parsedResponse,
             Resources::QP_MAX_RESULTS
@@ -125,6 +116,19 @@ class ListContainersResult
             $date       = Utilities::rfc1123ToDateTime($date);
             $properties->setLastModified($date);
             $properties->setETag($value['Properties']['Etag']);
+            
+            if (array_key_exists('LeaseStatus', $value['Properties'])) {
+                $properties->setLeaseStatus($value['Properties']['LeaseStatus']);
+            }
+            if (array_key_exists('LeaseState', $value['Properties'])) {
+                $properties->setLeaseStatus($value['Properties']['LeaseState']);
+            }
+            if (array_key_exists('LeaseDuration', $value['Properties'])) {
+                $properties->setLeaseStatus($value['Properties']['LeaseDuration']);
+            }
+            if (array_key_exists('PublicAccess', $value['Properties'])) {
+                $properties->setPublicAccess($value['Properties']['PublicAccess']);
+            }
             $container->setProperties($properties);
             $containers[] = $container;
         }
@@ -141,9 +145,9 @@ class ListContainersResult
      */
     protected function setContainers(array $containers)
     {
-        $this->_containers = array();
+        $this->containers = array();
         foreach ($containers as $container) {
-            $this->_containers[] = clone $container;
+            $this->containers[] = clone $container;
         }
     }
     
@@ -154,7 +158,7 @@ class ListContainersResult
      */
     public function getContainers()
     {
-        return $this->_containers;
+        return $this->containers;
     }
 
     /**
@@ -164,7 +168,7 @@ class ListContainersResult
      */
     public function getPrefix()
     {
-        return $this->_prefix;
+        return $this->prefix;
     }
 
     /**
@@ -176,7 +180,7 @@ class ListContainersResult
      */
     protected function setPrefix($prefix)
     {
-        $this->_prefix = $prefix;
+        $this->prefix = $prefix;
     }
 
     /**
@@ -186,7 +190,7 @@ class ListContainersResult
      */
     public function getMarker()
     {
-        return $this->_marker;
+        return $this->marker;
     }
 
     /**
@@ -198,7 +202,7 @@ class ListContainersResult
      */
     protected function setMarker($marker)
     {
-        $this->_marker = $marker;
+        $this->marker = $marker;
     }
 
     /**
@@ -208,7 +212,7 @@ class ListContainersResult
      */
     public function getMaxResults()
     {
-        return $this->_maxResults;
+        return $this->maxResults;
     }
 
     /**
@@ -220,31 +224,9 @@ class ListContainersResult
      */
     protected function setMaxResults($maxResults)
     {
-        $this->_maxResults = $maxResults;
+        $this->maxResults = $maxResults;
     }
 
-    /**
-     * Gets next marker.
-     *
-     * @return string
-     */
-    public function getNextMarker()
-    {
-        return $this->_nextMarker;
-    }
-
-    /**
-     * Sets next marker.
-     *
-     * @param string $nextMarker value.
-     *
-     * @return void
-     */
-    protected function setNextMarker($nextMarker)
-    {
-        $this->_nextMarker = $nextMarker;
-    }
-    
     /**
      * Gets account name.
      *
@@ -252,7 +234,7 @@ class ListContainersResult
      */
     public function getAccountName()
     {
-        return $this->_accountName;
+        return $this->accountName;
     }
 
     /**
@@ -264,6 +246,6 @@ class ListContainersResult
      */
     protected function setAccountName($accountName)
     {
-        $this->_accountName = $accountName;
+        $this->accountName = $accountName;
     }
 }

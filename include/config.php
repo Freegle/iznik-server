@@ -12,6 +12,7 @@ if (!defined('IZNIK_BASE')) {
     define('INCLUDE_TEMPLATE_NAME', TRUE);
     define('SQLLOG', TRUE);
     define('EVENTLOG', TRUE);
+    define('TWIG_CACHE', '/tmp/twig_cache');
 
     if (!defined('XHPROF')) {
         define('XHPROF', FALSE);

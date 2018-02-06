@@ -14,6 +14,7 @@
  *
  * PHP version 5
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -24,11 +25,10 @@
 
 namespace MicrosoftAzure\Storage\Common\Internal;
 
-use MicrosoftAzure\Storage\Common\Internal\InvalidArgumentTypeException;
-use MicrosoftAzure\Storage\Common\Internal\Resources;
+use MicrosoftAzure\Storage\Common\Exceptions\InvalidArgumentTypeException;
 
 /**
- * Validates aganist a condition and throws an exception in case of failure.
+ * Validates against a condition and throws an exception in case of failure.
  *
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal
@@ -57,7 +57,7 @@ class Validate
     }
 
     /**
-     * Throws exception if the provided variable type is not string.
+     * Throws exception if the provided variable can not convert to a string.
      *
      * @param mixed  $var  The variable to check.
      * @param string $name The parameter name.
@@ -66,7 +66,7 @@ class Validate
      *
      * @return void
      */
-    public static function isString($var, $name)
+    public static function canCastAsString($var, $name)
     {
         try {
             (string)$var;
@@ -314,7 +314,7 @@ class Validate
      */
     public static function isA($objectInstance, $class, $name)
     {
-        Validate::isString($class, 'class');
+        Validate::canCastAsString($class, 'class');
         Validate::notNull($objectInstance, 'objectInstance');
         Validate::isObject($objectInstance, 'objectInstance');
 
@@ -346,7 +346,7 @@ class Validate
      */
     public static function methodExists($objectInstance, $method, $name)
     {
-        Validate::isString($method, 'method');
+        Validate::canCastAsString($method, 'method');
         Validate::notNull($objectInstance, 'objectInstance');
         Validate::isObject($objectInstance, 'objectInstance');
 
@@ -375,7 +375,7 @@ class Validate
      */
     public static function isDateString($value, $name)
     {
-        Validate::isString($value, 'value');
+        Validate::canCastAsString($value, 'value');
 
         try {
             new \DateTime($value);
@@ -389,5 +389,34 @@ class Validate
                 )
             );
         }
+    }
+
+    /**
+     * Validate if the provided array has key, throw exception otherwise.
+     *
+     * @param  string  $key   The key to be searched.
+     * @param  string  $name  The name of the array.
+     * @param  array   $array The array to be validated.
+     *
+     * @throws \UnexpectedValueException
+     * @throws \InvalidArgumentException
+     *
+     * @return  boolean
+     */
+    public static function hasKey($key, $name, array $array)
+    {
+        Validate::isArray($array, $name);
+
+        if (!array_key_exists($key, $array)) {
+            throw new \UnexpectedValueException(
+                sprintf(
+                    Resources::INVALID_VALUE_MSG,
+                    $name,
+                    sprintf(Resources::ERROR_KEY_NOT_EXIST, $key)
+                )
+            );
+        }
+
+        return true;
     }
 }

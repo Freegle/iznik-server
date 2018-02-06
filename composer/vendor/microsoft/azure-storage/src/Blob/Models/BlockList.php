@@ -40,16 +40,13 @@ use MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer;
  */
 class BlockList
 {
-    /**
-     * @var array
-     */
-    private $_entries;
-    public static $xmlRootName = 'BlockList';
+    private $entries;
+    private static $xmlRootName = 'BlockList';
     
     /**
      * Creates block list from array of blocks.
      *
-     * @param array $array The blocks array.
+     * @param Block[] The blocks array.
      *
      * @return BlockList
      */
@@ -74,7 +71,7 @@ class BlockList
      */
     public function addEntry($blockId, $type)
     {
-        Validate::isString($blockId, 'blockId');
+        Validate::canCastAsString($blockId, 'blockId');
         Validate::isTrue(
             BlobBlockType::isValid($type),
             sprintf(Resources::INVALID_BTE_MSG, get_class(new BlobBlockType()))
@@ -83,7 +80,7 @@ class BlockList
         $block->setBlockId($blockId);
         $block->setType($type);
         
-        $this->_entries[] = $block;
+        $this->entries[] = $block;
     }
     
     /**
@@ -131,7 +128,7 @@ class BlockList
      */
     public function getEntry($blockId)
     {
-        foreach ($this->_entries as $value) {
+        foreach ($this->entries as $value) {
             if ($blockId == $value->getBlockId()) {
                 return $value;
             }
@@ -143,17 +140,19 @@ class BlockList
     /**
      * Gets all blob block entries.
      *
-     * @return string
+     * @return Block[]
      */
     public function getEntries()
     {
-        return $this->_entries;
+        return $this->entries;
     }
     
     /**
      * Converts the  BlockList object to XML representation
      *
      * @param XmlSerializer $xmlSerializer The XML serializer.
+     *
+     * @internal
      *
      * @return string
      */
@@ -162,7 +161,7 @@ class BlockList
         $properties = array(XmlSerializer::ROOT_NAME => self::$xmlRootName);
         $array      = array();
         
-        foreach ($this->_entries as $value) {
+        foreach ($this->entries as $value) {
             $array[] = array(
                 $value->getType() => $value->getBlockId()
             );

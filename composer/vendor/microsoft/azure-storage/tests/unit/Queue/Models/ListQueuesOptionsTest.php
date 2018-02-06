@@ -22,7 +22,7 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\unit\Queue\Models;
+namespace MicrosoftAzure\Storage\Tests\Unit\Queue\Models;
 
 use MicrosoftAzure\Storage\Queue\Models\ListQueuesOptions;
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
@@ -85,24 +85,7 @@ class ListQueuesOptionsTest extends \PHPUnit_Framework_TestCase
         $options->setMarker($expected);
         
         // Assert
-        $this->assertEquals($expected, $options->getMarker());
-    }
-    
-    /**
-     * @covers MicrosoftAzure\Storage\Queue\Models\ListQueuesOptions::getMarker
-     */
-    public function testGetMarker()
-    {
-        // Setup
-        $options = new ListQueuesOptions();
-        $expected = 'mymarker';
-        $options->setMarker($expected);
-        
-        // Test
-        $actual = $options->getMarker();
-        
-        // Assert
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals($expected, $options->getNextMarker());
     }
     
     /**

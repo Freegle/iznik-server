@@ -39,20 +39,17 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  */
 class CopyBlobResult
 {
-    /**
-     * @var string
-     */
     private $_etag;
-    
-    /**
-     * @var \DateTime
-     */
     private $_lastModified;
+    private $_copyId;
+    private $_copyStatus;
     
     /**
      * Creates CopyBlobResult object from the response of the copy blob request.
      *
      * @param array $headers The HTTP response headers in array representation.
+     *
+     * @internal
      *
      * @return CopyBlobResult
      */
@@ -65,6 +62,18 @@ class CopyBlobResult
                 $headers
             )
         );
+        $result->setCopyId(
+            Utilities::tryGetValueInsensitive(
+                Resources::X_MS_COPY_ID,
+                $headers
+            )
+        );
+        $result->setCopyStatus(
+            Utilities::tryGetValueInsensitive(
+                Resources::X_MS_COPY_STATUS,
+                $headers
+            )
+        );
         if (Utilities::arrayKeyExistsInsensitive(Resources::LAST_MODIFIED, $headers)) {
             $lastModified = Utilities::tryGetValueInsensitive(
                 Resources::LAST_MODIFIED,
@@ -74,6 +83,54 @@ class CopyBlobResult
         }
         
         return $result;
+    }
+    
+    /**
+     * Gets copy Id
+     *
+     * @return string
+     */
+    public function getCopyId()
+    {
+        return $this->_copyId;
+    }
+    
+    /**
+     * Sets copy Id
+     *
+     * @param string $copyId the blob copy id.
+     *
+     * @internal
+     *
+     * @return void
+     */
+    protected function setCopyId($copyId)
+    {
+        $this->_copyId = $copyId;
+    }
+    
+    /**
+     * Gets copy status
+     *
+     * @return string
+     */
+    public function getCopyStatus()
+    {
+        return $this->_copyStatus;
+    }
+    
+    /**
+     * Sets copy status
+     *
+     * @param string $status the copy status.
+     *
+     * @internal
+     *
+     * @return void
+     */
+    protected function setCopyStatus($copystatus)
+    {
+        $this->_copyStatus = $copystatus;
     }
     
     /**

@@ -24,9 +24,6 @@
  
 namespace MicrosoftAzure\Storage\Table\Models;
 
-use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Common\Internal\Resources;
-
 /**
  * Holds optional parameters for deleteEntity API.
  *
@@ -39,9 +36,6 @@ use MicrosoftAzure\Storage\Common\Internal\Resources;
  */
 class DeleteEntityOptions extends TableServiceOptions
 {
-    /**
-     * @var string
-     */
     private $_etag;
     
     /**

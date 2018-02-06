@@ -36,42 +36,8 @@ namespace MicrosoftAzure\Storage\Blob\Models;
  */
 class CreateBlobBlockOptions extends BlobServiceOptions
 {
-    /**
-     * @var string
-     */
     private $_contentMD5;
-    
-    /**
-     * @var string
-     */
-    private $_leaseId;
-
-    /**
-     * @var int
-     */
     private $_numberOfConcurrency;
-    
-    /**
-     * Gets lease Id for the blob
-     *
-     * @return string
-     */
-    public function getLeaseId()
-    {
-        return $this->_leaseId;
-    }
-    
-    /**
-     * Sets lease Id for the blob
-     *
-     * @param string $leaseId the blob lease id.
-     *
-     * @return void
-     */
-    public function setLeaseId($leaseId)
-    {
-        $this->_leaseId = $leaseId;
-    }
     
     /**
      * Gets blob contentMD5.

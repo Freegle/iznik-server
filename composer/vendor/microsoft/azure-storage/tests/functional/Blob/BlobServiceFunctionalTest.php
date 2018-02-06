@@ -22,32 +22,41 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\functional\Blob;
+namespace MicrosoftAzure\Storage\Tests\Functional\Blob;
 
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
 use MicrosoftAzure\Storage\Blob\Models\BlobServiceOptions;
 use MicrosoftAzure\Storage\Blob\Models\CopyBlobOptions;
+use MicrosoftAzure\Storage\Blob\Models\BlobType;
+use MicrosoftAzure\Storage\Blob\Models\BlobBlockType;
+use MicrosoftAzure\Storage\Blob\Models\Block;
+use MicrosoftAzure\Storage\Blob\Models\BlockList;
 use MicrosoftAzure\Storage\Blob\Models\CreateBlobSnapshotOptions;
 use MicrosoftAzure\Storage\Blob\Models\CreateContainerOptions;
+use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
 use MicrosoftAzure\Storage\Blob\Models\DeleteBlobOptions;
-use MicrosoftAzure\Storage\Blob\Models\DeleteContainerOptions;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobMetadataOptions;
+use MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobOptions;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobPropertiesOptions;
+use MicrosoftAzure\Storage\Blob\Models\AppendBlockOptions;
+use MicrosoftAzure\Storage\Blob\Models\CreateBlobPagesOptions;
 use MicrosoftAzure\Storage\Blob\Models\ListBlobsOptions;
 use MicrosoftAzure\Storage\Blob\Models\ListContainersOptions;
+use MicrosoftAzure\Storage\Blob\Models\ListBlobBlocksOptions;
 use MicrosoftAzure\Storage\Blob\Models\PublicAccessType;
-use MicrosoftAzure\Storage\Blob\Models\SetBlobMetadataOptions;
-use MicrosoftAzure\Storage\Blob\Models\SetContainerMetadataOptions;
-use MicrosoftAzure\Storage\Common\ServiceException;
+use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
+use MicrosoftAzure\Storage\Common\Models\Range;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 use MicrosoftAzure\Storage\Common\Internal\StorageServiceSettings;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Common\Internal\RetryMiddlewareFactory;
-use MicrosoftAzure\Storage\Common\Internal\Middlewares\HistoryMiddleware;
+use MicrosoftAzure\Storage\Common\Middlewares\RetryMiddlewareFactory;
+use MicrosoftAzure\Storage\Common\Middlewares\HistoryMiddleware;
+use MicrosoftAzure\Storage\Common\LocationMode;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Client;
 
 class BlobServiceFunctionalTest extends FunctionalTestBase
 {
@@ -188,36 +197,36 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             'getValue()->getLogging()->getRetentionPolicy()->getDays'
         );
 
-        $m = $sp->getMetrics();
+        $m = $sp->getHourMetrics();
         $this->assertNotNull(
             $m,
-            'getValue()->getMetrics() should be non-null'
+            'getValue()->getHourMetrics() should be non-null'
         );
         $this->assertEquals(
-            $serviceProperties->getMetrics()->getVersion(),
+            $serviceProperties->getHourMetrics()->getVersion(),
             $m->getVersion(),
-            'getValue()->getMetrics()->getVersion'
+            'getValue()->getHourMetrics()->getVersion'
         );
         $this->assertEquals(
-            $serviceProperties->getMetrics()->getEnabled(),
+            $serviceProperties->getHourMetrics()->getEnabled(),
             $m->getEnabled(),
-            'getValue()->getMetrics()->getEnabled'
+            'getValue()->getHourMetrics()->getEnabled'
         );
         $this->assertEquals(
-            $serviceProperties->getMetrics()->getIncludeAPIs(),
+            $serviceProperties->getHourMetrics()->getIncludeAPIs(),
             $m->getIncludeAPIs(),
-            'getValue()->getMetrics()->getIncludeAPIs'
+            'getValue()->getHourMetrics()->getIncludeAPIs'
         );
 
         $r = $m->getRetentionPolicy();
         $this->assertNotNull(
             $r,
-            'getValue()->getMetrics()->getRetentionPolicy should be non-null'
+            'getValue()->getHourMetrics()->getRetentionPolicy should be non-null'
         );
         $this->assertEquals(
-            $serviceProperties->getMetrics()->getRetentionPolicy()->getDays(),
+            $serviceProperties->getHourMetrics()->getRetentionPolicy()->getDays(),
             $r->getDays(),
-            'getValue()->getMetrics()->getRetentionPolicy()->getDays'
+            'getValue()->getHourMetrics()->getRetentionPolicy()->getDays'
         );
     }
 
@@ -274,6 +283,8 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             } else {
                 $this->assertFalse($this->isEmulated(), 'Should succeed when not running in emulator');
             }
+            
+            \sleep(10);
 
             $ret = (is_null($options) ?
                 $this->restProxy->getServiceProperties() :
@@ -361,7 +372,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
     private function verifyListContainersWorker($ret, $options)
     {
         // Cannot really check the next marker. Just make sure it is not null.
-        $this->assertEquals($options->getMarker(), $ret->getMarker(), 'getMarker');
+        $this->assertEquals($options->getNextMarker(), $ret->getMarker(), 'getNextMarker');
         $this->assertEquals($options->getMaxResults(), $ret->getMaxResults(), 'getMaxResults');
         $this->assertEquals($options->getPrefix(), $ret->getPrefix(), 'getPrefix');
 
@@ -615,14 +626,14 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             $deleted = true;
 
             if (is_null($options)) {
-                $options = new DeleteContainerOptions();
+                $options = new BlobServiceOptions();
             }
 
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertTrue(false, 'Expect negative timeouts in $options to throw');
             }
             if (!$this->isEmulated() &&
-                    !BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+                    !BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Failing access condition should throw');
             }
 
@@ -641,14 +652,14 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             // Nothing else interesting to check for the $options.
         } catch (ServiceException $e) {
             if (is_null($options)) {
-                $options = new DeleteContainerOptions();
+                $options = new BlobServiceOptions();
             }
 
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertEquals(TestResources::STATUS_INTERNAL_SERVER_ERROR, $e->getCode(), 'getCode');
             } elseif (!$this->isEmulated() &&
                     !BlobServiceFunctionalTestData::passTemporalAccessCondition(
-                        $options->getAccessCondition()
+                        $options->getAccessConditions()
                     )) {
                 $this->assertEquals(TestResources::STATUS_PRECONDITION_FAILED, $e->getCode(), 'getCode');
             } else {
@@ -817,7 +828,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             }
             
             if (is_null($options)) {
-                $options = new SetContainerMetadataOptions();
+                $options = new BlobServiceOptions();
             }
             
             $this->assertFalse(
@@ -832,9 +843,10 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             // setMetadata only honors If-Modified-Since
             if (! $this->isEmulated() &&
                 !BlobServiceFunctionalTestData::passTemporalAccessCondition(
-                    $options->getAccessCondition()
-                ) && (!is_null($options->getAccessCondition()) &&
-                $options->getAccessCondition()->getHeader() !=
+                    $options->getAccessConditions()
+                ) && (!is_null($options->getAccessConditions()) &&
+                empty($options->getAccessConditions()) &&
+                $options->getAccessConditions()[0]->getHeader() !=
                     Resources::IF_UNMODIFIED_SINCE)) {
                 $this->assertTrue(false, 'Expect failing access condition to throw');
             }
@@ -845,9 +857,10 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             if (Utilities::startsWith($firstkey, '<')) {
                 $this->assertEquals(TestResources::STATUS_BAD_REQUEST, $e->getCode(), 'getCode');
             } elseif (!$this->isEmulated() &&
-                    !BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition()) &&
-                    (!is_null($options->getAccessCondition()) &&
-                    $options->getAccessCondition()->getHeader() != Resources::IF_UNMODIFIED_SINCE)) {
+                    !BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions()) &&
+                    (!is_null($options->getAccessConditions()) &&
+                    !empty($options->getAccessConditions()) &&
+                    $options->getAccessConditions()[0]->getHeader() != Resources::IF_UNMODIFIED_SINCE)) {
                 // setMetadata only honors If-Modified-Since
                 $this->assertEquals(TestResources::STATUS_PRECONDITION_FAILED, $e->getCode(), 'getCode');
             } elseif (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
@@ -1133,18 +1146,18 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         for ($i = 0; $i < count($expIds); $i++) {
             $expId = $expIds[$i];
             $actId = $actIds[$i];
-            $this->assertEquals($expId->getId(), $actId->getId(), 'SignedIdentifiers['+$i+']->getId');
+            $this->assertEquals($expId->getId(), $actId->getId(), 'SignedIdentifiers[' . $i .']->getId');
             $this->assertEquals(
                 $expId->getAccessPolicy()->getPermission(),
                 $actId->getAccessPolicy()->getPermission(),
-                'SignedIdentifiers['+$i+']->getAccessPolicy->getPermission'
+                'SignedIdentifiers['. $i .']->getAccessPolicy->getPermission'
             );
             $this->assertTrue(
                 BlobServiceFunctionalTestData::diffInTotalSeconds(
                     $expId->getAccessPolicy()->getStart(),
                     $actId->getAccessPolicy()->getStart()
                 ) < 1,
-                'SignedIdentifiers['+$i+']->getAccessPolicy->getStart should match within 1 second, ' .
+                'SignedIdentifiers[' . $i .']->getAccessPolicy->getStart should match within 1 second, ' .
                     'exp=' . $expId->getAccessPolicy()->getStart()->format(\DateTime::RFC1123) . ', ' .
                     'act=' . $actId->getAccessPolicy()->getStart()->format(\DateTime::RFC1123)
             );
@@ -1153,7 +1166,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                     $expId->getAccessPolicy()->getExpiry(),
                     $actId->getAccessPolicy()->getExpiry()
                 ) < 1,
-                'SignedIdentifiers['+$i+']->getAccessPolicy->getExpiry should match within 1 second, ' .
+                'SignedIdentifiers['. $i .']->getAccessPolicy->getExpiry should match within 1 second, ' .
                     'exp=' . $expId->getAccessPolicy()->getExpiry()->format(\DateTime::RFC1123) . ', ' .
                     'act=' . $actId->getAccessPolicy()->getExpiry()->format(\DateTime::RFC1123)
             );
@@ -1194,14 +1207,17 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
 
     private function canDownloadFromUrl($blobAddress, $expectedStartingValue)
     {
-        $url = parse_url($blobAddress);
-        $host = $url['host'];
-        $fp = fsockopen($host, '80');
-        $request = 'GET ' . $blobAddress . ' HTTP/1.1' . "\r\n" . 'Host: ' . $host ."\r\n\r\n";
-        fputs($fp, $request);
-        $value = fread($fp, 1000);
-        fclose($fp);
-        return strpos($value, $expectedStartingValue) !== false;
+        $client = new Client();
+        $body = '';
+        try {
+            $response = $client->request('GET', $blobAddress);
+            $body = $response->getBody();
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $body = $e->getResponse()->getBody();
+            }
+        }
+        return strpos($body, $expectedStartingValue) !== false;
     }
 
     /**
@@ -1290,7 +1306,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
 
     private function verifyListBlobsWorker($ret, $options)
     {
-        $this->assertEquals($options->getMarker(), $ret->getMarker(), 'getMarker');
+        $this->assertEquals($options->getNextMarker(), $ret->getMarker(), 'getNextMarker');
         $this->assertEquals($options->getMaxResults(), $ret->getMaxResults(), 'getMaxResults');
         $this->assertEquals($options->getPrefix(), $ret->getPrefix(), 'getPrefix');
 
@@ -1449,7 +1465,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
 
         if (!is_null($options)) {
             BlobServiceFunctionalTestData::fixETagAccessCondition(
-                $options->getAccessCondition(),
+                $options->getAccessConditions(),
                 $createBlockBlobResult->getETag()
             );
         }
@@ -1467,10 +1483,10 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertTrue(false, 'Expect negative timeouts in $options to throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Failing temporal access condition should throw');
             }
-            if (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Failing etag access condition should throw');
             }
 
@@ -1478,13 +1494,13 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         } catch (ServiceException $e) {
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertEquals(TestResources::STATUS_INTERNAL_SERVER_ERROR, $e->getCode(), 'bad timeout: getCode');
-            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
                     'bad temporal access condition: getCode'
                 );
-            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessCondition())) {
+            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
@@ -1608,7 +1624,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         $createBlockBlobResult = $this->restProxy->createBlockBlob($container, $blob, "");
         if (!is_null($options)) {
             BlobServiceFunctionalTestData::fixETagAccessCondition(
-                $options->getAccessCondition(),
+                $options->getAccessConditions(),
                 $createBlockBlobResult->getETag()
             );
         }
@@ -1630,16 +1646,16 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                 $options
             ));
             if (is_null($options)) {
-                $options = new SetBlobMetadataOptions();
+                $options = new BlobServiceOptions();
             }
 
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertTrue(false, 'Expect negative timeouts in $options to throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Failing access condition should throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing access condition to throw');
             }
             if (Utilities::startsWith($firstkey, '<')) {
@@ -1655,13 +1671,13 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                 $this->assertEquals(TestResources::STATUS_BAD_REQUEST, $e->getCode(), 'getCode');
             } elseif (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertEquals(TestResources::STATUS_INTERNAL_SERVER_ERROR, $e->getCode(), 'bad timeout: getCode');
-            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
                     'bad temporal access condition: getCode'
                 );
-            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessCondition())) {
+            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
@@ -1766,7 +1782,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
 
         if (!is_null($options)) {
             BlobServiceFunctionalTestData::fixETagAccessCondition(
-                $options->getAccessCondition(),
+                $options->getAccessConditions(),
                 $createPageBlobResult->getETag()
             );
         }
@@ -1784,13 +1800,14 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertTrue(false, 'Expect negative timeouts in $options to throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Failing temporal access condition should throw');
             }
 
             $this->verifyGetBlobPropertiesWorker($res, $metadata, null);
         } catch (ServiceException $e) {
-            if (!is_null($options->getAccessCondition()) &&
+            if (!is_null($options->getAccessConditions()) &&
+                    !empty($options->getAccessConditions()) &&
                     !$this->hasSecureEndpoint() &&
                     $e->getCode() == TestResources::STATUS_FORBIDDEN) {
                 // Proxies can eat the access condition headers of
@@ -1799,8 +1816,8 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                 // can be done about this, other than ignore it.
             } elseif (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertEquals(TestResources::STATUS_INTERNAL_SERVER_ERROR, $e->getCode(), 'bad timeout: getCode');
-            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
-                if ($options->getAccessCondition()->getHeader() == Resources::IF_MODIFIED_SINCE) {
+            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
+                if ($options->getAccessConditions()[0]->getHeader() == Resources::IF_MODIFIED_SINCE) {
                     $this->assertEquals(
                         TestResources::STATUS_NOT_MODIFIED,
                         $e->getCode(),
@@ -1871,7 +1888,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         $this->assertEquals('unlocked', $res->getProperties()->getLeaseStatus(), 'blob getProperties->getLeaseStatus');
 
         if (is_null($properties) ||
-                !is_null($properties->getBlobContentLength()) ||
+                !is_null($properties->getContentLength()) ||
                 !is_null($properties->getSequenceNumber())) {
             $this->assertNull($res->getProperties()->getCacheControl(), 'blob getProperties->getCacheControl');
             $this->assertEquals(
@@ -1884,37 +1901,37 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             $this->assertNull($res->getProperties()->getContentLanguage(), 'blob getProperties->getContentLanguage');
         } else {
             $this->assertEquals(
-                $properties->getBlobCacheControl(),
+                $properties->getCacheControl(),
                 $res->getProperties()->getCacheControl(),
                 'blob getProperties->getCacheControl'
             );
             $this->assertEquals(
-                $properties->getBlobContentType(),
+                $properties->getContentType(),
                 $res->getProperties()->getContentType(),
                 'blob getProperties->getContentType'
             );
             $this->assertEquals(
-                $properties->getBlobContentMD5(),
+                $properties->getContentMD5(),
                 $res->getProperties()->getContentMD5(),
                 'blob getProperties->getContentMD5'
             );
             $this->assertEquals(
-                $properties->getBlobContentEncoding(),
+                $properties->getContentEncoding(),
                 $res->getProperties()->getContentEncoding(),
                 'blob getProperties->getContentEncoding'
             );
             $this->assertEquals(
-                $properties->getBLobContentLanguage(),
+                $properties->getContentLanguage(),
                 $res->getProperties()->getContentLanguage(),
                 'blob getProperties->getContentLanguage'
             );
         }
 
-        if (is_null($properties) || is_null($properties->getBlobContentLength())) {
+        if (is_null($properties) || is_null($properties->getContentLength())) {
             $this->assertEquals(512, $res->getProperties()->getContentLength(), 'blob getProperties->getContentLength');
         } else {
             $this->assertEquals(
-                $properties->getBlobContentLength(),
+                $properties->getContentLength(),
                 $res->getProperties()->getContentLength(),
                 'blob getProperties->getContentLength'
             );
@@ -2001,7 +2018,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         // Make sure there is something to test
         $createPageBlobResult = $this->restProxy->createPageBlob($container, $blob, 512);
         BlobServiceFunctionalTestData::fixETagAccessCondition(
-            $properties->getAccessCondition(),
+            $properties->getAccessConditions(),
             $createPageBlobResult->getETag()
         );
 
@@ -2012,10 +2029,10 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             if (!is_null($properties->getTimeout()) && $properties->getTimeout() < 1) {
                 $this->assertTrue(false, 'Expect negative timeouts in options to throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($properties->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($properties->getAccessConditions())) {
                 $this->assertTrue(false, 'Failing access condition should throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($properties->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($properties->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing access condition to throw');
             }
 
@@ -2026,13 +2043,13 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         } catch (ServiceException $e) {
             if (!is_null($properties->getTimeout()) && $properties->getTimeout() < 1) {
                 $this->assertEquals(TestResources::STATUS_INTERNAL_SERVER_ERROR, $e->getCode(), 'bad timeout: getCode');
-            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($properties->getAccessCondition())) {
+            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($properties->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
                     'bad temporal access condition: getCode'
                 );
-            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($properties->getAccessCondition())) {
+            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($properties->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
@@ -2129,7 +2146,11 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
 
         // Make sure there is something to test
         $dataSize = 512;
-        $this->restProxy->createPageBlob($container, $blob, $dataSize);
+        $createBlobOptions = new CreateBlobOptions();
+        if ($options && $options->getRangeGetContentMD5()) {
+            $createBlobOptions->setContentMD5('MDAwMDAwMDA=');
+        }
+        $this->restProxy->createPageBlob($container, $blob, $dataSize, $createBlobOptions);
 
         $metadata = BlobServiceFunctionalTestData::getNiceMetadata();
         $sbmd = $this->restProxy->setBlobMetadata($container, $blob, $metadata);
@@ -2138,7 +2159,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         $this->restProxy->createBlobSnapshot($container, $blob);
 
         if (!is_null($options)) {
-            BlobServiceFunctionalTestData::fixETagAccessCondition($options->getAccessCondition(), $sbmd->getETag());
+            BlobServiceFunctionalTestData::fixETagAccessCondition($options->getAccessConditions(), $sbmd->getETag());
             $options->setSnapshot(is_null($options->getSnapshot()) ? null : $snapshot->getSnapshot());
         }
 
@@ -2155,19 +2176,22 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertTrue(false, 'Expect negative timeouts in $options to throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing temporal access condition should throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing etag access condition to throw');
             }
-            if ($options->getComputeRangeMD5() && is_null($options->getRangeStart())) {
+            if ($options->getRangeGetContentMD5() && (
+                is_null($options->getRange()) || is_null($options->getRange()->getStart())
+                )) {
                 $this->assertTrue(false, 'Expect compute range MD5 to fail if range not set');
             }
 
             $this->verifyGetBlobWorker($res, $options, $dataSize, $metadata);
         } catch (ServiceException $e) {
-            if (!is_null($options->getAccessCondition()) &&
+            if (!is_null($options->getAccessConditions()) &&
+                    !empty($options->getAccessConditions()) &&
                     !$this->hasSecureEndpoint() &&
                     $e->getCode() == TestResources::STATUS_FORBIDDEN) {
                 // Proxies can eat the access condition headers of
@@ -2176,8 +2200,8 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                 // can be done about this, other than ignore it.
             } elseif (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertEquals(TestResources::STATUS_INTERNAL_SERVER_ERROR, $e->getCode(), 'bad timeout: getCode');
-            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
-                if ($options->getAccessCondition()->getHeader() == Resources::IF_MODIFIED_SINCE) {
+            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
+                if ($options->getAccessConditions()[0]->getHeader() == Resources::IF_MODIFIED_SINCE) {
                     $this->assertEquals(
                         TestResources::STATUS_NOT_MODIFIED,
                         $e->getCode(),
@@ -2192,13 +2216,15 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                         ' getCode'
                     );
                 }
-            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessCondition())) {
+            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
                     'bad etag access condition: getCode'
                 );
-            } elseif ($options->getComputeRangeMD5() && is_null($options->getRangeStart())) {
+            } elseif ($options->getRangeGetContentMD5() && (
+                is_null($options->getRange()) || is_null($options->getRange()->getStart())
+                )) {
                 $this->assertEquals(
                     TestResources::STATUS_BAD_REQUEST,
                     $e->getCode(),
@@ -2221,11 +2247,16 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         $content =  stream_get_contents($res->getContentStream());
 
         $rangeSize = $dataSize;
-        if (!is_null($options->getRangeEnd())) {
-            $rangeSize = (int) $options->getRangeEnd() + 1;
+        $range = $options->getRange();
+        if (is_null($range)) {
+            $range = new Range(null);
         }
-        if (!is_null($options->getRangeStart())) {
-            $rangeSize -= $options->getRangeStart();
+
+        if (!is_null($range->getEnd())) {
+            $rangeSize = (int) $range->getEnd() + 1;
+        }
+        if (!is_null($range->getStart())) {
+            $rangeSize -= $range->getStart();
         } else {
             // One might expect that not specifying the start would just take the
             // first $rangeEnd bytes, but instead the Azure service ignores
@@ -2235,9 +2266,8 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
 
         $this->assertEquals($rangeSize, strlen($content), '$content length and range');
 
-        if ($options->getComputeRangeMD5()) {
-            // Compute the MD5 from the stream.
-            $md5 = base64_encode(md5($content, true));
+        if ($options->getRangeGetContentMD5()) {
+            $md5 = 'MDAwMDAwMDA=';
             $this->assertEquals(
                 $md5,
                 $res->getProperties()->getContentMD5(),
@@ -2333,7 +2363,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         $blobinfo = $this->restProxy->getBlob($container, $blob);
         if (!is_null($options)) {
             BlobServiceFunctionalTestData::fixETagAccessCondition(
-                $options->getAccessCondition(),
+                $options->getAccessConditions(),
                 $blobinfo->getProperties()->getETag()
             );
             $options->setSnapshot(is_null($options->getSnapshot()) ? null : $snapshot->getSnapshot());
@@ -2355,10 +2385,10 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertTrue(false, 'Expect negative timeouts in $options to throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing temporal access condition should throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing etag access condition to throw');
             }
 
@@ -2376,14 +2406,14 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                     $e->getCode(),
                     'bad timeout: deleteHttpStatusCode'
                 );
-            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            } elseif (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
                     'bad temporal access condition IF_UNMODIFIED_SINCE: ' .
                         'deleteHttpStatusCode'
                 );
-            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessCondition())) {
+            } elseif (!BlobServiceFunctionalTestData::passETagAccessCondition($options->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
@@ -2491,7 +2521,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         $snapshot1 = $this->restProxy->createBlobSnapshot($container, $blob);
         if (!is_null($options)) {
             BlobServiceFunctionalTestData::fixETagAccessCondition(
-                $options->getAccessCondition(),
+                $options->getAccessConditions(),
                 $snapshot1->getETag()
             );
         }
@@ -2509,10 +2539,10 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertTrue(false, 'Expect negative timeouts in $options to throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing temporal access condition should throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing etag access condition to throw');
             }
 
@@ -2535,7 +2565,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                     'bad timeout: deleteHttpStatusCode'
                 );
             } elseif (!BlobServiceFunctionalTestData::
-                    passTemporalAccessCondition($options->getAccessCondition())
+                    passTemporalAccessCondition($options->getAccessConditions())
                 ) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
@@ -2544,7 +2574,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                     ' deleteHttpStatusCode'
                 );
             } elseif (!BlobServiceFunctionalTestData::
-                    passETagAccessCondition($options->getAccessCondition())) {
+                    passETagAccessCondition($options->getAccessConditions())) {
                 $this->assertEquals(
                     TestResources::STATUS_PRECONDITION_FAILED,
                     $e->getCode(),
@@ -2678,11 +2708,11 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         $snapshot = $this->restProxy->createBlobSnapshot($sourceContainer, $sourceBlob);
         if (!is_null($options)) {
             BlobServiceFunctionalTestData::fixETagAccessCondition(
-                $options->getSourceAccessCondition(),
+                $options->getSourceAccessConditions(),
                 $snapshot->getETag()
             );
             BlobServiceFunctionalTestData::fixETagAccessCondition(
-                $options->getAccessCondition(),
+                $options->getAccessConditions(),
                 $destBlobInfo->getETag()
             );
             $options->setSourceSnapshot(is_null($options->getSourceSnapshot()) ? null : $snapshot->getSnapshot());
@@ -2702,16 +2732,16 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             if (!is_null($options->getTimeout()) && $options->getTimeout() < 1) {
                 $this->assertTrue(false, 'Expect negative timeouts in $options to throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getSourceAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getSourceAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing source temporal access condition should throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getSourceAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getSourceAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing source etag access condition to throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing dest temporal access condition should throw');
             }
-            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessCondition())) {
+            if (!BlobServiceFunctionalTestData::passTemporalAccessCondition($options->getAccessConditions())) {
                 $this->assertTrue(false, 'Expect failing dest etag access condition to throw');
             }
 
@@ -2737,7 +2767,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                 $this->assertEquals(500, $e->getCode(), 'bad timeout: deleteHttpStatusCode');
             } elseif (!BlobServiceFunctionalTestData::
                     passTemporalAccessCondition(
-                        $options->getSourceAccessCondition()
+                        $options->getSourceAccessConditions()
                     )) {
                 $this->assertEquals(
                     412,
@@ -2747,7 +2777,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                 );
             } elseif (!BlobServiceFunctionalTestData::
                     passETagAccessCondition(
-                        $options->getSourceAccessCondition()
+                        $options->getSourceAccessConditions()
                     )) {
                 $this->assertEquals(
                     412,
@@ -2756,7 +2786,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                 );
             } elseif (!BlobServiceFunctionalTestData::
                     passTemporalAccessCondition(
-                        $options->getAccessCondition()
+                        $options->getAccessConditions()
                     )) {
                 $this->assertEquals(
                     412,
@@ -2766,7 +2796,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
                 );
             } elseif (!BlobServiceFunctionalTestData::
                     passETagAccessCondition(
-                        $options->getAccessCondition()
+                        $options->getAccessConditions()
                     )) {
                 $this->assertEquals(
                     412,
@@ -2822,7 +2852,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
 
     /**
      * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listContainers
-     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::createHandlerStack
+     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::createMiddlewareStack
      */
     public function testMiddlewares()
     {
@@ -2836,7 +2866,7 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
         
         //setup options for the first try.
         $options = new ListContainersOptions();
-        $options->setRequestOptions(['middlewares' => [$historyMiddleware]]);
+        $options->setMiddlewares([$historyMiddleware]);
         //get the response of the server.
         $result = $this->restProxy->listContainers($options);
         $response = $historyMiddleware->getHistory()[0]['response'];
@@ -2852,15 +2882,13 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             new Response(500, ['test_header' => 'test_header_value']),
             $response
         ]);
+        $restOptions = ['http' => ['handler' => $mock]];
+        $mockProxy = $this->builder->createBlobService($this->connectionString, $restOptions);
+
         //test using mock handler.
         $options = new ListContainersOptions();
-        $options->setRequestOptions(
-            [
-            'middlewares' => [$retryMiddleware, $historyMiddleware],
-            'handler' => $mock
-            ]
-        );
-        $newResult = $this->restProxy->listContainers($options);
+        $options->setMiddlewares([$retryMiddleware, $historyMiddleware]);
+        $newResult = $mockProxy->listContainers($options);
         $this->assertTrue(
             $result == $newResult,
             'Mock result does not match server behavior'
@@ -2870,23 +2898,746 @@ class BlobServiceFunctionalTest extends FunctionalTestBase
             'Mock handler does not gave the first 408 exception correctly'
         );
         $this->assertTrue(
-            $historyMiddleware->getHistory()[2]['response']->getStatusCode() == 500,
+            $historyMiddleware->getHistory()[2]['reason']->getCode() == 500,
             'Mock handler does not gave the second 500 response correctly'
         );
     }
 
-    //    createBlockBlob
-    //    createBlobBlock
-    //    commitBlobBlocks
-    //    listBlobBlocks
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listContainers
+     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::createMiddlewareStack
+     * @covers MicrosoftAzure\Storage\Common\Middlewares\RetryMiddleware::__construct
+     * @covers MicrosoftAzure\Storage\Common\Middlewares\RetryMiddleware::onFulfilled
+     * @covers MicrosoftAzure\Storage\Common\Middlewares\RetryMiddleware::onRejected
+     * @covers MicrosoftAzure\Storage\Common\Middlewares\RetryMiddleware::retry
+     */
+    public function testRetryFromSecondary()
+    {
+        //setup middlewares.
+        $historyMiddleware = new HistoryMiddleware();
+        $retryMiddleware = RetryMiddlewareFactory::create(
+            RetryMiddlewareFactory::GENERAL_RETRY_TYPE,
+            3,
+            1
+        );
+        
+        //setup options for the first try.
+        $options = new ListContainersOptions();
+        $options->setMiddlewares([$historyMiddleware]);
+        //get the response of the server.
+        $result = $this->restProxy->listContainers($options);
+        $response = $historyMiddleware->getHistory()[0]['response'];
+        $request = $historyMiddleware->getHistory()[0]['request'];
 
-    //    createPageBlob
-    //    createBlobPages
-    //    clearBlobPages
-    //    listBlobRegions
+        //setup the mock handler
+        $mock = MockHandler::createWithMiddleware([
+            new Response(500, ['test_header' => 'test_header_value']),
+            new RequestException(
+                'mock 404 exception',
+                $request,
+                new Response(404, ['test_header' => 'test_header_value'])
+            ),
+            $response
+        ]);
+        $restOptions = ['http' => ['handler' => $mock]];
+        $mockProxy = $this->builder->createBlobService($this->connectionString, $restOptions);
 
-    //    acquireLease
-    //    renewLease
-    //    releaseLease
-    //    breakLease
+        //test using mock handler.
+        $options = new ListContainersOptions();
+        $options->setLocationMode(LocationMode::PRIMARY_THEN_SECONDARY);
+        $options->setMiddlewares([$retryMiddleware, $historyMiddleware]);
+        $newResult = $mockProxy->listContainers($options);
+        $this->assertTrue(
+            $result == $newResult,
+            'Mock result does not match server behavior'
+        );
+        $this->assertTrue(
+            $historyMiddleware->getHistory()[1]['reason']->getCode() == 500,
+            'Mock handler does not gave the second 500 response correctly'
+        );
+        $this->assertTrue(
+            $historyMiddleware->getHistory()[2]['reason']->getMessage() == 'mock 404 exception',
+            'Mock handler does not gave the first 404 exception correctly'
+        );
+
+
+        $uri2 = (string)($historyMiddleware->getHistory()[2]['request']->getUri());
+        $uri3 = (string)($historyMiddleware->getHistory()[3]['request']->getUri());
+
+        $this->assertTrue(
+            strpos($uri2, '-secondary') !== false,
+            'Did not retry to secondary uri.'
+        );
+        $this->assertFalse(
+            strpos($uri3, '-secondary'),
+            'Did not switch back to primary uri.'
+        );
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listContainers
+     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::createMiddlewareStack
+     * @covers MicrosoftAzure\Storage\Common\Middlewares\RetryMiddleware::__construct
+     * @covers MicrosoftAzure\Storage\Common\Middlewares\RetryMiddleware::onFulfilled
+     * @covers MicrosoftAzure\Storage\Common\Middlewares\RetryMiddleware::onRejected
+     * @covers MicrosoftAzure\Storage\Common\Middlewares\RetryMiddleware::retry
+     */
+    public function testListRetryWithSecondEndpoint()
+    {
+        //setup middlewares.
+        $historyMiddleware = new HistoryMiddleware();
+        $retryMiddleware = RetryMiddlewareFactory::create(
+            RetryMiddlewareFactory::GENERAL_RETRY_TYPE,
+            3,
+            1
+        );
+        $marker = 'next';
+        //Construct response
+        $bodyArray = TestResources::listContainersMultipleRandomEntriesBody(5, $marker);
+        $bodyString = Utilities::serialize($bodyArray, 'EnumerationResults');
+        $mockResponse = new Response(200, array(), $bodyString);
+        //setup the mock handler
+        $mock = MockHandler::createWithMiddleware([
+            new Response(500, ['test_header' => 'test_header_value']),
+            $mockResponse
+        ]);
+        $restOptions = ['http' => ['handler' => $mock]];
+        $mockProxy = $this->builder->createBlobService($this->connectionString, $restOptions);
+        //test using mock handler.
+        $options = new ListContainersOptions();
+        $options->setLocationMode(LocationMode::PRIMARY_THEN_SECONDARY);
+        $options->setMiddlewares([$retryMiddleware, $historyMiddleware]);
+        $result = $mockProxy->listContainers($options);
+
+        $this->assertNotNull($result->getContinuationToken());
+        $this->assertEquals(LocationMode::SECONDARY_ONLY, $result->getLocation());
+        $request = $historyMiddleware->getHistory()[1]['request'];
+        $options = $historyMiddleware->getHistory()[1]['options'];
+        $this->assertNotNull(
+            strpos(
+                (string)$request->getUri(),
+                (string)$options[Resources::ROS_SECONDARY_URI]
+            )
+        );
+
+        //List containers with the continuation token.
+        $options = new ListContainersOptions();
+        $options->setContinuationToken($result->getContinuationToken());
+        $options->setLocationMode(LocationMode::PRIMARY_THEN_SECONDARY);
+        $options->setMiddlewares([$retryMiddleware, $historyMiddleware]);
+        //make sure the continuation's location overwrites the options.
+        $this->assertEquals(LocationMode::SECONDARY_ONLY, $options->getLocationMode());
+
+        $mock = MockHandler::createWithMiddleware([
+            $mockResponse
+        ]);
+        $restOptions = ['http' => ['handler' => $mock]];
+        $mockProxy = $this->builder->createBlobService($this->connectionString, $restOptions);
+        $newResult = $mockProxy->listContainers($options);
+
+
+        $this->assertNotNull($newResult->getContinuationToken());
+        $this->assertEquals(LocationMode::SECONDARY_ONLY, $newResult->getLocation());
+        $request = $historyMiddleware->getHistory()[2]['request'];
+        $options = $historyMiddleware->getHistory()[2]['options'];
+        $this->assertNotNull(
+            strpos(
+                (string)$request->getUri(),
+                (string)$options[Resources::ROS_SECONDARY_URI]
+            )
+        );
+
+        //Make sure queried with next marker.
+        $this->assertNotNull(
+            strpos(
+                (string)$request->getUri(),
+                'marker=' . $marker
+            )
+        );
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlockBlob
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlockBlobAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::getBlob
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::getBlobAsync
+     */
+    public function testCreateBlockBlobNormal()
+    {
+        $attrs = BlobServiceFunctionalTestData::getCreateBlockBlobAttributes();
+        $container = BlobServiceFunctionalTestData::getContainerName();
+
+        foreach ($attrs as $attr) {
+            $threshold = array_key_exists('threshold', $attr)?
+                $attr['threshold'] : Resources::MB_IN_BYTES_32;
+            $size = $attr['size'];
+            $this->createBlockBlobWorker($container, $threshold, $size);
+        }
+    }
+
+    private function createBlockBlobWorker($container, $threshold, $size)
+    {
+        //create a temp file of size $size.
+        $cwd = getcwd();
+        $uuid = uniqid('test-file-', true);
+        $path = $cwd.DIRECTORY_SEPARATOR.$uuid.'.txt';
+        $resource = fopen($path, 'w+');
+
+        $count = $size / Resources::MB_IN_BYTES_32;
+        for ($i = 0; $i < $count; ++$i) {
+            fwrite($resource, openssl_random_pseudo_bytes(Resources::MB_IN_BYTES_32));
+        }
+        $remain = $size - (Resources::MB_IN_BYTES_32 * $count);
+        fwrite($resource, openssl_random_pseudo_bytes($remain));
+        rewind($resource);
+
+        //upload the blob
+        $blobName = BlobServiceFunctionalTestData::getInterestingBlobName($container);
+        $metadata = array('m1' => 'v1', 'm2' => 'v2');
+        $contentType = 'text/plain; charset=UTF-8';
+        $options = new CreateBlobOptions();
+        $options->setContentType($contentType);
+        $options->setMetadata($metadata);
+        $this->restProxy->setSingleBlobUploadThresholdInBytes($threshold);
+        $this->restProxy->createBlockBlob(
+            $container,
+            $blobName,
+            $resource,
+            $options
+        );
+
+        // Test
+        $result = $this->restProxy->getBlob($container, $blobName);
+
+        //get the path for the file to be downloaded into.
+        $uuid = uniqid('test-file-', true);
+        $downloadPath = $cwd.DIRECTORY_SEPARATOR.$uuid.'.txt';
+        $downloadResource = fopen($downloadPath, 'w');
+        //download the file
+        $content = $result->getContentStream();
+
+        while (!feof($content)) {
+            fwrite(
+                $downloadResource,
+                stream_get_contents($content, Resources::MB_IN_BYTES_32)
+            );
+        }
+
+        // Assert
+        $this->assertEquals(
+            BlobType::BLOCK_BLOB,
+            $result->getProperties()->getBlobType()
+        );
+        $this->assertEquals($metadata, $result->getMetadata());
+        $originMd5 = md5_file($path);
+        $downloadMd5 = md5_file($downloadPath);
+        $this->assertEquals($originMd5, $downloadMd5);
+
+        //clean-up.
+        if (is_resource($resource)) {
+            fclose($resource);
+        }
+        fclose($downloadResource);
+        unlink($path);
+        unlink($downloadPath);
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlockBlob
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlockBlobAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobBlock
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobBlockAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::commitBlobBlocks
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::commitBlobBlocksAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listBlobBlocks
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listBlobBlocksAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::getBlobProperties
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::getBlobPropertiesAsync
+     */
+    public function testBlockBlobBlocks()
+    {
+        //create block blob
+        $container = BlobServiceFunctionalTestData::getContainerName();
+        $blob = BlobServiceFunctionalTestData::getInterestingBlobName($container);
+        $this->restProxy->createBlockBlob($container, $blob, '');
+
+        //create blocks
+        $blockIds = array();
+        $contents = array();
+        for ($i = 0; $i < 5; ++$i) {
+            $blockId = BlobServiceFunctionalTestData::getInterestingBlockId();
+            $content = openssl_random_pseudo_bytes(Resources::MB_IN_BYTES_4);
+            $this->restProxy->createBlobBlock($container, $blob, $blockId, $content);
+            $blockIds[] = $blockId;
+            $contents[] = $content;
+        }
+        $this->verifyBlocks($container, $blob, $blockIds, false);
+        //commit blocks 1 and 3.
+        $latest = BlobBlockType::LATEST_TYPE;
+        $committed = BlobBlockType::COMMITTED_TYPE;
+        $blockList = [
+            new Block($blockIds[1], $latest),
+            new Block($blockIds[3], $latest)
+        ];
+        $this->restProxy->commitBlobBlocks($container, $blob, $blockList);
+        //verify MD5 and uncommitted.
+        $this->verifyBlobMd5($container, $blob, $contents[1] . $contents[3]);
+        $this->verifyBlocks(
+            $container,
+            $blob,
+            [$blockIds[1], $blockIds[3]]
+        );
+
+        //update blob with blocks 3 and 4.
+        for ($i = 0; $i < 5; ++$i) {
+            $this->restProxy->createBlobBlock(
+                $container,
+                $blob,
+                $blockIds[$i],
+                $contents[$i]
+            );
+        }
+        $blockList = [
+            new Block($blockIds[3], $latest),
+            new Block($blockIds[4], $latest),
+        ];
+        $this->restProxy->commitBlobBlocks($container, $blob, $blockList);
+        //verify MD5 and uncommitted.
+        $this->verifyBlobMd5($container, $blob, $contents[3] . $contents[4]);
+        $this->verifyBlocks(
+            $container,
+            $blob,
+            [$blockIds[3], $blockIds[4]]
+        );
+
+        //commit a blob with same id with block 3
+        $this->restProxy->createBlobBlock($container, $blob, $blockIds[0], $contents[0]);
+        $content = openssl_random_pseudo_bytes(Resources::MB_IN_BYTES_4);
+        $this->restProxy->createBlobBlock($container, $blob, $blockIds[3], $content);
+        //test BlobBlockType::COMMITTED_TYPE
+        $blockList = [
+            new Block($blockIds[3], $committed),
+            new Block($blockIds[0], $latest),
+        ];
+        $this->restProxy->commitBlobBlocks($container, $blob, $blockList);
+        //verify MD5 and uncommitted.
+        $this->verifyBlobMd5($container, $blob, $contents[3] . $contents[0]);
+        $this->verifyBlocks(
+            $container,
+            $blob,
+            [$blockIds[0], $blockIds[3]]
+        );
+        //test BlobBlockType::LATEST_TYPE
+        $this->restProxy->createBlobBlock($container, $blob, $blockIds[0], $contents[0]);
+        $content = openssl_random_pseudo_bytes(Resources::MB_IN_BYTES_4);
+        $this->restProxy->createBlobBlock($container, $blob, $blockIds[3], $content);
+        $blockList = [
+            new Block($blockIds[3], $latest),
+            new Block($blockIds[0], $latest),
+        ];
+        $this->restProxy->commitBlobBlocks($container, $blob, $blockList);
+        //verify MD5 and uncommitted.
+        $this->verifyBlobMd5($container, $blob, $content . $contents[0]);
+        $this->verifyBlocks(
+            $container,
+            $blob,
+            [$blockIds[3], $blockIds[0]]
+        );
+    }
+
+    private function verifyBlobMd5($container, $blob, $content)
+    {
+        $c = stream_get_contents($this->restProxy->getBlob($container, $blob)->getContentStream());
+        $expectedMd5 = md5($content);
+        $actualMd5 = md5($c);
+        $this->assertEquals($expectedMd5, $actualMd5);
+    }
+
+    private function verifyBlocks($container, $blob, $list, $isCommitted = true)
+    {
+        $options = new ListBlobBlocksOptions();
+        if ($isCommitted) {
+            $options->setIncludeCommittedBlobs(true);
+        } else {
+            $options->setIncludeUncommittedBlobs(true);
+        }
+        $result = $this->restProxy->listBlobBlocks($container, $blob, $options);
+        $blocks = $isCommitted? $result->getCommittedBlocks() : $result->getUncommittedBlocks();
+        foreach ($list as $blockId) {
+            $this->assertTrue(array_key_exists($blockId, $blocks));
+        }
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createPageBlob
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createPageBlobAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobPages
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobPagesAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::clearBlobPages
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::clearBlobPagesAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listPageBlobRanges
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listPageBlobRangesAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listPageBlobRangesAsyncImpl
+     */
+    public function testPutListClearPageRanges()
+    {
+        $rangesArray = BlobServiceFunctionalTestData::getRangesArray();
+        $container = BlobServiceFunctionalTestData::getInterestingContainerName();
+        $this->createContainer($container);
+        $blob = BlobServiceFunctionalTestData::getInterestingBlobName($container);
+        $this->restProxy->createPageBlob($container, $blob, 2048);
+        foreach ($rangesArray as $array) {
+            $this->putListClearPageRangesWorker(
+                $container,
+                $blob,
+                $array['putRange'],
+                $array['clearRange'],
+                $array['listRange'],
+                $array['resultListRange']
+            );
+        }
+        $this->deleteContainer($container);
+    }
+
+    private function putListClearPageRangesWorker(
+        $container,
+        $blob,
+        $putRange,
+        $clearRange,
+        $listRange,
+        $resultListRange
+    ) {
+        if ($putRange != null) {
+            $length = $putRange->getLength();
+            if ($length == null) {
+                $length = 2048 - $putRange->getStart();
+            }
+            $content = \openssl_random_pseudo_bytes($length);
+            $options = new CreateBlobPagesOptions();
+            //setting the wrong md5.
+            $options->setContentMD5(Utilities::calculateContentMD5(''));
+            $message = '';
+            try {
+                $this->restProxy->createBlobPages(
+                    $container,
+                    $blob,
+                    $putRange,
+                    $content,
+                    $options
+                );
+            } catch (ServiceException $e) {
+                $message = $e->getMessage();
+            }
+            $this->assertContains('400', $message);
+            $this->assertContains(
+                'The MD5 value specified in the request did not match with the MD5 value calculated by the server.',
+                $message
+            );
+            //Ends debug code snippet
+            // Now set the correct content MD5
+            $options->setContentMD5(Utilities::calculateContentMD5($content));
+            $this->restProxy->createBlobPages(
+                $container,
+                $blob,
+                $putRange,
+                $content,
+                $options
+            );
+            $getOptions = new GetBlobOptions();
+            $getOptions->setRange($putRange);
+            $getOptions->setRangeGetContentMD5(true);
+            $result = $this->restProxy->getBlob($container, $blob, $getOptions);
+            $actualContent = stream_get_contents($result->getContentStream());
+            $actualMD5 = $result->getProperties()->getRangeContentMD5();
+            //Validate
+            $this->assertEquals($content, $actualContent);
+            $this->assertEquals(Utilities::calculateContentMD5($content), $actualMD5);
+        }
+        if ($clearRange != null) {
+            $this->restProxy->clearBlobPages($container, $blob, $clearRange);
+        }
+        //Validate result
+        $listRangeOptions = new ListPageBlobRangesOptions();
+        $listRange = is_null($listRange) ? new Range(null) : $listRange;
+        $listRangeOptions->setRange($listRange);
+        $listResult =
+            $this->restProxy->listPageBlobRanges($container, $blob, $listRangeOptions);
+        $this->assertEquals(2048, $listResult->getContentLength());
+        $resultRanges = $listResult->getRanges();
+        for ($i = 0; $i < count($resultRanges); ++$i) {
+            $this->assertEquals($resultListRange[$i], $resultRanges[$i]);
+        }
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createPageBlob
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createPageBlobAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobPages
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobPagesAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::clearBlobPages
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::clearBlobPagesAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listPageBlobRangesDiff
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listPageBlobRangesDiffAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::listPageBlobRangesAsyncImpl
+     */
+    public function testPutListClearPageRangesDiff()
+    {
+        $rangesArray = BlobServiceFunctionalTestData::getRangesDiffArray();
+        $container = BlobServiceFunctionalTestData::getInterestingContainerName();
+        $this->createContainer($container);
+        $length = 2048;
+
+        foreach ($rangesArray as $array) {
+            $blob = BlobServiceFunctionalTestData::getInterestingBlobName($container);
+            $this->restProxy->createPageBlob($container, $blob, $length);
+            $content = \openssl_random_pseudo_bytes($length);
+            $this->restProxy->createBlobPages(
+                $container,
+                $blob,
+                new Range(0, $length - 1),
+                $content
+            );
+
+            $snapshot = $this->restProxy->createBlobSnapshot($container, $blob)->getSnapshot();
+
+            $this->putListClearPageRangesDiffWorker(
+                $container,
+                $blob,
+                $array['putRange'],
+                $array['clearRange'],
+                $array['listRange'],
+                $array['resultListRange'],
+                $snapshot,
+                $length
+            );
+        }
+    }
+
+    private function putListClearPageRangesDiffWorker(
+        $container,
+        $blob,
+        $putRange,
+        $clearRange,
+        $listRange,
+        $resultListRange,
+        $snapshot,
+        $length
+    ) {
+        if ($putRange != null) {
+            $rangeLength = $putRange->getLength();
+            if ($rangeLength == null) {
+                $rangeLength = $length - $putRange->getStart();
+            }
+            $content = \openssl_random_pseudo_bytes($rangeLength);
+
+            $this->restProxy->createBlobPages(
+                $container,
+                $blob,
+                $putRange,
+                $content
+            );
+        }
+        if ($clearRange != null) {
+            $this->restProxy->clearBlobPages($container, $blob, $clearRange);
+        }
+
+        //Validate result
+        $listRangeOptions = new ListPageBlobRangesOptions();
+        $listRange = is_null($listRange) ? new Range(null) : $listRange;
+        $listRangeOptions->setRange($listRange);
+        $listResult =
+            $this->restProxy->listPageBlobRangesDiff($container, $blob, $snapshot, $listRangeOptions);
+        $this->assertEquals($length, $listResult->getContentLength());
+        $resultRanges = $listResult->getRanges();
+        for ($i = 0; $i < count($resultRanges); ++$i) {
+            $this->assertEquals($resultListRange[$i], $resultRanges[$i]);
+        }
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createAppendBlob
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::createAppendBlobAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::appendBlock
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::appendBlockAsync
+     */
+    public function testAppendBlob()
+    {
+        $container = BlobServiceFunctionalTestData::getInterestingContainerName();
+        $this->createContainer($container);
+        $blob = BlobServiceFunctionalTestData::getInterestingBlobName($container);
+        $this->restProxy->createAppendBlob($container, $blob);
+
+        $setupArrays = BlobServiceFunctionalTestData::getAppendBlockSetup();
+        foreach ($setupArrays as $setupArray) {
+            $content = openssl_random_pseudo_bytes($setupArray['size']);
+            $options = $setupArray['options'];
+            $errorMsg = $setupArray['error'];
+            $message = '';
+            try {
+                $this->restProxy->appendBlock(
+                    $container,
+                    $blob,
+                    $content,
+                    $options
+                );
+            } catch (ServiceException $e) {
+                $message = $e->getMessage();
+            }
+            if ($errorMsg == '') {
+                $this->assertEquals('', $message);
+            } else {
+                $this->assertContains($errorMsg, $message);
+            }
+        }
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::acquireLease
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::acquireLeaseAsync
+     */
+    public function testLeaseContainer()
+    {
+        $container = BlobServiceFunctionalTestData::getInterestingContainerName();
+        $this->restProxy->createContainer($container);
+        $leaseId = Utilities::getGuid();
+        $result = $this->restProxy->acquireLease($container, '', $leaseId);
+        $this->assertEquals($leaseId, $result->getLeaseId());
+        $message = '';
+        try {
+            $this->restProxy->deleteContainer($container);
+        } catch (ServiceException $e) {
+            $message = $e->getMessage();
+        }
+        $this->assertContains('There is currently a lease on the container and no lease ID was specified in the request', $message);
+        $options = new BlobServiceOptions();
+        $options->setLeaseId($leaseId);
+        $this->restProxy->deleteContainer($container, $options);
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::acquireLease
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::acquireLeaseAsync
+     */
+    public function testLeaseBlob()
+    {
+        $container = BlobServiceFunctionalTestData::getInterestingContainerName();
+        $this->restProxy->createContainer($container);
+        $blob = BlobServiceFunctionalTestData::getInterestingBlobName($container);
+        $this->restProxy->createPageBlob($container, $blob, 1024);
+        $leaseId = Utilities::getGuid();
+        $result = $this->restProxy->acquireLease($container, $blob, $leaseId);
+        $this->assertEquals($leaseId, $result->getLeaseId());
+        $message = '';
+        try {
+            $this->restProxy->deleteBlob($container, $blob);
+        } catch (ServiceException $e) {
+            $message = $e->getMessage();
+        }
+        $this->assertContains('There is currently a lease on the blob and no lease ID was specified in the request.', $message);
+        $options = new DeleteBlobOptions();
+        $options->setLeaseId($leaseId);
+        $this->restProxy->deleteBlob($container, $blob, $options);
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::acquireLease
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::acquireLeaseAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::renewLease
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::renewLeaseAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::releaseLease
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::releaseLeaseAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::changeLease
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::changeLeaseAsync
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::breakLease
+     * @covers MicrosoftAzure\Storage\Blob\BlobRestProxy::breakLeaseAsync
+     */
+    public function testLeaseOperations()
+    {
+        $container = BlobServiceFunctionalTestData::getInterestingContainerName();
+        $this->restProxy->createContainer($container);
+        //configure
+        $blob = BlobServiceFunctionalTestData::getInterestingBlobName($container);
+        $this->restProxy->createPageBlob($container, $blob, 1024);
+        $leaseId = Utilities::getGuid();
+
+        $message = '';
+        //test acquire lease duration no in bound
+        try {
+            $this->restProxy->acquireLease($container, $blob, $leaseId, 14);
+        } catch (ServiceException $e) {
+            $message = $e->getMessage();
+        }
+        $this->assertContains(' The value for one of the HTTP headers is not in the correct format.', $message);
+        try {
+            $this->restProxy->acquireLease($container, $blob, $leaseId, 61);
+        } catch (ServiceException $e) {
+            $message = $e->getMessage();
+        }
+        $this->assertContains(' The value for one of the HTTP headers is not in the correct format.', $message);
+        $result = $this->restProxy->acquireLease($container, $blob, $leaseId, 15);
+        $this->assertEquals($leaseId, $result->getLeaseId());
+        //test lease duration expire
+        \sleep(15);
+        $this->restProxy->deleteBlob($container, $blob);
+
+        //re-configure
+        $blob = BlobServiceFunctionalTestData::getInterestingBlobName($container);
+        $this->restProxy->createPageBlob($container, $blob, 1024);
+        $leaseId = Utilities::getGuid();
+        $this->restProxy->acquireLease($container, $blob, $leaseId);
+        //test change lease
+        $newLeaseId = Utilities::getGuid();
+        $result = $this->restProxy->changeLease($container, $blob, $leaseId, $newLeaseId);
+        $options = new DeleteBlobOptions();
+        $options->setLeaseId($newLeaseId);
+        $this->restProxy->deleteBlob($container, $blob, $options);
+
+        $result = $this->restProxy->listBlobs($container);
+        $this->assertTrue(empty($result->getBlobs()));
+
+        //test renew lease
+        //re-configure
+        $blob = BlobServiceFunctionalTestData::getInterestingBlobName($container);
+        $this->restProxy->createPageBlob($container, $blob, 1024);
+        $leaseId = Utilities::getGuid();
+        $this->restProxy->acquireLease($container, $blob, $leaseId, 15);
+        \sleep(15);
+        $this->restProxy->renewLease($container, $blob, $leaseId);
+        try {
+            $this->restProxy->deleteBlob($container, $blob);
+        } catch (ServiceException $e) {
+            $message = $e->getMessage();
+        }
+        $this->assertContains('There is currently a lease on the blob and no lease ID was specified in the request.', $message);
+
+        //test release lease
+        $this->restProxy->releaseLease($container, $blob, $leaseId);
+        //acquire a lease immediately after.
+        $leaseId = Utilities::getGuid();
+        $this->restProxy->acquireLease($container, $blob, $leaseId);
+        try {
+            $this->restProxy->deleteBlob($container, $blob);
+        } catch (ServiceException $e) {
+            $message = $e->getMessage();
+        }
+        $this->assertContains('There is currently a lease on the blob and no lease ID was specified in the request.', $message);
+
+        //test break lease
+        $result = $this->restProxy->breakLease($container, $blob, 10);
+        $leaseId = Utilities::getGuid();
+        try {
+            $this->restProxy->acquireLease($container, $blob, $leaseId);
+        } catch (ServiceException $e) {
+            $message = $e->getMessage();
+        }
+        $this->assertContains('There is currently a lease on the blob and no lease ID was specified in the request.', $message);
+        \sleep(10);
+        $this->restProxy->acquireLease($container, $blob, $leaseId);
+        $options = new DeleteBlobOptions();
+        $options->setLeaseId($leaseId);
+        $this->restProxy->deleteBlob($container, $blob, $options);
+
+        $result = $this->restProxy->listBlobs($container);
+        $this->assertTrue(empty($result->getBlobs()));
+    }
 }

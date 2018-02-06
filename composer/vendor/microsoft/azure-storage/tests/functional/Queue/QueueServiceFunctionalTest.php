@@ -22,18 +22,19 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\functional\Queue;
+namespace MicrosoftAzure\Storage\Tests\Functional\Queue;
 
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
-use MicrosoftAzure\Storage\Common\ServiceException;
+use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
 use MicrosoftAzure\Storage\Queue\Models\CreateMessageOptions;
 use MicrosoftAzure\Storage\Queue\Models\CreateQueueOptions;
 use MicrosoftAzure\Storage\Queue\Models\ListMessagesOptions;
 use MicrosoftAzure\Storage\Queue\Models\ListQueuesOptions;
 use MicrosoftAzure\Storage\Queue\Models\PeekMessagesOptions;
 use MicrosoftAzure\Storage\Queue\Models\QueueServiceOptions;
-use MicrosoftAzure\Storage\Common\Internal\RetryMiddlewareFactory;
-use MicrosoftAzure\Storage\Common\Internal\Middlewares\HistoryMiddleware;
+use MicrosoftAzure\Storage\Common\Middlewares\RetryMiddlewareFactory;
+use MicrosoftAzure\Storage\Common\Middlewares\HistoryMiddleware;
+use MicrosoftAzure\Storage\Common\LocationMode;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
@@ -42,7 +43,9 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 {
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getServiceProperties
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getServicePropertiesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setServiceProperties
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setServicePropertiesAsync
     */
     public function testGetServicePropertiesNoOptions()
     {
@@ -70,7 +73,9 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getServiceProperties
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getServicePropertiesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setServiceProperties
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setServicePropertiesAsync
     */
     public function testGetServiceProperties()
     {
@@ -102,9 +107,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::getServiceProperties
-     */
     private function getServicePropertiesWorker($options)
     {
         self::println('Trying $options: ' . self::tmptostring($options));
@@ -176,46 +178,39 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
             'getValue()->getLogging()->getRetentionPolicy()->getDays'
         );
 
-        $m = $sp->getMetrics();
-        $this->assertNotNull($m, 'getValue()->getMetrics() should be non-null');
+        $m = $sp->getHourMetrics();
+        $this->assertNotNull($m, 'getValue()->getHourMetrics() should be non-null');
         $this->assertEquals(
-            $serviceProperties->getMetrics()->getVersion(),
+            $serviceProperties->getHourMetrics()->getVersion(),
             $m->getVersion(),
-            'getValue()->getMetrics()->getVersion'
+            'getValue()->getHourMetrics()->getVersion'
         );
         $this->assertEquals(
-            $serviceProperties->getMetrics()->getEnabled(),
+            $serviceProperties->getHourMetrics()->getEnabled(),
             $m->getEnabled(),
-            'getValue()->getMetrics()->getEnabled'
+            'getValue()->getHourMetrics()->getEnabled'
         );
         $this->assertEquals(
-            $serviceProperties->getMetrics()->getIncludeAPIs(),
+            $serviceProperties->getHourMetrics()->getIncludeAPIs(),
             $m->getIncludeAPIs(),
-            'getValue()->getMetrics()->getIncludeAPIs'
+            'getValue()->getHourMetrics()->getIncludeAPIs'
         );
 
         $r = $m->getRetentionPolicy();
-        $this->assertNotNull($r, 'getValue()->getMetrics()->getRetentionPolicy should be non-null');
+        $this->assertNotNull($r, 'getValue()->getHourMetrics()->getRetentionPolicy should be non-null');
         $this->assertEquals(
-            $serviceProperties->getMetrics()->getRetentionPolicy()->getDays(),
+            $serviceProperties->getHourMetrics()->getRetentionPolicy()->getDays(),
             $r->getDays(),
-            'getValue()->getMetrics()->getRetentionPolicy()->getDays'
+            'getValue()->getHourMetrics()->getRetentionPolicy()->getDays'
         );
     }
 
-//     /**
-//     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getServiceProperties
-//     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setServiceProperties
-//     */
-//     public function testSetServicePropertiesNoOptions()
-//     {
-//         $serviceProperties = QueueServiceFunctionalTestData::getDefaultServiceProperties();
-//         $this->setServicePropertiesWorker($serviceProperties, null);
-//     }
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getServiceProperties
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getServicePropertiesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setServiceProperties
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setServicePropertiesAsync
     */
     public function testSetServiceProperties()
     {
@@ -234,10 +229,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::getServiceProperties
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::setServiceProperties
-     */
     private function setServicePropertiesWorker($serviceProperties, $options)
     {
         try {
@@ -256,6 +247,8 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
             } else {
                 $this->assertFalse($this->isEmulated(), 'Should succeed when not running in emulator');
             }
+
+            \sleep(10);
 
             $ret = (is_null($options) ?
                 $this->restProxy->getServiceProperties() :
@@ -285,6 +278,7 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueuesAsync
     */
     public function testListQueuesNoOptions()
     {
@@ -293,6 +287,7 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueuesAsync
     */
     public function testListQueues()
     {
@@ -302,9 +297,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::listQueues
-     */
     private function listQueuesWorker($options)
     {
         $finished = false;
@@ -350,7 +342,7 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         // https://github.com/azure/azure-storage-php/issues/98
         //$this->assertEquals($accountName, $ret->getAccountName(), 'getAccountName');
 
-        $this->assertEquals($options->getMarker(), $ret->getMarker(), 'getMarker');
+        $this->assertEquals($options->getNextMarker(), $ret->getMarker(), 'getNextMarker');
         $this->assertEquals($options->getMaxResults(), $ret->getMaxResults(), 'getMaxResults');
         $this->assertEquals($options->getPrefix(), $ret->getPrefix(), 'getPrefix');
 
@@ -439,9 +431,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadataAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueuesAsync
     */
     public function testCreateQueueNoOptions()
     {
@@ -450,9 +446,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadataAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueuesAsync
     */
     public function testCreateQueue()
     {
@@ -462,12 +462,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createQueue
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::deleteQueue
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::getQueueMetadata
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::listQueues
-     */
     private function createQueueWorker($options)
     {
         self::println('Trying $options: ' . self::tmptostring($options));
@@ -549,8 +543,11 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueuesAsync
     */
     public function testDeleteQueueNoOptions()
     {
@@ -559,8 +556,11 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueuesAsync
     */
     public function testDeleteQueue()
     {
@@ -572,11 +572,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createQueue
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::deleteQueue
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::listQueues
-     */
     private function deleteQueueWorker($options)
     {
         self::println('Trying $options: ' . self::tmptostring($options));
@@ -641,14 +636,17 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    // TODO: Negative tests, like accessing a non-existant queue, or recreating an existing queue?
-
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadataAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueMetadataAsync
     */
     public function testGetQueueMetadataNoOptions()
     {
@@ -660,10 +658,15 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadataAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueMetadataAsync
     */
     public function testGetQueueMetadata()
     {
@@ -679,13 +682,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createMessage
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createQueue
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::deleteQueue
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::getQueueMetadata
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::setQueueMetadata
-     */
     private function getQueueMetadataWorker($options, $metadata)
     {
         self::println('Trying $options: ' . self::tmptostring($options) .
@@ -757,9 +753,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadataAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueMetadataAsync
     */
     public function testSetQueueMetadataNoOptions()
     {
@@ -775,9 +775,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueue
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueueAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueMetadataAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueMetadata
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueMetadataAsync
     */
     public function testSetQueueMetadata()
     {
@@ -797,12 +801,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createQueue
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::deleteQueue
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::getQueueMetadata
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::setQueueMetadata
-     */
     private function setQueueMetadataWorker($options, $metadata)
     {
         self::println('Trying $options: ' . self::tmptostring($options) .
@@ -849,8 +847,11 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     */
     public function testCreateMessageEmpty()
     {
@@ -859,8 +860,11 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     */
     public function testCreateMessageUnicodeMessage()
     {
@@ -882,8 +886,11 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     */
     public function testCreateMessageXmlMessage()
     {
@@ -895,8 +902,11 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     */
     public function testCreateMessageWithSmallTTL()
     {
@@ -926,8 +936,11 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     */
     public function testCreateMessage()
     {
@@ -956,11 +969,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::clearMessages
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createMessage
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::listMessages
-     */
     private function createMessageWorker($messageText, $options)
     {
         self::println('Trying $options: ' . self::tmptostring($options));
@@ -1039,9 +1047,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::updateMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::updateMessageAsync
     */
     public function testUpdateMessageNoOptions()
     {
@@ -1068,9 +1080,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::updateMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::updateMessageAsync
     */
     public function testUpdateMessage()
     {
@@ -1101,12 +1117,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::clearMessages
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createMessage
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::listMessages
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::updateMessage
-     */
     private function updateMessageWorker($messageText, $startingMessage, $visibilityTimeoutInSeconds, $options)
     {
         self::println('Trying $options: ' . self::tmptostring($options) .
@@ -1200,9 +1210,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     */
     public function testDeleteMessageNoOptions()
     {
@@ -1211,9 +1225,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     */
     public function testDeleteMessage()
     {
@@ -1225,12 +1243,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::clearMessages
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createMessage
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::deleteMessage
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::listMessages
-     */
     private function deleteMessageWorker($options)
     {
         self::println('Trying $options: ' . self::tmptostring($options));
@@ -1279,9 +1291,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::peekMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::peekMessagesAsync
     */
     public function testListMessagesNoOptions()
     {
@@ -1290,9 +1306,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::peekMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::peekMessagesAsync
     */
     public function testListMessages()
     {
@@ -1316,12 +1336,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::clearMessages
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createMessage
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::listMessages
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::peekMessages
-     */
     private function listMessagesWorker($options)
     {
         self::println('Trying $options: ' . self::tmptostring($options));
@@ -1419,9 +1433,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::peekMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::peekMessagesAsync
     */
     public function testPeekMessagesNoOptions()
     {
@@ -1430,9 +1448,13 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::peekMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::peekMessagesAsync
     */
     public function testPeekMessages()
     {
@@ -1452,12 +1474,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::clearMessages
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createMessage
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::listMessages
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::peekMessages
-     */
     private function peekMessagesWorker($options)
     {
         self::println('Trying $options: ' . self::tmptostring($options));
@@ -1522,8 +1538,11 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     */
     public function testClearMessagesNoOptions()
     {
@@ -1532,8 +1551,11 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessagesAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessageAsync
     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessages
+    * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listMessagesAsync
     */
     public function testClearMessages()
     {
@@ -1545,11 +1567,6 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         }
     }
 
-    /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::clearMessages
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createMessage
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::listMessages
-     */
     private function clearMessagesWorker($options)
     {
         self::println('Trying $options: ' .
@@ -1607,7 +1624,8 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
 
     /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
-     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::createHandlerStack
+     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueuesAsync
+     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::createMiddlewareStack
      */
     public function testMiddlewares()
     {
@@ -1621,7 +1639,7 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
         
         //setup options for the first try.
         $options = new ListQueuesOptions();
-        $options->setRequestOptions(['middlewares' => [$historyMiddleware]]);
+        $options->setMiddlewares([$historyMiddleware]);
         //get the response of the server.
         $result = $this->restProxy->listQueues($options);
         $response = $historyMiddleware->getHistory()[0]['response'];
@@ -1637,15 +1655,12 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
             new Response(500, ['test_header' => 'test_header_value']),
             $response
         ]);
+        $restOptions = ['http' => ['handler' => $mock]];
+        $mockProxy = $this->builder->createQueueService($this->connectionString, $restOptions);
         //test using mock handler.
         $options = new ListQueuesOptions();
-        $options->setRequestOptions(
-            [
-            'middlewares' => [$retryMiddleware, $historyMiddleware],
-            'handler' => $mock
-            ]
-        );
-        $newResult = $this->restProxy->listQueues($options);
+        $options->setMiddlewares([$retryMiddleware, $historyMiddleware]);
+        $newResult = $mockProxy->listQueues($options);
         $this->assertTrue(
             $result == $newResult,
             'Mock result does not match server behavior'
@@ -1655,8 +1670,74 @@ class QueueServiceFunctionalTest extends FunctionalTestBase
             'Mock handler does not gave the first 408 exception correctly'
         );
         $this->assertTrue(
-            $historyMiddleware->getHistory()[2]['response']->getStatusCode() == 500,
+            $historyMiddleware->getHistory()[2]['reason']->getCode() == 500,
             'Mock handler does not gave the second 500 response correctly'
+        );
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
+     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueuesAsync
+     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::createMiddlewareStack
+     */
+    public function testRetryFromSecondary()
+    {
+        //setup middlewares.
+        $historyMiddleware = new HistoryMiddleware();
+        $retryMiddleware = RetryMiddlewareFactory::create(
+            RetryMiddlewareFactory::GENERAL_RETRY_TYPE,
+            3,
+            1
+        );
+        
+        //setup options for the first try.
+        $options = new ListQueuesOptions();
+        $options->setMiddlewares([$historyMiddleware]);
+        //get the response of the server.
+        $result = $this->restProxy->listQueues($options);
+        $response = $historyMiddleware->getHistory()[0]['response'];
+        $request = $historyMiddleware->getHistory()[0]['request'];
+
+        //setup the mock handler
+        $mock = MockHandler::createWithMiddleware([
+            new Response(500, ['test_header' => 'test_header_value']),
+            new RequestException(
+                'mock 404 exception',
+                $request,
+                new Response(404, ['test_header' => 'test_header_value'])
+            ),
+            $response
+        ]);
+        $restOptions = ['http' => ['handler' => $mock]];
+        $mockProxy = $this->builder->createQueueService($this->connectionString, $restOptions);
+        //test using mock handler.
+        $options = new ListQueuesOptions();
+        $options->setMiddlewares([$retryMiddleware, $historyMiddleware]);
+        $options->setLocationMode(LocationMode::PRIMARY_THEN_SECONDARY);
+        $newResult = $mockProxy->listQueues($options);
+        $this->assertTrue(
+            $result == $newResult,
+            'Mock result does not match server behavior'
+        );
+        $this->assertTrue(
+            $historyMiddleware->getHistory()[2]['reason']->getMessage() == 'mock 404 exception',
+            'Mock handler does not gave the first 404 exception correctly'
+        );
+        $this->assertTrue(
+            $historyMiddleware->getHistory()[1]['reason']->getCode() == 500,
+            'Mock handler does not gave the second 500 response correctly'
+        );
+
+        $uri2 = (string)($historyMiddleware->getHistory()[2]['request']->getUri());
+        $uri3 = (string)($historyMiddleware->getHistory()[3]['request']->getUri());
+
+        $this->assertTrue(
+            strpos($uri2, '-secondary') !== false,
+            'Did not retry to secondary uri.'
+        );
+        $this->assertFalse(
+            strpos($uri3, '-secondary'),
+            'Did not switch back to primary uri.'
         );
     }
 }

@@ -25,11 +25,11 @@
 namespace MicrosoftAzure\Storage\Common\Internal\Authentication;
 
 use GuzzleHttp\Psr7\Request;
-use MicrosoftAzure\Storage\Common\Internal\Authentication\IAuthScheme;
 
 /**
  * Base class for azure authentication schemes.
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal\Authentication
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -39,6 +39,9 @@ use MicrosoftAzure\Storage\Common\Internal\Authentication\IAuthScheme;
  */
 class SharedAccessSignatureAuthScheme implements IAuthScheme
 {
+    /**
+     * The sas token
+     */
     protected $sasToken;
 
     /**

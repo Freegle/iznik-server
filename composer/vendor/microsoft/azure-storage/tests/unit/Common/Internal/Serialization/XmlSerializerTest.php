@@ -22,11 +22,11 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\unit\Common\Internal\Serialization;
+namespace MicrosoftAzure\Storage\Tests\Unit\Common\Internal\Serialization;
 
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
 use MicrosoftAzure\Storage\Common\Models\ServiceProperties;
-use MicrosoftAzure\Storage\Common\Internal\InvalidArgumentTypeException;
+use MicrosoftAzure\Storage\Common\Exceptions\InvalidArgumentTypeException;
 use MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer;
 
 /**
@@ -43,7 +43,7 @@ class XmlSerializerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @covers MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer::unserialize
-     * @covers MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer::_sxml2arr
+     * @covers MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer::sxml2arr
      */
     public function testUnserialize()
     {
@@ -53,16 +53,15 @@ class XmlSerializerTest extends \PHPUnit_Framework_TestCase
         $properties = ServiceProperties::create($propertiesSample);
         $xml = $properties->toXml($xmlSerializer);
         $expected = $properties->toArray();
-        
         // Test
         $actual = $xmlSerializer->unserialize($xml);
         
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals($propertiesSample, $actual);
     }
     
     /**
      * @covers MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer::serialize
-     * @covers MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer::_arr2xml
+     * @covers MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer::arr2xml
      */
     public function testSerialize()
     {
@@ -72,7 +71,7 @@ class XmlSerializerTest extends \PHPUnit_Framework_TestCase
         $properties = ServiceProperties::create($propertiesSample);
         $expected = $properties->toXml($xmlSerializer);
         $array = $properties->toArray();
-        $serializerProperties = array(XmlSerializer::ROOT_NAME => ServiceProperties::$xmlRootName);
+        $serializerProperties = array(XmlSerializer::ROOT_NAME => "StorageServiceProperties");
         
         // Test
         $actual = $xmlSerializer->serialize($array, $serializerProperties);
@@ -82,7 +81,7 @@ class XmlSerializerTest extends \PHPUnit_Framework_TestCase
     
     /**
      * @covers MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer::serialize
-     * @covers MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer::_arr2xml
+     * @covers MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer::arr2xml
      */
     public function testSerializeAttribute()
     {

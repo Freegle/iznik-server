@@ -25,7 +25,8 @@
 namespace MicrosoftAzure\Storage\Queue\Models;
 
 use MicrosoftAzure\Storage\Common\Internal\Resources;
-use MicrosoftAzure\Storage\Queue\Models\Queue;
+use MicrosoftAzure\Storage\Common\Models\MarkerContinuationToken;
+use MicrosoftAzure\Storage\Common\MarkerContinuationTokenTrait;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 
 /**
@@ -40,21 +41,26 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  */
 class ListQueuesResult
 {
+    use MarkerContinuationTokenTrait;
+
     private $_queues;
     private $_prefix;
     private $_marker;
-    private $_nextMarker;
     private $_maxResults;
     private $_accountName;
 
     /**
      * Creates ListQueuesResult object from parsed XML response.
      *
-     * @param array $parsedResponse XML response parsed into array.
+     * @param array  $parsedResponse XML response parsed into array.
+     * @param string $location       Contains the location for the previous
+     *                               request.
+     *
+     * @internal
      *
      * @return ListQueuesResult
      */
-    public static function create(array $parsedResponse)
+    public static function create(array $parsedResponse, $location = '')
     {
         $result               = new ListQueuesResult();
         $serviceEndpoint      = Utilities::tryGetKeysChainValue(
@@ -73,10 +79,18 @@ class ListQueuesResult
             $parsedResponse,
             Resources::QP_MARKER
         ));
-        $result->setNextMarker(Utilities::tryGetValue(
-            $parsedResponse,
-            Resources::QP_NEXT_MARKER
-        ));
+
+        $nextMarker = Utilities::tryGetValue($parsedResponse, Resources::QP_NEXT_MARKER);
+
+        if ($nextMarker != null) {
+            $result->setContinuationToken(
+                new MarkerContinuationToken(
+                    $nextMarker,
+                    $location
+                )
+            );
+        }
+
         $result->setMaxResults(Utilities::tryGetValue(
             $parsedResponse,
             Resources::QP_MAX_RESULTS
@@ -113,6 +127,8 @@ class ListQueuesResult
      *
      * @param array $queues list of queues
      *
+     * @internal
+     *
      * @return void
      */
     protected function setQueues(array $queues)
@@ -138,6 +154,8 @@ class ListQueuesResult
      *
      * @param string $prefix value.
      *
+     * @internal
+     *
      * @return void
      */
     protected function setPrefix($prefix)
@@ -159,6 +177,8 @@ class ListQueuesResult
      * Sets marker.
      *
      * @param string $marker value.
+     *
+     * @internal
      *
      * @return void
      */
@@ -182,6 +202,8 @@ class ListQueuesResult
      *
      * @param string $maxResults value.
      *
+     * @internal
+     *
      * @return void
      */
     protected function setMaxResults($maxResults)
@@ -189,28 +211,6 @@ class ListQueuesResult
         $this->_maxResults = $maxResults;
     }
 
-    /**
-     * Gets next marker.
-     *
-     * @return string
-     */
-    public function getNextMarker()
-    {
-        return $this->_nextMarker;
-    }
-
-    /**
-     * Sets next marker.
-     *
-     * @param string $nextMarker value.
-     *
-     * @return void
-     */
-    protected function setNextMarker($nextMarker)
-    {
-        $this->_nextMarker = $nextMarker;
-    }
-    
     /**
      * Gets account name.
      *
@@ -225,6 +225,8 @@ class ListQueuesResult
      * Sets account name.
      *
      * @param string $accountName value.
+     *
+     * @internal
      *
      * @return void
      */

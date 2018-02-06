@@ -1,6 +1,10 @@
 
 # CHANGELOG
 
+## 3.4.0 (Nov 13, 2017)
+   * Add http.TimeOut config value to make curl timeout configurable.
+   * Fix logging bug on shutdown.
+
 ## 3.3.2 (Oct 25, 2016)
    * Fixes issue with built-in types.
    * Fixes token authorization bug.

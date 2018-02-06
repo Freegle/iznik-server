@@ -3,13 +3,13 @@
    The merchant SDK can be used for integrating with the Express Checkout, Mass Pay, Web Payments Pro APIs.
 
 ## TLSv1.2 Update
-> **The [PCIv3.1 DSS (PDF)](https://www.pcisecuritystandards.org/documents/PCI_DSS_v3-1.pdf) mandates (p.46) that TLSv1.0 be retired from service by June 30, 2016. All organizations that handle credit card information are required to comply with this standard. As part of this obligation, PayPal is updating it's services to require TLSv1.2 for all HTTPS connections. [Click here](https://github.paypal.com/SDK-R/tls-update) for more information**
+> **The Payment Card Industry (PCI) Council has [mandated](http://blog.pcisecuritystandards.org/migrating-from-ssl-and-early-tls) that early versions of TLS be retired from service.  All organizations that handle credit card information are required to comply with this standard. As part of this obligation, PayPal is updating its services to require TLS 1.2 for all HTTPS connections. At this time, PayPal will also require HTTP/1.1 for all connections. [Click here](https://github.com/paypal/tls-update) for more information**
 
-> A new `mode` has been created to test if your server/machine handles TLSv1.2 connections. Please use `tls` mode instead of `sandbox` to verify. You can return back to `sandbox` mode once you have verified. Please have a look at this [Sample Configuration](https://github.com/paypal/merchant-sdk-php/blob/namespace-php5.3/samples/Configuration.php#L10-15).
+> A new `mode` has been created to test if your server/machine handles TLSv1.2 connections. Please use `tls` mode instead of `sandbox` to verify. You can return back to `sandbox` mode once you have verified. Please have a look at this [Sample Configuration](https://github.com/paypal/merchant-sdk-php/blob/master/samples/Configuration.php#L10-15).
 
 ## POODLE Update
 - Because of the Poodle vulnerability, PayPal has disabled SSLv3. 
-- To enable TLS encryption, the changes were made to [PPHttpConfig.php](https://github.com/paypal/sdk-core-php/blob/namespace-5.3/lib/PayPal/Core/PPHttpConfig.php#L11) in [SDK Core](https://github.com/paypal/sdk-core-php/tree/namespace-5.3) to use a cipher list specific to TLS encryption.
+- To enable TLS encryption, the changes were made to [PPHttpConfig.php](https://github.com/paypal/sdk-core-php/blob/master/lib/PayPal/Core/PPHttpConfig.php#L11) in [SDK Core](https://github.com/paypal/sdk-core-php/tree/master) to use a cipher list specific to TLS encryption.
 ``` php
     /**
 	 * Some default options for curl
@@ -31,17 +31,7 @@
     - CURLOPT_SSLVERSION is set to 1 . See [here](http://curl.haxx.se/libcurl/c/CURLOPT_SSLVERSION.html) for more information
     - CURLOPT_SSL_CIPHER_LIST was set to TLSv1, See [here](http://curl.haxx.se/libcurl/c/CURLOPT_SSL_CIPHER_LIST.html) for more information
 
-All these changes are included in the recent release, along with many other bug fixes. We highly encourage you to update your versions, by either using `composer` or running this command shown below:
-
-```
-curl -k -L https://raw.githubusercontent.com/paypal/merchant-sdk-php/stable-php5.3/samples/install.php | php    
-        OR        
-wget  https://raw.githubusercontent.com/paypal/merchant-sdk-php/stable-php5.3/samples/install.php
-php install.php
-```
-
-   
-#### This SDK is deprecated. It is strongly recommended that new implementations use the [PHP Rest SDK](https://github.com/paypal/rest-api-sdk-php)
+All these changes are included in the recent release, along with many other bug fixes.
 
 ## Prerequisites
 
@@ -54,15 +44,11 @@ PayPal's PHP Merchant SDK requires
 
 To run the bundled sample, first copy the samples folder to your web server root. You will then need to install the SDK as a dependency using composer (PHP V5.3+ only).
 
-
-run `composer update` from the samples folder.
-
 ## Using the SDK
-
 
 To use the SDK,
 
-   * Create a composer.json file with the following contents.
+   * Create a `composer.json` file with the following contents.
 
 ```json
 {
@@ -72,7 +58,7 @@ To use the SDK,
     }
 }
 ```
-   * Install the SDK as a dependency using composer. 
+   * Install the SDK as a dependency using `composer`. To download `composer`, follow [installation instructions](https://getcomposer.org/download/) provided in Composer documentation.
    * Require `PPBootStrap.php` in your application.
    * Choose how you would like to configure the SDK - You can either
 	  * Create a hashmap containing configuration parameters and pass it to the service object OR
@@ -109,7 +95,7 @@ For example,
 	$setECResponse = $paypalService->SetExpressCheckout($setECReq);
 	
     // Check results
-	if($strtoupper($setECResponse->Ack) == 'SUCCESS') {
+	if(strtoupper($setECResponse->Ack) == 'SUCCESS') {
 		// Success
 	}  
 ```

@@ -24,9 +24,7 @@
  
 namespace MicrosoftAzure\Storage\Blob\Models;
 
-use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Common\Internal\Resources;
-use MicrosoftAzure\Storage\Blob\Models\BlobProperties;
+use MicrosoftAzure\Storage\Common\Internal\MetadataTrait;
 
 /**
  * Holds result of calling getBlobProperties
@@ -40,37 +38,9 @@ use MicrosoftAzure\Storage\Blob\Models\BlobProperties;
  */
 class GetBlobPropertiesResult
 {
-    /**
-     * @var BlobProperties
-     */
-    private $_properties;
-    
-    /**
-     * @var array
-     */
-    private $_metadata;
-    
-    /**
-     * Gets blob metadata.
-     *
-     * @return array
-     */
-    public function getMetadata()
-    {
-        return $this->_metadata;
-    }
+    use MetadataTrait;
 
-    /**
-     * Sets blob metadata.
-     *
-     * @param array $metadata value.
-     *
-     * @return void
-     */
-    protected function setMetadata(array $metadata)
-    {
-        $this->_metadata = $metadata;
-    }
+    private $_properties;
     
     /**
      * Gets blob properties.
@@ -99,75 +69,15 @@ class GetBlobPropertiesResult
      *
      * @param  array  $headers response headers parsed in an array
      *
+     * @internal
+     *
      * @return GetBlobPropertiesResult
      */
     public static function create(array $headers)
     {
-        $result          = new GetBlobPropertiesResult();
-        $properties      = new BlobProperties();
-        $lastModified    = Utilities::tryGetValueInsensitive(
-            Resources::LAST_MODIFIED,
-            $headers
-        );
-        $blobType        = Utilities::tryGetValueInsensitive(
-            Resources::X_MS_BLOB_TYPE,
-            $headers
-        );
-        $contentLength   = intval(Utilities::tryGetValueInsensitive(
-            Resources::CONTENT_LENGTH,
-            $headers
-        ));
+        $result = static::createMetadataResult($headers);
 
-        $leaseStatus     = Utilities::tryGetValueInsensitive(
-            Resources::X_MS_LEASE_STATUS,
-            $headers
-        );
-        $contentType     = Utilities::tryGetValueInsensitive(
-            Resources::CONTENT_TYPE,
-            $headers
-        );
-        $contentMD5      = Utilities::tryGetValueInsensitive(
-            Resources::CONTENT_MD5,
-            $headers
-        );
-        $contentEncoding = Utilities::tryGetValueInsensitive(
-            Resources::CONTENT_ENCODING,
-            $headers
-        );
-        $contentLanguage = Utilities::tryGetValueInsensitive(
-            Resources::CONTENT_LANGUAGE,
-            $headers
-        );
-        $cacheControl    = Utilities::tryGetValueInsensitive(
-            Resources::CACHE_CONTROL,
-            $headers
-        );
-
-        $etag            = Utilities::tryGetValueInsensitive(
-            Resources::ETAG,
-            $headers
-        );
-        $metadata        = Utilities::getMetadataArray($headers);
-        
-        if (array_key_exists(Resources::X_MS_BLOB_SEQUENCE_NUMBER, $headers)) {
-            $properties->setSequenceNumber(
-                intval($headers[Resources::X_MS_BLOB_SEQUENCE_NUMBER])
-            );
-        }
-        
-        $properties->setBlobType($blobType);
-        $properties->setCacheControl($cacheControl);
-        $properties->setContentEncoding($contentEncoding);
-        $properties->setContentLanguage($contentLanguage);
-        $properties->setContentLength($contentLength);
-        $properties->setContentMD5($contentMD5);
-        $properties->setContentType($contentType);
-        $properties->setETag($etag);
-        $properties->setLastModified(Utilities::rfc1123ToDateTime($lastModified));
-        $properties->setLeaseStatus($leaseStatus);
-        
-        $result->setProperties($properties);
-        $result->setMetadata($metadata);
+        $result->setProperties(BlobProperties::createFromHttpHeaders($headers));
         
         return $result;
     }

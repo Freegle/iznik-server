@@ -27,7 +27,10 @@ class PPConnectionManager
     public function getConnection($httpConfig, $config)
     {
         if (isset($config["http.ConnectionTimeOut"])) {
-            $httpConfig->setHttpTimeout($config["http.ConnectionTimeOut"]);
+            $httpConfig->setHttpConnectionTimeout($config["http.ConnectionTimeOut"]);
+        }
+        if (isset($config["http.TimeOut"])) {
+            $httpConfig->setHttpTimeout($config["http.TimeOut"]);
         }
         if (isset($config["http.Proxy"])) {
             $httpConfig->setHttpProxy($config["http.Proxy"]);

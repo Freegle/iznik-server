@@ -22,7 +22,7 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\unit\Queue;
+namespace MicrosoftAzure\Storage\Tests\Unit\Queue;
 
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use MicrosoftAzure\Storage\Tests\Framework\QueueServiceRestProxyTestBase;
@@ -37,9 +37,10 @@ use MicrosoftAzure\Storage\Queue\Models\PeekMessagesResult;
 use MicrosoftAzure\Storage\Queue\Models\PeekMessagesOptions;
 use MicrosoftAzure\Storage\Queue\Models\UpdateMessageResult;
 use MicrosoftAzure\Storage\Queue\Models\QueueServiceOptions;
+use MicrosoftAzure\Storage\Queue\Models\QueueACL;
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
-use MicrosoftAzure\Storage\Common\ServiceException;
+use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
 
 /**
  * Unit tests for QueueRestProxy class
@@ -54,7 +55,7 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
 {
     /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
-     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::send
+     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::sendAsync
      */
     public function testListQueuesSimple()
     {
@@ -146,7 +147,7 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
     
     /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::listQueues
-     * @expectedException MicrosoftAzure\Storage\Common\ServiceException
+     * @expectedException MicrosoftAzure\Storage\Common\Exceptions\ServiceException
      * @expectedExceptionMessage 400
      */
     public function testListQueuesWithInvalidNextMarkerFail()
@@ -261,7 +262,7 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
     
     /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createQueue
-     * @expectedException MicrosoftAzure\Storage\Common\ServiceException
+     * @expectedException MicrosoftAzure\Storage\Common\Exceptions\ServiceException
      * @expectedExceptionMessage 400
      */
     public function testCreateQueueInvalidNameFail()
@@ -293,7 +294,7 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
     
     /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::deleteQueue
-     * @expectedException MicrosoftAzure\Storage\Common\ServiceException
+     * @expectedException MicrosoftAzure\Storage\Common\Exceptions\ServiceException
      * @expectedExceptionMessage 404
      */
     public function testDeleteQueueFail()
@@ -307,19 +308,6 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
     
     /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getServiceProperties
-     */
-    public function testGetServiceProperties()
-    {
-        $this->skipIfEmulated();
-        
-        // Test
-        $result = $this->restProxy->getServiceProperties();
-        
-        // Assert
-        $this->assertEquals($this->defaultProperties->toArray(), $result->getValue()->toArray());
-    }
-    
-    /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setServiceProperties
      */
     public function testSetServiceProperties()
@@ -380,7 +368,7 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
     
     /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::createMessage
-     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::send
+     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::sendAsync
      */
     public function testCreateMessage()
     {
@@ -390,13 +378,28 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
         $this->createQueue($name);
         
         // Test
-        $this->restProxy->createMessage($name, $expected);
+        $createResult = $this->restProxy->createMessage($name, $expected);
         
         // Assert
         $result = $this->restProxy->listMessages($name);
         $messages = $result->getQueueMessages();
         $actual = $messages[0]->getMessageText();
         $this->assertEquals($expected, $actual);
+
+        $message = $createResult->getQueueMessage();
+        $this->assertNotNull($message->getExpirationDate());
+        $this->assertNotNull($message->getInsertionDate());
+        $this->assertNotNull($message->getTimeNextVisible());
+        $this->assertNotNull($message->getMessageId());
+        $this->assertNotNull($message->getPopReceipt());
+        
+        $this->assertEquals(
+            $message->getInsertionDate(),
+            $message->getTimeNextVisible()
+        );
+        $this->assertTrue(
+            $message->getExpirationDate() > $message->getInsertionDate()
+        );
     }
     
     /**
@@ -605,7 +608,7 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
     
     /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
-     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::send
+     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::sendAsync
      */
     public function testClearMessagesWithOptions()
     {
@@ -632,7 +635,7 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
     
     /**
      * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::clearMessages
-     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::send
+     * @covers MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy::sendAsync
      */
     public function testClearMessages()
     {
@@ -691,5 +694,51 @@ class QueueRestProxyTest extends QueueServiceRestProxyTestBase
         $messages = $result->getQueueMessages();
         $actual   = $messages[0];
         $this->assertEquals($expectedText, $actual->getMessageText());
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueAcl
+     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::getQueueAclAsync
+     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueAcl
+     * @covers MicrosoftAzure\Storage\Queue\QueueRestProxy::setQueueAclAsync
+     */
+    public function testGetSetQueueAcl()
+    {
+        // Setup
+        $name = 'testgetsetqueueacl';
+        $this->createQueue($name);
+        $sample = TestResources::getQueueACLMultipleEntriesSample();
+        $acl = QueueACL::create($sample['SignedIdentifiers']);
+        //because the time is randomized, this should create a different instance
+        $negativeSample = TestResources::getQueueACLMultipleEntriesSample();
+        $negative = QueueACL::create($negativeSample['SignedIdentifiers']);
+
+        // Test
+        $this->restProxy->setQueueAcl($name, $acl);
+        $resultAcl = $this->restProxy->getQueueAcl($name);
+
+        $this->assertEquals(
+            $acl->getSignedIdentifiers(),
+            $resultAcl->getSignedIdentifiers()
+        );
+
+        $this->assertFalse(
+            $resultAcl->getSignedIdentifiers() == $negative->getSignedIdentifiers(),
+            'Should not equal to the negative test case'
+        );
+    }
+
+    /**
+     * @covers  \MicrosoftAzure\Storage\Queue\QueueRestProxy::getServiceStats
+     * @covers  \MicrosoftAzure\Storage\Queue\QueueRestProxy::getServiceStatsAsync
+     */
+    public function testGetServiceStats()
+    {
+        $result = $this->restProxy->getServiceStats();
+
+        // Assert
+        $this->assertNotNull($result->getStatus());
+        $this->assertNotNull($result->getLastSyncTime());
+        $this->assertTrue($result->getLastSyncTime() instanceof \DateTime);
     }
 }

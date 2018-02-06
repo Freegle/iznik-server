@@ -56,7 +56,8 @@ class Iban extends AbstractValidator
     protected static $sepaCountries = [
         'AT', 'BE', 'BG', 'CY', 'CZ', 'DK', 'FO', 'GL', 'EE', 'FI', 'FR', 'DE',
         'GI', 'GR', 'HU', 'IS', 'IE', 'IT', 'LV', 'LI', 'LT', 'LU', 'MT', 'MC',
-        'NL', 'NO', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'CH', 'GB'
+        'NL', 'NO', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'CH', 'GB', 'SM',
+        'HR',
     ];
 
     /**
@@ -75,6 +76,7 @@ class Iban extends AbstractValidator
         'BG' => 'BG[0-9]{2}[A-Z]{4}[0-9]{4}[0-9]{2}[A-Z0-9]{8}',
         'BH' => 'BH[0-9]{2}[A-Z]{4}[A-Z0-9]{14}',
         'BR' => 'BR[0-9]{2}[0-9]{8}[0-9]{5}[0-9]{10}[A-Z][A-Z0-9]',
+        'BY' => 'BY[0-9]{2}[A-Z0-9]{4}[0-9]{4}[A-Z0-9]{16}',
         'CH' => 'CH[0-9]{2}[0-9]{5}[A-Z0-9]{12}',
         'CR' => 'CR[0-9]{2}[0-9]{3}[0-9]{14}',
         'CY' => 'CY[0-9]{2}[0-9]{3}[0-9]{5}[A-Z0-9]{16}',

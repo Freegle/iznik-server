@@ -37,17 +37,20 @@ class PPLoggingManager
             $this->loggerFile   = ($config['log.FileName']) ? $config['log.FileName'] : ini_get('error_log');
             $loggingLevel       = strtoupper($config['log.LogLevel']);
             $this->loggingLevel = (isset($loggingLevel) && defined(__NAMESPACE__ . "\\PPLoggingLevel::$loggingLevel")) ? constant(__NAMESPACE__ . "\\PPLoggingLevel::$loggingLevel") : PPLoggingManager::DEFAULT_LOGGING_LEVEL;
-            register_shutdown_function(array($this,'flush'));
         }
     }
 
+    public function __destruct()
+    {
+        $this->flush();
+    }
  
-    public function flush(){
-        if($this->loggerMessage){
-            error_log($this->loggerMessage,3,$this->loggerFile);
+    public function flush()
+    {
+        if($this->loggerMessage) {
+            error_log($this->loggerMessage, 3, $this->loggerFile);
         }
-    } 
-
+    }
 
     private function log($message, $level = PPLoggingLevel::INFO)
     {

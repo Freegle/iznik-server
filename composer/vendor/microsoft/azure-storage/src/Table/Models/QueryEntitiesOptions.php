@@ -24,6 +24,8 @@
  
 namespace MicrosoftAzure\Storage\Table\Models;
 
+use MicrosoftAzure\Storage\Table\Internal\AcceptOptionTrait;
+
 /**
  * Holds optional parameters for queryEntities API
  *
@@ -36,27 +38,18 @@ namespace MicrosoftAzure\Storage\Table\Models;
  */
 class QueryEntitiesOptions extends TableServiceOptions
 {
-    /**
-     * @var Query
-     */
-    private $_query;
-    
-    /**
-     * @var string
-     */
-    private $_nextPartitionKey;
-    
-    /**
-     * @var string
-     */
-    private $_nextRowKey;
-    
+    use TableContinuationTokenTrait;
+    use AcceptOptionTrait;
+
+    private $query;
+
     /**
      * Constructs new QueryEntitiesOptions object.
      */
     public function __construct()
     {
-        $this->_query = new Query();
+        parent::__construct();
+        $this->query = new Query();
     }
     
     /**
@@ -66,7 +59,7 @@ class QueryEntitiesOptions extends TableServiceOptions
      */
     public function getQuery()
     {
-        return $this->_query;
+        return $this->query;
     }
     
     /**
@@ -75,57 +68,13 @@ class QueryEntitiesOptions extends TableServiceOptions
      * You can either sets the whole query *or* use the individual query functions
      * like (setTop).
      *
-     * @param string $query The query instance.
+     * @param Query $query The query instance.
      *
      * @return void
      */
-    public function setQuery($query)
+    public function setQuery(Query $query)
     {
-        $this->_query = $query;
-    }
-    
-    /**
-     * Gets entity next partition key.
-     *
-     * @return string
-     */
-    public function getNextPartitionKey()
-    {
-        return $this->_nextPartitionKey;
-    }
-
-    /**
-     * Sets entity next partition key.
-     *
-     * @param string $nextPartitionKey The entity next partition key value.
-     *
-     * @return void
-     */
-    public function setNextPartitionKey($nextPartitionKey)
-    {
-        $this->_nextPartitionKey = $nextPartitionKey;
-    }
-    
-    /**
-     * Gets entity next row key.
-     *
-     * @return string
-     */
-    public function getNextRowKey()
-    {
-        return $this->_nextRowKey;
-    }
-
-    /**
-     * Sets entity next row key.
-     *
-     * @param string $nextRowKey The entity next row key value.
-     *
-     * @return void
-     */
-    public function setNextRowKey($nextRowKey)
-    {
-        $this->_nextRowKey = $nextRowKey;
+        $this->query = $query;
     }
     
     /**
@@ -135,7 +84,7 @@ class QueryEntitiesOptions extends TableServiceOptions
      */
     public function getFilter()
     {
-        return $this->_query->getFilter();
+        return $this->query->getFilter();
     }
 
     /**
@@ -150,7 +99,7 @@ class QueryEntitiesOptions extends TableServiceOptions
      */
     public function setFilter(Filters\Filter $filter)
     {
-        $this->_query->setFilter($filter);
+        $this->query->setFilter($filter);
     }
     
     /**
@@ -160,7 +109,7 @@ class QueryEntitiesOptions extends TableServiceOptions
      */
     public function getTop()
     {
-        return $this->_query->getTop();
+        return $this->query->getTop();
     }
 
     /**
@@ -175,7 +124,7 @@ class QueryEntitiesOptions extends TableServiceOptions
      */
     public function setTop($top)
     {
-        $this->_query->setTop($top);
+        $this->query->setTop($top);
     }
     
     /**
@@ -190,7 +139,7 @@ class QueryEntitiesOptions extends TableServiceOptions
      */
     public function addSelectField($field)
     {
-        $this->_query->addSelectField($field);
+        $this->query->addSelectField($field);
     }
     
     /**
@@ -200,7 +149,7 @@ class QueryEntitiesOptions extends TableServiceOptions
      */
     public function getSelectFields()
     {
-        return $this->_query->getSelectFields();
+        return $this->query->getSelectFields();
     }
 
     /**
@@ -215,6 +164,6 @@ class QueryEntitiesOptions extends TableServiceOptions
      */
     public function setSelectFields(array $selectFields = null)
     {
-        $this->_query->setSelectFields($selectFields);
+        $this->query->setSelectFields($selectFields);
     }
 }

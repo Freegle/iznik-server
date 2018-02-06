@@ -14,6 +14,7 @@
  *
  * PHP version 5
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -46,8 +47,6 @@ class Utilities
      * @param mixed $key     The array key.
      * @param mixed $default The value to return if $key is not found in $array.
      *
-     * @static
-     *
      * @return mixed
      */
     public static function tryGetValue($array, $key, $default = null)
@@ -58,17 +57,19 @@ class Utilities
     }
 
     /**
-     * Adds a url scheme if there is no scheme.
+     * Adds a url scheme if there is no scheme. Return null if input URL is null.
      *
      * @param string $url    The URL.
      * @param string $scheme The scheme. By default HTTP
-     *
-     * @static
      *
      * @return string
      */
     public static function tryAddUrlScheme($url, $scheme = 'http')
     {
+        if ($url == null) {
+            return $url;
+        }
+
         $urlScheme = parse_url($url, PHP_URL_SCHEME);
 
         if (empty($urlScheme)) {
@@ -82,8 +83,6 @@ class Utilities
      * Parse storage account name from an endpoint url.
      *
      * @param string $url The endpoint $url
-     *
-     * @static
      *
      * @return string
      */
@@ -103,8 +102,6 @@ class Utilities
      * @param string $key   The index name.
      * @param array  $array The array object.
      *
-     * @static
-     *
      * @return array
      */
     public static function tryGetArray($key, array $array)
@@ -121,8 +118,6 @@ class Utilities
      * @param string $key    The key.
      * @param string $value  The value.
      * @param array  &$array The array. If NULL will be used as array.
-     *
-     * @static
      *
      * @return void
      */
@@ -142,8 +137,6 @@ class Utilities
      * that key chain doesn't exist, null is returned.
      *
      * @param array $array Array to be used.
-     *
-     * @static
      *
      * @return mixed
      */
@@ -176,8 +169,6 @@ class Utilities
      * @param boolean $ignoreCase true to ignore case during the comparison;
      * otherwise, false
      *
-     * @static
-     *
      * @return boolean
      */
     public static function startsWith($string, $prefix, $ignoreCase = false)
@@ -193,8 +184,6 @@ class Utilities
      * Returns grouped items from passed $var
      *
      * @param array $var item to group
-     *
-     * @static
      *
      * @return array
      */
@@ -222,8 +211,6 @@ class Utilities
      *
      * @param string $xml XML to be parsed.
      *
-     * @static
-     *
      * @return array
      */
     public static function unserialize($xml)
@@ -239,8 +226,6 @@ class Utilities
      *
      * @param string $sxml SimpleXML object
      * @param array  $arr  Array into which to store results
-     *
-     * @static
      *
      * @return array
      */
@@ -265,8 +250,6 @@ class Utilities
      * @param string $rootName   name of the XML root element.
      * @param string $defaultTag default tag for non-tagged elements.
      * @param string $standalone adds 'standalone' header tag, values 'yes'/'no'
-     *
-     * @static
      *
      * @return string
      */
@@ -304,8 +287,6 @@ class Utilities
      * @param array     $data       Array to be converted to XML
      * @param string    $defaultTag Default XML tag to be used if none specified.
      *
-     * @static
-     *
      * @return void
      */
     private static function _arr2xml(
@@ -342,14 +323,18 @@ class Utilities
     /**
      * Converts string into boolean value.
      *
-     * @param string $obj boolean value in string format.
-     *
-     * @static
+     * @param string $obj       boolean value in string format.
+     * @param bool   $skipNull  If $skipNull is set, will return NULL directly 
+     *                          when $obj is NULL.
      *
      * @return bool
      */
-    public static function toBoolean($obj)
+    public static function toBoolean($obj, $skipNull = false)
     {
+        if ($skipNull && is_null($obj)) {
+            return null;
+        }
+
         return filter_var($obj, FILTER_VALIDATE_BOOLEAN);
     }
 
@@ -357,8 +342,6 @@ class Utilities
      * Converts string into boolean value.
      *
      * @param bool $obj boolean value to convert.
-     *
-     * @static
      *
      * @return string
      */
@@ -370,9 +353,7 @@ class Utilities
     /**
      * Converts a given date string into \DateTime object
      *
-     * @param string $date windows azure date ins string represntation.
-     *
-     * @static
+     * @param string $date windows azure date ins string representation.
      *
      * @return \DateTime
      */
@@ -387,29 +368,16 @@ class Utilities
     /**
      * Generate ISO 8601 compliant date string in UTC time zone
      *
-     * @param int $timestamp The unix timestamp to convert
-     *     (for DateTime check date_timestamp_get).
-     *
-     * @static
+     * @param \DateTimeInterface $date The date value to convert
      *
      * @return string
      */
-    public static function isoDate($timestamp = null)
+    public static function isoDate(\DateTimeInterface $date)
     {
-        $tz = date_default_timezone_get();
-        date_default_timezone_set('UTC');
+        $date = clone $date;
+        $date = $date->setTimezone(new \DateTimeZone('UTC'));
 
-        if (is_null($timestamp)) {
-            $timestamp = time();
-        }
-
-        $returnValue = str_replace(
-            '+00:00',
-            '.0000000Z',
-            date('c', $timestamp)
-        );
-        date_default_timezone_set($tz);
-        return $returnValue;
+        return str_replace('+00:00', 'Z', $date->format('c'));
     }
 
     /**
@@ -417,8 +385,6 @@ class Utilities
      * represented as a string.
      *
      * @param mixed $value The datetime value.
-     *
-     * @static
      *
      * @return string
      */
@@ -444,8 +410,6 @@ class Utilities
      *
      * @param string $value The string value to parse.
      *
-     * @static
-     *
      * @return \DateTime
      */
     public static function convertToDateTime($value)
@@ -465,8 +429,6 @@ class Utilities
      * Converts string to stream handle.
      *
      * @param string $string The string contents.
-     *
-     * @static
      *
      * @return resource
      */
@@ -503,8 +465,6 @@ class Utilities
      * @param string $needle   The searched value.
      * @param array  $haystack The array.
      *
-     * @static
-     *
      * @return boolean
      */
     public static function inArrayInsensitive($needle, array $haystack)
@@ -518,8 +478,6 @@ class Utilities
      *
      * @param string $key    The value to check.
      * @param array  $search The array with keys to check.
-     *
-     * @static
      *
      * @return boolean
      */
@@ -536,8 +494,6 @@ class Utilities
      * @param string $key      The array key.
      * @param array  $haystack The array to be used.
      * @param mixed  $default  The value to return if $key is not found in $array.
-     *
-     * @static
      *
      * @return mixed
      */
@@ -557,8 +513,6 @@ class Utilities
      *
      * Note: This function is available on all platforms, while the
      * com_create_guid() is only available for Windows.
-     *
-     * @static
      *
      * @return string A new GUID.
      */
@@ -593,8 +547,6 @@ class Utilities
      * @param array  $parsed The object in array representation
      * @param string $class  The class name. Must have static method create.
      *
-     * @static
-     *
      * @return array
      */
     public static function createInstanceList(array $parsed, $class)
@@ -615,8 +567,6 @@ class Utilities
      * @param string  $needle     postfix to match.
      * @param boolean $ignoreCase Set true to ignore case during the comparison;
      * otherwise, false
-     *
-     * @static
      *
      * @return boolean
      */
@@ -671,58 +621,6 @@ class Utilities
         return openssl_random_pseudo_bytes($length);
     }
     
-    
-    /**
-     * Encrypts $data with CTR encryption
-     *
-     * @param string $data                 Data to be encrypted
-     * @param string $key                  AES Encryption key
-     * @param string $initializationVector Initialization vector
-     *
-     * @return string Encrypted data
-     */
-    public static function ctrCrypt($data, $key, $initializationVector)
-    {
-        Validate::isString($data, 'data');
-        Validate::isString($key, 'key');
-        Validate::isString($initializationVector, 'initializationVector');
-        
-        Validate::isTrue(
-            (strlen($key) == 16 || strlen($key) == 24 || strlen($key) == 32),
-            sprintf(Resources::INVALID_STRING_LENGTH, 'key', '16, 24, 32')
-        );
-        
-        Validate::isTrue(
-            (strlen($initializationVector) == 16),
-            sprintf(Resources::INVALID_STRING_LENGTH, 'initializationVector', '16')
-        );
-        
-        $blockCount = ceil(strlen($data) / 16);
-    
-        $ctrData = '';
-        for ($i = 0; $i < $blockCount; ++$i) {
-            $ctrData .= $initializationVector;
-    
-            // increment Initialization Vector
-            $j = 15;
-            do {
-                $digit                    = ord($initializationVector[$j]) + 1;
-                $initializationVector[$j] = chr($digit & 0xFF);
-                
-                $j--;
-            } while (($digit == 0x100) && ($j >= 0));
-        }
-    
-        $encryptCtrData = mcrypt_encrypt(
-            MCRYPT_RIJNDAEL_128,
-            $key,
-            $ctrData,
-            MCRYPT_MODE_ECB
-        );
-        
-        return $data ^ $encryptCtrData;
-    }
-    
     /**
      * Convert base 256 number to decimal number.
      *
@@ -732,7 +630,7 @@ class Utilities
      */
     public static function base256ToDec($number)
     {
-        Validate::isString($number, 'number');
+        Validate::canCastAsString($number, 'number');
         
         $result = 0;
         $base   = 1;
@@ -831,8 +729,8 @@ class Utilities
         }
 
         foreach ($metadata as $key => $value) {
-            Validate::isString($key, 'metadata key');
-            Validate::isString($value, 'metadata value');
+            Validate::canCastAsString($key, 'metadata key');
+            Validate::canCastAsString($value, 'metadata value');
         }
     }
 
@@ -840,6 +738,7 @@ class Utilities
      * Append the content to file.
      * @param  string $path    The file to append to.
      * @param  string $content The content to append.
+     *
      * @return void
      */
     public static function appendToFile($path, $content)
@@ -849,5 +748,127 @@ class Utilities
             fwrite($resource, $content);
             fclose($resource);
         }
+    }
+
+    /**
+     * Check if all the bytes are zero.
+     * @param string $content The content.
+     */
+    public static function allZero($content)
+    {
+        $size = strlen($content);
+
+        // If all Zero, skip this range
+        for ($i = 0; $i < $size; $i++) {
+            if (ord($content[$i] != 0)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Append the delimiter to the string. The delimiter will not be added if
+     * the string already ends with this delimiter.
+     *
+     * @param string $string    The string to add delimiter to.
+     * @param string $delimiter The delimiter to be added.
+     *
+     * @return string
+     */
+    public static function appendDelimiter($string, $delimiter)
+    {
+        if (!self::endsWith($string, $delimiter)) {
+            $string .= $delimiter;
+        }
+
+        return $string;
+    }
+
+    /**
+     * Static function used to determine if the request is performed against
+     * secondary endpoint.
+     *
+     * @param  Psr\Http\Message\RequestInterface $request The request performed.
+     * @param  array                             $options The options of the
+     *                                                    request. Must contain
+     *                                                    Resources::ROS_SECONDARY_URI
+     *
+     * @return boolean
+     */
+    public static function requestSentToSecondary(
+        \Psr\Http\Message\RequestInterface $request,
+        array $options
+    ) {
+        $uri = $request->getUri();
+        $secondaryUri = $options[Resources::ROS_SECONDARY_URI];
+        $isSecondary = false;
+        if (strpos((string)$uri, (string)$secondaryUri) !== false) {
+            $isSecondary = true;
+        }
+        return $isSecondary;
+    }
+
+    /**
+     * Gets the location value from the headers.
+     *
+     * @param  array  $headers request/response headers.
+     *
+     * @return string
+     */
+    public static function getLocationFromHeaders(array $headers)
+    {
+        $value = Utilities::tryGetValue(
+            $headers,
+            Resources::X_MS_CONTINUATION_LOCATION_MODE
+        );
+
+        $result = '';
+        if (\is_string($value)) {
+            $result = $value;
+        } elseif (!empty($value)) {
+            $result = $value[0];
+        }
+        return $result;
+    }
+
+    /**
+     * Gets if the value is a double value or string representation of a double
+     * value
+     *
+     * @param  mixed  $value The value to be verified.
+     *
+     * @return boolean
+     */
+    public static function isDouble($value)
+    {
+        return is_numeric($value) && is_double($value + 0);
+    }
+
+    /**
+     * Calculates the content MD5 which is base64 encoded. This should be align
+     * with the server calculated MD5.
+     *
+     * @param  string $content the content to be calculated.
+     *
+     * @return string
+     */
+    public static function calculateContentMD5($content)
+    {
+        Validate::notNull($content, 'content');
+        Validate::canCastAsString($content, 'content');
+
+        return base64_encode(md5($content, true));
+    }
+
+    /**
+     * Return if the environment is in 64 bit PHP.
+     *
+     * @return bool
+     */
+    public static function is64BitPHP()
+    {
+        return PHP_INT_SIZE == 8;
     }
 }

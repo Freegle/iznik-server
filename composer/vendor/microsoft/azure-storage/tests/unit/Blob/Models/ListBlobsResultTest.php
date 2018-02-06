@@ -21,7 +21,7 @@
  * @license   https://github.com/azure/azure-storage-php/LICENSE
  * @link      https://github.com/azure/azure-storage-php
  */
-namespace MicrosoftAzure\Storage\Tests\unit\Blob\Models;
+namespace MicrosoftAzure\Storage\Tests\Unit\Blob\Models;
 
 use MicrosoftAzure\Storage\Blob\Models\ListBlobsResult;
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
@@ -69,8 +69,8 @@ class ListBlobsResultTest extends \PHPUnit_Framework_TestCase
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setBlobs
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setPrefix
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getPrefix
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setNextMarker
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getNextMarker
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setContinuationToken
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getContinuationToken
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setMarker
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getMarker
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setMaxResults
@@ -105,8 +105,8 @@ class ListBlobsResultTest extends \PHPUnit_Framework_TestCase
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setBlobPrefixes
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getBlobs
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setBlobs
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setNextMarker
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getNextMarker
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setContinuationToken
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getContinuationToken
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setMarker
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getMarker
      * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setMaxResults
@@ -131,5 +131,40 @@ class ListBlobsResultTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($sample['NextMarker'], $actual->getNextMarker());
         
         return $actual;
+    }
+
+    /**
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::create
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getBlobPrefixes
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setBlobPrefixes
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getBlobs
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setBlobs
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setContinuationToken
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getContinuationToken
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setMarker
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getMarker
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setMaxResults
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getMaxResults
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::setContainerName
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListBlobsResult::getContainerName
+     */
+    public function testCreateWithIsSecondary()
+    {
+        // Setup
+        $sample = TestResources::listBlobsOneEntry();
+        
+        // Test
+        $actual = ListBlobsResult::create($sample, 'SecondaryOnly');
+        
+        // Assert
+        $this->assertCount(1, $actual->getBlobs());
+        $this->assertEquals($sample['@attributes']['ContainerName'], $actual->getContainerName());
+        $this->assertCount(1, $actual->getBlobPrefixes());
+        $this->assertEquals($sample['Marker'], $actual->getMarker());
+        $this->assertEquals(intval($sample['MaxResults']), $actual->getMaxResults());
+        $this->assertEquals($sample['NextMarker'], $actual->getNextMarker());
+        $this->assertEquals($sample['Delimiter'], $actual->getDelimiter());
+        $this->assertEquals($sample['Prefix'], $actual->getPrefix());
+        $this->assertEquals('SecondaryOnly', $actual->getLocation());
     }
 }

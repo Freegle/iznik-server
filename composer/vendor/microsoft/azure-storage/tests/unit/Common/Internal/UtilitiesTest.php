@@ -22,7 +22,7 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\unit\Common\Internal;
+namespace MicrosoftAzure\Storage\Tests\Unit\Common\Internal;
 
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
@@ -217,12 +217,11 @@ class UtilitiesTest extends \PHPUnit_Framework_TestCase
         $properties = ServiceProperties::create($propertiesSample);
         $xmlSerializer = new XmlSerializer();
         $xml = $properties->toXml($xmlSerializer);
-        $expected = $properties->toArray();
 
         // Test
         $actual = Utilities::unserialize($xml);
 
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals($propertiesSample, $actual);
     }
 
     /**
@@ -234,16 +233,32 @@ class UtilitiesTest extends \PHPUnit_Framework_TestCase
         // Setup
         $propertiesSample = TestResources::getServicePropertiesSample();
         $properties = ServiceProperties::create($propertiesSample);
+
         $expected  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $expected .= '<StorageServiceProperties><Logging><Version>1.0</Version><Delete>true</Delete>';
         $expected .= '<Read>false</Read><Write>true</Write><RetentionPolicy><Enabled>true</Enabled>';
         $expected .= '<Days>20</Days></RetentionPolicy></Logging><HourMetrics><Version>1.0</Version>';
         $expected .= '<Enabled>true</Enabled><IncludeAPIs>false</IncludeAPIs><RetentionPolicy>';
-        $expected .= '<Enabled>true</Enabled><Days>20</Days></RetentionPolicy></HourMetrics></StorageServiceProperties>';
+        $expected .= '<Enabled>true</Enabled><Days>20</Days></RetentionPolicy></HourMetrics>';
+        $expected .= '<MinuteMetrics><Version>1.0</Version><Enabled>true</Enabled>';
+        $expected .= '<IncludeAPIs>false</IncludeAPIs><RetentionPolicy><Enabled>true</Enabled>';
+        $expected .= '<Days>20</Days></RetentionPolicy></MinuteMetrics>';
+        $expected .= '<Cors><CorsRule><AllowedOrigins>http://www.microsoft.com,http://www.bing.com</AllowedOrigins>';
+        $expected .= '<AllowedMethods>GET,PUT</AllowedMethods>';
+        $expected .= '<AllowedHeaders>x-ms-meta-customheader0,x-ms-meta-target0*</AllowedHeaders>';
+        $expected .= '<ExposedHeaders>x-ms-meta-customheader0,x-ms-meta-data0*</ExposedHeaders>';
+        $expected .= '<MaxAgeInSeconds>500</MaxAgeInSeconds>';
+        $expected .= '</CorsRule><CorsRule><AllowedOrigins>http://www.azure.com,http://www.office.com</AllowedOrigins>';
+        $expected .= '<AllowedMethods>POST,HEAD</AllowedMethods><AllowedHeaders>';
+        $expected .= 'x-ms-meta-customheader1,x-ms-meta-target1*</AllowedHeaders>';
+        $expected .= '<ExposedHeaders>x-ms-meta-customheader1,x-ms-meta-data1*';
+        $expected .= '</ExposedHeaders><MaxAgeInSeconds>350</MaxAgeInSeconds>';
+        $expected .= '</CorsRule></Cors></StorageServiceProperties>';
+
         $array = $properties->toArray();
 
         // Test
-        $actual = Utilities::serialize($array, ServiceProperties::$xmlRootName);
+        $actual = Utilities::serialize($array, "StorageServiceProperties");
 
         $this->assertEquals($expected, $actual);
     }
@@ -276,16 +291,23 @@ class UtilitiesTest extends \PHPUnit_Framework_TestCase
      */
     public function testToBoolean()
     {
-        // Setup
-        $value = 'true';
-        $expected = true;
+        $this->assertTrue(is_bool(Utilities::toBoolean('true')));
+        $this->assertEquals(true, Utilities::toBoolean('true'));
 
-        // Test
-        $actual = Utilities::toBoolean($value);
+        $this->assertTrue(is_bool(Utilities::toBoolean('false')));
+        $this->assertEquals(false, Utilities::toBoolean('false'));
 
-        // Assert
-        $this->assertTrue(is_bool($actual));
-        $this->assertEquals($expected, $actual);
+        $this->assertTrue(is_bool(Utilities::toBoolean(null)));
+        $this->assertEquals(false, Utilities::toBoolean(null));
+
+        $this->assertTrue(is_bool(Utilities::toBoolean('true', true)));
+        $this->assertEquals(true, Utilities::toBoolean('true', true));
+
+        $this->assertTrue(is_bool(Utilities::toBoolean('false', true)));
+        $this->assertEquals(false, Utilities::toBoolean('false', true));
+
+        $this->assertTrue(is_null(Utilities::toBoolean(null, true)));
+        $this->assertEquals(null, Utilities::toBoolean(null, true));
     }
 
     /**
@@ -310,10 +332,10 @@ class UtilitiesTest extends \PHPUnit_Framework_TestCase
     public function testIsoDate()
     {
         // Test
-        $date = Utilities::isoDate();
+        $date = Utilities::isoDate(new \DateTimeImmutable('2016-02-03', new \DateTimeZone('America/Chicago')));
 
         // Assert
-        $this->assertNotNull($date);
+        $this->assertSame('2016-02-03T06:00:00Z', $date);
     }
 
     /**
@@ -568,81 +590,6 @@ class UtilitiesTest extends \PHPUnit_Framework_TestCase
 
         // Assert
         $this->assertEquals($length, strlen($result));
-    }
-    
-    /**
-     * @covers MicrosoftAzure\Storage\Common\Internal\Utilities::ctrCrypt
-     */
-    public function testCtrCrypt()
-    {
-    
-        // Setup
-        $data = 'Test data more than 16 bytes';
-        $key = Utilities::generateCryptoKey(32);
-        $efectiveInitializationVector = Utilities::generateCryptoKey(8);
-        $initializationVector = str_pad($efectiveInitializationVector, 16, chr(255));
-    
-        // Test
-        $ecnrypted = Utilities::ctrCrypt($data, $key, $initializationVector);
-        $decrypted = Utilities::ctrCrypt($ecnrypted, $key, $initializationVector);
-    
-        // Assert
-        $this->assertEquals($data, $decrypted);
-    }
-    
-    /**
-     * @covers MicrosoftAzure\Storage\Common\Internal\Utilities::ctrCrypt
-     */
-    public function testCtrCryptFixedKeys()
-    {
-    
-        // Setup
-        $data = 'Test data more than 16 bytes';
-        $key = base64_decode('QNhZJajWRH3fmCKDJtMluj6PUBvkADwJ7dX4KQGI99o=');
-        $efectiveInitializationVector = base64_decode('k3AmLEGFubw=');
-        $expected = base64_decode('j3+9MFQVctoWlUvqbn/xReun0XnWqwJ3tpvbpw==');
-        
-        $initializationVector = str_pad($efectiveInitializationVector, 16, chr(255));
-        
-        // Test
-        $actual = Utilities::ctrCrypt($data, $key, $initializationVector);
-    
-        // Assert
-        $this->assertEquals($actual, $expected);
-    }
-    
-    /**
-     * @covers MicrosoftAzure\Storage\Common\Internal\Utilities::ctrCrypt
-     */
-    public function testCtrCryptInvalidKeyLength()
-    {
-    
-        // Setup
-        $data = 'Test data more than 16 bytes';
-        $key = '12345';
-        $efectiveInitializationVector = Utilities::generateCryptoKey(8);
-        $this->setExpectedException(get_class(new \InvalidArgumentException('')));
-        
-        $initializationVector = str_pad($efectiveInitializationVector, 16, chr(255));
-        
-        // Test
-        $actual = Utilities::ctrCrypt($data, $key, $initializationVector);
-    }
-    
-    /**
-     * @covers MicrosoftAzure\Storage\Common\Internal\Utilities::ctrCrypt
-     */
-    public function testCtrCryptInvalidInitializationVectorLength()
-    {
-    
-        // Setup
-        $data = 'Test data more than 16 bytes';
-        $key = Utilities::generateCryptoKey(32);
-        $initializationVector = '1234';
-        $this->setExpectedException(get_class(new \InvalidArgumentException('')));
-        
-        // Test
-        $actual = Utilities::ctrCrypt($data, $key, $initializationVector);
     }
     
     /**

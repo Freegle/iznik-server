@@ -24,10 +24,6 @@
  
 namespace MicrosoftAzure\Storage\Table\Models;
 
-use MicrosoftAzure\Storage\Table\Models\EdmType;
-use MicrosoftAzure\Storage\Common\Internal\Validate;
-use MicrosoftAzure\Storage\Tests\Unit\Table\Models\EdmTypeTest;
-
 /**
  * Represents entity property.
  *
@@ -40,15 +36,9 @@ use MicrosoftAzure\Storage\Tests\Unit\Table\Models\EdmTypeTest;
  */
 class Property
 {
-    /**
-     * @var string
-     */
-    private $_edmType;
-    
-    /**
-     * @var mixed
-     */
-    private $_value;
+    private $edmType;
+    private $value;
+    private $rawValue;
     
     /**
      * Gets the type of the property.
@@ -57,7 +47,7 @@ class Property
      */
     public function getEdmType()
     {
-        return $this->_edmType;
+        return $this->edmType;
     }
     
     /**
@@ -70,17 +60,17 @@ class Property
     public function setEdmType($edmType)
     {
         EdmType::isValid($edmType);
-        $this->_edmType = $edmType;
+        $this->edmType = $edmType;
     }
     
     /**
      * Gets the value of the property.
      *
-     * @return string
+     * @return mixed
      */
     public function getValue()
     {
-        return $this->_value;
+        return $this->value;
     }
     
     /**
@@ -92,6 +82,28 @@ class Property
      */
     public function setValue($value)
     {
-        $this->_value = $value;
+        $this->value = $value;
+    }
+
+    /**
+     * Gets the raw value of the property.
+     *
+     * @return string
+     */
+    public function getRawValue()
+    {
+        return $this->rawValue;
+    }
+    
+    /**
+     * Sets the raw property value.
+     *
+     * @param mixed $rawValue The raw value of property.
+     *
+     * @return void
+     */
+    public function setRawValue($rawValue)
+    {
+        $this->rawValue = $rawValue;
     }
 }

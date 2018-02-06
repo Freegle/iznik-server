@@ -15,14 +15,14 @@
  * PHP version 5
  *
  * @category  Microsoft
- * @package   MicrosoftAzure\Storage\Tests\Unit\Common\Internal\Http
+ * @package   MicrosoftAzure\Storage\Tests\Unit\Common\Internal\Middlewares
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
  * @copyright 2017 Microsoft Corporation
  * @license   https://github.com/azure/azure-storage-php/LICENSE
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\unit\Common\Internal\Middlewares;
+namespace MicrosoftAzure\Storage\Tests\Unit\Common\Internal\Middlewares;
 
 use MicrosoftAzure\Storage\Common\Internal\Middlewares\CommonRequestMiddleware;
 use MicrosoftAzure\Storage\Common\Internal\Authentication\SharedKeyAuthScheme;
@@ -35,11 +35,10 @@ use GuzzleHttp\Psr7\Request;
  * Unit tests for class CommonRequestMiddleware
  *
  * @category  Microsoft
- * @package   MicrosoftAzure\Storage\Tests\Unit\Common\Internal\Http
+ * @package   MicrosoftAzure\Storage\Tests\Unit\Common\Internal\Middlewares
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
  * @copyright 2017 Microsoft Corporation
  * @license   https://github.com/azure/azure-storage-php/LICENSE
- * @version   Release: 0.12.1
  * @link      https://github.com/azure/azure-storage-php
  */
 class CommonRequestMiddlewareTest extends ReflectionTestBase

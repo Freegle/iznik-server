@@ -24,8 +24,6 @@
  
 namespace MicrosoftAzure\Storage\Blob\Models;
 
-use MicrosoftAzure\Storage\Common\Internal\Validate;
-
 /**
  * Optional parameters for commitBlobBlocks
  *
@@ -38,176 +36,144 @@ use MicrosoftAzure\Storage\Common\Internal\Validate;
  */
 class CommitBlobBlocksOptions extends BlobServiceOptions
 {
-    /**
-     * @var string
-     */
-    private $_blobContentType;
-    
-    /**
-     * @var string
-     */
-    private $_blobContentEncoding;
-    
-    /**
-     * @var string
-     */
-    private $_blobContentLanguage;
-    
-    /**
-     * @var string
-     */
-    private $_blobContentMD5;
-    
-    /**
-     * @var string
-     */
-    private $_blobCacheControl;
-    
-    /**
-     * @var array
-     */
+    private $_contentType;
+    private $_contentEncoding;
+    private $_contentLanguage;
+    private $_contentMD5;
+    private $_cacheControl;
+    private $_contentDisposition;
     private $_metadata;
-    
+
     /**
-     * @var string
-     */
-    private $_leaseId;
-    
-    /**
-     * @var AccessCondition
-     */
-    private $_accessCondition;
-    
-    /**
-     * Gets blob ContentType.
+     * Gets ContentType.
      *
      * @return string
      */
-    public function getBlobContentType()
+    public function getContentType()
     {
-        return $this->_blobContentType;
+        return $this->_contentType;
     }
 
     /**
-     * Sets blob ContentType.
+     * Sets ContentType.
      *
-     * @param string $blobContentType value.
+     * @param string $contentType value.
      *
      * @return void
      */
-    public function setBlobContentType($blobContentType)
+    public function setContentType($contentType)
     {
-        $this->_blobContentType = $blobContentType;
+        $this->_contentType = $contentType;
     }
     
     /**
-     * Gets blob ContentEncoding.
+     * Gets ContentEncoding.
      *
      * @return string
      */
-    public function getBlobContentEncoding()
+    public function getContentEncoding()
     {
-        return $this->_blobContentEncoding;
+        return $this->_contentEncoding;
     }
 
     /**
-     * Sets blob ContentEncoding.
+     * Sets ContentEncoding.
      *
-     * @param string $blobContentEncoding value.
+     * @param string $contentEncoding value.
      *
      * @return void
      */
-    public function setBlobContentEncoding($blobContentEncoding)
+    public function setContentEncoding($contentEncoding)
     {
-        $this->_blobContentEncoding = $blobContentEncoding;
+        $this->_contentEncoding = $contentEncoding;
     }
     
     /**
-     * Gets blob ContentLanguage.
+     * Gets ContentLanguage.
      *
      * @return string
      */
-    public function getBlobContentLanguage()
+    public function getContentLanguage()
     {
-        return $this->_blobContentLanguage;
+        return $this->_contentLanguage;
     }
 
     /**
-     * Sets blob ContentLanguage.
+     * Sets ContentLanguage.
      *
-     * @param string $blobContentLanguage value.
+     * @param string $contentLanguage value.
      *
      * @return void
      */
-    public function setBlobContentLanguage($blobContentLanguage)
+    public function setContentLanguage($contentLanguage)
     {
-        $this->_blobContentLanguage = $blobContentLanguage;
+        $this->_contentLanguage = $contentLanguage;
     }
     
     /**
-     * Gets blob ContentMD5.
+     * Gets ContentMD5.
      *
      * @return string
      */
-    public function getBlobContentMD5()
+    public function getContentMD5()
     {
-        return $this->_blobContentMD5;
+        return $this->_contentMD5;
     }
 
     /**
-     * Sets blob ContentMD5.
+     * Sets ContentMD5.
      *
-     * @param string $blobContentMD5 value.
+     * @param string $contentMD5 value.
      *
      * @return void
      */
-    public function setBlobContentMD5($blobContentMD5)
+    public function setContentMD5($contentMD5)
     {
-        $this->_blobContentMD5 = $blobContentMD5;
+        $this->_contentMD5 = $contentMD5;
     }
     
     /**
-     * Gets blob cache control.
+     * Gets cache control.
      *
      * @return string
      */
-    public function getBlobCacheControl()
+    public function getCacheControl()
     {
-        return $this->_blobCacheControl;
+        return $this->_cacheControl;
     }
     
     /**
-     * Sets blob cacheControl.
+     * Sets cacheControl.
      *
-     * @param string $blobCacheControl value to use.
+     * @param string $cacheControl value to use.
      *
      * @return void
      */
-    public function setBlobCacheControl($blobCacheControl)
+    public function setCacheControl($cacheControl)
     {
-        $this->_blobCacheControl = $blobCacheControl;
+        $this->_cacheControl = $cacheControl;
     }
     
     /**
-     * Gets access condition
+     * Gets content disposition.
      *
-     * @return AccessCondition
+     * @return string
      */
-    public function getAccessCondition()
+    public function getContentDisposition()
     {
-        return $this->_accessCondition;
+        return $this->_contentDisposition;
     }
     
     /**
-     * Sets access condition
+     * Sets contentDisposition.
      *
-     * @param AccessCondition $accessCondition value to use.
+     * @param string $contentDisposition value to use.
      *
      * @return void
      */
-    public function setAccessCondition(AccessCondition $accessCondition = null)
+    public function setContentDisposition($contentDisposition)
     {
-        $this->_accessCondition = $accessCondition;
+        $this->_contentDisposition = $contentDisposition;
     }
     
     /**
@@ -231,45 +197,26 @@ class CommitBlobBlocksOptions extends BlobServiceOptions
     {
         $this->_metadata = $metadata;
     }
-    
-    /**
-     * Gets lease Id for the blob
-     *
-     * @return string
-     */
-    public function getLeaseId()
-    {
-        return $this->_leaseId;
-    }
-    
-    /**
-     * Sets lease Id for the blob
-     *
-     * @param string $leaseId the blob lease id.
-     *
-     * @return void
-     */
-    public function setLeaseId($leaseId)
-    {
-        $this->_leaseId = $leaseId;
-    }
 
     /**
      * Create a instance using the given options
      * @param  mixed $options Input options
+     *
+     * @internal
      *
      * @return self
      */
     public static function create($options)
     {
         $result = new CommitBlobBlocksOptions();
-        $result->setBlobContentType($options->getBlobContentType());
-        $result->setBlobContentEncoding($options->getBlobContentEncoding());
-        $result->setBlobContentLanguage($options->getBlobContentLanguage());
-        $result->setBlobContentMD5($options->getBlobContentMD5());
-        $result->setBlobCacheControl($options->getBlobCacheControl());
+        $result->setContentType($options->getContentType());
+        $result->setContentEncoding($options->getContentEncoding());
+        $result->setContentLanguage($options->getContentLanguage());
+        $result->setContentMD5($options->getContentMD5());
+        $result->setCacheControl($options->getCacheControl());
+        $result->setContentDisposition($options->getContentDisposition());
         $result->setMetadata($options->getMetadata());
-        $result->setAccessCondition($options->getAccessCondition());
+        $result->setLeaseId($options->getLeaseId());
 
         return $result;
     }

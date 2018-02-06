@@ -22,7 +22,7 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\unit\Queue\Models;
+namespace MicrosoftAzure\Storage\Tests\Unit\Queue\Models;
 
 use MicrosoftAzure\Storage\Queue\Models\PeekMessagesResult;
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
@@ -49,19 +49,37 @@ class PeekMessagesResultTest extends \PHPUnit_Framework_TestCase
     {
         // Setup
         $sample = TestResources::listMessagesSample();
-        
-        
+
         // Test
         $result = PeekMessagesResult::create($sample);
         
         // Assert
         $actual = $result->getQueueMessages();
         $this->assertCount(1, $actual);
-        $this->assertEquals($sample['QueueMessage']['MessageId'], $actual[0]->getMessageId());
-        $this->assertEquals(Utilities::rfc1123ToDateTime($sample['QueueMessage']['InsertionTime']), $actual[0]->getInsertionDate());
-        $this->assertEquals(Utilities::rfc1123ToDateTime($sample['QueueMessage']['ExpirationTime']), $actual[0]->getExpirationDate());
-        $this->assertEquals(intval($sample['QueueMessage']['DequeueCount']), $actual[0]->getDequeueCount());
-        $this->assertEquals($sample['QueueMessage']['MessageText'], $actual[0]->getMessageText());
+        $this->assertEquals(
+            $sample['QueueMessage']['MessageId'], 
+            $actual[0]->getMessageId()
+        );
+        $this->assertEquals(
+            Utilities::rfc1123ToDateTime(
+                $sample['QueueMessage']['InsertionTime']
+            ), 
+            $actual[0]->getInsertionDate()
+        );
+        $this->assertEquals(
+            Utilities::rfc1123ToDateTime(
+                $sample['QueueMessage']['ExpirationTime']
+            ), 
+            $actual[0]->getExpirationDate()
+        );
+        $this->assertEquals(
+            intval($sample['QueueMessage']['DequeueCount']),
+            $actual[0]->getDequeueCount()
+        );
+        $this->assertEquals(
+            $sample['QueueMessage']['MessageText'],
+            $actual[0]->getMessageText()
+        );
     }
     
     /**

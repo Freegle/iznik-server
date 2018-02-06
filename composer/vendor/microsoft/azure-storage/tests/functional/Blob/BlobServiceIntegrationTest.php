@@ -22,7 +22,7 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\functional\Blob;
+namespace MicrosoftAzure\Storage\Tests\Functional\Blob;
 
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
 use MicrosoftAzure\Storage\Blob\Models\AccessCondition;
@@ -38,10 +38,10 @@ use MicrosoftAzure\Storage\Blob\Models\GetBlobPropertiesOptions;
 use MicrosoftAzure\Storage\Blob\Models\ListBlobBlocksOptions;
 use MicrosoftAzure\Storage\Blob\Models\ListBlobsOptions;
 use MicrosoftAzure\Storage\Blob\Models\ListContainersOptions;
-use MicrosoftAzure\Storage\Blob\Models\PageRange;
 use MicrosoftAzure\Storage\Blob\Models\PublicAccessType;
 use MicrosoftAzure\Storage\Blob\Models\SetBlobPropertiesOptions;
-use MicrosoftAzure\Storage\Common\ServiceException;
+use MicrosoftAzure\Storage\Common\Models\Range;
+use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 
 class BlobServiceIntegrationTest extends IntegrationTestBase
@@ -144,8 +144,8 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $this->assertNotNull($props->getLogging(), '$props->getLogging');
         $this->assertNotNull($props->getLogging()->getRetentionPolicy(), '$props->getLogging()->getRetentionPolicy');
         $this->assertNotNull($props->getLogging()->getVersion(), '$props->getLogging()->getVersion');
-        $this->assertNotNull($props->getMetrics()->getRetentionPolicy(), '$props->getMetrics()->getRetentionPolicy');
-        $this->assertNotNull($props->getMetrics()->getVersion(), '$props->getMetrics()->getVersion');
+        $this->assertNotNull($props->getHourMetrics()->getRetentionPolicy(), '$props->getHourMetrics()->getRetentionPolicy');
+        $this->assertNotNull($props->getHourMetrics()->getVersion(), '$props->getHourMetrics()->getVersion');
     }
 
     /**
@@ -183,8 +183,8 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $this->assertNotNull($props->getLogging()->getRetentionPolicy(), '$props->getLogging()->getRetentionPolicy');
         $this->assertNotNull($props->getLogging()->getVersion(), '$props->getLogging()->getVersion');
         $this->assertTrue($props->getLogging()->getRead(), '$props->getLogging()->getRead');
-        $this->assertNotNull($props->getMetrics()->getRetentionPolicy(), '$props->getMetrics()->getRetentionPolicy');
-        $this->assertNotNull($props->getMetrics()->getVersion(), '$props->getMetrics()->getVersion');
+        $this->assertNotNull($props->getHourMetrics()->getRetentionPolicy(), '$props->getHourMetrics()->getRetentionPolicy');
+        $this->assertNotNull($props->getHourMetrics()->getVersion(), '$props->getHourMetrics()->getVersion');
     }
 
     /**
@@ -766,15 +766,12 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
     {
         // Act
         $opts = new CreateBlobOptions();
-        $opts->setBlobCacheControl('test');
-        $opts->setBlobContentEncoding('UTF-8');
-        $opts->setBlobContentLanguage('en-us');
-        // opts->setBlobContentMD5('1234');
-        $opts->setBlobContentType('text/plain');
-        $opts->setCacheControl('test');
-        $opts->setContentEncoding('UTF-8');
-        // $opts->setContentMD5('1234');
+        $opts->setContentLanguage('en-us');
+        // opts->setContentMD5('1234');
         $opts->setContentType('text/plain');
+        $opts->setCacheControl('test');
+        $opts->setContentDisposition('test');
+        $opts->setContentEncoding('UTF-8');
         $this->restProxy->createPageBlob(self::$_test_container_for_blobs, 'test', 512, $opts);
 
         $result = $this->restProxy->getBlobProperties(self::$_test_container_for_blobs, 'test');
@@ -788,6 +785,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $props = $result->getProperties();
         $this->assertNotNull($props, '$props');
         $this->assertEquals('test', $props->getCacheControl(), '$props->getCacheControl()');
+        $this->assertEquals('test', $props->getContentDisposition(), '$props->getContentDisposition()');
         $this->assertEquals('UTF-8', $props->getContentEncoding(), '$props->getContentEncoding()');
         $this->assertEquals('en-us', $props->getContentLanguage(), '$props->getContentLanguage()');
         $this->assertEquals('text/plain', $props->getContentType(), '$props->getContentType()');
@@ -811,7 +809,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $blob = 'test';
         $this->restProxy->createPageBlob($container, $blob, 512);
 
-        $result = $this->restProxy->clearBlobPages($container, $blob, new PageRange(0, 511));
+        $result = $this->restProxy->clearBlobPages($container, $blob, new Range(0, 511));
 
         // Assert
         $this->assertNotNull($result, '$result');
@@ -833,7 +831,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $content = str_pad('', 512);
         $this->restProxy->createPageBlob($container, $blob, 512);
 
-        $result = $this->restProxy->createBlobPages($container, $blob, new PageRange(0, 511), $content);
+        $result = $this->restProxy->createBlobPages($container, $blob, new Range(0, 511), $content);
 
         // Assert
         $this->assertNotNull($result, '$result');
@@ -856,10 +854,10 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $content = str_pad('', 512);
         $this->restProxy->createPageBlob($container, $blob, 16384 + 512);
 
-        $this->restProxy->createBlobPages($container, $blob, new PageRange(0, 511), $content);
-        $this->restProxy->createBlobPages($container, $blob, new PageRange(1024, 1024 + 511), $content);
-        $this->restProxy->createBlobPages($container, $blob, new PageRange(8192, 8192 + 511), $content);
-        $this->restProxy->createBlobPages($container, $blob, new PageRange(16384, 16384 + 511), $content);
+        $this->restProxy->createBlobPages($container, $blob, new Range(0, 511), $content);
+        $this->restProxy->createBlobPages($container, $blob, new Range(1024, 1024 + 511), $content);
+        $this->restProxy->createBlobPages($container, $blob, new Range(8192, 8192 + 511), $content);
+        $this->restProxy->createBlobPages($container, $blob, new Range(16384, 16384 + 511), $content);
 
 //        $result = $this->restProxy->listBlobRegions($container, $blob);
         $result = $this->restProxy->listPageBlobRanges($container, $blob);
@@ -869,9 +867,9 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $this->assertNotNull($result->getLastModified(), '$result->getLastModified()');
         $this->assertNotNull($result->getETag(), '$result->getETag()');
         $this->assertEquals(16384 + 512, $result->getContentLength(), '$result->getContentLength()');
-        $this->assertNotNull($result->getPageRanges(), '$result->getPageRanges()');
-        $this->assertEquals(4, count($result->getPageRanges()), 'count($result->getPageRanges())');
-        $ranges = $result->getPageRanges();
+        $this->assertNotNull($result->getRanges(), '$result->getRanges()');
+        $this->assertEquals(4, count($result->getRanges()), 'count($result->getRanges())');
+        $ranges = $result->getRanges();
         $this->assertEquals(0, $ranges[0]->getStart(), '$ranges[0]->getStart()');
         $this->assertEquals(511, $ranges[0]->getEnd(), '$ranges[0]->getEnd()');
         $this->assertEquals(1024, $ranges[1]->getStart(), '$ranges[1]->getStart()');
@@ -1130,15 +1128,12 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         // Act
         $content = 'some $content';
         $opts = new CreateBlobOptions();
-        $opts->setBlobCacheControl('test');
-        $opts->setBlobContentEncoding('UTF-8');
-        $opts->setBlobContentLanguage('en-us');
-        // $opts->setBlobContentMD5('1234');
-        $opts->setBlobContentType('text/plain');
-        $opts->setCacheControl('test');
         $opts->setContentEncoding('UTF-8');
+        $opts->setContentLanguage('en-us');
         // $opts->setContentMD5('1234');
         $opts->setContentType('text/plain');
+        $opts->setCacheControl('test');
+        $opts->setContentDisposition('test');
         $this->restProxy->createBlockBlob(self::$_test_container_for_blobs, 'test2', $content, $opts);
 
         $result = $this->restProxy->getBlobProperties(self::$_test_container_for_blobs, 'test2');
@@ -1154,6 +1149,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $props = $result->getProperties();
         $this->assertNotNull($props, '$props');
         $this->assertEquals('test', $props->getCacheControl(), '$props->getCacheControl()');
+        $this->assertEquals('test', $props->getContentDisposition(), '$props->getContentDisposition()');
         $this->assertEquals('UTF-8', $props->getContentEncoding(), '$props->getContentEncoding()');
         $this->assertEquals('en-us', $props->getContentLanguage(), '$props->getContentLanguage()');
         $this->assertEquals('text/plain', $props->getContentType(), '$props->getContentType()');
@@ -1250,13 +1246,10 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         // Act
         $content = 'some $content';
         $opts = new CreateBlobOptions();
-        $opts->setBlobCacheControl('test');
-        $opts->setBlobContentEncoding('UTF-8');
-        $opts->setBlobContentLanguage('en-us');
-        // $opts->setBlobContentMD5('1234');
-        $opts->setBlobContentType('text/plain');
         $opts->setCacheControl('test');
+        $opts->setContentDisposition('test');
         $opts->setContentEncoding('UTF-8');
+        $opts->setContentLanguage('en-us');
         // $opts->setContentMD5('1234');
         $opts->setContentType('text/plain');
         $this->restProxy->createBlockBlob(self::$_test_container_for_blobs, 'test2', $content, $opts);
@@ -1274,6 +1267,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $props = $result->getProperties();
         $this->assertNotNull($props, '$props');
         $this->assertEquals('test', $props->getCacheControl(), '$props->getCacheControl()');
+        $this->assertEquals('test', $props->getContentDisposition(), '$props->getContentDisposition()');
         $this->assertEquals('UTF-8', $props->getContentEncoding(), '$props->getContentEncoding()');
         $this->assertEquals('en-us', $props->getContentLanguage(), '$props->getContentLanguage()');
         $this->assertEquals('text/plain', $props->getContentType(), '$props->getContentType()');
@@ -1295,13 +1289,10 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
     {
         // Act
         $opts = new CreateBlobOptions();
-        $opts->setBlobCacheControl('test');
-        $opts->setBlobContentEncoding('UTF-8');
-        $opts->setBlobContentLanguage('en-us');
-        // $opts->setBlobContentMD5('1234');
-        $opts->setBlobContentType('text/plain');
         $opts->setCacheControl('test');
+        $opts->setContentDisposition('test');
         $opts->setContentEncoding('UTF-8');
+        $opts->setContentLanguage('en-us');
         // $opts->setContentMD5('1234');
         $opts->setContentType('text/plain');
         $this->restProxy->createPageBlob(self::$_test_container_for_blobs, 'test', 4096, $opts);
@@ -1316,6 +1307,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
 
         $props = $result->getProperties();
         $this->assertEquals('test', $props->getCacheControl(), '$props->getCacheControl()');
+        $this->assertEquals('test', $props->getContentDisposition(), '$props->getContentDisposition()');
         $this->assertEquals('UTF-8', $props->getContentEncoding(), '$props->getContentEncoding()');
         $this->assertEquals('en-us', $props->getContentLanguage(), '$props->getContentLanguage()');
         $this->assertEquals('text/plain', $props->getContentType(), '$props->getContentType()');
@@ -1343,7 +1335,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $this->restProxy->createPageBlob(self::$_test_container_for_blobs, 'test', 4096);
         try {
             $opts = new GetBlobOptions();
-            $opts->setAccessCondition(AccessCondition::ifMatch('123'));
+            $opts->setAccessConditions(AccessCondition::ifMatch('123'));
             $this->restProxy->getBlob(self::$_test_container_for_blobs, 'test', $opts);
             $this->fail('getBlob should throw an exception');
         } catch (ServiceException $e) {
@@ -1363,7 +1355,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $props = $this->restProxy->getBlobProperties(self::$_test_container_for_blobs, 'test');
         try {
             $opts = new GetBlobOptions();
-            $opts->setAccessCondition(AccessCondition::ifNoneMatch($props->getProperties()->getETag()));
+            $opts->setAccessConditions(AccessCondition::ifNoneMatch($props->getProperties()->getETag()));
             $this->restProxy->getBlob(self::$_test_container_for_blobs, 'test', $opts);
             $this->fail('getBlob should throw an exception');
         } catch (ServiceException $e) {
@@ -1392,7 +1384,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         try {
             $opts = new GetBlobOptions();
             $lastMod = $props->getProperties()->getLastModified();
-            $opts->setAccessCondition(AccessCondition::ifModifiedSince($lastMod));
+            $opts->setAccessConditions(AccessCondition::ifModifiedSince($lastMod));
             $this->restProxy->getBlob(self::$_test_container_for_blobs, 'test', $opts);
             $this->fail('getBlob should throw an exception');
         } catch (ServiceException $e) {
@@ -1439,7 +1431,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         }
         try {
             $opts = new GetBlobOptions();
-            $opts->setAccessCondition(AccessCondition::ifNotModifiedSince($lastModifiedBase));
+            $opts->setAccessConditions(AccessCondition::ifNotModifiedSince($lastModifiedBase));
             $this->restProxy->getBlob($container, $blob, $opts);
             $this->fail('getBlob should throw an exception');
         } catch (ServiceException $e) {
@@ -1536,12 +1528,13 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $blob = 'test10';
         $this->restProxy->createPageBlob($container, $blob, 4096);
         $opts = new SetBlobPropertiesOptions();
-        $opts->setBlobCacheControl('test');
-        $opts->setBlobContentEncoding('UTF-8');
-        $opts->setBlobContentLanguage('en-us');
-        $opts->setBlobContentLength(512);
-        $opts->setBlobContentMD5(null);
-        $opts->setBlobContentType('text/plain');
+        $opts->setCacheControl('test');
+        $opts->setContentDisposition('test');
+        $opts->setContentEncoding('UTF-8');
+        $opts->setContentLanguage('en-us');
+        $opts->setContentLength(512);
+        $opts->setContentMD5(null);
+        $opts->setContentType('text/plain');
         $opts->setSequenceNumberAction('increment');
         $result = $this->restProxy->setBlobProperties($container, $blob, $opts);
 
@@ -1562,6 +1555,7 @@ class BlobServiceIntegrationTest extends IntegrationTestBase
         $props = $getResult->getProperties();
         $this->assertNotNull($props, '$props');
         $this->assertEquals('test', $props->getCacheControl(), '$props->getCacheControl()');
+        $this->assertEquals('test', $props->getContentDisposition(), '$props->getContentDisposition()');
         $this->assertEquals('UTF-8', $props->getContentEncoding(), '$props->getContentEncoding()');
         $this->assertEquals('en-us', $props->getContentLanguage(), '$props->getContentLanguage()');
         $this->assertEquals('text/plain', $props->getContentType(), '$props->getContentType()');

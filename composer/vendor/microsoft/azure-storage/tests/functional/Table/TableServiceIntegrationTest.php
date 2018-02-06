@@ -22,12 +22,11 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\functional\Table;
+namespace MicrosoftAzure\Storage\Tests\Functional\Table;
 
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
-use MicrosoftAzure\Storage\Common\ServiceException;
+use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Table\Models\BatchError;
 use MicrosoftAzure\Storage\Table\Models\BatchOperations;
 use MicrosoftAzure\Storage\Table\Models\DeleteEntityOptions;
 use MicrosoftAzure\Storage\Table\Models\EdmType;
@@ -187,8 +186,8 @@ class TableServiceIntegrationTest extends IntegrationTestBase
         $this->assertNotNull($props->getLogging(), '$props->getLogging');
         $this->assertNotNull($props->getLogging()->getRetentionPolicy(), '$props->getLogging()->getRetentionPolicy');
         $this->assertNotNull($props->getLogging()->getVersion(), '$props->getLogging()->getVersion');
-        $this->assertNotNull($props->getMetrics()->getRetentionPolicy(), '$props->getMetrics()->getRetentionPolicy');
-        $this->assertNotNull($props->getMetrics()->getVersion(), '$props->getMetrics()->getVersion');
+        $this->assertNotNull($props->getHourMetrics()->getRetentionPolicy(), '$props->getHourMetrics()->getRetentionPolicy');
+        $this->assertNotNull($props->getHourMetrics()->getVersion(), '$props->getHourMetrics()->getVersion');
     }
 
     /**
@@ -228,8 +227,8 @@ class TableServiceIntegrationTest extends IntegrationTestBase
         $this->assertNotNull($props->getLogging()->getRetentionPolicy(), '$props->getLogging()->getRetentionPolicy');
         $this->assertNotNull($props->getLogging()->getVersion(), '$props->getLogging()->getVersion');
         $this->assertTrue($props->getLogging()->getRead(), '$props->getLogging()->getRead');
-        $this->assertNotNull($props->getMetrics()->getRetentionPolicy(), '$props->getMetrics()->getRetentionPolicy');
-        $this->assertNotNull($props->getMetrics()->getVersion(), '$props->getMetrics()->getVersion');
+        $this->assertNotNull($props->getHourMetrics()->getRetentionPolicy(), '$props->getHourMetrics()->getRetentionPolicy');
+        $this->assertNotNull($props->getHourMetrics()->getVersion(), '$props->getHourMetrics()->getVersion');
     }
 
     /**
@@ -396,10 +395,6 @@ class TableServiceIntegrationTest extends IntegrationTestBase
             '$result->getEntity()->getProperty(\'test5\')->getValue() instanceof \DateTime'
         );
 
-        $this->assertNotNull(
-            $result->getEntity()->getProperty('test6'),
-            '$result->getEntity()->getProperty(\'test6\')'
-        );
         $returnedBinaryData = $result->getEntity()->getProperty('test6')->getValue();
         $this->assertTrue(is_string($returnedBinaryData), 'binary data is string');
         $this->assertEquals(strlen($binaryData), strlen($returnedBinaryData), 'binary data lengths are the same');
@@ -746,7 +741,6 @@ class TableServiceIntegrationTest extends IntegrationTestBase
         $this->assertEquals('001', $result->getEntity()->getPartitionKey(), '$result->getEntity()->getPartitionKey()');
         $this->assertEquals('getEntityWorks', $result->getEntity()->getRowKey(), '$result->getEntity()->getRowKey()');
         $this->assertNotNull($result->getEntity()->getTimestamp(), '$result->getEntity()->getTimestamp()');
-        $this->assertNotNull($result->getEntity()->getETag(), '$result->getEntity()->getETag()');
 
         $this->assertNotNull($result->getEntity()->getProperty('test'), '$result->getEntity()->getProperty(\'test\')');
         $this->assertEquals(
@@ -845,7 +839,6 @@ class TableServiceIntegrationTest extends IntegrationTestBase
         $this->assertEquals('001', $entities[0]->getPartitionKey(), '$entities[0]->getPartitionKey()');
         $this->assertEquals('queryEntitiesWorks', $entities[0]->getRowKey(), '$entities[0]->getRowKey()');
         $this->assertNotNull($entities[0]->getTimestamp(), '$entities[0]->getTimestamp()');
-        $this->assertNotNull($entities[0]->getETag(), '$entities[0]->getETag()');
 
         $this->assertNotNull($entities[0]->getProperty('test'), '$entities[0]->getProperty(\'test\')');
         $this->assertEquals(
@@ -1536,15 +1529,17 @@ class TableServiceIntegrationTest extends IntegrationTestBase
         $batchOperations->addUpdateEntity($table, $entity2);
         $batchOperations->addInsertEntity($table, $entity3);
 
-        $result = $this->restProxy->batch($batchOperations);
+        $batchErrored = false;
+        $code = 200;
+        try {
+            $result = $this->restProxy->batch($batchOperations);
+        } catch (ServiceException $e) {
+            $batchErrored = true;
+            $code = intval($e->getCode());
+        }
 
         // Assert
-        $this->assertNotNull($result, '$result');
-        $entries = $result->getEntries();
-        $this->assertEquals(1, count($entries), 'count($result->getEntries())');
-        $this->assertNotNull($entries[0], 'First $result should not be null');
-        $this->assertTrue($entries[0] instanceof BatchError, 'First $result type');
-        $error = $entries[0];
-        $this->assertEquals(412, $error->getError()->getCode(), 'First $result status code');
+        $this->assertTrue($batchErrored, 'Batch should have returned error');
+        $this->assertEquals(412, $code, 'Error\'s status code');
     }
 }

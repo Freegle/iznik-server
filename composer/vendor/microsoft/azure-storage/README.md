@@ -1,10 +1,15 @@
-# Microsoft Azure Storage SDK for PHP
+# Microsoft Azure Storage SDK for PHP - GA Preview
 
 This project provides a set of PHP client libraries that make it easy to access Microsoft Azure Storage services (blobs, tables and queues). For documentation on how to host PHP applications on Microsoft Azure, please see the [Microsoft Azure PHP Developer Center](http://www.windowsazure.com/en-us/develop/php/).
 
+This project is now in GA Preview stage.
+
+[![Latest Stable Version](https://poser.pugx.org/microsoft/azure-storage/v/stable)](https://packagist.org/packages/microsoft/azure-storage)
+
 > **Note**
 > 
-> If you are looking for the Service Bus, Service Runtime, Service Management or Media Services libraries, please visit https://github.com/Azure/azure-sdk-for-php.
+> * If you are looking for the Service Bus, Service Runtime, Service Management or Media Services libraries, please visit https://github.com/Azure/azure-sdk-for-php.
+> * If you need big file or 64-bit integer support, please install PHP 7 64-bit version.
 
 # Features
 
@@ -115,6 +120,9 @@ implements `MicrosoftAzure\Storage\Common\Internal\IMiddleware`, or a
 `callable` that follows the Guzzle middleware implementation convention.
 
 User can create self-defined middleware that inherits from `MicrosoftAzure\Storage\Common\Internal\Middlewares\MiddlewareBase`.
+
+### Using proxies
+To use proxies during HTTP requests, set system variable `HTTP_PROXY` and the proxy will be used.
 
 ## Troubleshooting
 ### Error: Unable to get local issuer certificate

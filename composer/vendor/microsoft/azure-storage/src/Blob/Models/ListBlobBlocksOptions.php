@@ -38,32 +38,9 @@ use MicrosoftAzure\Storage\Common\Internal\Validate;
  */
 class ListBlobBlocksOptions extends BlobServiceOptions
 {
-    /**
-     * @var string
-     */
-    private $_leaseId;
-    
-    /**
-     * @var string
-     */
     private $_snapshot;
-    
-    /**
-     * @var boolean
-     */
     private $_includeUncommittedBlobs;
-    
-    /**
-     * @var boolean
-     */
     private $_includeCommittedBlobs;
-    
-    /**
-     * Holds result of list type. You can access it by this order:
-     * $_listType[$this->_includeUncommittedBlobs][$this->_includeCommittedBlobs]
-     *
-     * @var array
-     */
     private static $_listType;
     
     /**
@@ -71,6 +48,7 @@ class ListBlobBlocksOptions extends BlobServiceOptions
      */
     public function __construct()
     {
+        parent::__construct();
         self::$_listType[true][true]   = 'all';
         self::$_listType[true][false]  = 'uncommitted';
         self::$_listType[false][true]  = 'committed';
@@ -78,28 +56,6 @@ class ListBlobBlocksOptions extends BlobServiceOptions
         
         $this->_includeUncommittedBlobs = false;
         $this->_includeCommittedBlobs   = false;
-    }
-    
-    /**
-     * Gets lease Id for the blob
-     *
-     * @return string
-     */
-    public function getLeaseId()
-    {
-        return $this->_leaseId;
-    }
-    
-    /**
-     * Sets lease Id for the blob
-     *
-     * @param string $leaseId the blob lease id.
-     *
-     * @return void
-     */
-    public function setLeaseId($leaseId)
-    {
-        $this->_leaseId = $leaseId;
     }
     
     /**

@@ -31,6 +31,7 @@ use MicrosoftAzure\Storage\Common\Internal\Validate;
 /**
  * Short description
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal\Serialization
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -53,11 +54,11 @@ class XmlSerializer implements ISerializer
      *
      * @return array
      */
-    private function _sxml2arr($sxml, array $arr = null)
+    private function sxml2arr($sxml, array $arr = null)
     {
         foreach ((array) $sxml as $key => $value) {
             if (is_object($value) || (is_array($value))) {
-                $arr[$key] = $this->_sxml2arr($value);
+                $arr[$key] = $this->sxml2arr($value);
             } else {
                 $arr[$key] = $value;
             }
@@ -76,7 +77,7 @@ class XmlSerializer implements ISerializer
      *
      * @return void
      */
-    private function _arr2xml(\XMLWriter $xmlw, array $data, $defaultTag = null)
+    private function arr2xml(\XMLWriter $xmlw, array $data, $defaultTag = null)
     {
         foreach ($data as $key => $value) {
             if ($key === Resources::XTAG_ATTRIBUTES) {
@@ -92,7 +93,7 @@ class XmlSerializer implements ISerializer
                     }
                 }
                 
-                $this->_arr2xml($xmlw, $value);
+                $this->arr2xml($xmlw, $value);
                 
                 if (!is_int($key)) {
                     $xmlw->endElement();
@@ -112,7 +113,7 @@ class XmlSerializer implements ISerializer
      *
      * @return mixed
      */
-    private static function _getInstanceAttributes($targetObject, array $methodArray)
+    private static function getInstanceAttributes($targetObject, array $methodArray)
     {
         foreach ($methodArray as $method) {
             if ($method->name == 'getAttributes') {
@@ -134,13 +135,13 @@ class XmlSerializer implements ISerializer
     public static function objectSerialize($targetObject, $rootName)
     {
         Validate::notNull($targetObject, 'targetObject');
-        Validate::isString($rootName, 'rootName');
+        Validate::canCastAsString($rootName, 'rootName');
         $xmlWriter = new \XmlWriter();
         $xmlWriter->openMemory();
         $xmlWriter->setIndent(true);
         $reflectionClass = new \ReflectionClass($targetObject);
         $methodArray     = $reflectionClass->getMethods();
-        $attributes      = self::_getInstanceAttributes(
+        $attributes      = self::getInstanceAttributes(
             $targetObject,
             $methodArray
         );
@@ -221,7 +222,7 @@ class XmlSerializer implements ISerializer
         }
         
         unset($array[Resources::XTAG_NAMESPACE]);
-        self::_arr2xml($xmlw, $array, $defaultTag);
+        self::arr2xml($xmlw, $array, $defaultTag);
 
         $xmlw->endElement();
 
@@ -239,6 +240,6 @@ class XmlSerializer implements ISerializer
     {
         $sxml = new \SimpleXMLElement($serialized);
 
-        return $this->_sxml2arr($sxml);
+        return $this->sxml2arr($sxml);
     }
 }

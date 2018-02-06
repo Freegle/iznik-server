@@ -21,7 +21,7 @@
  * @license   https://github.com/azure/azure-storage-php/LICENSE
  * @link      https://github.com/azure/azure-storage-php
  */
-namespace MicrosoftAzure\Storage\Tests\unit\Blob\Models;
+namespace MicrosoftAzure\Storage\Tests\Unit\Blob\Models;
 
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobResult;
@@ -56,7 +56,7 @@ class GetBlobResultTest extends \PHPUnit_Framework_TestCase
         // Setup
         $sample = TestResources::listBlobsOneEntry();
         $expected = $sample['Blobs']['Blob']['Properties'];
-        $expectedProperties = BlobProperties::create($expected);
+        $expectedProperties = BlobProperties::createFromHttpHeaders($expected);
         $expectedMetadata = $sample['Blobs']['Blob']['Metadata'];
         $expectedBody = 'test data';
         

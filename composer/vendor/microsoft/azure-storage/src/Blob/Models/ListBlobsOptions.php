@@ -25,6 +25,7 @@
 namespace MicrosoftAzure\Storage\Blob\Models;
 
 use MicrosoftAzure\Storage\Common\Internal\Validate;
+use MicrosoftAzure\Storage\Common\MarkerContinuationTokenTrait;
 
 /**
  * Optional parameters for listBlobs API.
@@ -38,40 +39,15 @@ use MicrosoftAzure\Storage\Common\Internal\Validate;
  */
 class ListBlobsOptions extends BlobServiceOptions
 {
-    /**
-     * @var string
-     */
+    use MarkerContinuationTokenTrait;
+
     private $_prefix;
-    
-    /**
-     * @var string
-     */
-    private $_marker;
-    
-    /**
-     * @var string
-     */
     private $_delimiter;
-    
-    /**
-     * @var integer
-     */
     private $_maxResults;
-    
-    /**
-     * @var boolean
-     */
     private $_includeMetadata;
-    
-    /**
-     * @var boolean
-     */
     private $_includeSnapshots;
-    
-    /**
-     * @var boolean
-     */
     private $_includeUncommittedBlobs;
+    private $_includeCopy;
 
     /**
      * Gets prefix.
@@ -92,7 +68,7 @@ class ListBlobsOptions extends BlobServiceOptions
      */
     public function setPrefix($prefix)
     {
-        Validate::isString($prefix, 'prefix');
+        Validate::canCastAsString($prefix, 'prefix');
         $this->_prefix = $prefix;
     }
     
@@ -115,31 +91,8 @@ class ListBlobsOptions extends BlobServiceOptions
      */
     public function setDelimiter($delimiter)
     {
-        Validate::isString($delimiter, 'delimiter');
+        Validate::canCastAsString($delimiter, 'delimiter');
         $this->_delimiter = $delimiter;
-    }
-
-    /**
-     * Gets marker.
-     *
-     * @return string
-     */
-    public function getMarker()
-    {
-        return $this->_marker;
-    }
-
-    /**
-     * Sets marker.
-     *
-     * @param string $marker value.
-     *
-     * @return void
-     */
-    public function setMarker($marker)
-    {
-        Validate::isString($marker, 'marker');
-        $this->_marker = $marker;
     }
 
     /**
@@ -232,5 +185,28 @@ class ListBlobsOptions extends BlobServiceOptions
     {
         Validate::isBoolean($includeUncommittedBlobs);
         $this->_includeUncommittedBlobs = $includeUncommittedBlobs;
+    }
+    
+    /**
+     * Indicates if copy is included or not.
+     *
+     * @return boolean
+     */
+    public function getIncludeCopy()
+    {
+        return $this->_includeCopy;
+    }
+
+    /**
+     * Sets the include copy flag.
+     *
+     * @param bool $includeCopy value.
+     *
+     * @return void
+     */
+    public function setIncludeCopy($includeCopy)
+    {
+        Validate::isBoolean($includeCopy);
+        $this->_includeCopy = $includeCopy;
     }
 }

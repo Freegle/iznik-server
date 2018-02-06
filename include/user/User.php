@@ -13,7 +13,6 @@ require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
-require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
 require_once(IZNIK_BASE . '/mailtemplates/donations/thank.php');
@@ -2997,13 +2996,19 @@ class User extends Entity
     }
 
     public function welcome($email, $password) {
-        $html = welcome_password(USER_SITE, USERLOGO, $email, $password);
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new Twig_Environment($loader);
+
+        $html = $twig->render('welcome/welcome.html', [
+            'email' => $email,
+            'password' => $password
+        ]);
 
         $message = Swift_Message::newInstance()
             ->setSubject("Welcome to " . SITE_NAME . "!")
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setTo($email)
-            ->setBody("Thanks for joining"  . SITE_NAME . "!  Here's your password: $password.")
+            ->setBody("Thanks for joining"  . SITE_NAME . "!" . ($password ? "  Here's your password: $password." : ''))
             ->addPart($html, 'text/html');
 
         list ($transport, $mailer) = getMailer();

@@ -38,14 +38,7 @@ use MicrosoftAzure\Storage\Common\Internal\Validate;
  */
 class CreateContainerOptions extends BlobServiceOptions
 {
-    /**
-     * @var string
-     */
     private $_publicAccess;
-    
-    /**
-     * @var array
-     */
     private $_metadata;
     
     /**
@@ -77,7 +70,7 @@ class CreateContainerOptions extends BlobServiceOptions
      */
     public function setPublicAccess($publicAccess)
     {
-        Validate::isString($publicAccess, 'publicAccess');
+        Validate::canCastAsString($publicAccess, 'publicAccess');
         $this->_publicAccess = $publicAccess;
     }
     

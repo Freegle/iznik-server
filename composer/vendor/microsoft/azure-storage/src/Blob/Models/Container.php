@@ -24,9 +24,6 @@
  
 namespace MicrosoftAzure\Storage\Blob\Models;
 
-use MicrosoftAzure\Storage\Common\Internal\Resources;
-use MicrosoftAzure\Storage\Common\Internal\Utilities;
-
 /**
  * WindowsAzure container object.
  *
@@ -39,24 +36,9 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  */
 class Container
 {
-    /**
-     * @var string
-     */
     private $_name;
-    
-    /**
-     * @var string
-     */
     private $_url;
-    
-    /**
-     * @var array
-     */
     private $_metadata;
-    
-    /**
-     * @var ContainerProperties
-     */
     private $_properties;
 
     /**

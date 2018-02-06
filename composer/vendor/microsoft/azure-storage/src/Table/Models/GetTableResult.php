@@ -24,9 +24,6 @@
  
 namespace MicrosoftAzure\Storage\Table\Models;
 
-use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Table\Internal\AtomReaderWriter;
-
 /**
  * Holds result of getTable API.
  *
@@ -39,23 +36,22 @@ use MicrosoftAzure\Storage\Table\Internal\AtomReaderWriter;
  */
 class GetTableResult
 {
-    /**
-     * @var string
-     */
     private $_name;
     
     /**
      * Creates GetTableResult from HTTP response body.
      *
-     * @param string           $body           The HTTP response body.
-     * @param AtomReaderWriter $atomSerializer The Atom reader and writer.
+     * @param string             $body            The HTTP response body.
+     * @param IODataReaderWriter $odataSerializer The OData reader and writer.
+     *
+     * @internal
      *
      * @return GetTableResult
      */
-    public static function create($body, $atomSerializer)
+    public static function create($body, $odataSerializer)
     {
         $result = new GetTableResult();
-        $name = $atomSerializer->parseTable($body);
+        $name = $odataSerializer->parseTable($body);
         $result->setName($name);
         
         return $result;

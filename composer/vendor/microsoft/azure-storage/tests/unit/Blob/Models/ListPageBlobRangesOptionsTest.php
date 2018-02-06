@@ -21,10 +21,11 @@
  * @license   https://github.com/azure/azure-storage-php/LICENSE
  * @link      https://github.com/azure/azure-storage-php
  */
-namespace MicrosoftAzure\Storage\Tests\unit\Blob\Models;
+namespace MicrosoftAzure\Storage\Tests\Unit\Blob\Models;
 
 use MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions;
 use MicrosoftAzure\Storage\Blob\Models\AccessCondition;
+use MicrosoftAzure\Storage\Common\Models\Range;
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
 
 /**
@@ -58,36 +59,36 @@ class ListPageBlobRangesOptionsTest extends \PHPUnit_Framework_TestCase
     }
     
     /**
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::getAccessCondition
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::getAccessConditions
      */
-    public function testGetAccessCondition()
+    public function testGetAccessConditions()
     {
         // Setup
         $expected = AccessCondition::none();
         $result = new ListPageBlobRangesOptions();
-        $result->setAccessCondition($expected);
+        $result->setAccessConditions($expected);
         
         // Test
-        $actual = $result->getAccessCondition();
+        $actual = $result->getAccessConditions();
         
         // Assert
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals($expected, $actual[0]);
     }
     
     /**
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::setAccessCondition
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::setAccessConditions
      */
-    public function testSetAccessCondition()
+    public function testSetAccessConditions()
     {
         // Setup
         $expected = AccessCondition::none();
         $result = new ListPageBlobRangesOptions();
         
         // Test
-        $result->setAccessCondition($expected);
+        $result->setAccessConditions($expected);
         
         // Assert
-        $this->assertEquals($expected, $result->getAccessCondition());
+        $this->assertEquals($expected, $result->getAccessConditions()[0]);
     }
     
     /**
@@ -124,38 +125,19 @@ class ListPageBlobRangesOptionsTest extends \PHPUnit_Framework_TestCase
     }
     
     /**
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::setRangeStart
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::getRangeStart
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::setRange
+     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::getRange
      */
-    public function testSetRangeStart()
+    public function testSetRange()
     {
         // Setup
-        $expected = 123;
-        $prooperties = new ListPageBlobRangesOptions();
-        $prooperties->setRangeStart($expected);
+        $expected = new Range(0, 123);
+        $options = new ListPageBlobRangesOptions();
         
         // Test
-        $prooperties->setRangeStart($expected);
+        $options->setRange($expected);
         
         // Assert
-        $this->assertEquals($expected, $prooperties->getRangeStart());
-    }
-    
-    /**
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::setRangeEnd
-     * @covers MicrosoftAzure\Storage\Blob\Models\ListPageBlobRangesOptions::getRangeEnd
-     */
-    public function testSetRangeEnd()
-    {
-        // Setup
-        $expected = 123;
-        $prooperties = new ListPageBlobRangesOptions();
-        $prooperties->setRangeEnd($expected);
-        
-        // Test
-        $prooperties->setRangeEnd($expected);
-        
-        // Assert
-        $this->assertEquals($expected, $prooperties->getRangeEnd());
+        $this->assertEquals($expected, $options->getRange());
     }
 }

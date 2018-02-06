@@ -26,14 +26,10 @@ namespace MicrosoftAzure\Storage\Table\Models;
 
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Common\Internal\HttpFormatter;
-use MicrosoftAzure\Storage\Common\ServiceException;
+use MicrosoftAzure\Storage\Common\Internal\Http\HttpFormatter;
 use MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy;
-use MicrosoftAzure\Storage\Table\Models\BatchError;
-use MicrosoftAzure\Storage\Table\Models\InsertEntityResult;
-use MicrosoftAzure\Storage\Table\Models\UpdateEntityResult;
 use MicrosoftAzure\Storage\Table\Internal\IMimeReaderWriter;
-use MicrosoftAzure\Storage\Table\Internal\IAtomReaderWriter;
+use MicrosoftAzure\Storage\Table\Internal\IODataReaderWriter;
 use GuzzleHttp\Psr7\Response;
 
 /**
@@ -48,11 +44,6 @@ use GuzzleHttp\Psr7\Response;
  */
 class BatchResult
 {
-    /**
-     * Each entry represents change set result.
-     *
-     * @var array
-     */
     private $_entries;
     
     /**
@@ -121,11 +112,11 @@ class BatchResult
     /**
      * Creates BatchResult object.
      *
-     * @param string            $body           The HTTP response body.
-     * @param array             $operations     The batch operations.
-     * @param array             $contexts       The batch operations context.
-     * @param IAtomReaderWriter $atomSerializer The Atom reader and writer.
-     * @param IMimeReaderWriter $mimeSerializer The MIME reader and writer.
+     * @param string             $body            The HTTP response body.
+     * @param array              $operations      The batch operations.
+     * @param array              $contexts        The batch operations context.
+     * @param IODataReaderWriter $odataSerializer The OData reader and writer.
+     * @param IMimeReaderWriter  $mimeSerializer  The MIME reader and writer.
      *
      * @return \MicrosoftAzure\Storage\Table\Models\BatchResult
      *
@@ -135,7 +126,7 @@ class BatchResult
         $body,
         array $operations,
         array $contexts,
-        IAtomReaderWriter $atomSerializer,
+        IODataReaderWriter $odataSerializer,
         IMimeReaderWriter $mimeSerializer
     ) {
         $result       = new BatchResult();
@@ -154,41 +145,38 @@ class BatchResult
             $type      = $operation->getType();
             $body      = $response->body;
             $headers   = HttpFormatter::formatHeaders($response->headers);
-            
-            try {
-                ServiceRestProxy::throwIfError(
-                    new Response(
-                        $response->statusCode,
-                        $response->headers,
-                        $response->body,
-                        $response->version,
-                        $response->reason
-                    ),
-                    $context->getStatusCodes()
-                );
-            
-                switch ($type) {
-                    case BatchOperationType::INSERT_ENTITY_OPERATION:
-                        $entries[] = InsertEntityResult::create(
-                            $body,
-                            $headers,
-                            $atomSerializer
-                        );
-                        break;
-                    case BatchOperationType::UPDATE_ENTITY_OPERATION:
-                    case BatchOperationType::MERGE_ENTITY_OPERATION:
-                    case BatchOperationType::INSERT_REPLACE_ENTITY_OPERATION:
-                    case BatchOperationType::INSERT_MERGE_ENTITY_OPERATION:
-                        $entries[] = UpdateEntityResult::create($headers);
-                        break;
-                    case BatchOperationType::DELETE_ENTITY_OPERATION:
-                        $entries[] = Resources::BATCH_ENTITY_DEL_MSG;
-                        break;
-                    default:
-                        throw new \InvalidArgumentException();
-                }
-            } catch (ServiceException $e) {
-                $entries[] = BatchError::create($e, $response->headers);
+
+            //Throw the error directly if error occurs in the batch operation.
+            ServiceRestProxy::throwIfError(
+                new Response(
+                    $response->statusCode,
+                    $response->headers,
+                    $response->body,
+                    $response->version,
+                    $response->reason
+                ),
+                $context->getStatusCodes()
+            );
+        
+            switch ($type) {
+                case BatchOperationType::INSERT_ENTITY_OPERATION:
+                    $entries[] = InsertEntityResult::create(
+                        $body,
+                        $headers,
+                        $odataSerializer
+                    );
+                    break;
+                case BatchOperationType::UPDATE_ENTITY_OPERATION:
+                case BatchOperationType::MERGE_ENTITY_OPERATION:
+                case BatchOperationType::INSERT_REPLACE_ENTITY_OPERATION:
+                case BatchOperationType::INSERT_MERGE_ENTITY_OPERATION:
+                    $entries[] = UpdateEntityResult::create($headers);
+                    break;
+                case BatchOperationType::DELETE_ENTITY_OPERATION:
+                    $entries[] = Resources::BATCH_ENTITY_DEL_MSG;
+                    break;
+                default:
+                    throw new \InvalidArgumentException();
             }
         }
         

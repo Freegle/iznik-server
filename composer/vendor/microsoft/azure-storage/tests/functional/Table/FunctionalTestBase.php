@@ -22,7 +22,7 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\functional\Table;
+namespace MicrosoftAzure\Storage\Tests\Functional\Table;
 
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use MicrosoftAzure\Storage\Table\Models\Entity;
@@ -65,8 +65,8 @@ class FunctionalTestBase extends IntegrationTestBase
     }
 
     /**
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::createTable
-     * @covers MicrosoftAzure\Storage\ServiceBus\ServiceBusRestProxy::deleteTable
+     * @covers MicrosoftAzure\Storage\Table\TableRestProxy::createTable
+     * @covers MicrosoftAzure\Storage\Table\TableRestProxy::deleteTable
      */
     protected function clearTable($table)
     {

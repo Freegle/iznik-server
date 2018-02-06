@@ -25,7 +25,6 @@
 namespace MicrosoftAzure\Storage\Blob\Models;
 
 use MicrosoftAzure\Storage\Common\Internal\Resources;
-use MicrosoftAzure\Storage\Common\Internal\Validate;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 
 /**
@@ -40,22 +39,8 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  */
 class CreateBlobSnapshotResult
 {
-    /**
-     * A DateTime value which uniquely identifies the snapshot.
-     * @var string
-     */
     private $_snapshot;
-            
-    /**
-     * The ETag for the destination blob.
-     * @var string
-     */
     private $_etag;
-    
-    /**
-     * The date/time that the copy operation to the destination blob completed.
-     * @var \DateTime
-     */
     private $_lastModified;
     
     /**
@@ -63,6 +48,8 @@ class CreateBlobSnapshotResult
      * create Blob snapshot request.
      *
      * @param array $headers The HTTP response headers in array representation.
+     *
+     * @internal
      *
      * @return CreateBlobSnapshotResult
      */

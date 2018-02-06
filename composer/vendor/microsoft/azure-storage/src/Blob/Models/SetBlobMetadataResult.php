@@ -40,37 +40,44 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  */
 class SetBlobMetadataResult
 {
-    
-    /**
-     * @var \DateTime
-     */
-    private $_lastModified;
-    
-    /**
-     * @var string
-     */
-    private $_etag;
-    
+    private $etag;
+    private $lastModified;
+    private $requestServerEncrypted;
+
     /**
      * Creates SetBlobMetadataResult from response headers.
      *
      * @param array $headers response headers
+     *
+     * @internal
      *
      * @return SetBlobMetadataResult
      */
     public static function create(array $headers)
     {
         $result = new SetBlobMetadataResult();
+
+        $result->setETag(Utilities::tryGetValueInsensitive(
+            Resources::ETAG,
+            $headers
+        ));
+
         $date   = Utilities::tryGetValueInsensitive(
             Resources::LAST_MODIFIED,
             $headers
         );
         $result->setLastModified(Utilities::rfc1123ToDateTime($date));
-        $result->setETag(Utilities::tryGetValueInsensitive(
-            Resources::ETAG,
-            $headers
-        ));
-        
+
+        $result->setRequestServerEncrypted(
+            Utilities::toBoolean(
+                Utilities::tryGetValueInsensitive(
+                    Resources::X_MS_REQUEST_SERVER_ENCRYPTED,
+                    $headers
+                ),
+                true
+            )
+        );
+
         return $result;
     }
     
@@ -81,7 +88,7 @@ class SetBlobMetadataResult
      */
     public function getLastModified()
     {
-        return $this->_lastModified;
+        return $this->lastModified;
     }
 
     /**
@@ -94,7 +101,7 @@ class SetBlobMetadataResult
     protected function setLastModified(\DateTime $lastModified)
     {
         Validate::isDate($lastModified);
-        $this->_lastModified = $lastModified;
+        $this->lastModified = $lastModified;
     }
 
     /**
@@ -104,7 +111,7 @@ class SetBlobMetadataResult
      */
     public function getETag()
     {
-        return $this->_etag;
+        return $this->etag;
     }
 
     /**
@@ -116,7 +123,29 @@ class SetBlobMetadataResult
      */
     protected function setETag($etag)
     {
-        Validate::isString($etag, 'etag');
-        $this->_etag = $etag;
+        Validate::canCastAsString($etag, 'etag');
+        $this->etag = $etag;
+    }
+
+    /**
+     * Gets the whether the contents of the request are successfully encrypted.
+     *
+     * @return boolean
+     */
+    public function getRequestServerEncrypted()
+    {
+        return $this->requestServerEncrypted;
+    }
+
+    /**
+     * Sets the request server encryption value.
+     *
+     * @param boolean $requestServerEncrypted
+     *
+     * @return void
+     */
+    public function setRequestServerEncrypted($requestServerEncrypted)
+    {
+        $this->requestServerEncrypted = $requestServerEncrypted;
     }
 }

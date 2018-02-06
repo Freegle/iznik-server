@@ -24,7 +24,6 @@
 
 namespace MicrosoftAzure\Storage\Common\Internal\Authentication;
 
-use MicrosoftAzure\Storage\Common\Internal\Authentication\SharedKeyAuthScheme;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 
@@ -32,6 +31,7 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  * Provides shared key authentication scheme for blob and queue. For more info
  * check: http://msdn.microsoft.com/en-us/library/windowsazure/dd179428.aspx
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal\Authentication
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -41,6 +41,9 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  */
 class TableSharedKeyLiteAuthScheme extends SharedKeyAuthScheme
 {
+    /**
+     * The invaluded headers
+     */
     protected $includedHeaders;
 
     /**

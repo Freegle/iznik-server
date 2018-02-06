@@ -29,6 +29,7 @@ use MicrosoftAzure\Storage\Common\Internal\Validate;
 /**
  * Perform JSON serialization / deserialization
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Common\Internal\Serialization
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -49,7 +50,7 @@ class JsonSerializer implements ISerializer
     public static function objectSerialize($targetObject, $rootName)
     {
         Validate::notNull($targetObject, 'targetObject');
-        Validate::isString($rootName, 'rootName');
+        Validate::canCastAsString($rootName, 'rootName');
 
         $contianer = new \stdClass();
 
@@ -83,7 +84,7 @@ class JsonSerializer implements ISerializer
      */
     public function unserialize($serialized)
     {
-        Validate::isString($serialized, 'serialized');
+        Validate::canCastAsString($serialized, 'serialized');
 
         $json = json_decode($serialized);
         if ($json && !is_array($json)) {

@@ -24,7 +24,6 @@
 
 namespace MicrosoftAzure\Storage\Queue\Models;
 
-use MicrosoftAzure\Storage\Queue\Models\MicrosoftAzureQueueMessage;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 
 /**
@@ -39,17 +38,14 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  */
 class ListMessagesResult
 {
-    /**
-     * Holds all message entries.
-     *
-     * @var array
-     */
     private $_queueMessages;
     
     /**
      * Creates ListMessagesResult object from parsed XML response.
      *
      * @param array $parsedResponse XML response parsed into array.
+     *
+     * @internal
      *
      * @return ListMessagesResult
      */
@@ -61,7 +57,7 @@ class ListMessagesResult
         if (!empty($parsedResponse)) {
             $rawMessages = Utilities::getArray($parsedResponse['QueueMessage']);
             foreach ($rawMessages as $value) {
-                $message = MicrosoftAzureQueueMessage::createFromListMessages($value);
+                $message = QueueMessage::createFromListMessages($value);
                 
                 $queueMessages[] = $message;
             }
@@ -85,6 +81,8 @@ class ListMessagesResult
      * Sets queueMessages field.
      *
      * @param integer $queueMessages value to use.
+     *
+     * @internal
      *
      * @return void
      */

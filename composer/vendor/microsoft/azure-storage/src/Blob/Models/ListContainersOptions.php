@@ -24,7 +24,7 @@
  
 namespace MicrosoftAzure\Storage\Blob\Models;
 
-use MicrosoftAzure\Storage\Blob\Models\BlobServiceOptions;
+use MicrosoftAzure\Storage\Common\MarkerContinuationTokenTrait;
 use MicrosoftAzure\Storage\Common\Internal\Validate;
 
 /**
@@ -39,45 +39,15 @@ use MicrosoftAzure\Storage\Common\Internal\Validate;
  */
 class ListContainersOptions extends BlobServiceOptions
 {
-    /**
-     * Filters the results to return only containers whose name begins with the
-     * specified prefix.
-     *
-     * @var string
-     */
+    use MarkerContinuationTokenTrait;
+
     private $_prefix;
-    
-    /**
-     * Identifies the portion of the list to be returned with the next list operation
-     * The operation returns a marker value within the
-     * response body if the list returned was not complete. The marker value may
-     * then be used in a subsequent call to request the next set of list items.
-     * The marker value is opaque to the client.
-     *
-     * @var string
-     */
-    private $_marker;
-    
-    /**
-     * Specifies the maximum number of containers to return. If the request does not
-     * specify maxresults, or specifies a value greater than 5,000, the server will
-     * return up to 5,000 items. If the parameter is set to a value less than or
-     * equal to zero, the server will return status code 400 (Bad Request).
-     *
-     * @var string
-     */
     private $_maxResults;
-    
-    /**
-     * Include this parameter to specify that the container's metadata be returned
-     * as part of the response body.
-     *
-     * @var bool
-     */
     private $_includeMetadata;
 
     /**
-     * Gets prefix.
+     * Gets prefix - filters the results to return only containers whose name
+     * begins with the specified prefix.
      *
      * @return string
      */
@@ -87,7 +57,8 @@ class ListContainersOptions extends BlobServiceOptions
     }
 
     /**
-     * Sets prefix.
+     * Sets prefix - filters the results to return only containers whose name
+     * begins with the specified prefix.
      *
      * @param string $prefix value.
      *
@@ -95,35 +66,16 @@ class ListContainersOptions extends BlobServiceOptions
      */
     public function setPrefix($prefix)
     {
-        Validate::isString($prefix, 'prefix');
+        Validate::canCastAsString($prefix, 'prefix');
         $this->_prefix = $prefix;
     }
 
     /**
-     * Gets marker.
-     *
-     * @return string
-     */
-    public function getMarker()
-    {
-        return $this->_marker;
-    }
-
-    /**
-     * Sets marker.
-     *
-     * @param string $marker value.
-     *
-     * @return void
-     */
-    public function setMarker($marker)
-    {
-        Validate::isString($marker, 'marker');
-        $this->_marker = $marker;
-    }
-
-    /**
-     * Gets max results.
+     * Gets max results which specifies the maximum number of containers to return.
+     * If the request does not specify maxresults, or specifies a value
+     * greater than 5,000, the server will return up to 5,000 items.
+     * If the parameter is set to a value less than or equal to zero,
+     * the server will return status code 400 (Bad Request).
      *
      * @return string
      */
@@ -133,7 +85,11 @@ class ListContainersOptions extends BlobServiceOptions
     }
 
     /**
-     * Sets max results.
+     * Sets max results which specifies the maximum number of containers to return.
+     * If the request does not specify maxresults, or specifies a value
+     * greater than 5,000, the server will return up to 5,000 items.
+     * If the parameter is set to a value less than or equal to zero,
+     * the server will return status code 400 (Bad Request).
      *
      * @param string $maxResults value.
      *
@@ -141,7 +97,7 @@ class ListContainersOptions extends BlobServiceOptions
      */
     public function setMaxResults($maxResults)
     {
-        Validate::isString($maxResults, 'maxResults');
+        Validate::canCastAsString($maxResults, 'maxResults');
         $this->_maxResults = $maxResults;
     }
 

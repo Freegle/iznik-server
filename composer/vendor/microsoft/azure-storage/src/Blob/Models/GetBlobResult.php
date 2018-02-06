@@ -24,8 +24,6 @@
  
 namespace MicrosoftAzure\Storage\Blob\Models;
 
-use MicrosoftAzure\Storage\Blob\Models\BlobProperties;
-use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -40,20 +38,9 @@ use Psr\Http\Message\StreamInterface;
  */
 class GetBlobResult
 {
-    /**
-     * @var BlobProperties
-     */
-    private $_properties;
-    
-    /**
-     * @var array
-     */
-    private $_metadata;
-    
-    /**
-     * @var resource
-     */
-    private $_contentStream;
+    private $properties;
+    private $metadata;
+    private $contentStream;
     
     /**
      * Creates GetBlobResult from getBlob call.
@@ -61,6 +48,8 @@ class GetBlobResult
      * @param array           $headers  The HTTP response headers.
      * @param StreamInterface $body     The response body.
      * @param array           $metadata The blob metadata.
+     *
+     * @internal
      *
      * @return GetBlobResult
      */
@@ -71,7 +60,7 @@ class GetBlobResult
     ) {
         $result = new GetBlobResult();
         $result->setContentStream($body->detach());
-        $result->setProperties(BlobProperties::create($headers));
+        $result->setProperties(BlobProperties::createFromHttpHeaders($headers));
         $result->setMetadata(is_null($metadata) ? array() : $metadata);
         
         return $result;
@@ -84,7 +73,7 @@ class GetBlobResult
      */
     public function getMetadata()
     {
-        return $this->_metadata;
+        return $this->metadata;
     }
 
     /**
@@ -96,7 +85,7 @@ class GetBlobResult
      */
     protected function setMetadata(array $metadata)
     {
-        $this->_metadata = $metadata;
+        $this->metadata = $metadata;
     }
     
     /**
@@ -106,7 +95,7 @@ class GetBlobResult
      */
     public function getProperties()
     {
-        return $this->_properties;
+        return $this->properties;
     }
 
     /**
@@ -118,7 +107,7 @@ class GetBlobResult
      */
     protected function setProperties(BlobProperties $properties)
     {
-        $this->_properties = $properties;
+        $this->properties = $properties;
     }
     
     /**
@@ -128,7 +117,7 @@ class GetBlobResult
      */
     public function getContentStream()
     {
-        return $this->_contentStream;
+        return $this->contentStream;
     }
 
     /**
@@ -140,6 +129,6 @@ class GetBlobResult
      */
     protected function setContentStream($contentStream)
     {
-        $this->_contentStream = $contentStream;
+        $this->contentStream = $contentStream;
     }
 }

@@ -22,11 +22,11 @@
  * @link      https://github.com/azure/azure-storage-php
  */
 
-namespace MicrosoftAzure\Storage\Tests\unit\Table\Models;
+namespace MicrosoftAzure\Storage\Tests\Unit\Table\Models;
 
 use MicrosoftAzure\Storage\Table\Models\BatchResult;
 use MicrosoftAzure\Storage\Table\Internal\MimeReaderWriter;
-use MicrosoftAzure\Storage\Table\Internal\AtomReaderWriter;
+use MicrosoftAzure\Storage\Table\Internal\JsonODataReaderWriter;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use MicrosoftAzure\Storage\Tests\Framework\TestResources;
 
@@ -53,7 +53,7 @@ class BatchResultTest extends \PHPUnit_Framework_TestCase
         $contexts       = TestResources::getBatchContexts();
         $body           = TestResources::getBatchResponseBody();
         $operations     = TestResources::getBatchOperations();
-        $atomSerializer = new AtomReaderWriter();
+        $odataSerializer = new JsonODataReaderWriter();
         $mimeSerializer = new MimeReaderWriter();
         $entries        = TestResources::getExpectedBatchResultEntries();
 
@@ -62,7 +62,7 @@ class BatchResultTest extends \PHPUnit_Framework_TestCase
             $body,
             $operations,
             $contexts,
-            $atomSerializer,
+            $odataSerializer,
             $mimeSerializer
         );
 

@@ -36,20 +36,7 @@ namespace MicrosoftAzure\Storage\Blob\Models;
  */
 class CreateBlobSnapshotOptions extends BlobServiceOptions
 {
-    /**
-     * @var array
-     */
     private $_metadata;
-    
-    /**
-     * @var AccessCondition
-     */
-    private $_accessCondition;
-    
-    /**
-     * @var string
-     */
-    private $_leaseId;
     
     /**
      * Gets metadata.
@@ -71,49 +58,5 @@ class CreateBlobSnapshotOptions extends BlobServiceOptions
     public function setMetadata(array $metadata)
     {
         $this->_metadata = $metadata;
-    }
-    
-    /**
-     * Gets access condition.
-     *
-     * @return AccessCondition
-     */
-    public function getAccessCondition()
-    {
-        return $this->_accessCondition;
-    }
-    
-    /**
-     * Sets access condition.
-     *
-     * @param AccessCondition $accessCondition The access condition object.
-     *
-     * @return void
-     */
-    public function setAccessCondition($accessCondition)
-    {
-        $this->_accessCondition = $accessCondition;
-    }
-    
-    /**
-     * Gets lease Id.
-     *
-     * @return string
-     */
-    public function getLeaseId()
-    {
-        return $this->_leaseId;
-    }
-
-    /**
-     * Sets lease Id.
-     *
-     * @param string $leaseId The lease Id.
-     *
-     * @return void
-     */
-    public function setLeaseId($leaseId)
-    {
-        $this->_leaseId = $leaseId;
     }
 }

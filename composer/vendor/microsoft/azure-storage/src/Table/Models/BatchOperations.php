@@ -39,9 +39,6 @@ use MicrosoftAzure\Storage\Common\Internal\Resources;
  */
 class BatchOperations
 {
-    /**
-     * @var array
-     */
     private $_operations;
 
     /**
@@ -104,7 +101,7 @@ class BatchOperations
      */
     public function addInsertEntity($table, Entity $entity)
     {
-        Validate::isString($table, 'table');
+        Validate::canCastAsString($table, 'table');
         Validate::notNullOrEmpty($entity, 'entity');
         
         $operation = new BatchOperation();
@@ -125,7 +122,7 @@ class BatchOperations
      */
     public function addUpdateEntity($table, Entity $entity)
     {
-        Validate::isString($table, 'table');
+        Validate::canCastAsString($table, 'table');
         Validate::notNullOrEmpty($entity, 'entity');
         
         $operation = new BatchOperation();
@@ -146,7 +143,7 @@ class BatchOperations
      */
     public function addMergeEntity($table, Entity $entity)
     {
-        Validate::isString($table, 'table');
+        Validate::canCastAsString($table, 'table');
         Validate::notNullOrEmpty($entity, 'entity');
         
         $operation = new BatchOperation();
@@ -167,7 +164,7 @@ class BatchOperations
      */
     public function addInsertOrReplaceEntity($table, Entity $entity)
     {
-        Validate::isString($table, 'table');
+        Validate::canCastAsString($table, 'table');
         Validate::notNullOrEmpty($entity, 'entity');
         
         $operation = new BatchOperation();
@@ -188,7 +185,7 @@ class BatchOperations
      */
     public function addInsertOrMergeEntity($table, Entity $entity)
     {
-        Validate::isString($table, 'table');
+        Validate::canCastAsString($table, 'table');
         Validate::notNullOrEmpty($entity, 'entity');
         
         $operation = new BatchOperation();
@@ -211,7 +208,7 @@ class BatchOperations
      */
     public function addDeleteEntity($table, $partitionKey, $rowKey, $etag = null)
     {
-        Validate::isString($table, 'table');
+        Validate::canCastAsString($table, 'table');
         Validate::isTrue(!is_null($partitionKey), Resources::NULL_TABLE_KEY_MSG);
         Validate::isTrue(!is_null($rowKey), Resources::NULL_TABLE_KEY_MSG);
         

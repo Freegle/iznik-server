@@ -26,10 +26,13 @@ namespace MicrosoftAzure\Storage\Table\Internal;
 
 use MicrosoftAzure\Storage\Table\Models as TableModels;
 use MicrosoftAzure\Storage\Common\Models\ServiceProperties;
+use MicrosoftAzure\Storage\Common\Models\ServiceOptions;
+use MicrosoftAzure\Storage\Common\Models\GetServiceStats;
 
 /**
  * This interface has all REST APIs provided by Windows Azure for Table service.
  *
+ * @ignore
  * @category  Microsoft
  * @package   MicrosoftAzure\Storage\Table\Internal
  * @author    Azure Storage PHP SDK <dmsh@microsoft.com>
@@ -41,36 +44,36 @@ use MicrosoftAzure\Storage\Common\Models\ServiceProperties;
 interface ITable
 {
     /**
-    * Gets the properties of the Table service.
+    * Gets the properties of the service.
     *
-    * @param TableModels\TableServiceOptions $options optional table service options.
+    * @param ServiceOptions $options optional table service options.
     *
     * @return \MicrosoftAzure\Storage\Common\Models\GetServicePropertiesResult
     *
     * @see http://msdn.microsoft.com/en-us/library/windowsazure/hh452238.aspx
     */
     public function getServiceProperties(
-        TableModels\TableServiceOptions $options = null
+        ServiceOptions $options = null
     );
 
     /**
-     * Creates promise to get the properties of the Table service.
+     * Creates promise to get the properties of the service.
      *
-     * @param TableModels\TableServiceOptions $options optional table service options.
+     * @param ServiceOptions $options optional table service options.
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      *
      * @see http://msdn.microsoft.com/en-us/library/windowsazure/hh452238.aspx
      */
     public function getServicePropertiesAsync(
-        TableModels\TableServiceOptions $options = null
+        ServiceOptions $options = null
     );
 
     /**
-    * Sets the properties of the Table service.
+    * Sets the properties of the service.
     *
-    * @param ServiceProperties               $serviceProperties new service properties
-    * @param TableModels\TableServiceOptions $options           optional parameters
+    * @param ServiceProperties $serviceProperties new service properties
+    * @param ServiceOptions    $options           optional parameters
     *
     * @return void
     *
@@ -78,17 +81,17 @@ interface ITable
     */
     public function setServiceProperties(
         ServiceProperties $serviceProperties,
-        TableModels\TableServiceOptions $options = null
+        ServiceOptions $options = null
     );
 
     /**
-     * Creates promise to set the properties of the Table service.
+     * Creates promise to set the properties of the service.
      *
      * It's recommended to use getServiceProperties, alter the returned object and
      * then use setServiceProperties with this altered object.
      *
-     * @param ServiceProperties               $serviceProperties new service properties
-     * @param TableModels\TableServiceOptions $options           optional parameters
+     * @param ServiceProperties $serviceProperties new service properties
+     * @param ServiceOptions    $options           optional parameters
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      *
@@ -96,8 +99,32 @@ interface ITable
      */
     public function setServicePropertiesAsync(
         ServiceProperties $serviceProperties,
-        TableModels\TableServiceOptions $options = null
+        ServiceOptions $options = null
     );
+
+    /**
+     * Retieves statistics related to replication for the service. The operation
+     * will only be sent to secondary location endpoint.
+     *
+     * @param  ServiceOptions|null $options The options this operation sends with.
+     *
+     * @return GetServiceStatsResult
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/get-table-service-stats
+     */
+    public function getServiceStats(ServiceOptions $options = null);
+
+    /**
+     * Creates promise that retrieves statistics related to replication for the
+     * service. The operation will only be sent to secondary location endpoint.
+     *
+     * @param  ServiceOptions|null $options The options this operation sends with.
+     *
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/get-table-service-stats
+     */
+    public function getServiceStatsAsync(ServiceOptions $options = null);
     
     /**
      * Quries tables in the given storage account.
@@ -107,7 +134,7 @@ interface ITable
      *
      * @return TableModels\QueryTablesResult
      *
-     * @see http://msdn.microsoft.com/en-us/library/windowsazure/dd179405.aspx
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/query-tables
      */
     public function queryTables($options = null);
 
@@ -119,64 +146,64 @@ interface ITable
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      *
-     * @see http://msdn.microsoft.com/en-us/library/windowsazure/dd179405.aspx
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/query-tables
      */
     public function queryTablesAsync($options = null);
     
     /**
      * Creates new table in the storage account
      *
-     * @param string                          $table   The name of the table.
-     * @param TableModels\TableServiceOptions $options optional parameters
+     * @param string                                $table   The name of the table.
+     * @param TableModels\TableServiceCreateOptions $options optional parameters
      *
      * @return void
      *
-     * @see http://msdn.microsoft.com/en-us/library/windowsazure/dd135729.aspx
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/create-table
      */
     public function createTable(
         $table,
-        TableModels\TableServiceOptions $options = null
+        TableModels\TableServiceCreateOptions $options = null
     );
 
     /**
      * Creates promise to create new table in the storage account
      *
-     * @param string                          $table   The name of the table.
-     * @param TableModels\TableServiceOptions $options The optional parameters.
+     * @param string                                $table   The name of the table.
+     * @param TableModels\TableServiceCreateOptions $options The optional parameters.
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      *
-     * @see http://msdn.microsoft.com/en-us/library/windowsazure/dd135729.aspx
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/create-table
      */
     public function createTableAsync(
         $table,
-        TableModels\TableServiceOptions $options = null
+        TableModels\TableServiceCreateOptions $options = null
     );
     
     /**
      * Gets the table.
      *
-     * @param string                          $table   The The name of the table..
-     * @param TableModels\TableServiceOptions $options The optional parameters.
+     * @param string                      $table   The The name of the table..
+     * @param TableModels\GetTableOptions $options The optional parameters.
      *
      * @return TableModels\GetTableResult
      */
     public function getTable(
         $table,
-        TableModels\TableServiceOptions $options = null
+        TableModels\GetTableOptions $options = null
     );
 
     /**
      * Creates the promise to get the table.
      *
-     * @param string                          $table   The name of the table.
-     * @param TableModels\TableServiceOptions $options The optional parameters.
+     * @param string                      $table   The name of the table.
+     * @param TableModels\GetTableOptions $options The optional parameters.
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      */
     public function getTableAsync(
         $table,
-        TableModels\TableServiceOptions $options = null
+        TableModels\GetTableOptions $options = null
     );
     
     /**
@@ -219,7 +246,7 @@ interface ITable
      *
      * @return TableModels\QueryEntitiesResult
      *
-     * @see http://msdn.microsoft.com/en-us/library/windowsazure/dd179421.aspx
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/query-entities
      */
     public function queryEntities($table, $options = null);
 
@@ -233,42 +260,42 @@ interface ITable
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      *
-     * @see http://msdn.microsoft.com/en-us/library/windowsazure/dd179421.aspx
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/query-entities
      */
     public function queryEntitiesAsync($table, $options = null);
     
     /**
      * Inserts new entity to the table
      *
-     * @param string                          $table   name of the table
-     * @param TableModels\Entity              $entity  table entity
-     * @param TableModels\TableServiceOptions $options optional parameters
+     * @param string                                $table   name of the table
+     * @param TableModels\Entity                    $entity  table entity
+     * @param TableModels\TableServiceCreateOptions $options optional parameters
      *
      * @return TableModels\InsertEntityResult
      *
-     * @see http://msdn.microsoft.com/en-us/library/windowsazure/dd179433.aspx
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/insert-entity
      */
     public function insertEntity(
         $table,
         TableModels\Entity $entity,
-        TableModels\TableServiceOptions $options = null
+        TableModels\TableServiceCreateOptions $options = null
     );
 
     /**
      * Inserts new entity to the table.
      *
-     * @param string                          $table   name of the table.
-     * @param TableModels\Entity              $entity  table entity.
-     * @param TableModels\TableServiceOptions $options optional parameters.
+     * @param string                                $table   name of the table.
+     * @param TableModels\Entity                    $entity  table entity.
+     * @param TableModels\TableServiceCreateOptions $options optional parameters.
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      *
-     * @see http://msdn.microsoft.com/en-us/library/windowsazure/dd179433.aspx
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/insert-entity
      */
     public function insertEntityAsync(
         $table,
         TableModels\Entity $entity,
-        TableModels\TableServiceOptions $options = null
+        TableModels\TableServiceCreateOptions $options = null
     );
     
     /**
@@ -456,10 +483,14 @@ interface ITable
     /**
      * Gets table entity.
      *
-     * @param string                          $table        The name of the table.
-     * @param string                          $partitionKey The entity partition key.
-     * @param string                          $rowKey       The entity row key.
-     * @param TableModels\TableServiceOptions $options      The optional parameters.
+     * @param string                            $table        The name of the
+     *                                                        table.
+     * @param string                            $partitionKey The entity
+     *                                                        partition key.
+     * @param string                            $rowKey       The entity
+     *                                                        row key.
+     * @param TableModels\GetEntityOptions|null $options      The optional
+     *                                                        parameters.
      *
      * @return TableModels\GetEntityResult
      *
@@ -469,16 +500,20 @@ interface ITable
         $table,
         $partitionKey,
         $rowKey,
-        TableModels\TableServiceOptions $options = null
+        TableModels\GetEntityOptions $options = null
     );
 
     /**
      * Creates promise to get table entity.
      *
-     * @param string                          $table        The name of the table.
-     * @param string                          $partitionKey The entity partition key.
-     * @param string                          $rowKey       The entity row key.
-     * @param TableModels\TableServiceOptions $options      The optional parameters.
+     * @param string                            $table        The name of
+     *                                                        the table.
+     * @param string                            $partitionKey The entity
+     *                                                        partition key.
+     * @param string                            $rowKey       The entity
+     *                                                        row key.
+     * @param TableModels\GetEntityOptions|null $options      The optional
+     *                                                        parameters.
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      *
@@ -488,7 +523,7 @@ interface ITable
         $table,
         $partitionKey,
         $rowKey,
-        TableModels\TableServiceOptions $options = null
+        TableModels\GetEntityOptions $options = null
     );
     
     /**
@@ -514,6 +549,70 @@ interface ITable
      */
     public function batchAsync(
         TableModels\BatchOperations $batchOperations,
+        TableModels\TableServiceOptions $options = null
+    );
+
+    /**
+     * Gets the access control list (ACL)
+     *
+     * @param string                          $table   The container name.
+     * @param TableModels\TableServiceOptions $options The optional parameters.
+     *
+     * @return TableModels\TableACL
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/get-table-acl
+     */
+    public function getTableAcl(
+        $table,
+        TableModels\TableServiceOptions $options = null
+    );
+
+    /**
+     * Creates the promise to gets the access control list (ACL)
+     *
+     * @param string                          $table   The container name.
+     * @param TableModels\TableServiceOptions $options The optional parameters.
+     *
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/get-table-acl
+     */
+    public function getTableAclAsync(
+        $table,
+        TableModels\TableServiceOptions $options = null
+    );
+
+    /**
+     * Sets the ACL.
+     *
+     * @param string                          $table   name
+     * @param TableModels\TableACL            $acl     access control list
+     * @param TableModels\TableServiceOptions $options optional parameters
+     *
+     * @return void
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/set-table-acl
+     */
+    public function setTableAcl(
+        $table,
+        TableModels\TableACL $acl,
+        TableModels\TableServiceOptions $options = null
+    );
+
+    /**
+     * Creates promise to set the ACL
+     *
+     * @param string                          $table   name
+     * @param TableModels\TableACL            $acl     access control list
+     * @param TableModels\TableServiceOptions $options optional parameters
+     *
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/set-table-acl
+     */
+    public function setTableAclAsync(
+        $table,
+        TableModels\TableACL $acl,
         TableModels\TableServiceOptions $options = null
     );
 }

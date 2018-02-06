@@ -40,25 +40,16 @@ use MicrosoftAzure\Storage\Common\Internal\Utilities;
  */
 class SetBlobPropertiesResult
 {
-    /**
-     * @var \DateTime
-     */
     private $_lastModified;
-    
-    /**
-     * @var string
-     */
     private $_etag;
-    
-    /**
-     * @var integer
-     */
     private $_sequenceNumber;
     
     /**
      * Creates SetBlobPropertiesResult from response headers.
      *
      * @param array $headers response headers
+     *
+     * @internal
      *
      * @return SetBlobPropertiesResult
      */
@@ -124,7 +115,7 @@ class SetBlobPropertiesResult
      */
     protected function setETag($etag)
     {
-        Validate::isString($etag, 'etag');
+        Validate::canCastAsString($etag, 'etag');
         $this->_etag = $etag;
     }
     
