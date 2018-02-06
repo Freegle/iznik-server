@@ -84,13 +84,17 @@ class Dashboard {
             # This will be updated via dashboard.php cron script once a day.
             #
             # Can't use a MySQL unique index on the separate values as some are NULL, and unique doesn't work well.
+            #
+            # Groupid might not be valid.
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+
             $key = $key ? $key : ("$type-" . ($this->me ? $this->me->getId() : '') . "-$systemwide-$groupid-$start");
             $this->dbhm->preExec("REPLACE INTO users_dashboard (`key`, `type`, userid, systemwide, groupid, start, data) VALUES (?, ?, ?, ?, ?, ?, ?);", [
                 $key,
                 $type,
                 $this->me ? $this->me->getId() : NULL,
                 $systemwide,
-                $groupid,
+                $g->getId() == $groupid ? $groupid : NULL,
                 $start,
                 json_encode($ret)
             ]);
