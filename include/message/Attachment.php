@@ -162,7 +162,7 @@ class Attachment
             try {
                 $blobRestProxy = ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING);
                 $options = new CreateBlobOptions();
-                $options->setBlobContentType("image/jpeg");
+                $options->setContentType("image/jpeg");
 
                 $name = NULL;
 
