@@ -248,7 +248,7 @@ return array(
     'PHP_CodeCoverage_Driver_HHVM' => $vendorDir . '/phpunit/php-code-coverage/src/CodeCoverage/Driver/HHVM.php',
     'PHP_CodeCoverage_Driver_PHPDBG' => $vendorDir . '/phpunit/php-code-coverage/src/CodeCoverage/Driver/PHPDBG.php',
     'PHP_CodeCoverage_Driver_Xdebug' => $vendorDir . '/phpunit/php-code-coverage/src/CodeCoverage/Driver/Xdebug.php',
-    'PHP_CodeCoverage_Exception' => $vendorDir . '/phpunit/php-code-coverage/src/CodeCoverage/Exception.php',
+    'PHP_CodeCoverage_Exception' => $vendorDir . '/phpunit/php-code-coverage/src/CodeCoverage/Exception/Exception.php',
     'PHP_CodeCoverage_Exception_UnintentionallyCoveredCode' => $vendorDir . '/phpunit/php-code-coverage/src/CodeCoverage/Exception/UnintentionallyCoveredCode.php',
     'PHP_CodeCoverage_Filter' => $vendorDir . '/phpunit/php-code-coverage/src/CodeCoverage/Filter.php',
     'PHP_CodeCoverage_InvalidArgumentException' => $vendorDir . '/phpunit/php-code-coverage/src/CodeCoverage/Exception/InvalidArgumentException.php',

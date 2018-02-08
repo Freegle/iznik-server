@@ -449,8 +449,6 @@ class Location extends Entity
                 $lat + $scan
             ]);
 
-            error_log("Found " . count($locs));
-
             if (count($locs) == 1) {
                 $ret = $locs[0];
 

@@ -7,9 +7,10 @@ $baseDir = dirname($vendorDir);
 
 return array(
     $vendorDir . '/phpunit/phpunit-selenium',
-    $vendorDir . '/googleads/googleads-php-lib/src',
     $vendorDir . '/pear/pear_exception',
     $vendorDir . '/pear/console_getopt',
     $vendorDir . '/pear/pear-core-minimal/src',
     $vendorDir . '/pear/mail_mime',
+    $vendorDir . '/pear/net_url2',
+    $vendorDir . '/googleads/googleads-php-lib/src',
 );
