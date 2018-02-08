@@ -15,12 +15,12 @@ $msgs = [];
 $u = new User($dbhr, $dbhm);
 
 function logIt($msg) {
-    global $dbhm, $u;
+    global $dbhm, $dbhr, $u;
     $timestamp = date("Y-m-d H:i:s", strtotime($msg['date']));
     $uid = pres('to', $msg) ? $u->findByEmail($msg['to']) : NULL;
 
     # We might already have a row for this eximid.
-    $logs = $dbhm->preQuery("SELECT * FROM logs_emails WHERE eximid = ?;", [
+    $logs = $dbhr->preQuery("SELECT * FROM logs_emails WHERE eximid = ?;", [
         $msg['eximid']
     ]);
 

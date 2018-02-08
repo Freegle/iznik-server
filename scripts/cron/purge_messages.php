@@ -185,7 +185,9 @@ try {
         error_log("Found " . count($msgs));
         foreach ($msgs as $msg) {
             $sql = "UPDATE messages SET htmlbody = NULL WHERE id = {$msg['id']};";
-            $count = $dbhm->exec($sql);
+
+            # Use dbhmold with no logging to get retrying.
+            $count = $dbhmold->preExec($sql, NULL, FALSE);
             $total += $count;
             if ($total % 1000 == 0) {
                 error_log("...$total");
@@ -204,7 +206,7 @@ try {
         $msgs = $dbhr->preQuery($sql);
         foreach ($msgs as $msg) {
             $sql = "UPDATE messages SET message = NULL WHERE id = {$msg['id']};";
-            $count = $dbhm->exec($sql);
+            $count = $dbhmold->preExec($sql, NULL, FALSE);
             $total += $count;
             error_log("...$id = $total");
         }
@@ -217,9 +219,10 @@ try {
 
     do {
         $sql = "SELECT messages.id FROM messages WHERE arrival <= '$start' AND id NOT IN (SELECT DISTINCT msgid FROM messages_groups) AND id NOT IN (SELECT DISTINCT refmsgid FROM chat_messages) AND id NOT IN (SELECT DISTINCT msgid FROM messages_drafts) LIMIT 1000;";
-        $msgs = $dbhm->query($sql)->fetchAll();
+        $msgs = $dbhr->preQuery($sql);
         foreach ($msgs as $msg) {
-            $dbhm->exec("DELETE FROM messages WHERE id = {$msg['id']};");
+            $sql = "DELETE FROM messages WHERE id = {$msg['id']};";
+            $count = $dbhmold->preExec($sql, NULL, FALSE);
             $total++;
 
             if ($total % 1000 == 0) {
@@ -231,6 +234,7 @@ try {
     error_log("Deleted $total");
 } catch (Exception $e) {
     error_log("Failed with " . $e->getMessage());
+    mail(GEEKS_ADDR, "Daily message purge failed", $e->getMessage());
     exit(1);
 }
 
