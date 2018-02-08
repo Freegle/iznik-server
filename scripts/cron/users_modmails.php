@@ -13,7 +13,7 @@ $logs = $dbhr->preQuery("SELECT * FROM logs WHERE timestamp > ? AND ((type = 'Me
 ]);
 
 foreach ($logs as $log) {
-    $dbhm->preQuery("INSERT IGNORE INTO users_modmails (userid, logid, timestamp, groupid) VALUES (?,?,?,?);", [
+    $dbhm->preExec("INSERT IGNORE INTO users_modmails (userid, logid, timestamp, groupid) VALUES (?,?,?,?);", [
         $log['user'],
         $log['id'],
         $log['timestamp'],
