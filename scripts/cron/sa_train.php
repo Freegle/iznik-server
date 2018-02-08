@@ -4,6 +4,8 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $at = 0;
 
@@ -14,3 +16,5 @@ foreach ($msgs as $msgs) {
     error_log($fn);
     file_put_contents($fn, $msgs['message']);
 }
+
+unlockScript($lockh);
