@@ -623,10 +623,8 @@ class Newsfeed extends Entity
             }
 
             if ($max) {
-                $this->dbhm->preExec("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES (?, ?);", [
-                    $userid,
-                    $max
-                ]);
+                # Background this update so it happens in parallel with us sending the mail.
+                $this->dbhm->background("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES ($userid, $max);");
             }
 
             if ($count > 0) {
