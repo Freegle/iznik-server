@@ -119,7 +119,7 @@ class PushNotifications
                                 ],
                                 'badge' => $payload['badge'],
                                 'sound' => 'default',
-                                'content-available' => "1",
+//                                'content-available' => "1",  Try not sending this as it may be causing notifications to get dropped.
                                 'chatids' => $payload['chatids']
                             ];
 
