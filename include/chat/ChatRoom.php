@@ -490,7 +490,7 @@ class ChatRoom extends Entity
                 $userid
             ]);
 
-            $mysqltime = date("Y-m-d", strtotime("31 days ago"));
+            $mysqltime = date("Y-m-d", strtotime(MODTOOLS ? "365 days ago" : "31 days ago"));
 
             # We don't want to see non-empty chats where all the messages are held for review, because they are likely to
             # be spam.
