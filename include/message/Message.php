@@ -1797,7 +1797,7 @@ class Message
     }
 
     # Save a parsed message to the DB
-    public function save() {
+    public function save($log = TRUE) {
         # Despite what the RFCs might say, it's possible that a message can appear on Yahoo without a Message-ID.  We
         # require unique message ids, so this causes us a problem.  Invent one.
         $this->messageid = $this->messageid ? $this->messageid : (microtime(TRUE). '@' . USER_DOMAIN);
@@ -1874,15 +1874,17 @@ class Message
                 $this->id = $this->dbhm->lastInsertId();
                 $this->saveAttachments($this->id);
 
-                $l = new Log($this->dbhr, $this->dbhm);
-                $l->log([
-                    'type' => Log::TYPE_MESSAGE,
-                    'subtype' => Log::SUBTYPE_RECEIVED,
-                    'msgid' => $this->id,
-                    'user' => $this->fromuser,
-                    'text' => $this->messageid,
-                    'groupid' => $this->groupid
-                ]);
+                if ($log) {
+                    $l = new Log($this->dbhr, $this->dbhm);
+                    $l->log([
+                        'type' => Log::TYPE_MESSAGE,
+                        'subtype' => Log::SUBTYPE_RECEIVED,
+                        'msgid' => $this->id,
+                        'user' => $this->fromuser,
+                        'text' => $this->messageid,
+                        'groupid' => $this->groupid
+                    ]);
+                }
 
                 # Now that we have a ID, record which messages are related to this one.
                 $this->recordRelated();

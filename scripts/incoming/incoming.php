@@ -139,8 +139,12 @@ if ($cont) {
         # these.
         error_log("Yahoo System awry from $envfrom");
     } else {
+        # Chat reply or email submission.  We don't want to log chat replies - there are a lot and they clutter up
+        # the logs.
+        $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to);
+
         error_log("Email");
-        $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg);
+        $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, !$chat);
         $rc = $r->route();
     }
 }

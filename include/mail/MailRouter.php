@@ -72,7 +72,7 @@ class MailRouter
         }
     }
 
-    public function received($source, $from, $to, $msg, $groupid = NULL) {
+    public function received($source, $from, $to, $msg, $groupid = NULL, $log = TRUE) {
         # We parse it and save it to the DB.  Then it will get picked up by background
         # processing.
         #
@@ -83,7 +83,7 @@ class MailRouter
         $rc = $this->msg->parse($source, $from, $to, $msg, $groupid);
         
         if ($rc) {
-            list($id, $already) = $this->msg->save();
+            list($id, $already) = $this->msg->save($log);
             $ret = $id;
         }
         
