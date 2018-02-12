@@ -29,6 +29,11 @@ class User extends Entity
     static $cacheDeleted = [];
     const CACHE_SIZE = 100;
 
+    const KUDOS_NEWBIE = 'Newbie';
+    const KUDOS_OCCASIONAL = 'Occasional';
+    const KUDOS_FREQUENT = 'Frequent';
+    const KUDOS_AVID = 'Avid';
+
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft');
 
@@ -3758,6 +3763,158 @@ class User extends Entity
             if ($mem['type'] == Group::GROUP_FREEGLE && ($mem['role'] == User::ROLE_OWNER || $mem['role'] == User::ROLE_MODERATOR)) {
                 $ret = TRUE;
             }
+        }
+
+        return($ret);
+    }
+
+    public function getKudos($id = NULL) {
+        $id = $id ? $id : $this->id;
+        $kudos = [
+            'userid' => $id,
+            'posts' => 0,
+            'chats' => 0,
+            'newsfeed' => 0,
+            'events' => 0,
+            'vols' => 0,
+            'facebook' => 0,
+            'platform' => 0,
+            'kudos' => 0,
+        ];
+
+        $kudi = $this->dbhr->preQuery("SELECT * FROM users_kudos WHERE userid = ?;", [
+            $id
+        ]);
+
+        foreach ($kudi as $k) {
+            $kudos = $k;
+        }
+
+        return($kudos);
+    }
+
+    public function updateKudos($id = NULL) {
+        $current = $this->getKudos($id);
+
+        # Only update if we don't have one or it's older than a day.  This avoids repeatedly updating the entry
+        # for the same user in some bulk operations.
+        if (!pres('timestamp', $current) || (time() - strtotime($current['timestamp']) > 24 * 60 * 60)) {
+            # We analyse a user's activity and assign them a level.
+            #
+            # Only interested in activity in the last year.
+            $id = $id ? $id : $this->id;
+            $start = date('Y-m-d', strtotime("365 days ago"));
+
+            # First, the number of months in which they have posted.
+            $posts = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(CONCAT(YEAR(date), '-', MONTH(date)))) AS count FROM messages WHERE fromuser = ? AND date >= '$start';", [
+                $id
+            ])[0]['count'];
+
+            # Ditto communicated with people.
+            $chats = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(CONCAT(YEAR(date), '-', MONTH(date)))) AS count FROM chat_messages WHERE userid = ? AND date >= '$start';", [
+                $id
+            ])[0]['count'];
+
+            # Newsfeed posts
+            $newsfeed = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(CONCAT(YEAR(timestamp), '-', MONTH(timestamp)))) AS count FROM newsfeed WHERE userid = ? AND added >= '$start';", [
+                $id
+            ])[0]['count'];
+
+            # Events
+            $events = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM communityevents WHERE userid = ? AND added >= '$start';", [
+                $id
+            ])[0]['count'];
+
+            # Volunteering
+            $vols = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM volunteering WHERE userid = ? AND added >= '$start';", [
+                $id
+            ])[0]['count'];
+
+            # Do they have a Facebook login?
+            $facebook = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_logins WHERE userid = ? AND type = ?", [
+                $id,
+                User::LOGIN_FACEBOOK
+            ])[0]['count'] > 0;
+
+            # Have they posted using the platform?
+            $platform = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND date >= '$start' AND sourceheader = ?;", [
+                $id,
+                Message::PLATFORM
+            ])[0]['count'] > 0;
+
+            $kudos = $posts + $chats + $newsfeed + $events + $vols;
+
+            if ($kudos > 0) {
+                # No sense in creating entries which are blank or the same.
+                $current = $this->getKudos($id);
+
+                if ($current['kudos'] != $kudos) {
+                    $this->dbhm->preExec("REPLACE INTO users_kudos (userid, kudos, posts, chats, newsfeed, events, vols, facebook, platform) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", [
+                        $id,
+                        $kudos,
+                        $posts,
+                        $chats,
+                        $newsfeed,
+                        $events,
+                        $vols,
+                        $facebook,
+                        $platform
+                    ], FALSE);
+                }
+            }
+        }
+    }
+
+    public function topKudos($gid, $limit = 10) {
+        $kudos = $this->dbhr->preQuery("SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? WHERE memberships.role = ? ORDER BY kudos DESC LIMIT $limit;", [
+            $gid,
+            User::ROLE_MEMBER
+        ]);
+
+        $ret = [];
+
+        foreach ($kudos as $k) {
+            $u = new User($this->dbhr, $this->dbhm, $k['userid']);
+            $atts = $u->getPublic();
+            $atts['email'] = $u->getEmailPreferred();
+
+            $thisone = [
+                'user' => $atts,
+                'kudos' => $k
+            ];
+
+            $ret[] = $thisone;
+        }
+
+        return($ret);
+    }
+
+    public function possibleMods($gid, $limit = 10) {
+        # We look for users who are not mods with top kudos who also:
+        # - active in last 60 days
+        # - not bouncing
+        # - using a location which is in the group area
+        # - have posted with the platform, as we don't want loyal users of TN or Yahoo.
+        # - have a Facebook login, as they are more likely to do publicity.
+        $start = date('Y-m-d', strtotime("60 days ago"));
+        $kudos = $this->dbhr->preQuery("SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? INNER JOIN groups ON groups.id = memberships.groupid INNER JOIN locations_spatial ON users.lastlocation = locations_spatial.locationid WHERE memberships.role = ? AND users_kudos.platform = 1 AND users_kudos.facebook = 1 AND ST_Contains(GeomFromText(groups.poly), locations_spatial.geometry) AND bouncing = 0 AND lastaccess >= '$start' ORDER BY kudos DESC LIMIT $limit;", [
+            $gid,
+            User::ROLE_MEMBER
+        ]);
+
+        $ret = [];
+
+        foreach ($kudos as $k) {
+            $u = new User($this->dbhr, $this->dbhm, $k['userid']);
+            $atts = $u->getPublic();
+            $atts['email'] = $u->getEmailPreferred();
+
+            $thisone = [
+                'user' => $atts,
+                'kudos' => $k
+            ];
+
+            $ret[] = $thisone;
         }
 
         return($ret);
