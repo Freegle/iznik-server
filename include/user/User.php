@@ -12,6 +12,7 @@ require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
+require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
@@ -3916,6 +3917,165 @@ class User extends Entity
 
             $ret[] = $thisone;
         }
+
+        return($ret);
+    }
+
+    private function exportContext($item, $key)
+    {
+        if ($item) {
+            $expand = [
+                'msgid' => [
+                    'table' => 'messages',
+                    'atts' => [ 'id', 'subject' ]
+                ],
+                'groupid' => [
+                    'table' => 'groups',
+                    'atts' => [ 'id', 'nameshort' ]
+                ],
+                'eventid' => [
+                    'table' => 'communityevents',
+                    'atts' => [ 'id', 'title' ]
+                ],
+                'volunteeringid' => [
+                    'table' => 'volunteering',
+                    'atts' => [ 'id', 'title' ]
+                ]
+            ];
+
+            foreach ($expand as $att => $info) {
+                if ($att == $key && $item) {
+                    if (!array_key_exists($info['table'], $this->additional)) {
+                        $this->additional[$info['table']] = [];
+                    }
+
+                    if (!array_key_exists($item, $this->additional[$info['table']])) {
+                        $sql = "SELECT " . implode(',', $info['atts']) . " FROM {$info['table']} WHERE id = $item;";
+                        $data = $this->dbhr->preQuery($sql);
+
+                        if (count($data)) {
+                            $this->additional[$info['table']][$item] = $data[0];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public function export() {
+        # We want to export every last bit of information we hold about a user.  To avoid having to frequently
+        # revisit this code we automate it using the foreign keys in the scheme.  There are a few tables which
+        # don't use foreign keys (e.g. logs, where we don't want to lose the information about the user if it's
+        # deleted) so we pick those up by looking for userid/user as fields in the tables.
+        global $dbconfig;
+        $dbname = $dbconfig['database'];
+
+        $tables = [
+            'users' => [ 'id' ]
+        ];
+
+        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_mod']};dbname=information_schema;charset=utf8";
+
+        $dbhi = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_EMULATE_PREPARES => FALSE
+        ), TRUE, NULL);
+
+        # First find the relevant foreign keys
+        $refs = $dbhi->preQuery("SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'users' AND table_schema = '$dbname' AND REFERENCED_COLUMN_NAME = 'id';");
+
+        foreach ($refs as $ref) {
+            $tname = $ref['TABLE_NAME'];
+            $cname = $ref['COLUMN_NAME'];
+
+            if (strpos($tname, 'VW_') === FALSE) {
+                if (!array_key_exists($tname, $tables)) {
+                    $tables[$tname] = [];
+                }
+
+                if (!in_array($cname, $tables[$tname])) {
+                    array_push($tables[$tname], $cname);
+                }
+            }
+        }
+
+        # Now find tables with userid.
+        $refs = $dbhi->preQuery("SELECT DISTINCT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME IN ('user','userid') AND TABLE_SCHEMA='$dbname';");
+        foreach ($refs as $ref) {
+            $tname = $ref['TABLE_NAME'];
+            $cname = $ref['COLUMN_NAME'];
+
+            if (strpos($tname, 'VW_') === FALSE) {
+                if (!array_key_exists($tname, $tables)) {
+                    $tables[$tname] = [];
+                }
+
+                if (!in_array($cname, $tables[$tname])) {
+                    array_push($tables[$tname], $cname);
+                }
+            }
+        }
+
+        # Now collect the data.
+        $ret = [];
+
+        foreach ($tables as $tname => $fields) {
+            $fieldq = '';
+
+
+            foreach ($fields as $field) {
+                $fieldq = $fieldq == '' ? '' : " $fieldq OR ";
+                $fieldq .= "`$field` = {$this->id}";
+            }
+
+            $sql = "SELECT * FROM $tname WHERE $fieldq";
+            $rows = $this->dbhr->preQuery($sql);
+
+            foreach ($rows as $row) {
+                $ret[$tname][] = $row;
+            }
+        }
+
+        # Remove very transient data
+        unset($ret['logs_sql']);
+        unset($ret['logs_api']);
+        unset($ret['sessions']);
+
+        # Censor credentials.
+        if (array_key_exists('users_logins', $ret)) {
+            foreach ($ret['users_logins'] as &$login) {
+                $login['credentials'] = '<removed>';
+            }
+        }
+
+        # Remove newsfeed position - derived from lat/lng in user which we show elsewhere, so removing doesn't hide
+        # anything, but that field is a geometry so looks a mess.
+        if (array_key_exists('newsfeed', $ret)) {
+            foreach ($ret['newsfeed'] as &$n) {
+                unset($n['position']);
+            }
+        }
+
+        # For the user's images, add a link so they can actually see them.
+        if (array_key_exists('users_images', $ret)) {
+            foreach ($ret['users_images'] as &$i) {
+                $a = new Attachment($this->dbhr, $this->dbhm, $i['id'], Attachment::TYPE_USER);
+                $i['url'] = $a->getPath();
+            }
+        }
+
+        # We want to include some basic info about some entities that we might have included an id for in the above info
+        # to ensure that the info in the export actually makes sense.  For example, we will have referenced a groupid
+        # in there, but it's not obvious which group that actually is without a bit of help.
+        $this->additional = [];
+
+        array_walk_recursive($ret, [ $this, 'exportContext' ]);
+
+        foreach ($this->additional as $key => $add) {
+            $ret['otherinfo'][$key] = $add;
+        }
+
+        filterResult($ret);
 
         return($ret);
     }

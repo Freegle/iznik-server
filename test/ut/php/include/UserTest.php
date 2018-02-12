@@ -7,6 +7,7 @@ require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
+require_once IZNIK_BASE . '/include/newsfeed/Newsfeed.php';
 
 /**
  * @backupGlobals disabled
@@ -1050,6 +1051,37 @@ class userTest extends IznikTestCase {
         $ctx = NULL;
         $atts = $u2->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, TRUE);
         self::assertEquals(0, count($atts['memberof']));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testExport() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+
+        # Set up some things to ensure we have coverage.
+        $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, 'testid', 'testpw'));
+        $n = new Newsfeed($this->dbhr, $this->dbhm);
+
+        $settings = [
+            'mylocation' => [
+                'lat' => 8.5,
+                'lng' => 179.1
+            ]
+        ];
+
+        $u->setPrivate('settings', json_encode($settings));
+        $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
+
+        # Export
+        $data = $u->export();
+
+        $encoded = json_encode($data);
+        #file_put_contents('/tmp/export', $encoded);
 
         error_log(__METHOD__ . " end");
     }
