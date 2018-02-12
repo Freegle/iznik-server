@@ -1065,6 +1065,7 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, 'testid', 'testpw'));
+        assertTrue($u->login('testpw'));
         $n = new Newsfeed($this->dbhr, $this->dbhm);
 
         $settings = [
@@ -1075,10 +1076,13 @@ class userTest extends IznikTestCase {
         ];
 
         $u->setPrivate('settings', json_encode($settings));
-        $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
+        $nid = $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
 
         # Export
         $data = $u->export();
+
+        $n = new Newsfeed($this->dbhr, $this->dbhm, $nid);
+        $n->delete();
 
         $encoded = json_encode($data);
         #file_put_contents('/tmp/export', $encoded);
