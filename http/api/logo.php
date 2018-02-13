@@ -14,6 +14,9 @@ function logo() {
 
             foreach ($logos as $logo) {
                 $ret['logo'] = $logo;
+
+                # Return full path for the mobile app.
+                $ret['logo']['path'] = "https://" . USER_SITE . $ret['logo']['path'];
             }
 
             break;
