@@ -160,7 +160,25 @@ class communityEventAPITest extends IznikAPITestCase {
             'action' => 'RemoveDate'
         ]);
         assertEquals(0, $ret['ret']);
-        
+
+        # Add a photo
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_COMMUNITY_EVENT);
+        $photoid = $a->create(NULL, 'image/jpeg', $data);
+
+        $ret = $this->call('communityevent', 'PATCH', [
+            'id' => $id,
+            'photoid' => $photoid,
+            'action' => 'SetPhoto'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('communityevent', 'GET', [
+            'id' => $id
+        ]);
+
+        assertEquals($photoid, $ret['communityevent']['photo']['id']);
+
         $ret = $this->call('communityevent', 'DELETE', [
             'id' => $id
         ]);

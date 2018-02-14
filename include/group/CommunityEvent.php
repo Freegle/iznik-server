@@ -30,11 +30,16 @@ class CommunityEvent extends Entity
             $this->fetch($this->dbhm, $this->dbhm, $id, 'communityevents', 'event', $this->publicatts);
 
             if ($photo) {
-                $this->dbhm->preExec("UPDATE communityevents_images SET eventid = ? WHERE id = ?;", [ $id, $photo ]);
+                $this->setPhoto($photo);
             }
         }
 
         return($id);
+    }
+
+    public function setPhoto($photoid) {
+        error_log("Set photo $photoid for {$this->id}");
+        $this->dbhm->preExec("UPDATE communityevents_images SET eventid = ? WHERE id = ?;", [ $this->id, $photoid ]);
     }
 
     public function addDate($start, $end) {

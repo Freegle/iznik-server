@@ -64,7 +64,7 @@ function communityevent() {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
                 if ($me) {
-                    $title = $location = $contactname = $contactphone = $contactemail = $contacturl = $description = NULL;
+                    $title = $location = $contactname = $contactphone = $contactemail = $contacturl = $description = $photo = NULL;
 
                     foreach (['title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'photo'] as $att) {
                         $$att = presdef($att, $_REQUEST, NULL);
@@ -106,6 +106,7 @@ function communityevent() {
                         case 'RemoveGroup': $c->removeGroup(intval(presdef('groupid', $_REQUEST, 0))); break;
                         case 'AddDate': $c->addDate(presdef('start', $_REQUEST, NULL), presdef('end', $_REQUEST, NULL)); break;
                         case 'RemoveDate': $c->removeDate(intval(presdef('dateid', $_REQUEST, NULL))); break;
+                        case 'SetPhoto': $c->setPhoto(intval(presdef('photoid', $_REQUEST, NULL))); break;
                     }
 
                     $ret = [
