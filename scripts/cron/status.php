@@ -45,7 +45,7 @@ function status()
                         $warning = TRUE;
                         $warningtext = "$host - $lines[$i]";
                         $overallwarning = TRUE;
-                    } else if (!preg_match('/(Running)|(Accessible)|(Status ok)/', $lines[$i])) {
+                    } else if (!preg_match('/(Online with all services)|(Running)|(Accessible)|(Status ok)/', $lines[$i])) {
                         error_log("Failed on $host - $lines[$i]");
                         $error = TRUE;
                         $errortext = "$host - $lines[$i]";
