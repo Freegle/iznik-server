@@ -195,20 +195,23 @@ try {
         }
     } while (count($msgs) > 0);
 
-    error_log("Purge message for messages before $start");
     $start = date('Y-m-d', strtotime("midnight 30 days ago"));
     $end = date('Y-m-d', strtotime("midnight 60 days ago"));
+    error_log("Purge message for messages before $start and after $end");
     $total = 0;
     $id = NULL;
 
     do {
-        $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND message IS NOT NULL;";
+        $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND message IS NOT NULL AND LENGTH(message) > 0;";
         $msgs = $dbhr->preQuery($sql);
+        error_log("Found " . count($msgs));
         foreach ($msgs as $msg) {
             $sql = "UPDATE messages SET message = NULL WHERE id = {$msg['id']};";
             $count = $dbhmold->preExec($sql, NULL, FALSE);
             $total += $count;
-            error_log("...$id = $total");
+            if ($total % 1000 == 0) {
+                error_log("...$total");
+            }
         }
     } while (count($msgs) > 0);
 
