@@ -15,6 +15,26 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
+# Delete logs for messages which no longer exist.  Typically spam.
+try {
+    error_log("Logs for messages no longer around:");
+    $total = 0;
+    $logs = $dbhm->query("SELECT logs.id FROM logs LEFT JOIN messages ON messages.id = logs.msgid WHERE logs.type = 'Message' AND logs.msgid IS NOT NULL AND messages.id IS NULL;");
+    error_log("Found " . count($logs));
+
+    foreach ($logs as $log) {
+        $sql = "DELETE FROM logs WHERE id = {$log['id']};";
+        $count = $dbhm->exec($sql);
+        $total++;
+
+        if ($total % 1000 == 0) {
+            error_log("...$total");
+        }
+    }
+} catch (Exception $e) {
+    error_log("Failed to delete bounce emails" . $e->getMessage());
+}
+
 # Delete old email bounces.  Any genuinely bouncing emails will result in the user being set as bouncing = 1 fairly
 # rapidly.
 try {
@@ -168,3 +188,5 @@ try {
 } catch (Exception $e) {
     error_log("Failed to delete SQL logs " . $e->getMessage());
 }
+
+error_log("Completed");
