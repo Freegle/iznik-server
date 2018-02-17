@@ -323,6 +323,10 @@ class User extends Entity
             $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY $ordq DESC, email ASC;";
             #error_log("$sql, {$this->id}");
             $this->emails = $this->dbhr->preQuery($sql, [$this->id]);
+
+            foreach ($this->emails as &$email) {
+                $email['ourdomain'] = ourDomain($email['email']);
+            }
         }
 
         return($this->emails);
