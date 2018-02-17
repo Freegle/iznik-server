@@ -490,29 +490,33 @@ class ChatRoom extends Entity
                 $userid
             ]);
 
-            $mysqltime = date("Y-m-d", strtotime(MODTOOLS ? "365 days ago" : "31 days ago"));
+            $mysqltime = date("Y-m-d", strtotime("31 days ago"));
 
             # We don't want to see non-empty chats where all the messages are held for review, because they are likely to
             # be spam.
             $countq = " AND (chat_rooms.msgvalid + chat_rooms.msginvalid = 0 OR chat_rooms.msgvalid > 0) ";
+
+            # We don't want to see chats where you are a backup mod, unless we're specifically searching.
+            $activeq = $search ? '' : ' AND active ';
+
             $rooms = [];
 
             if (!$chattypes || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
                 # We want chats marked by groupid for which we are an active mod.
-                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE t1.role IN ('Moderator', 'Owner') AND active AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
-                #error_log("Mod2Mod chats $sql, $userid");
+                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE t1.role IN ('Moderator', 'Owner') $activeq AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
+                error_log("Mod2Mod chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
-                #error_log("Add " . count($rooms) . " mod chats using $sql");
+                error_log("Add " . count($rooms) . " mod chats using $sql");
             }
 
             if (!$chattypes || in_array(ChatRoom::TYPE_USER2MOD, $chattypes)) {
                 # If we're on ModTools then we want User2Mod chats for our group.
                 #
                 # If we're on the user site then we only want User2Mod chats where we are a user.
-                $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) AND active AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
-                #error_log("List for user, $sql modtools $modtools");
+                $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
+                error_log("List for user, $sql modtools $modtools");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
-                #error_log("Add " . count($rooms) . " user to mod chats using $sql");
+                error_log("Add " . count($rooms) . " user to mod chats using $sql");
             }
 
             if (!$chattypes || in_array(ChatRoom::TYPE_USER2USER, $chattypes)) {
@@ -520,17 +524,17 @@ class ChatRoom extends Entity
                 # it unless we're on MT.
                 $statusq = $modtools ? '' : "AND (status IS NULL OR status NOT IN ('Closed', 'Blocked'))";
                 $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' $statusq $countq;";
-                #error_log("User chats $sql, $userid");
+                error_log("User chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid, $userid]));
-                #error_log("Add " . count($rooms) . " user to user chats using $sql");
+                error_log("Add " . count($rooms) . " user to user chats using $sql");
             }
 
             if (MODTOOLS && (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes))) {
                 # We want chats marked by groupid for which we are a member.  This is mod-only function.
                 $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (status IS NULL OR status != 'Closed') $countq;";
-                #error_log("Group chats $sql, $userid");
+                error_log("Group chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
-                #error_log("Add " . count($rooms) . " group chats using $sql");
+                error_log("Add " . count($rooms) . " group chats using $sql");
             }
 
             if (count($rooms) > 0) {
