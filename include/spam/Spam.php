@@ -517,21 +517,36 @@ class Spam {
                 error_log("Found spam message {$spammsg['id']}");
                 $m = new Message($this->dbhr, $this->dbhm, $spammsg['id']);
                 $m->delete("From known spammer {$spammsg['reason']}");
+                error_log("Deleted");
                 $count++;
             }
         }
 
         # Find any chat messages from spammers.
-        $sql = "UPDATE chat_messages SET reviewrejected = 1 WHERE EXISTS(SELECT 1 FROM spam_users WHERE chat_messages.userid = spam_users.userid AND collection = 'Spammer');";
-        $this->dbhm->preExec($sql);
+        error_log("Find chats from spammers");
+        $chats = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
+        foreach ($chats as $chat) {
+            $sql = "UPDATE chat_messages SET reviewrejected = 1 WHERE id = ?";
+            $this->dbhm->preExec($sql, [ $chat['id'] ]);
+        }
 
         # Delete any newsfeed items from spammers.
-        $sql = "DELETE FROM newsfeed WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');";
-        $this->dbhm->preExec($sql);
+        error_log("Delete newsfeed");
+        $newsfeeds = $this->dbhr->preQuery("SELECT id FROM newsfeed WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
+        foreach ($newsfeeds as $newsfeed) {
+            $sql = "DELETE FROM newsfeed WHERE userid = ?;";
+            $this->dbhm->preExec($sql, [ $newsfeed['id'] ]);
+        }
 
         # Delete any notifications from spammers
-        $sql = "DELETE FROM users_notifications WHERE fromuser IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');";
-        $this->dbhm->preExec($sql);
+        error_log("Delete notifications");
+        $notifs = $this->dbhr->preQuery("SELECT id FROM users_notifications WHERE fromuser IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
+        foreach ($notifs as $notif) {
+            $sql = "DELETE FROM users_notifications WHERE userid = ?;";
+            $this->dbhm->preExec($sql, [ $notif['id'] ]);
+        }
+
+        error_log("Complete");
 
         return($count);
     }
