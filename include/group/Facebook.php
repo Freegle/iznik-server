@@ -101,7 +101,7 @@ class GroupFacebook {
             $ret = $fb->get($sharefrom . "/posts?since=$since&fields=id,link,message,type,caption,icon,name,full_picture", $this->token);
 
             $posts = $ret->getDecodedBody();
-            #error_log("Posts " . var_export($posts, TRUE));
+            #error_log("Posts to share token {$this->token}: " . var_export($posts, TRUE));
 
             foreach ($posts['data'] as $wallpost) {
                 $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [

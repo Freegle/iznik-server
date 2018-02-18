@@ -221,7 +221,7 @@ try {
     $total = 0;
 
     do {
-        $sql = "SELECT messages.id FROM messages WHERE arrival <= '$start' AND id NOT IN (SELECT DISTINCT msgid FROM messages_groups) AND id NOT IN (SELECT DISTINCT refmsgid FROM chat_messages) AND id NOT IN (SELECT DISTINCT msgid FROM messages_drafts) LIMIT 1000;";
+        $sql = "SELECT messages.id FROM messages LEFT JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN chat_messages ON chat_messages.refmsgid = messages.id LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id WHERE messages.arrival <= '$start' AND messages_groups.msgid IS NULL AND chat_messages.refmsgid IS NULL AND messages_drafts.msgid IS NULL LIMIT 1000;";
         $msgs = $dbhr->preQuery($sql);
         foreach ($msgs as $msg) {
             $sql = "DELETE FROM messages WHERE id = {$msg['id']};";
