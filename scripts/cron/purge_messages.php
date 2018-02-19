@@ -224,6 +224,7 @@ try {
         $sql = "SELECT messages.id FROM messages LEFT JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN chat_messages ON chat_messages.refmsgid = messages.id LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id WHERE messages.arrival <= '$start' AND messages_groups.msgid IS NULL AND chat_messages.refmsgid IS NULL AND messages_drafts.msgid IS NULL LIMIT 1000;";
         $msgs = $dbhr->preQuery($sql);
         foreach ($msgs as $msg) {
+            #error_log("...{$msg['id']}");
             $sql = "DELETE FROM messages WHERE id = {$msg['id']};";
             $count = $dbhmold->preExec($sql, NULL, FALSE);
             $total++;

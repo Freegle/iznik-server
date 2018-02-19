@@ -43,6 +43,7 @@ class configTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Basic create
+        error_log("Create");
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $id = $c->create('TestConfig');
         assertNotNull($id);
@@ -51,6 +52,7 @@ class configTest extends IznikTestCase {
         assertNotNull($c);
 
         # Use on a group
+        error_log("Use on group");
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $u = User::get($this->dbhr, $this->dbhm);
@@ -60,6 +62,7 @@ class configTest extends IznikTestCase {
         $c->useOnGroup($uid, $group1);
         assertEquals($id, $c->getForGroup($uid, $group1));
 
+        error_log("Login and get");
         assertTrue($this->user->login('testpw'));
         $configs = $this->user->getConfigs();
         $found = FALSE;
@@ -73,6 +76,7 @@ class configTest extends IznikTestCase {
         unset($_SESSION['id']);
 
         # Another mod on this group with no config set up should pick this one up as shared.
+        error_log("Another mod");
         $c->setPrivate('default', FALSE);
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
@@ -84,8 +88,11 @@ class configTest extends IznikTestCase {
         assertTrue($u2->login('testpw'));
 
         # Sleep for redis cache to expire
+        error_log("Sleep redis");
         sleep(REDIS_TTL+1);
+        error_log("Slept redis");
         $configs = $u2->getConfigs();
+        error_log("Got configs " . count($configs));
         $found = FALSE;
         foreach ($configs as $config) {
             if ($config['id'] == $id) {
@@ -93,9 +100,11 @@ class configTest extends IznikTestCase {
                 assertEquals(ModConfig::CANSEE_SHARED, $config['cansee']);
             }
         }
+        error_log("Looped");
         assertTrue($found);
         unset($_SESSION['id']);
 
+        error_log("New StdMessage");
         $m = new StdMessage($this->dbhr, $this->dbhm);
         $mid = $m->create("TestStdMessage", $id);
         assertNotNull($mid);
@@ -107,20 +116,26 @@ class configTest extends IznikTestCase {
         assertEquals('TestConfig', $c->getPublic()['name']);
         assertEquals('TestStdMessage', $c->getPublic()['stdmsgs'][0]['title']);
 
+        error_log("Delete message");
         $m->delete();
+        error_log("Delete config");
         $c->delete();
 
         # Create as current user
+        error_log("As current user");
         assertTrue($this->user->login('testpw'));
         $id = $c->create('TestConfig');
         assertNotNull($id);
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
         assertNotNull($c);
         assertEquals($this->uid, $c->getPrivate('createdby'));
+
+        error_log("bulk op");
         $b = new BulkOp($this->dbhr, $this->dbhm);
         $bid = $b->create('TestBulk', $id);
         assertNotNull($bid);
 
+        error_log("GetConfigs");
         $configs = $this->user->getConfigs();
 
         # Have to scan as there are defaults.
@@ -135,13 +150,16 @@ class configTest extends IznikTestCase {
         assertTrue($found);
 
         # Sleep for background logging
+        error_log("Wait background");
         $this->waitBackground();
 
+        error_log("Find log");
         $logs = $this->user->getPublic(NULL, FALSE, TRUE)['logs'];
         $log = $this->findLog(Log::TYPE_CONFIG, Log::SUBTYPE_CREATED, $logs);
         assertEquals($this->uid, $log['byuser']['id']);
 
         # Copy
+        error_log("Copy");
         $m = new StdMessage($this->dbhr, $this->dbhm);
         $sid1 = $m->create("TestStdMessage1", $id);
         $sid2 = $m->create("TestStdMessage2", $id);
