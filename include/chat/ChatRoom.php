@@ -1,5 +1,6 @@
 <?php
 
+use Pheanstalk\Pheanstalk;
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
@@ -25,6 +26,8 @@ class ChatRoom extends Entity
     const STATUS_AWAY = 'Away';
     const STATUS_CLOSED = 'Closed';
     const STATUS_BLOCKED = 'Blocked';
+
+    const CACHED_LIST_SIZE = 20;
 
     # States for syncing chats to Facebook.
     const FACEBOOK_SYNC_DONT = 'Dont';                                      # Default - don't sync
@@ -424,8 +427,19 @@ class ChatRoom extends Entity
 
     public function allUnseenForUser($userid, $chattypes, $modtools = FALSE)
     {
-        # Get all unseen messages.
-        $chatids = $this->listForUser($userid, $chattypes, NULL, FALSE, $modtools);
+        # Get all unseen messages.  We might have a cached version.
+        $cached = $this->getCachedList($userid, $chattypes, MODTOOLS);
+        $chatids = [];
+
+        if ($cached) {
+            foreach ($cached as $c) {
+                $chatids[] = $c['id'];
+            }
+        } else {
+            $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
+        }
+
+        $cached = $cached ? $cached :
         $ret = [];
 
         if ($chatids) {
@@ -468,9 +482,134 @@ class ChatRoom extends Entity
             $dates[0]['maxdate'],
             $this->id
         ]);
+
+        $this->updateAnyCachedChatLists();
     }
 
-    public function listForUser($userid, $chattypes = NULL, $search = NULL, $all = FALSE, $modtools = MODTOOLS)
+    private function updateAnyCachedChatLists() {
+        # Request that any cached chat lists which refer to this chat be updated.
+        $cached = $this->dbhr->preQuery("SELECT chatlistid FROM users_chatlists_index WHERE chatid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($cached as $c) {
+            $this->queueCachedListUpdate($c['chatlistid']);
+        }
+    }
+
+    private function getKey($chattypes, $modtools) {
+        sort($chattypes);
+        $key = json_encode($chattypes) . "-" . ($modtools ? 1 : 0);
+        return($key);
+    }
+
+    public function getCachedList($userid, $chattypes, $modtools) {
+        # We maintain a cache of (some of) the lists of chats for users.  This is to speed up processing for
+        # people like mentors who are on very many groups and so have potentially hundreds of chats.
+        $ret = NULL;
+
+        $key = $this->getKey($chattypes, $modtools);
+        $cached = $this->dbhr->preQuery("SELECT * FROM users_chatlists WHERE userid = ? AND `key` = ? AND expired = 0;", [
+            $userid,
+            $key
+        ]);
+
+        foreach ($cached as $c) {
+            $ret = json_decode($c['chatlist'], TRUE);
+        }
+
+        return($ret);
+    }
+
+    public function queueCachedListUpdate($chatlistid) {
+        # Mark this cached list as invalid.  That means that if we need one soon, we will get it the slow - but
+        # up to date - way.
+        $this->dbhm->preExec("UPDATE users_chatlists SET expired = 1 WHERE id = ?;", [
+            $chatlistid
+        ]);
+
+        # Now queue a background update.
+        try {
+            $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+            $pheanstalk->put(json_encode(array(
+                'type' => 'cachedlist',
+                'queued' => time(),
+                'chatlistid' => $chatlistid,
+                'ttr' => 300
+            )));
+        } catch (Exception $e) {
+            # Try again in case it's a temporary error.
+            error_log("Beanstalk exception " . $e->getMessage());
+        }
+    }
+
+    public function updateCachedList($chatlistid) {
+        # We want to update an existing chatlist.  Find it, and get the parameters which we encoded into
+        # the key back again.
+        error_log("Update chatlist $chatlistid");
+        $lists = $this->dbhr->preQuery("SELECT id, userid, `key` FROM users_chatlists WHERE id = ?;", [
+            $chatlistid
+        ]);
+
+        foreach ($lists as $list) {
+            $key = $list['key'];
+
+            if (preg_match('/(.*)\-(.*)/', $key, $matches)) {
+                $userid = $list['userid'];
+                $chattypes = json_decode($matches[1], TRUE);
+                $modtools = intval($matches[2]);
+                error_log("Update for MT=$modtools, $key, user $userid");
+
+                # Now get the info we need.  This is the potentially slow bit, which we are trying to
+                # avoid being user-facing.
+                $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
+                $newlist = [];
+
+                $u = new User($this->dbhr, $this->dbhm, $userid);
+
+                foreach ($chatids as $chatid) {
+                    $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+                    $atts = $r->getPublic($u);
+                    $atts['lastmsgseen'] = $r->lastSeenForUser($userid);
+                    $newlist[] = $atts;
+                }
+
+                # And store it.
+                $this->setCachedList($userid, $chattypes, $modtools, $newlist);
+            }
+        }
+    }
+
+    public function setCachedList($userid, $chattypes, $modtools, $list) {
+        if (count($list > ChatRoom::CACHED_LIST_SIZE)) {
+            # Only bother to save for larger numbers.  For smaller lists we work them out on the fly, which
+            # saves us disk space except where we need it to speed things up.
+            $this->dbhm->preExec("INSERT INTO users_chatlists (userid, `key`, chatlist) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), expired = 0;", [
+                $userid,
+                $this->getKey($chattypes, $modtools),
+                json_encode($list)
+            ]);
+
+            $chatlistid = $this->dbhm->lastInsertId();
+
+            # We have an index which allows us to go from a chat or a user to the chatlist.  We use it to force
+            # refreshes when we change a chat.
+            #
+            # We don't remove entries from this index, so if (for example) we stop being a mod on a group we will
+            # still have some chats we need not have.  This will cause more frequent updates of this list than we
+            # need, though that won't cause any functional issues.
+            # TODO.
+            foreach ($list as $room) {
+                $this->dbhm->preExec("REPLACE INTO users_chatlists_index (userid, chatid, chatlistid) VALUES (?, ?, ?);" , [
+                    $userid,
+                    $room['id'],
+                    $chatlistid
+                ]);
+            }
+        }
+    }
+
+    public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS)
     {
         $ret = [];
 
@@ -504,9 +643,9 @@ class ChatRoom extends Entity
             if (!$chattypes || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
                 # We want chats marked by groupid for which we are an active mod.
                 $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE t1.role IN ('Moderator', 'Owner') $activeq AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
-                error_log("Mod2Mod chats $sql, $userid");
+                #error_log("Mod2Mod chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
-                error_log("Add " . count($rooms) . " mod chats using $sql");
+                #error_log("Add " . count($rooms) . " mod chats using $sql");
             }
 
             if (!$chattypes || in_array(ChatRoom::TYPE_USER2MOD, $chattypes)) {
@@ -514,9 +653,9 @@ class ChatRoom extends Entity
                 #
                 # If we're on the user site then we only want User2Mod chats where we are a user.
                 $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
-                error_log("List for user, $sql modtools $modtools");
+                #error_log("List for user, $sql modtools $modtools");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
-                error_log("Add " . count($rooms) . " user to mod chats using $sql");
+                #error_log("Add " . count($rooms) . " user to mod chats using $sql");
             }
 
             if (!$chattypes || in_array(ChatRoom::TYPE_USER2USER, $chattypes)) {
@@ -524,17 +663,17 @@ class ChatRoom extends Entity
                 # it unless we're on MT.
                 $statusq = $modtools ? '' : "AND (status IS NULL OR status NOT IN ('Closed', 'Blocked'))";
                 $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' $statusq $countq;";
-                error_log("User chats $sql, $userid");
+                #error_log("User chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid, $userid]));
-                error_log("Add " . count($rooms) . " user to user chats using $sql");
+                #error_log("Add " . count($rooms) . " user to user chats using $sql");
             }
 
             if (MODTOOLS && (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes))) {
                 # We want chats marked by groupid for which we are a member.  This is mod-only function.
                 $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (status IS NULL OR status != 'Closed') $countq;";
-                error_log("Group chats $sql, $userid");
+                #error_log("Group chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
-                error_log("Add " . count($rooms) . " group chats using $sql");
+                #error_log("Add " . count($rooms) . " group chats using $sql");
             }
 
             if (count($rooms) > 0) {
@@ -585,7 +724,7 @@ class ChatRoom extends Entity
             ChatRoom::TYPE_MOD2MOD,
             ChatRoom::TYPE_USER2USER,
             ChatRoom::TYPE_USER2MOD
-        ], NULL, TRUE);
+        ], NULL);
 
         return(array_intersect($chatids, $rooms));
     }
@@ -597,7 +736,7 @@ class ChatRoom extends Entity
             $cansee = TRUE;
         } else {
             # It might be a group chat which we can see.
-            $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL, TRUE);
+            $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL);
             #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
             $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
         }
@@ -697,6 +836,8 @@ class ChatRoom extends Entity
                 $this->dbhm->preExec($sql, [$this->id, $lastmsgseen]);
             }
         }
+
+        $this->updateAnyCachedChatLists();
     }
 
     public function getRoster()

@@ -67,6 +67,13 @@ try {
                             break;
                         }
 
+                        case 'cachedlist': {
+                            # Use master to ensure no caching in here.
+                            $r = new ChatRoom($dbhm, $dbhm);
+                            $r->updateCachedList($data['chatlistid']);
+                            break;
+                        }
+
                         case 'exit': {
                             error_log("Asked to exit");
                             $exit = TRUE;
@@ -116,7 +123,7 @@ try {
 
             if (count($sqls) < 5) {
                 # We didn't get many.  Sleep a bit to let them build up.
-                error_log("Not many - sleep");
+                #error_log("Not many - sleep");
                 sleep(1);
             }
         }

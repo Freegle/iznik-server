@@ -448,8 +448,8 @@ class chatRoomsTest extends IznikTestCase {
         $r->updateRoster($u1, NULL, ChatRoom::STATUS_BLOCKED);
 
         # Chat shouldn't show in the list for this user now.
-        self::assertEquals(0, count($r->listForUser($u1, NULL, NULL, FALSE, FALSE)));
-        self::assertEquals(1, count($r->listForUser($u2, NULL, NULL, FALSE, FALSE)));
+        self::assertEquals(0, count($r->listForUser($u1, NULL, NULL, FALSE)));
+        self::assertEquals(1, count($r->listForUser($u2, NULL, NULL, FALSE)));
 
         # Mow send a message from the second to the first.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
