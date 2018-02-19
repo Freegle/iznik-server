@@ -1649,7 +1649,7 @@ class User extends Entity
         }
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE) {
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [ MessageCollection::APPROVED ]) {
         $atts = parent::getPublic();
 
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
@@ -1735,19 +1735,19 @@ class User extends Entity
                 # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
                 $atts['messagehistory'] = [];
                 $sql = NULL;
+                $collq = count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') '") : '';
 
                 if ($groupids && count($groupids) > 0) {
                     # On these groups
                     $groupq = implode(',', $groupids);
-                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
+                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
                 } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
                     # We can see all groups.
-                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
+                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
                 }
 
                 if ($sql) {
                     $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
-                        MessageCollection::APPROVED,
                         $this->id
                     ]);
 
@@ -3436,7 +3436,7 @@ class User extends Entity
             $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
 
             $ctx = NULL;
-            $thisone = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE);
+            $thisone = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE, []);
 
             # We might not have the emails.
             $thisone['email'] = $u->getEmailPreferred();
