@@ -141,10 +141,10 @@ if ($cont) {
     } else {
         # Chat reply or email submission.  We don't want to log chat replies - there are a lot and they clutter up
         # the logs.
-        $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to);
+        $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
 
         error_log("Email");
-        $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, !$chat);
+        $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
         $rc = $r->route();
     }
 }

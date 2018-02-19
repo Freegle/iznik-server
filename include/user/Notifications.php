@@ -145,7 +145,7 @@ class Notifications
                 ->setBody("Thanks - we've turned off the mails for notifications.")
                 ->addPart($html, 'text/html');
 
-            $this->sendOne($mailer, $message);
+            $this->sendIt($mailer, $message);
         }
     }
 
