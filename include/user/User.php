@@ -1735,7 +1735,7 @@ class User extends Entity
                 # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
                 $atts['messagehistory'] = [];
                 $sql = NULL;
-                $collq = count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') '") : '';
+                $collq = count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ") : '';
 
                 if ($groupids && count($groupids) > 0) {
                     # On these groups
