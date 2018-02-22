@@ -568,10 +568,14 @@ class ChatRoom extends Entity
                 $u = new User($this->dbhr, $this->dbhm, $userid);
 
                 foreach ($chatids as $chatid) {
+                    # We fake being logged in as this user to ensure we get the right unread count.  This method
+                    # is only called in the context of the background process so we won't mess up other stuff.
+                    $_SESSION['id'] = $userid;
                     $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
                     $atts = $r->getPublic($u);
                     $atts['lastmsgseen'] = $r->lastSeenForUser($userid);
                     $newlist[] = $atts;
+                    $_SESSION['id'] = NULL;
                 }
 
                 # And store it.
