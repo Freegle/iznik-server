@@ -88,13 +88,16 @@ class Digest
         $gatts = $g->getPublic();
         $sent = 0;
 
+        # The placement ID for ads just needs to be unique.
+        $placementid = "msgdigest-$groupid-$frequency-" . microtime(true);
+
         if ($this->errorlog) { error_log("#$groupid " . $g->getPrivate('nameshort') . " send emails for $frequency"); }
 
         # Make sure we have a tracking entry.
         $sql = "INSERT IGNORE INTO groups_digests (groupid, frequency) VALUES (?, ?);";
         $this->dbhm->preExec($sql, [ $groupid, $frequency ]);
 
-        $sql = "SELECT TIMESTAMPDIFF(MINUTE, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE  groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago IS NULL OR timeago >= frequency * 60;";
+        $sql = "SELECT TIMESTAMPDIFF(MINUTE, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago IS NULL OR timeago >= frequency * 60;";
         #error_log("Look for groups to process $sql, $groupid, $frequency");
         $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
 
@@ -274,7 +277,9 @@ class Digest
                             '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST),
                             '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups', User::SRC_DIGEST),
                             '{{creds}}' => $creds,
-                            '{{replyto}}' => $u->getId()
+                            '{{replyto}}' => $u->getId(),
+                            '{{LI_HASH}}' =>  hash('sha1', $email),
+                            '{{LI_PLACEMENT_ID}}' => $placementid
                         ];
                     }
                 }
