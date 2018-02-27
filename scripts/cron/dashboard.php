@@ -10,7 +10,7 @@ $lockh = lockScript(basename(__FILE__));
 
 # Look for any dashboards which need refreshing.  Any which exist need updating now as we are run by cron
 # at the start of a new day.  Any which don't exist will be created on demand.
-$todos = $dbhr->preQuery("SELECT id, `key`, type, userid, systemwide, groupid, start FROM users_dashboard WHERE timestamp <= '$mysqltime';");
+$todos = $dbhr->preQuery("SELECT id, `key`, type, userid, systemwide, groupid, start FROM users_dashboard;");
 
 foreach ($todos as $todo) {
     $me = $todo['userid'] ? (new User($dbhr, $dbhm, $todo['userid'])) : NULL;
