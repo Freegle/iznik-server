@@ -15,7 +15,7 @@ function groups() {
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',
-                'groups' => $g->listByType($grouptype, $support)
+                'groups' => $g->listByType($grouptype, $support, MODTOOLS)
             ];
         }
     }
