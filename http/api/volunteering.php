@@ -76,7 +76,7 @@ function volunteering() {
                     if ($title && $location && $description) {
                         $id = $c->create($me->getId(), $title, $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment);
 
-                        if (pres('groupid', $_REQUEST)) {
+                        if (pres('groupid', $_REQUEST) && intval($_REQUEST['groupid']) > 0) {
                             $c->addGroup(intval($_REQUEST['groupid']));
                         }
                     }
