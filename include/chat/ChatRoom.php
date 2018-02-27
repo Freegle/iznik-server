@@ -282,7 +282,7 @@ class ChatRoom extends Entity
                 }
             }
 
-            $spammer = $s->getSpammerByUserid($ret['user1']);
+            $spammer = $s->getSpammerByUserid($ret['user1']['id']);
             $ret['user1']['spammer'] =  $spammer !== NULL;
         }
 
@@ -301,7 +301,7 @@ class ChatRoom extends Entity
                 }
             }
 
-            $spammer = $s->getSpammerByUserid($ret['user2']);
+            $spammer = $s->getSpammerByUserid($ret['user2']['id']);
             $ret['user2']['spammer'] =  $spammer !== NULL;
         }
 
@@ -502,9 +502,9 @@ class ChatRoom extends Entity
 
     public function updateAnyCachedChatLists() {
         # Request that any cached chat lists which refer to this chat be updated.
-        $cached = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index WHERE chatid = ?;", [
+        $cached = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN users_chatlists ON users_chatlists.id = users_chatlists_index.chatlistid WHERE chatid = ? AND expired = 0;", [
             $this->id
-        ]);
+        ], FALSE, FALSE);
 
         foreach ($cached as $c) {
             $this->queueCachedListUpdate($c['chatlistid']);
@@ -513,8 +513,8 @@ class ChatRoom extends Entity
         # If this is a chat relating to a group, then queue updates for all mods for that group.  This handles
         # the case when a chat is created between a user and the mods, for example.
         if (pres('groupid', $this->chatroom)) {
-            $mods = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN memberships ON users_chatlists_index.userid = memberships.userid WHERE groupid = ? AND role IN ('Owner', 'Moderator');",
-                [ $this->chatroom['groupid'] ]);
+            $mods = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN users_chatlists ON users_chatlists.id = users_chatlists_index.chatlistid INNER JOIN memberships ON users_chatlists_index.userid = memberships.userid WHERE groupid = ? AND role IN ('Owner', 'Moderator') AND expired = 0;",
+                [ $this->chatroom['groupid'] ], FALSE, FALSE);
 
             foreach ($mods as $mod) {
                 $this->queueCachedListUpdate($mod['chatlistid']);
@@ -577,11 +577,10 @@ class ChatRoom extends Entity
         ]);
 
         foreach ($lists as $list) {
-            #error_log("Last updated " . strtotime($list['timestamp']) . " vs $queued");
-
             # If we have updated the list since we queued a request to do so, we don't need to do it again.  This
             # helps avoid a build up of duplicate requests within the queue causing a car crash pile up of work.
             if (strtotime($list['timestamp']) < $queued) {
+                #error_log("Last updated " . strtotime($list['timestamp']) . " vs $queued");
                 #error_log("Update");
                 $key = $list['key'];
 
@@ -620,7 +619,9 @@ class ChatRoom extends Entity
         if (count($list > ChatRoom::CACHED_LIST_SIZE)) {
             # Only bother to save for larger numbers.  For smaller lists we work them out on the fly, which
             # saves us disk space except where we need it to speed things up.
-            $this->dbhm->preExec("INSERT INTO users_chatlists (userid, `key`, chatlist, background) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), expired = 0, background = ?;", [
+            #
+            # Use IGNORE in case the user has been deleted in the mean time, e.g. in UT.
+            $this->dbhm->preExec("INSERT IGNORE INTO users_chatlists (userid, `key`, chatlist, background) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), expired = 0, background = ?;", [
                 $userid,
                 $this->getKey($chattypes, $modtools),
                 json_encode($list),
@@ -814,12 +815,13 @@ class ChatRoom extends Entity
         }
 
         # We might have cached lists.
-        $cached = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index WHERE chatid = ? AND userid = ?;", [
+        $cached = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN users_chatlists ON users_chatlists.id = users_chatlists_index.chatlistid WHERE chatid = ? AND users_chatlists_index.userid = ? AND expired = 0;", [
             $this->id,
             $userid
-        ]);
+        ], FALSE, FALSE);
 
         foreach ($cached as $c) {
+            #error_log("Queue update for {$c['chatlistid']}");
             $this->queueCachedListUpdate($c['chatlistid']);
         }
     }

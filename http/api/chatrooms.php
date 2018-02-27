@@ -35,6 +35,7 @@ function chatrooms() {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                     $ret['chatrooms'] = $search ? NULL : $r->getCachedList($myid, $chattypes, MODTOOLS);
+                    $ret['chatrooms'] = NULL;
 
                     if (!$ret['chatrooms']) {
                         $rooms = $r->listForUser($myid, $chattypes, $search);
@@ -97,10 +98,8 @@ function chatrooms() {
                             $r = new ChatRoom($dbhr, $dbhm, $chatid);
 
                             $unseen = $r->unseenCountForUser($myid);
-                            if ($unseen > 0) {
-                                $r->upToDate($myid);
-                                $count += $unseen;
-                            }
+                            $r->upToDate($myid);
+                            $count += $unseen;
                         }
                     }
 
