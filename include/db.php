@@ -75,7 +75,10 @@ class DBResults implements Iterator {
     }
 
     public function checkQuerying() {
-        return $this->querying;
+        # We don't want to claim to be querying if the query has gone on too long, otherwise if a query is
+        # interrupted we might end up with bad data in the cache which never clears.
+        $old = time() - $this->time > LoggedPDO::CACHE_EXPIRY * 2;
+        return $this->querying && !$old;
     }
 
     public function setQuerying($b = true) {
