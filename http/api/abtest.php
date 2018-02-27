@@ -26,7 +26,7 @@ function abtest() {
                 $variant = $variants[$s];
             } else {
                 # Most of the time we choose the currently best-performing option.
-                $variant = $variants[0];
+                $variant = count($variants) > 0 ? $variants[0] : NULL;
             }
 
             $ret = [
