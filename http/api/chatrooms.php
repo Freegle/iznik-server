@@ -50,7 +50,7 @@ function chatrooms() {
                         }
 
                         if (!$search) {
-                            $r->setCachedList($myid, $chattypes, MODTOOLS, $ret['chatrooms']);
+                            $r->setCachedList($myid, $chattypes, MODTOOLS, $ret['chatrooms'], FALSE);
                         }
                     }
                 }
