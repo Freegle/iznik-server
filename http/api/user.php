@@ -315,7 +315,7 @@ function user() {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
             # We can only delete members, to be safe.
-            if ($me && $me->isAdminOrSupport() && !$u->isModerator()) {
+            if ($me && $me->isAdminOrSupport() && ($me->isAdmin() || !$u->isModerator())) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
                 $u->delete();
             }
