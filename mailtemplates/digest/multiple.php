@@ -105,6 +105,11 @@ EOT;
                                                                 <table border="0" cellpadding="0" cellspacing="0" ><tr><td colspan="2"><a style="display: block; width: 300px; height: 250px;" href="http://li.ilovefreegle.org/click?s=285301&sz=300x250&sh={{LI_HASH}}&p={{LI_PLACEMENT_ID}}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285301&sz=300x250&sh={{LI_HASH}}&p={{LI_PLACEMENT_ID}}" border="0" width="300" height="250"/></a></td></tr><tr style="display:block; height:1px; line-height:1px;"><td><img src="http://li.ilovefreegle.org/imp?s=285302&sz=1x1&sh={{LI_HASH}}&p={{LI_PLACEMENT_ID}}" height="1" width="10" /></td><td><img src="http://li.ilovefreegle.org/imp?s=285303&sz=1x1&sh={{LI_HASH}}&p={{LI_PLACEMENT_ID}}" height="1" width="10" /></td></tr><tr><td align="left"><a href="http://li.ilovefreegle.org/click?s=285298&sz=116x15&sh={{LI_HASH}}&p={{LI_PLACEMENT_ID}}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285298&sz=116x15&sh={{LI_HASH}}&p={{LI_PLACEMENT_ID}}" border="0"/></a></td><td align="right"><a href="http://li.ilovefreegle.org/click?s=285299&sz=69x15&sh={{LI_HASH}}&p={{LI_PLACEMENT_ID}}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285299&sz=69x15&sh={{LI_HASH}}&p={{LI_PLACEMENT_ID}}" border="0"/></a></td></tr></table>                                                           
                                                             </td>
                                                         </tr>        
+                                                        <tr>
+                                                            <td colspan="2">
+                                                                <font color=gray><hr></font>
+                                                            </td>
+                                                        </tr>        
 EOT;
 
     if ($available != '') {

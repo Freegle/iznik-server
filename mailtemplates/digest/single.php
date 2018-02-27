@@ -105,6 +105,11 @@ EOT;
                                                             </td>
                                                         </tr>        
                                                         <tr>
+                                                            <td colspan="2">
+                                                                <font color=gray><hr></font>
+                                                            </td>
+                                                        </tr>        
+                                                        <tr>
                                                             <td colspan="2" class="mobile" align="center" valign="top">
                                                                 $msghtml
                                                             </td>
