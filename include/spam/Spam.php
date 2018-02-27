@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php.php');
 
 use GeoIp2\Database\Reader;
 
@@ -522,10 +523,14 @@ class Spam {
         }
 
         # Find any chat messages from spammers.
-        $chats = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
+        $chats = $this->dbhr->preQuery("SELECT id, chatid FROM chat_messages WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
         foreach ($chats as $chat) {
             $sql = "UPDATE chat_messages SET reviewrejected = 1 WHERE id = ?";
             $this->dbhm->preExec($sql, [ $chat['id'] ]);
+
+            # Upate any chatlists so that we will know that they are a spammer and show a warning.
+            $cr = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
+            $cr->updateAnyCachedChatLists();
         }
 
         # Delete any newsfeed items from spammers.

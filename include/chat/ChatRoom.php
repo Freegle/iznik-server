@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/session/Facebook.php');
+require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_notify.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_notify_mod.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_chaseup_mod.php');
@@ -263,6 +264,9 @@ class ChatRoom extends Entity
             $ret['group'] = $g->getPublic();
         }
 
+        # We return whether someone is on the spammer list so that we can warn members.
+        $s = new Spam($this->dbhr, $this->dbhm);
+
         if (pres('user1', $ret)) {
             if ($ret['user1'] == $myid && $mepub) {
                 $ret['user1'] = $mepub;
@@ -277,6 +281,9 @@ class ChatRoom extends Entity
                     $ret['user1']['email'] = $u->getEmailPreferred();
                 }
             }
+
+            $spammer = $s->getSpammerByUserid($ret['user1']);
+            $ret['user1']['spammer'] =  $spammer !== NULL;
         }
 
         if (pres('user2', $ret)) {
@@ -293,6 +300,9 @@ class ChatRoom extends Entity
                     $ret['user2']['email'] = $u->getEmailPreferred();
                 }
             }
+
+            $spammer = $s->getSpammerByUserid($ret['user2']);
+            $ret['user2']['spammer'] =  $spammer !== NULL;
         }
 
         # Icon for chat
@@ -490,7 +500,7 @@ class ChatRoom extends Entity
         $this->updateAnyCachedChatLists();
     }
 
-    private function updateAnyCachedChatLists() {
+    public function updateAnyCachedChatLists() {
         # Request that any cached chat lists which refer to this chat be updated.
         $cached = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index WHERE chatid = ?;", [
             $this->id
