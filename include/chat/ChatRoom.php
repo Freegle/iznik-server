@@ -323,10 +323,6 @@ class ChatRoom extends Entity
 
         $ret['unseen'] = $this->unseenCountForUser($myid);
 
-        if ($this->id == 3703051) {
-            error_log("Unseen {$ret['unseen']} for user $myid");
-        }
-
         # The name we return is not the one we created it with, which is internal.
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
