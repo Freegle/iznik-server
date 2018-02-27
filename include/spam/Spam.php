@@ -2,7 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
-require_once(IZNIK_BASE . '/include/chat/ChatRoom.php.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 
 use GeoIp2\Database\Reader;
 
