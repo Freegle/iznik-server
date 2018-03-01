@@ -88,9 +88,6 @@ class Digest
         $gatts = $g->getPublic();
         $sent = 0;
 
-        # The placement ID for ads just needs to be unique.
-        $placementid = "msgdigest-$groupid-$frequency-" . microtime(true);
-
         if ($this->errorlog) { error_log("#$groupid " . $g->getPrivate('nameshort') . " send emails for $frequency"); }
 
         # Make sure we have a tracking entry.
@@ -266,6 +263,10 @@ class Digest
                     if ($email && $email != MODERATOR_EMAIL && $u->sendOurMails($g)) {
                         $t = $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST);
                         $creds = substr($t, strpos($t, '?'));
+
+                        # The placement ID for ads needs to be unique.  We want to generated it here so that
+                        # not everyone in a single run gets the same ad.
+                        $placementid = "msgdigest-$groupid-$frequency-" . microtime(true);
 
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
