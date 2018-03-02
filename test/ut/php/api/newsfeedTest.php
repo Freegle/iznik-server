@@ -126,6 +126,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         }));
 
         assertEquals(1, $n->digest($this->uid2));
+        $this->waitBackground();
         assertEquals(0, $n->digest($this->uid2));
 
         # Hack it to have a message for coverage
@@ -202,6 +203,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         $ret = $this->call('notification', 'POST', [
             'id' => $notifid,
             'action' => 'Seen'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('notification', 'POST', [
+            'id' => $notifid,
+            'action' => 'AllSeen'
         ]);
         assertEquals(0, $ret['ret']);
 

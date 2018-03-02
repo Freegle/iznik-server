@@ -110,7 +110,7 @@ class Notifications
         return($id);
     }
 
-    public function seen($userid, $id) {
+    public function seen($userid, $id = NULL) {
         $idq = $id ? (" AND id = " . intval($id)) : '';
         $sql = "UPDATE users_notifications SET seen = 1 WHERE touser = ? $idq;";
         $rc = $this->dbhm->preExec($sql, [ $userid ] );
