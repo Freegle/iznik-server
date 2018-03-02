@@ -227,7 +227,7 @@ try {
                 $atts = $n->getPublic();
                 $desc = preg_replace('/\\\\\\\\u.*\\\\\\\\u/', '', $atts['message']);
 
-                if ($atts['user']) {
+                if (pres('user', $atts)) {
                     $title = $atts['user']['displayname'] . "'s discussion on " . SITE_NAME;
                     $image = $atts['user']['profile']['url'];
                 }
