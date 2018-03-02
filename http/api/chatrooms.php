@@ -35,7 +35,6 @@ function chatrooms() {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                     $ret['chatrooms'] = $search ? NULL : $r->getCachedList($myid, $chattypes, MODTOOLS);
-                    $ret['chatrooms'] = NULL;
 
                     if (!$ret['chatrooms']) {
                         $rooms = $r->listForUser($myid, $chattypes, $search);

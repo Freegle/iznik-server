@@ -269,7 +269,7 @@ class PushNotifications
             [ $groupid ]);
 
         foreach ($mods as $mod) {
-            $this->poke($mod['userid'], $data);
+            $this->poke($mod['userid'], $data, TRUE);
             $count++;
         }
 
@@ -285,7 +285,7 @@ class PushNotifications
         return(fputs($fp, $str));
     }
 
-    public function poke($userid, $data) {
+    public function poke($userid, $data, $modtools) {
         # This kicks a user who is online at the moment with an outstanding long poll.
         #
         # TODO Handle multiple application servers
@@ -297,6 +297,7 @@ class PushNotifications
         $topdata = array(
             'text' => $data,
             'channel' => $userid,
+            'modtools' => $modtools,
             'id' => 1
         );
 

@@ -171,7 +171,7 @@ class ChatRoom extends Entity
                 if ($myid != $user) {
                     $n->poke($user, [
                         'newroom' => $id
-                    ]);
+                    ], FALSE);
                 }
             }
         }
@@ -843,6 +843,9 @@ class ChatRoom extends Entity
                 $this->id,
                 $userid
             ], FALSE);
+
+            # This chat should then not show, so we need to update cached lists.
+            $this->updateAnyCachedChatLists();
         }
 
         if ($lastmsgseen && !is_nan($lastmsgseen)) {
@@ -952,7 +955,7 @@ class ChatRoom extends Entity
             $pu = User::get($this->dbhr, $this->dbhm, $userid);
             if (count($pu->getMemberships())  > 0) {
                 #error_log("Poke {$rost['userid']} for {$this->id}");
-                $n->poke($userid, $data);
+                $n->poke($userid, $data, $mods);
                 $count++;
             }
         }
@@ -1020,7 +1023,7 @@ class ChatRoom extends Entity
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         foreach ($userids as $userid) {
             if ($userid != $excludeuser) {
-                $n->notify($userid);
+                $n->notify($userid, FALSE);
             }
         }
 
