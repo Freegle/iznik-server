@@ -311,6 +311,11 @@ class Digest
                                 # worth the double-loop we have in this function?
                                 $html = preg_replace('/(https:\/\/' . USER_SITE . '\/message\/[0-9]*)/', '$1' . $rep['{{creds}}'], $msg['html']);
 
+                                # If the text bodypart is empty, then it is omitted.  For mail clients set to display
+                                # the text bodypart, they may then make an attempt to display the HTML bodypart as
+                                # text, which looks wrong.  So make sure it's not empty.
+                                $msg['text'] = $msg['text'] ? $msg['text'] : '.';
+
                                 $message = Swift_Message::newInstance()
                                     ->setSubject($msg['subject'])
                                     ->setFrom([$msg['from'] => $msg['fromname']])
