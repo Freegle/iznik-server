@@ -2,6 +2,9 @@
 function message() {
     global $dbhr, $dbhm;
 
+//    $dbhr->setErrorLog(TRUE);
+//    $dbhm->setErrorLog(TRUE);
+
     $me = whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
