@@ -449,7 +449,6 @@ class ChatRoom extends Entity
             $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
         }
 
-        $cached = $cached ? $cached :
         $ret = [];
 
         if ($chatids) {
@@ -660,7 +659,7 @@ class ChatRoom extends Entity
             # Use a temp table for memberships to improve performance.  We want to know if this is an active chat for us -
             # always the case for groups where we have a member role, but for mods we might have marked ourselves as a
             # backup on the group.
-            $this->dbhr->preQuery("DROP TEMPORARY TABLE IF EXISTS t1; CREATE TEMPORARY TABLE t1 (SELECT groupid, role, role = 'Member' OR ((role IN ('Owner', 'Moderator') AND (settings IS NULL OR LOCATE('\"active\"', settings) = 0 OR LOCATE('\"active\":1', settings) > 0))) AS active FROM memberships WHERE userid = ?);", [
+            $this->dbhr->preQuery("DROP TEMPORARY TABLE IF EXISTS t1; CREATE TEMPORARY TABLE t1 (SELECT groupid, role, role = 'Member' OR ((role IN ('Owner', 'Moderator') AND (settings IS NULL OR LOCATE('\"active\"', settings) = 0 OR LOCATE('\"active\":1', settings) > 0))) AS active FROM memberships WHERE userid = ?); ALTER TABLE t1 ADD INDEX(groupid);", [
                 $userid
             ]);
 
