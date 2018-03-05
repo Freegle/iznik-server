@@ -283,8 +283,8 @@ class Spam {
             }
         }
 
-        # TODO Removed after 2017-11-01
-        if (strpos($message, '$') !== FALSE || (strpos($message, '£7000') === FALSE && strpos($message, '£') !== FALSE)) {
+        # Email addresses are suspect too.
+        if (strpos($message, '@') !== FALSE || strpos($message, '(a)') !== FALSE) {
             $check = TRUE;
         }
 
