@@ -36,6 +36,9 @@ function chatrooms() {
 
                     $ret['chatrooms'] = $search ? NULL : $r->getCachedList($myid, $chattypes, MODTOOLS);
 
+                    # TODO Cached list not yet trusted for live.
+                    $ret['chatrooms'] = NULL;
+
                     if (!$ret['chatrooms']) {
                         $rooms = $r->listForUser($myid, $chattypes, $search);
                         $ret['chatrooms'] = [];
