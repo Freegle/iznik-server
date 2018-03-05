@@ -284,8 +284,8 @@ class Spam {
         }
 
         # Email addresses are suspect too.
-        if (strpos($message, '@') !== FALSE || strpos($message, '(a)') !== FALSE) {
-            $check = TRUE;
+        if (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE || strpos($message, '@') !== FALSE || strpos($message, '(a)') !== FALSE) {
+                $check = TRUE;
         }
 
         if ($this->checkReferToSpammer($message)) {

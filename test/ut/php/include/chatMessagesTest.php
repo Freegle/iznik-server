@@ -299,6 +299,9 @@ class chatMessagesTest extends IznikTestCase {
         # Porn
         assertTrue($m->checkReview('http://spam&#12290;ru'));
 
+        # Email
+        assertTrue($m->checkReview('Test email@domain.com'));
+
         error_log(__METHOD__ . " end");
     }
 
