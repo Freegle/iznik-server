@@ -1,5 +1,5 @@
 #!/bin/bash
-EMAIL=geeks@ilovefreegle.org
+EMAIL=log@ehibbert.org.uk
 #
 # Restore the last backup into MySQL.  For use on the archive server.
 /etc/init.d/mysql stop
