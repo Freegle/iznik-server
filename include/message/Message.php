@@ -36,6 +36,8 @@ class Message
     const LIKE_LOVE = 'Love';
     const LIKE_LAUGH = 'Laugh';
 
+    const EMAIL_REGEXP = '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i';
+
     // Bounce checks.
     private $bounce_subjects = [
         "Unable to deliver your message",
@@ -850,7 +852,7 @@ class Message
         if ($role == User::ROLE_NONMEMBER) {
             # For non-members we want to strip out any potential phone numbers or email addresses.
             $ret['textbody'] = preg_replace('/[0-9]{4,}/', '***', $ret['textbody']);
-            $ret['textbody'] = preg_replace('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i', '***@***.com', $ret['textbody']);
+            $ret['textbody'] = preg_replace(Message::EMAIL_REGEXP, '***@***.com', $ret['textbody']);
 
             # We can't do this in HTML, so just zap it.
             $ret['htmlbody'] = NULL;

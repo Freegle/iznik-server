@@ -300,7 +300,8 @@ class chatMessagesTest extends IznikTestCase {
         assertTrue($m->checkReview('http://spam&#12290;ru'));
 
         # Email
-        assertTrue($m->checkReview('Test email@domain.com'));
+        assertTrue($m->checkReview("Test\r\nTest email@domain.com\r\n"));
+        assertFalse($m->checkReview("Test\r\nTest email@" . USER_DOMAIN . " email\r\n"));
 
         error_log(__METHOD__ . " end");
     }

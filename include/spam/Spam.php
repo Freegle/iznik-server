@@ -283,9 +283,19 @@ class Spam {
             }
         }
 
-        # Email addresses are suspect too.
-        if (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE || strpos($message, '@') !== FALSE || strpos($message, '(a)') !== FALSE) {
-                $check = TRUE;
+        if (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE || strpos($message, '(a)') !== FALSE) {
+            $check = TRUE;
+        }
+
+        # Email addresses are suspect too; a scammer technique is to take the conversation offlist.
+        if (preg_match_all(Message::EMAIL_REGEXP, $message, $matches)) {
+            foreach ($matches as $val) {
+                foreach ($val as $email) {
+                    if (!ourDomain($email) && strpos($email, 'trashnothing') === FALSE) {
+                        $check = TRUE;
+                    }
+                }
+            }
         }
 
         if ($this->checkReferToSpammer($message)) {
