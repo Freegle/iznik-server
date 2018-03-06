@@ -291,7 +291,7 @@ class Spam {
         if (preg_match_all(Message::EMAIL_REGEXP, $message, $matches)) {
             foreach ($matches as $val) {
                 foreach ($val as $email) {
-                    if (!ourDomain($email) && strpos($email, 'trashnothing') === FALSE) {
+                    if (!ourDomain($email) && strpos($email, 'trashnothing') === FALSE && strpos($email, 'yahoogroups') === FALSE) {
                         $check = TRUE;
                     }
                 }
