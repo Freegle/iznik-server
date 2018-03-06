@@ -1,6 +1,5 @@
 <mjml>
   <mj-head>
-    <mj-preview></mj-preview>
       <mj-style>
         a {
           color: #288c0a;
