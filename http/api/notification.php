@@ -38,13 +38,26 @@ function notification() {
                 $id = intval(presdef('id', $_REQUEST, NULL));
                 $action = presdef('action', $_REQUEST, NULL);
 
-                if ($action == 'Seen') {
-                    $n->seen($me->getId(), $id);
+                switch ($action) {
+                    case 'Seen': {
+                        $n->seen($me->getId(), $id);
 
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                        break;
+                    }
+
+                    case 'AllSeen': {
+                        $n->seen($me->getId());
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                        break;
+                    }
                 }
                 break;
             }

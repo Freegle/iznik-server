@@ -94,7 +94,7 @@ class Digest
         $sql = "INSERT IGNORE INTO groups_digests (groupid, frequency) VALUES (?, ?);";
         $this->dbhm->preExec($sql, [ $groupid, $frequency ]);
 
-        $sql = "SELECT TIMESTAMPDIFF(MINUTE, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE  groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago IS NULL OR timeago >= frequency * 60;";
+        $sql = "SELECT TIMESTAMPDIFF(MINUTE, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago IS NULL OR timeago >= frequency * 60;";
         #error_log("Look for groups to process $sql, $groupid, $frequency");
         $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
 
@@ -264,6 +264,10 @@ class Digest
                         $t = $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST);
                         $creds = substr($t, strpos($t, '?'));
 
+                        # The placement ID for ads needs to be unique.  We want to generated it here so that
+                        # not everyone in a single run gets the same ad.
+                        $placementid = "msgdigest-$groupid-$frequency-" . microtime(true);
+
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{bounce}}' => $u->getBounce(),
@@ -274,7 +278,9 @@ class Digest
                             '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST),
                             '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups', User::SRC_DIGEST),
                             '{{creds}}' => $creds,
-                            '{{replyto}}' => $u->getId()
+                            '{{replyto}}' => $u->getId(),
+                            '{{LI_HASH}}' =>  hash('sha1', $email),
+                            '{{LI_PLACEMENT_ID}}' => $placementid
                         ];
                     }
                 }
@@ -304,6 +310,11 @@ class Digest
                                 # TODO This is a bit ugly.  Now that we send a single message per recipient is it
                                 # worth the double-loop we have in this function?
                                 $html = preg_replace('/(https:\/\/' . USER_SITE . '\/message\/[0-9]*)/', '$1' . $rep['{{creds}}'], $msg['html']);
+
+                                # If the text bodypart is empty, then it is omitted.  For mail clients set to display
+                                # the text bodypart, they may then make an attempt to display the HTML bodypart as
+                                # text, which looks wrong.  So make sure it's not empty.
+                                $msg['text'] = $msg['text'] ? $msg['text'] : '.';
 
                                 $message = Swift_Message::newInstance()
                                     ->setSubject($msg['subject'])

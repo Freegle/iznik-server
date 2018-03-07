@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/session/Facebook.php');
+require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_notify.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_notify_mod.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_chaseup_mod.php');
@@ -170,7 +171,7 @@ class ChatRoom extends Entity
                 if ($myid != $user) {
                     $n->poke($user, [
                         'newroom' => $id
-                    ]);
+                    ], FALSE);
                 }
             }
         }
@@ -263,6 +264,9 @@ class ChatRoom extends Entity
             $ret['group'] = $g->getPublic();
         }
 
+        # We return whether someone is on the spammer list so that we can warn members.
+        $s = new Spam($this->dbhr, $this->dbhm);
+
         if (pres('user1', $ret)) {
             if ($ret['user1'] == $myid && $mepub) {
                 $ret['user1'] = $mepub;
@@ -277,6 +281,9 @@ class ChatRoom extends Entity
                     $ret['user1']['email'] = $u->getEmailPreferred();
                 }
             }
+
+            $spammer = $s->getSpammerByUserid($ret['user1']['id']);
+            $ret['user1']['spammer'] =  $spammer !== NULL;
         }
 
         if (pres('user2', $ret)) {
@@ -293,6 +300,9 @@ class ChatRoom extends Entity
                     $ret['user2']['email'] = $u->getEmailPreferred();
                 }
             }
+
+            $spammer = $s->getSpammerByUserid($ret['user2']['id']);
+            $ret['user2']['spammer'] =  $spammer !== NULL;
         }
 
         # Icon for chat
@@ -337,7 +347,7 @@ class ChatRoom extends Entity
                 break;
         }
 
-        $refmsgs = $this->dbhr->preQuery("SELECT DISTINCT refmsgid FROM chat_messages INNER JOIN messages ON messages.id = refmsgid AND messages.type IN ('Offer', 'Wanted') WHERE chatid = ?;", [$this->id]);
+        $refmsgs = $this->dbhr->preQuery("SELECT DISTINCT refmsgid FROM chat_messages INNER JOIN messages ON messages.id = refmsgid AND messages.type IN ('Offer', 'Wanted') WHERE chatid = ? ORDER BY refmsgid DESC;", [$this->id]);
         $ret['refmsgids'] = [];
         foreach ($refmsgs as $refmsg) {
             $ret['refmsgids'][] = $refmsg['refmsgid'];
@@ -439,7 +449,6 @@ class ChatRoom extends Entity
             $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
         }
 
-        $cached = $cached ? $cached :
         $ret = [];
 
         if ($chatids) {
@@ -486,14 +495,25 @@ class ChatRoom extends Entity
         $this->updateAnyCachedChatLists();
     }
 
-    private function updateAnyCachedChatLists() {
+    public function updateAnyCachedChatLists() {
         # Request that any cached chat lists which refer to this chat be updated.
-        $cached = $this->dbhr->preQuery("SELECT chatlistid FROM users_chatlists_index WHERE chatid = ?;", [
+        $cached = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN users_chatlists ON users_chatlists.id = users_chatlists_index.chatlistid WHERE chatid = ? AND expired = 0;", [
             $this->id
-        ]);
+        ], FALSE, FALSE);
 
         foreach ($cached as $c) {
             $this->queueCachedListUpdate($c['chatlistid']);
+        }
+
+        # If this is a chat relating to a group, then queue updates for all mods for that group.  This handles
+        # the case when a chat is created between a user and the mods, for example.
+        if (pres('groupid', $this->chatroom)) {
+            $mods = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN users_chatlists ON users_chatlists.id = users_chatlists_index.chatlistid INNER JOIN memberships ON users_chatlists_index.userid = memberships.userid WHERE groupid = ? AND role IN ('Owner', 'Moderator') AND expired = 0;",
+                [ $this->chatroom['groupid'] ], FALSE, FALSE);
+
+            foreach ($mods as $mod) {
+                $this->queueCachedListUpdate($mod['chatlistid']);
+            }
         }
     }
 
@@ -543,56 +563,70 @@ class ChatRoom extends Entity
         }
     }
 
-    public function updateCachedList($chatlistid) {
+    public function updateCachedList($chatlistid, $queued = NULL) {
         # We want to update an existing chatlist.  Find it, and get the parameters which we encoded into
         # the key back again.
-        error_log("Update chatlist $chatlistid");
-        $lists = $this->dbhr->preQuery("SELECT id, userid, `key` FROM users_chatlists WHERE id = ?;", [
+        #error_log("Update chatlist $chatlistid request queued at $queued");
+        $lists = $this->dbhr->preQuery("SELECT id, timestamp, userid, `key` FROM users_chatlists WHERE id = ?;", [
             $chatlistid
         ]);
 
         foreach ($lists as $list) {
-            $key = $list['key'];
+            # If we have updated the list since we queued a request to do so, we don't need to do it again.  This
+            # helps avoid a build up of duplicate requests within the queue causing a car crash pile up of work.
+            if (strtotime($list['timestamp']) < $queued) {
+                #error_log("Last updated " . strtotime($list['timestamp']) . " vs $queued");
+                #error_log("Update");
+                $key = $list['key'];
 
-            if (preg_match('/(.*)\-(.*)/', $key, $matches)) {
-                $userid = $list['userid'];
-                $chattypes = json_decode($matches[1], TRUE);
-                $modtools = intval($matches[2]);
-                error_log("Update for MT=$modtools, $key, user $userid");
+                if (preg_match('/(.*)\-(.*)/', $key, $matches)) {
+                    $userid = $list['userid'];
+                    $chattypes = json_decode($matches[1], TRUE);
+                    $modtools = intval($matches[2]);
+                    error_log("Update for MT=$modtools, $key, user $userid");
 
-                # Now get the info we need.  This is the potentially slow bit, which we are trying to
-                # avoid being user-facing.
-                $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
-                $newlist = [];
+                    # Now get the info we need.  This is the potentially slow bit, which we are trying to
+                    # avoid being user-facing.
+                    $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
+                    $newlist = [];
 
-                $u = new User($this->dbhr, $this->dbhm, $userid);
+                    $u = new User($this->dbhr, $this->dbhm, $userid);
 
-                foreach ($chatids as $chatid) {
-                    $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-                    $atts = $r->getPublic($u);
-                    $atts['lastmsgseen'] = $r->lastSeenForUser($userid);
-                    $newlist[] = $atts;
+                    foreach ($chatids as $chatid) {
+                        # We fake being logged in as this user to ensure we get the right unread count.  This method
+                        # is only called in the context of the background process so we won't mess up other stuff.
+                        $_SESSION['id'] = $userid;
+                        $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+                        $atts = $r->getPublic($u);
+                        $atts['lastmsgseen'] = $r->lastSeenForUser($userid);
+                        $newlist[] = $atts;
+                        $_SESSION['id'] = NULL;
+                    }
+
+                    # And store it.
+                    $this->setCachedList($userid, $chattypes, $modtools, $newlist, TRUE);
                 }
-
-                # And store it.
-                $this->setCachedList($userid, $chattypes, $modtools, $newlist);
             }
         }
     }
 
-    public function setCachedList($userid, $chattypes, $modtools, $list) {
+    public function setCachedList($userid, $chattypes, $modtools, $list, $background) {
         if (count($list > ChatRoom::CACHED_LIST_SIZE)) {
             # Only bother to save for larger numbers.  For smaller lists we work them out on the fly, which
             # saves us disk space except where we need it to speed things up.
-            $this->dbhm->preExec("INSERT INTO users_chatlists (userid, `key`, chatlist) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), expired = 0;", [
+            #
+            # Use IGNORE in case the user has been deleted in the mean time, e.g. in UT.
+            $this->dbhm->preExec("INSERT IGNORE INTO users_chatlists (userid, `key`, chatlist, background) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), expired = 0, background = ?;", [
                 $userid,
                 $this->getKey($chattypes, $modtools),
-                json_encode($list)
+                json_encode($list),
+                $background,
+                $background
             ]);
 
             $chatlistid = $this->dbhm->lastInsertId();
 
-            # We have an index which allows us to go from a chat or a user to the chatlist.  We use it to force
+            # We have an index which allows us to go from a chat or user to the chatlist.  We use it to force
             # refreshes when we change a chat.
             #
             # We don't remove entries from this index, so if (for example) we stop being a mod on a group we will
@@ -625,7 +659,7 @@ class ChatRoom extends Entity
             # Use a temp table for memberships to improve performance.  We want to know if this is an active chat for us -
             # always the case for groups where we have a member role, but for mods we might have marked ourselves as a
             # backup on the group.
-            $this->dbhr->preQuery("DROP TEMPORARY TABLE IF EXISTS t1; CREATE TEMPORARY TABLE t1 (SELECT groupid, role, role = 'Member' OR ((role IN ('Owner', 'Moderator') AND (settings IS NULL OR LOCATE('\"active\"', settings) = 0 OR LOCATE('\"active\":1', settings) > 0))) AS active FROM memberships WHERE userid = ?);", [
+            $this->dbhr->preQuery("DROP TEMPORARY TABLE IF EXISTS t1; CREATE TEMPORARY TABLE t1 (SELECT groupid, role, role = 'Member' OR ((role IN ('Owner', 'Moderator') AND (settings IS NULL OR LOCATE('\"active\"', settings) = 0 OR LOCATE('\"active\":1', settings) > 0))) AS active FROM memberships WHERE userid = ?); ALTER TABLE t1 ADD INDEX(groupid);", [
                 $userid
             ]);
 
@@ -774,6 +808,17 @@ class ChatRoom extends Entity
                     $msg['max']
                 ]);
         }
+
+        # We might have cached lists.
+        $cached = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN users_chatlists ON users_chatlists.id = users_chatlists_index.chatlistid WHERE chatid = ? AND users_chatlists_index.userid = ? AND expired = 0;", [
+            $this->id,
+            $userid
+        ], FALSE, FALSE);
+
+        foreach ($cached as $c) {
+            #error_log("Queue update for {$c['chatlistid']}");
+            $this->queueCachedListUpdate($c['chatlistid']);
+        }
     }
 
     public function updateRoster($userid, $lastmsgseen, $status = ChatRoom::STATUS_ONLINE)
@@ -797,6 +842,9 @@ class ChatRoom extends Entity
                 $this->id,
                 $userid
             ], FALSE);
+
+            # This chat should then not show, so we need to update cached lists.
+            $this->updateAnyCachedChatLists();
         }
 
         if ($lastmsgseen && !is_nan($lastmsgseen)) {
@@ -906,7 +954,7 @@ class ChatRoom extends Entity
             $pu = User::get($this->dbhr, $this->dbhm, $userid);
             if (count($pu->getMemberships())  > 0) {
                 #error_log("Poke {$rost['userid']} for {$this->id}");
-                $n->poke($userid, $data);
+                $n->poke($userid, $data, $mods);
                 $count++;
             }
         }
@@ -974,7 +1022,7 @@ class ChatRoom extends Entity
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         foreach ($userids as $userid) {
             if ($userid != $excludeuser) {
-                $n->notify($userid);
+                $n->notify($userid, FALSE);
             }
         }
 

@@ -35,6 +35,8 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+
+        $_SESSION['id'] = NULL;
     }
 
     protected function tearDown()
@@ -225,6 +227,8 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($uid);
+        assertNotNull($this->uid);
 
         # Create an unseen message
         $c = new ChatRoom($this->dbhr, $this->dbhm);

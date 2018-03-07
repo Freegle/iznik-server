@@ -37,11 +37,11 @@
         <mj-section background-color="#F7F6EC">
           <mj-column>
             <mj-raw>
-            {% if password %}
+            {% if password is defined and password is not null %}
             </mj-raw>
             <mj-text font-weight="700">Here's your password: {{ password }}.</mj-text>
             <mj-raw>
-            <% endif %}
+            {% endif %}
             </mj-raw>
             <mj-text>We could give you a ten page long Terms of Use. Like you'd read that.<br/>As far as we're concerned, it's simple...
               <ol>

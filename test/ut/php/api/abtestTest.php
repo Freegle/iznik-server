@@ -66,13 +66,16 @@ class abtestAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # Wait for cache.
+        error_log("Sleep " . (LoggedPDO::CACHE_EXPIRY + 1));
         sleep(LoggedPDO::CACHE_EXPIRY + 1);
+        error_log("Slept");
 
         # Now get until we've seen both.
         $seena = FALSE;
         $seenb = FALSE;
 
         do {
+            error_log("Try get");
             $ret = $this->call('abtest', 'GET', [
                 'uid' => 'UT'
             ]);

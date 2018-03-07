@@ -107,7 +107,7 @@ function image() {
                     # We may need to rotate.
                     $data = file_get_contents($photo['tmp_name']);
                     $image = imagecreatefromstring($data);
-                    $exif = exif_read_data($photo['tmp_name']);
+                    $exif = @exif_read_data($photo['tmp_name']);
 
                     if($exif && !empty($exif['Orientation'])) {
                         switch($exif['Orientation']) {

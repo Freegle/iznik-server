@@ -95,28 +95,28 @@ class pushNotificationsTest extends IznikTestCase {
             ->setMethods(array('fsockopen'))
             ->getMock();
         $mock->method('fsockopen')->willThrowException(new Exception());
-        $mock->poke($id, [ 'ut' => 1 ]);
+        $mock->poke($id, [ 'ut' => 1 ], FALSE);
 
         $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('fputs'))
             ->getMock();
         $mock->method('fputs')->willThrowException(new Exception());
-        $mock->poke($id, [ 'ut' => 1 ]);
+        $mock->poke($id, [ 'ut' => 1 ], FALSE);
 
         $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('fsockopen'))
             ->getMock();
         $mock->method('fsockopen')->willReturn(NULL);
-        $mock->poke($id, [ 'ut' => 1 ]);
+        $mock->poke($id, [ 'ut' => 1 ], FALSE);
 
         $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('puts'))
             ->getMock();
         $mock->method('puts')->willReturn(NULL);
-        $mock->poke($id, [ 'ut' => 1 ]);
+        $mock->poke($id, [ 'ut' => 1 ], FALSE);
         
         error_log(__METHOD__ . " end");
     }

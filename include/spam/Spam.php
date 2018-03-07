@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 
 use GeoIp2\Database\Reader;
 
@@ -282,9 +283,19 @@ class Spam {
             }
         }
 
-        # TODO Removed after 2017-11-01
-        if (strpos($message, '$') !== FALSE || (strpos($message, '£7000') === FALSE && strpos($message, '£') !== FALSE)) {
+        if (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE || strpos($message, '(a)') !== FALSE) {
             $check = TRUE;
+        }
+
+        # Email addresses are suspect too; a scammer technique is to take the conversation offlist.
+        if (preg_match_all(Message::EMAIL_REGEXP, $message, $matches)) {
+            foreach ($matches as $val) {
+                foreach ($val as $email) {
+                    if (!ourDomain($email) && strpos($email, 'trashnothing') === FALSE && strpos($email, 'yahoogroups') === FALSE) {
+                        $check = TRUE;
+                    }
+                }
+            }
         }
 
         if ($this->checkReferToSpammer($message)) {
@@ -522,10 +533,14 @@ class Spam {
         }
 
         # Find any chat messages from spammers.
-        $chats = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
+        $chats = $this->dbhr->preQuery("SELECT id, chatid FROM chat_messages WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
         foreach ($chats as $chat) {
             $sql = "UPDATE chat_messages SET reviewrejected = 1 WHERE id = ?";
             $this->dbhm->preExec($sql, [ $chat['id'] ]);
+
+            # Upate any chatlists so that we will know that they are a spammer and show a warning.
+            $cr = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
+            $cr->updateAnyCachedChatLists();
         }
 
         # Delete any newsfeed items from spammers.

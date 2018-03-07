@@ -36,6 +36,9 @@ function chatrooms() {
 
                     $ret['chatrooms'] = $search ? NULL : $r->getCachedList($myid, $chattypes, MODTOOLS);
 
+                    # TODO Cached list not yet trusted for live.
+                    $ret['chatrooms'] = NULL;
+
                     if (!$ret['chatrooms']) {
                         $rooms = $r->listForUser($myid, $chattypes, $search);
                         $ret['chatrooms'] = [];
@@ -50,7 +53,7 @@ function chatrooms() {
                         }
 
                         if (!$search) {
-                            $r->setCachedList($myid, $chattypes, MODTOOLS, $ret['chatrooms']);
+                            $r->setCachedList($myid, $chattypes, MODTOOLS, $ret['chatrooms'], FALSE);
                         }
                     }
                 }
@@ -97,10 +100,8 @@ function chatrooms() {
                             $r = new ChatRoom($dbhr, $dbhm, $chatid);
 
                             $unseen = $r->unseenCountForUser($myid);
-                            if ($unseen > 0) {
-                                $r->upToDate($myid);
-                                $count += $unseen;
-                            }
+                            $r->upToDate($myid);
+                            $count += $unseen;
                         }
                     }
 

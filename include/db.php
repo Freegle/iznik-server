@@ -75,7 +75,10 @@ class DBResults implements Iterator {
     }
 
     public function checkQuerying() {
-        return $this->querying;
+        # We don't want to claim to be querying if the query has gone on too long, otherwise if a query is
+        # interrupted we might end up with bad data in the cache which never clears.
+        $old = time() - $this->time > LoggedPDO::CACHE_EXPIRY * 2;
+        return $this->querying && !$old;
     }
 
     public function setQuerying($b = true) {
@@ -186,12 +189,15 @@ class LoggedPDO {
                 $this->_db = new PDO($dsn, $username, $password, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
                 $gotit = TRUE;
             } catch (Exception $e) {
+                error_log("DB connect exception " . $e->getMessage());
                 sleep(1);
                 $count++;
             }
         } while (!$gotit && $count < 30);
         
         $this->dbwaittime += microtime(true) - $start;
+
+        #error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for connect");
 
         $this->cache = NULL;
 
@@ -523,6 +529,10 @@ class LoggedPDO {
 
         $this->dbwaittime += microtime(true) - $start;
 
+        if ($this->errorLog) {
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for $sql ");
+        }
+
         return($ret);
     }
 
@@ -578,6 +588,10 @@ class LoggedPDO {
         #error_log("Query took " . (microtime(true) - $start) . " $sql" );
         $this->dbwaittime += microtime(true) - $start;
 
+        if ($this->errorLog) {
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for $sql ");
+        }
+
         return($ret);
     }
 
@@ -611,6 +625,10 @@ class LoggedPDO {
             $this->background($logsql);
         }
 
+        if ($this->errorLog) {
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for rollback");
+        }
+
         return($rc);
     }
 
@@ -620,6 +638,10 @@ class LoggedPDO {
         $ret = $this->_db->beginTransaction();
         $duration = microtime(true) - $this->transactionStart;
         $this->dbwaittime += $duration;
+
+        if ($this->errorLog) {
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $this->transactionStart) * 1000), 2) . "ms for beginTransaction");
+        }
 
         if (SQLLOG) {
             $mysqltime = date("Y-m-d H:i:s", time());
@@ -643,6 +665,10 @@ class LoggedPDO {
 
         $this->dbwaittime += $duration;
 
+        if ($this->errorLog) {
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for commit");
+        }
+
         if (SQLLOG) {
             $mysqltime = date("Y-m-d H:i:s", time());
             $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
@@ -660,12 +686,19 @@ class LoggedPDO {
         $ret = $this->retryExec($sql);
         $this->lastInsert = $this->_db->lastInsertId();
 
+        $duration = microtime(true) - $time;
+
         if ($log && SQLLOG) {
             $mysqltime = date("Y-m-d H:i:s", time());
-            $duration = microtime(true) - $time;
             $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql) . "," . $this->quote($ret . ":" . $this->lastInsert) . ");";
             $this->background($logsql);
+        }
+
+        $this->dbwaittime += $duration;
+
+        if ($this->errorLog) {
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for exec $sql");
         }
 
         return($ret);
@@ -687,6 +720,7 @@ class LoggedPDO {
     public function background($sql) {
         $count = 0;
         $fn = NULL;
+        $time = microtime(true);
 
         do {
             $done = FALSE;
@@ -727,6 +761,10 @@ class LoggedPDO {
                 $count++;
             }
         } while (!$done && $count < 10);
+
+        if ($this->errorLog) {
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for background $sql");
+        }
 
         return($fn);
     }

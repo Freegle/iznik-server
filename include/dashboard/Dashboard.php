@@ -63,7 +63,7 @@ class Dashboard {
 
         $ret = NULL;
 
-        if ($usecache) {
+        if ($usecache && !$force) {
             $cached = $this->dbhr->preQuery($usecache);
 
             if (count($cached) > 0) {

@@ -29,6 +29,8 @@ try {
         $sqls = [];
         $events = [];
         $count = 0;
+        $chatlists = [];
+        $chatlistsqueued = 0;
 
         do {
             if ($job) {
@@ -68,9 +70,17 @@ try {
                         }
 
                         case 'cachedlist': {
-                            # Use master to ensure no caching in here.
-                            $r = new ChatRoom($dbhm, $dbhm);
-                            $r->updateCachedList($data['chatlistid']);
+                            # If we have updated the chat list since this request to do so was queued, there is no
+                            # need to do it again.  So we want to know the latest time we have requested an
+                            # update for this one.  This means that if we have multiple requests for an update in
+                            # our queue, we will only do the last one.
+                            $id = $data['chatlistid'];
+                            $queued = $data['queued'];
+                            $chatlists[$id] = $queued;
+                            $chatlistsqueued++;
+
+                            # Ensure we keep looping.
+                            $count--;
                             break;
                         }
 
@@ -154,6 +164,14 @@ try {
             #error_log(count($events) . " events");
 
             $dbhm->exec($sql, FALSE);
+        }
+
+        #error_log("Chatlists to update " . count($chatlists) . " vs found $chatlistsqueued");
+
+        foreach ($chatlists as $id => $queued) {
+            # Use master to ensure no caching in here.
+            $r = new ChatRoom($dbhm, $dbhm);
+            $r->updateCachedList($id, $queued);
         }
     }
 } catch (Exception $e) {
