@@ -12,7 +12,13 @@ timestamp=$(date +%Y-%m-%d-%H-%M)
 
 pgrep mysql
 if [ $? == 0 ]; then
-    # run a backup and stream the output directly to Google storage
+    # ...to our archive server
+    $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
+
+    # Kick off the restore
+    ssh root@archive "nohup /var/www/iznik/scripts/restore > /tmp/restore.out 2>&1 &"
+
+    # ...to Google storage
     $BACKUP | gzip - | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar.gz > /tmp/gsutil.out 2>&1
 
     if [ $? == 0 ]; then
@@ -26,9 +32,6 @@ if [ $? == 0 ]; then
        # problem with initial backup :(
        echo "Couldn't do a mysql backup" | mail -s "BACKUP ERROR: MySQL backup failed" $EMAIL
     fi
-
-    # ...and one to our archive server
-    $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
 else
     echo "MySQL not running"| mail -s "BACKUP ERROR: MySQL not running" $EMAIL
 fi
