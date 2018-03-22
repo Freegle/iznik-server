@@ -3427,6 +3427,7 @@ class User extends Entity
                 (SELECT id AS userid FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE yahooid LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE id = ?) UNION
+                (SELECT userid FROM users_logins WHERE uid LIKE $q) UNION
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)) t WHERE userid > ? ORDER BY userid ASC";
         $users = $this->dbhr->preQuery($sql, [$search, $id]);
 
