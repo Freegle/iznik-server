@@ -63,6 +63,12 @@ try {
                             break;
                         }
 
+                        case 'notifygroupmods': {
+                            $n = new PushNotifications($dbhr, $dbhm);
+                            $n->executeNotifyGroupGroups($data['userid']);
+                            break;
+                        }
+
                         case 'facebooknotif': {
                             $n = new Facebook($dbhr, $dbhm);
                             $n->executeNotify($data['fbid'], $data['message'], $data['href']);

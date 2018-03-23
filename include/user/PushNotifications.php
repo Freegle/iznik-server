@@ -85,7 +85,6 @@ class PushNotifications
 
             $id = $this->pheanstalk->put($str);
         } catch (Exception $e) {
-            # Try again in case it's a temporary error.
             error_log("Beanstalk exception " . $e->getMessage());
             $this->pheanstalk = NULL;
         }
@@ -246,6 +245,33 @@ class PushNotifications
     }
 
     public function notifyGroupMods($groupid) {
+        $ret = TRUE;
+
+        # We background this as it's slow.
+        try {
+            $this->uthook();
+
+            if (!$this->pheanstalk) {
+                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+            }
+
+            $str = json_encode(array(
+                'type' => 'notifygroupmods',
+                'queued' => time(),
+                'groupid' => $groupid
+            ));
+
+            $id = $this->pheanstalk->put($str);
+        } catch (Exception $e) {
+            error_log("notifyGroupMods Beanstalk exception " . $e->getMessage());
+            $this->pheanstalk = NULL;
+            $ret = FALSE;
+        }
+
+        return($ret);
+    }
+
+    public function executeNotifyGroupGroups($groupid) {
         $count = 0;
         $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');",
             [ $groupid ]);
