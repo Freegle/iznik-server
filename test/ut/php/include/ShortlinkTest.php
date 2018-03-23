@@ -47,6 +47,17 @@ class shortlinkTest extends IznikTestCase {
         $s = new Shortlink($this->dbhr, $this->dbhm, $id);
         $atts = $s->getPublic();
         self::assertEquals('testgroup', $atts['name']);
+
+        $list = $s->listAll();
+        $found = FALSE;
+        foreach ($list as $l) {
+            if ($id === $l['id']) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
+
         $s->delete();
 
         error_log(__METHOD__ . " end");

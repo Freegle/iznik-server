@@ -560,10 +560,13 @@ function checkSpamhaus($url) {
 
         foreach ($blacklists as $blacklist) {
             $domain = $parsed['host'] . '.' . $blacklist . '.';
-            $record = @dns_get_record($domain, DNS_A);
+            error_log("DBL test $domain");
+            $record = dns_get_record($domain, DNS_A);
+            error_log("Record " . var_export($record, TRUE));
 
             if ($record != NULL && count($record) > 0) {
                 foreach ($record as $entry) {
+                    error_log("Returned " . var_export($entry, TRUE));
                     if (array_key_exists('ip', $entry) && strpos($entry['ip'], '127.0.1') === 0) {
                         #error_log("Spamhaus blocked $url");
                         $ret = TRUE;
