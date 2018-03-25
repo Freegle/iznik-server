@@ -555,8 +555,10 @@ class User extends Entity
         # Invalidate cache.
         $this->emails = NULL;
 
-        if (stripos($email, '-owner@yahoogroups.co') !== FALSE) {
-            # We don't allow people to add Yahoo owner addresses as the address of an individual user.
+        if (stripos($email, '-owner@yahoogroups.co') !== FALSE ||
+            stripos($email, '@' .GROUP_DOMAIN) !== FALSE) {
+            # We don't allow people to add Yahoo owner addresses as the address of an individual user, or
+            # the volunteer addresses.
             $rc = NULL;
         } else {
             # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
