@@ -1092,6 +1092,11 @@ class User extends Entity
             $ret[] = $thisone;
         }
 
+        # Return in alphabetical order.
+        usort($ret, function($a, $b) {
+            return(strcmp(strtolower($a['name']), strtolower($b['name'])));
+        });
+
         return($ret);
     }
     
