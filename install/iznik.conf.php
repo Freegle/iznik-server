@@ -132,7 +132,7 @@ define('CENTRAL_MAIL_FROM', 'geeks@ilovefreegle.org');
 # This speeds up load time
 define('MINIFY', TRUE);
 
-define('DONATION_TARGET', 1500);
+define('DONATION_TARGET', 2000);
 
 # For test scripts
 define('USER_TEST_SITE', 'https://iznik.ilovefreegle.org');
