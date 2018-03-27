@@ -1060,6 +1060,7 @@ class userTest extends IznikTestCase {
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
+        $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
 
         # Set up some things to ensure we have coverage.
         $atts = $u->getPublic();
@@ -1085,6 +1086,7 @@ class userTest extends IznikTestCase {
         $n->delete();
 
         $encoded = json_encode($data);
+        error_log("Export " . var_export($encoded, TRUE));
         #file_put_contents('/tmp/export', $encoded);
 
         error_log(__METHOD__ . " end");

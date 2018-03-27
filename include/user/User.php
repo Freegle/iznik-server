@@ -4058,13 +4058,62 @@ class User extends Entity
         $d['Permissions you have on the site'] = $this->getPrivate('permissions');
         $d['Number of remaining invitations you can send to other people'] = $this->getPrivate('invitesleft');
 
+        $lastlocation  = $this->getPrivate('lastlocation');
+
+        if ($lastlocation) {
+            $l = new Location($this->dbhr, $this->dbhm, $lastlocation);
+            $d['Last location you posted from'] = $l->getPrivate('name') . ' (' . $l->getPrivate('lat') . ', ' . $l->getPrivate('lng') . ')';
+        }
+
+        $settings = $this->getPrivate('settings');
+
+        if ($settings) {
+            $location  = $this->getPrivate('mylocation');
+
+            if ($lastlocation) {
+                $l = new Location($this->dbhr, $this->dbhm, $location);
+                $d['Last location you entered'] = $l->getPrivate('name') . ' (' . $l->getPrivate('lat') . ', ' . $l->getPrivate('lng') . ')';
+            }
+        }
+
+        if ($settings) {
+            $settings = json_decode($settings, TRUE);
+
+            $notifications = pres('notifications', $settings);
+
+            if ($notifications) {
+                $d['Notifications']['Send email notifications for chat messages'] = $notifications['email'] ? 'Yes' : 'No';
+                $d['Notifications']['Send email notifications of chat messages you send'] = $notifications['emailmine'] ? 'Yes' : 'No';
+                $d['Notifications']['Send notifications for Android/IOS apps'] = $notifications['app'] ? 'Yes' : 'No';
+                $d['Notifications']['Send "push" notifications to web browsers'] = $notifications['push'] ? 'Yes' : 'No';
+                $d['Notifications']['Send Facebook notifications'] = $notifications['facebook'] ? 'Yes' : 'No';
+                $d['Notifications']['Send emails about notifications on the site'] = $notifications['notificationmails'] ? 'Yes' : 'No';
+            }
+
+            $d['Hide profile picture'] = presdef('useprofile', $settings, TRUE) ? 'Yes' : 'No';
+
+            if ($this->isModerator()) {
+                $d['Show members that you are a moderator'] = pres('showmod', $settings) ? 'Yes' : 'No';
+
+                switch (presdef('modnotifs', $settings, 4)) {
+                    case 24: $d['Send notifications of mod work'] = 'After 24 hours'; break;
+                    case 12: $d['Send notifications of mod work'] = 'After 12 hours'; break;
+                    case 4: $d['Send notifications of mod work'] = 'After 4 hours'; break;
+                    case 2: $d['Send notifications of mod work'] = 'After 2 hours'; break;
+                    case 1: $d['Send notifications of mod work'] = 'After 1 hours'; break;
+                    case 0: $d['Send notifications of mod work'] = 'Immediately'; break;
+                    case -1: $d['Send notifications of mod work'] = 'Never'; break;
+                }
+
+                $d['Show members that you are a moderator'] = presdef('showmod', $settings, TRUE) ? 'Yes' : 'No';
+            }
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
-//        'users' =>
 //  'alerts_tracking' =>
 //  'chat_messages' =>
-//  ',
 //  'chat_rooms' =>
 //  'chat_roster' =>
 //  'communityevents' =>
@@ -4118,67 +4167,67 @@ class User extends Entity
 //  'users_searches' =>
 //  'otherinfo' =>
 
-
-        foreach ($tables as $tname => $fields) {
-            $fieldq = '';
-
-
-            foreach ($fields as $field) {
-                $fieldq = $fieldq == '' ? '' : " $fieldq OR ";
-                $fieldq .= "`$field` = {$this->id}";
-            }
-
-            $sql = "SELECT * FROM $tname WHERE $fieldq";
-            $rows = $this->dbhr->preQuery($sql);
-
-            foreach ($rows as $row) {
-                $ret[$tname][] = $row;
-            }
-        }
-
-        # Remove very transient data
-        unset($ret['logs_sql']);
-        unset($ret['logs_api']);
-        unset($ret['sessions']);
-
-        # Censor credentials.
-        if (array_key_exists('users_logins', $ret)) {
-            foreach ($ret['users_logins'] as &$login) {
-                $login['credentials'] = '<removed>';
-            }
-        }
-
-        # Remove newsfeed position - derived from lat/lng in user which we show elsewhere, so removing doesn't hide
-        # anything, but that field is a geometry so looks a mess.
-        if (array_key_exists('newsfeed', $ret)) {
-            foreach ($ret['newsfeed'] as &$n) {
-                unset($n['position']);
-            }
-        }
-
-        # For the user's images, add a link so they can actually see them.
-        if (array_key_exists('users_images', $ret)) {
-            foreach ($ret['users_images'] as &$i) {
-                $a = new Attachment($this->dbhr, $this->dbhm, $i['id'], Attachment::TYPE_USER);
-                $i['url'] = $a->getPath();
-            }
-        }
-
-        # We want to include some basic info about some entities that we might have included an id for in the above info
-        # to ensure that the info in the export actually makes sense.  For example, we will have referenced a groupid
-        # in there, but it's not obvious which group that actually is without a bit of help.
-        $this->additional = [];
-
-        array_walk_recursive($ret, [ $this, 'exportContext' ]);
-
-        foreach ($this->additional as $key => $add) {
-            $ret['otherinfo'][$key] = $add;
-        }
+//
+//        foreach ($tables as $tname => $fields) {
+//            $fieldq = '';
+//
+//
+//            foreach ($fields as $field) {
+//                $fieldq = $fieldq == '' ? '' : " $fieldq OR ";
+//                $fieldq .= "`$field` = {$this->id}";
+//            }
+//
+//            $sql = "SELECT * FROM $tname WHERE $fieldq";
+//            $rows = $this->dbhr->preQuery($sql);
+//
+//            foreach ($rows as $row) {
+//                $ret[$tname][] = $row;
+//            }
+//        }
+//
+//        # Remove very transient data
+//        unset($ret['logs_sql']);
+//        unset($ret['logs_api']);
+//        unset($ret['sessions']);
+//
+//        # Censor credentials.
+//        if (array_key_exists('users_logins', $ret)) {
+//            foreach ($ret['users_logins'] as &$login) {
+//                $login['credentials'] = '<removed>';
+//            }
+//        }
+//
+//        # Remove newsfeed position - derived from lat/lng in user which we show elsewhere, so removing doesn't hide
+//        # anything, but that field is a geometry so looks a mess.
+//        if (array_key_exists('newsfeed', $ret)) {
+//            foreach ($ret['newsfeed'] as &$n) {
+//                unset($n['position']);
+//            }
+//        }
+//
+//        # For the user's images, add a link so they can actually see them.
+//        if (array_key_exists('users_images', $ret)) {
+//            foreach ($ret['users_images'] as &$i) {
+//                $a = new Attachment($this->dbhr, $this->dbhm, $i['id'], Attachment::TYPE_USER);
+//                $i['url'] = $a->getPath();
+//            }
+//        }
+//
+//        # We want to include some basic info about some entities that we might have included an id for in the above info
+//        # to ensure that the info in the export actually makes sense.  For example, we will have referenced a groupid
+//        # in there, but it's not obvious which group that actually is without a bit of help.
+//        $this->additional = [];
+//
+//        array_walk_recursive($ret, [ $this, 'exportContext' ]);
+//
+//        foreach ($this->additional as $key => $add) {
+//            $ret['otherinfo'][$key] = $add;
+//        }
 
         filterResult($ret);
 
         # Check whether we processed all the tables we ought to have.
-        $ret = count($tables) == 0 ? $ret : NULL;
+//        $ret = count($tables) == 0 ? $ret : NULL;
 
         return($ret);
     }
