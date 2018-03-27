@@ -42,13 +42,24 @@ function user() {
             $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $info = array_key_exists('info', $_REQUEST) ? filter_var($_REQUEST['info'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $ctx = presdef('logcontext', $_REQUEST, NULL);
+            $export = array_key_exists('export', $_REQUEST) ? filter_var($_REQUEST['export'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
             $u = User::get($dbhr, $dbhm, $id);
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
             if ($u && $me) {
-                if ($search) {
+                if ($export) {
+                    # Can export our own entry, or any for admin/support.
+                    if ($u->getId() == $me->getId() || $me->isAdminOrSupport()) {
+                        $data = $u->export();
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'export' => $data
+                        ];
+                    }
+                } else if ($search) {
                     # Admin or support can search users.
                     if ($me->isAdminOrSupport()) {
                         $users = $u->search($search, $ctx);

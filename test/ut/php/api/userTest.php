@@ -518,5 +518,35 @@ class userAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testExport() {
+        error_log(__METHOD__);
+
+        # Try logged out - should fail
+        $_SESSION['id'] = NULL;
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->user->getId(),
+            'export' => TRUE
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        # Now log in
+        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->user->getId(),
+            'export' => TRUE
+        ]);
+
+        error_log("Export returned " . var_export($ret, TRUE));
+
+        assertEquals(0, $ret['ret']);
+        assertEquals($this->user->getId(), $ret['export']['user']['Our internal ID for you']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
