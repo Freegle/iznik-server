@@ -2180,7 +2180,7 @@ class User extends Entity
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         $ret = FALSE;
 
-        if ($u1->canMerge() && $u2->canMerge()) {
+        if ($id1 != $id2 && $u1->canMerge() && $u2->canMerge()) {
             #
             # We want to merge two users.  At present we just merge the memberships, comments, emails and logs; we don't try to
             # merge any conflicting settings.
@@ -3976,10 +3976,18 @@ class User extends Entity
     }
 
     public function export() {
-        # We want to export every last bit of information we hold about a user.  To avoid having to frequently
-        # revisit this code we automate it using the foreign keys in the scheme.  There are a few tables which
-        # don't use foreign keys (e.g. logs, where we don't want to lose the information about the user if it's
-        # deleted) so we pick those up by looking for userid/user as fields in the tables.
+        # For GDPR we support the ability for a user to export the data we hold about them.  Key points about this:
+        #
+        # - It needs to be at a high level of abstraction and understandable by the user, not just a cryptic data
+        #   dump.
+        # - It needs to include data provided by the user and data observed about the user, but not profiling
+        #   or categorisation based on that data.  This means that (for example) we need to return which
+        #   groups they have joined, but not whether joining those groups has flagged them up as a potential
+        #   spammer.
+        #
+        # It would be easy over time to add new features and forget to add them to this export, so we
+        # look at the schema to find all references to the user.  We can then tick them off as we deal with them,
+        # and fail if we end up with any left.  This protects us against that kind of code decay.
         global $dbconfig;
         $dbname = $dbconfig['database'];
 
@@ -4031,6 +4039,85 @@ class User extends Entity
 
         # Now collect the data.
         $ret = [];
+
+        # Data in user table.
+        $d = [];
+        $d['Our internal ID for you'] = $this->getPrivate('id');
+        $d['Your full name'] = $this->getPrivate('fullname');
+        $d['Your first name'] = $this->getPrivate('firstname');
+        $d['Your last name'] = $this->getPrivate('lastname');
+        $d['Yahoo\'s internal ID for you'] = $this->getPrivate('yahooUserId');
+        $d['Your Yahoo ID'] = $this->getPrivate('yahooid');
+        $d['Your role on the system'] = $this->getPrivate('systemrole');
+        $d['When you joined the site'] = ISODate($this->getPrivate('added'));
+        $d['When you last accessed the site'] = ISODate($this->getPrivate('lastaccess'));
+        $d['When we last checked for relevant posts for you'] = ISODate($this->getPrivate('lastrelevantcheck'));
+        $d['Whether we can scan your messages to protect other users'] = $this->getPrivate('ripaconsent') ? 'Yes' : 'No';
+        $d['Whether we can publish your OFFERs/WANTEDs outside the site'] = $this->getPrivate('publishconsent') ? 'Yes' : 'No';
+        $d['Whether your email is bouncing'] = $this->getPrivate('bouncing') ? 'Yes' : 'No';
+        $d['Permissions you have on the site'] = $this->getPrivate('permissions');
+        $d['Number of remaining invitations you can send to other people'] = $this->getPrivate('invitesleft');
+
+        $ret['user'] = $d;
+        unset($tables['users']);
+
+//        'users' =>
+//  'alerts_tracking' =>
+//  'chat_messages' =>
+//  ',
+//  'chat_rooms' =>
+//  'chat_roster' =>
+//  'communityevents' =>
+//  'locations_excluded' =>
+//  'logs_emails' =>
+//  'memberships' =>
+//  'memberships_history' =>
+//  'messages' =>
+//  'messages_drafts' =>
+//  'messages_groups' =>
+//  'messages_history' =>
+//  'messages_likes' =>
+//  'messages_outcomes' =>
+//  'messages_promises' =>
+//  'messages_reneged' =>
+//  'modnotifs' =>
+//  'newsfeed' =>
+//  'newsfeed_likes' =>
+//  'newsfeed_users' =>
+//  'polls_users' =>
+//  'schedules_users' =>
+//  'spam_users' =>
+//  'spam_whitelist_links' =>
+//  'users_addresses' =>
+//  'users_banned' =>
+//  'users_chatlists' =>
+//  'users_chatlists_index' =>
+//  'users_comments' =>
+//  'users_dashboard' =>
+//  'users_donations' =>
+//  'users_emails' =>
+//  'users_images' =>
+//  'users_invitations' =>
+//  'users_kudos' =>
+//  'users_logins' =>
+//  'users_nearby' =>
+//  'users_notifications' =>
+//  'users_nudges' =>
+//  'users_push_notifications' =>
+//  'users_stories_likes' =>
+//  'users_stories_requested' =>
+//  'users_thanks' =>
+//  'visualise' =>
+//  'volunteering' =>
+//  'logs' =>
+//  'logs_errors' =>
+//  'logs_src' =>
+//  'search_history' =>
+//  'streetwhacks' =>
+//  'users_modmails' =>
+//  'users_searches' =>
+//  'otherinfo' =>
+
 
         foreach ($tables as $tname => $fields) {
             $fieldq = '';
@@ -4089,6 +4176,9 @@ class User extends Entity
         }
 
         filterResult($ret);
+
+        # Check whether we processed all the tables we ought to have.
+        $ret = count($tables) == 0 ? $ret : NULL;
 
         return($ret);
     }
