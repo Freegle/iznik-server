@@ -63,7 +63,7 @@ class MessageCollection
         }
     }
 
-    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL) {
+    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL, $hasoutcome = NULL) {
         do {
             $msgids = [];
 
@@ -113,6 +113,10 @@ class MessageCollection
                     $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
                 }
 
+                # We might be looking for posts with no outcome.
+                $outcomeq1 = $hasoutcome !== NULL ? " LEFT JOIN messages_outcomes ON messages_outcomes.id = messages.id ": '';
+                $outcomeq2 = $hasoutcome !== NULL ? " AND messages_outcomes.msgid IS NULL " : '';
+
                 # We may have some groups to filter by.
                 $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
 
@@ -125,7 +129,7 @@ class MessageCollection
                     # We only query on a small set of userids, so it's more efficient to get the list of messages from them
                     # first.
                     $seltab = "(SELECT id, arrival, fromuser, deleted, `type` FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
-                    $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
+                    $sql = "SELECT messages_groups.msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 $outcomeq2 ORDER BY messages_groups.arrival DESC LIMIT $limit";
                 } else if (count($groupids) > 0) {
                     # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
                     $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
@@ -135,7 +139,7 @@ class MessageCollection
                     $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
                 }
 
-                #error_log("Messages get $sql");
+                error_log("Messages get $sql");
 
                 $msglist = $this->dbhr->preQuery($sql);
 

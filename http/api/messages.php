@@ -12,6 +12,7 @@ function messages() {
     $source = presdef('source', $_REQUEST, NULL);
     $from = presdef('from', $_REQUEST, NULL);
     $fromuser = presdef('fromuser', $_REQUEST, NULL);
+    $hasoutcome = array_key_exists('hasoutcome', $_REQUEST) ? filter_var($_REQUEST['hasoutcome'], FILTER_VALIDATE_BOOLEAN) : NULL;
     $types = presdef('types', $_REQUEST, NULL);
     $message = presdef('message', $_REQUEST, NULL);
     $yahoopendingid = presdef('yahoopendingid', $_REQUEST, NULL);
@@ -89,7 +90,7 @@ function messages() {
                     switch ($subaction) {
                         case NULL:
                             # Just a normal fetch.
-                            list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $collection == MessageCollection::ALLUSER ? MessageCollection::OWNPOSTS: NULL);
+                            list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $collection == MessageCollection::ALLUSER ? MessageCollection::OWNPOSTS: NULL, $hasoutcome);
                             break;
                         case 'search':
                         case 'searchmess':

@@ -146,7 +146,6 @@ function user() {
                                 $rc = $u->login($password);
 
                                 if ($rc) {
-                                    error_log("Created user $id");
                                     $ret = [
                                         'ret' => 0,
                                         'status' => 'Success',
