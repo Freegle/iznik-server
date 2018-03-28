@@ -1289,6 +1289,18 @@ class Group extends Entity
                     $group['authority'] = $auth['name'];
                 }
             }
+
+            if ($support) {
+                $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+                $approves = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM logs WHERE timestamp >= ? AND groupid = ? AND type = ? AND subtype = ?;", [
+                    $start,
+                    $group['id'],
+                    Log::TYPE_MESSAGE,
+                    Log::SUBTYPE_AUTO_APPROVED
+                ]);
+
+                $group['recentautoapproves'] = $approves[0]['count'];
+            }
         }
 
         return($groups);
