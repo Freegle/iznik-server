@@ -4042,76 +4042,74 @@ class User extends Entity
 
         # Data in user table.
         $d = [];
-        $d['Our internal ID for you'] = $this->getPrivate('id');
-        $d['Your full name'] = $this->getPrivate('fullname');
-        $d['Your first name'] = $this->getPrivate('firstname');
-        $d['Your last name'] = $this->getPrivate('lastname');
-        $d['Yahoo\'s internal ID for you'] = $this->getPrivate('yahooUserId');
-        $d['Your Yahoo ID'] = $this->getPrivate('yahooid');
-        $d['Your role on the system'] = $this->getPrivate('systemrole');
-        $d['When you joined the site'] = ISODate($this->getPrivate('added'));
-        $d['When you last accessed the site'] = ISODate($this->getPrivate('lastaccess'));
-        $d['When we last checked for relevant posts for you'] = ISODate($this->getPrivate('lastrelevantcheck'));
-        $d['Whether we can scan your messages to protect other users'] = $this->getPrivate('ripaconsent') ? 'Yes' : 'No';
-        $d['Whether we can publish your OFFERs/WANTEDs outside the site'] = $this->getPrivate('publishconsent') ? 'Yes' : 'No';
-        $d['Whether your email is bouncing'] = $this->getPrivate('bouncing') ? 'Yes' : 'No';
-        $d['Permissions you have on the site'] = $this->getPrivate('permissions');
-        $d['Number of remaining invitations you can send to other people'] = $this->getPrivate('invitesleft');
+        $d['Our_internal_ID_for_you'] = $this->getPrivate('id');
+        $d['Your_full_name'] = $this->getPrivate('fullname');
+        $d['Your_first_name'] = $this->getPrivate('firstname');
+        $d['Your_last_name'] = $this->getPrivate('lastname');
+        $d['Yahoo_internal_ID_for_you'] = $this->getPrivate('yahooUserId');
+        $d['Your_Yahoo_ID'] = $this->getPrivate('yahooid');
+        $d['Your_role_on_the_system'] = $this->getPrivate('systemrole');
+        $d['When_you_joined_the_site'] = ISODate($this->getPrivate('added'));
+        $d['When_you_last_accessed_the_site'] = ISODate($this->getPrivate('lastaccess'));
+        $d['When_we_last_checked_for_relevant_posts_for_you'] = ISODate($this->getPrivate('lastrelevantcheck'));
+        $d['Whether_we_can_scan_your_messages_to_protect_other_users'] = $this->getPrivate('ripaconsent') ? 'Yes' : 'No';
+        $d['Whether_we_can_publish_your_posts_outside_the_site'] = $this->getPrivate('publishconsent') ? 'Yes' : 'No';
+        $d['Whether_your_email_is_bouncing'] = $this->getPrivate('bouncing') ? 'Yes' : 'No';
+        $d['Permissions_you_have_on_the_site'] = $this->getPrivate('permissions');
+        $d['Number_of_remaining_invitations_you_can_send_to_other_people'] = $this->getPrivate('invitesleft');
 
-        $lastlocation  = $this->getPrivate('lastlocation');
+        $lastlocation = $this->user['lastlocation'];
 
         if ($lastlocation) {
             $l = new Location($this->dbhr, $this->dbhm, $lastlocation);
-            $d['Last location you posted from'] = $l->getPrivate('name') . ' (' . $l->getPrivate('lat') . ', ' . $l->getPrivate('lng') . ')';
+            $d['Last_location_you_posted_from'] = $l->getPrivate('name') . " (" . $l->getPrivate('lat') . ', ' . $l->getPrivate('lng') . ')';
         }
 
         $settings = $this->getPrivate('settings');
 
         if ($settings) {
-            $location  = $this->getPrivate('mylocation');
+            $settings = json_decode($settings, TRUE);
+
+            $location = $settings['mylocation']['id'];
 
             if ($lastlocation) {
                 $l = new Location($this->dbhr, $this->dbhm, $location);
-                $d['Last location you entered'] = $l->getPrivate('name') . ' (' . $l->getPrivate('lat') . ', ' . $l->getPrivate('lng') . ')';
+                $d['Last_location_you_entered'] = $l->getPrivate('name') . ' (' . $l->getPrivate('lat') . ', ' . $l->getPrivate('lng') . ')';
             }
-        }
-
-        if ($settings) {
-            $settings = json_decode($settings, TRUE);
-
             $notifications = pres('notifications', $settings);
 
             if ($notifications) {
-                $d['Notifications']['Send email notifications for chat messages'] = $notifications['email'] ? 'Yes' : 'No';
-                $d['Notifications']['Send email notifications of chat messages you send'] = $notifications['emailmine'] ? 'Yes' : 'No';
-                $d['Notifications']['Send notifications for Android/IOS apps'] = $notifications['app'] ? 'Yes' : 'No';
-                $d['Notifications']['Send "push" notifications to web browsers'] = $notifications['push'] ? 'Yes' : 'No';
-                $d['Notifications']['Send Facebook notifications'] = $notifications['facebook'] ? 'Yes' : 'No';
-                $d['Notifications']['Send emails about notifications on the site'] = $notifications['notificationmails'] ? 'Yes' : 'No';
+                $d['Notifications']['Send_email_notifications_for_chat_messages'] = $notifications['email'] ? 'Yes' : 'No';
+                $d['Notifications']['Send_email_notifications_of_chat_messages_you_send'] = $notifications['emailmine'] ? 'Yes' : 'No';
+                $d['Notifications']['Send_notifications_for_apps'] = $notifications['app'] ? 'Yes' : 'No';
+                $d['Notifications']['Send_push_notifications_to_web_browsers'] = $notifications['push'] ? 'Yes' : 'No';
+                $d['Notifications']['Send_Facebook_notifications'] = $notifications['facebook'] ? 'Yes' : 'No';
+                $d['Notifications']['Send_emails_about_notifications_on_the_site'] = $notifications['notificationmails'] ? 'Yes' : 'No';
             }
 
-            $d['Hide profile picture'] = presdef('useprofile', $settings, TRUE) ? 'Yes' : 'No';
+            $d['Hide_profile_picture'] = presdef('useprofile', $settings, TRUE) ? 'Yes' : 'No';
 
             if ($this->isModerator()) {
-                $d['Show members that you are a moderator'] = pres('showmod', $settings) ? 'Yes' : 'No';
+                $d['Show_members_that_you_are_a_moderator'] = pres('showmod', $settings) ? 'Yes' : 'No';
 
                 switch (presdef('modnotifs', $settings, 4)) {
-                    case 24: $d['Send notifications of mod work'] = 'After 24 hours'; break;
-                    case 12: $d['Send notifications of mod work'] = 'After 12 hours'; break;
-                    case 4: $d['Send notifications of mod work'] = 'After 4 hours'; break;
-                    case 2: $d['Send notifications of mod work'] = 'After 2 hours'; break;
-                    case 1: $d['Send notifications of mod work'] = 'After 1 hours'; break;
-                    case 0: $d['Send notifications of mod work'] = 'Immediately'; break;
-                    case -1: $d['Send notifications of mod work'] = 'Never'; break;
+                    case 24: $d['Send_notifications_of_mod_work'] = 'After 24 hours'; break;
+                    case 12: $d['Send_notifications_of_mod_work'] = 'After 12 hours'; break;
+                    case 4: $d['Send_notifications_of_mod_work'] = 'After 4 hours'; break;
+                    case 2: $d['Send_notifications_of_mod_work'] = 'After 2 hours'; break;
+                    case 1: $d['Send_notifications_of_mod_work'] = 'After 1 hours'; break;
+                    case 0: $d['Send_notifications_of_mod_work'] = 'Immediately'; break;
+                    case -1: $d['Send_notifications_of_mod_work'] = 'Never'; break;
                 }
 
-                $d['Show members that you are a moderator'] = presdef('showmod', $settings, TRUE) ? 'Yes' : 'No';
+                $d['Show_members_that_you_are_a_moderator'] = presdef('showmod', $settings, TRUE) ? 'Yes' : 'No';
             }
         }
 
         $ret['user'] = $d;
         unset($tables['users']);
 
+        // Remaining tables to add.
 //  'alerts_tracking' =>
 //  'chat_messages' =>
 //  'chat_rooms' =>
