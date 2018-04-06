@@ -60,7 +60,7 @@ class Shortlink extends Entity
     }
 
     public function listAll() {
-        $links = $this->dbhr->preQuery("SELECT * FROM shortlinks;");
+        $links = $this->dbhr->preQuery("SELECT * FROM shortlinks ORDER BY LOWER(name) ASC;");
         foreach ($links as &$link) {
             $id = $link['id'];
             if ($link['type'] == Shortlink::TYPE_GROUP) {
