@@ -5,13 +5,14 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
-$opts = getopt('e:g:');
+$opts = getopt('e:g:r:');
 
-if (count($opts) < 2) {
-    echo "Usage: hhvm user_add_membership.php -e <email of user> -g <name of group>\n";
+if (count($opts) < 3) {
+    echo "Usage: hhvm user_add_membership.php -e <email of user> -g <name of group> -r <Role>\n";
 } else {
     $email = $opts['e'];
     $name = $opts['g'];
+    $role = presdef('r', $opts, 'Member');
     $u = User::get($dbhr, $dbhm);
     $uid = $u->findByEmail($email);
 
@@ -23,7 +24,7 @@ if (count($opts) < 2) {
         $gid = $g->findByShortName($name);
 
         if ($gid) {
-            $u->addMembership($gid);
+            $u->addMembership($gid, $role);
             error_log("Added membership of #$gid");
         }
     }

@@ -6,9 +6,12 @@ require_once(IZNIK_BASE . '/include/utils.php');
 
 # We maintain a count of recent modmails by scanning logs regularly, and pruning old ones.  This means we can
 # find the value in a well-indexed way without the disk overhead of having a two-column index on logs.
+#
+# Ignore logs where the user is the same as the byuser - for example a user can delete their own posts, and we are
+# only interested in things where a mod has done something to another user.
 $mysqltime = date("Y-m-d H:i:s", strtotime("10 minutes ago"));
 
-$logs = $dbhr->preQuery("SELECT * FROM logs WHERE timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID'))", [
+$logs = $dbhr->preQuery("SELECT * FROM logs WHERE timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND byuser != user;", [
     $mysqltime
 ]);
 
