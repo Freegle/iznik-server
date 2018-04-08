@@ -310,6 +310,7 @@ function user() {
                         if ($me->isAdminOrSupport() ||
                             ($me->moderatorForUser($uid1) && $me->moderatorForUser($uid2))) {
                             $u->merge($uid2, $uid1, $reason);
+                            $u = new User($dbhr, $dbhm, $uid2);
                             $u->addEmail($email2, 1, TRUE);
                             $ret = [ 'ret' => 0, 'status' => 'Success' ];
                         }

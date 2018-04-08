@@ -428,10 +428,10 @@ class userAPITest extends IznikAPITestCase {
         $u2 = User::get($this->dbhm, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
         $u2->addMembership($this->groupid);
-        $u2->addEmail('test2@test.com');
+        $u2->addEmail('test2@test.com', 0);
         $u3 = User::get($this->dbhm, $this->dbhm);
         $id3 = $u3->create('Test', 'User', NULL);
-        $u3->addEmail('test3@test.com');
+        $u3->addEmail('test3@test.com', 0);
         $u3->addMembership($this->groupid);
         $u4 = User::get($this->dbhm, $this->dbhm);
         $id4 = $u4->create('Test', 'User', NULL);
@@ -470,6 +470,11 @@ class userAPITest extends IznikAPITestCase {
             'reason' => 'UT'
         ]);
         assertEquals(0, $ret['ret']);
+
+        # This merge should end up with test3 as primary.
+        $id = $u1->findByEmail('test3@test.com');
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        self::assertEquals('test3@test.com', $u->getEmailPreferred());
 
         error_log(__METHOD__ . " end");
     }
