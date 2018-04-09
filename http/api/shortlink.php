@@ -10,7 +10,7 @@ function shortlink() {
         case 'GET': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            if ($me && $me->isAdminOrSupport()) {
+            if ($me && $me->isModerator()) {
                 $s = new Shortlink($dbhr, $dbhm);
 
                 $ret = [

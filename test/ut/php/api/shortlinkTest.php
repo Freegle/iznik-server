@@ -35,7 +35,7 @@ class shortlinkAPITest extends IznikAPITestCase {
         $ret = $this->call('shortlink', 'GET', []);
         assertEquals(2, $ret['ret']);
 
-        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $ret = $this->call('shortlink', 'GET', []);
         assertEquals(0, $ret['ret']);
 
