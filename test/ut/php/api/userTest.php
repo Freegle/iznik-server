@@ -549,7 +549,7 @@ class userAPITest extends IznikAPITestCase {
         error_log("Export returned " . var_export($ret, TRUE));
 
         assertEquals(0, $ret['ret']);
-        assertEquals($this->user->getId(), $ret['export']['user']['Our internal ID for you']);
+        assertEquals($this->user->getId(), $ret['export']['user']['Our_internal_ID_for_you']);
 
         error_log(__METHOD__ . " end");
     }

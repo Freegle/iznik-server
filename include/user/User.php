@@ -4070,12 +4070,13 @@ class User extends Entity
         if ($settings) {
             $settings = json_decode($settings, TRUE);
 
-            $location = $settings['mylocation']['id'];
+            $location = presdef('id', $settings['mylocation'], NULL);
 
-            if ($lastlocation) {
+            if ($location) {
                 $l = new Location($this->dbhr, $this->dbhm, $location);
                 $d['Last_location_you_entered'] = $l->getPrivate('name') . ' (' . $l->getPrivate('lat') . ', ' . $l->getPrivate('lng') . ')';
             }
+
             $notifications = pres('notifications', $settings);
 
             if ($notifications) {
