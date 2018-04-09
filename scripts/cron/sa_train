@@ -1,5 +1,5 @@
 #!/bin/bash
-rm -r /tmp/sa_train
+rm -rf /tmp/sa_train
 mkdir /tmp/sa_train
 mkdir /tmp/sa_train/spam
 mkdir /tmp/sa_train/ham
