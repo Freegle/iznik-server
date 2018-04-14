@@ -4118,6 +4118,16 @@ class User extends Entity
             ];
         }
 
+        $d['emails'] = $this->getEmails();
+
+        foreach ($d['emails'] as &$email) {
+            $email['added'] = ISODate($email['added']);
+
+            if ($email['validated']) {
+                $email['validated'] = ISODate($email['validated']);
+            }
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
