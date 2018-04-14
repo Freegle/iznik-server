@@ -4140,6 +4140,14 @@ class User extends Entity
 
         $d['membershipshistory'] = $membs;
 
+        $d['searches'] = $this->dbhr->preQuery("SELECT search_history.date, search_history.term, locations.name AS location FROM search_history LEFT JOIN locations ON search_history.locationid = locations.id WHERE search_history.userid = ? ORDER BY search_history.date ASC;", [
+            $this->id
+        ]);
+
+        foreach ($d['searches'] as &$s) {
+            $s['date'] = ISODate($s['date']);
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4172,7 +4180,6 @@ class User extends Entity
 //  'users_chatlists' =>
 //  'users_chatlists_index' =>
 //  'users_comments' =>
-//  'users_dashboard' =>
 //  'users_donations' =>
 //  'users_images' =>
 //  'users_kudos' =>
@@ -4188,7 +4195,6 @@ class User extends Entity
 //  'logs' =>
 //  'logs_errors' =>
 //  'logs_src' =>
-//  'search_history' =>
 //  'streetwhacks' =>
 //  'users_modmails' =>
 //  'users_searches' =>
