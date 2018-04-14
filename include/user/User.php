@@ -4128,6 +4128,18 @@ class User extends Entity
             }
         }
 
+        $d['memberships'] = $this->getMemberships();
+
+        $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? ORDER BY added ASC;";
+        $membs = $this->dbhr->preQuery($sql, [$this->id]);
+        foreach ($membs as &$memb) {
+            $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
+            $memb['namedisplay'] = $name;
+            $memb['added'] = ISODate($memb['added']);
+        }
+
+        $d['membershipshistory'] = $membs;
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4139,8 +4151,6 @@ class User extends Entity
 //  'communityevents' =>
 //  'locations_excluded' =>
 //  'logs_emails' =>
-//  'memberships' =>
-//  'memberships_history' =>
 //  'messages' =>
 //  'messages_drafts' =>
 //  'messages_groups' =>
@@ -4164,7 +4174,6 @@ class User extends Entity
 //  'users_comments' =>
 //  'users_dashboard' =>
 //  'users_donations' =>
-//  'users_emails' =>
 //  'users_images' =>
 //  'users_kudos' =>
 //  'users_logins' =>
@@ -4175,7 +4184,6 @@ class User extends Entity
 //  'users_stories_likes' =>
 //  'users_stories_requested' =>
 //  'users_thanks' =>
-//  'visualise' =>
 //  'volunteering' =>
 //  'logs' =>
 //  'logs_errors' =>
