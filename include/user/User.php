@@ -4107,6 +4107,17 @@ class User extends Entity
             }
         }
 
+        # Invitations.  Only show what we sent; the outcome is not this user's business.
+        $invites = $this->listInvitations();
+        $d['invitations'] = [];
+
+        foreach ($invites as $invite) {
+            $d['invitations'][] = [
+                'email' => $invite['email'],
+                'date' => ISODate($invite['date'])
+            ];
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4145,7 +4156,6 @@ class User extends Entity
 //  'users_donations' =>
 //  'users_emails' =>
 //  'users_images' =>
-//  'users_invitations' =>
 //  'users_kudos' =>
 //  'users_logins' =>
 //  'users_nearby' =>
