@@ -4191,6 +4191,19 @@ class User extends Entity
             $s['email'] = $u->getEmailPreferred();
         }
 
+        $images = $this->dbhr->preQuery("SELECT id FROM users_images WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        $d['images'] = [];
+
+        foreach ($images as $image) {
+            $a = new Attachment($this->dbhr, $this->dbhm, $image['id'], Attachment::TYPE_USER);
+            $d['images'][] = [
+                'thumb' => $a->getPath(TRUE)
+            ];
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4219,7 +4232,6 @@ class User extends Entity
 //  'users_addresses' =>
 //  'users_chatlists' =>
 //  'users_comments' =>
-//  'users_images' =>
 //  'users_logins' =>
 //  'users_notifications' =>
 //  'users_nudges' =>
