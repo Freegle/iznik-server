@@ -821,7 +821,6 @@ class Message
 
             if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
                 $ret['promises'] = $promises;
-                $ret['promisecount'] = count($ret['promises']);
 
                 foreach ($ret['replies'] as &$reply) {
                     foreach ($ret['promises'] as $promise) {
@@ -830,6 +829,7 @@ class Message
                 }
             }
 
+            $ret['promisecount'] = count($promises);
             $ret['promised'] = count($promises) > 0;
         }
 
