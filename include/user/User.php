@@ -4181,6 +4181,16 @@ class User extends Entity
             ];
         }
 
+        $d['spammers'] = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE byuserid = ? ORDER BY added ASC;", [
+            $this->id
+        ]);
+
+        foreach ($d['spammers'] as &$s) {
+            $s['added'] = ISODate($s['added']);
+            $u = User::get($this->dbhr, $this->dbhm, $s['userid']);
+            $s['email'] = $u->getEmailPreferred();
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4199,7 +4209,6 @@ class User extends Entity
 //  'messages_outcomes' =>
 //  'messages_promises' =>
 //  'messages_reneged' =>
-//  'modnotifs' =>
 //  'newsfeed' =>
 //  'newsfeed_likes' =>
 //  'newsfeed_users' =>
@@ -4209,7 +4218,6 @@ class User extends Entity
 //  'spam_whitelist_links' =>
 //  'users_addresses' =>
 //  'users_chatlists' =>
-//  'users_chatlists_index' =>
 //  'users_comments' =>
 //  'users_images' =>
 //  'users_logins' =>
