@@ -4148,11 +4148,14 @@ class User extends Entity
             $s['date'] = ISODate($s['date']);
         }
 
+        $d['alerts'] = $this->dbhr->preQuery("SELECT subject, responded, response FROM alerts_tracking INNER JOIN alerts ON alerts_tracking.alertid = alerts.id WHERE userid = ? AND responded IS NOT NULL ORDER BY responded ASC;", [
+            $this->id
+        ]);
+
         $ret['user'] = $d;
         unset($tables['users']);
 
         // Remaining tables to add.
-//  'alerts_tracking' =>
 //  'chat_messages' =>
 //  'chat_rooms' =>
 //  'chat_roster' =>
