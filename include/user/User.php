@@ -4164,6 +4164,23 @@ class User extends Entity
             $s['timestamp'] = ISODate($s['timestamp']);
         }
 
+        $d['bans'] = [];
+
+        $bans = $this->dbhr->preQuery("SELECT * FROM users_banned WHERE byuser = ?;", [
+            $this->id
+        ]);
+
+        foreach ($bans as $ban) {
+            $g = Group::get($this->dbhr, $this->dbhm, $ban['groupid']);
+            $u = User::get($this->dbhr, $this->dbhm, $ban['userid']);
+            $d['bans'][] = [
+                'date' => ISODate($ban['date']),
+                'group' => $g->getName(),
+                'email' => $u->getEmailPreferred(),
+                'userid' => $ban['userid']
+            ];
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4191,7 +4208,6 @@ class User extends Entity
 //  'spam_users' =>
 //  'spam_whitelist_links' =>
 //  'users_addresses' =>
-//  'users_banned' =>
 //  'users_chatlists' =>
 //  'users_chatlists_index' =>
 //  'users_comments' =>
