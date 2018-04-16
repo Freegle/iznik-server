@@ -4152,6 +4152,18 @@ class User extends Entity
             $this->id
         ]);
 
+        foreach ($d['alerts'] as &$s) {
+            $s['responded'] = ISODate($s['responded']);
+        }
+
+        $d['donations'] = $this->dbhr->preQuery("SELECT * FROM users_donations WHERE userid = ? ORDER BY timestamp ASC;", [
+            $this->id
+        ]);
+
+        foreach ($d['donations'] as &$s) {
+            $s['timestamp'] = ISODate($s['timestamp']);
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4183,17 +4195,13 @@ class User extends Entity
 //  'users_chatlists' =>
 //  'users_chatlists_index' =>
 //  'users_comments' =>
-//  'users_donations' =>
 //  'users_images' =>
-//  'users_kudos' =>
 //  'users_logins' =>
-//  'users_nearby' =>
 //  'users_notifications' =>
 //  'users_nudges' =>
 //  'users_push_notifications' =>
 //  'users_stories_likes' =>
 //  'users_stories_requested' =>
-//  'users_thanks' =>
 //  'volunteering' =>
 //  'logs' =>
 //  'logs_errors' =>
