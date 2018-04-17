@@ -4303,7 +4303,6 @@ class User extends Entity
 //  'logs' =>
 //  'logs_errors' =>
 //  'logs_src' =>
-//  'streetwhacks' =>
 //  'users_modmails' =>
 //  'otherinfo' =>
 

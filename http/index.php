@@ -232,25 +232,6 @@ try {
                     $image = $atts['user']['profile']['url'];
                 }
             }
-        } else if (preg_match('/\/streetwhack(\/.*)/', $_SERVER["REQUEST_URI"], $matches)) {
-            $title = "Streetwhack!";
-            $desc = "How popular is your streetname?  Is it a streetwhack - a one-off?  Or are there lots across the UK?  Find out now...";
-            $count = presdef(1, $matches, NULL);
-            $count = $count ? str_replace('/', '', $count) : NULL;
-
-            if ($count) {
-                $p = strpos($count, '?');
-                $count = $p != -1 ? substr($count, 0, $p) : $count;
-            }
-
-            $countdesc = "";
-            if ($count == 1) {
-                $countdesc = "I'm a streetwhack!  Are you?\n\n";
-            } else if ($count > 0) {
-                $countdesc = "$count streets across the UK have the same name as mine.  How about you?\n\n";
-            }
-
-            $desc = "$countdesc $desc";
         }
 
         # Splice them in.
