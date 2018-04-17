@@ -4257,14 +4257,29 @@ class User extends Entity
             $d['comments'][] = $comm;
         }
 
-        $ret['user'] = $d;
+        $d['locations'] = [];
+
+        $locs = $this->dbhr->preQuery("SELECT * FROM locations_excluded WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($locs as $loc) {
+            $g = Group::get($this->dbhr, $this->dbhm, $loc['groupid']);
+            $l = new Location($this->dbhr, $this->dbhm, $loc['locationid']);
+            $d['locations'][] = [
+                'group' => $g->getName(),
+                'location' => $l->getPrivate('name'),
+                'date' => ISODate($loc['date'])
+            ];
+        }
+
+        $ret = $d;
         unset($tables['users']);
 
         // Remaining tables to add.
 //  'chat_messages' =>
 //  'chat_rooms' =>
 //  'chat_roster' =>
-//  'locations_excluded' =>
 //  'logs_emails' =>
 //  'messages' =>
 //  'messages_drafts' =>
@@ -4280,11 +4295,9 @@ class User extends Entity
 //  'polls_users' =>
 //  'schedules_users' =>
 //  'spam_whitelist_links' =>
-//  'users_addresses' =>
 //  'users_chatlists' =>
 //  'users_logins' =>
 //  'users_nudges' =>
-//  'users_push_notifications' =>
 //  'users_stories_likes' =>
 //  'users_stories_requested' =>
 //  'logs' =>
@@ -4292,7 +4305,6 @@ class User extends Entity
 //  'logs_src' =>
 //  'streetwhacks' =>
 //  'users_modmails' =>
-//  'users_searches' =>
 //  'otherinfo' =>
 
 //
