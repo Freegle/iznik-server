@@ -4212,6 +4212,17 @@ class User extends Entity
             $n['timestamp'] = ISODate($n['timestamp']);
         }
 
+        $d['addresses'] = [];
+
+        $addrs = $this->dbhr->preQuery("SELECT * FROM users_addresses WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($addrs as $addr) {
+            $a = new Address($this->dbhr, $this->dbhm, $addr['id']);
+            $d['addresses'][] = $a->getPublic();
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4235,13 +4246,11 @@ class User extends Entity
 //  'newsfeed_users' =>
 //  'polls_users' =>
 //  'schedules_users' =>
-//  'spam_users' =>
 //  'spam_whitelist_links' =>
 //  'users_addresses' =>
 //  'users_chatlists' =>
 //  'users_comments' =>
 //  'users_logins' =>
-//  'users_notifications' =>
 //  'users_nudges' =>
 //  'users_push_notifications' =>
 //  'users_stories_likes' =>
