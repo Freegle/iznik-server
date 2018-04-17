@@ -4234,6 +4234,17 @@ class User extends Entity
             $d['communityevents'][] = $e->getPublic();
         }
 
+        $d['volunteering'] = [];
+
+        $events = $this->dbhr->preQuery("SELECT id FROM volunteering WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($events as $event) {
+            $e = new Volunteering($this->dbhr, $this->dbhm, $event['id']);
+            $d['volunteering'][] = $e->getPublic();
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4265,7 +4276,6 @@ class User extends Entity
 //  'users_push_notifications' =>
 //  'users_stories_likes' =>
 //  'users_stories_requested' =>
-//  'volunteering' =>
 //  'logs' =>
 //  'logs_errors' =>
 //  'logs_src' =>
