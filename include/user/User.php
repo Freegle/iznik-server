@@ -4245,6 +4245,18 @@ class User extends Entity
             $d['volunteering'][] = $e->getPublic();
         }
 
+        $d['comments'] = [];
+        $comms = $this->dbhr->preQuery("SELECT * FROM users_comments WHERE byuserid = ? ORDER BY date ASC;", [
+            $this->id
+        ]);
+
+        foreach ($comms as &$comm) {
+            $u = User::get($this->dbhr, $this->dbhm, $comm['userid']);
+            $comm['email'] = $u->getEmailPreferred();
+            $comm['date'] = ISODate($comm['date']);
+            $d['comments'][] = $comm;
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4270,7 +4282,6 @@ class User extends Entity
 //  'spam_whitelist_links' =>
 //  'users_addresses' =>
 //  'users_chatlists' =>
-//  'users_comments' =>
 //  'users_logins' =>
 //  'users_nudges' =>
 //  'users_push_notifications' =>
