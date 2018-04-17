@@ -232,7 +232,15 @@ class Attachment
                 }
 
                 $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
-                $ret = @file_get_contents($url);
+
+                # Apply a short timeout to avoid hanging the server if Azure is down.
+                $ctx = stream_context_create(array('http'=>
+                    array(
+                        'timeout' => 2,
+                    )
+                ));
+
+                $ret = @file_get_contents($url, false, $ctx);
             } else {
                 $ret = $data['data'];
             }
