@@ -4223,6 +4223,17 @@ class User extends Entity
             $d['addresses'][] = $a->getPublic();
         }
 
+        $d['communityevents'] = [];
+
+        $events = $this->dbhr->preQuery("SELECT id FROM communityevents WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($events as $event) {
+            $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
+            $d['communityevents'][] = $e->getPublic();
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
@@ -4230,7 +4241,6 @@ class User extends Entity
 //  'chat_messages' =>
 //  'chat_rooms' =>
 //  'chat_roster' =>
-//  'communityevents' =>
 //  'locations_excluded' =>
 //  'logs_emails' =>
 //  'messages' =>
