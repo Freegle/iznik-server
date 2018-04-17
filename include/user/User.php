@@ -4204,6 +4204,14 @@ class User extends Entity
             ];
         }
 
+        $d['notifications'] = $this->dbhr->preQuery("SELECT timestamp, url FROM users_notifications WHERE touser = ? AND seen = 1;", [
+            $this->id
+        ]);
+
+        foreach ($d['notifications'] as &$n) {
+            $n['timestamp'] = ISODate($n['timestamp']);
+        }
+
         $ret['user'] = $d;
         unset($tables['users']);
 
