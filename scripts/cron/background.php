@@ -65,7 +65,7 @@ try {
 
                         case 'notifygroupmods': {
                             $n = new PushNotifications($dbhr, $dbhm);
-                            $n->executeNotifyGroupGroups($data['userid']);
+                            $n->executeNotifyGroupGroups($data['groupid']);
                             break;
                         }
 
