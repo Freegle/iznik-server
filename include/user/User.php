@@ -4191,6 +4191,14 @@ class User extends Entity
             $s['email'] = $u->getEmailPreferred();
         }
 
+        $d['spamdomains'] = $this->dbhr->preQuery("SELECT domain, date FROM spam_whitelist_links WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($d['spamdomains'] as &$s) {
+            $s['date'] = ISODate($s['date']);
+        }
+
         $images = $this->dbhr->preQuery("SELECT id FROM users_images WHERE userid = ?;", [
             $this->id
         ]);
@@ -4294,8 +4302,6 @@ class User extends Entity
 //  'newsfeed_users' =>
 //  'polls_users' =>
 //  'schedules_users' =>
-//  'spam_whitelist_links' =>
-//  'users_chatlists' =>
 //  'users_logins' =>
 //  'users_nudges' =>
 //  'users_stories_likes' =>
