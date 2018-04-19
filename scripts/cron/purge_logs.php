@@ -145,6 +145,22 @@ try {
     error_log("Failed to delete src logs " . $e->getMessage());
 }
 
+# JS error logs.
+$start = date('Y-m-d', strtotime("midnight 30 days ago"));
+error_log("Purge JS error logs before $start");
+
+try {
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM logs_errors WHERE `date` < '$start' LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+        set_time_limit(600);
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete src logs " . $e->getMessage());
+}
+
 $start = date('Y-m-d', strtotime("midnight 1 day ago"));
 error_log("Purge detailed logs before $start");
 
