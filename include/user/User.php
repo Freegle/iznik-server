@@ -4281,9 +4281,31 @@ class User extends Entity
             ];
         }
 
+        $msgs = $this->dbhr->preQuery("SELECT id FROM messages WHERE fromuser = ? ORDER BY arrival ASC;", [
+            $this->id
+        ]);
+
+        $d['messages'] = [];
+
+        foreach ($msgs as $msg) {
+            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+
+            # Show all info here even moderator attributes.  This wouldn't normally be shown to users, but none
+            # of it is confidential really.
+            $thisone = $m->getPublic(FALSE, FALSE, TRUE);
+
+            if (count($thisone['groups']) > 0) {
+                $g = Group::get($this->dbhr, $this->dbhm, $thisone['groups'][0]['id']);
+                $thisone['groups'][0]['namedisplay'] = $g->getName();
+            }
+
+            $d['messages'][] = $thisone;
+        }
+
         $ret = $d;
         unset($tables['users']);
 
+        # messages_likes is not part of the current UI.
         // Remaining tables to add.
 //  'chat_messages' =>
 //  'chat_rooms' =>
@@ -4293,7 +4315,6 @@ class User extends Entity
 //  'messages_drafts' =>
 //  'messages_groups' =>
 //  'messages_history' =>
-//  'messages_likes' =>
 //  'messages_outcomes' =>
 //  'messages_promises' =>
 //  'messages_reneged' =>
@@ -4305,7 +4326,6 @@ class User extends Entity
 //  'users_logins' =>
 //  'users_nudges' =>
 //  'users_stories_likes' =>
-//  'users_stories_requested' =>
 //  'logs' =>
 //  'logs_errors' =>
 //  'logs_src' =>
