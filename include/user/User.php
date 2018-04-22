@@ -3975,7 +3975,22 @@ class User extends Entity
         }
     }
 
-    public function export() {
+    public function requestExport() {
+        $tag = randstr(64);
+        $this->dbhm->preExec("INSERT INTO users_exports (userid, tag) VALUES (?, ?);", [
+            $this->id,
+            $tag
+        ]);
+
+        return([ $this->dbhm->lastInsertId(), $tag]);
+    }
+
+    public function export($exportid, $tag) {
+        $this->dbhm->preExec("UPDATE users_exports SET started = NOW() WHERE id = ? AND tag = ?;", [
+            $exportid,
+            $tag
+        ]);
+
         # For GDPR we support the ability for a user to export the data we hold about them.  Key points about this:
         #
         # - It needs to be at a high level of abstraction and understandable by the user, not just a cryptic data
@@ -4080,12 +4095,12 @@ class User extends Entity
             $notifications = pres('notifications', $settings);
 
             if ($notifications) {
-                $d['Notifications']['Send_email_notifications_for_chat_messages'] = $notifications['email'] ? 'Yes' : 'No';
-                $d['Notifications']['Send_email_notifications_of_chat_messages_you_send'] = $notifications['emailmine'] ? 'Yes' : 'No';
-                $d['Notifications']['Send_notifications_for_apps'] = $notifications['app'] ? 'Yes' : 'No';
-                $d['Notifications']['Send_push_notifications_to_web_browsers'] = $notifications['push'] ? 'Yes' : 'No';
-                $d['Notifications']['Send_Facebook_notifications'] = $notifications['facebook'] ? 'Yes' : 'No';
-                $d['Notifications']['Send_emails_about_notifications_on_the_site'] = $notifications['notificationmails'] ? 'Yes' : 'No';
+                $d['Notifications']['Send_email_notifications_for_chat_messages'] = pres('email', $notifications) ? 'Yes' : 'No';
+                $d['Notifications']['Send_email_notifications_of_chat_messages_you_send'] = pres('emailmine', $notifications) ? 'Yes' : 'No';
+                $d['Notifications']['Send_notifications_for_apps'] = pres('app', $notifications) ? 'Yes' : 'No';
+                $d['Notifications']['Send_push_notifications_to_web_browsers'] = pres('push', $notifications) ? 'Yes' : 'No';
+                $d['Notifications']['Send_Facebook_notifications'] = pres('facebook', $notifications) ? 'Yes' : 'No';
+                $d['Notifications']['Send_emails_about_notifications_on_the_site'] = pres('notificationmails', $notifications) ? 'Yes' : 'No';
             }
 
             $d['Hide_profile_picture'] = presdef('useprofile', $settings, TRUE) ? 'Yes' : 'No';
@@ -4295,29 +4310,101 @@ class User extends Entity
             $thisone = $m->getPublic(FALSE, FALSE, TRUE);
 
             if (count($thisone['groups']) > 0) {
-                $g = Group::get($this->dbhr, $this->dbhm, $thisone['groups'][0]['id']);
+                $g = Group::get($this->dbhr, $this->dbhm, $thisone['groups'][0]['groupid']);
                 $thisone['groups'][0]['namedisplay'] = $g->getName();
             }
 
             $d['messages'][] = $thisone;
         }
 
+        # Chats.  Can't use listForUser as that filters on various things and has a ModTools vs FD distinction, and
+        # we're interested in information we have provided.  So we get the chats mentioned in the roster (we have
+        # provided information about being online) and where we have sent or reviewed a chat message.
+        $chatids = $this->dbhr->preQuery("SELECT DISTINCT  id FROM chat_rooms INNER JOIN (SELECT DISTINCT chatid FROM chat_roster WHERE userid = ? UNION SELECT DISTINCT chatid FROM chat_messages WHERE userid = ? OR reviewedby = ?) t ON t.chatid = chat_rooms.id ORDER BY latestmessage ASC;", [
+            $this->id,
+            $this->id,
+            $this->id
+        ]);
+
+        $d['chatrooms'] = [];
+        $count = 0;
+
+        foreach ($chatids as $chatid) {
+            # We don't return the chat name because it's too slow to produce.
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid['id']);
+            $thisone = [
+                'id' => $chatid['id'],
+                'name' => $r->getPublic($this)['name'],
+                'messages' => []
+            ];
+
+            $sql = "SELECT date, lastip FROM chat_roster WHERE `chatid` = ? AND userid = ?;";
+            $roster = $this->dbhr->preQuery($sql, [ $chatid['id'], $this->id ]);
+            foreach ($roster as $rost) {
+                $thisone['lastip'] = $rost['lastip'];
+                $thisone['date'] = ISODate($rost['date']);
+            }
+
+            # Get the messages we have sent in this chat.
+            $msgs = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? AND (userid = ? OR reviewedby = ?);", [
+                $chatid['id'],
+                $this->id,
+                $this->id
+            ]);
+
+            foreach ($msgs as $msg) {
+                $cm = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
+                $thismsg = $cm->getPublic();
+
+                # Strip out most of the refmsg detail - it's not ours and we need to save volume of data.
+                $refmsg = pres('refmsg', $thismsg);
+
+                if ($refmsg) {
+                    $thismsg['refmsg'] = [
+                        'id' => $msg['id'],
+                        'subject' => presdef('subject', $refmsg, NULL)
+                    ];
+                }
+
+                $thismsg['mine'] = presdef('userid', $thismsg, NULL) == $this->id;
+                $thismsg['date'] = ISODate($thismsg['date']);
+                $thisone['messages'][] = $thismsg;
+
+                $count++;
+//
+//                if ($count > 200) {
+//                    break 2;
+//                }
+            }
+
+            if (count($thisone['messages']) > 0) {
+                $d['chatrooms'][] = $thisone;
+            }
+        }
+
         $ret = $d;
         unset($tables['users']);
 
-        # messages_likes is not part of the current UI.
+        # There are some other tables with information which we don't return.  Here's what and why:
+        # - Not part of the current UI so can't have any user data
+        #     messages_likes
+        # - Covered by data that we do return from other tables
+        #     messages_drafts, messages_history, messages_groups, messages_likes, messages_outcomes,
+        #     messages_promises, users_modmails, modnotifs, users_chatlists_index, users_dashboard
+        # - Transient logging data
+        #     logs_emails, logs_sql, logs_api, logs_errors, logs_src
+        # TODO Checking with JC on the above one
+        # - Not provided by the user themselves
+        #     user_comments, messages_reneged, spam_users, users_banned, users_stories_requested,
+        #     users_thanks
+        # - Inferred or derived data.  These are not considered to be provided by the user (see p10 of
+        #   http://ec.europa.eu/newsroom/document.cfm?doc_id=44099)
+        #     users_kudos, visualise
+
         // Remaining tables to add.
 //  'chat_messages' =>
 //  'chat_rooms' =>
 //  'chat_roster' =>
-//  'logs_emails' =>
-//  'messages' =>
-//  'messages_drafts' =>
-//  'messages_groups' =>
-//  'messages_history' =>
-//  'messages_outcomes' =>
-//  'messages_promises' =>
-//  'messages_reneged' =>
 //  'newsfeed' =>
 //  'newsfeed_likes' =>
 //  'newsfeed_users' =>
@@ -4327,72 +4414,38 @@ class User extends Entity
 //  'users_nudges' =>
 //  'users_stories_likes' =>
 //  'logs' =>
-//  'logs_errors' =>
-//  'logs_src' =>
-//  'users_modmails' =>
-//  'otherinfo' =>
-
-//
-//        foreach ($tables as $tname => $fields) {
-//            $fieldq = '';
-//
-//
-//            foreach ($fields as $field) {
-//                $fieldq = $fieldq == '' ? '' : " $fieldq OR ";
-//                $fieldq .= "`$field` = {$this->id}";
-//            }
-//
-//            $sql = "SELECT * FROM $tname WHERE $fieldq";
-//            $rows = $this->dbhr->preQuery($sql);
-//
-//            foreach ($rows as $row) {
-//                $ret[$tname][] = $row;
-//            }
-//        }
-//
-//        # Remove very transient data
-//        unset($ret['logs_sql']);
-//        unset($ret['logs_api']);
-//        unset($ret['sessions']);
-//
-//        # Censor credentials.
-//        if (array_key_exists('users_logins', $ret)) {
-//            foreach ($ret['users_logins'] as &$login) {
-//                $login['credentials'] = '<removed>';
-//            }
-//        }
-//
-//        # Remove newsfeed position - derived from lat/lng in user which we show elsewhere, so removing doesn't hide
-//        # anything, but that field is a geometry so looks a mess.
-//        if (array_key_exists('newsfeed', $ret)) {
-//            foreach ($ret['newsfeed'] as &$n) {
-//                unset($n['position']);
-//            }
-//        }
-//
-//        # For the user's images, add a link so they can actually see them.
-//        if (array_key_exists('users_images', $ret)) {
-//            foreach ($ret['users_images'] as &$i) {
-//                $a = new Attachment($this->dbhr, $this->dbhm, $i['id'], Attachment::TYPE_USER);
-//                $i['url'] = $a->getPath();
-//            }
-//        }
-//
-//        # We want to include some basic info about some entities that we might have included an id for in the above info
-//        # to ensure that the info in the export actually makes sense.  For example, we will have referenced a groupid
-//        # in there, but it's not obvious which group that actually is without a bit of help.
-//        $this->additional = [];
-//
-//        array_walk_recursive($ret, [ $this, 'exportContext' ]);
-//
-//        foreach ($this->additional as $key => $add) {
-//            $ret['otherinfo'][$key] = $add;
-//        }
 
         filterResult($ret);
 
-        # Check whether we processed all the tables we ought to have.
-//        $ret = count($tables) == 0 ? $ret : NULL;
+        $this->dbhm->preExec("UPDATE users_exports SET completed = NOW(), data = ? WHERE id = ? AND tag = ?;", [
+            json_encode($ret),
+            $exportid,
+            $tag
+        ]);
+
+        return($ret);
+    }
+
+    function getExport($userid, $id, $tag) {
+        $ret = NULL;
+
+        $exports = $this->dbhr->preQuery("SELECT * FROM users_exports WHERE userid = ? AND id = ? AND tag = ?;", [
+            $userid,
+            $id,
+            $tag
+        ]);
+
+        foreach ($exports as $export) {
+            $ret = $export;
+            $ret['requested'] = $ret['requested'] ? ISODate($ret['requested']) : NULL;
+            $ret['started'] = $ret['started'] ? ISODate($ret['started']) : NULL;
+            $ret['completed'] = $ret['completed'] ? ISODate($ret['completed']) : NULL;
+
+            if ($ret['completed']) {
+                # This has completed.  Return the data.  Will be zapped in cron exports..
+                $ret['data'] = json_decode($export['data'], TRUE);
+            }
+        }
 
         return($ret);
     }

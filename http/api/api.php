@@ -89,6 +89,7 @@ require_once(IZNIK_BASE . '/http/api/comment.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/donations.php');
 require_once(IZNIK_BASE . '/http/api/error.php');
+require_once(IZNIK_BASE . '/http/api/export.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
 require_once(IZNIK_BASE . '/http/api/newsfeed.php');
@@ -271,6 +272,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'error':
                     $ret = error();
+                    break;
+                case 'export':
+                    $ret = export();
                     break;
                 case 'exception':
                     # For UT

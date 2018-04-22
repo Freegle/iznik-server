@@ -53,6 +53,7 @@ function user() {
                     # Can export our own entry, or any for admin/support.
                     if ($u->getId() == $me->getId() || $me->isAdminOrSupport()) {
                         $data = $u->export();
+                        error_log("Export completed");
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
