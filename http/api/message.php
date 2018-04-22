@@ -430,6 +430,10 @@ function message() {
                                         # We want the message to come from one of our emails rather than theirs, so
                                         # that replies come back to us and privacy is maintained.
                                         $fromemail = $u->inventEmail();
+
+                                        # Make sure this email is attached to the user so that we don't invent
+                                        # another next time.
+                                        $u->addEmail($fromemail, 0, FALSE);
                                     }
 
                                     $m->constructSubject($groupid);
