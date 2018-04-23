@@ -1080,12 +1080,21 @@ class userTest extends IznikTestCase {
         $nid = $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
 
         # Export
-        $data = $u->export();
+        list ($id, $tag) = $u->requestExport();
+        $count = 0;
+
+        do {
+            $ret = $u->getExport($uid, $id, $tag);
+
+            $count++;
+            error_log("...waiting for export $count");
+            sleep(1);
+        } while (!pres('data', $ret) && $count < 600);
 
         $n = new Newsfeed($this->dbhr, $this->dbhm, $nid);
         $n->delete();
 
-        $encoded = json_encode($data);
+        $encoded = json_encode($ret);
         error_log("Export " . var_export($encoded, TRUE));
         #file_put_contents('/tmp/export', $encoded);
 

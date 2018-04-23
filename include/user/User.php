@@ -4387,13 +4387,12 @@ class User extends Entity
 
         # There are some other tables with information which we don't return.  Here's what and why:
         # - Not part of the current UI so can't have any user data
-        #     messages_likes
+        #     messages_likes, schedules_users, polls_users
         # - Covered by data that we do return from other tables
         #     messages_drafts, messages_history, messages_groups, messages_likes, messages_outcomes,
         #     messages_promises, users_modmails, modnotifs, users_chatlists_index, users_dashboard
         # - Transient logging data
         #     logs_emails, logs_sql, logs_api, logs_errors, logs_src
-        # TODO Checking with JC on the above one
         # - Not provided by the user themselves
         #     user_comments, messages_reneged, spam_users, users_banned, users_stories_requested,
         #     users_thanks
@@ -4402,14 +4401,9 @@ class User extends Entity
         #     users_kudos, visualise
 
         // Remaining tables to add.
-//  'chat_messages' =>
-//  'chat_rooms' =>
-//  'chat_roster' =>
 //  'newsfeed' =>
 //  'newsfeed_likes' =>
 //  'newsfeed_users' =>
-//  'polls_users' =>
-//  'schedules_users' =>
 //  'users_logins' =>
 //  'users_nudges' =>
 //  'users_stories_likes' =>
