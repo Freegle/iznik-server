@@ -140,7 +140,7 @@ class Newsfeed extends Entity
         return($engageds);
     }
 
-    public function getPublic($lovelist = FALSE, $unfollowed = TRUE, $allreplies = FALSE) {
+    public function getPublic($lovelist = FALSE, $unfollowed = TRUE, $allreplies = FALSE, $anyreplies = TRUE) {
         $atts = parent::getPublic();
         $users = [];
 
@@ -153,7 +153,7 @@ class Newsfeed extends Entity
             }
         }
 
-        if (pres('replies', $atts)) {
+        if ($anyreplies && pres('replies', $atts)) {
             foreach ($atts['replies'] as &$reply) {
                 $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
                 $ctx = NULL;

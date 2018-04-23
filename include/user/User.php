@@ -3999,60 +3999,6 @@ class User extends Entity
         #   or categorisation based on that data.  This means that (for example) we need to return which
         #   groups they have joined, but not whether joining those groups has flagged them up as a potential
         #   spammer.
-        #
-        # It would be easy over time to add new features and forget to add them to this export, so we
-        # look at the schema to find all references to the user.  We can then tick them off as we deal with them,
-        # and fail if we end up with any left.  This protects us against that kind of code decay.
-        global $dbconfig;
-        $dbname = $dbconfig['database'];
-
-        $tables = [
-            'users' => [ 'id' ]
-        ];
-
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_mod']};dbname=information_schema;charset=utf8";
-
-        $dbhi = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_EMULATE_PREPARES => FALSE
-        ), TRUE, NULL);
-
-        # First find the relevant foreign keys
-        $refs = $dbhi->preQuery("SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'users' AND table_schema = '$dbname' AND REFERENCED_COLUMN_NAME = 'id';");
-
-        foreach ($refs as $ref) {
-            $tname = $ref['TABLE_NAME'];
-            $cname = $ref['COLUMN_NAME'];
-
-            if (strpos($tname, 'VW_') === FALSE) {
-                if (!array_key_exists($tname, $tables)) {
-                    $tables[$tname] = [];
-                }
-
-                if (!in_array($cname, $tables[$tname])) {
-                    array_push($tables[$tname], $cname);
-                }
-            }
-        }
-
-        # Now find tables with userid.
-        $refs = $dbhi->preQuery("SELECT DISTINCT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME IN ('user','userid') AND TABLE_SCHEMA='$dbname';");
-        foreach ($refs as $ref) {
-            $tname = $ref['TABLE_NAME'];
-            $cname = $ref['COLUMN_NAME'];
-
-            if (strpos($tname, 'VW_') === FALSE) {
-                if (!array_key_exists($tname, $tables)) {
-                    $tables[$tname] = [];
-                }
-
-                if (!in_array($cname, $tables[$tname])) {
-                    array_push($tables[$tname], $cname);
-                }
-            }
-        }
-
-        # Now collect the data.
         $ret = [];
 
         # Data in user table.
@@ -4382,15 +4328,27 @@ class User extends Entity
             }
         }
 
+        $newsfeeds = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        $d['newsfeed'] = [];
+
+        foreach ($newsfeeds as $newsfeed) {
+            $n = new Newsfeed($this->dbhr, $this->dbhm, $newsfeed['id']);
+            $thisone = $n->getPublic(FALSE, FALSE, FALSE, FALSE);
+            $d['newsfeed'][] = $thisone;
+        }
+
         $ret = $d;
-        unset($tables['users']);
 
         # There are some other tables with information which we don't return.  Here's what and why:
         # - Not part of the current UI so can't have any user data
         #     messages_likes, schedules_users, polls_users
         # - Covered by data that we do return from other tables
         #     messages_drafts, messages_history, messages_groups, messages_likes, messages_outcomes,
-        #     messages_promises, users_modmails, modnotifs, users_chatlists_index, users_dashboard
+        #     messages_promises, users_modmails, modnotifs, users_chatlists_index, users_dashboard,
+        #     users_nudges
         # - Transient logging data
         #     logs_emails, logs_sql, logs_api, logs_errors, logs_src
         # - Not provided by the user themselves
@@ -4405,7 +4363,6 @@ class User extends Entity
 //  'newsfeed_likes' =>
 //  'newsfeed_users' =>
 //  'users_logins' =>
-//  'users_nudges' =>
 //  'users_stories_likes' =>
 //  'logs' =>
 
