@@ -4364,6 +4364,18 @@ class User extends Entity
             $dd['timestamp'] = ISODate($dd['timestamp']);
         }
 
+        $d['stories'] = $this->dbhr->preQuery("SELECT date, headline, story FROM users_stories WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($d['stories'] as &$dd) {
+            $dd['date'] = ISODate($dd['date']);
+        }
+
+        $d['stories_likes'] = $this->dbhr->preQuery("SELECT storyid FROM users_stories_likes WHERE userid = ?;", [
+            $this->id
+        ]);
+
         $ret = $d;
 
         # There are some other tables with information which we don't return.  Here's what and why:
@@ -4384,7 +4396,6 @@ class User extends Entity
 
         // Remaining tables to add.
 //  'users_logins' =>
-//  'users_stories_likes' =>
 //  'logs' =>
 
         filterResult($ret);
