@@ -4340,6 +4340,30 @@ class User extends Entity
             $d['newsfeed'][] = $thisone;
         }
 
+        $d['newsfeed_unfollows'] = $this->dbhr->preQuery("SELECT * FROM newsfeed_unfollow WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($d['newsfeed_unfollows'] as &$dd) {
+            $dd['timestamp'] = ISODate($dd['timestamp']);
+        }
+
+        $d['newsfeed_likes'] = $this->dbhr->preQuery("SELECT * FROM newsfeed_likes WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($d['newsfeed_likes'] as &$dd) {
+            $dd['timestamp'] = ISODate($dd['timestamp']);
+        }
+
+        $d['newsfeed_reports'] = $this->dbhr->preQuery("SELECT * FROM newsfeed_reports WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($d['newsfeed_reports'] as &$dd) {
+            $dd['timestamp'] = ISODate($dd['timestamp']);
+        }
+
         $ret = $d;
 
         # There are some other tables with information which we don't return.  Here's what and why:
@@ -4359,9 +4383,6 @@ class User extends Entity
         #     users_kudos, visualise
 
         // Remaining tables to add.
-//  'newsfeed' =>
-//  'newsfeed_likes' =>
-//  'newsfeed_users' =>
 //  'users_logins' =>
 //  'users_stories_likes' =>
 //  'logs' =>
