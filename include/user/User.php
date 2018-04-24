@@ -4089,6 +4089,15 @@ class User extends Entity
             }
         }
 
+        $d['logins'] = $this->dbhr->preQuery("SELECT type, uid, added, lastaccess FROM users_logins WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($d['logins'] as &$dd) {
+            $dd['added'] = ISOdate($dd['added']);
+            $dd['lastaccess'] = ISOdate($dd['lastaccess']);
+        }
+
         $d['memberships'] = $this->getMemberships();
 
         $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? ORDER BY added ASC;";
@@ -4375,6 +4384,15 @@ class User extends Entity
         $d['stories_likes'] = $this->dbhr->preQuery("SELECT storyid FROM users_stories_likes WHERE userid = ?;", [
             $this->id
         ]);
+
+        $d['exports'] = $this->dbhr->preQuery("SELECT userid, started, completed FROM users_exports WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($d['exports'] as &$dd) {
+            $dd['started'] = ISODate($dd['started']);
+            $dd['completed'] = ISODate($dd['completed']);
+        }
 
         $ret = $d;
 
