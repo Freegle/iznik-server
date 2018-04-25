@@ -92,8 +92,8 @@ class Log
         $this->dbhm->background($sql);
     }
 
-    public function get($types, $subtypes, $groupid, $date, $search, $limit, &$ctx) {
-        $groupq = " groupid = $groupid ";
+    public function get($types, $subtypes, $groupid, $date, $search, $limit, &$ctx, $uid = NULL) {
+        $groupq = $groupid ? " groupid = $groupid " : '1 = 1 ';
         $typeq = $types ? (" AND logs.type IN ('" . implode("','", $types) . "') ") : '';
         $subtypeq = $subtypes ? (" AND `subtype` IN ('" . implode("','", $subtypes) . "') ") : '';
         $mysqltime = date("Y-m-d", strtotime("midnight $date days ago"));
@@ -110,10 +110,17 @@ class Log
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $onyahoo = $g->onYahoo();
 
-        if (!$search) {
+        if ($uid) {
+            $sql = "SELECT logs.* FROM logs 
+                LEFT JOIN users ON users.id = logs.user 
+                LEFT JOIN messages ON messages.id = logs.msgid
+                WHERE $groupq $idq $typeq $subtypeq $dateq AND 
+                (logs.user = $uid OR logs.byuser = $uid)
+                ORDER BY logs.id DESC LIMIT $limit";
+        } else if (!$search) {
             # This is simple.
-            $sql = "SELECT * FROM logs WHERE $groupq $idq $typeq $subtypeq $dateq ORDER BY id DESC LIMIT $limit";
-        } else {
+            $sql = "SELECT * FROM logs WHERE $groupq $idq $typeq $subtypeq $dateq ORDER BY id ASC LIMIT $limit";
+        } else  {
             # This is complex.  We want to search in the various user names, and the message
             # subject.  And the email - and people might search using an email belonging to a member but which
             # isn't the fromaddr of any messages.  So first expand the email.
@@ -140,7 +147,7 @@ class Log
 
         foreach ($logs as &$log) {
             $log['timestamp'] = ISODate($log['timestamp']);
-            
+
             if (pres('user', $log)) {
                 $u = pres($log['user'], $users) ? $users[$log['user']] : User::get($this->dbhr, $this->dbhm, $log['user']);
                 $users[$log['user']] = $u;

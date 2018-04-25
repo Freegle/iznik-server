@@ -1666,6 +1666,7 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
         $myid = $me ? $me->getId() : NULL;
+        $freeglemod = $me && $me->isFreegleMod();
 
         if ($this->id &&
             (($this->getName() == 'A freegler') ||
@@ -1918,8 +1919,6 @@ class User extends Entity
                 $atts['comments'] = $this->getComments();
             }
 
-            $freeglemod = $me && $me->isFreegleMod();
-
             if ($this->user['suspectcount'] > 0) {
                 # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
                 # - has a system role which allows it
@@ -1931,7 +1930,6 @@ class User extends Entity
                 # the case where you have two emails and one is approved and the other pending.
                 $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, memberships_yahoo.added AS yadded, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
-                $freeglemod = $me->isFreegleMod();
 
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
@@ -4394,6 +4392,26 @@ class User extends Entity
             $dd['completed'] = ISODate($dd['completed']);
         }
 
+        $l = new Log($this->dbhr, $this->dbhm);
+        $ctx = NULL;
+        $d['logs'] = $l->get(NULL, NULL, NULL, NULL, NULL, PHP_INT_MAX, $ctx, $this->id);
+
+        foreach ($d['logs'] as &$log) {
+            if (pres('groupid', $log)) {
+                $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
+
+                if ($g->getId()) {
+                    $log['group'] = $g->getPublic();
+                } else {
+                    $log['group'] = [
+                        'id' => $log['groupid'],
+                        'nameshort' => 'UnknownGroup',
+                        'namedisplay' => 'Unknown Group'
+                    ];
+                }
+            }
+        }
+
         $ret = $d;
 
         # There are some other tables with information which we don't return.  Here's what and why:
@@ -4413,16 +4431,17 @@ class User extends Entity
         #     users_kudos, visualise
 
         // Remaining tables to add.
-//  'users_logins' =>
-//  'logs' =>
 
         filterResult($ret);
 
+        # Compress the data in the DB because it can be huge.
+        $data = gzcompress(json_encode($ret), 9);
         $this->dbhm->preExec("UPDATE users_exports SET completed = NOW(), data = ? WHERE id = ? AND tag = ?;", [
-            json_encode($ret),
+            $data,
             $exportid,
             $tag
         ]);
+        error_log("...completed, length " . strlen($data));
 
         return($ret);
     }
@@ -4444,7 +4463,7 @@ class User extends Entity
 
             if ($ret['completed']) {
                 # This has completed.  Return the data.  Will be zapped in cron exports..
-                $ret['data'] = json_decode($export['data'], TRUE);
+                $ret['data'] = json_decode(gzuncompress($export['data']), TRUE);
             }
         }
 

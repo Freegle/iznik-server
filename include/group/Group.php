@@ -1252,7 +1252,7 @@ class Group extends Entity
     }
 
     public function onYahoo() {
-        return($this->group['onyahoo']);
+        return(pres('onyahoo', $this->group));
     }
 
     public function getName() {
