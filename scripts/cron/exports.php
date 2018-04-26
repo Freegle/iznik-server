@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $lockh = lockScript(basename(__FILE__));
 
-$exports = $dbhr->preQuery("SELECT * FROM users_exports WHERE completed IS NULL;");
+$exports = $dbhr->preQuery("SELECT * FROM users_exports WHERE completed IS NULL ORDER BY id ASC;");
 
 foreach ($exports as $export) {
     error_log("Do export {$export['id']} for {$export['userid']} requested {$export['requested']}");

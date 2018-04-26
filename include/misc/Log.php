@@ -68,6 +68,8 @@ class Log
     const SUBTYPE_NOTIFICATIONOFF = 'NotificationOff';
     const SUBTYPE_AUTO_APPROVED = 'Autoapproved';
     const SUBTYPE_UNBOUNCE = 'Unbounce';
+    
+    const LOG_USER_CACHE_SIZE = 1000;
 
     function __construct($dbhr, $dbhm)
     {
@@ -92,7 +94,51 @@ class Log
         $this->dbhm->background($sql);
     }
 
-    public function get($types, $subtypes, $groupid, $date, $search, $limit, &$ctx, $uid = NULL) {
+    private $logUserCache = [];
+
+    private function getUserForLog($myid, $me, $uid, $groupid, $terse) {
+        if ($terse) {
+            # We don't want to get the user info - too slow.  Mock up enough to allow us to display a log.
+            $atts = [
+                'id' => $uid,
+                'displayname' => 'User #$uid'
+            ];
+        } else {
+            $u = $uid == $myid ? $me : User::get($this->dbhr, $this->dbhm, $uid);
+
+            # Have a simple array that we add to the start and remove from the end if full.  Frequently used entries
+            # will last a while in the array that way.  There are better algorithms, but Knuth isn't watching.
+            $atts = NULL;
+            foreach ($this->logUserCache as $entry) {
+                if ($entry['id'] == $uid) {
+                    $atts = $entry;
+                    break;
+                }
+            }
+
+            if (!$atts) {
+                $ctx = NULL;
+                $atts = $u->getPublic(FALSE, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $atts['email'] = $u->getEmailPreferred();
+
+                if (count($this->logUserCache) > Log::LOG_USER_CACHE_SIZE) {
+                    # Big - remove last.
+                    array_pop($this->logUserCache);
+                }
+
+                # Add to start.
+                array_unshift($this->logUserCache, $atts);
+            }
+
+            if ($groupid) {
+                $atts['email'] = $u->getEmailForYahooGroup($groupid, FALSE, FALSE)[1];
+            }
+        }
+
+        return($atts);
+    }
+
+    public function get($types, $subtypes, $groupid, $date, $search, $limit, &$ctx, $uid = NULL, $terse = FALSE) {
         $groupq = $groupid ? " groupid = $groupid " : '1 = 1 ';
         $typeq = $types ? (" AND logs.type IN ('" . implode("','", $types) . "') ") : '';
         $subtypeq = $subtypes ? (" AND `subtype` IN ('" . implode("','", $subtypes) . "') ") : '';
@@ -106,6 +152,8 @@ class Log
         # We might have consecutive logs for the same messages/users, so try to speed that up.
         $msgs = [];
         $users = [];
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $onyahoo = $g->onYahoo();
@@ -144,50 +192,41 @@ class Log
         }
 
         $logs = $this->dbhr->preQuery($sql);
+        $total = count($logs);
+        #error_log("...total logs $total");
+        $count = 0;
 
         foreach ($logs as &$log) {
+            $count++;
+
+            if ($count % 1000 == 0) {
+                #error_log("...$count / $total");
+            }
+
             $log['timestamp'] = ISODate($log['timestamp']);
 
             if (pres('user', $log)) {
-                $u = pres($log['user'], $users) ? $users[$log['user']] : User::get($this->dbhr, $this->dbhm, $log['user']);
-                $users[$log['user']] = $u;
-                
-                $ctx2 = NULL;
-
-                if ($u->getId() == $log['user']) {
-                    $log['user'] = $u->getPublic(FALSE, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE, FALSE, FALSE);
-
-                    if ($onyahoo) {
-                        $log['user']['email'] = $u->getEmailForYahooGroup($groupid, FALSE, FALSE)[1];
-                    } else {
-                        $log['user']['email'] = $u->getEmailPreferred();
-                    }
-                }
+                $log['user'] = $this->getUserForLog($myid, $me, $log['user'], $onyahoo ? $groupid : NULL, $terse);
             }
 
             if (pres('byuser', $log)) {
-                $u = pres($log['byuser'], $users) ? $users[$log['byuser']] : User::get($this->dbhr, $this->dbhm, $log['byuser']);
-                $users[$log['byuser']] = $u;
-                
-                $ctx2 = NULL;
-
-                if ($u->getId() == $log['byuser']) {
-                    $log['byuser'] = $u->getPublic(FALSE, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE, FALSE, FALSE);
-
-                    if ($onyahoo) {
-                        $log['byuser']['email'] = $u->getEmailForYahooGroup($groupid, FALSE, FALSE)[1];
-                    } else {
-                        $log['byuser']['email'] = $u->getEmailPreferred();
-                    }
-                }
+                $log['byuser'] = $this->getUserForLog($myid, $me, $log['byuser'], $onyahoo ? $groupid : NULL, $terse);
             }
 
             if (pres('msgid', $log)) {
-                $m = pres($log['msgid'], $msgs) ? $msgs[$log['msgid']] : new Message($this->dbhr, $this->dbhm, $log['msgid']);
-                $msgs[$log['msgid']] = $m;
-                
-                if ($m->getID() == $log['msgid']) {
-                    $log['message'] = $m->getPublic(FALSE, FALSE, FALSE);
+                if ($terse) {
+                    # We don't want to get the full message - too slow.  Mock up enough to allow us to display a log.
+                    $log['message'] = [
+                        'id' => $log['msgid'],
+                        'subject' => "Message {$log['msgid']}"
+                    ];
+                } else {
+                    $m = pres($log['msgid'], $msgs) ? $msgs[$log['msgid']] : new Message($this->dbhr, $this->dbhm, $log['msgid']);
+                    $msgs[$log['msgid']] = $m;
+
+                    if ($m->getID() == $log['msgid']) {
+                        $log['message'] = $m->getPublic(FALSE, FALSE, FALSE);
+                    }
                 }
             }
 
@@ -203,6 +242,8 @@ class Log
 
             $ctx['id'] = $log['id'];
         }
+
+        error_log("...completed logs");
 
         return($logs);
     }

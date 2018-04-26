@@ -137,7 +137,7 @@ class User extends Entity
         #error_log("$id not in cache");
         $u = new User($dbhr, $dbhm, $id);
 
-        if ($id && count(User::$cache) < User::CACHE_SIZE) {
+        if ($id && count(User::$cache) == User::CACHE_SIZE) {
             # Store for next time
             #error_log("store $id in cache");
             User::$cache[$id] = $u;
@@ -3998,6 +3998,7 @@ class User extends Entity
         #   groups they have joined, but not whether joining those groups has flagged them up as a potential
         #   spammer.
         $ret = [];
+        error_log("...basic info");
 
         # Data in user table.
         $d = [];
@@ -4067,6 +4068,7 @@ class User extends Entity
         }
 
         # Invitations.  Only show what we sent; the outcome is not this user's business.
+        error_log("...invitations");
         $invites = $this->listInvitations();
         $d['invitations'] = [];
 
@@ -4077,6 +4079,7 @@ class User extends Entity
             ];
         }
 
+        error_log("...emails");
         $d['emails'] = $this->getEmails();
 
         foreach ($d['emails'] as &$email) {
@@ -4087,6 +4090,7 @@ class User extends Entity
             }
         }
 
+        error_log("...logins");
         $d['logins'] = $this->dbhr->preQuery("SELECT type, uid, added, lastaccess FROM users_logins WHERE userid = ?;", [
             $this->id
         ]);
@@ -4096,8 +4100,10 @@ class User extends Entity
             $dd['lastaccess'] = ISOdate($dd['lastaccess']);
         }
 
+        error_log("...memberships");
         $d['memberships'] = $this->getMemberships();
 
+        error_log("...memberships history");
         $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? ORDER BY added ASC;";
         $membs = $this->dbhr->preQuery($sql, [$this->id]);
         foreach ($membs as &$memb) {
@@ -4108,6 +4114,7 @@ class User extends Entity
 
         $d['membershipshistory'] = $membs;
 
+        error_log("...searches");
         $d['searches'] = $this->dbhr->preQuery("SELECT search_history.date, search_history.term, locations.name AS location FROM search_history LEFT JOIN locations ON search_history.locationid = locations.id WHERE search_history.userid = ? ORDER BY search_history.date ASC;", [
             $this->id
         ]);
@@ -4116,6 +4123,7 @@ class User extends Entity
             $s['date'] = ISODate($s['date']);
         }
 
+        error_log("...alerts");
         $d['alerts'] = $this->dbhr->preQuery("SELECT subject, responded, response FROM alerts_tracking INNER JOIN alerts ON alerts_tracking.alertid = alerts.id WHERE userid = ? AND responded IS NOT NULL ORDER BY responded ASC;", [
             $this->id
         ]);
@@ -4124,6 +4132,7 @@ class User extends Entity
             $s['responded'] = ISODate($s['responded']);
         }
 
+        error_log("...donations");
         $d['donations'] = $this->dbhr->preQuery("SELECT * FROM users_donations WHERE userid = ? ORDER BY timestamp ASC;", [
             $this->id
         ]);
@@ -4132,6 +4141,7 @@ class User extends Entity
             $s['timestamp'] = ISODate($s['timestamp']);
         }
 
+        error_log("...bans");
         $d['bans'] = [];
 
         $bans = $this->dbhr->preQuery("SELECT * FROM users_banned WHERE byuser = ?;", [
@@ -4149,6 +4159,7 @@ class User extends Entity
             ];
         }
 
+        error_log("...spammers");
         $d['spammers'] = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE byuserid = ? ORDER BY added ASC;", [
             $this->id
         ]);
@@ -4167,6 +4178,7 @@ class User extends Entity
             $s['date'] = ISODate($s['date']);
         }
 
+        error_log("...images");
         $images = $this->dbhr->preQuery("SELECT id FROM users_images WHERE userid = ?;", [
             $this->id
         ]);
@@ -4180,6 +4192,7 @@ class User extends Entity
             ];
         }
 
+        error_log("...notifications");
         $d['notifications'] = $this->dbhr->preQuery("SELECT timestamp, url FROM users_notifications WHERE touser = ? AND seen = 1;", [
             $this->id
         ]);
@@ -4188,6 +4201,7 @@ class User extends Entity
             $n['timestamp'] = ISODate($n['timestamp']);
         }
 
+        error_log("...addresses");
         $d['addresses'] = [];
 
         $addrs = $this->dbhr->preQuery("SELECT * FROM users_addresses WHERE userid = ?;", [
@@ -4199,6 +4213,7 @@ class User extends Entity
             $d['addresses'][] = $a->getPublic();
         }
 
+        error_log("...events");
         $d['communityevents'] = [];
 
         $events = $this->dbhr->preQuery("SELECT id FROM communityevents WHERE userid = ?;", [
@@ -4210,6 +4225,7 @@ class User extends Entity
             $d['communityevents'][] = $e->getPublic();
         }
 
+        error_log("...volunteering");
         $d['volunteering'] = [];
 
         $events = $this->dbhr->preQuery("SELECT id FROM volunteering WHERE userid = ?;", [
@@ -4221,6 +4237,7 @@ class User extends Entity
             $d['volunteering'][] = $e->getPublic();
         }
 
+        error_log("...comments");
         $d['comments'] = [];
         $comms = $this->dbhr->preQuery("SELECT * FROM users_comments WHERE byuserid = ? ORDER BY date ASC;", [
             $this->id
@@ -4233,6 +4250,7 @@ class User extends Entity
             $d['comments'][] = $comm;
         }
 
+        error_log("...locations");
         $d['locations'] = [];
 
         $locs = $this->dbhr->preQuery("SELECT * FROM locations_excluded WHERE userid = ?;", [
@@ -4249,6 +4267,7 @@ class User extends Entity
             ];
         }
 
+        error_log("...messages");
         $msgs = $this->dbhr->preQuery("SELECT id FROM messages WHERE fromuser = ? ORDER BY arrival ASC;", [
             $this->id
         ]);
@@ -4273,6 +4292,7 @@ class User extends Entity
         # Chats.  Can't use listForUser as that filters on various things and has a ModTools vs FD distinction, and
         # we're interested in information we have provided.  So we get the chats mentioned in the roster (we have
         # provided information about being online) and where we have sent or reviewed a chat message.
+        error_log("...chats");
         $chatids = $this->dbhr->preQuery("SELECT DISTINCT  id FROM chat_rooms INNER JOIN (SELECT DISTINCT chatid FROM chat_roster WHERE userid = ? UNION SELECT DISTINCT chatid FROM chat_messages WHERE userid = ? OR reviewedby = ?) t ON t.chatid = chat_rooms.id ORDER BY latestmessage ASC;", [
             $this->id,
             $this->id,
@@ -4335,6 +4355,7 @@ class User extends Entity
             }
         }
 
+        error_log("...newsfeed");
         $newsfeeds = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE userid = ?;", [
             $this->id
         ]);
@@ -4371,6 +4392,7 @@ class User extends Entity
             $dd['timestamp'] = ISODate($dd['timestamp']);
         }
 
+        error_log("...stories");
         $d['stories'] = $this->dbhr->preQuery("SELECT date, headline, story FROM users_stories WHERE userid = ?;", [
             $this->id
         ]);
@@ -4383,6 +4405,7 @@ class User extends Entity
             $this->id
         ]);
 
+        error_log("...exports");
         $d['exports'] = $this->dbhr->preQuery("SELECT userid, started, completed FROM users_exports WHERE userid = ?;", [
             $this->id
         ]);
@@ -4392,23 +4415,35 @@ class User extends Entity
             $dd['completed'] = ISODate($dd['completed']);
         }
 
+        error_log("...logs");
         $l = new Log($this->dbhr, $this->dbhm);
         $ctx = NULL;
-        $d['logs'] = $l->get(NULL, NULL, NULL, NULL, NULL, PHP_INT_MAX, $ctx, $this->id);
+        $d['logs'] = $l->get(NULL, NULL, NULL, NULL, NULL, PHP_INT_MAX, $ctx, $this->id, TRUE);
 
+        error_log("...add group to logs");
+        $loggroups = [];
         foreach ($d['logs'] as &$log) {
             if (pres('groupid', $log)) {
-                $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
+                # Don't put the whole group info in there, as it is slow to get.
+                if (!array_key_exists($log['groupid'], $loggroups)) {
+                    $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
 
-                if ($g->getId()) {
-                    $log['group'] = $g->getPublic();
-                } else {
-                    $log['group'] = [
-                        'id' => $log['groupid'],
-                        'nameshort' => 'UnknownGroup',
-                        'namedisplay' => 'Unknown Group'
-                    ];
+                    if ($g->getId() == $log['groupid']) {
+                        $loggroups[$log['groupid']] = [
+                            'id' => $log['groupid'],
+                            'nameshort' => $g->getPrivate('nameshort'),
+                            'namedisplay' => $g->getName()
+                        ];
+                    } else {
+                        $loggroups[$log['groupid']] = [
+                            'id' => $log['groupid'],
+                            'nameshort' => "DeletedGroup{$log['groupid']}",
+                            'namedisplay' => "Deleted group #{$log['groupid']}"
+                        ];
+                    }
                 }
+
+                $log['group'] = $loggroups[$log['groupid']];
             }
         }
 
@@ -4430,12 +4465,14 @@ class User extends Entity
         #   http://ec.europa.eu/newsroom/document.cfm?doc_id=44099)
         #     users_kudos, visualise
 
-        // Remaining tables to add.
-
-        filterResult($ret);
-
         # Compress the data in the DB because it can be huge.
-        $data = gzcompress(json_encode($ret), 9);
+        #
+        error_log("...filter");
+        filterResult($ret);
+        error_log("...encode");
+        $data = json_encode($ret);
+        error_log("...encoded length " . strlen($data) . ", now compress");
+        $data = gzdeflate($data);
         $this->dbhm->preExec("UPDATE users_exports SET completed = NOW(), data = ? WHERE id = ? AND tag = ?;", [
             $data,
             $exportid,
@@ -4463,7 +4500,15 @@ class User extends Entity
 
             if ($ret['completed']) {
                 # This has completed.  Return the data.  Will be zapped in cron exports..
-                $ret['data'] = json_decode(gzuncompress($export['data']), TRUE);
+                $ret['data'] = json_decode(gzinflate($export['data']), TRUE);
+                $ret['infront'] = 0;
+            } else {
+                # Find how many are in front of us.
+                $infront = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_exports WHERE id < ? AND completed IS NULL;", [
+                    $id
+                ]);
+
+                $ret['infront'] = $infront[0]['count'];
             }
         }
 
