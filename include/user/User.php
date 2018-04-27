@@ -4039,14 +4039,12 @@ class User extends Entity
 
             $notifications = pres('notifications', $settings);
 
-            if ($notifications) {
-                $d['Notifications']['Send_email_notifications_for_chat_messages'] = pres('email', $notifications) ? 'Yes' : 'No';
-                $d['Notifications']['Send_email_notifications_of_chat_messages_you_send'] = pres('emailmine', $notifications) ? 'Yes' : 'No';
-                $d['Notifications']['Send_notifications_for_apps'] = pres('app', $notifications) ? 'Yes' : 'No';
-                $d['Notifications']['Send_push_notifications_to_web_browsers'] = pres('push', $notifications) ? 'Yes' : 'No';
-                $d['Notifications']['Send_Facebook_notifications'] = pres('facebook', $notifications) ? 'Yes' : 'No';
-                $d['Notifications']['Send_emails_about_notifications_on_the_site'] = pres('notificationmails', $notifications) ? 'Yes' : 'No';
-            }
+            $d['Notifications']['Send_email_notifications_for_chat_messages'] = presdef('email', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_email_notifications_of_chat_messages_you_send'] = presdef('emailmine', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_notifications_for_apps'] = presdef('app', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_push_notifications_to_web_browsers'] = presdef('push', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_Facebook_notifications'] = presdef('facebook', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_emails_about_notifications_on_the_site'] = presdef('notificationmails', $notifications, TRUE) ? 'Yes' : 'No';
 
             $d['Hide_profile_picture'] = presdef('useprofile', $settings, TRUE) ? 'Yes' : 'No';
 
