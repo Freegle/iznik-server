@@ -167,7 +167,7 @@ class Log
                 ORDER BY logs.id DESC LIMIT $limit";
         } else if (!$search) {
             # This is simple.
-            $sql = "SELECT * FROM logs WHERE $groupq $idq $typeq $subtypeq $dateq ORDER BY id ASC LIMIT $limit";
+            $sql = "SELECT * FROM logs WHERE $groupq $idq $typeq $subtypeq $dateq ORDER BY id DESC LIMIT $limit";
         } else  {
             # This is complex.  We want to search in the various user names, and the message
             # subject.  And the email - and people might search using an email belonging to a member but which
