@@ -945,7 +945,10 @@ class MailRouter
                     $uid = NULL;
                     $ret = MailRouter::DROPPED;
 
-                    if (preg_match('/replyto-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
+                    if ($this->msg->getEnvelopeto() == $this->msg->getEnvelopefrom()) {
+                        # Sending to yourself isn't a valid path, and is used by spammers.
+                        if ($log) { error_log("Sending to self - dropped "); }
+                    } else if (preg_match('/replyto-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
                         if (!$this->msg->isBounce() && !$this->msg->isAutoreply()) {
                             $msgid = intval($matches[1]);
                             $fromid = intval($matches[2]);

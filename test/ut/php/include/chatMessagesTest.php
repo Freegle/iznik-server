@@ -106,6 +106,36 @@ class chatMessagesTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testSpamReply2() {
+        error_log(__METHOD__);
+
+        # Put a valid message on a group.
+        error_log("Put valid message on");
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Now reply to it with spam.
+        error_log("Reply with spam");
+        $msg = $this->unique(file_get_contents('msgs/spamreply'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        # Check got flagged.
+        $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
+        assertEquals(1, $msgs[0]['reviewrequired']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testReplyFromSpammer() {
         error_log(__METHOD__);
 
@@ -139,7 +169,7 @@ class chatMessagesTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testSpamReply2() {
+    public function testSpamReply4() {
         error_log(__METHOD__);
 
         # Put a valid message on a group.
@@ -154,17 +184,18 @@ class chatMessagesTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        # Now reply to it with spam.
-        error_log("Reply with spam");
-        $msg = $this->unique(file_get_contents('msgs/spamreply2'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        # Now reply to it with spam spoof.
+        $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
+        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+        $email = $u->inventEmail();
+        $u->addEmail($email, FALSE, FALSE);
 
-        # Check got flagged.
-        $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com')");
-        assertEquals(1, $msgs[0]['reviewrequired']);
+        error_log("Reply with to self $email");
+        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, $email, $email, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
 
         error_log(__METHOD__ . " end");
     }
