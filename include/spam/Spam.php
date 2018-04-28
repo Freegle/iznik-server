@@ -228,7 +228,7 @@ class Spam {
 
         if (preg_match_all($urlPattern, $message, $matches)) {
             # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
-            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5 AND domain NOT LIKE '%linkedin%';");
+            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5 AND domain NOT LIKE '%linkedin%' AND domain NOT LIKE '%bit.ly%' AND domain NOT LIKE '%tinyurl%';");
 
             $valid = 0;
             $count = 0;
