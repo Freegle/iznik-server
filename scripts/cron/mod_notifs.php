@@ -37,9 +37,9 @@ if ($hour >= 8 && $hour <= 21)
             $approved = $dbhr->preQuery("SELECT DATEDIFF(NOW(), MAX(arrival)) AS activeago FROM messages_groups WHERE groupid = ? AND approvedby = ?;", [ $group['id'], $mod ] );
             #error_log("SELECT DATEDIFF(NOW(), MAX(arrival)) AS activeago FROM messages_groups WHERE groupid = {$group['id']} AND approvedby = $mod");
             $lastactive = $approved[0]['activeago'];
+            $minage = $u->getSetting('modnotifs', 4);
 
             if ($u->activeModForGroup($group['id'])) {
-                $minage = $u->getSetting('modnotifs', 4);
 
                 if ($minage < 0) {
                     error_log("...off for mod $email " .  $u->getName() . " last active $lastactive");
@@ -135,19 +135,20 @@ foreach ($mail as $id => $work) {
         $htmlsumm .= "<p>You have <b>$cr</b> chat message" . ($cr > 1 ? 's': '') . " to review.</p>";
     }
 
-    foreach ($work['groups'] as $name => $groupwork) {
-        $textsumm .= "\r\n{$name}\r\n:";
-        $htmlsumm .= "<p>{$name}</p><ul>";
+    if (pres('groups', $work)) {
+        foreach ($work['groups'] as $name => $groupwork) {
+            $textsumm .= "\r\n{$name}\r\n:";
+            $htmlsumm .= "<p>{$name}</p><ul>";
 
-        foreach ($groupwork as $key => $val) {
-            $textsumm .= "$key: $val\r\n";
-            $htmlsumm .= "<li>$key: <b>$val</b></li>";
-            $total += $val;
+            foreach ($groupwork as $key => $val) {
+                $textsumm .= "$key: $val\r\n";
+                $htmlsumm .= "<li>$key: <b>$val</b></li>";
+                $total += $val;
+            }
+
+            $htmlsumm .= '</ul>';
         }
-
-        $htmlsumm .= '</ul>';
     }
-
 
     $textsumm .= "\r\nThese mails are fairly new.  You can control how often you get them or turn them off entirely from https://" . MOD_SITE . "/modtools/settings\r\n";
 
@@ -177,7 +178,7 @@ foreach ($mail as $id => $work) {
         $html = modnotif(MOD_SITE,  MODLOGO, $htmlsumm);
         $subj = "MODERATE: $total thing" . ($total == 1 ? '' : 's') . " to do";
 
-        error_log("...#$id {$work['email']} $subj");
+        error_log("...#$id {$work['email']} $subj, chat review $cr");
 
         $message = Swift_Message::newInstance()
             ->setSubject($subj)
