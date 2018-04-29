@@ -4512,4 +4512,94 @@ class User extends Entity
 
         return($ret);
     }
+
+    public function forget() {
+        # Wipe a user of personal data, for the GDPR right to be forgotten.  We don't delete the user entirely
+        # otherwise it would message up the stats.
+
+        # Clear name etc.
+        $this->setPrivate('firstname', NULL);
+        $this->setPrivate('lastname', NULL);
+        $this->setPrivate('fullname', "Deleted User #" . $this->id);
+        $this->setPrivate('settings', NULL);
+        $this->setPrivate('yahooid', NULL);
+
+        # Delete emails which aren't ours.
+        $emails = $this->getEmails();
+
+        foreach ($emails as $email) {
+            if (!$email['ourdomain']) {
+                $this->removeEmail($email['email']);
+            }
+        }
+
+        # Delete all logins.
+        $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        # Delete the content (but not subject) of any messages, and any email header information such as their
+        # name and email address.
+        $msgs = $this->dbhm->preQuery("SELECT id FROM messages WHERE fromuser = ?;", [
+            $this->id
+        ]);
+
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("UPDATE messages SET fromip = NULL, message = NULL, envelopefrom = NULL, fromname = NULL, fromaddr = NULL, messageid = NULL, textbody = NULL, htmlbody = NULL WHERE id = ?;", [
+                $msg['id']
+            ]);
+
+            # Delete outcome comments that they've added - just about might have personal data.
+            $this->dbhm->preExec("UPDATE messages_outcomes SET comments = NULL WHERE msgid = ?;", [
+                $msg['id']
+            ]);
+        }
+
+        # Remove all the content of all chat messages which they have sent (but not received).
+        $msgs = $this->dbhm->preQuery("SELECT id FROM chat_messages WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("UPDATE chat_messages SET message = NULL WHERE id = ?;", [
+                $msg['id']
+            ]);
+        }
+
+        # Delete completely any community events, volunteering opportunities, newsfeed posts, searches and stories
+        # they have created (their personal details might be in there).
+        $this->dbhm->preExec("DELETE FROM communityevents WHERE userid = ?;", [
+            $this->id
+        ]);
+        $this->dbhm->preExec("DELETE FROM volunteering WHERE userid = ?;", [
+            $this->id
+        ]);
+        $this->dbhm->preExec("DELETE FROM newsfeed WHERE userid = ?;", [
+            $this->id
+        ]);
+        $this->dbhm->preExec("DELETE FROM users_stories WHERE userid = ?;", [
+            $this->id
+        ]);
+        $this->dbhm->preExec("DELETE FROM users_searches WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        # Remove them from all groups.
+        $membs = $this->getMemberships();
+
+        foreach ($membs as $memb) {
+            error_log(var_export($memb, TRUE));
+            $this->removeMembership($memb['id']);
+        }
+
+        # Delete any postal addresses
+        $this->dbhm->preExec("DELETE FROM users_addresses WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        # Delete any profile images
+        $this->dbhm->preExec("DELETE FROM users_images WHERE userid = ?;", [
+            $this->id
+        ]);
+    }
 }

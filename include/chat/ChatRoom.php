@@ -1507,7 +1507,7 @@ class ChatRoom extends Entity
                                         $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
                                         $site = USER_SITE;
                                     } else {
-                                        $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
+                                        $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $thisu->getName() . " (" . $thisu->getEmailPreferred() . ")";
                                         $site = MOD_SITE;
                                     }
                                     break;

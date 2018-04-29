@@ -1100,5 +1100,54 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testForget() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u->create('Test', 'User', 'Test User');
+        $uid = $u->create('Test', 'User', 'Test User');
+
+        # Set up some things to ensure coverage.
+        $email = $u->inventEmail();
+        $u->addEmail($email);
+        $u->addEmail('test@test.com');
+        $u->setPrivate('yahooid', 'test');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $u->addMembership($group1);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
+        list($mid, $already) = $m->save();
+        $m = new Message($this->dbhm, $this->dbhm, $mid);
+
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $cid1 = $c->createConversation($uid1, $uid1);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $str = "Test";
+        $mid1 = $cm->create($cid1, $uid, $str);
+
+        $u->forget();
+
+        # Check we zapped things
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+
+        $emails = $u->getEmails();
+        self::assertEquals(1, count($emails));
+        self::assertEquals($email, $emails[0]['email']);
+        self::assertEquals('Deleted User #' . $uid, $u->getPrivate('fullname'));
+        self::assertEquals(NULL, $u->getPrivate('firstname'));
+        self::assertEquals(NULL, $u->getPrivate('lastname'));
+        self::assertEquals(NULL, $u->getPrivate('yahooid'));
+        self::assertEquals(0, count($u->getLogins()));
+        self::assertEquals(0, count($u->getMemberships()));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
