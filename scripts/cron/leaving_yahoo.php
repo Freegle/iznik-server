@@ -70,7 +70,7 @@ foreach ($groups as $group) {
         ]);
 
         $message = Swift_Message::newInstance()
-            ->setSubject("It's time to move your group away from Yahoo")
+            ->setSubject("It's time to move " . $g->getName() . " away from Yahoo")
             ->setFrom([ MENTORS_ADDR => 'Freegle' ])
             ->setTo($email['email'])
             ->setBody($text)
