@@ -3091,8 +3091,8 @@ class User extends Entity
 
     public function confirmEmail($key) {
         $rc = FALSE;
-        $sql = "SELECT * FROM users_emails WHERE validatekey = ?;";
-        $mails = $this->dbhr->preQuery($sql, [ $key ]);
+        $sql = "SELECT * FROM users_emails WHERE userid = ? AND validatekey = ?;";
+        $mails = $this->dbhr->preQuery($sql, [ $this->id, $key ]);
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         foreach ($mails as $mail) {
