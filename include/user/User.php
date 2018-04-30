@@ -3066,10 +3066,15 @@ class User extends Entity
             $usersite = strpos($_SERVER['HTTP_HOST'], USER_SITE) !== FALSE;
             $headers = "From: " . SITE_NAME . " <" . NOREPLY_ADDR . ">\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
             $canon = User::canonMail($email);
-            $key = uniqid();
-            $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
-            $this->dbhm->preExec($sql,
-                [$email, $canon, $key, strrev($canon), $key]);
+
+            do {
+                # Loop in case of clash on the key we happen to invent.
+                $key = uniqid();
+                $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
+                $this->dbhm->preExec($sql,
+                    [$email, $canon, $key, strrev($canon), $key]);
+            } while (!$this->dbhm->rowsAffected());
+
             $confirm  = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
 
             list ($transport, $mailer) = getMailer();
@@ -3091,8 +3096,8 @@ class User extends Entity
 
     public function confirmEmail($key) {
         $rc = FALSE;
-        $sql = "SELECT * FROM users_emails WHERE userid = ? AND validatekey = ?;";
-        $mails = $this->dbhr->preQuery($sql, [ $this->id, $key ]);
+        $sql = "SELECT * FROM users_emails WHERE validatekey = ?;";
+        $mails = $this->dbhr->preQuery($sql, [ $key ]);
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         foreach ($mails as $mail) {
@@ -3102,7 +3107,7 @@ class User extends Entity
             }
 
             $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE id = ?;", [ $this->id ]);
-            $this->dbhm->preExec("UPDATE users_emails SET userid = ?, preferred = 1, validated = NOW() WHERE id = ?;", [ $this->id, $mail['id']]);
+            $this->dbhm->preExec("UPDATE users_emails SET userid = ?, preferred = 1, validated = NOW(), validatekey = NULL WHERE id = ?;", [ $this->id, $mail['id']]);
             $this->addEmail($mail['email'], 1);
             $rc = TRUE;
         }
