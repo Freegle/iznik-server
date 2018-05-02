@@ -3473,7 +3473,7 @@ class User extends Entity
             $thisone['sessions'] = $u->getSessions($this->dbhr, $this->dbhm, $user['userid']);
 
             # Make sure there's a link login as admin/support can use that to impersonate.
-            if (($me->isAdmin() && !$u->isAdmin()) || ($me->isAdminOrSupport() && !$u->isModerator())) {
+            if ($me->isAdmin() || ($me->isAdminOrSupport() && !$u->isModerator())) {
                 $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/', NULL, TRUE);
             }
             $thisone['logins'] = $u->getLogins($me->isAdmin());
