@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 
 use GeoIp2\Database\Reader;
+use LanguageDetection\Language;
 
 class Spam {
     CONST TYPE_SPAMMER = 'Spammer';
@@ -218,77 +219,78 @@ class Spam {
 
         $check = strlen($message) == 0;
 
-        if (stripos($message, '<script') !== FALSE) {
+        if (!$check && stripos($message, '<script') !== FALSE) {
             # Looks dodgy.
             $check = TRUE;
         }
 
-        # Check for URLs.
-        global $urlPattern, $urlBad;
+        if (!$check) {
+            # Check for URLs.
+            global $urlPattern, $urlBad;
 
-        if (preg_match_all($urlPattern, $message, $matches)) {
-            # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
-            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5 AND domain NOT LIKE '%linkedin%' AND domain NOT LIKE '%bit.ly%' AND domain NOT LIKE '%tinyurl%';");
+            if (preg_match_all($urlPattern, $message, $matches)) {
+                # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
+                $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5 AND domain NOT LIKE '%linkedin%' AND domain NOT LIKE '%bit.ly%' AND domain NOT LIKE '%tinyurl%';");
 
-            $valid = 0;
-            $count = 0;
-            $badurl = NULL;
+                $valid = 0;
+                $count = 0;
+                $badurl = NULL;
 
-            foreach ($matches as $val) {
-                foreach ($val as $url) {
-                    $bad = FALSE;
-                    $url2 = str_replace('http:', '', $url);
-                    $url2 = str_replace('https:', '', $url2);
-                    foreach ($urlBad as $badone) {
-                        if (strpos($url2, $badone) !== FALSE) {
-                            $bad = TRUE;
-                        }
-                    }
-
-                    if (!$bad && strlen($url) > 0) {
-                        $url = substr($url, strpos($url, '://') + 3);
-                        $count++;
-                        $trusted = FALSE;
-
-                        foreach ($ourdomains as $domain) {
-                            if (stripos($url, $domain['domain']) === 0) {
-                                # One of our domains.
-                                $valid++;
-                                $trusted = TRUE;
+                foreach ($matches as $val) {
+                    foreach ($val as $url) {
+                        $bad = FALSE;
+                        $url2 = str_replace('http:', '', $url);
+                        $url2 = str_replace('https:', '', $url2);
+                        foreach ($urlBad as $badone) {
+                            if (strpos($url2, $badone) !== FALSE) {
+                                $bad = TRUE;
                             }
                         }
 
-                        $badurl = $trusted ? $badurl : $url;
-//                        if (!$trusted) {
-//                            error_log("Bad url $url");
-//                        }
+                        if (!$bad && strlen($url) > 0) {
+                            $url = substr($url, strpos($url, '://') + 3);
+                            $count++;
+                            $trusted = FALSE;
+
+                            foreach ($ourdomains as $domain) {
+                                if (stripos($url, $domain['domain']) === 0) {
+                                    # One of our domains.
+                                    $valid++;
+                                    $trusted = TRUE;
+                                }
+                            }
+
+                            $badurl = $trusted ? $badurl : $url;
+                        }
                     }
                 }
-            }
 
-            if ($valid < $count) {
-                # At least one URL which we don't trust.
-                $check = TRUE;
-            }
-        }
-
-        # Check keywords
-        $this->getSpamWords();
-        foreach ($this->spamwords as $word) {
-            if ($word['action'] == 'Review' &&
-                preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
-                (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
-                #error_log("Spam keyword {$word['word']}");
-                $check = TRUE;
+                if ($valid < $count) {
+                    # At least one URL which we don't trust.
+                    $check = TRUE;
+                }
             }
         }
 
-        if (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE || strpos($message, '(a)') !== FALSE) {
+        if (!$check) {
+            # Check keywords
+            $this->getSpamWords();
+            foreach ($this->spamwords as $word) {
+                if ($word['action'] == 'Review' &&
+                    preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
+                    (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
+                    #error_log("Spam keyword {$word['word']}");
+                    $check = TRUE;
+                }
+            }
+        }
+
+        if (!$check && (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE || strpos($message, '(a)') !== FALSE)) {
             $check = TRUE;
         }
 
         # Email addresses are suspect too; a scammer technique is to take the conversation offlist.
-        if (preg_match_all(Message::EMAIL_REGEXP, $message, $matches)) {
+        if (!$check && preg_match_all(Message::EMAIL_REGEXP, $message, $matches)) {
             foreach ($matches as $val) {
                 foreach ($val as $email) {
                     if (!ourDomain($email) && strpos($email, 'trashnothing') === FALSE && strpos($email, 'yahoogroups') === FALSE) {
@@ -298,8 +300,38 @@ class Spam {
             }
         }
 
-        if ($this->checkReferToSpammer($message)) {
+        if (!$check && $this->checkReferToSpammer($message)) {
             $check = TRUE;
+        }
+
+        if (!$check ) {
+            # Check language is English.  This isn't out of some kind of misplaced nationalistic fervour, but just
+            # because our spam filters work less well on e.g. French.
+            #
+            # Short strings like 'test' or 'ok thanks' or 'Eileen', don't always come out as English, so only check
+            # slightly longer messages where the identification is more likely to work.
+            #
+            # We check that English is the most likely, or fairly likely compared to the one chosen.
+            #
+            # This is a fairly lax test but spots text which is very probably in another language.
+            $message = strtolower(trim($message));
+
+            if (strlen($message) > 50) {
+                $ld = new Language;
+                $lang = $ld->detect($message)->close();
+                reset($lang);
+                $firstlang = key($lang);
+                $firstprob = presdef($firstlang, $lang, 0);
+                $enprob = presdef('en', $lang, 0);
+                $cyprob = presdef('cy', $lang, 0);
+                $ourprob = max($enprob, $cyprob);
+
+                $check = !($firstlang == 'en' || $firstlang == 'cy' || $ourprob >= 0.8 * $firstprob);
+//
+//                if ($check) {
+                    error_log("$message not in English " . var_export($lang, TRUE));
+//                }
+            }
         }
 
         return($check);

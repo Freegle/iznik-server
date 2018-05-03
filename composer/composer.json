@@ -33,6 +33,7 @@
     "paypal/merchant-sdk-php": "^3.9",
     "microsoft/windowsazure": "^0.5.1",
     "kasp3r/link-preview": "^2.0",
-    "twig/twig": "~1.0"
+    "twig/twig": "~1.0",
+    "patrickschur/language-detection": "^3.2"
   }
 }

@@ -26,6 +26,7 @@ return array(
     'Minishlink\\WebPush\\' => array($vendorDir . '/minishlink/web-push/src'),
     'MicrosoftAzure\\Storage\\' => array($vendorDir . '/microsoft/azure-storage/src'),
     'MaxMind\\' => array($vendorDir . '/maxmind/web-service-common/src'),
+    'LanguageDetection\\' => array($vendorDir . '/patrickschur/language-detection/src/LanguageDetection'),
     'Jenssegers\\ImageHash\\' => array($vendorDir . '/jenssegers/imagehash/src'),
     'Interop\\Container\\' => array($vendorDir . '/container-interop/container-interop/src/Interop/Container'),
     'Html2Text\\' => array($vendorDir . '/html2text/html2text/src', $vendorDir . '/html2text/html2text/test'),

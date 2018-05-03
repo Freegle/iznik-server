@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "c416df161217bd315f6b8744b8b12125",
-    "content-hash": "5b1d925b6c468e61787104a837e48fc3",
+    "hash": "18f6b124591f19288dc62644fa98e338",
+    "content-hash": "25a7e3cf4777b89a69359e5a0aac1f4e",
     "packages": [
         {
             "name": "abraham/twitteroauth",
@@ -1012,7 +1012,7 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kartik-v/bootstrap-fileinput/zipball/7ff678441526bde17213d07b2472cff07506fb5d",
+                "url": "https://api.github.com/repos/kartik-v/bootstrap-fileinput/zipball/61c952324df68ecf3539707252ada159f20cc479",
                 "reference": "b71f878364677bfcf45f5c229819f0b9940e024a",
                 "shasum": ""
             },
@@ -1506,6 +1506,52 @@
                 "similarity"
             ],
             "time": "2016-03-23 12:46:23"
+        },
+        {
+            "name": "patrickschur/language-detection",
+            "version": "v3.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/patrickschur/language-detection.git",
+                "reference": "c8d54cf095d883dcdd358cffd2d8c2940fd47282"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/patrickschur/language-detection/zipball/c8d54cf095d883dcdd358cffd2d8c2940fd47282",
+                "reference": "c8d54cf095d883dcdd358cffd2d8c2940fd47282",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": "^7"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "LanguageDetection\\": "src/LanguageDetection"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Patrick Schur",
+                    "email": "patrick_schur@outlook.de"
+                }
+            ],
+            "description": "A language detection library for PHP. Detects the language from a given text string.",
+            "homepage": "https://github.com/patrickschur/language-detection",
+            "keywords": [
+                "detect",
+                "detection",
+                "language"
+            ],
+            "time": "2017-08-19 22:28:43"
         },
         {
             "name": "paypal/merchant-sdk-php",
