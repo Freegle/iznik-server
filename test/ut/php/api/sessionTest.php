@@ -25,7 +25,8 @@ class sessionTest extends IznikAPITestCase
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE `type` = 'Test';");
     }
 
-    public function sendMock($mailer, $message) {
+    public function sendMock($mailer, $message)
+    {
         $this->msgsSent[] = $message->toString();
     }
 
@@ -117,7 +118,7 @@ class sessionTest extends IznikAPITestCase
             'fblogin' => 1
         ]);
         assertEquals(2, $ret['ret']);
-        
+
         # Rest of testing done in include test.
 
         error_log(__METHOD__ . " end");
@@ -151,8 +152,8 @@ class sessionTest extends IznikAPITestCase
             ->setConstructorArgs([$this->dbhm, $this->dbhm, $id])
             ->setMethods(array('sendIt'))
             ->getMock();
-        $u->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
-            return($this->sendMock($mailer, $message));
+        $u->method('sendIt')->will($this->returnCallback(function ($mailer, $message) {
+            return ($this->sendMock($mailer, $message));
         }));
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -314,7 +315,7 @@ class sessionTest extends IznikAPITestCase
         $u = User::get($this->dbhm, $this->dbhm, $id);
         $u->addLogin(User::LOGIN_NATIVE, $u->getId(), 'testpw');
         $ret = $this->call('session', 'POST', [
-            'email' =>'test3@test.com',
+            'email' => 'test3@test.com',
             'password' => 'testpw'
         ]);
         assertEquals(0, $ret['ret']);
@@ -421,7 +422,7 @@ class sessionTest extends IznikAPITestCase
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         assertTrue($n->add($id, PushNotifications::PUSH_TEST, 'test'));
-        
+
         $ret = $this->call('session', 'GET', []);
         assertEquals(1, $ret['ret']);
 
@@ -441,7 +442,8 @@ class sessionTest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
-    public function testLostPassword() {
+    public function testLostPassword()
+    {
         error_log(__METHOD__);
 
         $email = 'test-' . rand() . '@blackhole.io';
@@ -464,5 +466,60 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         error_log(__METHOD__ . " end");
+    }
+
+    public function testForget()
+    {
+        error_log(__METHOD__);
+
+        # Try logged out - should fail.
+        $ret = $this->call('session', 'POST', [
+            'action' => 'Forget'
+        ]);
+        assertEquals(1, $ret['ret']);
+
+        $u = $this->getMockBuilder('User')
+            ->setConstructorArgs([$this->dbhm, $this->dbhm])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $u->method('sendIt')->will($this->returnCallback(function ($mailer, $message) {
+            return ($this->sendMock($mailer, $message));
+        }));
+
+        $id = $u->create('Test', 'User', NULL);
+        assertNotNull($u->addEmail('test@test.com'));
+        $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test@test.com',
+            'password' => 'testpw'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+
+        # Now forget ourselves - should fail as a mod.
+        error_log("Forget myself - should fail as mod");
+        $ret = $this->call('session', 'POST', [
+            'action' => 'Forget'
+        ]);
+        error_log("Returned " . var_export($ret,TRUE));
+        assertEquals(2, $ret['ret']);
+
+        $u->setPrivate('systemrole', User::SYSTEMROLE_USER);
+        error_log("Forget myself - should work");
+        $ret = $this->call('session', 'POST', [
+            'action' => 'Forget'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Should be logged out.
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(1, $ret['ret']);
+
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        self::assertEquals(strpos($u->getName(), 'Deleted User'), 0);
     }
 }

@@ -4,6 +4,23 @@ require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 function session() {
     global $dbhr, $dbhm;
 
+    $sessionLogout = function($dbhr, $dbhm) {
+        $id = pres('id', $_SESSION);
+        if ($id) {
+            $s = new Session($dbhr, $dbhm);
+            $s->destroy($id, NULL);
+        }
+
+        # Destroy the PHP session
+        try {
+            session_destroy();
+            session_unset();
+            session_start();
+            session_regenerate_id(true);
+        } catch (Exception $e) {
+        }
+    };
+
     # Don't want to use cached information when looking at our own session.
     $me = whoAmI($dbhm, $dbhm);
 
@@ -201,6 +218,31 @@ function session() {
                         
                         break;
                     }
+
+                    case 'Forget': {
+                        $ret = array('ret' => 1, 'status' => 'Not logged in');
+
+                        if ($me) {
+                            # We don't allow mods/owners to do this, as they might do it by accident.
+                            $ret = array('ret' => 2, 'status' => 'Please demote yourself to a member first');
+
+                            if (!$me->isModerator()) {
+                                # We don't allow spammers to do this.
+                                $ret = array('ret' => 3, 'status' => 'We can\'t do this.');
+
+                                $s = new Spam($dbhr, $dbhm);
+
+                                if (!$s->isSpammer($me->getEmailPreferred())) {
+                                    $me->forget();
+
+                                    # Log out.
+                                    $sessionLogout($dbhr, $dbhm);
+                                    $ret = [ 'ret' => 0, 'status' => "Success" ];
+                                }
+                            }
+                        }
+                        break;
+                    }
                 }
             }
             else if ($password && $email) {
@@ -323,23 +365,8 @@ function session() {
 
         case 'DELETE': {
             # Logout.  Kill all sessions for this user.
-            $id = pres('id', $_SESSION);
-            if ($id) {
-                $s = new Session($dbhr, $dbhm);
-                $s->destroy($id, NULL);
-            }
-
             $ret = array('ret' => 0, 'status' => 'Success');
-
-            # Destroy the PHP session
-            try {
-                session_destroy();
-                session_unset();
-                session_start();
-                session_regenerate_id(true);
-            } catch (Exception $e) {
-            }
-
+            $sessionLogout($dbhr, $dbhm);
             break;
         }
     }
