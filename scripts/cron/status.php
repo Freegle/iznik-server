@@ -55,10 +55,25 @@ function status()
             }
         }
 
+        # Get the mail count in case it's too large
+        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host exim -bpc 2>&1"));
+
+        if (strpos($queuesize, "exim: command not found") !== FALSE) {
+            # That's fine - no exim on this box.
+        } else if (!is_numeric($queuesize)) {
+            $error = TRUE;
+            $overallerror = TRUE;
+            $errortext = "Couldn't get queue size on host $host, returned $queuesize";
+        } else if (intval($queuesize) > 1000) {
+            $warning = TRUE;
+            $overallwarning = TRUE;
+            $warningtext = "Mail queue large on $host ($queuesize)";
+        }
+
         $info[$host]['error'] = $error;
         $info[$host]['errortext'] = $errortext;
         $info[$host]['warning'] = $warning;
-        $info[$host]['warningtext'] = $errortext;
+        $info[$host]['warningtext'] = $warningtext;
     }
 
     $ret = [
@@ -113,6 +128,7 @@ function status()
         if ($i['error'] || $i['warning']) {
             $html .= "<p>Details:</p>";
             $html .= nl2br($i['monit']);
+            $html .= '<p>' . $i['errortext'] . $i['warningtext'];
         }
     }
 
