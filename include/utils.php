@@ -560,15 +560,19 @@ function checkSpamhaus($url) {
 
         foreach ($blacklists as $blacklist) {
             $domain = $parsed['host'] . '.' . $blacklist . '.';
-            $record = dns_get_record($domain, DNS_A);
+            try {
+                $record = dns_get_record($domain, DNS_A);
 
-            if ($record != NULL && count($record) > 0) {
-                foreach ($record as $entry) {
-                    if (array_key_exists('ip', $entry) && strpos($entry['ip'], '127.0.1') === 0) {
-                        #error_log("Spamhaus blocked $url");
-                        $ret = TRUE;
+                if ($record != NULL && count($record) > 0) {
+                    foreach ($record as $entry) {
+                        if (array_key_exists('ip', $entry) && strpos($entry['ip'], '127.0.1') === 0) {
+                            #error_log("Spamhaus blocked $url");
+                            $ret = TRUE;
+                        }
                     }
                 }
+            } catch (Exception $e) {
+                error_log("dns_get_record for $domain failed " . $e->getMessage());
             }
         }
     }

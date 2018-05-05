@@ -327,10 +327,10 @@ class Spam {
                 $ourprob = max($enprob, $cyprob);
 
                 $check = !($firstlang == 'en' || $firstlang == 'cy' || $ourprob >= 0.8 * $firstprob);
-//
-//                if ($check) {
+
+                if ($check) {
                     error_log("$message not in English " . var_export($lang, TRUE));
-//                }
+                }
             }
         }
 

@@ -121,31 +121,33 @@ class Notifications
         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
         $settings = json_decode($u->getPrivate('settings'), TRUE);
-        $settings['notificationmails'] = FALSE;
-        $u->setPrivate('settings', json_encode($settings));
-        error_log("Off for $uid to " . json_encode($settings));
 
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_NOTIFICATIONOFF,
-            'user' => $uid
-        ]);
+        if (presdef('notificationmails', $settings, TRUE)) {
+            $settings['notificationmails'] = FALSE;
+            $u->setPrivate('settings', json_encode($settings));
 
-        $email = $u->getEmailPreferred();
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_NOTIFICATIONOFF,
+                'user' => $uid
+            ]);
 
-        if ($email) {
-            list ($transport, $mailer) = getMailer();
-            $html = notifications_off(USER_SITE, USERLOGO);
+            $email = $u->getEmailPreferred();
 
-            $message = Swift_Message::newInstance()
-                ->setSubject("Email Change Confirmation")
-                ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                ->setReturnPath($u->getBounce())
-                ->setTo([ $email => $u->getName() ])
-                ->setBody("Thanks - we've turned off the mails for notifications.")
-                ->addPart($html, 'text/html');
+            if ($email) {
+                list ($transport, $mailer) = getMailer();
+                $html = notifications_off(USER_SITE, USERLOGO);
 
-            $this->sendIt($mailer, $message);
+                $message = Swift_Message::newInstance()
+                    ->setSubject("Email Change Confirmation")
+                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                    ->setReturnPath($u->getBounce())
+                    ->setTo([ $email => $u->getName() ])
+                    ->setBody("Thanks - we've turned off the mails for notifications.")
+                    ->addPart($html, 'text/html');
+
+                $this->sendIt($mailer, $message);
+            }
         }
     }
 

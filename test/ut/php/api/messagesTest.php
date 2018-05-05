@@ -373,12 +373,26 @@ class messagesTest extends IznikAPITestCase {
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $a = new Message($this->dbhr, $this->dbhm, $id);
 
-        # Shouldn't be able to see pending
+        # Shouldn't be able to see pending logged out.
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1,
+            'collection' => 'Pending'
+        ]);
+        self::assertEquals(1, $ret['ret']);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $id);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # Shouldn't be able to see pending logged in but not a member.
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
             'collection' => 'Pending'
         ]);
 
+        error_log("Shouldn't see pending " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));

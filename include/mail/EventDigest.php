@@ -32,34 +32,37 @@ class EventDigest
 
     public function off($uid, $groupid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->setMembershipAtt($groupid, 'eventsallowed', 0);
-        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
-        # We can receive messages for emails from the old system where the group id is no longer valid.
-        if ($g->getId() == $groupid) {
-            $groupname = $g->getPublic()['namedisplay'];
+        if ($u->isApprovedMember($groupid)) {
+            $u->setMembershipAtt($groupid, 'eventsallowed', 0);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
-            $this->log->log([
-                'type' => Log::TYPE_USER,
-                'subtype' => Log::SUBTYPE_EVENTSOFF,
-                'user' => $uid,
-                'groupid' => $groupid
-            ]);
+            # We can receive messages for emails from the old system where the group id is no longer valid.
+            if ($g->getId() == $groupid) {
+                $groupname = $g->getPublic()['namedisplay'];
 
-            $email = $u->getEmailPreferred();
-            if ($email) {
-                list ($transport, $mailer) = getMailer();
-                $html = events_off(USER_SITE, USERLOGO, $groupname);
+                $this->log->log([
+                    'type' => Log::TYPE_USER,
+                    'subtype' => Log::SUBTYPE_EVENTSOFF,
+                    'user' => $uid,
+                    'groupid' => $groupid
+                ]);
 
-                $message = Swift_Message::newInstance()
-                    ->setSubject("Email Change Confirmation")
-                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                    ->setReturnPath($u->getBounce())
-                    ->setTo([ $email => $u->getName() ])
-                    ->setBody("We've turned your community event emails off on $groupname.")
-                    ->addPart($html, 'text/html');
+                $email = $u->getEmailPreferred();
+                if ($email) {
+                    list ($transport, $mailer) = getMailer();
+                    $html = events_off(USER_SITE, USERLOGO, $groupname);
 
-                $this->sendOne($mailer, $message);
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("Email Change Confirmation")
+                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setReturnPath($u->getBounce())
+                        ->setTo([ $email => $u->getName() ])
+                        ->setBody("We've turned your community event emails off on $groupname.")
+                        ->addPart($html, 'text/html');
+
+                    $this->sendOne($mailer, $message);
+                }
             }
         }
     }

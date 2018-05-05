@@ -62,28 +62,31 @@ class Newsletter extends Entity
 
     public function off($uid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->setPrivate('newslettersallowed', 0);
 
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_NEWSLETTERSOFF,
-            'user' => $uid
-        ]);
+        if ($u->getPrivate('newslettersallowed')) {
+            $u->setPrivate('newslettersallowed', 0);
 
-        $email = $u->getEmailPreferred();
-        if ($email) {
-            list ($transport, $mailer) = getMailer();
-            $html = newsletters_off(USER_SITE, USERLOGO);
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_NEWSLETTERSOFF,
+                'user' => $uid
+            ]);
 
-            $message = Swift_Message::newInstance()
-                ->setSubject("Email Change Confirmation")
-                ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                ->setReturnPath($u->getBounce())
-                ->setTo([ $email => $u->getName() ])
-                ->setBody("We've turned your newsletters off.")
-                ->addPart($html, 'text/html');
+            $email = $u->getEmailPreferred();
+            if ($email) {
+                list ($transport, $mailer) = getMailer();
+                $html = newsletters_off(USER_SITE, USERLOGO);
 
-            $this->sendOne($mailer, $message);
+                $message = Swift_Message::newInstance()
+                    ->setSubject("Email Change Confirmation")
+                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                    ->setReturnPath($u->getBounce())
+                    ->setTo([ $email => $u->getName() ])
+                    ->setBody("We've turned your newsletters off.")
+                    ->addPart($html, 'text/html');
+
+                $this->sendOne($mailer, $message);
+            }
         }
     }
 
