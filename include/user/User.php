@@ -168,7 +168,7 @@ class User extends Entity
             $pw = $this->hashPassword($pw);
             $logins = $this->getLogins(TRUE);
             foreach ($logins as $login) {
-                if ($force || ($login['type'] == User::LOGIN_NATIVE && $pw == $login['credentials'])) {
+                if ($force || ($login['type'] == User::LOGIN_NATIVE && $login['uid'] == $this->id && $pw == $login['credentials'])) {
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($this->id);
 
@@ -201,7 +201,7 @@ class User extends Entity
         if (presdef('id', $_SESSION, NULL) != $this->id) {
             # We're not already logged in as this user.
             $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ? AND credentials = ?;";
-            $logins = $this->dbhr->preQuery($sql, [ $this->id, User::LOGIN_LINK, $key ]);
+            $logins = $this->dbhr->preQuery($sql, [ $this->id, User::LOGIN_LINK, $key ], FALSE, FALSE);
             foreach ($logins as $login) {
                 # We found a match - log them in.
                 $s = new Session($this->dbhr, $this->dbhm);
@@ -1735,7 +1735,7 @@ class User extends Entity
             $atts['onholidaytill'] = $this->user['onholidaytill'] ? ISODate($this->user['onholidaytill']) : NULL;
         } else {
             # Don't show some attributes unless they're a mod or ourselves.
-            $showmod = $this->isModerator() && presdef('showmod', $atts['settings']);
+            $showmod = $this->isModerator() && presdef('showmod', $atts['settings'], FALSE);
             $atts['settings'] = [ 'showmod' => $showmod ];
             $atts['yahooid'] = NULL;
             $atts['yahooUserId'] = NULL;
@@ -4612,5 +4612,46 @@ class User extends Entity
         $this->dbhm->preExec("DELETE FROM users_images WHERE userid = ?;", [
             $this->id
         ]);
+    }
+
+    public function userRetention($userid = NULL) {
+        # Find users who:
+        # - were added six months ago
+        # - are not on any groups
+        # - have not logged in for six months
+        # - are not on the spammer list
+        # - do not have mod notes
+        # - have no logs for six months
+        #
+        # We have no good reason to keep any data about them, and should therefore purge them.
+        $count = 0;
+        $userq = $userid ? " users.id = $userid AND ": '';
+        $mysqltime = date("Y-m-d", strtotime("6 months ago"));
+        $sql = "SELECT users.id FROM users LEFT JOIN memberships ON users.id = memberships.userid LEFT JOIN spam_users ON users.id = spam_users.userid LEFT JOIN users_comments ON users.id = users_comments.userid WHERE $userq memberships.userid IS NULL AND spam_users.userid IS NULL AND spam_users.userid IS NULL AND users.lastaccess < '$mysqltime' AND systemrole = ?;";
+        error_log($sql);
+        $users = $this->dbhr->preQuery($sql, [
+            User::SYSTEMROLE_USER
+        ], FALSE, FALSE);
+
+        error_log("Consider " . count($users));
+
+        foreach ($users as $user) {
+            $logs = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), timestamp) AS logsago FROM logs WHERE user = ? ORDER BY id DESC LIMIT 1;", [
+                $user['id']
+            ], FALSE, FALSE);
+
+            #error_log("#{$user['id']} Found logs " . count($logs) . " age " . (count($logs) > 0 ? $logs['0']['logsago'] : ' none '));
+
+            if (count($logs) == 0 || $logs[0]['logsago'] > 90) {
+                error_log("...forget user #{$user['id']} " . (count($logs) > 0 ? $logs[0]['logsago'] : ''));
+                $u = new User($this->dbhr, $this->dbhm, $user['id']);
+                $u->forget();
+                $count++;
+            }
+        }
+
+        error_log("...removed $count");
+
+        return($count);
     }
 }
