@@ -1733,6 +1733,12 @@ class User extends Entity
         if ($me && ($me->isModerator() || $this->id == $me->getId())) {
             # Mods can see email settings, no matter which group.
             $atts['onholidaytill'] = $this->user['onholidaytill'] ? ISODate($this->user['onholidaytill']) : NULL;
+        } else {
+            # Don't show some attributes unless they're a mod or ourselves.
+            $showmod = $this->isModerator() && presdef('showmod', $atts['settings']);
+            $atts['settings'] = [ 'showmod' => $showmod ];
+            $atts['yahooid'] = NULL;
+            $atts['yahooUserId'] = NULL;
         }
 
         # Some info is only relevant for ModTools, rather than the user site.
