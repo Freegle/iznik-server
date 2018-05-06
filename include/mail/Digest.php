@@ -215,17 +215,31 @@ class Digest
                 # Build up the HTML for the message(s) in it.  We add a teaser of items to make it more
                 # interesting.
                 $textsumm = '';
-                $availablehtml = '';
                 $availablesumm = '';
                 $count = count($available) > 0 ? count($available) : 1;
                 $subject = "[{$gatts['namedisplay']}] What's New ($count message" .
                     ($count == 1 ? ')' : 's)');
                 $subjinfo = '';
+                $twigmsgsavail = [];
+                $twigmsgsunavail = [];
 
                 foreach ($available as $msg) {
-                    $availablehtml .= $msghtml = digest_message($msg, $msg['id'], TRUE, "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN);
+                    $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
+                    $text = htmlentities($msg['textbody']);
+                    $text = nl2br($text);
+
                     $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
+
+                    $twigmsgsavail[] = [
+                        'subject' => $msg['subject'],
+                        'textbody' => $text,
+                        'fromname' => $msg['fromname'],
+                        'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
+                        'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
+                        'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
+                        'date' => date("D, jS F g:ia", strtotime($msg['date'])),
+                    ];
 
                     if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
                         $item = trim($matches[2]);
@@ -236,28 +250,50 @@ class Digest
                     }
                 }
 
+                foreach ($unavailable as $msg) {
+                    $text = htmlentities($msg['textbody']);
+                    $text = nl2br($text);
+
+                    $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
+                    $availablesumm .= $msg['subject'] . '<br />';
+
+                    $twigmsgsunavail[] = [
+                        'subject' => $msg['subject'],
+                        'textbody' => $text,
+                        'fromname' => $msg['fromname'],
+                        'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
+                        'replyweb' => NULL,
+                        'replyemail' => NULL,
+                        'date' => date("D, jS F g:ia", strtotime($msg['date'])),
+                    ];
+
+                    $textsumm .= $msg['subject'] . " (post completed, no longer active)\r\n";
+                }
+
                 if ($subjinfo) {
                     $subject .= " - $subjinfo...";
                 }
 
-                $unavailablehtml = '';
+                try {
+                    $html = $twig->render('digest/multiple.html', [
+                        # Per-message fields for expansion now.
+                        'groupname' => $gatts['namedisplay'],
+                        'availablemessages'=> $twigmsgsavail,
+                        'unavailablemessages'=> $twigmsgsunavail,
 
-                foreach ($unavailable as $msg) {
-                    $unavailablehtml .= digest_message($msg, $msg['id'], FALSE, "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN);
-                    $textsumm .= $msg['subject'] . " (post completed, no longer active)\r\n";
+                        # Per-recipient fields for later Swift expansion
+                        'settings' => '{{settings}}',
+                        'unsubscribe' => '{{unsubscribe}}',
+                        'email' => '{{email}}',
+                        'frequency' => '{{frequency}}',
+                        'noemail' => '{{noemail}}',
+                        'visit' => '{{visit}}',
+                        'LI_HASH' => '{{LI_HASH}}',
+                        'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}'
+                    ]);
+                } catch (Exception $e) {
+                    error_log("Message prepare failed with " . $e->getMessage());
                 }
-
-                $html = digest_multiple($availablehtml,
-                    $availablesumm,
-                    $unavailablehtml,
-                    'https://' . USER_SITE,
-                    USER_DOMAIN,
-                    'https://www.ilovefreegle.org/images/user_logo.png',
-                    $gatts['namedisplay'],
-                    $subject,
-                    $gatts['namedisplay'],
-                    $g->getAutoEmail()
-                );
 
                 $tosend[] = [
                     'subject' => $subject,
