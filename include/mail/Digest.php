@@ -179,6 +179,7 @@ class Digest
                     try {
                         $html = $twig->render('digest/single.html', [
                             # Per-message fields for expansion now.
+                            'fromname' => $msg['fromname'],
                             'subject' => $msg['subject'],
                             'textbody' => $text,
                             'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,

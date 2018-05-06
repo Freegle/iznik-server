@@ -4,6 +4,8 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/mail/Digest.php');
 
+date_default_timezone_set('Europe/London');
+
 $opts = getopt('i:m:v:g:');
 
 if (count($opts) < 1) {
