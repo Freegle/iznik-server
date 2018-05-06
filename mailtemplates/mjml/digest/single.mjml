@@ -42,7 +42,7 @@
             <mj-section>
               <mj-column>
                 <mj-text>
-                  {{ textbody }}
+                  {{ textbody|nl2br }}
                 </mj-text>
               </mj-column>
               <mj-column>
@@ -53,7 +53,7 @@
               {% else %}
             </mj-raw>
             <mj-text>
-              {{ textbody }}
+              {{ textbody|nl2br }}
             </mj-text>
             <mj-raw>
               {% endif %}

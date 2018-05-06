@@ -68,7 +68,7 @@
             <mj-section padding-top="0px" padding-bottom="0px">
               <mj-column>
                 <mj-text>
-                  {{ message.textbody }}
+                  {{ message.textbody|nl2br }}
                 </mj-text>
               </mj-column>
               <mj-column>
@@ -79,7 +79,7 @@
               {% else %}
             </mj-raw>
             <mj-text>
-              {{ message.textbody }}
+              {{ message.textbody|nl2br }}
             </mj-text>
             <mj-raw>
               {% endif %}
@@ -136,7 +136,7 @@
             <mj-section padding-top="0px" padding-bottom="0px">
               <mj-column>
                 <mj-text>
-                  {{ message.textbody }}
+                  {{ message.textbody|nl2br }}
                 </mj-text>
               </mj-column>
               <mj-column>

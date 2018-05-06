@@ -258,7 +258,7 @@ class digestTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-//
+
 //    public function testNewDigestSingle() {
 //        error_log(__METHOD__);
 //

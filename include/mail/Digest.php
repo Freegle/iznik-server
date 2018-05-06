@@ -4,7 +4,6 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/mailtemplates/digest/message.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/off.php');
 
 class Digest
@@ -171,15 +170,13 @@ class Digest
                     # Anything that is per-group is passed in as a parameter here.  Anything that is or might
                     # become per-user is in the template as a {{...}} substitution.
                     $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
-                    $text = htmlentities($msg['textbody']);
-                    $text = nl2br($text);
 
                     try {
                         $html = $twig->render('digest/single.html', [
                             # Per-message fields for expansion now.
                             'fromname' => $msg['fromname'],
                             'subject' => $msg['subject'],
-                            'textbody' => $text,
+                            'textbody' => $msg['textbody'],
                             'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
                             'groupname' => $gatts['namedisplay'],
                             'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
@@ -224,15 +221,13 @@ class Digest
 
                 foreach ($available as $msg) {
                     $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
-                    $text = htmlentities($msg['textbody']);
-                    $text = nl2br($text);
 
                     $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
 
                     $twigmsgsavail[] = [
                         'subject' => $msg['subject'],
-                        'textbody' => $text,
+                        'textbody' => $msg['textbody'],
                         'fromname' => $msg['fromname'],
                         'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
                         'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
