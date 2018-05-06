@@ -77,6 +77,7 @@ class digestTest extends IznikTestCase {
         # Now test.
         assertEquals(1, $mock->send($gid, Digest::IMMEDIATE));
         assertEquals(1, count($this->msgsSent));
+        error_log("Immediate message " . $this->msgsSent[0]);
 
         error_log(__METHOD__ . " end");
     }
@@ -257,5 +258,46 @@ class digestTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+//
+//    public function testNewDigest() {
+//        error_log(__METHOD__);
+//
+//        # Actual send for coverage.
+//        $d = new Digest($this->dbhm, $this->dbhm);
+//
+//        # Create a group with a message on it.
+//        $g = Group::get($this->dbhm, $this->dbhm);
+//        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+//        $g->setPrivate('onyahoo', 1);
+//        $msg = $this->unique(file_get_contents('msgs/attachment'));
+//        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+//        $msg = str_replace('Test att', 'OFFER: Test item (location)', $msg);
+//
+//        $r = new MailRouter($this->dbhm, $this->dbhm);
+//        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
+//        assertNotNull($id);
+//        error_log("Created message $id");
+//        $rc = $r->route();
+//        assertEquals(MailRouter::APPROVED, $rc);
+//
+//        $u = User::get($this->dbhm, $this->dbhm);
+//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        $u = User::get($this->dbhm, $this->dbhm, $uid);
+//        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
+//            $u->getEmailPreferred()
+//        ]);
+//
+//        foreach ($emails as $email) {
+//            $eid = $email['id'];
+//            error_log("Found eid $eid");
+//            $u->addMembership($gid, User::ROLE_MEMBER, $eid);
+//            $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
+//
+//            # Now test.
+//            assertEquals(1, $d->send($gid, Digest::IMMEDIATE));
+//        }
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 

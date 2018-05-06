@@ -87,6 +87,9 @@ class Digest
     }
 
     public function send($groupid, $frequency) {
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new Twig_Environment($loader);
+
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
         $sent = 0;
@@ -154,6 +157,11 @@ class Digest
 
             # Build the array of message(s) to send.  If we are sending immediately this may have multiple,
             # otherwise it'll just be one.
+            #
+            # We expand twig templates at this stage for fields which related to the message but not the
+            # recipient.  Per-recipient fields are expanded using the Swift decorator later on, so for
+            # those we expand them to a Swift variable.  That's a bit confusing but it means that
+            # we don't expand the message variables more often than we need to, for performance reasons.
             $tosend = [];
 
             if ($frequency == Digest::IMMEDIATE) {
@@ -165,25 +173,43 @@ class Digest
                     # Anything that is per-group is passed in as a parameter here.  Anything that is or might
                     # become per-user is in the template as a {{...}} substitution.
                     $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
-                    $msghtml = digest_message($msg, $msg['id'], TRUE, $replyto);
-                    $html = digest_single($msghtml,
-                        'https://' . USER_SITE,
-                        'https://www.ilovefreegle.org/images/user_logo.png',
-                        $gatts['namedisplay'],
-                        $msg['subject']
-                    );
+                    $text = htmlentities($msg['textbody']);
+                    $text = nl2br($text);
 
-                    $u = User::get($this->dbhr, $this->dbhm, $msg['fromuser']['id']);
+                    try {
+                        $html = $twig->render('digest/single.html', [
+                            # Per-message fields for expansion now.
+                            'subject' => $msg['subject'],
+                            'textbody' => $text,
+                            'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
+                            'groupname' => $gatts['namedisplay'],
+                            'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
+                            'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
+                            'date' => date("D, jS F g:ia", strtotime($msg['date'])),
 
-                    $tosend[] = [
-                        'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
-                        'from' => $replyto,
-                        'fromname' => $msg['fromname'],
-                        'replyto' => $replyto,
-                        'replytoname' => $msg['fromname'],
-                        'html' => $html,
-                        'text' => $msg['textbody']
-                    ];
+                            # Per-recipient fields for later Swift expansion
+                            'settings' => '{{settings}}',
+                            'unsubscribe' => '{{unsubscribe}}',
+                            'email' => '{{email}}',
+                            'frequency' => '{{frequency}}',
+                            'noemail' => '{{noemail}}',
+                            'visit' => '{{visit}}',
+                            'LI_HASH' => '{{LI_HASH}}',
+                            'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}'
+                        ]);
+
+                        $tosend[] = [
+                            'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
+                            'from' => $replyto,
+                            'fromname' => $msg['fromname'],
+                            'replyto' => $replyto,
+                            'replytoname' => $msg['fromname'],
+                            'html' => $html,
+                            'text' => $msg['textbody']
+                        ];
+                    } catch (Exception $e) {
+                        error_log("Message prepare failed with " . $e->getMessage());
+                    }
                 }
             } else if (count($available) + count($unavailable) > 0) {
                 # Build up the HTML for the message(s) in it.  We add a teaser of items to make it more

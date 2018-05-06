@@ -1,0 +1,117 @@
+<mjml>
+  <mj-head>
+    <mj-style>
+      a { color: #288c0a; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; } @media only screen and (max-width: 480px) { *[class~=hide_on_mobile]
+      { display: none !important;} }
+    </mj-style>
+    <mj-attributes>
+      <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
+    </mj-attributes>
+    <mj-preview>{{ textbody }} </mj-preview>
+  </mj-head>
+  <mj-body>
+    <mj-container>
+      <mj-wrapper padding="0" full-width="full-width">
+        <!-- header section -->
+        <mj-section background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+          <mj-column>
+            <mj-image css-class="hide_on_mobile" src="https://www.ilovefreegle.org/images/user_logo.png" width="80px" align="left"> </mj-image>
+          </mj-column>
+          <mj-column>
+            <mj-button inner-padding="10px" href="https://www.ilovefreegle.org/" font-family="Helvetica" background-color="#377615" color="white">
+              Freegle<br />something!
+            </mj-button>
+          </mj-column>
+          <mj-column>
+            <mj-button inner-padding="10px" href="{{ visit }}" font-family="Helvetica" background-color="#377615" color="white">
+              Browse <br />the group
+            </mj-button>
+          </mj-column>
+          <mj-column>
+            <mj-button inner-padding="10px" href="{{ unsubscribe }}" font-family="Helvetica" background-color="#336666" color="white">
+              Unsubscribe
+            </mj-button>
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#FFF8DC">
+          <mj-column>
+            <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">{{ subject }} </mj-text>
+            <mj-raw>
+              {% if image is defined and image is not null %}
+            </mj-raw>
+            <mj-section>
+              <mj-column>
+                <mj-text>
+                  {{ textbody }}
+                </mj-text>
+              </mj-column>
+              <mj-column>
+                <mj-image alt="Item picture" href="{{ replyweb }}" align="right" border-radius="5px" src="{{ image }}" width="80px"> </mj-image>
+              </mj-column>
+            </mj-section>
+            <mj-raw>
+              {% else %}
+            </mj-raw>
+            <mj-text>
+              {{ textbody }}
+            </mj-text>
+            <mj-raw>
+              {% endif %}
+            </mj-raw>
+            <mj-text color="darkgrey">
+              Posted by {{ fromname }} on {{ date }}.
+            </mj-text>
+            <mj-section padding="0px">
+              <mj-column padding="0px">
+                <mj-button align="left" href="{{ replyweb }}" font-family="Helvetica" background-color="darkgreen" color="white">
+                  Reply via Web
+                </mj-button>
+              </mj-column>
+              <mj-column>
+                <mj-button align="left" href="{{ replyemail }}" font-family="Helvetica" background-color="#515A5A" color="white">
+                  Reply via Email
+                </mj-button>
+              </mj-column>
+            </mj-section>
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#F7F6EC">
+          <mj-column>
+            <mj-text align="center">
+              Ads help keep freegle running and free to use. Donating helps too!
+            </mj-text>
+            <mj-button align="center" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA" font-family="Helvetica" background-color="darkblue" color="white">
+              Donate
+            </mj-button>
+            <mj-raw>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" padding-left="10px">
+                <tr>
+                  <td colspan="2"><a style="display: block; width: 300px; height: 250px;" href="http://li.ilovefreegle.org/click?s=285301&sz=300x250&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285301&sz=300x250&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0" width="300" height="250"/></a></td>
+                </tr>
+                <tr style="display:block; height:1px; line-height:1px;">
+                  <td><img src="http://li.ilovefreegle.org/imp?s=285302&sz=1x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" height="1" width="10" /></td>
+                  <td><img src="http://li.ilovefreegle.org/imp?s=285303&sz=1x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" height="1" width="10" /></td>
+                </tr>
+                <tr>
+                  <td align="left"><a href="http://li.ilovefreegle.org/click?s=285298&sz=116x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285298&sz=116x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td>
+                  <td align="right"><a href="http://li.ilovefreegle.org/click?s=285299&sz=69x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285299&sz=69x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td>
+                </tr>
+              </table>
+            </mj-raw>
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#E0E0E0">
+          <mj-column>
+            <mj-text font-size="9pt" color="#707070">
+              You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive updates for {{ groupname }} {{ frequency }}.<br /> <br /> You can change your settings by clicking <a href="{{ settings }}">here</a>,
+              or turn these mails off for this group by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
+              <br /> <br /> This mail was sent to {{ email }}.
+              <br />
+              <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+            </mj-text>
+          </mj-column>
+        </mj-section>
+      </mj-wrapper>
+    </mj-container>
+  </mj-body>
+</mjml>
