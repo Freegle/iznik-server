@@ -1378,6 +1378,9 @@ class MailRouterTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
 
+        # Can only see settings logged in.
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
         $atts = $u->getPublic();
         assertTrue($atts['settings']['notificationmails']);
 

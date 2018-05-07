@@ -1158,7 +1158,7 @@ class userTest extends IznikTestCase {
         $uid2 = $u->create('Test', 'User', 'Test User');
 
         self::assertEquals(0, $u->userRetention($uid1));
-        $u->setPrivate('added', '2000-01-01');
+        $u->setPrivate('lastaccess', '2000-01-01');
         self::assertEquals(1, $u->userRetention($uid2));
 
         error_log(__METHOD__ . " end");

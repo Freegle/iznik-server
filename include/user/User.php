@@ -1168,6 +1168,7 @@ class User extends Entity
         if ($type == User::LOGIN_NATIVE) {
             # Native login - the uid is the password encrypt the password a bit.
             $creds = $this->hashPassword($creds);
+            $uid = $this->id;
         }
 
         # If the login with this type already exists in the table, that's fine.
