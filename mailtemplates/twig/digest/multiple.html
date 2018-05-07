@@ -90,8 +90,14 @@
             .mj-column-per-100 {
                 width: 100% !important;
             }
+            .mj-column-per-33 {
+                width: 33.333333333333336% !important;
+            }
             .mj-column-per-50 {
                 width: 50% !important;
+            }
+            .mj-column-per-10 {
+                width: 10% !important;
             }
         }
     </style>
@@ -120,6 +126,18 @@
 
         @media only screen and (max-width: 480px) {
             *[class~=hide_on_mobile] {
+                display: none !important;
+            }
+            *[class~=show_on_mobile] {
+                display: block !important;
+            }
+        }
+
+        @media only screen and (min-width: 480px) {
+            *[class~=hide_on_mobile] {
+                display: block !important;
+            }
+            *[class~=show_on_mobile] {
                 display: none !important;
             }
         }
@@ -164,11 +182,11 @@
                                 <!--[if mso | IE]>
                                 <tr>
                                     <td
-                                            width="600px"
+                                            class="hide_on_mobile-outlook" width="600px"
                                     >
 
                                         <table
-                                                align="center" border="0" cellpadding="0" cellspacing="0" style="width:600px;" width="600"
+                                                align="center" border="0" cellpadding="0" cellspacing="0" class="hide_on_mobile-outlook" style="width:600px;" width="600"
                                         >
                                             <tr>
                                                 <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
@@ -178,7 +196,7 @@
                                                         <v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
                                 <![endif]-->
 
-                                <div style="background:#e5e4db url(https://www.ilovefreegle.org/images/wallpaper.png) top center / auto repeat;Margin:0px auto;max-width:600px;">
+                                <div class="hide_on_mobile" style="background:#e5e4db url(https://www.ilovefreegle.org/images/wallpaper.png) top center / auto repeat;Margin:0px auto;max-width:600px;">
                                     <div style="line-height:0;font-size:0;">
                                         <table align="center" background="https://www.ilovefreegle.org/images/wallpaper.png" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#e5e4db url(https://www.ilovefreegle.org/images/wallpaper.png) top center / auto repeat;width:100%;">
                                             <tbody>
@@ -199,7 +217,7 @@
                                                         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
 
                                                             <tr>
-                                                                <td align="left" class="hide_on_mobile" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                                                                <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                                                                     <table align="left" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
                                                                         <tbody>
@@ -297,7 +315,7 @@
                                                         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
 
                                                             <tr>
-                                                                <td align="center" vertical-align="middle" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                                                                <td align="center" vertical-align="middle" class="hide_on_mobile" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                                                                     <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                                                         <tr>
@@ -314,6 +332,151 @@
 
                                                         </table>
 
+                                                    </div>
+
+                                                    <!--[if mso | IE]>
+                                                    </td>
+
+                                                    </tr>
+
+                                                    </table>
+                                                    <![endif]-->
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!--[if mso | IE]>
+                                </v:textbox>
+                                </v:rect>
+
+                                </td>
+                                </tr>
+                                </table>
+
+                                </td>
+                                </tr>
+
+                                <tr>
+                                    <td
+                                            class="show_on_mobile-outlook" width="600px"
+                                    >
+
+                                        <table
+                                                align="center" border="0" cellpadding="0" cellspacing="0" class="show_on_mobile-outlook" style="width:600px;" width="600"
+                                        >
+                                            <tr>
+                                                <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+
+                                                    <v:rect  style="width:600px;" xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false">
+                                                        <v:fill  origin="0.5, 0" position="0.5, 0" src="https://www.ilovefreegle.org/images/wallpaper.png" color="#e5e4db" type="tile" />
+                                                        <v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
+                                <![endif]-->
+
+                                <div class="show_on_mobile" style="background:#e5e4db url(https://www.ilovefreegle.org/images/wallpaper.png) top center / auto repeat;Margin:0px auto;max-width:600px;">
+                                    <div style="line-height:0;font-size:0;">
+                                        <table align="center" background="https://www.ilovefreegle.org/images/wallpaper.png" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#e5e4db url(https://www.ilovefreegle.org/images/wallpaper.png) top center / auto repeat;width:100%;">
+                                            <tbody>
+                                            <tr>
+                                                <td style="border-top:5px solid #61AE24;direction:ltr;font-size:0px;padding:0px;text-align:center;vertical-align:top;">
+                                                    <!--[if mso | IE]>
+                                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+
+                                                        <tr>
+
+                                                            <td
+                                                                    style="width:600px;"
+                                                            >
+                                                    <![endif]-->
+
+                                                    <div class="mj-column-per-100 outlook-group-fix" style="font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;">
+                                                        <!--[if mso | IE]>
+                                                        <table  role="presentation" border="0" cellpadding="0" cellspacing="0">
+                                                            <tr>
+
+                                                                <td
+                                                                        style="vertical-align:top;width:200px;"
+                                                                >
+                                                        <![endif]-->
+
+                                                        <div class="mj-column-per-33 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;">
+
+                                                            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+
+                                                                <tr>
+                                                                    <td align="center" class="show_on_mobile" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                                                        <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:center;color:#000000;">
+                                                                            <a font-weight="bold" href="https://www.ilovefreegle.org/">Freegle</a>
+                                                                        </div>
+
+                                                                    </td>
+                                                                </tr>
+
+                                                            </table>
+
+                                                        </div>
+
+                                                        <!--[if mso | IE]>
+                                                        </td>
+
+                                                        <td
+                                                                style="vertical-align:top;width:200px;"
+                                                        >
+                                                        <![endif]-->
+
+                                                        <div class="mj-column-per-33 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;">
+
+                                                            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+
+                                                                <tr>
+                                                                    <td align="center" class="show_on_mobile" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                                                        <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:center;color:#000000;">
+                                                                            <a font-weight="bold" href="{{ visit }}">Browse</a>
+                                                                        </div>
+
+                                                                    </td>
+                                                                </tr>
+
+                                                            </table>
+
+                                                        </div>
+
+                                                        <!--[if mso | IE]>
+                                                        </td>
+
+                                                        <td
+                                                                style="vertical-align:top;width:200px;"
+                                                        >
+                                                        <![endif]-->
+
+                                                        <div class="mj-column-per-33 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;">
+
+                                                            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+
+                                                                <tr>
+                                                                    <td align="center" class="show_on_mobile" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                                                        <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:center;color:#000000;">
+                                                                            <a font-weight="bold" href="{{ unsubscribe }}">Leave</a>
+                                                                        </div>
+
+                                                                    </td>
+                                                                </tr>
+
+                                                            </table>
+
+                                                        </div>
+
+                                                        <!--[if mso | IE]>
+                                                        </td>
+
+                                                        </tr>
+                                                        </table>
+                                                        <![endif]-->
                                                     </div>
 
                                                     <!--[if mso | IE]>
@@ -604,7 +767,7 @@
                                                             <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                                                                 <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:left;color:#000000;">
-                                                                    {{ message.textbody }}
+                                                                    {{ message.textbody|nl2br }}
                                                                 </div>
 
                                                             </td>
@@ -659,7 +822,7 @@
                                                                                                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
 
                                                                                                     <tr>
-                                                                                                        <td align="left" vertical-align="middle" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                                                                                                        <td align="left" vertical-align="middle" class="hide_on_mobile" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                                                                                                             <table align="left" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                                                                                                 <tr>
@@ -696,7 +859,7 @@
                                                                                     <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
 
                                                                                         <tr>
-                                                                                            <td align="left" vertical-align="middle" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                                                                                            <td align="left" vertical-align="middle" class="hide_on_mobile" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                                                                                                 <table align="left" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                                                                                     <tr>
@@ -736,6 +899,74 @@
                                                                 </table>
                                                                 <![endif]-->
 
+
+                                                            </td>
+                                                        </tr>
+
+                                                        <tr>
+                                                            <td style="font-size:0px;word-break:break-word;">
+
+                                                                <div class="mj-column-per-10 outlook-group-fix" style="font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;">
+                                                                    <!--[if mso | IE]>
+                                                                    <table  role="presentation" border="0" cellpadding="0" cellspacing="0">
+                                                                        <tr>
+
+                                                                            <td
+                                                                                    style="vertical-align:top;width:30px;"
+                                                                            >
+                                                                    <![endif]-->
+
+                                                                    <div class="mj-column-per-50 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:50%;">
+
+                                                                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+
+                                                                            <tr>
+                                                                                <td align="center" class="show_on_mobile" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                                                                    <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:center;color:#000000;">
+                                                                                        <a font-weight="bold" href="{{ message.replyweb }}">Reply on Web</a>
+                                                                                    </div>
+
+                                                                                </td>
+                                                                            </tr>
+
+                                                                        </table>
+
+                                                                    </div>
+
+                                                                    <!--[if mso | IE]>
+                                                                    </td>
+
+                                                                    <td
+                                                                            style="vertical-align:top;width:30px;"
+                                                                    >
+                                                                    <![endif]-->
+
+                                                                    <div class="mj-column-per-50 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:50%;">
+
+                                                                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+
+                                                                            <tr>
+                                                                                <td align="center" class="show_on_mobile" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                                                                    <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:center;color:#000000;">
+                                                                                        <a font-weight="bold" href="{{ message.replyemail }}">Reply via Email</a>
+                                                                                    </div>
+
+                                                                                </td>
+                                                                            </tr>
+
+                                                                        </table>
+
+                                                                    </div>
+
+                                                                    <!--[if mso | IE]>
+                                                                    </td>
+
+                                                                    </tr>
+                                                                    </table>
+                                                                    <![endif]-->
+                                                                </div>
 
                                                             </td>
                                                         </tr>
@@ -1021,7 +1252,7 @@
                                                             <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                                                                 <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:left;color:#000000;">
-                                                                    {{ message.textbody|nl2br }}
+                                                                    {{ message.textbody }}
                                                                 </div>
 
                                                             </td>

@@ -1,8 +1,18 @@
 <mjml>
   <mj-head>
     <mj-style>
-      a { color: #288c0a; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; } @media only screen and (max-width: 480px) { *[class~=hide_on_mobile]
-      { display: none !important;} }
+      a { color: #288c0a; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; }
+
+
+      @media only screen and (max-width: 480px) {
+      *[class~=hide_on_mobile]  { display: none !important;}
+      *[class~=show_on_mobile] { display: block !important;}
+      }
+
+      @media only screen and (min-width: 480px) {
+      *[class~=hide_on_mobile]  { display: block !important;}
+      *[class~=show_on_mobile] { display: none !important;}
+      }
     </mj-style>
     <mj-attributes>
       <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
@@ -13,9 +23,9 @@
     <mj-container>
       <mj-wrapper full-width="full-width">
         <!-- header section -->
-        <mj-section background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+        <mj-section css-class="hide_on_mobile" background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
           <mj-column>
-            <mj-image css-class="hide_on_mobile" src="https://www.ilovefreegle.org/images/user_logo.png" width="80px" align="left"> </mj-image>
+            <mj-image src="https://www.ilovefreegle.org/images/user_logo.png" width="80px" align="left"> </mj-image>
           </mj-column>
           <mj-column>
             <mj-button inner-padding="10px" href="https://www.ilovefreegle.org/" font-family="Helvetica" background-color="#377615" color="white">
@@ -28,10 +38,29 @@
             </mj-button>
           </mj-column>
           <mj-column>
-            <mj-button inner-padding="10px" href="{{ unsubscribe }}" font-family="Helvetica" background-color="#336666" color="white">
+            <mj-button css-class="hide_on_mobile" inner-padding="10px" href="{{ unsubscribe }}" font-family="Helvetica" background-color="#336666" color="white">
               Unsubscribe
             </mj-button>
           </mj-column>
+        </mj-section>
+        <mj-section css-class="show_on_mobile" background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+          <mj-group>
+            <mj-column>
+              <mj-text align="center" css-class="show_on_mobile">
+                <a font-weight="bold" href="https://www.ilovefreegle.org/">Freegle</a>
+              </mj-text>
+            </mj-column>
+            <mj-column>
+              <mj-text align="center" css-class="show_on_mobile">
+                <a font-weight="bold" href="{{ visit }}">Browse</a>
+              </mj-text>
+            </mj-column>
+            <mj-column>
+              <mj-text align="center" css-class="show_on_mobile">
+                <a font-weight="bold" href="{{ unsubscribe }}">Leave</a>
+              </mj-text>
+            </mj-column>
+          </mj-group>
         </mj-section>
         <mj-raw>
           {% if availablemessages | length > 0 %}
@@ -89,16 +118,28 @@
             </mj-text>
             <mj-section padding="0px">
               <mj-column padding="0px">
-                <mj-button align="left" href="{{ message.replyweb }}" font-family="Helvetica" background-color="darkgreen" color="white">
+                <mj-button css-class="hide_on_mobile" align="left" href="{{ message.replyweb }}" font-family="Helvetica" background-color="darkgreen" color="white">
                   Reply via Web
                 </mj-button>
               </mj-column>
               <mj-column>
-                <mj-button align="left" href="{{ message.replyemail }}" font-family="Helvetica" background-color="#515A5A" color="white">
+                <mj-button css-class="hide_on_mobile" align="left" href="{{ message.replyemail }}" font-family="Helvetica" background-color="#515A5A" color="white">
                   Reply via Email
                 </mj-button>
               </mj-column>
             </mj-section>
+            <mj-group>
+              <mj-column>
+                <mj-text align="center" css-class="show_on_mobile">
+                  <a font-weight="bold" href="{{ message.replyweb }}">Reply on Web</a>
+                </mj-text>
+              </mj-column>
+              <mj-column>
+                <mj-text align="center" css-class="show_on_mobile">
+                  <a font-weight="bold" href="{{ message.replyemail }}">Reply via Email</a>
+                </mj-text>
+              </mj-column>
+            </mj-group>
             <mj-text padding-top="0px" padding-bottom="0px">
               <hr style="border: 0; border-top: 1px solid #aaa; " />
             </mj-text>
