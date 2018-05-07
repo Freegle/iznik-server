@@ -245,15 +245,12 @@ class Digest
                 }
 
                 foreach ($unavailable as $msg) {
-                    $text = htmlentities($msg['textbody']);
-                    $text = nl2br($text);
-
                     $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
 
                     $twigmsgsunavail[] = [
                         'subject' => $msg['subject'],
-                        'textbody' => $text,
+                        'textbody' => $msg['textbody'],
                         'fromname' => $msg['fromname'],
                         'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
                         'replyweb' => NULL,
