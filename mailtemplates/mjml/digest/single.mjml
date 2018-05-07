@@ -119,7 +119,7 @@
         <mj-section background-color="#F7F6EC">
           <mj-column>
             <mj-text align="center">
-              Ads help keep freegle running and free to use. Donating helps too!
+              Ads help keep Freegle running and free to use. Donating helps too!
             </mj-text>
             <mj-button align="center" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA" font-family="Helvetica" background-color="darkblue" color="white">
               Donate
