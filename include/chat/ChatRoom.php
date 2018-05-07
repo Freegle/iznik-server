@@ -1539,7 +1539,7 @@ class ChatRoom extends Entity
                             $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
                             $to = $thisu->getEmailPreferred();
 
-                            $to = 'log@ehibbert.org.uk';
+                            #$to = 'log@ehibbert.org.uk';
                             #$to = 'activate@liveintent.com';
 
                             # Parameters for LiveIntent ads
