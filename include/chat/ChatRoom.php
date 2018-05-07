@@ -7,8 +7,6 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/session/Facebook.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
-require_once(IZNIK_BASE . '/mailtemplates/chat_notify.php');
-require_once(IZNIK_BASE . '/mailtemplates/chat_notify_mod.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_chaseup_mod.php');
 
 class ChatRoom extends Entity
@@ -1299,6 +1297,10 @@ class ChatRoom extends Entity
         # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
         # only interested in rooms containing a message which was posted recently and which has not been mailed all
         # members - which is a much smaller set.
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new Twig_Environment($loader);
+        $placement = "chatnotify" . microtime(true);
+
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0 AND reviewrequired = 0 AND chattype = ? $chatq;";
@@ -1344,7 +1346,7 @@ class ChatRoom extends Entity
 
                 if (count($unmailedmsgs) > 0) {
                     $textsummary = '';
-                    $htmlsummary = '';
+                    $twigmessages = [];
                     $lastmsgemailed = 0;
                     $lastfrom = 0;
                     $lastmsg = NULL;
@@ -1448,15 +1450,20 @@ class ChatRoom extends Entity
                                 $fromuid = $messageu->getId();
 
                                 #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
+                                $thistwig = [];
+
                                 if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
                                     # Only want to say someone wrote it if they did, which they didn't for system-
                                     # generated messages.
                                     if ($lastfrom != $unmailedmsg['userid']) {
                                         # Alternate colours.
                                         if ($unmailedmsg['userid'] == $thisu->getId()) {
-                                            $htmlsummary .= '<h3>You wrote' . ($chat['chattype'] == ChatRoom::TYPE_USER2USER ? (' to ' . $otheru->getName()) : '') . '</h3><span style="color: black">';
+                                            $thistwig['mine'] = TRUE;
+                                            $thistwig['fromname'] = 'You';
+                                            $thistwig['toname'] = $otheru->getName();
                                         } else {
-                                            $htmlsummary .= '<h3>' . $fromname . ' wrote:</h3><span style="color: blue">';
+                                            $thistwig['mine'] = FALSE;
+                                            $thistwig['fromname'] = $fromname;
                                         }
                                     }
                                 }
@@ -1466,17 +1473,18 @@ class ChatRoom extends Entity
                                 if ($unmailedmsg['imageid']) {
                                     $a = new Attachment($this->dbhr, $this->dbhm, $unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE);
                                     $path = $a->getPath(FALSE);
-                                    $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
+                                    $thistwig['image'] = $path;
                                     $textsummary .= "Here's a picture: $path\r\n";
                                 } else if ($collurl) {
                                     $textsummary .= $thisone . "\r\n$collurl\r\n";
-                                    $htmlsummary .= nl2br($thisone) . '<br><br><a href="' . $collurl . '">' . $collurl . "</a><br>";
+                                    $thistwig['collurl'] = $collurl;
+                                    $thistwig['message'] = $thisone;
                                 } else {
                                     $textsummary .= $thisone . "\r\n";
-                                    $htmlsummary .= nl2br($thisone) . "<br>";
+                                    $thistwig['message'] = $thisone;
                                 }
 
-                                $htmlsummary .= '</span>';
+                                $twigmessages[] = $thistwig;
 
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
                                 $lastmsg = $thisone;
@@ -1486,7 +1494,7 @@ class ChatRoom extends Entity
 
                     #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
                     if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
-                        if ($htmlsummary != '') {
+                        if (count($twigmessages)) {
                             # As a subject, we should use the last referenced message in this chat.
                             $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                             #error_log($sql . $chat['chatid']);
@@ -1529,35 +1537,74 @@ class ChatRoom extends Entity
                             #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
                             #   added.
                             $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
+                            $to = $thisu->getEmailPreferred();
 
-                            switch ($chattype) {
-                                case ChatRoom::TYPE_USER2USER:
-                                    $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
-                                        $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
-                                    $sendname = $fromname;
-                                    break;
-                                case ChatRoom::TYPE_USER2MOD:
-                                    if ($member['role'] == User::ROLE_MEMBER) {
-                                        $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
-                                            $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
+                            $to = 'log@ehibbert.org.uk';
+                            #$to = 'activate@liveintent.com';
+
+                            # Parameters for LiveIntent ads
+                            $lihash = hash('sha1', $to);
+
+                            try {
+                                switch ($chattype) {
+                                    case ChatRoom::TYPE_USER2USER:
+                                        $html = $twig->render('chat_notify.html', [
+                                            'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
+                                            'fromid' => $member['userid'],
+                                            'name' => $fromname,
+                                            'reply' => $url,
+                                            'messages' => $twigmessages,
+                                            'backcolour' => '#FFF8DC',
+                                            'email' => $to,
+                                            'LI_HASH' => $lihash,
+                                            'LI_PLACEMENT_ID' => $placement
+                                        ]);
+
                                         $sendname = $fromname;
-                                    } else {
-                                        $url = $thisu->loginLink($site, $member['userid'], '/modtools/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
-                                        $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
-                                        $sendname = 'Reply All';
-                                    }
-                                    break;
-                            }
+                                        break;
+                                    case ChatRoom::TYPE_USER2MOD:
+                                        if ($member['role'] == User::ROLE_MEMBER) {
+                                            $html = $twig->render('chat_notify.html', [
+                                                'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
+                                                'fromid' => $member['userid'],
+                                                'name' => $fromname,
+                                                'reply' => $url,
+                                                'messages' => $twigmessages,
+                                                'backcolour' => '#FFF8DC',
+                                                'email' => $to,
+                                                'LI_HASH' => $lihash,
+                                                'LI_PLACEMENT_ID' => $placement
+                                            ]);
+                                            $sendname = $fromname;
+                                        } else {
+                                            $url = $thisu->loginLink($site, $member['userid'], '/modtools/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
+                                            $html = $twig->render('chat_notify.html', [
+                                                'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
+                                                'fromid' => $member['userid'],
+                                                'name' => $fromname,
+                                                'reply' => $url,
+                                                'messages' => $twigmessages,
+                                                'ismod' => $thisu->isModerator(),
+                                                'support' => SUPPORT_ADDR,
+                                                'backcolour' => '#E8FEFB',
+                                                'email' => $to,
+                                                'LI_HASH' => $lihash,
+                                                'LI_PLACEMENT_ID' => $placement
+                                            ]);
+
+                                            $sendname = 'Reply All';
+                                        }
+                                        break;
+                                }
+                            } catch (Exception $e) { $html = ''; error_log("Twig failed with " . $e->getMessage()); }
 
                             # We ask them to reply to an email address which will direct us back to this chat.
                             $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
-                            $to = $thisu->getEmailPreferred();
 
                             # ModTools users should never get notified.
                             if ($to && strpos($to, MOD_SITE) === FALSE) {
                                 error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
                                 try {
-                                    #$to = 'log@ehibbert.org.uk';
                                     # We only include the HTML part if this is a user on our platform; otherwise
                                     # we just send a text bodypart containing the replies.  This means that our
                                     # messages to users who aren't on here look less confusing.
@@ -1572,6 +1619,11 @@ class ChatRoom extends Entity
                                         $thisu->getOurEmail() ? $html : NULL,
                                         $fromuid);
                                     $this->mailer($message);
+
+                                    if ($thisu->getOurEmail()){
+                                        exit(0);
+
+                                    }
 
                                     $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                         $lastmsgemailed,
