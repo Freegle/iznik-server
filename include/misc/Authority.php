@@ -107,7 +107,43 @@ class Authority extends Entity
         unset($atts['lng']);
 
         # Find groups which overlap with this area.
-        $sql = "SELECT groups.id, nameshort, namefull, lat, lng, COALESCE(poly, polyofficial) AS poly, CASE WHEN GeomFromText(COALESCE(poly, polyofficial)) = COALESCE(simplified, polygon) THEN 1 ELSE ST_Area(ST_Intersection(ST_Simplify(GeomFromText(COALESCE(poly, polyofficial)), 0.01), ST_Simplify(COALESCE(simplified, polygon), 0.01)))/ST_Area(GeomFromText(COALESCE(poly, polyofficial))) END AS overlap FROM groups INNER JOIN authorities ON (GeomFromText(COALESCE(poly, polyofficial)) = COALESCE(simplified, polygon) OR ST_Intersects(GeomFromText(COALESCE(poly, polyofficial)), COALESCE(simplified, polygon))) WHERE type = ? AND publish = 1 AND onmap = 1 AND authorities.id = ?;";
+        $sql = "SELECT groups.id, 
+       nameshort, 
+       namefull, 
+       lat, 
+       lng, 
+       Coalesce(poly, polyofficial) AS poly, 
+       CASE 
+         WHEN Geomfromtext(Coalesce(poly, polyofficial)) = 
+              Coalesce(simplified, polygon) THEN 1 
+         ELSE St_area(St_intersection(St_simplify(Geomfromtext(Coalesce (poly, 
+                                                               polyofficial)), 
+                                             0.01), 
+                                     St_simplify(Coalesce(simplified, polygon), 
+                                     0.01))) 
+              / St_area(Geomfromtext(Coalesce(poly, polyofficial))) 
+       end                          AS overlap, 
+       CASE 
+         WHEN Geomfromtext(Coalesce(poly, polyofficial)) = 
+              Coalesce(simplified, polygon) THEN 1 
+         ELSE St_area(Geomfromtext(Coalesce(poly, polyofficial))) / St_area( 
+                     St_intersection(St_simplify(Geomfromtext(Coalesce(poly, 
+                                                              polyofficial)), 
+                                     0.01), 
+                             St_simplify(Coalesce(simplified, polygon), 0.01))) 
+       end                          AS overlap2 
+FROM   groups 
+       INNER JOIN authorities 
+               ON ( Geomfromtext(Coalesce(poly, polyofficial)) = 
+                    Coalesce(simplified, polygon) 
+                     OR St_intersects(Geomfromtext(Coalesce(poly, polyofficial)) 
+                        , 
+                            Coalesce(simplified, polygon)) ) 
+WHERE  type = ? 
+       AND publish = 1 
+       AND onmap = 1 
+       AND authorities.id = ?;";
+        error_log("Overlap SQL $sql");
         $groups = $this->dbhr->preQuery($sql, [
             Group::GROUP_FREEGLE,
             $atts['id']
@@ -123,8 +159,8 @@ class Authority extends Entity
                 $group['overlap'] = 1;
             }
 
-            if ($group['overlap'] < 0.05) {
-                # Exclude - minor overlap.
+            if ($group['overlap'] >= 0.05 || $group['overlap2'] >= 0.05) {
+                # Exclude - minor overlaps.
                 $ret[] = $group;
             }
         }
