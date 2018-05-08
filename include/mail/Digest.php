@@ -226,6 +226,7 @@ class Digest
                     $availablesumm .= $msg['subject'] . '<br />';
 
                     $twigmsgsavail[] = [
+                        'id' => $msg['id'],
                         'subject' => $msg['subject'],
                         'textbody' => $msg['textbody'],
                         'fromname' => $msg['fromname'],
@@ -249,6 +250,7 @@ class Digest
                     $availablesumm .= $msg['subject'] . '<br />';
 
                     $twigmsgsunavail[] = [
+                        'id' => $msg['id'],
                         'subject' => $msg['subject'],
                         'textbody' => $msg['textbody'],
                         'fromname' => $msg['fromname'],

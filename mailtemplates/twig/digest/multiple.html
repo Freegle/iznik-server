@@ -550,7 +550,7 @@
                                                             <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                                                                 <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1.25em;text-align:left;color:#1D6607;">
-                                                                    <br /> Here are new posts or reposts since we last mailed you. Scroll down for details or to reply.
+                                                                    <br /> Here are new posts or reposts since we last mailed you. Depending on your email client you may be able to click on a post to move down this email; otherwise please scroll down.
                                                                 </div>
 
                                                             </td>
@@ -560,7 +560,9 @@
                                                             <td align="left" style="font-size:0px;padding:10px 25px;padding-top:0px;padding-bottom:2px;word-break:break-word;">
 
                                                                 <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-weight:bold;line-height:1;text-align:left;color:#1D6607;">
-                                                                    {{ message.subject }}
+                                                                    <a href="#msg-{{ message.id }}">
+                                                                        {{ message.subject }}
+                                                                    </a>
                                                                 </div>
 
                                                             </td>
@@ -637,6 +639,16 @@
                                                 <div class="mj-column-per-100 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
 
                                                     <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+
+                                                        <tr>
+                                                            <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                                                <div style="font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:left;color:#000000;">
+                                                                    <span id="msg-{{ message.id }}" name="{{ message.id }}" />
+                                                                </div>
+
+                                                            </td>
+                                                        </tr>
 
                                                         <tr>
                                                             <td align="left" style="font-size:0px;padding:10px 25px;padding-top:0px;padding-bottom:0px;word-break:break-word;">

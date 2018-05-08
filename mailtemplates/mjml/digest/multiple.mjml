@@ -71,12 +71,18 @@
               Active Posts
             </mj-text>
             <mj-text background-color="#FFF8DC" color="#1D6607" line-height="1.25em">
-              <br /> Here are new posts or reposts since we last mailed you. Scroll down for details or to reply.
+              <br /> Here are new posts or reposts since we last mailed you. Depending on
+              your email client you may be able to click on a post to move down this email;
+              otherwise please scroll down.
             </mj-text>
             <mj-raw>
               {% for message in availablemessages %}
             </mj-raw>
-            <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">{{ message.subject }}</mj-text>
+            <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <a href="#msg-{{ message.id }}">
+                {{ message.subject }}
+              </a>
+            </mj-text>
             <mj-raw>
               {% endfor %}
             </mj-raw>
@@ -90,6 +96,9 @@
         </mj-raw>
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column>
+            <mj-text>
+              <span id="msg-{{ message.id }}" name="{{ message.id }}" />
+            </mj-text>
             <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ message.subject }} </mj-text>
             <mj-raw>
               {% if message.image is defined and message.image is not null %}
