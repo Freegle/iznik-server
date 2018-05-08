@@ -1620,11 +1620,6 @@ class ChatRoom extends Entity
                                         $fromuid);
                                     $this->mailer($message);
 
-                                    if ($thisu->getOurEmail()){
-                                        exit(0);
-
-                                    }
-
                                     $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                         $lastmsgemailed,
                                         $member['userid'],
