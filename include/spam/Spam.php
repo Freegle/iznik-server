@@ -213,7 +213,7 @@ class Spam {
         }
     }
 
-    public function checkReview($message) {
+    public function checkReview($message, $language) {
         # Spammer trick is to encode the dot in URLs.
         $message = str_replace('&#12290;', '.', $message);
 
@@ -304,7 +304,7 @@ class Spam {
             $check = TRUE;
         }
 
-        if (!$check ) {
+        if (!$check && $language) {
             # Check language is English.  This isn't out of some kind of misplaced nationalistic fervour, but just
             # because our spam filters work less well on e.g. French.
             #

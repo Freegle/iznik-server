@@ -83,9 +83,9 @@ class ChatMessage extends Entity
         }
     }
 
-    public function checkReview($message) {
+    public function checkReview($message, $language = FALSE) {
         $s = new Spam($this->dbhr, $this->dbhm);
-        $ret = $s->checkReview($message);
+        $ret = $s->checkReview($message, $language);
 
         return($ret);
     }
@@ -139,7 +139,12 @@ class ChatMessage extends Entity
             # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
             # include user text.
             if (!$u->isModerator() && ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER)) {
-                $review = $this->checkReview($message);
+                # We check the language (second parameter to checkReview) only for non-platform messages.
+                # The reason for this is that the language detection code doesn't work under current HHVM and throws
+                # a fatal error, but does work under PHP which is what the incoming email processing code uses -
+                # and that's where we need to catch spam.
+                # TODO This is wretched.
+                $review = $this->checkReview($message, !$platform);
                 $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
                 # If we decided it was spam then it doesn't need reviewing.
