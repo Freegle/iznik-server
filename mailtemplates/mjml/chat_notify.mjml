@@ -60,7 +60,7 @@
                   <em>{{ message.fromname }} wrote:</em>
                 </mj-text>
                 <mj-text align="left" color="blue">
-                  <span style="font-weight: bold">{{ message.message }}</span>
+                  <span style="font-weight: bold">{{ message.message|nl2br }}</span>
                 </mj-text>
                 <mj-raw>
                   {% if message.image is defined and message.image %}
