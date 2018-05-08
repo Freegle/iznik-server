@@ -1244,7 +1244,7 @@ class ChatRoom extends Entity
             # Now the mods.
             #
             # First get the mods.
-            $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');", [
+            $mods = $this->dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');", [
                 $this->chatroom['groupid']
             ]);
 
