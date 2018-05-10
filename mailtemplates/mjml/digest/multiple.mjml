@@ -96,7 +96,7 @@
         </mj-raw>
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column>
-            <mj-text>
+            <mj-text padding="0px">
               <span id="msg-{{ message.id }}" name="{{ message.id }}" />
             </mj-text>
             <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ message.subject }} </mj-text>
