@@ -4,8 +4,6 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
-require_once(IZNIK_BASE . '/mailtemplates/digest/events.php');
-require_once(IZNIK_BASE . '/mailtemplates/digest/event.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/eventsoff.php');
 
 class EventDigest
@@ -68,6 +66,9 @@ class EventDigest
     }
 
     public function send($groupid, $ccto = NULL) {
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new Twig_Environment($loader);
+
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
         $sent = 0;
@@ -82,10 +83,11 @@ class EventDigest
         if ($this->errorlog) { error_log("Consider " . count($events) . " events"); }
 
         $textsumm = '';
-        $htmlsumm = '';
 
         $tz1 = new DateTimeZone('UTC');
         $tz2 = new DateTimeZone('Europe/London');
+
+        $twigevents = [];
 
         if (count($events) > 0) {
             foreach ($events as $event) {
@@ -96,14 +98,20 @@ class EventDigest
 
                 foreach ($atts['dates'] as $date) {
                     if (strtotime($date['end']) >= time())  {
-                        $htmlsumm .= digest_event($atts, $date['start'], $date['end']);
-
                         # Get a string representation of the date in UK time.
                         $datetime = new DateTime($date['start'], $tz1);
                         $datetime->setTimezone($tz2);
-                        $datestr = $datetime->format('D, jS F g:ia');
+                        $start = $datetime->format('D, jS F g:ia');
 
-                        $textsumm .= $atts['title'] . " starts $datestr at " . $atts['location'] . " - for details see https://" . USER_SITE . "//communityevent/{$atts['id']}&src=eventdigest\r\n\r\n";
+                        $datetime = new DateTime($date['end'], $tz1);
+                        $datetime->setTimezone($tz2);
+                        $end = $datetime->format('D, jS F g:ia');
+
+                        $textsumm .= $atts['title'] . " starts $start at " . $atts['location'] . " - for details see https://" . USER_SITE . "//communityevent/{$atts['id']}&src=eventdigest\r\n\r\n";
+                        $atts['start'] = $start;
+                        $atts['end'] = $end;
+
+                        $twigevents[] = $atts;
 
                         # Only send the first occurrence that happens in this period.
                         break;
@@ -111,11 +119,22 @@ class EventDigest
                 }
             }
 
-            $html = digest_events($htmlsumm,
-                USER_SITE,
-                USERLOGO,
-                $gatts['namedisplay']
-            );
+            error_log("Twig events " . var_export($twigevents, TRUE));
+
+            $html = $twig->render('digest/events.html', [
+                # Per-message fields for expansion now.
+                'events' => $twigevents,
+                'groupname' => $gatts['namedisplay'],
+
+                # Per-recipient fields for later Swift expansion
+                'settings' => '{{settings}}',
+                'unsubscribe' => '{{unsubscribe}}',
+                'email' => '{{email}}',
+                'noemail' => '{{noemail}}',
+                'visit' => '{{visit}}',
+                'LI_HASH' => '{{LI_HASH}}',
+                'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}'
+            ]);
 
             $tosend = [
                 'subject' => '[' . $gatts['namedisplay'] . "] Community Event Roundup",
@@ -145,17 +164,26 @@ class EventDigest
                 # We are only interested in sending events to users for whom we have a preferred address -
                 # otherwise where would we send them?
                 $email = $u->getEmailPreferred();
+                $email = 'activate@liveintent.com';
+
                 if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
 
                 if ($email && $u->sendOurMails($g)) {
                     if ($this->errorlog) { error_log("Send to them"); }
+
+                    # The placement ID for ads needs to be unique.  We want to generated it here so that
+                    # not everyone in a single run gets the same ad.
+                    $placementid = "eventdigest-$groupid-" . microtime(true);
+
                     $replacements[$email] = [
                         '{{toname}}' => $u->getName(),
                         '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_EVENT_DIGEST),
                         '{{email}}' => $email,
                         '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                         '{{post}}' => "https://" . USER_SITE . "/communityevents",
-                        '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid"
+                        '{{visit}}' => "https://" . USER_SITE . "/mygroups",
+                        '{{LI_HASH}}' =>  hash('sha1', $email),
+                        '{{LI_PLACEMENT_ID}}' => $placementid
                     ];
                 }
             }
