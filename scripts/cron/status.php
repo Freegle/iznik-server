@@ -1,6 +1,8 @@
 <?php
 
 require_once('../../include/config.php');
+require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/utils.php');
 
 # This is run from cron to check status, which can then be returned from the API.
 @unlink('/tmp/iznik.status');
@@ -76,6 +78,24 @@ function status()
         $info[$host]['warningtext'] = $warningtext;
     }
 
+    if (!$overallwarning) {
+        # Check whether we have a backlog sending digests.  This is less important than other warnings.
+        error_log("Check mail backlogs");
+        $sql = "SELECT DISTINCT TIMESTAMPDIFF(HOUR, started, NOW()) AS backlog, groups_digests.* FROM `groups_digests` INNER JOIN groups ON groups.id = groups_digests.groupid WHERE type = 'Freegle' AND onhere = 1 AND publish = 1 HAVING backlog > frequency AND backlog > 0 
+ORDER BY backlog DESC LIMIT 1;";
+        $backlogs = $dbhr->preQuery($sql);
+
+        foreach ($backlogs as $backlog) {
+            $overallwarning = TRUE;
+            $info["Mailer"]['error'] = FALSE;
+            $info["Mailer"]['errortext'] = FALSE;
+            $info["Mailer"]['monit'] = NULL;
+            $info["Mailer"]['warning'] = TRUE;
+            $info['Mailer']['warningtext'] = "Backlog sending group mails; worst example is {$backlog['backlog']} hours, should be sent every {$backlog['frequency']} hours";
+            error_log($info['Mailer']['warningtext']);
+        }
+    }
+
     $ret = [
         'ret' => 0,
         'status' => 'Success',
@@ -111,6 +131,8 @@ function status()
     } else {
         $html .= "<div class=\"alert alert-success\">Everything seems fine.</div>";
     }
+
+    $hosts[] = 'Mailer';
 
     foreach ($hosts as $host) {
         $html .= "<h2>$host</h2>";
