@@ -121,54 +121,54 @@ class eventDigestTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-
-    public function testNewEvents() {
-        error_log(__METHOD__);
-
-        # Create a group with two events on it.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', TRUE);
-
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-        $u = User::get($this->dbhm, $this->dbhm, $uid);
-        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
-            $u->getEmailPreferred()
-        ]);
-
-        foreach ($emails as $email) {
-            $eid = $email['id'];
-            error_log("Found eid $eid");
-            $u->addMembership($gid, User::ROLE_MEMBER, $eid);
-
-            $e = new CommunityEvent($this->dbhr, $this->dbhm);
-            $eid = $e->create($uid, 'Test Event 1', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event');
-            error_log("Created event $eid");
-            $e->addGroup($gid);
-            $e->addDate(ISODate('@' . strtotime('next monday 10am')), ISODate('@' . strtotime('next monday 11am')));
-            $e->addDate(ISODate('@' . strtotime('next tuesday 10am')), ISODate('@' . strtotime('next tuesday 11am')));
-            $e->setPrivate('pending', 0);
-
-            $i = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_COMMUNITY_EVENT);
-            $photoid = $i->create($eid, 'image/jpg', file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg'));
-            error_log("Set photo $photoid");
-            $e->setPhoto($photoid);
-
-            $eid = $e->create($uid, 'Test Event 2', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event');
-            error_log("Created event $eid");
-            $e->addGroup($gid);
-            $e->addDate(ISODate('@' . strtotime('next wednesday 2pm')), ISODate('@' . strtotime('next wednesday 3pm')));
-            $e->setPrivate('pending', 0);
-
-            # Now test.
-            error_log("Now send");
-
-            $d = new EventDigest($this->dbhr, $this->dbhm);
-            assertEquals(1, $d->send($gid));
-        }
-
-        error_log(__METHOD__ . " end");
-    }
+//
+//    public function testNewEvents() {
+//        error_log(__METHOD__);
+//
+//        # Create a group with two events on it.
+//        $g = Group::get($this->dbhr, $this->dbhm);
+//        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+//        $g->setPrivate('onyahoo', TRUE);
+//
+//        $u = User::get($this->dbhm, $this->dbhm);
+//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        $u = User::get($this->dbhm, $this->dbhm, $uid);
+//        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
+//            $u->getEmailPreferred()
+//        ]);
+//
+//        foreach ($emails as $email) {
+//            $eid = $email['id'];
+//            error_log("Found eid $eid");
+//            $u->addMembership($gid, User::ROLE_MEMBER, $eid);
+//
+//            $e = new CommunityEvent($this->dbhr, $this->dbhm);
+//            $eid = $e->create($uid, 'Test Event 1', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event');
+//            error_log("Created event $eid");
+//            $e->addGroup($gid);
+//            $e->addDate(ISODate('@' . strtotime('next monday 10am')), ISODate('@' . strtotime('next monday 11am')));
+//            $e->addDate(ISODate('@' . strtotime('next tuesday 10am')), ISODate('@' . strtotime('next tuesday 11am')));
+//            $e->setPrivate('pending', 0);
+//
+//            $i = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_COMMUNITY_EVENT);
+//            $photoid = $i->create($eid, 'image/jpg', file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg'));
+//            error_log("Set photo $photoid");
+//            $e->setPhoto($photoid);
+//
+//            $eid = $e->create($uid, 'Test Event 2', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event');
+//            error_log("Created event $eid");
+//            $e->addGroup($gid);
+//            $e->addDate(ISODate('@' . strtotime('next wednesday 2pm')), ISODate('@' . strtotime('next wednesday 3pm')));
+//            $e->setPrivate('pending', 0);
+//
+//            # Now test.
+//            error_log("Now send");
+//
+//            $d = new EventDigest($this->dbhr, $this->dbhm);
+//            assertEquals(1, $d->send($gid));
+//        }
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 
