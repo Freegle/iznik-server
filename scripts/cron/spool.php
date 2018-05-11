@@ -7,15 +7,23 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
-$spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
+do {
+    try {
+        $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
 
-# Some messages can fail to send, if exim is playing up.
-$spool->recover(60);
+        # Some messages can fail to send, if exim is playing up.
+        $spool->recover(60);
 
-$transport = Swift_SpoolTransport::newInstance($spool);
-$realTransport = Swift_SmtpTransport::newInstance();
+        $transport = Swift_SpoolTransport::newInstance($spool);
+        $realTransport = Swift_SmtpTransport::newInstance();
 
-$spool = $transport->getSpool();
-$sent = $spool->flushQueue($realTransport);
+        $spool = $transport->getSpool();
+        $sent = $spool->flushQueue($realTransport);
 
-echo "Sent $sent emails\n";
+        echo "Sent $sent emails\n";
+        break;
+    } catch (Exception $e) {
+        error_log("Exception; sleep and retry");
+        sleep(1);
+    }
+} while (true);
