@@ -57,7 +57,7 @@ function status()
             }
         }
 
-        # Get the mail count in case it's too large
+        # Get the exim mail count in case it's too large
         $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host exim -bpc 2>&1"));
 
         if (strpos($queuesize, "exim: command not found") !== FALSE) {
@@ -69,7 +69,24 @@ function status()
         } else if (intval($queuesize) > 1000) {
             $warning = TRUE;
             $overallwarning = TRUE;
-            $warningtext = "Mail queue large on $host ($queuesize)";
+            $warningtext = "exim mail queue large on $host ($queuesize)";
+        }
+
+        # Get the postfix mail count in case it's too large
+        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"/var/www/iznik/scripts/cli/qsize|grep Total\" 2>&1"));
+        error_log("Postfix queue $queuesize");
+
+        if (strpos($queuesize, "Total") === FALSE) {
+            # That's fine - no postfix on this box.
+        } else {
+            $size = substr($queuesize, 6);
+            error_log("Size is $size");
+
+            if (intval($size) > 20000) {
+                $warning = TRUE;
+                $overallwarning = TRUE;
+                $warningtext = "postfix mail queue large on $host ($size)";
+            }
         }
 
         $info[$host]['error'] = $error;
@@ -77,6 +94,12 @@ function status()
         $info[$host]['warning'] = $warning;
         $info[$host]['warningtext'] = $warningtext;
     }
+
+    $info["Mailer"]['error'] = FALSE;
+    $info["Mailer"]['errortext'] = FALSE;
+    $info["Mailer"]['monit'] = NULL;
+    $info["Mailer"]['warning'] = FALSE;
+    $info['Mailer']['warningtext'] = FALSE;
 
     if (!$overallwarning) {
         # Check whether we have a backlog sending digests.  This is less important than other warnings.
@@ -89,9 +112,6 @@ ORDER BY backlog DESC LIMIT 1;";
             $sql = "SELECT count(DISTINCT groupid) AS count FROM (SELECT DISTINCT TIMESTAMPDIFF(HOUR, started, NOW()) AS backlog, groups_digests.* FROM `groups_digests` INNER JOIN groups ON groups.id = groups_digests.groupid WHERE type = 'Freegle' AND onhere = 1 AND publish = 1 HAVING backlog > frequency * 1.5 AND frequency > 0 AND backlog > 0) t;";
             $counts = $dbhr->preQuery($sql);
             $overallwarning = TRUE;
-            $info["Mailer"]['error'] = FALSE;
-            $info["Mailer"]['errortext'] = FALSE;
-            $info["Mailer"]['monit'] = NULL;
             $info["Mailer"]['warning'] = TRUE;
             $info['Mailer']['warningtext'] = "Backlog sending group mails; worst example is {$backlog['backlog']} hours, should be sent every {$backlog['frequency']} hours.  {$counts[0]['count']} groups affected.";
             error_log($info['Mailer']['warningtext']);
@@ -107,7 +127,7 @@ ORDER BY backlog DESC LIMIT 1;";
     ];
 
 
-# Set up the plain text HTML file.
+    # Set up the plain text HTML file.
     $updated = date(DATE_RSS, time());
 
     $html = "<!DOCTYPE HTML>
