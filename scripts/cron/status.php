@@ -66,7 +66,7 @@ function status()
             $error = TRUE;
             $overallerror = TRUE;
             $errortext = "Couldn't get queue size on host $host, returned $queuesize";
-        } else if (intval($queuesize) > 1000) {
+        } else if (intval($queuesize) > 5000) {
             $warning = TRUE;
             $overallwarning = TRUE;
             $warningtext = "exim mail queue large on $host ($queuesize)";
@@ -82,7 +82,7 @@ function status()
             $size = substr($queuesize, 6);
             error_log("Size is $size");
 
-            if (intval($size) > 20000) {
+            if (intval($size) > 100000) {
                 $warning = TRUE;
                 $overallwarning = TRUE;
                 $warningtext = "postfix mail queue large on $host ($size)";

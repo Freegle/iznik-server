@@ -374,7 +374,7 @@ class User extends Entity
 
     public function isApprovedMember($groupid) {
         $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ? AND collection = 'Approved';", [ $this->id, $groupid ]);
-        return(count($membs) > 0);
+        return(count($membs) > 0 ? $membs[0]['id'] : NULL);
     }
 
     public function getEmailAge($email) {
@@ -677,6 +677,16 @@ class User extends Entity
         return($coll);
     }
 
+    private function addYahooMembership($membershipid, $role, $emailid, $collection) {
+        $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
+        $this->dbhm->preExec($sql, [
+            $membershipid,
+            $role,
+            $emailid,
+            $collection
+        ]);
+    }
+
     public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE) {
         $this->memberships = NULL;
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -721,13 +731,7 @@ class User extends Entity
         $added = $this->dbhm->rowsAffected() && $existing[0]['count'] == 0;
 
         if ($rc && $emailid && $g->onYahoo()) {
-            $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
-            $this->dbhm->preExec($sql, [
-                $membershipid,
-                $role,
-                $emailid,
-                $collection
-            ]);
+            $this->addYahooMembership($membershipid, $role, $emailid, $collection);
         }
 
         # Record the operation for abuse detection.
@@ -3213,9 +3217,21 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         # We might already have a membership with an email which isn't one of ours.  If so, we don't want to
         # trash that membership by turning it into a pending one.
-        if (!$this->isApprovedMember($groupid)) {
+        $membid = $this->isApprovedMember($groupid);
+        if (!$membid) {
             # Set up a pending membership - will be converted to approved when we process the approval notification.
             $this->addMembership($groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING);
+        } else if ($g->onYahoo()) {
+            # We are already an approved member on Yahoo, but perhaps not with the right Yahoo ID.
+            $yahoos = $this->dbhr->preQuery("SELECT * FROM memberships_yahoo WHERE membershipid = ? AND emailid = ?;", [
+                $membid,
+                $emailid
+            ]);
+
+            if (count($yahoos) == 0) {
+                error_log("{$this->id} already a member of $groupid but not with email $email");
+                $this->addYahooMembership($membid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING);
+            }
         }
 
         $headers = "From: $email>\r\n";

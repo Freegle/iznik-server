@@ -166,7 +166,19 @@ class Swift_FileSpool extends Swift_ConfigurableSpool
             if (rename($file, $file.'.sending')) {
                 $message = unserialize(file_get_contents($file.'.sending'));
 
-                $count += $transport->send($message, $failedRecipients);
+                try {
+                    $to = $message->getTo();
+                    $new = [];
+                    foreach ($to as $email => $name) {
+                        $new[trim($email)] = $name;
+                    }
+                    $message->setTo($new);
+                    $count += $transport->send($message, $failedRecipients);
+                } catch (Exception $e) {
+                    # The send failed.  Catch the exception otherwise the whole flush bombs out.
+                    error_log("$file Exception in send " . $e->getMessage());
+                    continue;
+                }
 
                 unlink($file.'.sending');
             } else {

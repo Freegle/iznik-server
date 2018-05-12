@@ -20,7 +20,7 @@ if (count($opts) < 1) {
         error_log("Found group $id");
         $idq = $uid ? " AND userid = $uid " : '';
 
-        $users = $dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? $idq;", [ $id ]);
+        $users = $dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid = ? $idq;", [ $id ]);
 
         foreach ($users as $user) {
             $u = new User($dbhr, $dbhm, $user['userid']);

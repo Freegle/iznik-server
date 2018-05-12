@@ -182,7 +182,7 @@ class MailRouter
 
         $to = $this->msg->getEnvelopeto();
         $from = $this->msg->getEnvelopefrom();
-        $replyto = $this->msg->getHeader('reply-to');
+        $replyto = trim($this->msg->getHeader('reply-to'));
         $fromheader = $this->msg->getHeader('from');
 
         if ($fromheader) {
@@ -295,7 +295,7 @@ class MailRouter
                     if ($log) { error_log("Found $uid for $to, onhere " . $g->getPrivate('onhere') . ", pending " . $u->isPendingMember($gid) . " approved " . $u->isApprovedMember($gid)); }
 
                     if ($g->getPrivate('onhere') && !$u->isRejected($gid)) {
-                        if ($log) { error_log("Confirm it"); }
+                        if ($log) { error_log("Confirm it to $replyto"); }
                         $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
 
                         $this->log->log([
