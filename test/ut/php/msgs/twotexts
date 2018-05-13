@@ -1,0 +1,88 @@
+From testreplier@test.com Thu May 10 20:36:37 2018
+Return-path: <testreplier@test.com>
+Envelope-to: notify-2908694-3540903@users.ilovefreegle.org
+Received: from rgout0501.bt.lon5.cpcloud.co.uk ([65.20.0.222] helo=rgout05.bt.lon5.cpcloud.co.uk)
+	by bulk1.ilovefreegle.org with esmtp (Exim 4.86_2)
+	(envelope-from <testreplier@test.com>)
+	id 1fGsIn-0005S2-L0
+	for notify-2908694-3540903@users.ilovefreegle.org; Thu, 10 May 2018 20:36:37 +0000
+X-OWM-Source-IP: 86.185.179.243 (GB)
+X-OWM-Env-Sender: testreplier@test.com
+X-RazorGate-Vade-Classification: clean
+X-RazorGate-Vade-Verdict: clean 0
+X-VadeSecure-score: verdict=clean score=0/300, class=clean
+X-SNCR-VADESECURE: CLEAN
+X-RazorGate-Vade-Verdict: clean 0
+X-RazorGate-Vade-Classification: clean
+X-RazorGate-Vade: gggruggvucftvghtrhhoucdtuddrgedthedrudejgdduheduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuueftkffvkffujffvgffngfevqffopdfqfgfvnecuuegrihhlohhuthemuceftddtnecunecujfgurhepuffhtgfokfffvffgggesmhejmherhhdtvdenucfhrhhomhepuegvvhgvrhhlhicujdcuuehosgcujghouhhnghcuoegsrdhjrdihohhunhhgsegsthhinhhtvghrnhgvthdrtghomheqnecukfhppeekiedrudekhedrudejledrvdegfeenucfrrghrrghmpehhvghloheplgduledvrdduieekrddurdeihegnpdhinhgvthepkeeirddukeehrddujeelrddvgeefpdhmrghilhhfrhhomhepoegsrdhjrdihohhunhhgsegsthhinhhtvghrnhgvthdrtghomheqpdhrtghpthhtohepoehnohhtihhfhidqvdeltdekieelgedqfeehgedtledtfeesuhhsvghrshdrihhlohhvvghfrhgvvghglhgvrdhorhhgqeenucevlhhushhtvghrufhiiigvpedt
+Received: from [192.168.1.65] (86.185.179.243) by rgout05.bt.lon5.cpcloud.co.uk (9.0.019.26-1) (authenticated as b.j.young)
+        id 5AF328480022FB5D for notify-2908694-3540903@users.ilovefreegle.org; Thu, 10 May 2018 21:36:37 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=btinternet.com; s=btcpcloud; t=1525984597;
+        bh=XEDLMsZ/xKqd4Cz7iMZEiSwzZTug3zO3uuT89cai7bk=;
+        h=Subject:From:X-Mailer:Message-Id:Date:To:Mime-Version;
+b=JJAjPSvqDPw4t8E5wBbCPu/xjMQpdEGWR9X645EsvXEcntV6MoArjjOkljIrUa7mCyeZ9BfvHSIYB1v+4o8bQpUIPg12eoq84bzpYcilHdepkQbR2DAtKYXfpYP6fPA0afmPg6HAZGDxN86kZwtbJjFkKNFm4/k8FX1PhW2aPsk=
+Subject: Re: [Group-tag] Offer: thing (place)
+From: Test User <testreplier@test.com>
+Content-Type: multipart/mixed;
+	boundary=Apple-Mail-D16308E8-6580-4281-B615-1E7182AD159E
+X-Mailer: iPad Mail (14G60)
+Message-Id: <DEAF9016-77CF-4F70-A1F9-D1423290FF2E@btinternet.com>
+Date: Thu, 10 May 2018 21:36:36 +0100
+To: test user <notify-2908694-3540903@users.ilovefreegle.org>
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (1.0)
+
+
+
+
+
+--Apple-Mail-D16308E8-6580-4281-B615-1E7182AD159E
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+
+
+
+
+
+
+
+--Apple-Mail-D16308E8-6580-4281-B615-1E7182AD159E
+Content-Type: image/jpeg;
+	x-apple-part-url=82283B63-74E1-48B7-9421-42D6CB97D7B8;
+	name=IMG_0440.JPG
+Content-Disposition: inline;
+	filename=IMG_0440.JPG
+Content-Transfer-Encoding: base64
+
+
+...Content of size 133782 removed...
+
+
+--Apple-Mail-D16308E8-6580-4281-B615-1E7182AD159E
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+
+
+
+
+
+
+
+
+Not sure how to send to a phone so hope this is OK instead. Two have been ta=
+
+ken, currently have 6 others.
+
+
+
+Bev
+
+Sent from my iPad=
+
+
+
+--Apple-Mail-D16308E8-6580-4281-B615-1E7182AD159E--

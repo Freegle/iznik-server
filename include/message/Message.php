@@ -16,6 +16,10 @@ require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/mailtemplates/autorepost.php');
 require_once(IZNIK_BASE . '/mailtemplates/chaseup.php');
 
+# We include this directly because the composer version isn't quite right for us - see
+# https://github.com/php-mime-mail-parser/php-mime-mail-parser/issues/163
+require_once(IZNIK_BASE . '/lib/php-mime-mail-parser/php-mime-mail-parser/src/Parser.php');
+
 use GeoIp2\Database\Reader;
 use Oefenweb\DamerauLevenshtein\DamerauLevenshtein;
 
@@ -1438,6 +1442,7 @@ class Message
         $this->tnpostid = $Parser->getHeader('x-trash-nothing-post-id');
 
         $this->textbody = $Parser->getMessageBody('text');
+        error_log("Text body is {$this->textbody}");
         $this->htmlbody = $Parser->getMessageBody('html');
 
         if ($this->htmlbody) {

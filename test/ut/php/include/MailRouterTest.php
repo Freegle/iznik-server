@@ -1250,6 +1250,63 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testTwoTexts() {
+        error_log(__METHOD__);
+
+        # Create a user for a reply.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+
+        # Create the sending user
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created user $uid");
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        # Send a message.
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($origid);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        error_log("Send reply with two texts");
+        $msg = $this->unique(file_get_contents('msgs/twotexts'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNotNull($m->getFromuser());
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $uid2 = $u->findByEmail('testreplier@test.com');
+
+        # Now get the chat room that this should have been placed into.
+        assertNotNull($uid2);
+        assertNotEquals($uid, $uid2);
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $c->createConversation($uid, $uid2);
+        assertNotNull($rid);
+
+        list($msgs, $users) = $c->getMessages();
+
+        error_log("Chat messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        assertEquals("Not sure how to send to a phone so hope this is OK instead. Two have been ta
+
+ken, currently have 6 others.
+
+Bev", $msgs[0]['message']);
+        assertEquals($origid, $msgs[0]['refmsg']['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testReplyToImmediate() {
         error_log(__METHOD__);
 
