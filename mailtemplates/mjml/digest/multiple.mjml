@@ -28,17 +28,17 @@
             <mj-image src="https://www.ilovefreegle.org/images/user_logo.png" width="80px" align="left"> </mj-image>
           </mj-column>
           <mj-column>
-            <mj-button inner-padding="10px" href="https://www.ilovefreegle.org/" font-family="Helvetica" background-color="#377615" color="white">
+            <mj-button href="https://www.ilovefreegle.org/" font-family="Helvetica" background-color="#377615" color="white">
               Freegle<br />something!
             </mj-button>
           </mj-column>
           <mj-column>
-            <mj-button inner-padding="10px" href="{{ visit }}" font-family="Helvetica" background-color="#377615" color="white">
+            <mj-button href="{{ visit }}" font-family="Helvetica" background-color="#377615" color="white">
               Browse <br />the group
             </mj-button>
           </mj-column>
           <mj-column>
-            <mj-button css-class="hide_on_mobile" inner-padding="10px" href="{{ unsubscribe }}" font-family="Helvetica" background-color="#336666" color="white">
+            <mj-button href="{{ unsubscribe }}" font-family="Helvetica" background-color="#336666" color="white">
               Unsubscribe
             </mj-button>
           </mj-column>
