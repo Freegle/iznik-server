@@ -24,8 +24,16 @@ function sendOne($dbhr, $dbhm, $uid, $groupname) {
             ->setReturnPath(NOREPLY_ADDR)
             ->setReplyTo(NOREPLY_ADDR)
             ->setTo($u->getEmailPreferred())
-            ->setBody("As well as using Freegle for OFFERs/WANTEDs, now you can chat to nearby freeglers.  It's a great way to ask for advice, recommendations, post lost+founds, or just have a natter.  Try it out at https://" . USER_SITE . "/newsfeed")
-            ->addPart($html, 'text/html');
+            ->setBody("As well as using Freegle for OFFERs/WANTEDs, now you can chat to nearby freeglers.  It's a great way to ask for advice, recommendations, post lost+founds, or just have a natter.  Try it out at https://" . USER_SITE . "/newsfeed");
+
+        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+        # Outlook.
+        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart->setCharset('utf-8');
+        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setContentType('text/html');
+        $htmlPart->setBody($html);
+        $message->attach($htmlPart);
 
         $transport->send($message);
     } catch (Exception $e) {}

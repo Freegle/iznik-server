@@ -78,8 +78,16 @@ foreach ($chats as $chat) {
         ->setSubject("A warning from " . SITE_NAME . " about " . $spammer->getName())
         ->setFrom([ $replyto => $replyname])
         ->setTo($innocent->getEmailPreferred())
-        ->setBody($text)
-        ->addPart($html, 'text/html');
+        ->setBody($text);
+
+    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+    # Outlook.
+    $htmlPart = Swift_MimePart::newInstance();
+    $htmlPart->setCharset('utf-8');
+    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+    $htmlPart->setContentType('text/html');
+    $htmlPart->setBody($html);
+    $message->attach($htmlPart);
 
     list ($transport, $mailer) = getMailer();
     $mailer->send($message);

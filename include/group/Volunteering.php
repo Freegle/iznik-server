@@ -292,8 +292,16 @@ class Volunteering extends Entity
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReturnPath($u->getBounce())
                     ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                    ->setBody("Please can you let us know whether this volunteer opportunity is still active?  If we don't hear from you, we'll stop showing it soon.  Please let us know at $url")
-                    ->addPart($html, 'text/html');
+                    ->setBody("Please can you let us know whether this volunteer opportunity is still active?  If we don't hear from you, we'll stop showing it soon.  Please let us know at $url");
+
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
 
                 $this->sendMail($mailer, $message);
                 error_log($v->getId() . " " . $v->getPrivate('title'));

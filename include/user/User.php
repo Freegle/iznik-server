@@ -780,8 +780,17 @@ class User extends Entity
                         ->setReplyTo([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
                         ->setTo($to)
                         ->setDate(time())
-                        ->setBody($welcome)
-                        ->addPart($html, 'text/html');
+                        ->setBody($welcome);
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
+
                     $this->sendIt($mailer, $message);
                 }
             }
@@ -3057,8 +3066,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             ->setSubject("Welcome to " . SITE_NAME . "!")
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setTo($email)
-            ->setBody("Thanks for joining"  . SITE_NAME . "!" . ($password ? "  Here's your password: $password." : ''))
-            ->addPart($html, 'text/html');
+            ->setBody("Thanks for joining"  . SITE_NAME . "!" . ($password ? "  Here's your password: $password." : ''));
+
+        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+        # Outlook.
+        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart->setCharset('utf-8');
+        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setContentType('text/html');
+        $htmlPart->setBody($html);
+        $message->attach($htmlPart);
 
         list ($transport, $mailer) = getMailer();
         $this->sendIt($mailer, $message);
@@ -3072,8 +3089,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             ->setSubject("Forgot your password?")
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setTo($email)
-            ->setBody("To set a new password, just log in here: $link")
-            ->addPart($html, 'text/html');
+            ->setBody("To set a new password, just log in here: $link");
+
+        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+        # Outlook.
+        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart->setCharset('utf-8');
+        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setContentType('text/html');
+        $htmlPart->setBody($html);
+        $message->attach($htmlPart);
 
         list ($transport, $mailer) = getMailer();
         $this->sendIt($mailer, $message);
@@ -3117,8 +3142,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 ->setFrom([NOREPLY_ADDR => SITE_NAME])
                 ->setReturnPath($this->getBounce())
                 ->setTo([ $email => $this->getName() ])
-                ->setBody("Someone, probably you, has said that $email is their email address.\n\nIf this was you, please click on the link below to verify the address; if this wasn't you, please just ignore this mail.\n\n$confirm")
-                ->addPart($html, 'text/html');
+                ->setBody("Someone, probably you, has said that $email is their email address.\n\nIf this was you, please click on the link below to verify the address; if this wasn't you, please just ignore this mail.\n\n$confirm");
+
+            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+            # Outlook.
+            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart->setCharset('utf-8');
+            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setContentType('text/html');
+            $htmlPart->setBody($html);
+            $message->attach($htmlPart);
 
             $this->sendIt($mailer, $message);
         }
@@ -3671,7 +3704,15 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         $html = donation_thank($this->getName(), $this->getEmailPreferred(), $this->loginLink(USER_SITE , $this->id, '/?src=thankdonation'), $this->loginLink(USER_SITE, $this->id, '/settings?src=thankdonation'));
 
-        $message->addPart($html, 'text/html');
+        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+        # Outlook.
+        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart->setCharset('utf-8');
+        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setContentType('text/html');
+        $htmlPart->setBody($html);
+        $message->attach($htmlPart);
+
         $this->sendIt($mailer, $message);
     }
 
@@ -3714,7 +3755,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         $headers->addTextHeader('X-Freegle-Mail-Type', 'Invitation');
 
                         $html = invite($fromname, $frommail, $url);
-                        $message->addPart($html, 'text/html');
+
+                        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                        # Outlook.
+                        $htmlPart = Swift_MimePart::newInstance();
+                        $htmlPart->setCharset('utf-8');
+                        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                        $htmlPart->setContentType('text/html');
+                        $htmlPart->setBody($html);
+                        $message->attach($htmlPart);
+
                         $this->sendIt($mailer, $message);
                         $ret = TRUE;
 

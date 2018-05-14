@@ -91,8 +91,16 @@ class Nearby
                                                 ->setFrom([NOREPLY_ADDR => SITE_NAME ])
                                                 ->setReturnPath($u->getBounce())
                                                 ->setTo([ $email => $u2->getName() ])
-                                                ->setBody($textbody)
-                                                ->addPart($html, 'text/html');
+                                                ->setBody($textbody);
+
+                                            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                            # Outlook.
+                                            $htmlPart = Swift_MimePart::newInstance();
+                                            $htmlPart->setCharset('utf-8');
+                                            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                            $htmlPart->setContentType('text/html');
+                                            $htmlPart->setBody($html);
+                                            $message->attach($htmlPart);
 
                                             $this->sendOne($mailer, $message);
                                             error_log("...user {$user['id']} dist $miles");

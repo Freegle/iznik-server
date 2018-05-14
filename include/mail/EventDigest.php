@@ -56,8 +56,16 @@ class EventDigest
                         ->setFrom([NOREPLY_ADDR => SITE_NAME])
                         ->setReturnPath($u->getBounce())
                         ->setTo([ $email => $u->getName() ])
-                        ->setBody("We've turned your community event emails off on $groupname.")
-                        ->addPart($html, 'text/html');
+                        ->setBody("We've turned your community event emails off on $groupname.");
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
 
                     $this->sendOne($mailer, $message);
                 }
@@ -212,8 +220,16 @@ class EventDigest
                         ->setFrom([$tosend['from'] => $tosend['fromname']])
                         ->setReturnPath($u->getBounce())
                         ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
-                        ->setBody($tosend['text'])
-                        ->addPart($tosend['html'], 'text/html');
+                        ->setBody($tosend['text']);
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($tosend['html']);
+                    $message->attach($htmlPart);
 
                     $headers = $message->getHeaders();
                     $headers->addTextHeader('List-Unsubscribe', '<mailto:{{eventsoff}}>, <{{unsubscribe}}>');

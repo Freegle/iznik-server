@@ -231,8 +231,16 @@ class Story extends Entity
                             ->setFrom([NOREPLY_ADDR => SITE_NAME])
                             ->setReturnPath($u->getBounce())
                             ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                            ->setBody("We'd love to hear your Freegle story.  Tell us at $url")
-                            ->addPart($html, 'text/html');
+                            ->setBody("We'd love to hear your Freegle story.  Tell us at $url");
+
+                        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                        # Outlook.
+                        $htmlPart = Swift_MimePart::newInstance();
+                        $htmlPart->setCharset('utf-8');
+                        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                        $htmlPart->setContentType('text/html');
+                        $htmlPart->setBody($html);
+                        $message->attach($htmlPart);
 
                         list ($transport, $mailer) = getMailer();
                         $mailer->send($message);
@@ -280,8 +288,16 @@ class Story extends Entity
                 ->setFrom([CENTRAL_MAIL_FROM => SITE_NAME])
                 ->setReturnPath(CENTRAL_MAIL_FROM)
                 ->setTo(CENTRAL_MAIL_TO)
-                ->setBody($text)
-                ->addPart($html, 'text/html');
+                ->setBody($text);
+
+            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+            # Outlook.
+            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart->setCharset('utf-8');
+            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setContentType('text/html');
+            $htmlPart->setBody($html);
+            $message->attach($htmlPart);
 
             list ($transport, $mailer) = getMailer();
             $this->sendIt($mailer, $message);

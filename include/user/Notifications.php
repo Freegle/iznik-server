@@ -143,8 +143,16 @@ class Notifications
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReturnPath($u->getBounce())
                     ->setTo([ $email => $u->getName() ])
-                    ->setBody("Thanks - we've turned off the mails for notifications.")
-                    ->addPart($html, 'text/html');
+                    ->setBody("Thanks - we've turned off the mails for notifications.");
+
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
 
                 $this->sendIt($mailer, $message);
             }
@@ -212,8 +220,16 @@ class Notifications
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath($u->getBounce())
                     ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                    ->setBody("\r\n\r\nPlease click here to read them: $url")
-                    ->addPart($html, 'text/html');
+                    ->setBody("\r\n\r\nPlease click here to read them: $url");
+
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
 
                 list ($transport, $mailer) = getMailer();
                 $this->sendIt($mailer, $message);

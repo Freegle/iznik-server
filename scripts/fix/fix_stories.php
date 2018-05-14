@@ -28,8 +28,16 @@ foreach ($users as $user) {
         ->setFrom([NOREPLY_ADDR => SITE_NAME])
         ->setReturnPath($u->getBounce())
         ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-        ->setBody("We'd love to hear your Freegle story.  Tell us at https://" . USER_SITE . "/stories")
-        ->addPart($html, 'text/html');
+        ->setBody("We'd love to hear your Freegle story.  Tell us at https://" . USER_SITE . "/stories");
+
+    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+    # Outlook.
+    $htmlPart = Swift_MimePart::newInstance();
+    $htmlPart->setCharset('utf-8');
+    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+    $htmlPart->setContentType('text/html');
+    $htmlPart->setBody($html);
+    $message->attach($htmlPart);
 
     $mailer->send($message);
 }

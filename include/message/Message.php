@@ -3239,8 +3239,16 @@ class Message
                         ->setTo([$g->getGroupEmail()])
                         ->setDate(time())
                         ->setId($messageid)
-                        ->setBody($txtbody)
-                        ->addPart($htmlbody, 'text/html');
+                        ->setBody($txtbody);
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($htmlbody);
+                    $message->attach($htmlPart);
 
                     # We add some headers so that if we receive this back, we can identify it as a mod mail.
                     $headers = $message->getHeaders();
@@ -3596,8 +3604,17 @@ class Message
                                                     ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                                     ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
                                                     ->setTo($to)
-                                                    ->setBody($text)
-                                                    ->addPart($html, 'text/html');
+                                                    ->setBody($text);
+
+                                                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                                # Outlook.
+                                                $htmlPart = Swift_MimePart::newInstance();
+                                                $htmlPart->setCharset('utf-8');
+                                                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                                $htmlPart->setContentType('text/html');
+                                                $htmlPart->setBody($html);
+                                                $message->attach($htmlPart);
+
                                                 $mailer->send($message);
                                             }
                                         }
@@ -3697,8 +3714,17 @@ class Message
                                         ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                         ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
                                         ->setTo($to)
-                                        ->setBody($text)
-                                        ->addPart($html, 'text/html');
+                                        ->setBody($text);
+
+                                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                    # Outlook.
+                                    $htmlPart = Swift_MimePart::newInstance();
+                                    $htmlPart->setCharset('utf-8');
+                                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                    $htmlPart->setContentType('text/html');
+                                    $htmlPart->setBody($html);
+                                    $message->attach($htmlPart);
+
                                     $mailer->send($message);
                                 }
                             }

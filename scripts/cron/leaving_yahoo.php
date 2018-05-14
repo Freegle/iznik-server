@@ -73,8 +73,16 @@ foreach ($groups as $group) {
             ->setSubject("It's time to move " . $g->getName() . " away from Yahoo")
             ->setFrom([ MENTORS_ADDR => 'Freegle' ])
             ->setTo($email['email'])
-            ->setBody($text)
-            ->addPart($html, 'text/html');
+            ->setBody($text);
+
+        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+        # Outlook.
+        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart->setCharset('utf-8');
+        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setContentType('text/html');
+        $htmlPart->setBody($html);
+        $message->attach($htmlPart);
 
         list ($transport, $mailer) = getMailer();
         $mailer->send($message);

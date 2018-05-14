@@ -641,8 +641,16 @@ class Newsfeed extends Entity
                         ->setFrom([NOREPLY_ADDR => 'Freegle'])
                         ->setReturnPath($u->getBounce())
                         ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                        ->setBody("Recent posts from nearby freeglers:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url")
-                        ->addPart($html, 'text/html');
+                        ->setBody("Recent posts from nearby freeglers:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
 
                     error_log("..." . $u->getEmailPreferred() . " send $count");
                     list ($transport, $mailer) = getMailer();

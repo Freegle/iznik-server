@@ -56,7 +56,14 @@ class ChatRoom extends Entity
             ->setBody($text);
 
         if ($html) {
-            $message->addPart($html, 'text/html');
+            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+            # Outlook.
+            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart->setCharset('utf-8');
+            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setContentType('text/html');
+            $htmlPart->setBody($html);
+            $message->attach($htmlPart);
         }
 
         $headers = $message->getHeaders();
@@ -1720,7 +1727,16 @@ class ChatRoom extends Entity
                                         ->setTo([$to => $thisu->getName()])
                                         ->setReplyTo($replyto)
                                         ->setBody($textsummary);
-                                    $message->addPart($html, 'text/html');
+
+                                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                    # Outlook.
+                                    $htmlPart = Swift_MimePart::newInstance();
+                                    $htmlPart->setCharset('utf-8');
+                                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                    $htmlPart->setContentType('text/html');
+                                    $htmlPart->setBody($html);
+                                    $message->attach($htmlPart);
+
                                     $this->mailer($message);
                                 }
                             }

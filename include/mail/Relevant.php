@@ -41,8 +41,16 @@ class Relevant {
                 ->setFrom([NOREPLY_ADDR => SITE_NAME])
                 ->setReturnPath($u->getBounce())
                 ->setTo([ $email => $u->getName() ])
-                ->setBody("Thanks - we've turned off the mails of posts you might be interested in.")
-                ->addPart($html, 'text/html');
+                ->setBody("Thanks - we've turned off the mails of posts you might be interested in.");
+
+            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+            # Outlook.
+            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart->setCharset('utf-8');
+            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setContentType('text/html');
+            $htmlPart->setBody($html);
+            $message->attach($htmlPart);
 
             $this->sendOne($mailer, $message);
         }
@@ -256,8 +264,16 @@ class Relevant {
                                 ->setFrom([NOREPLY_ADDR => SITE_NAME ])
                                 ->setReturnPath($u->getBounce())
                                 ->setTo([ $email => $u->getName() ])
-                                ->setBody($textbody)
-                                ->addPart($html, 'text/html');
+                                ->setBody($textbody);
+
+                            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                            # Outlook.
+                            $htmlPart = Swift_MimePart::newInstance();
+                            $htmlPart->setCharset('utf-8');
+                            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                            $htmlPart->setContentType('text/html');
+                            $htmlPart->setBody($html);
+                            $message->attach($htmlPart);
 
                             $this->sendOne($mailer, $message);
                             #error_log("Sent to $email");

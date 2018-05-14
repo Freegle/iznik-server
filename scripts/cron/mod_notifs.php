@@ -185,8 +185,16 @@ foreach ($mail as $id => $work) {
             ->setFrom([NOREPLY_ADDR => 'ModTools'])
             ->setReturnPath(NOREPLY_ADDR)
             ->setTo([ $work['email'] => $work['name'] ])
-            ->setBody($textsumm)
-            ->addPart($html, 'text/html');
+            ->setBody($textsumm);
+
+        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+        # Outlook.
+        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart->setCharset('utf-8');
+        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setContentType('text/html');
+        $htmlPart->setBody($html);
+        $message->attach($htmlPart);
 
         list ($transport, $mailer) = getMailer();
         $mailer->send($message);

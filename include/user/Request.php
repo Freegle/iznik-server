@@ -135,8 +135,16 @@ class Request extends Entity
                         ->setFrom([NOREPLY_ADDR => 'Freegle'])
                         ->setReturnPath($u->getBounce())
                         ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                        ->setBody("Thanks for asking for some cards to promote Freegle.  They should now be on their way.  Please allow a week or so for them to arrive.")
-                        ->addPart($html, 'text/html');
+                        ->setBody("Thanks for asking for some cards to promote Freegle.  They should now be on their way.  Please allow a week or so for them to arrive.");
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
 
                     list ($transport, $mailer) = getMailer();
                     $this->sendIt($mailer, $message);
@@ -166,8 +174,16 @@ class Request extends Entity
                         ->setSubject("We've sent some Freegle business cards to someone on your group")
                         ->setFrom([SUPPORT_ADDR => 'Freegle'])
                         ->setTo([ $g->getModsEmail() => $g->getPrivate('nameshort') . ' Volunteers' ])
-                        ->setBody("When your members mark an item as TAKEN/RECEIVED on Freegle Direct, we sometimes ask them if they'd like business cards so that they can promote Freegle.  We have a few national volunteers who send these out.  We've recently sent cards to " . $u->getName() . " (" . $u->getEmailPreferred() . ")")
-                        ->addPart($html, 'text/html');
+                        ->setBody("When your members mark an item as TAKEN/RECEIVED on Freegle Direct, we sometimes ask them if they'd like business cards so that they can promote Freegle.  We have a few national volunteers who send these out.  We've recently sent cards to " . $u->getName() . " (" . $u->getEmailPreferred() . ")");
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
 
                     list ($transport, $mailer) = getMailer();
                     $this->sendIt($mailer, $message);
