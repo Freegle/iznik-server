@@ -164,20 +164,28 @@ class Swift_FileSpool extends Swift_ConfigurableSpool
 
             /* We try a rename, it's an atomic operation, and avoid locking the file */
             if (rename($file, $file.'.sending')) {
-                $message = unserialize(file_get_contents($file.'.sending'));
+                if (filesize($file.'.sending')) {
+                    try {
+                        $cont = file_get_contents($file.'.sending');
+                        $message = unserialize("File $file " . $cont);
 
-                try {
-                    $to = $message->getTo();
-                    $new = [];
-                    foreach ($to as $email => $name) {
-                        $new[trim($email)] = $name;
+                        if ($message) {
+                            $to = $message->getTo();
+                            $new = [];
+                            foreach ($to as $email => $name) {
+                                $new[trim($email)] = $name;
+                            }
+                            $message->setTo($new);
+                            $count += $transport->send($message, $failedRecipients);
+                        } else {
+                            # Can't unseralise.  Have to discard.
+                            error_log("$file Failed to unserialise $cont");
+                        }
+                    } catch (Exception $e) {
+                        # The send failed.  Catch the exception otherwise the whole flush bombs out.
+                        error_log("$file Exception in send " . $e->getMessage());
+                        continue;
                     }
-                    $message->setTo($new);
-                    $count += $transport->send($message, $failedRecipients);
-                } catch (Exception $e) {
-                    # The send failed.  Catch the exception otherwise the whole flush bombs out.
-                    error_log("$file Exception in send " . $e->getMessage());
-                    continue;
                 }
 
                 unlink($file.'.sending');
