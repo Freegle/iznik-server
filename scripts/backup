@@ -14,7 +14,13 @@ pgrep mysql
 if [ $? == 0 ]; then
     # ...to our archive server
     $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
-    echo "Backup returned " $?
+    echo "Archive backup returned " $?
+
+    # This fails with network glitches sometimes.  If so try again.
+    if [ $? != 0 ]; then
+        $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
+        echo "Archive backup 2 returned " $?
+    fi
 
     # Kick off the restore
     ssh root@archive "nohup /var/www/iznik/scripts/restore > /tmp/restore.out 2>&1 &"
