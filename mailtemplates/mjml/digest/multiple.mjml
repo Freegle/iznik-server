@@ -131,12 +131,12 @@
           <mj-column>
             <mj-section padding="0px">
               <mj-column padding="0px">
-                <mj-button css-class="hide_on_mobile" align="left" href="{{ message.replyweb }}" font-family="Helvetica" background-color="darkgreen" color="white">
+                <mj-button width="200px" css-class="hide_on_mobile" align="left" href="{{ message.replyweb }}" font-family="Helvetica" background-color="darkgreen" color="white">
                   Reply via Web
                 </mj-button>
               </mj-column>
               <mj-column>
-                <mj-button css-class="hide_on_mobile" align="right" href="{{ message.replyemail }}" font-family="Helvetica" background-color="#515A5A" color="white">
+                <mj-button width="200px" css-class="hide_on_mobile" align="right" href="{{ message.replyemail }}" font-family="Helvetica" background-color="#515A5A" color="white">
                   Reply via Email
                 </mj-button>
               </mj-column>
