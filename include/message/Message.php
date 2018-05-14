@@ -887,9 +887,22 @@ class Message
             # Get the user details, relative to the groups this message appears on.
             $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
 
+            if (pres('partner', $_REQUEST) && !pres('partner', $_SESSION)) {
+                $_SESSION['partner'] = partner($this->dbhr, $_REQUEST['partner']);
+            }
+
             if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                 # We can see their emails.
                 $ret['fromuser']['emails'] = $u->getEmails();
+            } else if (pres('partner', $_SESSION)) {
+                # Partners can see emails which belong to us, for the purposes of replying.
+                $emails = $u->getEmails();
+                $ret['fromuser']['emails'] = [];
+                foreach ($emails as $email) {
+                    if (ourDomain($email['email'])) {
+                        $ret['fromuser']['emails'] = $email;
+                    }
+                }
             }
 
             filterResult($ret['fromuser']);
