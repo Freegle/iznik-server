@@ -4,8 +4,6 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/Volunteering.php');
-require_once(IZNIK_BASE . '/mailtemplates/digest/volunteerings.php');
-require_once(IZNIK_BASE . '/mailtemplates/digest/volunteering.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/volunteeringoff.php');
 
 class VolunteeringDigest
@@ -76,6 +74,9 @@ class VolunteeringDigest
     }
 
     public function send($groupid, $ccto = NULL) {
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new Twig_Environment($loader);
+
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
         $sent = 0;
@@ -93,10 +94,11 @@ class VolunteeringDigest
         if ($this->errorlog) { error_log("Consider " . count($volunteerings) . " volunteerings"); }
 
         $textsumm = '';
-        $htmlsumm = '';
 
         $tz1 = new DateTimeZone('UTC');
         $tz2 = new DateTimeZone('Europe/London');
+
+        $twigvols = [];
 
         if (count($volunteerings) > 0) {
             $count = 0;
@@ -108,18 +110,29 @@ class VolunteeringDigest
 
                     $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
                     $atts = $e->getPublic();
-                    $htmlsumm .= digest_volunteering($atts);
-                    error_log("{$atts['id']} {$atts['title']}");
                     $textsumm .= $atts['title'] . " at " . $atts['location'] . " - for details see https://" . USER_SITE . "/volunteering/{$atts['id']}&src=voldigest\r\n\r\n";
+
+                    $twigvols[] = $atts;
                 }
             }
 
+            error_log("Found " . count($twigvols));
+
             if ($count) {
-                $html = digest_volunteerings($htmlsumm,
-                    USER_SITE,
-                    USERLOGO,
-                    $gatts['namedisplay']
-                );
+                $html = $twig->render('digest/volunteering.html', [
+                    # Per-message fields for expansion now.
+                    'volunteerings' => $twigvols,
+                    'groupname' => $gatts['namedisplay'],
+
+                    # Per-recipient fields for later Swift expansion
+                    'settings' => '{{settings}}',
+                    'unsubscribe' => '{{unsubscribe}}',
+                    'email' => '{{email}}',
+                    'noemail' => '{{noemail}}',
+                    'visit' => '{{visit}}',
+                    'LI_HASH' => '{{LI_HASH}}',
+                    'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}'
+                ]);
 
                 $tosend = [
                     'subject' => '[' . $gatts['namedisplay'] . "] Volunteer Opportunity Roundup",
@@ -148,17 +161,27 @@ class VolunteeringDigest
                     # We are only interested in sending opportunities to users for whom we have a preferred address -
                     # otherwise where would we send them?
                     $email = $u->getEmailPreferred();
+                    #$email = 'activate@liveintent.com';
+                    $email = 'edward@ehibbert.org.uk';
+
                     if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
 
                     if ($email && $u->sendOurMails($g)) {
                         if ($this->errorlog) { error_log("Send to them"); }
+
+                        # The placement ID for ads needs to be unique.  We want to generated it here so that
+                        # not everyone in a single run gets the same ad.
+                        $placementid = "eventdigest-$groupid-" . microtime(true);
+
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_VOLUNTEERING_DIGEST),
                             '{{email}}' => $email,
                             '{{noemail}}' => 'volunteeringoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                             '{{post}}' => "https://" . USER_SITE . "/volunteering",
-                            '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid"
+                            '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid",
+                            '{{LI_HASH}}' =>  hash('sha1', $email),
+                            '{{LI_PLACEMENT_ID}}' => $placementid
                         ];
                     }
                 }

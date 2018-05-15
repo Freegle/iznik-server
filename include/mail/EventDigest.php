@@ -120,12 +120,9 @@ class EventDigest
                         $atts['end'] = $end;
                         $atts['otherdates'] = NULL;
 
-                        error_log("Count of dates " . count($atts['dates']));
                         if (count($atts['dates']) > 1) {
                             foreach ($atts['dates'] as $date2) {
-                                error_log("Consider date " . var_export($date2));
                                 if (strtotime($date2['end']) >= time() && $date2['end'] != $date['end']) {
-                                    error_log("Include");
                                     $datetime = new DateTime($date['start'], $tz1);
                                     $datetime->setTimezone($tz2);
                                     $start2 = $datetime->format('D, jS F g:ia');

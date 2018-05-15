@@ -28,7 +28,7 @@
             <mj-image src="https://www.ilovefreegle.org/images/user_logo.png" width="80px" align="left"> </mj-image>
           </mj-column>
           <mj-column>
-            <mj-button href="https://www.ilovefreegle.org/communityevents" font-family="Helvetica" background-color="#377615" color="white">
+            <mj-button href="https://www.ilovefreegle.org/volunteering" font-family="Helvetica" background-color="#377615" color="white">
               Add your<br />
               own!
             </mj-button>
@@ -48,7 +48,7 @@
           <mj-group>
             <mj-column>
               <mj-text align="center" css-class="show_on_mobile">
-                <a font-weight="bold" href="https://www.ilovefreegle.org/communityevents">Add</a>
+                <a font-weight="bold" href="https://www.ilovefreegle.org/volunteering">Add</a>
               </mj-text>
             </mj-column>
             <mj-column>
@@ -66,16 +66,15 @@
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column>
             <mj-text background-color="#FFF8DC" color="#1D6607" line-height="1.25em">
-              <br /> Here are the current Community Events. Depending on
-              your email client you may be able to click on a link to move down this email;
-              otherwise please scroll down.
+              <br /> Charities, community organisations and good causes are welcome to ask our lovely freeglers for volunteers.  If
+             you'd like to add one, click <a font-weight="bold" href="https://www.ilovefreegle.org/volunteering">here</a>.
             </mj-text>
             <mj-raw>
-              {% for event in events %}
+              {% for volunteering in volunteerings %}
             </mj-raw>
             <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
-              <a href="#msg-{{ event.id }}">
-                {{ event.title }}
+              <a href="#msg-{{ volunteering.id }}">
+                {{ volunteering.title }}
               </a>
             </mj-text>
             <mj-raw>
@@ -87,36 +86,26 @@
           </mj-column>
         </mj-section>
         <mj-raw>
-          {% for event in events %}
+          {% for volunteering in volunteerings %}
         </mj-raw>
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column padding="0px">
             <mj-text padding="0px">
-              <span id="msg-{{ event.id }}" name="{{ event.id }}" />
+              <span id="msg-{{ volunteering.id }}" name="{{ volunteering.id }}" />
             </mj-text>
-            <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ event.title }} </mj-text>
-            <mj-text padding-top="0px" padding-bottom="0px" color="black" font-size="13pt" line-height="1.25em">{{ event.start }} <span style="color:grey">to</span> {{ event.end }}</mj-text>
-            <mj-text padding-top="0px" padding-bottom="0px" color="black" font-size="12pt" line-height="1.25em">{{ event.location }} </mj-text>
+            <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ volunteering.title }} </mj-text>
+            <mj-text padding-top="0px" padding-bottom="0px" color="black" font-size="12pt" line-height="1.25em">{{ volunteering.location }} </mj-text>
             <mj-raw>
-              {% if event.photo is defined and event.photo is not null %}
+              {% if volunteering.photo is defined and volunteering.photo is not null %}
             </mj-raw>
             <mj-section padding-top="0px" padding-bottom="0px">
               <mj-column>
-                <mj-raw>
-                  {% if event.otherdates is defined and event.otherdates is not null %}
-                </mj-raw>
-                  <mj-text>
-                    Other dates: {{ event.otherdates }}
-                  </mj-text>
-                <mj-raw>
-                  {% endif %}
-                </mj-raw>
                 <mj-text>
-                  {{ event.description|nl2br }}
+                  {{ volunteering.description|nl2br }}
                 </mj-text>
               </mj-column>
               <mj-column>
-                <mj-image alt="Event picture" align="right" border-radius="5px" src="{{ event.photo.paththumb }}" width="80px"> </mj-image>
+                <mj-image alt="Volunteering picture" align="right" border-radius="5px" src="{{ volunteering.photo.paththumb }}" width="80px"> </mj-image>
               </mj-column>
             </mj-section>
             <mj-raw>
@@ -124,17 +113,8 @@
             </mj-raw>
             <mj-section padding-top="0px" padding-bottom="0px">
               <mj-column>
-                <mj-raw>
-                  {% if event.otherdates is defined and event.otherdates is not null %}
-                </mj-raw>
-                  <mj-text>
-                    Other dates: {{ event.otherdates }}
-                  </mj-text>
-                <mj-raw>
-                  {% endif %}
-                </mj-raw>
                 <mj-text>
-                  {{ event.description|nl2br }}
+                  {{ volunteering.description|nl2br }}
                 </mj-text>
               </mj-column>
             </mj-section>
@@ -143,44 +123,57 @@
             </mj-raw>
           </mj-column>
         </mj-section>
+        <mj-raw>
+            {% if (volunteering.timecommitment is defined and volunteering.timecommitment is not null) %}
+        </mj-raw>
+            <mj-section background-color="#FFF8DC" padding-top="0px" padding-bottom="0px">
+              <mj-column>
+                <mj-text>
+                  Time commitment: {{ volunteering.timecommitment|nl2br }}
+                </mj-text>
+              </mj-column>
+            </mj-section>
+        <mj-raw>
+          {% endif %}
+        </mj-raw>
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column>
             <mj-raw>
-              {% if (event.contactname is defined and event.contactname is not null) or (event.contactphone is defined and event.contactphone is not null) or (event.contactemail is defined and event.contactemail is not null) or (event.contacturl is defined and event.contacturl is not null) %}
+              {% if (volunteering.contactname is defined and volunteering.contactname is not null) or (volunteering.contactphone is defined and volunteering.contactphone is not null) or (volunteering.contactemail is defined and volunteering.contactemail is not null) or (volunteering.contacturl is defined and volunteering.contacturl is not null) %}
             </mj-raw>
               <mj-text color="black" font-size="14pt" line-height="1.25em">Contact details:</mj-text>
             <mj-raw>
               {% endif %}
             </mj-raw>
             <mj-raw>
-              {% if event.contactname is defined and event.contactname is not null %}
+              {% if volunteering.contactname is defined and volunteering.contactname is not null %}
             </mj-raw>
-            <mj-text padding-top="0px" padding-bottom="4px">{{ event.contactname }}<br /></mj-text>
+            <mj-text padding-top="0px" padding-bottom="4px">{{ volunteering.contactname }}<br /></mj-text>
             <mj-raw>
               {% endif %}
             </mj-raw>
             <mj-raw>
-              {% if event.contactphone is defined and event.contactphone is not null %}
+              {% if volunteering.contactphone is defined and volunteering.contactphone is not null %}
             </mj-raw>
             <mj-text padding-top="0px" padding-bottom="4px">
-              Phone: <a href="tel:{{ event.contactphone }}">{{ event.contactphone }}</a><br /></mj-text>
+              Phone: <a href="tel:{{ volunteering.contactphone }}">{{ volunteering.contactphone }}</a><br /></mj-text>
             <mj-raw>
               {% endif %}
             </mj-raw>
             <mj-raw>
-              {% if event.contactemail is defined and event.contactemail is not null %}
+              {% if volunteering.contactemail is defined and volunteering.contactemail is not null %}
             </mj-raw>
             <mj-text padding-top="0px" padding-bottom="4px">
-              Email: <a href="mailto:{{ event.contactemail }}">{{ event.contactemail }}</a><br />
+              Email: <a href="mailto:{{ volunteering.contactemail }}">{{ volunteering.contactemail }}</a><br />
               </mj-text>
             <mj-raw>
               {% endif %}
             </mj-raw>
             <mj-raw>
-              {% if event.contacturl is defined and event.contacturl is not null %}
+              {% if volunteering.contacturl is defined and volunteering.contacturl is not null %}
             </mj-raw>
             <mj-text padding-top="0px" padding-bottom="4px">
-              Web: <a href="{{ event.contacturl }}">{{ event.contacturl }}</a><br /></mj-text>
+              Web: <a href="{{ volunteering.contacturl }}">{{ volunteering.contacturl }}</a><br /></mj-text>
             <mj-raw>
               {% endif %}
             </mj-raw>
@@ -238,7 +231,7 @@
         <mj-section background-color="#E0E0E0">
           <mj-column>
             <mj-text font-size="9pt" color="#707070">
-              You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive Community Events for {{ groupname }}.<br /> <br /> You can change your settings by clicking <a href="{{ settings }}">here</a>,
+              You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive Volunteering Opportunities for {{ groupname }}.<br /> <br /> You can change your settings by clicking <a href="{{ settings }}">here</a>,
               or turn these mails off for this group by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
               <br /> <br /> This mail was sent to {{ email }}.
               <br />
