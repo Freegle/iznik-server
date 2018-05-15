@@ -121,7 +121,7 @@ class eventDigestTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-//
+
 //    public function testNewEvents() {
 //        error_log(__METHOD__);
 //

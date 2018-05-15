@@ -601,6 +601,7 @@ class Location extends Entity
         }
 
         $mp = new MultiPoint($points);
+        error_log("Generate hull from " . count($points));
         $hull = $mp->convexHull();
 
         # We might not get a hull back if we're running in HHVM, because it relies on a PHP extension.

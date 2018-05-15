@@ -28,18 +28,18 @@
             <mj-image src="https://www.ilovefreegle.org/images/user_logo.png" width="80px" align="left"> </mj-image>
           </mj-column>
           <mj-column>
-            <mj-button inner-padding="10px" href="https://www.ilovefreegle.org/communityevents" font-family="Helvetica" background-color="#377615" color="white">
+            <mj-button href="https://www.ilovefreegle.org/communityevents" font-family="Helvetica" background-color="#377615" color="white">
               Add your<br />
               own!
             </mj-button>
           </mj-column>
           <mj-column>
-            <mj-button inner-padding="10px" href="{{ visit }}" font-family="Helvetica" background-color="#377615" color="white">
+            <mj-button href="{{ visit }}" font-family="Helvetica" background-color="#377615" color="white">
               Browse <br />the group
             </mj-button>
           </mj-column>
           <mj-column>
-            <mj-button css-class="hide_on_mobile" inner-padding="10px" href="{{ unsubscribe }}" font-family="Helvetica" background-color="#336666" color="white">
+            <mj-button href="{{ unsubscribe }}" font-family="Helvetica" background-color="#336666" color="white">
               Unsubscribe
             </mj-button>
           </mj-column>
@@ -65,7 +65,6 @@
         </mj-section>
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column>
-            </mj-text>
             <mj-text background-color="#FFF8DC" color="#1D6607" line-height="1.25em">
               <br /> Here are the current Community Events. Depending on
               your email client you may be able to click on a link to move down this email;
@@ -103,6 +102,15 @@
             </mj-raw>
             <mj-section padding-top="0px" padding-bottom="0px">
               <mj-column>
+                <mj-raw>
+                  {% if event.otherdates is defined and event.otherdates is not null %}
+                </mj-raw>
+                  <mj-text>
+                    Other dates: {{ event.otherdates }}
+                  </mj-text>
+                <mj-raw>
+                  {% endif %}
+                </mj-raw>
                 <mj-text>
                   {{ event.description|nl2br }}
                 </mj-text>
@@ -116,6 +124,15 @@
             </mj-raw>
             <mj-section padding-top="0px" padding-bottom="0px">
               <mj-column>
+                <mj-raw>
+                  {% if event.otherdates is defined and event.otherdates is not null %}
+                </mj-raw>
+                  <mj-text>
+                    Other dates: {{ event.otherdates }}
+                  </mj-text>
+                <mj-raw>
+                  {% endif %}
+                </mj-raw>
                 <mj-text>
                   {{ event.description|nl2br }}
                 </mj-text>
@@ -184,7 +201,7 @@
               Donate
             </mj-button>
             <mj-raw>
-                <table align="center" border="0" cellpadding="0" cellspacing="0">
+                <!--table align="center" border="0" cellpadding="0" cellspacing="0">
                     <tr>
                         <td colspan="2"><a href="http://li.ilovefreegle.org/click?s=668115&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}"
                                            rel="nofollow"><img
@@ -201,7 +218,20 @@
                                 src="http://li.ilovefreegle.org/imp?s=668118&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a>
                         </td>
                     </tr>
-                </table>
+                </table-->
+              <table align="center" border="0" cellpadding="0" cellspacing="0" padding-left="10px">
+                <tr>
+                  <td colspan="2"><a style="display: block; width: 300px; height: 250px;" href="http://li.ilovefreegle.org/click?s=285301&sz=300x250&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285301&sz=300x250&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0" width="300" height="250"/></a></td>
+                </tr>
+                <tr style="display:block; height:1px; line-height:1px;">
+                  <td><img src="http://li.ilovefreegle.org/imp?s=285302&sz=1x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" height="1" width="10" /></td>
+                  <td><img src="http://li.ilovefreegle.org/imp?s=285303&sz=1x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" height="1" width="10" /></td>
+                </tr>
+                <tr>
+                  <td align="left"><a href="http://li.ilovefreegle.org/click?s=285298&sz=116x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285298&sz=116x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td>
+                  <td align="right"><a href="http://li.ilovefreegle.org/click?s=285299&sz=69x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285299&sz=69x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td>
+                </tr>
+              </table>
             </mj-raw>
           </mj-column>
         </mj-section>
@@ -218,7 +248,9 @@
         </mj-section>
       </mj-wrapper>
     <mj-raw>
-<table cellpadding="0" cellspacing="0" border="0" width="40" height="6"><tbody><tr><td><img src="http://li.ilovefreegle.org/imp?s=125477700&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477701&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477702&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477703&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477704&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477705&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477706&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477707&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477708&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477709&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477710&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477711&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477712&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477713&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477714&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477715&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477716&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477717&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477718&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477719&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td></tr></tbody></table>    </mj-raw>
+        <!--table cellpadding="0" cellspacing="0" border="0" width="40" height="6"><tbody><tr><td><img src="http://li.ilovefreegle.org/imp?s=125477700&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477701&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477702&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477703&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477704&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477705&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477706&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477707&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477708&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477709&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477710&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477711&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477712&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477713&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477714&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477715&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477716&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477717&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477718&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125477719&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td></tr></tbody></table-->
+        <table cellpadding="0" cellspacing="0" border="0" width="40" height="6"><tbody><tr><td><img src="http://li.ilovefreegle.org/imp?s=125043500&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043501&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043502&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043503&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043504&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043505&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043506&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043507&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043508&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043509&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043510&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043511&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043512&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043513&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043514&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043515&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043516&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043517&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043518&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125043519&sz=2x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td></tr></tbody></table>
+    </mj-raw>
     </mj-container>
   </mj-body>
 </mjml>
