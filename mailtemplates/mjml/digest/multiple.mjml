@@ -135,7 +135,7 @@
                   Reply via Web
                 </mj-button>
               </mj-column>
-              <mj-column>
+              <mj-column padding="0px">
                 <mj-button width="200px" css-class="hide_on_mobile" align="right" href="{{ message.replyemail }}" font-family="Helvetica" background-color="#515A5A" color="white">
                   Reply via Email
                 </mj-button>

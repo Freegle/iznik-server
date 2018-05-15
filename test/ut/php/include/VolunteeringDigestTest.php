@@ -124,45 +124,45 @@ class volunteeringDigestTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testNewVols() {
-        error_log(__METHOD__);
-
-        # Create a group with two volunteer op on it.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', TRUE);
-
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-        $u = User::get($this->dbhm, $this->dbhm, $uid);
-        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
-            $u->getEmailPreferred()
-        ]);
-
-        foreach ($emails as $email) {
-            $eid = $email['id'];
-            error_log("Found eid $eid");
-            $u->addMembership($gid, User::ROLE_MEMBER, $eid);
-
-            $e = new Volunteering($this->dbhr, $this->dbhm);
-            $eid = $e->create($uid, 'Test Op 1', FALSE, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'A few hours');
-            error_log("Created op $eid");
-            $e->addGroup($gid);
-            $e->setPrivate('pending', 0);
-
-            $eid = $e->create($uid, 'Test Op 2', FALSE, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'A few hours');
-            error_log("Created event $eid");
-            $e->addGroup($gid);
-            $e->setPrivate('pending', 0);
-
-            # Now test.
-            error_log("Now send");
-
-            $d = new VolunteeringDigest($this->dbhr, $this->dbhm);
-            assertEquals(1, $d->send($gid));
-        }
-
-        error_log(__METHOD__ . " end");
-    }
+//    public function testNewVols() {
+//        error_log(__METHOD__);
+//
+//        # Create a group with two volunteer op on it.
+//        $g = Group::get($this->dbhr, $this->dbhm);
+//        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+//        $g->setPrivate('onyahoo', TRUE);
+//
+//        $u = User::get($this->dbhm, $this->dbhm);
+//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        $u = User::get($this->dbhm, $this->dbhm, $uid);
+//        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
+//            $u->getEmailPreferred()
+//        ]);
+//
+//        foreach ($emails as $email) {
+//            $eid = $email['id'];
+//            error_log("Found eid $eid");
+//            $u->addMembership($gid, User::ROLE_MEMBER, $eid);
+//
+//            $e = new Volunteering($this->dbhr, $this->dbhm);
+//            $eid = $e->create($uid, 'Test Op 1', FALSE, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'A few hours');
+//            error_log("Created op $eid");
+//            $e->addGroup($gid);
+//            $e->setPrivate('pending', 0);
+//
+//            $eid = $e->create($uid, 'Test Op 2', FALSE, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'A few hours');
+//            error_log("Created event $eid");
+//            $e->addGroup($gid);
+//            $e->setPrivate('pending', 0);
+//
+//            # Now test.
+//            error_log("Now send");
+//
+//            $d = new VolunteeringDigest($this->dbhr, $this->dbhm);
+//            assertEquals(1, $d->send($gid));
+//        }
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 

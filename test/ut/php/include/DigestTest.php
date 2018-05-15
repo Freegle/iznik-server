@@ -31,6 +31,10 @@ class digestTest extends IznikTestCase {
         $this->tidy();
     }
 
+    protected function tearDown() {
+
+}
+
     public function sendMock($mailer, $message) {
         $this->msgsSent[] = $message->toString();
     }
@@ -309,7 +313,7 @@ class digestTest extends IznikTestCase {
 //        # Create a group with two messages on it.
 //        $g = Group::get($this->dbhm, $this->dbhm);
 //        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-//        $g->setPrivate('onyahoo', 1);
+//        $g->setPrivate('onyahoo', 0);
 //        $msg = $this->unique(file_get_contents('msgs/attachment'));
 //        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
 //        $msg = str_replace('Test att', 'OFFER: Test 1 (location)', $msg);
@@ -346,7 +350,17 @@ class digestTest extends IznikTestCase {
 //        $m->mark(Message::OUTCOME_TAKEN, 'Ta', User::HAPPY, NULL);
 //
 //        $u = User::get($this->dbhm, $this->dbhm);
-//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        $testemail = 'freeglefreegle@litmustest.com';
+//        $testemail = 'caroline.gerard@btinternet.com';
+//        $testemail = 'chriswalters@sky.com';
+//        $testemail = 'edward@ehibbert.org.uk';
+//        $uid = $u->findByEmail($testemail);
+//
+//        if (!$uid) {
+//            $uid = $u->create("Test", "User", "Test User");
+//            $u->addEmail($testemail);
+//        }
+//
 //        $u = User::get($this->dbhm, $this->dbhm, $uid);
 //        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
 //            $u->getEmailPreferred()
