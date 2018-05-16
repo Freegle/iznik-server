@@ -3654,6 +3654,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $notifs = $n->countUnseen($this->id);
 
                 if ($notifs) {
+                    $count += $notifs;
                     $title = "You have $notifs notification" . ($notifs == 1 ? '' : 's');
                     $route = '/';
                 }
