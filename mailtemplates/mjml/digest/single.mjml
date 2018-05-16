@@ -65,47 +65,54 @@
         <mj-section background-color="#FFF8DC">
           <mj-column>
             <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ subject }} </mj-text>
-            <mj-raw>
-              {% if image is defined and image is not null %}
-            </mj-raw>
-            <mj-section padding-top="0px" padding-bottom="0px">
-              <mj-column>
-                <mj-text>
-                  {{ textbody|nl2br }}
-                </mj-text>
-              </mj-column>
-              <mj-column>
-                <mj-image alt="Item picture" href="{{ replyweb }}" align="right" border-radius="5px" src="{{ image }}" width="80px"> </mj-image>
-              </mj-column>
-            </mj-section>
-            <mj-raw>
-              {% else %}
-            </mj-raw>
+          </mj-column>
+        </mj-section>
+        <mj-raw>
+          {% if image is defined and image is not null %}
+        </mj-raw>
+        <mj-section padding-top="0px" padding-bottom="0px" background-color="#FFF8DC">
+          <mj-column>
             <mj-text>
               {{ textbody|nl2br }}
             </mj-text>
-            <mj-raw>
-              {% endif %}
-            </mj-raw>
-            <mj-text color="darkgrey">
-              Posted by {{ fromname }} on {{ date }}.
+          </mj-column>
+          <mj-column>
+            <mj-image alt="Item picture" href="{{ replyweb }}" align="right" border-radius="5px" src="{{ image }}" width="80px"> </mj-image>
+          </mj-column>
+        </mj-section>
+        <mj-raw>
+          {% else %}
+        </mj-raw>
+        <mj-section background-color="#FFF8DC">
+          <mj-column>
+            <mj-text>
+              {{ textbody|nl2br }}
             </mj-text>
           </mj-column>
         </mj-section>
+        <mj-raw>
+          {% endif %}
+        </mj-raw>
         <mj-section background-color="#FFF8DC">
           <mj-column>
-            <mj-section padding="0px">
-              <mj-column padding="0px">
-                <mj-button width="200px" css-class="hide_on_mobile" align="left" href="{{ replyweb }}" font-family="Helvetica" background-color="darkgreen" color="white">
-                  Reply via Web
-                </mj-button>
-              </mj-column>
-              <mj-column>
-                <mj-button width="200px" css-class="hide_on_mobile" align="right" href="{{ replyemail }}" font-family="Helvetica" background-color="#515A5A" color="white">
-                  Reply via Email
-                </mj-button>
-              </mj-column>
-            </mj-section>
+            <mj-text color="darkgrey">
+              Posted by&nbsp;{{ fromname }}&nbsp;on&nbsp;{{ date }}.
+            </mj-text>
+          </mj-column>
+        </mj-section>
+        <mj-section padding="0px" background-color="#FFF8DC">
+          <mj-column padding="0px">
+            <mj-button width="200px" css-class="hide_on_mobile" align="left" href="{{ replyweb }}" font-family="Helvetica" background-color="darkgreen" color="white">
+              Reply via Web
+            </mj-button>
+          </mj-column>
+          <mj-column>
+            <mj-button width="200px" css-class="hide_on_mobile" align="right" href="{{ replyemail }}" font-family="Helvetica" background-color="#515A5A" color="white">
+              Reply via Email
+            </mj-button>
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#FFF8DC">
             <mj-group>
               <mj-column>
                 <mj-text align="center" css-class="show_on_mobile">
@@ -118,7 +125,6 @@
                 </mj-text>
               </mj-column>
             </mj-group>
-          </mj-column>
         </mj-section>
         <mj-section background-color="#F7F6EC">
           <mj-column>
