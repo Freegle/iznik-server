@@ -1557,7 +1557,7 @@ class ChatRoom extends Entity
                                     case ChatRoom::TYPE_USER2USER:
                                         $html = $twig->render('chat_notify.html', [
                                             'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                            'fromid' => $member['userid'],
+                                            'fromid' => $otheru->getId(),
                                             'name' => $fromname,
                                             'reply' => $url,
                                             'messages' => $twigmessages,
@@ -1573,7 +1573,7 @@ class ChatRoom extends Entity
                                         if ($member['role'] == User::ROLE_MEMBER) {
                                             $html = $twig->render('chat_notify.html', [
                                                 'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                                'fromid' => $member['userid'],
+                                                'fromid' => $otheru->getId(),
                                                 'name' => $fromname,
                                                 'reply' => $url,
                                                 'messages' => $twigmessages,
@@ -1587,7 +1587,7 @@ class ChatRoom extends Entity
                                             $url = $thisu->loginLink($site, $member['userid'], '/modtools/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
                                             $html = $twig->render('chat_notify.html', [
                                                 'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                                'fromid' => $member['userid'],
+                                                'fromid' => $otheru->getId(),
                                                 'name' => $fromname,
                                                 'reply' => $url,
                                                 'messages' => $twigmessages,
