@@ -31,10 +31,6 @@ class digestTest extends IznikTestCase {
         $this->tidy();
     }
 
-    protected function tearDown() {
-
-}
-
     public function sendMock($mailer, $message) {
         $this->msgsSent[] = $message->toString();
     }

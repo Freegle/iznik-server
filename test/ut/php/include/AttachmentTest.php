@@ -23,9 +23,6 @@ class AttachmentTest extends IznikTestCase {
         $this->dbhm = $dbhm;
     }
 
-    protected function tearDown() {
-    }
-
     public function __construct() {
     }
 
