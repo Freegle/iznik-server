@@ -65,6 +65,7 @@ if (count($opts) < 1) {
             'sessions' => [ 'userid' ],
             'messages' => [ 'fromuser' ],
             'users_push_notifications' => [ 'userid' ],
+            'users_notifications' => [ 'fromuser', 'touser' ],
             'chat_rooms' => [ 'user1', 'user2' ],
             'chat_roster' => [ 'userid' ],
             'chat_messages' => [ 'userid' ],
@@ -72,7 +73,8 @@ if (count($opts) < 1) {
             'memberships_history' => [ 'userid' ],
             'logs' => [ 'user' ],
             'logs_api' => [ 'userid' ],
-            'logs_sql' => [ 'userid' ]
+            'logs_sql' => [ 'userid' ],
+            'newsfeed' => [ 'userid' ]
                  ] as $table => $keys) {
             foreach ($keys as $key) {
                 error_log("Table $table key $key");
