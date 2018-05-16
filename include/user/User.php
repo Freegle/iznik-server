@@ -3643,8 +3643,20 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $message = presdef('message', $msgs[count($msgs) - 1], "You have a message");
                     $message = strlen($message) > 256 ? (substr($message, 0, 256) . "...") : $message;
                 }
+
+                $route = "/chat/" . $unseen[0]['chatid'];
             } else if ($count > 1) {
                 $title = "You have $count new messages.";
+                $route = "/chats";
+            } else {
+                # Also add in the notifications you see primarily from the newsfeed.
+                $n = new Notifications($this->dbhr, $this->dbhm);
+                $notifs = $n->countUnseen($this->id);
+
+                if ($notifs) {
+                    $title = "You have $notifs notification" . ($notifs == 1 ? '' : 's');
+                    $route = '/';
+                }
             }
         } else {
             # ModTools notification.  Similar code in session (to calculate work) and sw.php (to construct notification
@@ -3678,6 +3690,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             $title = $title == '' ? NULL : $title;
         }
+
 
         return([$count, $title, $message, $chatids, $route]);
     }

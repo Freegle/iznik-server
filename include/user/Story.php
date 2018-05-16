@@ -124,7 +124,6 @@ class Story extends Entity
 
     public function getForReview($groupids, $newsletter) {
         $sql = $newsletter ? ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC") : ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (" . implode(',', $groupids) . ") AND reviewed = 0 ORDER BY date DESC");
-        error_log("Storyies $sql");
         $ids = $this->dbhr->preQuery($sql);
         $ret = [];
 

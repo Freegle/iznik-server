@@ -104,6 +104,9 @@ class Notifications
                 $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`, `url`) VALUES (?, ?, ?, ?, ?);";
                 $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid, $url ]);
                 $id = $this->dbhm->lastInsertId();
+
+                $p = new PushNotifications($this->dbhr, $this->dbhm);
+                $p->notify($to, MODTOOLS);
             }
         }
 
