@@ -123,11 +123,11 @@ class EventDigest
                         if (count($atts['dates']) > 1) {
                             foreach ($atts['dates'] as $date2) {
                                 if (strtotime($date2['end']) >= time() && $date2['end'] != $date['end']) {
-                                    $datetime = new DateTime($date['start'], $tz1);
+                                    $datetime = new DateTime($date2['start'], $tz1);
                                     $datetime->setTimezone($tz2);
                                     $start2 = $datetime->format('D, jS F g:ia');
 
-                                    $datetime = new DateTime($date['end'], $tz1);
+                                    $datetime = new DateTime($date2['end'], $tz1);
                                     $datetime->setTimezone($tz2);
                                     $end2 = $datetime->format('D, jS F g:ia');
                                     $atts['otherdates'] = $atts['otherdates'] ? ($atts['otherdates'] . ", $start2-$end2") : "$start2-$end2";

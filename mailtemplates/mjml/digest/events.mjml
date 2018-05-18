@@ -95,7 +95,7 @@
               <span id="msg-{{ event.id }}" name="{{ event.id }}" />
             </mj-text>
             <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ event.title }} </mj-text>
-            <mj-text padding-top="0px" padding-bottom="0px" color="black" font-size="13pt" line-height="1.25em">{{ event.start }} <span style="color:grey">to</span> {{ event.end }}</mj-text>
+            <mj-text padding-top="0px" padding-bottom="0px" color="black" font-size="13pt" line-height="1.25em">{{ event.start }} <span style="color:grey">&nbsp;to&nbsp;</span> {{ event.end }}</mj-text>
             <mj-text padding-top="0px" padding-bottom="0px" color="black" font-size="12pt" line-height="1.25em">{{ event.location }} </mj-text>
             <mj-raw>
               {% if event.photo is defined and event.photo is not null %}
