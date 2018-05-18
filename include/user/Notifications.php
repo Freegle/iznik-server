@@ -5,7 +5,6 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
-require_once(IZNIK_BASE . '/mailtemplates/notifications/email.php');
 require_once(IZNIK_BASE . '/mailtemplates/notifications/notificationsoff.php');
 
 class Notifications
@@ -166,12 +165,16 @@ class Notifications
         $mailer->send($message);
     }
 
-    public function sendEmails($userid = NULL, $before = '24 hours ago', $since = '7 days ago') {
+    public function sendEmails($userid = NULL, $before = '24 hours ago', $since = '7 days ago', $unseen = TRUE) {
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new Twig_Environment($loader);
+
         $userq = $userid ? " AND `touser` = $userid " : '';
 
         $mysqltime = date("Y-m-d H:i:s", strtotime($before));
         $mysqltime2 = date("Y-m-d H:i:s", strtotime($since));
-        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' AND seen = 0 AND `type` != ? $userq;";
+        $seenq = $unseen ? " AND seen = 0 ": '';
+        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq AND `type` != ? $userq;";
         $users = $this->dbhr->preQuery($sql, [
             Notifications::TYPE_TRY_FEED
         ]);
@@ -188,25 +191,31 @@ class Notifications
                 $notifs = $this->get($user['touser'], $ctx);
 
                 $str = '';
+                $twignotifs = [];
 
-                foreach ($notifs as $notif) {
-                    if (!$notif['seen'] && $notif['type'] != Notifications::TYPE_TRY_FEED) {
+                foreach ($notifs as &$notif) {
+                    if ((!$unseen || !$notif['seen']) && $notif['type'] != Notifications::TYPE_TRY_FEED) {
                         #error_log("Message is {$notif['newsfeed']['message']} len " . strlen($notif['newsfeed']['message']));
+                        $fromname = ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone");
+                        $notif['fromname'] = $fromname;
+                        $notif['timestamp'] = date("D, jS F g:ia", strtotime($notif['timestamp']));
+                        $twignotifs[] = $notif;
+
                         switch ($notif['type']) {
                             case Notifications::TYPE_COMMENT_ON_COMMENT:
-                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " replied to your comment '" . ($notif['newsfeed']['replyto']['message'] ? ("on {$notif['newsfeed']['replyto']['message']}") : "") . "'\n";
+                                $str .= $fromname . " replied to your comment: {$notif['newsfeed']['message']}\n";
                                 $count++;
                                 break;
                             case Notifications::TYPE_COMMENT_ON_YOUR_POST:
-                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " commented on " . ($notif['newsfeed']['message'] ? "'{$notif['newsfeed']['message']}'" : "your post") . "\n";
+                                $str .= $fromname . " commented on your post: {$notif['newsfeed']['message']}\n";
                                 $count++;
                                 break;
                             case Notifications::TYPE_LOVED_POST:
-                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " loved your post '{$notif['newsfeed']['message']}'\n";
+                                $str .= $fromname . " loved your post '{$notif['newsfeed']['message']}'\n";
                                 $count++;
                                 break;
                             case Notifications::TYPE_LOVED_COMMENT:
-                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " loved your comment '{$notif['newsfeed']['message']}'\n";
+                                $str .= $fromname . " loved your comment '{$notif['newsfeed']['message']}'\n";
                                 $count++;
                                 break;
                         }
@@ -216,7 +225,17 @@ class Notifications
                 $url = $u->loginLink(USER_SITE, $user['touser'], '/newsfeed', 'notifemail');
                 $noemail = 'notificationmailsoff-' . $user['touser'] . "@" . USER_DOMAIN;
 
-                $html = notification_email($url, $noemail, $u->getName(), $u->getEmailPreferred(), nl2br($str));
+                try {
+                    $html = $twig->render('notifications/email.html', [
+                        'count' => count($twignotifs),
+                        'notifications'=> $twignotifs,
+                        'settings' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_NOTIFICATIONS_EMAIL),
+                        'email' => $u->getEmailPreferred(),
+                        'noemail' => $noemail
+                    ]);
+                } catch (Exception $e) {
+                    error_log("Message prepare failed with " . $e->getMessage());
+                }
 
                 $message = Swift_Message::newInstance()
                     ->setSubject("You have " . ($count ? $count : '') . " new notification" . ($count != 1 ? 's' : ''))

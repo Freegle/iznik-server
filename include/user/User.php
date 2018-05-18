@@ -89,6 +89,7 @@ class User extends Entity
     const SRC_VOLUNTEERING_DIGEST = 'voldigest';
     const SRC_VOLUNTEERING_RENEWAL = 'volrenew';
     const SRC_NEWSLETTER = 'newsletter';
+    const SRC_NOTIFICATIONS_EMAIL = 'notifemail';
 
     /** @var  $log Log */
     private $log;

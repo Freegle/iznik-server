@@ -17,7 +17,7 @@ if [ $? == 0 ]; then
     echo "Archive backup returned " $?
 
     # This fails with network glitches sometimes.  If so try again.
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
         echo "Archive backup 2 returned " $?
     fi

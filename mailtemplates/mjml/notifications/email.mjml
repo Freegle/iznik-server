@@ -1,0 +1,95 @@
+<mjml>
+  <mj-head>
+    <mj-style>
+      a { color: #288c0a; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; }
+    </mj-style>
+    <mj-attributes>
+      <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-container>
+      <mj-wrapper padding="0" full-width="full-width">
+        <!-- header section -->
+        <mj-section background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+          <mj-group>
+            <mj-column vertical-align="middle" width="65%">
+              <mj-raw>
+                {% if count > 1 %}
+              </mj-raw>
+              <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">You have&nbsp;{{ count }}&nbsp;notifications</mj-text>
+              <mj-raw>
+                {% else %}
+              </mj-raw>
+              <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">You have&nbsp;{{ count }}&nbsp;notification</mj-text>
+              <mj-raw>
+                {% endif %}
+              </mj-raw>
+            </mj-column>
+            <mj-column vertical-align="middle" width="35%">
+              <mj-image css-class="logo" src="https://www.ilovefreegle.org/images/user_logo.png" width="80px" align="right" border-radius="5px" padding="20px" />
+            </mj-column>
+          </mj-group>
+        </mj-section>
+        <mj-raw>
+          {% for notification in notifications %}
+        </mj-raw>
+        <mj-section background-color="#F7F6EC">
+          <mj-column>
+              <mj-raw>
+                {% if notification.type == 'CommentOnCommented' %}
+              </mj-raw>
+              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+                  <b>{{ notification.fromname }}</b> <font color="grey"> replied to your comment:</font>
+                  <br /><br /><em>{{ notification.newsfeed.message }}</em>
+              </mj-text>
+              <mj-raw>
+                {% elseif notification.type == 'CommentOnYourPost' %}
+              </mj-raw>
+              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+                  <b>{{ notification.fromname }}</b> <font color="grey"> commented on your post:</font>
+                  <br /><br /><em>{{ notification.newsfeed.message }}</em>
+              </mj-text>
+              <mj-raw>
+                {% elseif notification.type == 'LovedPost' %}
+              </mj-raw>
+              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+                  <b>{{ notification.fromname }}</b> <font color="grey"> loved your post:</font>
+                  <br /><br /><em>{{ notification.newsfeed.message }}</em>
+              </mj-text>
+              <mj-raw>
+                {% elseif notification.type == 'LovedComment' %}
+              </mj-raw>
+              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+                  <b>{{ notification.fromname }}</b> <font color="grey"> loved your comment:</font>
+                  <br /><br /><em>{{ notification.newsfeed.message }}</em>
+              </mj-text>
+              <mj-raw>
+                {% endif %}
+              </mj-raw>
+              <br />
+              <mj-text color="darkgrey" padding-top="0px" padding-bottom="0px">
+                  {{ notification.timestamp }}.
+              </mj-text>
+          </mj-column>
+          <mj-column>
+            <mj-button align="right" href="https://www.ilovefreegle.org/newsfeed/{{ notification.newsfeed.id }}" background-color="darkgreen">
+              View thread
+            </mj-button>
+          </mj-column>
+        </mj-section>
+        <mj-spacer />
+            <mj-raw>
+              {% endfor %}
+            </mj-raw>
+        <mj-section background-color="#E0E0E0">
+          <mj-column>
+            <mj-text font-size="9pt" color="#707070">You received this automated mail because {{ email }} is a member of Freegle.  You can turn these notification mails off from <a href="{{ settings }}">here</a> or by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
+              <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+            </mj-text>
+          </mj-column>
+        </mj-section>
+      </mj-wrapper>
+    </mj-container>
+  </mj-body>
+</mjml>
