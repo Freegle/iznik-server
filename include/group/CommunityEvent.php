@@ -38,7 +38,6 @@ class CommunityEvent extends Entity
     }
 
     public function setPhoto($photoid) {
-        error_log("Set photo $photoid for {$this->id}");
         $this->dbhm->preExec("UPDATE communityevents_images SET eventid = ? WHERE id = ?;", [ $this->id, $photoid ]);
     }
 

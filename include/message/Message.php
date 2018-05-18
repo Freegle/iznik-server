@@ -2718,6 +2718,7 @@ class Message
         $textbody = preg_replace('/^Sent from myMail for iOS.*/ms', '', $textbody);
         $textbody = preg_replace('/^\r\n---\r\nThis email has been checked for viruses.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from TypeApp.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Enviado a partir do meu smartphone.*/ms', '', $textbody);
 
         // Duff text added by Yahoo Mail app.
         $textbody = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $textbody);

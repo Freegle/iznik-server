@@ -182,12 +182,27 @@ class Volunteering extends Entity
 
         $atts['renewed'] = pres('renewed', $atts) ? ISODate($atts['renewed']) : NULL;
 
+        $photos = $this->dbhr->preQuery("SELECT id FROM volunteering_images WHERE opportunityid = ?;", [ $this->id ]);
+        foreach ($photos as $photo) {
+            $a = new Attachment($this->dbhr, $this->dbhm, $photo['id'], Attachment::TYPE_VOLUNTEERING);
+
+            $atts['photo'] = [
+                'id' => $photo['id'],
+                'path' => $a->getPath(FALSE),
+                'paththumb' => $a->getPath(TRUE)
+            ];
+        }
+
         unset($atts['userid']);
 
         # Ensure leading 0 not stripped.
         $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
 
         return($atts);
+    }
+
+    public function setPhoto($photoid) {
+        $this->dbhm->preExec("UPDATE volunteering_images SET opportunityid = ? WHERE id = ?;", [ $this->id, $photoid ]);
     }
 
     public function canModify($userid) {

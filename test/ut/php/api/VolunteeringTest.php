@@ -193,6 +193,24 @@ class volunteeringAPITest extends IznikAPITestCase {
         ]);
         assertEquals(1, $ret['volunteering']['expired']);
 
+        # Add a photo
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_VOLUNTEERING);
+        $photoid = $a->create(NULL, 'image/jpeg', $data);
+
+        $ret = $this->call('volunteering', 'PATCH', [
+            'id' => $id,
+            'photoid' => $photoid,
+            'action' => 'SetPhoto'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('volunteering', 'GET', [
+            'id' => $id
+        ]);
+
+        assertEquals($photoid, $ret['volunteering']['photo']['id']);
+
         $ret = $this->call('volunteering', 'DELETE', [
             'id' => $id
         ]);

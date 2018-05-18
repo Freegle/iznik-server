@@ -33,6 +33,7 @@ class Attachment
     const TYPE_CHAT_MESSAGE = 'ChatMessage';
     const TYPE_USER = 'User';
     const TYPE_NEWSFEED = 'Newsfeed';
+    const TYPE_VOLUNTEERING = 'Volunteering';
 
     /**
      * @return mixed
@@ -58,6 +59,7 @@ class Attachment
             case Attachment::TYPE_GROUP: $name = 'gimg'; break;
             case Attachment::TYPE_NEWSLETTER: $name = 'nimg'; break;
             case Attachment::TYPE_COMMUNITY_EVENT: $name = 'cimg'; break;
+            case Attachment::TYPE_VOLUNTEERING: $name = 'oimg'; break;
             case Attachment::TYPE_CHAT_MESSAGE: $name = 'mimg'; break;
             case Attachment::TYPE_USER: $name = 'uimg'; break;
             case Attachment::TYPE_NEWSFEED: $name = 'fimg'; break;
@@ -91,12 +93,13 @@ class Attachment
         $this->id = $id;
         $this->type = $type;
         $this->archived = FALSE;
-        
+
         switch ($type) {
             case Attachment::TYPE_MESSAGE: $this->table = 'messages_attachments'; $this->idatt = 'msgid'; break;
             case Attachment::TYPE_GROUP: $this->table = 'groups_images'; $this->idatt = 'groupid'; break;
             case Attachment::TYPE_NEWSLETTER: $this->table = 'newsletters_images'; $this->idatt = 'articleid'; break;
             case Attachment::TYPE_COMMUNITY_EVENT: $this->table = 'communityevents_images'; $this->idatt = 'eventid'; break;
+            case Attachment::TYPE_VOLUNTEERING: $this->table = 'volunteering_images'; $this->idatt = 'opportunityid'; break;
             case Attachment::TYPE_CHAT_MESSAGE: $this->table = 'chat_images'; $this->idatt = 'chatmsgid'; break;
             case Attachment::TYPE_USER: $this->table = 'users_images'; $this->idatt = 'userid'; break;
             case Attachment::TYPE_NEWSFEED: $this->table = 'newsfeed_images'; $this->idatt = 'newsfeedid'; break;

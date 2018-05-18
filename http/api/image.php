@@ -12,6 +12,7 @@ function image() {
     $group = presdef('group', $_REQUEST, NULL);
     $newsletter = presdef('newsletter', $_REQUEST, NULL);
     $communityevent = presdef('communityevent', $_REQUEST, NULL);
+    $volunteering = presdef('volunteering', $_REQUEST, NULL);
     $chatmessage = presdef('chatmessage', $_REQUEST, NULL);
     $user = presdef('user', $_REQUEST, NULL);
     $newsfeed = presdef('newsfeed', $_REQUEST, NULL);
@@ -23,6 +24,8 @@ function image() {
         $type = Attachment::TYPE_CHAT_MESSAGE;
     } else if ($communityevent) {
         $type = Attachment::TYPE_COMMUNITY_EVENT;
+    } else if ($volunteering) {
+        $type = Attachment::TYPE_VOLUNTEERING;
     } else if ($newsletter) {
         $type = Attachment::TYPE_NEWSLETTER;
     } else if ($group) {
