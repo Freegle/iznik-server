@@ -65,7 +65,7 @@ function session() {
                     # Tell them what mod work there is.  Similar code in Notifications.
                     $ret['work'] = [];
 
-                    if ($me->isAdmin()) {
+                    if ($me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS)) {
                         $v = new Volunteering($dbhr, $dbhm);
                         $ret['work']['pendingvolunteering'] = $v->systemWideCount();
                     }

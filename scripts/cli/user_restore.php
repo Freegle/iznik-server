@@ -44,7 +44,7 @@ if (count($opts) < 1) {
 
     if ($luid && $buid) {
         # User attributes
-        foreach (['fullname', 'firstname', 'lastname', 'yahooUserId', 'yahooid', 'systemrole'] as $att) {
+        foreach (['fullname', 'firstname', 'lastname', 'yahooUserId', 'yahooid', 'systemrole', 'permissions'] as $att) {
             $val = $uback->getPrivate($att);
             try {
                 $ulive->setPrivate($att, $val);
