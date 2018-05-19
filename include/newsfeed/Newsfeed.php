@@ -14,7 +14,6 @@ require_once(IZNIK_BASE . '/include/misc/Preview.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
-require_once(IZNIK_BASE . '/mailtemplates/newsfeed/digest.php');
 
 class Newsfeed extends Entity
 {
@@ -576,7 +575,10 @@ class Newsfeed extends Entity
         $mailer->send($message);
     }
 
-    public function digest($userid) {
+    public function digest($userid, $unseen = TRUE) {
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new Twig_Environment($loader);
+
         # We send a mail with unseen user-generated posts from quite nearby.
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $count = 0;
@@ -595,29 +597,55 @@ class Newsfeed extends Entity
                 $lastseen = $seen['newsfeedid'];
             }
 
+            error_log("Last seen is $lastseen");
+
             # Get the first few user-posted messages within 10 miles.
             $ctx = NULL;
-            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY ], $ctx, FALSE);
+            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY ], $ctx, TRUE);
             $textsumm = '';
-            $htmlsumm = '';
+            $twigitems = [];
             $max = 0;
 
             $oldest = ISODate(date("Y-m-d H:i:s", strtotime("14 days ago")));
 
-            foreach ($feeds as $feed) {
-                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest && pres('message', $feed) && !$feed['deleted']) {
+            foreach ($feeds as &$feed) {
+                if ($feed['userid'] != $userid && (!$unseen || $feed['id'] > $lastseen) && $feed['timestamp'] > $oldest && pres('message', $feed) && !$feed['deleted']) {
                     $count++;
 
                     $str = $feed['message'];
                     $this->snip($str);
 
+                    # Get the
                     $short = $feed['message'];
                     $this->snip($short, 40);
-                    $subj = '"' . $short . '" ' . " ($count new message" . ($count != 1 ? 's' : '') . " from your neighbours)";
+                    $subj = '"' . $short . '" ' . " ($count conversations " . ($count != 1 ? 's' : '') . " from your neighbours)";
 
                     $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
-                    $textsumm .= $u->getName() . " posted '$str'\n\n";
-                    $htmlsumm .= $u->getName() . ' posted &quot;<a href="https://' . USER_SITE . '/newsfeed/' . $feed['id'] . '">' . htmlspecialchars($str) . '</a>&quot;<br />';
+                    $fromname = $u->getName();
+                    $feed['fromname'] = $fromname;
+                    $feed['timestamp'] = date("D, jS F g:ia", strtotime($feed['timestamp']));
+
+                    $textsumm .= $fromname . " posted '$str'\n";
+
+                    if (pres('replies', $feed)) {
+                        # Just keep the last five replies.
+                        $feed['replies'] = array_slice($feed['replies'], -5);
+                        error_log("Got " . count($feed['replies']));
+
+                        foreach ($feed['replies'] as &$reply) {
+                            $u2 = User::get($this->dbhr, $this->dbhm, $reply['userid']);
+                            $reply['fromname'] = $u2->getName();
+                            $reply['timestamp'] = date("D, jS F g:ia", strtotime($reply['timestamp']));
+                            $short2 = $reply['message'];
+                            $this->snip($short2, 40);
+                            $textsumm .= "  {$reply['fromname']}: $short2\n";
+                        }
+                    }
+
+                    $textsumm .= "\n";
+
+                    $twigitems[] = $feed;
+
                     $max = max($max, $feed['id']);
                 }
             }
@@ -634,14 +662,19 @@ class Newsfeed extends Entity
                     $url = $u->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
                     $noemail = 'notificationmailsoff-' . $userid . "@" . USER_DOMAIN;
 
-                    $html = notification_digest($url, $noemail, $u->getName(), $u->getEmailPreferred(), $htmlsumm);
+                    $html = $twig->render('newsfeed/digest.html', [
+                        'items' => $twigitems,
+                        'settings' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_NEWSFEED_DIGEST),
+                        'email' => $u->getEmailPreferred(),
+                        'noemail' => $noemail,
+                    ]);
 
                     $message = Swift_Message::newInstance()
                         ->setSubject($subj)
                         ->setFrom([NOREPLY_ADDR => 'Freegle'])
                         ->setReturnPath($u->getBounce())
                         ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                        ->setBody("Recent posts from nearby freeglers:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
+                        ->setBody("Recent conversations from nearby freeglers:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
 
                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                     # Outlook.

@@ -1,0 +1,74 @@
+<mjml>
+  <mj-head>
+    <mj-style>
+      a { color: #288c0a; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; }
+    </mj-style>
+    <mj-attributes>
+      <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-container>
+      <mj-wrapper padding="0" full-width="full-width">
+        <!-- header section -->
+        <mj-section background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+          <mj-group>
+            <mj-column vertical-align="middle" width="65%">
+              <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">
+                Recent conversations on our News section</mj-text>
+            </mj-column>
+            <mj-column vertical-align="middle" width="35%">
+              <mj-image css-class="logo" src="https://www.ilovefreegle.org/images/user_logo.png" width="80px" align="right" border-radius="5px" padding="20px" />
+            </mj-column>
+          </mj-group>
+        </mj-section>
+        <mj-section background-color="#F7F6EC">
+          <mj-column>
+              <mj-text>
+                <p>You can chat to freeglers near you, or across the UK - share news,
+                ask for advice or recommendations, or just have a blether.</p>
+                <p>Here are some recent topic from freeglers near you.  If these aren't nearby, please check your postcode in <a href="{{ settings }}">settings</a>!</p>
+              </mj-text>
+          </mj-column>
+        </mj-section>
+        <mj-divider border-width="1px" border-color="lightgrey"  />
+        <mj-raw>
+          {% for item in items %}
+        </mj-raw>
+        <mj-section background-color="#F7F6EC">
+          <mj-column width="66%">
+              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+                  <b>{{ item.fromname }}</b>&nbsp;<font color="grey">:</font>&nbsp;<em><font color="black">{{ item.message|nl2br }}</font></em><br />
+              </mj-text>
+              <mj-raw>
+                {% for reply in item.replies %}
+              </mj-raw>
+                <mj-text color="#1D6607" font-size="9pt" font-weight="bold" padding-top="0px" padding-bottom="2px" padding-left="50px">
+                    <p><b>{{ reply.fromname }}</b>:&nbsp;<em><font color="black">{{ reply.message|nl2br }}</font></em></p>
+                </mj-text>
+              <mj-raw>
+                {% endfor %}
+              </mj-raw>
+              <br />
+          </mj-column>
+          <mj-column width="33%">
+            <mj-button align="right" href="https://www.ilovefreegle.org/newsfeed/{{ item.id }}" background-color="darkgreen">
+              View thread
+            </mj-button>
+          </mj-column>
+        </mj-section>
+        <mj-divider border-width="1px" border-color="lightgrey"  />
+        <mj-raw>
+          {% endfor %}
+        </mj-raw>
+        <mj-section background-color="#E0E0E0">
+          <mj-column>
+            <mj-text font-size="9pt" color="#707070">You received this automated mail because&nbsp;{{ email }}&nbsp;is a member of Freegle.  You can turn these newsfeed mails off from <a href="{{ settings }}">here</a> or by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
+              <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+            </mj-text>
+          </mj-column>
+        </mj-section>
+      </mj-wrapper>
+    </mj-container>
+  </mj-body>
+</mjml>
