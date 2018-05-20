@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ -f /usr/sbin/pflogsumm ]; then
+    /usr/sbin/pflogsumm --problems /var/log/mail.log > /tmp/pflogsumm.out
+    php ./pflogsumm.php
+fi
+

@@ -23,6 +23,11 @@ function dashboard() {
             $s = new Stats($dbhr, $dbhm);
             $ret['heatmap'] = $heatmap ? $s->getHeatmap() : NULL;
 
+            $ret['emailproblems'] = $dbhr->preQuery("SELECT * FROM `domains` WHERE problem = 1 ORDER BY domain ASC;");
+            foreach ($ret['emailproblems'] as &$domain) {
+                $domain['timestamp'] = ISODate($domain['timestamp']);
+            }
+
             break;
         }
     }
