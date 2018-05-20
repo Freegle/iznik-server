@@ -39,11 +39,9 @@ if (count($opts) < 1) {
         # Check for queue size on our mail host
         # TODO Make generic.
         $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@bulk2 \"/var/www/iznik/scripts/cli/qsize|grep Total\" 2>&1"));
-        error_log("Postfix queue $queuesize");
 
         if (strpos($queuesize, "Total") !== FALSE) {
             $size = substr($queuesize, 6);
-            error_log("Size is $size");
 
             if (intval($size) > 100000) {
                 error_log("bulk2 queue size large, sleep");
