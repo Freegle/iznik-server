@@ -4758,4 +4758,17 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         return($count);
     }
+
+    public function recordActive() {
+        # We record this on an hourly basis.  Avoid pointless mod ops for cluster health.
+        $now = date("Y-m-d H:00:00", time());
+        $already = $this->dbhr->preQuery("SELECT * FROM users_active WHERE userid = ? AND timestamp = ?;", [
+            $this->id,
+            $now
+        ], FALSE, FALSE);
+
+        if (count($already) == 0) {
+            $this->dbhm->background("INSERT IGNORE INTO users_active (userid, timestamp) VALUES ({$this->id}, '$now');");
+        }
+    }
 }

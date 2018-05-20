@@ -1318,7 +1318,7 @@ class messageAPITest extends IznikAPITestCase
             'identify' => TRUE
         ]);
 
-        error_log("Create attachment " . var_export($ret, TRUE));
+        #error_log("Create attachment " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $attid = $ret['id'];
@@ -1534,7 +1534,7 @@ class messageAPITest extends IznikAPITestCase
             'identify' => TRUE
         ]);
 
-        error_log("Create attachment " . var_export($ret, TRUE));
+        #error_log("Create attachment " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $attid = $ret['id'];

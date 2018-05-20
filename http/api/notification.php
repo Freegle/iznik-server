@@ -20,6 +20,9 @@ function notification() {
                         'status' => 'Success',
                         'count' => $n->countUnseen($me->getId())
                     ];
+
+                    # This request occurs every 30 seconds, so we can piggyback on it to spot when users are active.
+                    $me->recordActive();
                 } else {
                     $ctx = presdef('context', $_REQUEST, NULL);
 
