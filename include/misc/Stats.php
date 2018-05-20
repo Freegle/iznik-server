@@ -124,11 +124,12 @@ class Stats
 
         if ($type === NULL || in_array(Stats::SUPPORTQUERIES_COUNT, $type)) {
             $this->setCount($date, Stats::SUPPORTQUERIES_COUNT,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_rooms WHERE created >= ? AND date(created) = ? AND groupid = ?;",
+                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_rooms WHERE created >= ? AND date(created) = ? AND groupid = ? AND chattype = ?;",
                     [
                         $date,
                         $date,
-                        $this->groupid
+                        $this->groupid,
+                        ChatRoom::TYPE_USER2MOD
                     ])[0]['count']);
         }
 
