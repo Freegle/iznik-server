@@ -516,10 +516,18 @@ class Newsfeed extends Entity
     }
 
     public function seen($userid) {
-        $this->dbhm->preExec("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES (?, ?);", [
-            $userid,
-            $this->id
+        # We don't want to mark an earlier item as seen, otherwise this will cause us to get another
+        # digest mail.
+        $seen = $this->dbhr->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
+            $userid
         ]);
+
+        if (count($seen) == 0 || $seen[0]['newsfeedid'] < $this->id) {
+            $this->dbhm->preExec("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES (?, ?);", [
+                $userid,
+                $this->id
+            ]);
+        }
     }
 
     public function getUnseen($userid) {
@@ -587,8 +595,8 @@ class Newsfeed extends Entity
 
         if ($latlng[0] || $latlng[1]) {
             # We have a location for them.
-            # Find the last one we saw.
-            $seens = $this->dbhr->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
+            # Find the last one we saw.  Use master as we might have updated this for a previous group.
+            $seens = $this->dbhm->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
                 $userid
             ]);
 
@@ -596,8 +604,6 @@ class Newsfeed extends Entity
             foreach ($seens as $seen) {
                 $lastseen = $seen['newsfeedid'];
             }
-
-            error_log("Last seen is $lastseen");
 
             # Get the first few user-posted messages within 10 miles.
             $ctx = NULL;
@@ -609,6 +615,7 @@ class Newsfeed extends Entity
             $oldest = ISODate(date("Y-m-d H:i:s", strtotime("14 days ago")));
 
             foreach ($feeds as &$feed) {
+                #error_log("Compare {$feed['userid']} vs $userid, unseen $unseen, feed {$feed['id']} vs $lastseen, timestamp {$feed['timestamp']} vs $oldest");
                 if ($feed['userid'] != $userid && (!$unseen || $feed['id'] > $lastseen) && $feed['timestamp'] > $oldest && pres('message', $feed) && !$feed['deleted']) {
                     $count++;
 
@@ -630,7 +637,7 @@ class Newsfeed extends Entity
                     if (pres('replies', $feed)) {
                         # Just keep the last five replies.
                         $feed['replies'] = array_slice($feed['replies'], -5);
-                        error_log("Got " . count($feed['replies']));
+                        #error_log("Got " . count($feed['replies']));
 
                         foreach ($feed['replies'] as &$reply) {
                             $u2 = User::get($this->dbhr, $this->dbhm, $reply['userid']);
@@ -646,13 +653,18 @@ class Newsfeed extends Entity
 
                     $twigitems[] = $feed;
 
+                    #error_log("Consider max $max, {$feed['id']}, " . max($max, $feed['id']) );
                     $max = max($max, $feed['id']);
                 }
             }
 
-            if ($max) {
-                # Background this update so it happens in parallel with us sending the mail.
-                $this->dbhm->background("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES ($userid, $max);");
+            if ($max && $max > $lastseen) {
+                # Don't background this update otherwise we might send multiple digests for people who are on
+                # multiple groups, if there is a background backlog.
+                $this->dbhm->preExec("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES (?, ?);", [
+                    $userid,
+                    $max
+                ]);
             }
 
             if ($count > 0) {
