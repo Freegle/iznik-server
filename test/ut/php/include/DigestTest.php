@@ -348,6 +348,7 @@ class digestTest extends IznikTestCase {
 //        $u = User::get($this->dbhm, $this->dbhm);
 //        $testemail = 'freeglefreegle@litmustest.com';
 //        $testemail = 'edward@ehibbert.org.uk';
+//        #$testemail = 'activate@liveintent.com';
 //        $uid = $u->findByEmail($testemail);
 //
 //        if (!$uid) {

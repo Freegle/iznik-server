@@ -43,7 +43,7 @@
             </mj-button>
           </mj-column>
         </mj-section>
-        <mj-section css-class="show_on_mobile" background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+        <mj-section css-class="show_on_mobile" background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
           <mj-group>
             <mj-column>
               <mj-text align="center" css-class="show_on_mobile">
@@ -61,6 +61,13 @@
               </mj-text>
             </mj-column>
           </mj-group>
+        </mj-section>
+        <mj-section background-color="#F7F6EC" padding="0px">
+          <mj-column padding="0px">
+            <mj-raw padding="0px">
+                <table padding="0" border="0" cellpadding="0" cellspacing="0" ><tr><td colspan="2"><a href="http://li.ilovefreegle.org/click?s=672305&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=672305&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0" style="max-width:{INSERT TEMPLATE MAX WIDTH HERE AS INTEGER}px;"/></a></td></tr><tr><td align="left"><a style="display: block; max-width: 116px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=672306&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=672306&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td><td align="right"><a style="display: block; max-width: 19px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=672308&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=672308&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td></tr></table>
+            </mj-raw>
+          </mj-column>
         </mj-section>
         <mj-raw>
           {% if availablemessages | length > 0 %}
@@ -123,7 +130,7 @@
               {% endif %}
             </mj-raw>
             <mj-text color="darkgrey" padding-top="0px" padding-bottom="0px">
-              Posted by {{ message.fromname }} on {{ message.date }}.
+              Posted by&nbsp;{{ message.fromname }}&nbsp;on&nbsp;{{ message.date }}.
             </mj-text>
           </mj-column>
         </mj-section>
@@ -220,31 +227,6 @@
         <mj-raw>
           {% endif %}
         </mj-raw>
-        <mj-section background-color="#F7F6EC">
-          <mj-column>
-            <mj-text align="center">
-              Ads help keep Freegle running and free to use. Donating helps too!
-            </mj-text>
-            <mj-button align="center" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA" font-family="Helvetica" background-color="darkblue" color="white">
-              Donate
-            </mj-button>
-            <mj-raw>
-              <table align="center" border="0" cellpadding="0" cellspacing="0" padding-left="10px">
-                <tr>
-                  <td colspan="2"><a style="display: block; width: 300px; height: 250px;" href="http://li.ilovefreegle.org/click?s=285301&sz=300x250&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285301&sz=300x250&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0" width="300" height="250"/></a></td>
-                </tr>
-                <tr style="display:block; height:1px; line-height:1px;">
-                  <td><img src="http://li.ilovefreegle.org/imp?s=285302&sz=1x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" height="1" width="10" /></td>
-                  <td><img src="http://li.ilovefreegle.org/imp?s=285303&sz=1x1&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" height="1" width="10" /></td>
-                </tr>
-                <tr>
-                  <td align="left"><a href="http://li.ilovefreegle.org/click?s=285298&sz=116x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285298&sz=116x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td>
-                  <td align="right"><a href="http://li.ilovefreegle.org/click?s=285299&sz=69x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=285299&sz=69x15&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td>
-                </tr>
-              </table>
-            </mj-raw>
-          </mj-column>
-        </mj-section>
         <mj-section background-color="#E0E0E0">
           <mj-column>
             <mj-text font-size="9pt" color="#707070">
