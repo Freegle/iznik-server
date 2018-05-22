@@ -169,6 +169,47 @@ class chatMessagesTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testStripOurFooter() {
+        error_log(__METHOD__);
+
+        # Put a valid message on a group.
+        error_log("Put valid message on");
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test2@test.com');
+
+        # Now reply from them.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/ourfooter'));
+        $msg = str_replace('Re: Basic test', 'Re: OFFER: a test item (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $replyid);
+        $uid = $u->findByEmail('test@test.com');
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rooms = $r->listForUser($uid);
+        self::assertEquals(1, count($rooms));
+        $rid = $rooms[0];
+        assertNotNull($rid);
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $rid);
+        $msgs = $r->getMessages();
+        self::assertEquals('I\'d like to have these, then I can return them to Greece where they rightfully belong.', $msgs[0][0]['message']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testSpamReply4() {
         error_log(__METHOD__);
 
