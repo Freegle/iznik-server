@@ -130,10 +130,18 @@ class volunteeringDigestTest extends IznikTestCase {
 //        # Create a group with two volunteer op on it.
 //        $g = Group::get($this->dbhr, $this->dbhm);
 //        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-//        $g->setPrivate('onyahoo', TRUE);
+//        $g->setPrivate('onyahoo', 0);
 //
 //        $u = User::get($this->dbhm, $this->dbhm);
 //        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        #$uid = $u->findByEmail('activate@liveintent.com');
+//
+//        if (!$uid) {
+//            $uid = $u->create("Live", "Intent", "Live Intent");
+//            $u->addEmail('activate@liveintent.com');
+//        }
+//
+//        error_log("Found uid $uid");
 //        $u = User::get($this->dbhm, $this->dbhm, $uid);
 //        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
 //            $u->getEmailPreferred()
@@ -158,7 +166,7 @@ class volunteeringDigestTest extends IznikTestCase {
 //            # Now test.
 //            error_log("Now send");
 //
-//            $d = new VolunteeringDigest($this->dbhr, $this->dbhm);
+//            $d = new VolunteeringDigest($this->dbhr, $this->dbhm, TRUE);
 //            assertEquals(1, $d->send($gid));
 //        }
 //

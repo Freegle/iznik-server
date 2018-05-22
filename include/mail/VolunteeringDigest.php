@@ -116,7 +116,7 @@ class VolunteeringDigest
                 }
             }
 
-            error_log("Found " . count($twigvols));
+            #error_log("Found " . count($twigvols));
 
             if ($count) {
                 $html = $twig->render('digest/volunteering.html', [
@@ -161,7 +161,7 @@ class VolunteeringDigest
                     # We are only interested in sending opportunities to users for whom we have a preferred address -
                     # otherwise where would we send them?
                     $email = $u->getEmailPreferred();
-                    $email = 'activate@liveintent.com';
+                    #$email = 'activate@liveintent.com';
                     #$email = 'edward@ehibbert.org.uk';
 
                     if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
@@ -171,7 +171,7 @@ class VolunteeringDigest
 
                         # The placement ID for ads needs to be unique.  We want to generated it here so that
                         # not everyone in a single run gets the same ad.
-                        $placementid = "eventdigest-$groupid-" . microtime(true);
+                        $placementid = "voldigest-$groupid-" . microtime(true);
 
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
