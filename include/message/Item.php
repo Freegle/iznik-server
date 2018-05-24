@@ -29,7 +29,9 @@ class Item extends Entity
 
     public function create($name) {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO items (name) VALUES (?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [ $name ]);
+            # If we have a dup, update the name.  This is because the unique index is case insensitive, and it might be
+            # that someone is correcting the case.
+            $rc = $this->dbhm->preExec("INSERT INTO items (name) VALUES (?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), name = ?;", [ $name, $name ]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;

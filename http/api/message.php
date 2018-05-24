@@ -254,7 +254,6 @@ function message() {
                     if ($attachments) {
                         $m->replaceAttachments($attachments);
                     }
-
                 }
             }
         }
