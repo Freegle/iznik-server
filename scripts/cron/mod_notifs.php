@@ -138,9 +138,11 @@ foreach ($mail as $id => $work) {
             $htmlsumm .= "<p>{$name}</p><ul>";
 
             foreach ($groupwork as $key => $val) {
-                $textsumm .= "$key: $val\r\n";
-                $htmlsumm .= "<li>$key: <b>$val</b></li>";
-                $total += $val;
+                if ($val > 0) {
+                    $textsumm .= "$key: $val\r\n";
+                    $htmlsumm .= "<li>$key: <b>$val</b></li>";
+                    $total += $val;
+                }
             }
 
             $htmlsumm .= '</ul>';

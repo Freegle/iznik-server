@@ -81,7 +81,7 @@ EOT;
                                                                 </tr>
                                                                 <tr>
                                                                     <td height="20" style="color: grey; font-size:11px; line-height:18px;">
-                                                                        These mails are fairly new.  You can control how often you get them or turn them off entirely from <a href="$siteurl/modtools/settings">here</a>.
+                                                                        You can control how often you get these or turn them off entirely from <a href="$siteurl/modtools/settings">here</a>.
                                                                     </td>
                                                                 </tr>    
                                                                 <tr>
