@@ -1678,6 +1678,7 @@ class User extends Entity
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
         $atts['settings']['notificationmails'] = array_key_exists('notificationmails', $atts['settings']) ? $atts['settings']['notificationmails'] : TRUE;
         $atts['settings']['modnotifs'] = array_key_exists('modnotifs', $atts['settings']) ? $atts['settings']['modnotifs'] : 4;
+        $atts['settings']['backupmodnotifs'] = array_key_exists('backupmodnotifs', $atts['settings']) ? $atts['settings']['backupmodnotifs'] : 12;
 
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
@@ -4167,15 +4168,25 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $d['Show_members_that_you_are_a_moderator'] = pres('showmod', $settings) ? 'Yes' : 'No';
 
                 switch (presdef('modnotifs', $settings, 4)) {
-                    case 24: $d['Send_notifications_of_mod_work'] = 'After 24 hours'; break;
-                    case 12: $d['Send_notifications_of_mod_work'] = 'After 12 hours'; break;
-                    case 4: $d['Send_notifications_of_mod_work'] = 'After 4 hours'; break;
-                    case 2: $d['Send_notifications_of_mod_work'] = 'After 2 hours'; break;
-                    case 1: $d['Send_notifications_of_mod_work'] = 'After 1 hours'; break;
-                    case 0: $d['Send_notifications_of_mod_work'] = 'Immediately'; break;
-                    case -1: $d['Send_notifications_of_mod_work'] = 'Never'; break;
+                    case 24: $d['Send_notifications_of_active_mod_work'] = 'After 24 hours'; break;
+                    case 12: $d['Send_notifications_of_active_mod_work'] = 'After 12 hours'; break;
+                    case 4: $d['Send_notifications_of_active_mod_work'] = 'After 4 hours'; break;
+                    case 2: $d['Send_notifications_of_active_mod_work'] = 'After 2 hours'; break;
+                    case 1: $d['Send_notifications_of_active_mod_work'] = 'After 1 hours'; break;
+                    case 0: $d['Send_notifications_of_active_mod_work'] = 'Immediately'; break;
+                    case -1: $d['Send_notifications_of_active_mod_work'] = 'Never'; break;
                 }
 
+                switch (presdef('backupmodnotifs', $settings, 12)) {
+                    case 24: $d['Send_notifications_of_backup_mod_work'] = 'After 24 hours'; break;
+                    case 12: $d['Send_notifications_of_backup_mod_work'] = 'After 12 hours'; break;
+                    case 4: $d['Send_notifications_of_backup_mod_work'] = 'After 4 hours'; break;
+                    case 2: $d['Send_notifications_of_backup_mod_work'] = 'After 2 hours'; break;
+                    case 1: $d['Send_notifications_of_backup_mod_work'] = 'After 1 hours'; break;
+                    case 0: $d['Send_notifications_of_backup_mod_work'] = 'Immediately'; break;
+                    case -1: $d['Send_notifications_of_backup_mod_work'] = 'Never'; break;
+                }
+                
                 $d['Show_members_that_you_are_a_moderator'] = presdef('showmod', $settings, TRUE) ? 'Yes' : 'No';
             }
         }
