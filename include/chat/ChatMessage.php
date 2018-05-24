@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
+require_once(IZNIK_BASE . '/include/user/Schedule.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 
 class ChatMessage extends Entity
@@ -271,6 +272,18 @@ class ChatMessage extends Entity
             $ret['message'] = NULL;
             $a = new Address($this->dbhr, $this->dbhm, $id);
             $ret['address'] = $a->getPublic();
+        }
+
+        if ($ret['type'] == ChatMessage::TYPE_SCHEDULE || $ret['type'] == ChatMessage::TYPE_SCHEDULE_UPDATED) {
+            # We want to return the currently matching dates.
+            $s = new Schedule($this->dbhr, $this->dbhm);
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $this->chatmessage['chatid']);
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me->getId();
+            $user1 = $r->getPrivate('user1');
+            $user2 = $r->getPrivate('user2');
+            $other = $myid == $user1 ? $user2 : $user1;
+            $ret['matches'] = $s->match($myid, $other);
         }
 
         # Strip any remaining quoted text in replies.

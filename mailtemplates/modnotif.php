@@ -55,7 +55,7 @@ EOT;
                                                             <table width="100%" cellpadding="0" cellspacing="0" border="0" class="container" align="right">
                                                                 <tr>
                                                                     <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
-                                                                        <p>Hello.  There's work to do on ModTools...</p>
+                                                                        <p>Hello.  There's stuff to do on ModTools...</p>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>

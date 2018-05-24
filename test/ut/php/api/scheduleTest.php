@@ -38,66 +38,94 @@ class scheduleAPITest extends IznikAPITestCase {
         error_log(__METHOD__);
 
         $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, 'Test User');
         $uid2 = $u->create(NULL, NULL, 'Test User');
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u1 = User::get($this->dbhr, $this->dbhm, $uid1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create logged out - should fail
         $ret = $this->call('schedule', 'POST', [
-            'userid' => $uid2,
             'schedule' => [
                 'test' => 1
             ]
         ]);
         assertEquals(1, $ret['ret']);
 
-        # Create logged in - should work
-        assertTrue($this->user->login('testpw'));
-        $ret = $this->call('schedule', 'POST', [
-            'userid' => $uid2,
-            'dup' => 1,
-            'schedule' => [
-                'test' => 1
+        $schedule = [
+            [
+                "hour" => 0,
+                "date" => "2018-05-24T00:00:00+01:00",
+                "available" => 1
             ]
+        ];
+        $schedule2 = [
+            [
+                "hour" => 1,
+                "date" => "2018-05-24T00:00:00+01:00",
+                "available" => 1
+            ]
+        ];
+
+        # Create logged in - should work
+        assertTrue($u1->login('testpw'));
+        $ret = $this->call('schedule', 'POST', [
+            'dup' => 1,
+            'schedule' => $schedule,
+            'userid' => $uid2
         ]);
         assertEquals(0, $ret['ret']);
 
         $id = $ret['id'];
         assertNotNull($id);
 
-        # Get with id - should work
-        $ret = $this->call('schedule', 'GET', [ 'id' => $id ]);
+        $ret = $this->call('schedule', 'GET', []);
         error_log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['schedule']['id']);
-        self::assertEquals([
-            'test' => 1
-        ], $ret['schedule']['schedule']);
-        assertTrue(in_array($this->uid, $ret['schedule']['users']));
-        assertTrue(in_array($uid2, $ret['schedule']['users']));
-
-        # Get without id
-        $ret = $this->call('schedule', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['schedules']));
-        assertEquals($id, $ret['schedules'][0]['id']);
+        self::assertEquals($schedule, $ret['schedule']['schedule']);
 
         # Edit
         $ret = $this->call('schedule', 'PATCH', [
-            'id' => $id,
-            'schedule' => [
-                'test' => 2
-            ],
-            'agreed' => '2017-01-01'
+            'schedule' => $schedule2,
+            'userid' => $uid2
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('schedule', 'GET', []);
+        self::assertEquals($schedule2, $ret['schedule']['schedule']);
+
+        # If we get the chatroom between these two users we should find that they have no scheduling matches so far,
+        # as we only have a schedule for one user.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($uid1, $uid2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $rid);
+        list ($msgs, $users) = $r->getMessages();
+
+        foreach ($msgs as $msg) {
+            if ($msg['type'] == ChatMessage::TYPE_SCHEDULE_UPDATED || $msg['type'] == ChatMessage::TYPE_SCHEDULE) {
+                error_log("Schedule message " . var_export($msg, TRUE));
+                self::assertEquals(0, count($msg['matches']));
+            }
+        }
+
+        assertTrue($u2->login('testpw'));
+        $ret = $this->call('schedule', 'POST', [
+            'schedule' => $schedule2,
+            'userid' => $uid1
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('schedule', 'GET', [ 'id' => $id ]);
-        self::assertEquals([
-            'test' => 2
-        ], $ret['schedule']['schedule']);
+        list ($msgs, $users) = $r->getMessages();
 
+        foreach ($msgs as $msg) {
+            if ($msg['type'] == ChatMessage::TYPE_SCHEDULE_UPDATED || $msg['type'] == ChatMessage::TYPE_SCHEDULE) {
+                error_log("Schedule message " . var_export($msg, TRUE));
+                self::assertEquals(1, count($msg['matches']));
+            }
+        }
         error_log(__METHOD__ . " end");
     }
 }

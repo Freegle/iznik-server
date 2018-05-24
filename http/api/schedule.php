@@ -3,91 +3,66 @@ function schedule() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
-
-    $id = presdef('id', $_REQUEST, NULL);
-    $s = new Schedule($dbhr, $dbhm, $id);
     $me = whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
+    $userid = intval(presdef('userid', $_REQUEST, NULL));
+    $chatuserid = intval(presdef('chatuserid', $_REQUEST, NULL));
 
-    switch ($_REQUEST['type']) {
-        case 'GET': {
-            $ret = [ 'ret' => 3, 'status' => 'Invalid id' ];
-            if ($id) {
-                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+    $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
-                $atts = $s->getPublic();
-
-                if (in_array($myid, $atts['users'])) {
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'schedule' => $atts
-                    ];
-                }
-            } else {
+    if ($myid) {
+        switch ($_REQUEST['type']) {
+            case 'GET': {
+                # Once you're logged in, you can see other user's schedules.
+                $s = new Schedule($dbhr, $dbhm, $userid ? $userid : $myid);
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'schedules' => $s->listForUser($myid)
+                    'schedule' => $s->getPublic()
                 ];
+
+                break;
             }
 
-            break;
-        }
+            case 'POST':
+                $s = new Schedule($dbhr, $dbhm, $myid);
+                $id = $s->create($me->getId(), presdef('schedule', $_REQUEST, NULL));
 
-        case 'POST':
-            $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
-            if ($me) {
-                $id = $s->create(presdef('schedule', $_REQUEST, NULL));
-                $s->addUser($myid);
-                $userid = intval(presdef('userid', $_REQUEST, NULL));
-                $s->addUser($userid);
-
-                # Create a message in a chat between the users to show that we have created this schedule.
-                $r = new ChatRoom($dbhr, $dbhm);
-                $rid = $r->createConversation($myid, $userid);
-                $m = new ChatMessage($dbhr, $dbhm);
-                $mid = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, $id);
+                if ($chatuserid) {
+                    # We are updating a schedule from within a chat to another user.  Create a message
+                    # between the users to show that we have created this schedule.
+                    $r = new ChatRoom($dbhr, $dbhm);
+                    $rid = $r->createConversation($myid, $chatuserid);
+                    $m = new ChatMessage($dbhr, $dbhm);
+                    $mid = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, $id);
+                }
 
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
                     'id' => $id
                 ];
-            }
-            break;
+                break;
 
-        case 'PATCH':
-        case 'PUT': {
-            $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            $atts = $s->getPublic();
-
-            if (in_array($myid, $atts['users'])) {
+            case 'PATCH':
+            case 'PUT': {
+                $s = new Schedule($dbhr, $dbhm, $myid);
                 $s->setSchedule(presdef('schedule', $_REQUEST, NULL));
-                $agreed = presdef('agreed', $_REQUEST, NULL);
 
-                foreach ($atts['users'] as $user) {
-                    if ($user != $myid) {
-                        # Create a message in a chat between the users to show that we have updated this schedule.
-                        #
-                        # Any agreed time is held in the message.
-                        $r = new ChatRoom($dbhr, $dbhm);
-                        $rid = $r->createConversation($myid, $user);
-                        $m = new ChatMessage($dbhr, $dbhm);
-                        $mid = $m->create($rid, $myid, $agreed, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, $id);
-                    }
-                }
-
-                if ($agreed) {
-                    $s->setPrivate('agreed', $agreed);
+                if ($chatuserid) {
+                    # Create a message in a chat between the users to show that we have updated this schedule.
+                    $r = new ChatRoom($dbhr, $dbhm);
+                    $rid = $r->createConversation($myid, $chatuserid);
+                    $m = new ChatMessage($dbhr, $dbhm);
+                    $mid = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, $s->getId());
                 }
 
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success'
                 ];
+                break;
             }
-            break;
         }
     }
 

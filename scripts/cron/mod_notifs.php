@@ -121,7 +121,7 @@ error_log("Send mails...");
 $sent = 0;
 
 foreach ($mail as $id => $work) {
-    $textsumm = "There's work to do on ModTools:\r\n\r\n";
+    $textsumm = "There's stuff to do on ModTools:\r\n\r\n";
     $htmlsumm = '';
 
     $cr = presdef('Chat Messages for Review', $work, 0);

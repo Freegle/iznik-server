@@ -7,18 +7,32 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 class Schedule extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'created', 'agreed', 'schedule');
-    var $settableatts = array('created', 'agreed', 'schedule');
+    var $publicatts = array('id', 'created', 'schedule', 'userid');
+    var $settableatts = array('created', 'schedule');
+    protected $schedule = NULL;
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $userid = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'schedules', 'schedule', $this->publicatts);
+        $this->dbhr = $dbhr;
+        $this->dbhm = $dbhm;
+        $this->fetch($dbhr, $dbhm, NULL, 'users_schedules', 'schedule', $this->publicatts);
+
+        if ($userid) {
+            $schedules = $this->dbhr->preQuery("SELECT id FROM users_schedules WHERE userid = ?;", [
+                $userid
+            ]);
+
+            foreach ($schedules as $schedule) {
+                $this->fetch($dbhr, $dbhm, $schedule['id'], 'users_schedules', 'schedule', $this->publicatts);
+            }
+        }
     }
 
-    public function create($schedule) {
+    public function create($userid, $schedule) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO schedules (schedule) VALUES (?);", [
+        $rc = $this->dbhm->preExec("REPLACE INTO users_schedules (userid, schedule) VALUES (?, ?);", [
+            $userid,
             json_encode($schedule)
         ]);
 
@@ -26,7 +40,7 @@ class Schedule extends Entity
             $id = $this->dbhm->lastInsertId();
 
             if ($id) {
-                $this->fetch($this->dbhm, $this->dbhm, $id, 'schedules', 'schedule', $this->publicatts);
+                $this->fetch($this->dbhm, $this->dbhm, $id, 'users_schedules', 'schedule', $this->publicatts);
             }
         }
 
@@ -37,27 +51,7 @@ class Schedule extends Entity
     {
         $ret = parent::getPublic();
         $ret['schedule'] = json_decode($ret['schedule'], TRUE);
-
-        $ret['users'] = [];
-
-        $users = $this->dbhr->preQuery("SELECT userid FROM schedules_users WHERE scheduleid = ?;", [ $this->id ]);
-        foreach ($users as $user) {
-            $ret['users'][] = $user['userid'];
-        }
-
-        $ret['agreed'] = pres('agreed', $ret) ? ISODate($ret['agreed']) : NULL;
         $ret['created'] = pres('created', $ret) ? ISODate($ret['created']) : NULL;
-
-        return($ret);
-    }
-
-    public function addUser($userid) {
-        $ret = [];
-
-        $this->dbhm->preExec("INSERT INTO schedules_users (userid, scheduleid) VALUES (?, ?);", [
-            $userid,
-            $this->id
-        ]);
 
         return($ret);
     }
@@ -66,18 +60,36 @@ class Schedule extends Entity
         $this->setPrivate('schedule', json_encode($schedule));
     }
 
-    public function listForUser($userid) {
-        $ret = [];
-
-        $schedules = $this->dbhr->preQuery("SELECT scheduleid FROM schedules_users WHERE userid = ?;", [
-            $userid
+    public function match($user1, $user2) {
+        $schedules = $this->dbhr->preQuery("SELECT * FROM users_schedules WHERE userid = ? OR userid = ?;", [
+            $user1,
+            $user2
         ]);
 
-        foreach ($schedules as $schedule) {
-            $a = new Schedule($this->dbhr, $this->dbhm, $schedule['scheduleid']);
-            $ret[] = $a->getPublic();
+        $matches = [];
+
+        if (count($schedules) == 2) {
+            $schedule1 = json_decode($schedules[0]['schedule'], TRUE);
+            $schedule2 = json_decode($schedules[1]['schedule'], TRUE);
+
+            foreach ($schedule1 as $slot1) {
+                foreach ($schedule2 as $slot2) {
+                    #error_log("Compare {$slot1['date']} {$slot1['hour']} av {$slot1['available']} to {$slot2['date']} {$slot2['hour']} av {$slot2['available']} ");
+                    $key = $slot1['date'] . $slot1['hour'];
+
+                    if ($slot1['available'] && $slot2['available'] &&
+                        $slot1['date'] == $slot2['date'] &&
+                        $slot1['hour'] == $slot2['hour'] &&
+                        !array_key_exists($key, $matches)) {
+                        $matches[$key] = $slot1;
+                        #error_log("Matches {$slot1['date']} {$slot1['hour']} av {$slot1['available']} to {$slot2['date']} {$slot2['hour']} av {$slot2['available']} ");
+                    }
+                }
+            }
         }
 
-        return($ret);
+        ksort($matches);
+
+        return(array_values($matches));
     }
 }

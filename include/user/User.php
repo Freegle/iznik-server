@@ -4575,7 +4575,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         # There are some other tables with information which we don't return.  Here's what and why:
         # - Not part of the current UI so can't have any user data
-        #     messages_likes, schedules_users, polls_users
+        #     messages_likes, polls_users
         # - Covered by data that we do return from other tables
         #     messages_drafts, messages_history, messages_groups, messages_likes, messages_outcomes,
         #     messages_promises, users_modmails, modnotifs, users_chatlists_index, users_dashboard,
