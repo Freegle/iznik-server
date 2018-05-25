@@ -125,7 +125,7 @@ class Digest
             # arrival is a high-precision timestamp, so it's effectively unique per message.
             $msgdtq = $track['msgdate'] ? " AND arrival > '{$track['msgdate']}' " : '';
 
-            $sql = "SELECT msgid, arrival FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgdtq ORDER BY arrival ASC;";
+            $sql = "SELECT msgid, arrival, autoreposts FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgdtq ORDER BY arrival ASC;";
             $messages = $this->dbhr->preQuery($sql, [
                 $groupid,
                 MessageCollection::APPROVED,
@@ -147,6 +147,7 @@ class Digest
                 $subjects[$message['msgid']] = $m->getSubject();
 
                 $atts = $m->getPublic(FALSE, TRUE, TRUE);
+                $atts['autoreposts'] = $message['autoreposts'];
 
                 # Strip out the clutter associated with various ways of posting.
                 $atts['textbody'] = $m->stripGumf();
@@ -190,6 +191,7 @@ class Digest
                             'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
                             'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
                             'date' => date("D, jS F g:ia", strtotime($msg['date'])),
+                            'autoreposts' => $msg['autoreposts'],
 
                             # Per-recipient fields for later Swift expansion
                             'settings' => '{{settings}}',
@@ -241,6 +243,7 @@ class Digest
                         'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
                         'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
                         'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
+                        'autoreposts' => $msg['autoreposts'],
                         'date' => date("D, jS F g:ia", strtotime($msg['date'])),
                     ];
 
@@ -265,6 +268,7 @@ class Digest
                         'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
                         'replyweb' => NULL,
                         'replyemail' => NULL,
+                        'autoreposts' => $msg['autoreposts'],
                         'date' => date("D, jS F g:ia", strtotime($msg['date'])),
                     ];
 

@@ -68,6 +68,19 @@
           </mj-column>
         </mj-section>
         <mj-raw>
+          {% if autoreposts is defined and autoreposts > 0 %}
+        </mj-raw>
+        <mj-section background-color="#FFF8DC">
+          <mj-column>
+            <mj-text padding-top="0px" padding-bottom="0px" color="grey" font-size="10pt" line-height="1.25em">
+              Autorepost #{{ autoreposts }}
+            </mj-text>
+          </mj-column>
+        </mj-section>
+        <mj-raw>
+          {% endif %}
+        </mj-raw>
+        <mj-raw>
           {% if image is defined and image is not null %}
         </mj-raw>
         <mj-section padding-top="0px" padding-bottom="0px" background-color="#FFF8DC">

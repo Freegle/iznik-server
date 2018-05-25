@@ -85,11 +85,25 @@
             <mj-raw>
               {% for message in availablemessages %}
             </mj-raw>
+            <mj-raw>
+              {% if message.autoreposts is defined and message.autoreposts > 0 %}
+            </mj-raw>
+            <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <a href="#msg-{{ message.id }}">
+                {{ message.subject }}
+              </a>&nbsp;<span style="font-size:8pt" color="grey">Autorepost #{{ message.autoreposts }}</span>
+            </mj-text>
+            <mj-raw>
+              {% else %}
+            </mj-raw>
             <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
               <a href="#msg-{{ message.id }}">
                 {{ message.subject }}
               </a>
             </mj-text>
+            <mj-raw>
+              {% endif %}
+            </mj-raw>
             <mj-raw>
               {% endfor %}
             </mj-raw>
@@ -106,7 +120,19 @@
             <mj-text padding="0px">
               <span id="msg-{{ message.id }}" name="{{ message.id }}" />
             </mj-text>
-            <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ message.subject }} </mj-text>
+            <mj-raw>
+              {% if message.autoreposts is defined and message.autoreposts > 0 %}
+            </mj-raw>
+            <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ message.subject }}&nbsp;<span style="font-size:10pt" color="grey">Autorepost #{{ message.autoreposts }}</span>
+            </mj-text>
+            <mj-raw>
+              {% else %}
+            </mj-raw>
+            <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ message.subject }}
+            </mj-text>
+            <mj-raw>
+              {% endif %}
+            </mj-raw>
             <mj-raw>
               {% if message.image is defined and message.image is not null %}
             </mj-raw>
