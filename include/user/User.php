@@ -629,7 +629,10 @@ class User extends Entity
             ]);
         }
 
-        $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $emailid ]);
+        if ($emailid) {
+            $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $emailid ]);
+        }
+
         $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
     }
 
