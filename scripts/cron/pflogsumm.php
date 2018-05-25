@@ -4,6 +4,8 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 $handle = fopen("/tmp/pflogsumm.out", "r");
 while (($line = fgets($handle)) !== false) {
     if (strpos($line, "Message Delivery") != FALSE) {
@@ -48,3 +50,5 @@ while (($line = fgets($handle)) !== false) {
         exit(0);
     }
 }
+
+unlockScript($lockh);

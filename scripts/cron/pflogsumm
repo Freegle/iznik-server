@@ -1,6 +1,8 @@
 #!/bin/bash
 if [ -f /usr/sbin/pflogsumm ]; then
-    /usr/sbin/pflogsumm --problems /var/log/mail.log > /tmp/pflogsumm.out
+    # Mail logs get huge - take last chunk as a reasonable sample.
+    tail -50000 /var/log/mail.log > /tmp/mail.log.bit
+    /usr/sbin/pflogsumm --problems /tmp/mail.log.bit > /tmp/pflogsumm.out
     php ./pflogsumm.php
 fi
 
