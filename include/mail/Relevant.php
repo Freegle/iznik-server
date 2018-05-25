@@ -56,8 +56,9 @@ class Relevant {
         }
     }
 
-    public function interestedIn($userid, $grouptype = Group::GROUP_FREEGLE) {
+    public function interestedIn($userid, $grouptype = Group::GROUP_FREEGLE, $earliest = NULL) {
         $interested = [];
+        $earlyq = $earliest ? " AND messages.arrival > '$earliest'" : NULL;
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
@@ -72,7 +73,7 @@ class Relevant {
             $start = date('Y-m-d', strtotime("30 days ago"));
 
             # First the messages.
-            $sql = "SELECT DISTINCT messages.type, messages.subject, messages.arrival, messages.id FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? AND groups.onhere = 1 WHERE messages_outcomes.msgid IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted') AND messages.arrival >= ? AND messages_groups.deleted = 0;";
+            $sql = "SELECT DISTINCT messages.type, messages.subject, messages.arrival, messages.id FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? AND groups.onhere = 1 WHERE messages_outcomes.msgid IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted') AND messages.arrival >= ? AND messages_groups.deleted = 0 $earlyq;";
             $msgs = $this->dbhr->preQuery($sql, [ $grouptype, $userid, $start ] );
             #error_log("Look for posts from $userid since $start found " . count($msgs));
             foreach ($msgs as $msg) {
@@ -118,9 +119,10 @@ class Relevant {
         return($interested);
     }
 
-    public function getMessages($userid, $interesteds) {
+    public function getMessages($userid, $interesteds, $earliest = NULL) {
         $ret = [];
         $ids = [];
+        $earlyq = $earliest ? " AND messages.arrival > '$earliest'" : NULL;
 
         # We want to search in the groups near the last location we have for this user.
         $u = User::get($this->dbhr, $this->dbhm, $userid);
@@ -164,7 +166,9 @@ class Relevant {
 
                             if ($m->getFromuser() && $m->getFromuser() != $userid &&
                                 (($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED) ||
-                                    ($interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER))) {
+                                    ($interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER)) &&
+                                (!$earliest || strtotime($earliest) < strtotime($m->getPrivate('arrival')))
+                            ) {
                                 #error_log("Found {$r['id']} " . $m->getSubject() . " from " . var_export($r, TRUE));
                                 $ret[] = [
                                     'id' => $r['id'],

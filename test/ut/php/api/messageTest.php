@@ -44,7 +44,8 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__);
 
         $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onhere', 1);
 
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -505,7 +506,8 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__);
 
         $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_OTHER);
+        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onhere', 1);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -515,6 +517,7 @@ class messageAPITest extends IznikAPITestCase
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
+
         $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
 
         # Suppress mails.
@@ -524,7 +527,10 @@ class messageAPITest extends IznikAPITestCase
             ->getMock();
         $m->method('mailer')->willReturn(false);
 
-        assertEquals(Message::TYPE_OTHER, $m->getType());
+        assertEquals(Message::TYPE_OFFER, $m->getType());
+
+        # Set to platform for testing message visibility.
+        $m->setPrivate('sourceheader', Message::PLATFORM);
 
         # Shouldn't be able to reject logged out
         $ret = $this->call('message', 'POST', [
@@ -584,7 +590,15 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
         $pid = $ret['plugin'][0]['id'];
 
-        # The message should exist as rejected.  Log in as the sender.
+        # The message should exist as rejected.  Shouldn't be able to see logged out
+        error_log("Can't see logged out");
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('message', 'GET', [
+            'id' => $m->getId()
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Now log in as the sender.
         $uid = $m->getFromuser();
         error_log("Found sender as $uid");
         $u = User::get($this->dbhm, $this->dbhm, $uid);

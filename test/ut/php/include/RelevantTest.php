@@ -62,6 +62,8 @@ class RelevantTest extends IznikTestCase
     {
         error_log(__METHOD__);
 
+        $earliest = date('Y-m-d H:i:s');
+
         # Create two locations
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
@@ -129,7 +131,7 @@ class RelevantTest extends IznikTestCase
 //        assertEquals(2, count($ints));
 
         # Now search - no relevant messages at the moment.
-        $msgs = $rl->getMessages($uid, $ints);
+        $msgs = $rl->getMessages($uid, $ints, $earliest);
         error_log("Should be none " . var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
 
@@ -196,7 +198,7 @@ class RelevantTest extends IznikTestCase
         sleep(2);
 
         # Now shouldn't find any.
-        $msgs = $rl->getMessages($uid, $ints);
+        $msgs = $rl->getMessages($uid, $ints, $earliest);
         error_log("Should be none " . var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
 

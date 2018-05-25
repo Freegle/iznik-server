@@ -31,8 +31,9 @@ class membershipsAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users_emails WHERE backwards LIKE 'moctset%';");
 
         $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('onyahoo', TRUE);
+        $this->group->setPrivate('onhere', TRUE);
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($this->uid);

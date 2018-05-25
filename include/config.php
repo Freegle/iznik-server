@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('IZNIK_BASE')) {
-    define('IZNIK_BASE', dirname(__FILE__) . '/..');
+    define('IZNIK_BASE', dirname(__FILE__, 2));
     require_once(IZNIK_BASE . '/composer/vendor/autoload.php');
 
     define('DUPLICATE_POST_PROTECTION', 10); # Set to 0 to disable

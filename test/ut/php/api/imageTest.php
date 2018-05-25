@@ -43,7 +43,8 @@ class imageAPITest extends IznikAPITestCase
         error_log(__METHOD__);
 
         $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onhere', 1);
 
         # Create a group with a message on it
         $msg = file_get_contents('msgs/attachment');

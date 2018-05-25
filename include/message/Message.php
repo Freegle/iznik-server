@@ -559,41 +559,53 @@ class Message
         #
         # We can see messages if:
         # - we're a mod or an owner, or
-        # - it was posted from the platform, or
-        # - for Freegle groups which use this platform
+        # - for approved messages on Freegle groups which use FD:
         #   - we're a member, or
-        #   - we have publish consent
-        # - it's a TrashNothing message (the TN TOS allows this).
+        #   - we have publish consent, or
+        #   - it's a TrashNothing message (the TN TOS allows this).
         $role = $atts['myrole'];
-        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $this->getSourceheader() == Message::PLATFORM || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE;
+
+        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
 
         if (!$cansee) {
             foreach ($atts['groups'] as $group) {
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                #error_log("Consider show " . $this->getID() . " role $role coll {$group['collection']} type " . $g->getPrivate('type') . " onhere " . $g->getPrivate('onhere') . " consent {$atts['publishconsent']} source " . $this->getSourceheader());
-                if (($group['collection'] != MessageCollection::PENDING &&
-                    $g->getPrivate('type') == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
-                    ($atts['publishconsent'] || $role == User::ROLE_MEMBER))
+                #error_log("Consider show " . $this->getID());
+                #error_log("...plat or TN " . ($this->getSourceheader() == Message::PLATFORM || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE));
+                #error_log("...consent || member " . ($atts['publishconsent'] || $role == User::ROLE_MEMBER));
+                #error_log("...coll == APPROVED " . ($group['collection'] == MessageCollection::APPROVED));
+                #error_log("...type == FREEGLE " . ($g->getPrivate('type') == Group::GROUP_FREEGLE));
+                #error_log("...onhere " . $g->getPrivate('onhere'));
+
+                if ((($this->getSourceheader() == Message::PLATFORM || ($atts['publishconsent'] || $role == User::ROLE_MEMBER)) &&
+                    $group['collection'] == MessageCollection::APPROVED &&
+                    $g->getPrivate('type') == Group::GROUP_FREEGLE &&
+                    $g->getPrivate('onhere') || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE)
                 ) {
                     $cansee = TRUE;
                 }
             }
         }
 
+        #error_log("Cansee now $cansee");
+
         if (!$cansee) {
             # We can see our drafts.
             $me = whoAmI($this->dbhr, $this->dbhm);
-            $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
-                $this->id,
-                session_id(),
-                $me ? $me->getId() : NULL
-            ]);
+            if ($me) {
+                $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
+                    $this->id,
+                    session_id(),
+                    $me ? $me->getId() : NULL
+                ]);
 
-            foreach ($drafts as $draft) {
-                $cansee = TRUE;
+                foreach ($drafts as $draft) {
+                    $cansee = TRUE;
+                }
             }
         }
 
+        error_log("Can see?  $cansee");
         return($cansee);
     }
 
