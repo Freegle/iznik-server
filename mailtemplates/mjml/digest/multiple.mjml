@@ -65,7 +65,7 @@
         <mj-section background-color="#F7F6EC" padding="0px">
           <mj-column padding="0px">
             <mj-raw padding="0px">
-                <table padding="0" border="0" cellpadding="0" cellspacing="0" ><tr><td colspan="2"><a href="http://li.ilovefreegle.org/click?s=672305&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=672305&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0" style="max-width:{INSERT TEMPLATE MAX WIDTH HERE AS INTEGER}px;"/></a></td></tr><tr><td align="left"><a style="display: block; max-width: 116px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=672306&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=672306&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td><td align="right"><a style="display: block; max-width: 19px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=672308&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img width="600px" src="http://li.ilovefreegle.org/imp?s=672308&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td></tr></table>
+                <table padding="0" border="0" cellpadding="0" cellspacing="0" ><tr><td colspan="2"><a href="http://li.ilovefreegle.org/click?s=672305&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=672305&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0" style="max-width:600px;"/></a></td></tr><tr><td align="left"><a style="display: block; max-width: 116px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=672306&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=672306&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td><td align="right"><a style="display: block; max-width: 19px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=672308&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img style="width: 600px; height: 155px" src="http://li.ilovefreegle.org/imp?s=672308&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td></tr></table>
             </mj-raw>
           </mj-column>
         </mj-section>
@@ -256,7 +256,7 @@
         <mj-section background-color="#E0E0E0">
           <mj-column>
             <mj-text font-size="9pt" color="#707070">
-              You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive updates for&nbsp;{{ groupname }} {{ frequency }}.<br /> <br /> You can change your settings by clicking <a href="{{ settings }}">here</a>,
+              You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive updates for&nbsp;{{ groupname }}&nbsp;{{ frequency }}.<br /> <br /> You can change your settings by clicking <a href="{{ settings }}">here</a>,
               or turn these mails off for this group by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
               <br /> <br /> This mail was sent to&nbsp;{{ email }}.
               <br />

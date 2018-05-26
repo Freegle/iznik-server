@@ -167,7 +167,7 @@
         <mj-section background-color="#E0E0E0">
           <mj-column>
             <mj-text font-size="9pt" color="#707070">
-              You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive updates for&nbsp;{{ groupname }} {{ frequency }}.<br /> <br /> You can change your settings by clicking <a href="{{ settings }}">here</a>,
+              You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive updates for&nbsp;{{ groupname }}&nbsp;{{ frequency }}.<br /> <br /> You can change your settings by clicking <a href="{{ settings }}">here</a>,
               or turn these mails off for this group by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
               <br /> <br /> This mail was sent to&nbsp;{{ email }}.
               <br />
