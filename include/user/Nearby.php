@@ -59,11 +59,8 @@ class Nearby
                             $u2 = new User($this->dbhr, $this->dbhm, $user['id']);
 
                             if ($u2->getPrivate('relevantallowed')) {
-                                $p1 = new POI($lat, $lng);
-                                $p2 = new POI($user['lat'], $user['lng']);
-                                $metres = $p1->getDistanceInMetersTo($p2);
-                                $miles = $metres / 1609.344;
-                                $miles = $miles > 10 ? round($miles) : round($miles, 1);
+                                $miles = $u2->getDistance($lat, $lng);
+                                $miles = round($miles);
 
                                 # We mail the most nearby people - but too far it's probably not worth it.
                                 if ($miles <= 2) {
@@ -80,7 +77,7 @@ class Nearby
 
                                         $subj = $u->getName() . " ($miles mile" . ($miles != 1 ? 's' : '') . " away) needs your help!";
                                         $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
-                                        $textbody = "$name, who's just $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $m->getSubject() . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby\r\nIf you don't want to get these suggestions, mail $noemail.";
+                                        $textbody = "$name, who's about $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $m->getSubject() . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby\r\nIf you don't want to get these suggestions, mail $noemail.";
 
                                         $email = $u2->getEmailPreferred();
                                         $html = relevant_nearby(USER_SITE, USERLOGO, $name, $miles, $m->getSubject(), $msg['id'], $msg['type'], $email, $noemail);

@@ -1435,13 +1435,7 @@ class User extends Entity
 
         if ($me) {
             list ($mylat, $mylng) = $me->getLatLng();
-            list ($tlat, $tlng) = $this->getLatLng();
-            $p1 = new POI($mylat, $mylng);
-            $p2 = new POI($tlat, $tlng);
-            $metres = $p1->getDistanceInMetersTo($p2);
-            $miles = $metres / 1609.344;
-            $miles = $miles > 10 ? round($miles) : round($miles, 1);
-            $ret['milesaway'] = $miles;
+            $ret['milesaway'] = $this->getDistance($mylat, $mylng);
             $ret['publiclocation'] = $this->getPublicLocation();
         }
 
@@ -1461,6 +1455,38 @@ class User extends Entity
         $ret['collected'] = $collected[0]['count'];
 
         return($ret);
+    }
+
+    private function md5_hex_to_dec($hex_str) {
+        $arr = str_split($hex_str, 4);
+        foreach ($arr as $grp) {
+            $dec[] = str_pad(hexdec($grp), 5, '0', STR_PAD_LEFT);
+        }
+        return floatval("0." . implode('', $dec));
+    }
+
+    public function getDistance($mylat, $mylng) {
+        $p1 = new POI($mylat, $mylng);
+
+        list ($tlat, $tlng) = $this->getLatLng();
+
+        # We need to make sure that we don't reveal the actual location (well, the postcode location) to
+        # someone attempting to triangulate.  So first we move the location a bit based on something which
+        # can't be known about a user - a hash of their ID and the password salt.
+        $tlat += ($this->md5_hex_to_dec(md5(PASSWORD_SALT . $this->id)) - 0.5) / 100;
+        $tlng += ($this->md5_hex_to_dec(md5($this->id . PASSWORD_SALT)) - 0.5) / 100;
+
+        # Now randomise the distance a bit each time we get it, so that anyone attempting repeated measurements
+        # will get conflicting results around the precise location that isn't actually theirs.  But still close
+        # enough to be useful for our purposes.
+        $tlat += mt_rand(-500, 500) / 20000;
+        $tlng += mt_rand(-500, 500) / 20000;
+
+        $p2 = new POI($tlat, $tlng);
+        $metres = $p1->getDistanceInMetersTo($p2);
+        $miles = $metres / 1609.344;
+        $miles = $miles > 10 ? round($miles) : round($miles, 1);
+        return($miles);
     }
 
     public function gravatar( $email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array() ) {
