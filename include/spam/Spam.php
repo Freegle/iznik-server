@@ -276,8 +276,10 @@ class Spam {
             # Check keywords
             $this->getSpamWords();
             foreach ($this->spamwords as $word) {
+                $w = $word['type'] == 'Literal' ? preg_quote($word['word']) : $word['word'];
+
                 if ($word['action'] == 'Review' &&
-                    preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
+                    preg_match('/\b' . $w . '\b/', $message) &&
                     (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                     #error_log("Spam keyword {$word['word']}");
                     $check = TRUE;
