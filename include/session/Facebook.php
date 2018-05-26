@@ -74,6 +74,8 @@ class Facebook
     }
 
     private function processAccessToken($fb, $accessToken) {
+        $s = NULL;
+
         // The OAuth 2.0 client handler helps us manage access tokens
         $oAuth2Client = $fb->getOAuth2Client();
 
@@ -103,7 +105,7 @@ class Facebook
             # Note that we may not get an email, and nowadays the id we are given is a per-app id not
             # something that can be used to identify the user.
             $response = $fb->get('/me?fields=id,name,first_name,last_name,email', $accessToken);
-            $fbme = $response->getGraphUser()->asArray();
+            $fbme = $response->getDecodedBody();
 
             $fbemail = presdef('email', $fbme, NULL);
             $fbuid = presdef('id', $fbme, NULL);
