@@ -326,11 +326,12 @@ class Digest
                     if ($this->errorlog) { error_log("Consider user {$user['userid']}"); }
 
                     # We are only interested in sending digests to users for whom we have a preferred address -
-                    # otherwise where would we send them?
+                    # otherwise where would we send them?  And not to TN members because they are just discarded
+                    # there, so we are just wasting effort.
                     $email = $u->getEmailPreferred();
                     if ($this->errorlog) { error_log("Preferred $email"); }
 
-                    if ($email && $email != MODERATOR_EMAIL && $u->sendOurMails($g)) {
+                    if ($email && $email != MODERATOR_EMAIL && strpos($email, '@user.trashnothing.com') === FALSE && $u->sendOurMails($g)) {
                         $t = $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST);
                         $creds = substr($t, strpos($t, '?'));
 
