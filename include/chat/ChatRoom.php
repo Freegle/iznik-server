@@ -371,8 +371,8 @@ class ChatRoom extends Entity
             switch ($last['type']) {
                 case ChatMessage::TYPE_ADDRESS: $ret['snippet'] = 'Address sent...'; break;
                 case ChatMessage::TYPE_NUDGE: $ret['snippet'] = 'Nudged'; break;
-                case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Scheduling collection...'; break;
-                case ChatMessage::TYPE_SCHEDULE_UPDATED: $ret['snippet'] = 'Schedule updated...'; break;
+                case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Availability updated...'; break;
+                case ChatMessage::TYPE_SCHEDULE_UPDATED: $ret['snippet'] = 'Availability updated...'; break;
                 default: {
                     # We don't want to land in the middle of an encoded emoji otherwise it will display
                     # wrongly.
