@@ -85,11 +85,7 @@ class FacebookTest extends IznikTestCase {
         return($this);
     }
 
-    public function getGraphUser() {
-        return($this);
-    }
-
-    public function asArray() {
+    public function getDecodedBody() {
         if ($this->asArrayException) {
             throw new Exception();
         }
@@ -189,7 +185,7 @@ class FacebookTest extends IznikTestCase {
         # And so will this one.
         $this->asArrayException = TRUE;
         list($session, $ret) = $mock->login();
-        assertEquals(2, $ret['ret']);
+        assertEquals(1, $ret['ret']);
         $this->asArrayException = FALSE;
 
         error_log(__METHOD__ . " end");
