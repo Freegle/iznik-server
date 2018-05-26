@@ -269,6 +269,62 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testNotifyAvailability() {
+        error_log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        error_log("Schedule for $u1");
+        $s = new Schedule($this->dbhr, $this->dbhm);
+        $s->create($u1, [
+            [
+                "hour" => 0,
+                "date" => "2018-05-24T00:00:00+01:00",
+                "available" => 1
+            ]
+        ]);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+        error_log("Chat room $id for $u1 <-> $u2");
+        assertNotNull($id);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $cm = $m->create($id, $u1, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL);
+        error_log("Created chat message $cm");
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
+
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        # Notify - will email just one.
+        error_log("Will email justone");
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+
+        error_log("Mailed " . var_export($this->msgsSent, TRUE));
+        self::assertEquals('Test User 2 has updated when they may be available: Wednesday morning
+', $this->msgsSent[0]['body']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testUser2Mod() {
         error_log(__METHOD__ );
 
@@ -322,7 +378,8 @@ class chatRoomsTest extends IznikTestCase {
         error_log("Send " . $message->getSubject() . " to " . var_export($message->getTo(), TRUE));
         $this->msgsSent[] = [
             'subject' => $message->getSubject(),
-            'to' => $message->getTo()
+            'to' => $message->getTo(),
+            'body' => $message->getBody()
         ];
     }
 

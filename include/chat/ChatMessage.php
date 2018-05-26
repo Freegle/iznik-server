@@ -12,7 +12,7 @@ require_once(IZNIK_BASE . '/include/spam/Spam.php');
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid', 'scheduleid');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
@@ -105,7 +105,7 @@ class ChatMessage extends Entity
         }
     }
 
-    public function checkDup($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $scheduleid = NULL) {
+    public function checkDup($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL) {
         $dup = NULL;
 
         # Check last message in the chat to see whether we have a duplicate.
@@ -120,8 +120,7 @@ class ChatMessage extends Entity
                 $refmsgid == $last['refmsgid'] &&
                 $refchatid == $last['refchatid'] &&
                 $imageid == $last['imageid'] &&
-                $facebookid == $last['facebookid'] &&
-                $scheduleid == $last['scheduleid']) {
+                $facebookid == $last['facebookid']) {
                 $dup = $last['id'];
             }
         }
@@ -129,7 +128,7 @@ class ChatMessage extends Entity
         return($dup);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $scheduleid = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL) {
         try {
             $review = 0;
             $spam = 0;
@@ -154,7 +153,7 @@ class ChatMessage extends Entity
 
             # Even if it's spam, we still create the message, so that if we later decide that it wasn't spam after all
             # it's still around to unblock.
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid, scheduleid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, ?);", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);", [
                 $chatid,
                 $userid,
                 $message,
@@ -167,8 +166,7 @@ class ChatMessage extends Entity
                 $reportreason,
                 $refchatid,
                 $imageid,
-                $facebookid,
-                $scheduleid
+                $facebookid
             ]);
 
             $id = $this->dbhm->lastInsertId();
@@ -279,11 +277,14 @@ class ChatMessage extends Entity
             $s = new Schedule($this->dbhr, $this->dbhm);
             $r = new ChatRoom($this->dbhr, $this->dbhm, $this->chatmessage['chatid']);
             $me = whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me->getId();
-            $user1 = $r->getPrivate('user1');
-            $user2 = $r->getPrivate('user2');
-            $other = $myid == $user1 ? $user2 : $user1;
-            $ret['matches'] = $s->match($myid, $other);
+
+            if ($me) {
+                $myid = $me->getId();
+                $user1 = $r->getPrivate('user1');
+                $user2 = $r->getPrivate('user2');
+                $other = $myid == $user1 ? $user2 : $user1;
+                $ret['matches'] = $s->match($myid, $other);
+            }
         }
 
         # Strip any remaining quoted text in replies.

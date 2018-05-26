@@ -605,7 +605,6 @@ class Message
             }
         }
 
-        error_log("Can see?  $cansee");
         return($cansee);
     }
 

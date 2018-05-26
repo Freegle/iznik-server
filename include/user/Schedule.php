@@ -52,6 +52,7 @@ class Schedule extends Entity
         $ret = parent::getPublic();
         $ret['schedule'] = json_decode($ret['schedule'], TRUE);
         $ret['created'] = pres('created', $ret) ? ISODate($ret['created']) : NULL;
+        $ret['textversion'] = $this->getSummary();
 
         return($ret);
     }
@@ -91,5 +92,41 @@ class Schedule extends Entity
         ksort($matches);
 
         return(array_values($matches));
+    }
+
+    public function getSummary() {
+        # Get human readable version of a schedule.
+        $schedule = json_decode($this->schedule['schedule'], TRUE);
+
+        $slots = [];
+
+        foreach ($schedule as $s) {
+            if ($s['available']) {
+                $t = strtotime($s['date']);
+                $str = date("l", $t) . " ";
+
+                switch($s['hour']) {
+                    case 0: $str .= 'morning'; break;
+                    case 1: $str .= 'afternoon'; break;
+                    case 2: $str .= 'evening'; break;
+                }
+
+                $slots[$t] = $str;
+            }
+        }
+
+        ksort($slots);
+
+        $str = '';
+
+        foreach ($slots as $slot) {
+            if ($str != '') {
+                $str .= ', ';
+            }
+
+            $str .= $slot;
+        }
+
+        return($str);
     }
 }

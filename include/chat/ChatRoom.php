@@ -7,6 +7,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/session/Facebook.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
+require_once(IZNIK_BASE . '/include/user/Schedule.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_chaseup_mod.php');
 
 class ChatRoom extends Entity
@@ -1368,7 +1369,6 @@ class ChatRoom extends Entity
                         $unmailedmsg['message'] = preg_replace('/\\\\u.*?\\\\u/', ':-)', $unmailedmsg['message']);
 
                         $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
-                        $collurl = NULL;
 
                         if ($mailson) {
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
@@ -1428,15 +1428,11 @@ class ChatRoom extends Entity
                                     break;
                                 }
 
-                                case ChatMessage::TYPE_SCHEDULE: {
-                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You asked  " . $otheru->getName() . " to arrange a collection time") : ($thisu->getName() . " would like to arrange a collection time.  Please click here to say when you're available:");
-                                    $collurl = "https://" . USER_SITE . "/schedule/{$unmailedmsg['scheduleid']}";
-                                    break;
-                                }
-
+                                case ChatMessage::TYPE_SCHEDULE:
                                 case ChatMessage::TYPE_SCHEDULE_UPDATED: {
-                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your collection schedule") : ($thisu->getName() . " has updated their collection schedule.  Please click here to see their times and say when you're available:");
-                                    $collurl = "https://" . USER_SITE . "/schedule/{$unmailedmsg['scheduleid']}";
+                                    $s = new Schedule($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
+                                    $summ = $s->getSummary();
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your availability: $summ") : ($thisu->getName() . " has updated when they may be available: $summ");
                                     break;
                                 }
 
@@ -1482,10 +1478,6 @@ class ChatRoom extends Entity
                                     $path = $a->getPath(FALSE);
                                     $thistwig['image'] = $path;
                                     $textsummary .= "Here's a picture: $path\r\n";
-                                } else if ($collurl) {
-                                    $textsummary .= $thisone . "\r\n$collurl\r\n";
-                                    $thistwig['collurl'] = $collurl;
-                                    $thistwig['message'] = $thisone;
                                 } else {
                                     $textsummary .= $thisone . "\r\n";
                                     $thistwig['message'] = $thisone;

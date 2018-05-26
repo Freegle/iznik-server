@@ -65,6 +65,16 @@ class scheduleAPITest extends IznikAPITestCase {
                 "hour" => 1,
                 "date" => "2018-05-24T00:00:00+01:00",
                 "available" => 1
+            ],
+            [
+                "hour" => 0,
+                "date" => "2018-05-25T00:00:00+01:00",
+                "available" => 1
+            ],
+            [
+                "hour" => 2,
+                "date" => "2018-05-25T00:00:00+01:00",
+                "available" => 0
             ]
         ];
 
@@ -96,6 +106,7 @@ class scheduleAPITest extends IznikAPITestCase {
 
         $ret = $this->call('schedule', 'GET', []);
         self::assertEquals($schedule2, $ret['schedule']['schedule']);
+        self::assertEquals('Wednesday afternoon, Thursday morning', $ret['schedule']['textversion']);
 
         # If we get the chatroom between these two users we should find that they have no scheduling matches so far,
         # as we only have a schedule for one user.
