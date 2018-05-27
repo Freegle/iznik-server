@@ -220,7 +220,7 @@ class Digest
             } else if (count($available) + count($unavailable) > 0) {
                 # Build up the HTML for the message(s) in it.  We add a teaser of items to make it more
                 # interesting.
-                $textsumm = '';
+                $textsumm = "Here are new posts or reposts since we last mailed you.\r\n\r\n";
                 $availablesumm = '';
                 $count = count($available) > 0 ? count($available) : 1;
                 $subject = "[{$gatts['namedisplay']}] What's New ($count message" .
@@ -229,10 +229,20 @@ class Digest
                 $twigmsgsavail = [];
                 $twigmsgsunavail = [];
 
+                # Text TOC
+                foreach ($available as $msg) {
+                    $textsumm .= $msg['subject'] . " at https://" . USER_SITE . "/message/{$msg['id']}\r\n\r\n";
+                }
+
+                $textsumm .= "----------------\r\n\r\n";
+
                 foreach ($available as $msg) {
                     $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
 
-                    $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
+                    $textsumm .= $msg['subject'] . " at \r\nhttps://" . USER_SITE . "/message/{$msg['id']}\r\n\r\n";
+                    $textsumm .= $msg['textbody'] . "\r\n";
+                    $textsumm .= "----------------\r\n\r\n";
+
                     $availablesumm .= $msg['subject'] . '<br />';
 
                     $twigmsgsavail[] = [
@@ -256,8 +266,10 @@ class Digest
                     }
                 }
 
+                $textsumm .= "\r\n\r\nThese posts are new since your last mail but have already been completed. If you missed something, try changing how frequently we send you email in Settings.\r\n\r\n";
+
                 foreach ($unavailable as $msg) {
-                    $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
+                    $textsumm .= $msg['subject'] . " at \r\nhttps://" . USER_SITE . "/message/{$msg['id']}\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
 
                     $twigmsgsunavail[] = [

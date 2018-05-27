@@ -338,7 +338,7 @@ class digestTest extends IznikTestCase {
 //
 //        error_log(__METHOD__ . " end");
 //    }
-
+//
 //    public function testNewDigestMultiple() {
 //        error_log(__METHOD__);
 //
@@ -388,6 +388,7 @@ class digestTest extends IznikTestCase {
 //        $testemail = 'freeglefreegle@litmustest.com';
 //        $testemail = 'edward@ehibbert.org.uk';
 //        #$testemail = 'activate@liveintent.com';
+//        $testemail = 'web-mec8n@mail-tester.com';
 //        $uid = $u->findByEmail($testemail);
 //
 //        if (!$uid) {

@@ -17,7 +17,7 @@
               <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">It’s time to move your group away from Yahoo</mj-text>
             </mj-column>
             <mj-column vertical-align="middle" width="35%">
-              <mj-image css-class="logo" src="https://www.ilovefreegle.org/images/user_logo.png" width="80px" align="right" border-radius="5px" padding="20px" />
+              <mj-image css-class="logo" src="https://www.ilovefreegle.org/images/user_logo.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px" />
             </mj-column>
           </mj-group>
         </mj-section>
