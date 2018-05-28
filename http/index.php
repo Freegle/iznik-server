@@ -114,10 +114,19 @@ try {
         $url = str_replace('https://dev.', 'https://www.', $url);
 
         #error_log("Check for pre-render $url");
-        $prerenders = $dbhr->preQuery("SELECT * FROM prerender WHERE url = ?;", [ $url ]);
+        # We cache the prerender info on the local file system to save the DB call.
+        $fn = "/tmp/iznik.prerender." . base64_encode($url);
 
-        if (count($prerenders) > 0 && $prerenders[0]['html']) {
-            $prerender = $prerenders[0];
+        if (is_file($fn) && (time() - filemtime($fn) < 60)) {
+            # File exists and is less than 60s old.
+            $prerender = json_decode(file_get_contents($fn), TRUE);
+        } else {
+            $prerenders = $dbhr->preQuery("SELECT * FROM prerender WHERE url = ?;", [ $url ]);
+
+            if (count($prerenders) > 0 && $prerenders[0]['html']) {
+                $prerender = $prerenders[0];
+                file_put_contents($fn, json_encode($prerender));
+            }
         }
     }
 
