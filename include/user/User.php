@@ -4811,4 +4811,37 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $this->dbhm->background("INSERT IGNORE INTO users_active (userid, timestamp) VALUES ({$this->id}, '$now');");
         }
     }
+
+    public function getActive() {
+        $active = $this->dbhr->preQuery("SELECT * FROM users_active WHERE userid = ?;", [ $this->id ], FALSE, FALSE);
+        return($active);
+    }
+
+    public function mostActive($gid, $limit = 20) {
+        $earliest = date("Y-m-d", strtotime("Midnight 30 days ago"));
+
+        $users = $this->dbhr->preQuery("SELECT users_active.userid, COUNT(*) AS count FROM users_active inner join users ON users.id = users_active.userid INNER JOIN memberships ON memberships.userid = users.id WHERE groupid = ? AND systemrole = ? AND timestamp >= ? GROUP BY users_active.userid ORDER BY count DESC LIMIT $limit", [
+            $gid,
+            User::SYSTEMROLE_USER,
+            $earliest
+        ]);
+
+        $ret = [];
+
+        foreach ($users as $user) {
+            $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
+            $thisone = $u->getPublic();
+            $thisone['groupid'] = $gid;
+            $thisone['email'] = $u->getEmailPreferred();
+
+            foreach ($thisone['memberof'] as $group) {
+                if ($group['id'] == $gid) {
+                    $thisone['joined'] = $group['added'];
+                }
+            }
+            $ret[] = $thisone;
+        }
+
+        return($ret);
+    }
 }

@@ -36,6 +36,7 @@ class Group extends Entity
     const FILTER_WITHCOMMENTS = 1;
     const FILTER_MODERATORS = 2;
     const FILTER_BOUNCING = 3;
+    const FILTER_MOSTACTIVE = 4;
 
     /** @var  $log Log */
     private $log;

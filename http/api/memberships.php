@@ -108,6 +108,9 @@ function memberships() {
                             if ($collection == MembershipCollection::HAPPINESS) {
                                 # This is handled differently.
                                 $members = $g->getHappinessMembers($groupids, $ctx);
+                            } else if ($filter == Group::FILTER_MOSTACTIVE) {
+                                # So is this
+                                $members = $groupid ? $u->mostActive($groupid) : NULL;
                             } else {
                                 $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
                             }

@@ -205,4 +205,25 @@ try {
     error_log("Failed to delete SQL logs " . $e->getMessage());
 }
 
+# The users_active table contains information about users and hours they were active.  We want to keep the fact that
+# there was a user active, but have no justification to keep the actual user, so set it to NULL.  This will result
+# in multiple timestamps per user who was active at that time, which is what we need, because MySQL ignores NULL
+# values in constraints.
+$start = date('Y-m-d', strtotime("midnight 7 days ago"));
+error_log("Purge user activity logs before $start");
+
+try {
+    error_log("Activity logs:");
+    $total = 0;
+    do {
+        $count = $dbhm->exec("UPDATE users_active SET userid = NULL WHERE userid IS NOT NULL AND timestamp < '$start'; LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+        set_time_limit(600);
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete Plugin logs " . $e->getMessage());
+}
+
+
 error_log("Completed");

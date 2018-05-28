@@ -52,7 +52,7 @@ class userAPITest extends IznikAPITestCase {
     }
 
     protected function tearDown() {
-        parent::tearDown ();
+//        parent::tearDown ();
     }
 
     public function __construct() {
@@ -520,6 +520,44 @@ class userAPITest extends IznikAPITestCase {
 
         $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_UNBOUNCE, $ret['user']['logs']);
         assertNotNull($log);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testActive() {
+        error_log(__METHOD__);
+
+        assertEquals(1, $this->user->addMembership($this->groupid));
+        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($this->user->login('testpw'));
+
+        # Trigger a notification check - should mark this as active.
+        $ret = $this->call('notification', 'GET', [
+            'count' => TRUE
+        ]);
+        $this->waitBackground();
+
+        self::assertEquals(1, count($this->user->getActive()));
+
+        $active = $this->user->mostActive($this->groupid);
+        self::assertEquals($this->user->getId(), $active[0]['id']);
+
+        # Retrieve that info as a mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $mod = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test2@test.com');
+        assertEquals(1, $u->addMembership($this->groupid, User::ROLE_MODERATOR));
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::APPROVED,
+            'filter' => Group::FILTER_MOSTACTIVE,
+            'groupid' => $this->groupid
+        ]);
+
+        error_log("Get most active " . var_export($ret, TRUE));
+        self::assertEquals($this->user->getId(), $ret['members'][0]['id']);
 
         error_log(__METHOD__ . " end");
     }
