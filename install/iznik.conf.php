@@ -129,9 +129,6 @@ define('NOREPLY_ADDR', 'noreply@zzz');
 define('CENTRAL_MAIL_TO', 'FreegleUK-Central@yahoogroups.com');
 define('CENTRAL_MAIL_FROM', 'geeks@ilovefreegle.org');
 
-# This speeds up load time
-define('MINIFY', TRUE);
-
 define('DONATION_TARGET', 2000);
 
 # For test scripts
