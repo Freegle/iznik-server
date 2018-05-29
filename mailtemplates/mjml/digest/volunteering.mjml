@@ -129,7 +129,7 @@
             <mj-section background-color="#FFF8DC" padding-top="0px" padding-bottom="0px">
               <mj-column>
                 <mj-text>
-                  Time commitment: {{ volunteering.timecommitment|nl2br }}
+                  Time commitment:&nbsp;{{ volunteering.timecommitment|nl2br }}
                 </mj-text>
               </mj-column>
             </mj-section>
