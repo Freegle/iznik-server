@@ -100,22 +100,24 @@ class Schedule extends Entity
 
         $slots = [];
 
-        foreach ($schedule as $s) {
-            if ($s['available']) {
-                $t = strtotime($s['date']);
-                $str = date("l", $t) . " ";
+        if ($schedule) {
+            foreach ($schedule as $s) {
+                if ($s['available']) {
+                    $t = strtotime($s['date']);
+                    $str = date("l", $t) . " ";
 
-                switch($s['hour']) {
-                    case 0: $str .= 'morning'; break;
-                    case 1: $str .= 'afternoon'; break;
-                    case 2: $str .= 'evening'; break;
+                    switch($s['hour']) {
+                        case 0: $str .= 'morning'; break;
+                        case 1: $str .= 'afternoon'; break;
+                        case 2: $str .= 'evening'; break;
+                    }
+
+                    $slots[$t] = $str;
                 }
-
-                $slots[$t] = $str;
             }
-        }
 
-        ksort($slots);
+            ksort($slots);
+        }
 
         $str = '';
 
