@@ -6,6 +6,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 
 $lockh = lockScript(basename(__FILE__));
 
+$now = date("Y-m-d H:i:s", time());
+
 $handle = fopen("/tmp/pflogsumm.out", "r");
 while (($line = fgets($handle)) !== false) {
     if (strpos($line, "Message Delivery") != FALSE) {
@@ -46,6 +48,11 @@ while (($line = fgets($handle)) !== false) {
                 ]);
             }
         }
+
+        # Delete old domains which we haven't sent to in this run.
+        $dbhm->preExec("DELETE FROM domains WHERE timestamp < ?", [
+            $now
+        ]);
 
         exit(0);
     }
