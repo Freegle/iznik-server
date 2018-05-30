@@ -91,7 +91,7 @@ class Digest
         }
     }
 
-    public function send($groupid, $frequency) {
+    public function send($groupid, $frequency, $host = 'localhost') {
         $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new Twig_Environment($loader);
 
@@ -297,6 +297,7 @@ class Digest
                         'groupname' => $gatts['namedisplay'],
                         'availablemessages'=> $twigmsgsavail,
                         'unavailablemessages'=> $twigmsgsunavail,
+                        'previewtext' => $textsumm,
 
                         # Per-recipient fields for later Swift expansion
                         'settings' => '{{settings}}',
@@ -373,7 +374,7 @@ class Digest
                     error_log("#$groupid {$gatts['nameshort']} " . count($tosend) . " messages max $maxmsg, $maxdate to " . count($replacements) . " users");
                     # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
                     # rather than lose it.
-                    list ($transport, $mailer) = getMailer();
+                    list ($transport, $mailer) = getMailer($host);
 
                     # We're decorating using the information we collected earlier.  However the decorator doesn't
                     # cope with sending to multiple recipients properly (headers just get decorated with the first
@@ -419,6 +420,7 @@ class Digest
                                 $headers = $message->getHeaders();
                                 $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
                                 $message->setTo([ $email => $rep['{{toname}}'] ]);
+                                #error_log("Send to $email");
                                 $this->sendOne($mailer, $message);
                                 $sent++;
                             } catch (Exception $e) {

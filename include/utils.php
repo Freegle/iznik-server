@@ -472,10 +472,10 @@ function ourDomain($email) {
     return($ours);
 }
 
-function getMailer() {
+function getMailer($host = 'localhost') {
     $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
     $spooltrans = Swift_SpoolTransport::newInstance($spool);
-    $smtptrans = Swift_SmtpTransport::newInstance("localhost");
+    $smtptrans = Swift_SmtpTransport::newInstance($host);
     $transport = Swift_FailoverTransport::newInstance([
         $smtptrans,
         $spooltrans

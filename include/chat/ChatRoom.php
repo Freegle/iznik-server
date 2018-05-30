@@ -1544,6 +1544,7 @@ class ChatRoom extends Entity
                             # Parameters for LiveIntent ads
                             $lihash = hash('sha1', $to);
 
+
                             try {
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:

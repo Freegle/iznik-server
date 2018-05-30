@@ -534,37 +534,45 @@ class chatRoomsTest extends IznikTestCase {
 //    public function testNotifyNewMails() {
 //        error_log(__METHOD__ );
 //
-//        # Set up a chatroom
-//        $emailto = "notif@ehibbert.org.uk";
-//        $emailto = "web-21rw8@mail-tester.com";
+//        $tosends =
+//        explode(',',
+////            'freegle@litmustest.com'
+//            "barracuda@barracuda.emailtests.com, previews_01@gmx.de, litmuscheck01@gmail.com, litmuscheck05@yahoo.com, litmuscheck01@mail.com, litmuscheck03@outlook.com, litmuscheck02@emailtests.onmicrosoft.com, previews_99@web.de, litmuscheck03@mail.ru, litmuscheck07@gmail.com, litmuscheck05@gapps.emailtests.com, litmuscheck05@ms.emailtests.com, litmustestprod01@gd-testing.com, litmustestprod02@yandex.com, litmuscheck004@aol.com, d64dfa3af2@s.litmustest.com, d64dfa3af2@sg3.emailtests.com, d64dfa3af2@ml.emailtests.com"
+//    );
 //
-//        $u = User::get($this->dbhr, $this->dbhm);
-//        $u1 = $u->create(NULL, NULL, "Test User 1");
-//        $u->addMembership($this->groupid);
-//        $u->addEmail('test1@test.com');
-//        $u->addEmail('test1@' . USER_DOMAIN);
-//        $u2 = $u->create(NULL, NULL, "Test User 2");
-//        $u->addMembership($this->groupid);
-//        $u->addEmail('test2@' . USER_DOMAIN);
-//        $u->addEmail($emailto);
+//        foreach ($tosends as $tosend) {
+//            error_log("Send to $tosend");
+//            $emailto = trim($tosend);
 //
-//        $r = new ChatRoom($this->dbhr, $this->dbhm);
-//        $id = $r->createConversation($u1, $u2);
-//        error_log("Chat room $id for $u1 <-> $u2");
-//        assertNotNull($id);
+//            $u = User::get($this->dbhr, $this->dbhm);
+//            $u1 = $u->create(NULL, NULL, "Test User 1");
+//            $u->addMembership($this->groupid);
+//            $u->addEmail('test1@test.com');
 //
-//        assertNull($r->replyTime($u1));
+//            $u2 = $u->findByEmail($emailto);
 //
-//        $m = new ChatMessage($this->dbhr, $this->dbhm);
-//        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+//            if (!$u2) {
+//                $u2 = $u->create(NULL, NULL, "Test User 2");
+//            }
 //
-//        # Notify - will email just one as we don't notify our own by default.
-//        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+//            $u = User::get($this->dbhr, $this->dbhm, $u2);
 //
-//        $u = new User($this->dbhr, $this->dbhm, $u1);
-//        $u->delete();
-//        $u = new User($this->dbhr, $this->dbhm, $u2);
-//        $u->delete();
+//            $u->addMembership($this->groupid);
+//            $u->addEmail($emailto);
+//
+//            $r = new ChatRoom($this->dbhr, $this->dbhm);
+//            $id = $r->createConversation($u1, $u2);
+//            error_log("Chat room $id for $u1 <-> $u2");
+//            assertNotNull($id);
+//
+//            assertNull($r->replyTime($u1));
+//
+//            $m = new ChatMessage($this->dbhr, $this->dbhm);
+//            $cm = $m->create($id, $u1, "Testing" . rand(), ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+//
+//            # Notify - will email just one as we don't notify our own by default.
+//            assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+//        }
 //
 //        error_log(__METHOD__ . " end");
 //    }
