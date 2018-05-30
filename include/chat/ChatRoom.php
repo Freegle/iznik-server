@@ -1432,7 +1432,7 @@ class ChatRoom extends Entity
                                 case ChatMessage::TYPE_SCHEDULE_UPDATED: {
                                     $s = new Schedule($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                     $summ = $s->getSummary();
-                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your availability: $summ") : ($thisu->getName() . " has updated when they may be available: $summ");
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your availability: $summ") : ($otheru->getName() . " has updated when they may be available: $summ");
                                     break;
                                 }
 
