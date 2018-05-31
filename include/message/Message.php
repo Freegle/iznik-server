@@ -1053,7 +1053,8 @@ class Message
             }
         }
 
-        if ($fromip) {
+        // Exclude 10. subnet which is not public.
+        if ($fromip && strpos($fromip, "10.") !== 0) {
             $this->fromip = $fromip;
             $this->dbhm->preExec("UPDATE messages SET fromip = ? WHERE id = ? AND fromip IS NULL;",
                 [$fromip, $this->id]);
