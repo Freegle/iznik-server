@@ -89,7 +89,7 @@
               {% if message.autoreposts is defined and message.autoreposts > 0 %}
             </mj-raw>
             <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
-              <a href="#msg-{{ message.id }}">
+              <a jumpthis="msg-{{ message.id }}" href="#msg-{{ message.id }}">
                 {{ message.subject }}
               </a>&nbsp;<span style="font-size:8pt" color="grey">Autorepost #{{ message.autoreposts }}</span>
             </mj-text>
@@ -118,7 +118,7 @@
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column>
             <mj-text padding="0px">
-              <span id="msg-{{ message.id }}" name="msg-{{ message.id }}" />
+              <a id="msg-{{ message.id }}" name="msg-{{ message.id }}" />
             </mj-text>
             <mj-raw>
               {% if message.autoreposts is defined and message.autoreposts > 0 %}

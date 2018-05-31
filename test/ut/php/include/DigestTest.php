@@ -298,62 +298,62 @@ class digestTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testNewDigestSingle() {
-        error_log(__METHOD__);
-
-        # Actual send for coverage.
-        $d = new Digest($this->dbhm, $this->dbhm);
-
-        # Create a group with a message on it.
-        $g = Group::get($this->dbhm, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 0);
-        $g->setPrivate('onhere', 1);
-        $msg = $this->unique(file_get_contents('msgs/attachment'));
-        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
-        $msg = str_replace('Test att', 'OFFER: Test item (location)', $msg);
-
-        $r = new MailRouter($this->dbhm, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
-        assertNotNull($id);
-        error_log("Created message $id");
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-
-        $tosends = explode(',',
-//            'freegle@litmustest.com'
-            "barracuda@barracuda.emailtests.com, previews_01@gmx.de, litmuscheck02@gmail.com, litmuscheck03@yahoo.com, litmuscheck04@mail.com, litmuscheck03@outlook.com, litmuscheck01@emailtests.onmicrosoft.com, previews_98@web.de, litmuscheck01@mail.ru, litmuscheck07@gmail.com, litmuscheck04@gapps.emailtests.com, litmuscheck04@ms.emailtests.com, litmustestprod04@gd-testing.com, litmustestprod01@yandex.com, litmuscheck004@aol.com, f148a41f0f@s.litmustest.com, f148a41f0f@sg3.emailtests.com, f148a41f0f@ml.emailtests.com"
-        );
-
-        foreach ($tosends as $tosend) {
-            $tosend = trim($tosend);
-            $u = User::get($this->dbhm, $this->dbhm);
-            $uid = $u->findByEmail($tosend);
-
-            if (!$uid) {
-                error_log("Add user for $tosend");
-                $uid = $u->create("Test", "User", "Test User");
-                $u->addEmail($tosend);
-            }
-
-            $u = User::get($this->dbhm, $this->dbhm, $uid);
-            $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
-                $u->getEmailPreferred()
-            ]);
-
-            foreach ($emails as $email) {
-                $eid = $email['id'];
-                error_log("Found eid $eid");
-                $u->addMembership($gid, User::ROLE_MEMBER, $eid);
-                $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
-            }
-        }
-
-        # Now test.
-        assertGreaterThan(0, $d->send($gid, Digest::IMMEDIATE));
-
-        error_log(__METHOD__ . " end");
-    }
+//    public function testNewDigestSingle() {
+//        error_log(__METHOD__);
+//
+//        # Actual send for coverage.
+//        $d = new Digest($this->dbhm, $this->dbhm);
+//
+//        # Create a group with a message on it.
+//        $g = Group::get($this->dbhm, $this->dbhm);
+//        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+//        $g->setPrivate('onyahoo', 0);
+//        $g->setPrivate('onhere', 1);
+//        $msg = $this->unique(file_get_contents('msgs/attachment'));
+//        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+//        $msg = str_replace('Test att', 'OFFER: Test item (location)', $msg);
+//
+//        $r = new MailRouter($this->dbhm, $this->dbhm);
+//        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
+//        assertNotNull($id);
+//        error_log("Created message $id");
+//        $rc = $r->route();
+//        assertEquals(MailRouter::APPROVED, $rc);
+//
+//        $tosends = explode(',',
+////            'freegle@litmustest.com'
+//            "barracuda@barracuda.emailtests.com, previews_01@gmx.de, litmuscheck02@gmail.com, litmuscheck03@yahoo.com, litmuscheck04@mail.com, litmuscheck03@outlook.com, litmuscheck01@emailtests.onmicrosoft.com, previews_98@web.de, litmuscheck01@mail.ru, litmuscheck07@gmail.com, litmuscheck04@gapps.emailtests.com, litmuscheck04@ms.emailtests.com, litmustestprod04@gd-testing.com, litmustestprod01@yandex.com, litmuscheck004@aol.com, f148a41f0f@s.litmustest.com, f148a41f0f@sg3.emailtests.com, f148a41f0f@ml.emailtests.com"
+//        );
+//
+//        foreach ($tosends as $tosend) {
+//            $tosend = trim($tosend);
+//            $u = User::get($this->dbhm, $this->dbhm);
+//            $uid = $u->findByEmail($tosend);
+//
+//            if (!$uid) {
+//                error_log("Add user for $tosend");
+//                $uid = $u->create("Test", "User", "Test User");
+//                $u->addEmail($tosend);
+//            }
+//
+//            $u = User::get($this->dbhm, $this->dbhm, $uid);
+//            $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
+//                $u->getEmailPreferred()
+//            ]);
+//
+//            foreach ($emails as $email) {
+//                $eid = $email['id'];
+//                error_log("Found eid $eid");
+//                $u->addMembership($gid, User::ROLE_MEMBER, $eid);
+//                $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
+//            }
+//        }
+//
+//        # Now test.
+//        assertGreaterThan(0, $d->send($gid, Digest::IMMEDIATE));
+//
+//        error_log(__METHOD__ . " end");
+//    }
 
 //    public function testNewDigestMultiple() {
 //        error_log(__METHOD__);
@@ -402,6 +402,7 @@ class digestTest extends IznikTestCase {
 ////            "barracuda@barracuda.emailtests.com, previews_98@gmx.de, litmuscheck03@gmail.com, litmuscheck05@yahoo.com, litmuscheck03@mail.com, litmuscheck05@outlook.com, litmuscheck03@emailtests.onmicrosoft.com, previews_96@web.de, litmuscheck01@mail.ru, litmuscheck06@gmail.com, litmuscheck03@gapps.emailtests.com, litmuscheck05@ms.emailtests.com, litmustestprod02@gd-testing.com, litmustestprod02@yandex.com, litmuscheck003@aol.com, 405199fca5@s.litmustest.com, 405199fca5@sg3.emailtests.com, 405199fca5@ml.emailtests.com"
 ////        'edward@ehibbert.org.uk'
 //        'freegle@litmustest.com'
+////        'edwardhibbert59@gmail.com'
 //        );
 //
 //        $d = new Digest($this->dbhm, $this->dbhm, NULL, TRUE);
