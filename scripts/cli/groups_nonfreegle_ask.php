@@ -7,9 +7,10 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
 $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type != 'Freegle' AND licenseduntil > NOW() ORDER BY nameshort ASC ;");
-list ($transport, $mailer) = getMailer();
 
 foreach ($groups as $group) {
+    error_log($group['nameshort']);
+    list ($transport, $mailer) = getMailer();
     $body = "Hi there,
     
     Thanks for using ModTools.  As I've said in https://uk.groups.yahoo.com/neo/groups/ModTools/conversations/messages/53075, I will no longer be supporting ModTools for Yahoo Groups after September 2019.
