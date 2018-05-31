@@ -24,25 +24,24 @@ if ($id && $token) {
         #error_log("Got token from session $accessToken");
 
         if ($type == 'Page') {
-            $pages = [];
-            $url = '/me/accounts';
-
-            $getPages = $fb->get($url, $accessToken);
-            $pages = $getPages->getGraphEdge();
-
             $totalPages = array();
 
-            if ($fb->next($pages)) {
-                $pagesArray = $pages->asArray();
-                $totalPages = array_merge($totalPages, $pagesArray);
-                while ($pages = $fb->next($pages)) {
-                    $pagesArray = $pages->asArray();
-                    $totalPages = array_merge($totalPages, $pagesArray);
+            $url = '/me/accounts';
+
+            do {
+                $getPages = $fb->get($url, $accessToken);
+                $body = $getPages->getDecodedBody();
+                $pages = presdef('data', $body, []);
+                #error_log("Body " . json_encode($body));
+
+                foreach ($pages as $page) {
+                    #error_log("Page {$page['name']}");
+                    $totalPages[] = $page;
                 }
-            } else {
-                $pagesArray = $pages->asArray();
-                $totalPages = array_merge($totalPages, $pagesArray);
-            }
+
+                $url = pres('paging', $body) ? presdef('next', $body['paging'], NULL) : NULL;
+                #error_log("Next url $url");
+            } while ($url);
 
             $found = FALSE;
 

@@ -26,24 +26,23 @@ try {
     $ret = $fb->get('/me', $accessToken);
 
     if ($type == 'Page') {
-        $pages = [];
+        $totalPages = [];
         $url = '/me/accounts';
-        $getPages = $fb->get($url, $accessToken);
-        $pages = $getPages->getGraphEdge();
 
-        $totalPages = array();
+        do {
+            $getPages = $fb->get($url, $accessToken);
+            $body = $getPages->getDecodedBody();
+            $pages = presdef('data', $body, []);
+            #error_log("Body " . json_encode($body));
 
-        if ($fb->next($pages)) {
-            $pagesArray = $pages->asArray();
-            $totalPages = array_merge($totalPages, $pagesArray);
-            while ($pages = $fb->next($pages)) {
-                $pagesArray = $pages->asArray();
-                $totalPages = array_merge($totalPages, $pagesArray);
+            foreach ($pages as $page) {
+                #error_log("Page {$page['name']}");
+                $totalPages[] = $page;
             }
-        } else {
-            $pagesArray = $pages->asArray();
-            $totalPages = array_merge($totalPages, $pagesArray);
-        }
+
+            $url = pres('paging', $body) ? presdef('next', $body['paging'], NULL) : NULL;
+            #error_log("Next url $url");
+        } while ($url);
 
         usort($totalPages, function ($a, $b) {
             return (strcmp($a['name'], $b['name']));
