@@ -4834,11 +4834,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $thisone['groupid'] = $gid;
             $thisone['email'] = $u->getEmailPreferred();
 
-            foreach ($thisone['memberof'] as $group) {
-                if ($group['id'] == $gid) {
-                    $thisone['joined'] = $group['added'];
+            if (pres('memberof', $thisone)) {
+                foreach ($thisone['memberof'] as $group) {
+                    if ($group['id'] == $gid) {
+                        $thisone['joined'] = $group['added'];
+                    }
                 }
             }
+
             $ret[] = $thisone;
         }
 
