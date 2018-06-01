@@ -86,7 +86,7 @@ class digestTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Actual send for coverage.
-        $d = new Digest($this->dbhm, $this->dbhm);
+        $d = new Digest($this->dbhm, $this->dbhm, NULL, TRUE);
 
         # Create a group with a message on it.
         $g = Group::get($this->dbhm, $this->dbhm);
@@ -133,6 +133,8 @@ class digestTest extends IznikTestCase {
         # an email.
         error_log("Now with our email");
         $eid2 = $u2->addEmail('test2@' . USER_DOMAIN);
+        error_log("Added eid $eid2");
+        assertGreaterThan(0, $eid2);
         $this->dbhm->preExec("DELETE FROM groups_digests WHERE groupid = ?;", [ $gid ]);
 
         # Force pick up of new email.

@@ -342,7 +342,7 @@ class Digest
                     # otherwise where would we send them?  And not to TN members because they are just discarded
                     # there, so we are just wasting effort.
                     $email = $u->getEmailPreferred();
-                    if ($this->errorlog) { error_log("Preferred $email"); }
+                    if ($this->errorlog) { error_log("Preferred $email, send ours " . $u->sendOurMails($g)); }
 
                     if ($email && $email != MODERATOR_EMAIL && strpos($email, '@user.trashnothing.com') === FALSE && $u->sendOurMails($g)) {
                         $t = $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST);
