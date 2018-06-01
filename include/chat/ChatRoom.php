@@ -1608,6 +1608,7 @@ class ChatRoom extends Entity
                                     # We only include the HTML part if this is a user on our platform; otherwise
                                     # we just send a text bodypart containing the replies.  This means that our
                                     # messages to users who aren't on here look less confusing.
+                                    #error_log("Our email " . $thisu->getOurEmail() . " for " . $thisu->getEmailPreferred());
                                     $message = $this->constructMessage($thisu,
                                         $member['userid'],
                                         $thisu->getName(),

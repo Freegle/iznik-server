@@ -70,6 +70,7 @@
           </mj-column>
         </mj-section>
         <mj-raw>
+            <a id="top" name="top" />
           {% if availablemessages | length > 0 %}
         </mj-raw>
         <mj-section background-color="#FFF8DC" padding="0px">
@@ -157,6 +158,7 @@
             </mj-raw>
             <mj-text color="darkgrey" padding-top="0px" padding-bottom="0px">
               Posted by&nbsp;{{ message.fromname }}&nbsp;on&nbsp;{{ message.date }}.
+              <a href="#top" style="float: right">Back to top</>
             </mj-text>
           </mj-column>
         </mj-section>

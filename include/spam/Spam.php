@@ -61,19 +61,24 @@ class Spam {
         $host = NULL;
 
         if ($ip) {
-            $host = $msg->getFromhost();
-            if (preg_match('/mail.*yahoo\.com/', $host)) {
-                # Posts submitted by email to Yahoo show up with an X-Originating-IP of one of Yahoo's MTAs.  We don't
-                # want to consider those as spammers.
+            if (strpos($ip, "10.") === 0) {
+                # We've picked up an internal IP, ignore it.
                 $ip = NULL;
-                $msg->setFromIP($ip);
             } else {
-                # Check if it's whitelisted
-                $sql = "SELECT * FROM spam_whitelist_ips WHERE ip = ?;";
-                $ips = $this->dbhr->preQuery($sql, [$ip]);
-                foreach ($ips as $wip) {
+                $host = $msg->getFromhost();
+                if (preg_match('/mail.*yahoo\.com/', $host)) {
+                    # Posts submitted by email to Yahoo show up with an X-Originating-IP of one of Yahoo's MTAs.  We don't
+                    # want to consider those as spammers.
                     $ip = NULL;
                     $msg->setFromIP($ip);
+                } else {
+                    # Check if it's whitelisted
+                    $sql = "SELECT * FROM spam_whitelist_ips WHERE ip = ?;";
+                    $ips = $this->dbhr->preQuery($sql, [$ip]);
+                    foreach ($ips as $wip) {
+                        $ip = NULL;
+                        $msg->setFromIP($ip);
+                    }
                 }
             }
         }
