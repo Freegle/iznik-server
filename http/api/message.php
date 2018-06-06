@@ -395,6 +395,7 @@ function message() {
                                     # group in question.
                                     $g = Group::get($dbhr, $dbhm, $groupid);
                                     $fromemail = NULL;
+                                    $cont = TRUE;
 
                                     if ($g->getPrivate('onyahoo')) {
                                         # We need to make sure we're a member of the Yahoo group with an email address
@@ -423,7 +424,15 @@ function message() {
                                         # This group is hosted here.  There's less to do in that case.
                                         if (!$u->isApprovedMember($groupid)) {
                                             # Join the group.
-                                            $u->addMembership($groupid);
+                                            $addworked = $u->addMembership($groupid);
+
+                                            if ($addworked === FALSE) {
+                                                # We couldn't join - we're banned.  Suppress the message below.
+                                                $cont = FALSE;
+
+                                                # Pretend it worked, if we suppressed a banned message.
+                                                $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];
+                                            }
                                         }
 
                                         # We want the message to come from one of our emails rather than theirs, so
@@ -437,27 +446,29 @@ function message() {
 
                                     $m->constructSubject($groupid);
 
-                                    if ($fromemail) {
-                                        # Whether we post to pending or approved depends on the group setting,
-                                        # and if that is set not to moderate, the user setting.  Similar code for
-                                        # this setting in MailRouter.
-                                        $postcoll = $g->getSetting('moderated', 0) ? MessageCollection::PENDING : $u->postToCollection($groupid);
-                                        $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
-                                            $draft['msgid'],
-                                            $groupid,
-                                            $postcoll,
-                                            $m->getType()
-                                        ]);
+                                    if ($cont) {
+                                        if ($fromemail) {
+                                            # Whether we post to pending or approved depends on the group setting,
+                                            # and if that is set not to moderate, the user setting.  Similar code for
+                                            # this setting in MailRouter.
+                                            $postcoll = $g->getSetting('moderated', 0) ? MessageCollection::PENDING : $u->postToCollection($groupid);
+                                            $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
+                                                $draft['msgid'],
+                                                $groupid,
+                                                $postcoll,
+                                                $m->getType()
+                                            ]);
 
-                                        $ret = ['ret' => 7, 'status' => 'Failed to submit'];
+                                            $ret = ['ret' => 7, 'status' => 'Failed to submit'];
 
-                                        if ($m->submit($u, $fromemail, $groupid)) {
-                                            # We sent it.
-                                            $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];
+                                            if ($m->submit($u, $fromemail, $groupid)) {
+                                                # We sent it.
+                                                $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid];
 
-                                            if ($postcoll == MessageCollection::APPROVED) {
-                                                # We index now; for pending messages we index when they are approved.
-                                                $m->index();
+                                                if ($postcoll == MessageCollection::APPROVED) {
+                                                    # We index now; for pending messages we index when they are approved.
+                                                    $m->index();
+                                                }
                                             }
                                         }
                                     }

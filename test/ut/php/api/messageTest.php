@@ -79,7 +79,8 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__);
 
         $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onhere', TRUE);
 
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -1683,6 +1684,84 @@ class messageAPITest extends IznikAPITestCase
         list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSubmitBanned()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        # This is similar to the actions on the client
+        # - find a location close to a lat/lng
+        # - upload a picture
+        # - create a draft with a location
+        # - find the closest group to that location
+        # - submit it
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+
+        $this->group->setPrivate('onyahoo', 0);
+
+        error_log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        # Find a location
+        $g = Group::get($this->dbhr, $this->dbhm);
+
+        # ...but ban them first.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail($email);
+
+        if (!$uid) {
+            $uid = $u->create("Test", "User", "Test User");
+            $u->addEmail($email);
+        }
+
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        error_log("Ban $uid from {$this->groupid}");
+        $u->removeMembership($this->groupid, TRUE);
+        assertFalse($u->addMembership($this->groupid));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->groupid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        error_log("Created draft $id");
+
+        # This will get sent as for native groups we can do so immediate.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email,
+            'ignoregroupoverride' => true
+        ]);
+
+        error_log("Message #$id should not be pending " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals('Success', $ret['status']);
+
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
+        $ctx = NULL;
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        error_log("Got pending messages " . var_export($msgs, TRUE));
+        assertEquals(0, count($msgs));
 
         error_log(__METHOD__ . " end");
     }
