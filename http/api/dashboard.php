@@ -4,6 +4,7 @@ function dashboard() {
 
     $me = whoAmI($dbhr, $dbhm);
     $systemwide = array_key_exists('systemwide', $_REQUEST) ? filter_var($_REQUEST['systemwide'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $force = array_key_exists('force', $_REQUEST) ? filter_var($_REQUEST['force'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $allgroups = array_key_exists('allgroups', $_REQUEST) ? filter_var($_REQUEST['allgroups'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $heatmap = array_key_exists('heatmap', $_REQUEST) ? filter_var($_REQUEST['heatmap'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $groupid = presdef('group', $_REQUEST, NULL);
@@ -19,7 +20,7 @@ function dashboard() {
             # Check if we're logged in
             $ret = array('ret' => 0, 'status' => 'Success');
             $d = new Dashboard($dbhr, $dbhm, $me);
-            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $region, $type, $start);
+            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $region, $type, $start, $force);
             $s = new Stats($dbhr, $dbhm);
             $ret['heatmap'] = $heatmap ? $s->getHeatmap() : NULL;
 

@@ -39,10 +39,12 @@ class dashboardTest extends IznikAPITestCase {
         # But should as an admin
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $ret = $this->call('dashboard', 'GET', [
-            'systemwide' => true
+            'systemwide' => TRUE,
+            'force' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
+        #error_log("Got dashboard " . var_export($ret, TRUE));
         assertGreaterThan(0, $dash['ApprovedMessageCount']);
 
         error_log(__METHOD__ . " end");
