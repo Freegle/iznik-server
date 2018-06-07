@@ -15,6 +15,7 @@ class MessageCollection
     const SPAM = 'Spam';
     const DRAFT = 'Draft';
     const QUEUED_YAHOO_USER = 'QueuedYahooUser'; # Awaiting a user on the Yahoo group before it can be sent
+    const QUEUED_USER = 'QueuedUser'; # Awaiting a user on a native group before it can be sent
     const REJECTED = 'Rejected'; # Rejected by mod; user can see and resend.
     const ALLUSER = 'AllUser';
     const CHAT = 'Chat'; # Chat message
@@ -46,16 +47,18 @@ class MessageCollection
             case MessageCollection::SPAM:
             case MessageCollection::DRAFT:
             case MessageCollection::QUEUED_YAHOO_USER:
+            case MessageCollection::QUEUED_USER:
             case MessageCollection::REJECTED:
                 $this->collection = [ $collection ];
                 break;
             case MessageCollection::ALLUSER:
-                # The ones users should be able to see, e.g. on home page.
+                # The ones users should be able to see, e.g. on My Posts.
                 $this->collection = [
                     MessageCollection::APPROVED,
                     MessageCollection::PENDING,
                     MessageCollection::REJECTED,
-                    MessageCollection::QUEUED_YAHOO_USER
+                    MessageCollection::QUEUED_YAHOO_USER,
+                    MessageCollection::QUEUED_USER
                 ];
                 break;
             default:
@@ -201,6 +204,7 @@ class MessageCollection
                     switch ($coll) {
                         case MessageCollection::DRAFT:
                         case MessageCollection::QUEUED_YAHOO_USER:
+                        case MessageCollection::QUEUED_USER:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners, or self (which returns a role of moderator).
                                 $n = $public;

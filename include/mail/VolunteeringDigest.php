@@ -41,7 +41,7 @@ class VolunteeringDigest
 
                 $this->log->log([
                     'type' => Log::TYPE_USER,
-                    'subtype' => Log::SUBTYPE_EVENTSOFF,
+                    'subtype' => Log::SUBTYPE_VOLUNTEERSOFF,
                     'user' => $uid,
                     'groupid' => $groupid
                 ]);

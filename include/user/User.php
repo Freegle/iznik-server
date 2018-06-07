@@ -2713,12 +2713,21 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         $this->maybeMail($groupid, $subject, $body, 'Reject Member');
 
-        # We might have messages which are awaiting this membership.
-        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid IN (SELECT id FROM messages WHERE fromuser = ?) AND groupid = ?;", [
-            MessageCollection::REJECTED,
+        # We might have messages which are awaiting this membership.  Reject them.
+        $msgs = $this->dbhr->preQuery("SELECT messages.id FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND groupid = ? AND collection IN (?, ?);", [
             $this->id,
-            $groupid
-        ]);
+            $groupid,
+            MessageCollection::QUEUED_USER,
+            MessageCollection::QUEUED_YAHOO_USER
+        ], FALSE, FALSE);
+
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?;", [
+                MessageCollection::REJECTED,
+                $msg['id'],
+                $groupid
+            ]);
+        }
 
         # Delete from memberships - after emailing, otherwise we won't find the right email for this grup.
         $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
@@ -2778,6 +2787,21 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->notif->notifyGroupMods($groupid);
 
         $this->maybeMail($groupid, $subject, $body, 'Approve Member');
+
+        # We might have messages awaiting this membership.  Move them to pending - we always moderate new members.
+        $msgs = $this->dbhr->preQuery("SELECT messages.id FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND groupid = ? AND collection = ?;", [
+            $this->id,
+            $groupid,
+            MessageCollection::QUEUED_USER
+        ], FALSE, FALSE);
+
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?;", [
+                MessageCollection::PENDING,
+                $msg['id'],
+                $groupid
+            ]);
+        }
     }
 
     public function markYahooApproved($groupid, $emailid) {

@@ -1688,6 +1688,170 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+    public function testSubmitNativeApprove()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        # This is similar to the actions on the client
+        # - find a location close to a lat/lng
+        # - upload a picture
+        # - create a draft with a location
+        # - find the closest group to that location
+        # - submit it
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+
+        $this->group->setPrivate('onyahoo', 0);
+
+        # Set the group to approve members
+        $this->group->setSettings([
+            'approvemembers' => TRUE
+        ]);
+
+        error_log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        # Find a location
+        $g = Group::get($this->dbhr, $this->dbhm);
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->groupid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        error_log("Created draft $id");
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email,
+            'ignoregroupoverride' => true
+        ]);
+
+        error_log("Message #$id should be held for membership" . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals('Success', $ret['status']);
+
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::QUEUED_USER);
+        $ctx = NULL;
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        error_log("Got pending messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        self::assertEquals($id, $msgs[0]['id']);
+
+        # Now approve the membership, which should trigger the message to move to pending.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail($email);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->approve($this->groupid,NULL, NULL, NULL);
+
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
+        $ctx = NULL;
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        error_log("Got pending messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        self::assertEquals($id, $msgs[0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSubmitNativeApproveReject()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        # This is similar to the actions on the client
+        # - find a location close to a lat/lng
+        # - upload a picture
+        # - create a draft with a location
+        # - find the closest group to that location
+        # - submit it
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+
+        $this->group->setPrivate('onyahoo', 0);
+
+        # Set the group to approve members
+        $this->group->setSettings([
+            'approvemembers' => TRUE
+        ]);
+
+        error_log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        # Find a location
+        $g = Group::get($this->dbhr, $this->dbhm);
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->groupid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        error_log("Created draft $id");
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email,
+            'ignoregroupoverride' => true
+        ]);
+
+        error_log("Message #$id should be held for membership" . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals('Success', $ret['status']);
+
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::QUEUED_USER);
+        $ctx = NULL;
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        error_log("Got pending messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        self::assertEquals($id, $msgs[0]['id']);
+
+        # Now reject the membership, which should trigger the message to move to rejected.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail($email);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->reject($this->groupid,NULL, NULL, NULL);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $gs = $m->getGroups(TRUE, FALSE);
+        error_log("Groups " . var_export($gs, TRUE));
+        self::assertEquals(1, count($gs));
+        self::assertEquals($this->groupid, $gs[0]['groupid']);
+        self::assertEquals(MessageCollection::REJECTED, $gs[0]['collection']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testSubmitBanned()
     {
         error_log(__METHOD__);

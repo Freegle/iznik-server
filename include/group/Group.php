@@ -96,7 +96,8 @@ class Group extends Entity
             'relevant' => 1,
             'newsfeed' => 1,
             'newsletter' => 1,
-            'businesscards' => 1
+            'businesscards' => 1,
+            'approvemembers' => 0
         ];
 
         if (!$this->group['settings'] || strlen($this->group['settings']) == 0) {
