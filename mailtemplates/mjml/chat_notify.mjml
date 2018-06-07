@@ -57,7 +57,7 @@
                 {% else %}
               </mj-raw>
                 <mj-text align="left" color="grey">
-                  <em>{{ message.fromname }} wrote:</em>
+                  <em>{{ message.fromname }}&nbsp;wrote:</em>
                 </mj-text>
                 <mj-text align="left" color="blue">
                   <span style="font-weight: bold">{{ message.message|nl2br }}</span>
