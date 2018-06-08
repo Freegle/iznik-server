@@ -66,6 +66,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'role' => 'Member'
         ]);
         assertEquals(0, $ret['ret']);
+        self::assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
 
         $ret = $this->call('memberships', 'PUT', [
             'groupid' => $this->groupid,
@@ -74,6 +75,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'email' => 'test2@test.com'
         ]);
         assertEquals(0, $ret['ret']);
+        self::assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
 
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         $ret = $this->call('memberships', 'PUT', [
@@ -83,6 +85,27 @@ class membershipsAPITest extends IznikAPITestCase {
             'email' => 'test2@test.com'
         ]);
         assertEquals(0, $ret['ret']);
+        self::assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testJoinApprove() {
+        error_log(__METHOD__);
+
+        $this->group->setSettings([
+            'approvemembers' => TRUE
+        ]);
+
+        $_SESSION['id'] = $this->uid2;
+
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'userid' => $this->uid2,
+            'role' => 'Member'
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(MembershipCollection::PENDING, $ret['addedto']);
 
         error_log(__METHOD__ . " end");
     }
@@ -119,6 +142,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'role' => 'Member'
         ]);
         assertEquals(0, $ret['ret']);
+        self::assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
 
         # Our role should be member.
         $ret = $this->call('message', 'GET', [

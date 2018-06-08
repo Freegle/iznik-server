@@ -183,6 +183,14 @@ function memberships() {
 
                         # ...unless there are no mods at all, in which case this lucky person could become the owner.
                         $role = ($origrole == User::ROLE_OWNER && $role == User::ROLE_MODERATOR && count($g->getMods()) == 0) ? User::ROLE_OWNER : $role;
+
+                        # If we're allowed to add another user, then they should be added as an approved member even
+                        # if the group approves members.
+                        $addtocoll = MembershipCollection::APPROVED;
+                    } else if ($userid) {
+                        # We're adding ourselves, i.e. joining a group.  If the group approves members then we should
+                        # add to pending.
+                        $addtocoll = $g->getSetting('approvemembers', FALSE) ? MembershipCollection::PENDING : MembershipCollection::APPROVED;
                     }
 
                     if ($email) {
@@ -194,7 +202,7 @@ function memberships() {
                     }
 
                     if (!$userid || $role != User::ROLE_NONMEMBER) {
-                        $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED, $message);
+                        $u->addMembership($groupid, $role, $emailid, $addtocoll, $message);
 
                         if ($g->onYahoo()) {
                             # This group is on Yahoo too, so we should trigger a membership application to there if we
@@ -212,7 +220,8 @@ function memberships() {
 
                         $ret = [
                             'ret' => 0,
-                            'status' => 'Success'
+                            'status' => 'Success',
+                            'addedto' => $addtocoll
                         ];
                     }
                 }
