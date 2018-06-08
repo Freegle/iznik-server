@@ -692,7 +692,9 @@ class MailRouter
 
                 # We should always find them as Message::parse should create them
                 if ($u->getId()) {
-                    $u->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, $envfrom);
+                    # Might need to add to pending if the group approves members.
+                    $addtocoll = $g->getSetting('approvemembers', FALSE) ? MembershipCollection::PENDING : MembershipCollection::APPROVED;
+                    $u->addMembership($gid, User::ROLE_MEMBER, NULL, $addtocoll, NULL, $envfrom);
                     $ret = MailRouter::TO_SYSTEM;
                 }
             }
