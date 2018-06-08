@@ -814,7 +814,7 @@ class User extends Entity
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->checkUser($this->id);
 
-        if ($rc && $g->getSetting('approvemembers', FALSE)) {
+        if ($rc && $collection == MembershipCollection::PENDING && $g->getSetting('approvemembers', FALSE)) {
             # Let the user know that they need to wait.
             $n = new Notifications($this->dbhr, $this->dbhm);
             $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_PENDING, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));

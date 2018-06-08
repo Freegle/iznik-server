@@ -477,9 +477,6 @@ function message() {
 
                                     if ($cont) {
                                         if ($fromemail) {
-                                            # Whether we post to pending or approved depends on the group setting,
-                                            # and if that is set not to moderate, the user setting.  Similar code for
-                                            # this setting in MailRouter.
                                             $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
                                                 $draft['msgid'],
                                                 $groupid,
