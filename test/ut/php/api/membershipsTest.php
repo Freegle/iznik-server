@@ -97,6 +97,8 @@ class membershipsAPITest extends IznikAPITestCase {
             'approvemembers' => TRUE
         ]);
 
+        $this->group->setPrivate('onyahoo', 0);
+
         $_SESSION['id'] = $this->uid2;
 
         $ret = $this->call('memberships', 'PUT', [
@@ -106,6 +108,12 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         self::assertEquals(MembershipCollection::PENDING, $ret['addedto']);
+
+        # Should have a notification.
+        $ret = $this->call('notification', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(1, count($ret['notifications']));
+        self::assertEquals(Notifications::TYPE_MEMBERSHIP_PENDING, $ret['notifications'][0]['type']);
 
         error_log(__METHOD__ . " end");
     }

@@ -14,6 +14,9 @@ class Notifications
     const TYPE_LOVED_POST = 'LovedPost';
     const TYPE_LOVED_COMMENT = 'LovedComment';
     const TYPE_TRY_FEED = 'TryFeed';
+    const TYPE_MEMBERSHIP_PENDING = 'MembershipPending';
+    const TYPE_MEMBERSHIP_APPROVED = 'MembershipApproved';
+    const TYPE_MEMBERSHIP_REJECTED = 'MembershipRejected';
 
     private $dbhr, $dbhm, $log;
 
@@ -216,6 +219,18 @@ class Notifications
                                 break;
                             case Notifications::TYPE_LOVED_COMMENT:
                                 $str .= $fromname . " loved your comment '{$notif['newsfeed']['message']}'\n";
+                                $count++;
+                                break;
+                            case Notifications::TYPE_MEMBERSHIP_PENDING:
+                                $str .= $fromname . " your application to {$notif['url']} requires approval; we'll let you know soon.\n";
+                                $count++;
+                                break;
+                            case Notifications::TYPE_MEMBERSHIP_APPROVED:
+                                $str .= $fromname . " your application to {$notif['url']} was approved; you can now use the community.\n";
+                                $count++;
+                                break;
+                            case Notifications::TYPE_MEMBERSHIP_REJECTED:
+                                $str .= $fromname . " your application to {$notif['url']} was denied.\n";
                                 $count++;
                                 break;
                         }

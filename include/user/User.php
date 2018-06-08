@@ -814,6 +814,12 @@ class User extends Entity
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->checkUser($this->id);
 
+        if ($rc && $g->getSetting('approvemembers', FALSE)) {
+            # Let the user know that they need to wait.
+            $n = new Notifications($this->dbhr, $this->dbhm);
+            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_PENDING, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
+        }
+
         return($rc);
     }
 
@@ -2714,6 +2720,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         $this->maybeMail($groupid, $subject, $body, 'Reject Member');
 
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+        if ($g->getSetting('approvemembers', FALSE)) {
+            # Let the user know.
+            $n = new Notifications($this->dbhr, $this->dbhm);
+            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_REJECTED, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
+        }
+
         # We might have messages which are awaiting this membership.  Reject them.
         $msgs = $this->dbhr->preQuery("SELECT messages.id FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND groupid = ? AND collection IN (?, ?);", [
             $this->id,
@@ -2788,6 +2801,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->notif->notifyGroupMods($groupid);
 
         $this->maybeMail($groupid, $subject, $body, 'Approve Member');
+
+        # Let the user know.
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+        if ($g->getSetting('approvemembers', FALSE)) {
+            # Let the user know.
+            $n = new Notifications($this->dbhr, $this->dbhm);
+            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_APPROVED, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
+        }
 
         # We might have messages awaiting this membership.  Move them to pending - we always moderate new members.
         $msgs = $this->dbhr->preQuery("SELECT messages.id FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND groupid = ? AND collection = ?;", [
