@@ -108,11 +108,6 @@ try {
     $url = "https://" . $_SERVER['HTTP_HOST'] . presdef('REQUEST_URI', $_SERVER, '');
 
     if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
-        # If we are on the development (aka debug) or staging (aka dev) sites then pre-render the
-        # corresponding info from the live site.
-        $url = str_replace('https://iznik.', 'https://www.', $url);
-        $url = str_replace('https://dev.', 'https://www.', $url);
-
         #error_log("Check for pre-render $url");
         # We cache the prerender info on the local file system to save the DB call.
         $fn = "/tmp/iznik.prerender." . base64_encode($url);
