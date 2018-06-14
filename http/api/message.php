@@ -298,7 +298,10 @@ function message() {
                     case 'NotSpam':
                         $m->notSpam();
                         $r = new MailRouter($dbhr, $dbhm);
-                        $r->route($m, TRUE);
+                        if ($r->route($m, TRUE) == MailRouter::DROPPED) {
+                            # We no longer want this message - for example because they're no longer a member.
+                            $m->delete("Not spam but no longer a member", $groupid);
+                        }
                         break;
                     case 'Love':
                         $m->like(Message::LIKE_LOVE);

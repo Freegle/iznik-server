@@ -617,9 +617,6 @@ class MailRouter
                         $g = new Group($this->dbhr, $this->dbhm);
                         $sn = $matches[1];
 
-                        # TODO Remove after 1/1/18
-                        $sn = str_ireplace('hertfordfreegle', 'hertford_freegle', $sn);
-
                         $gid = $g->findByShortName($sn);
                         if ($this->log) { error_log("Found $gid from $sn"); }
 
