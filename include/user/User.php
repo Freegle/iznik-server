@@ -3711,6 +3711,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             };
 
             #error_log("Chats with unseen " . var_export($chatids, TRUE));
+            $n = new Notifications($this->dbhr, $this->dbhm);
+            $notifs = $n->countUnseen($this->id);
+
             if ($count === 1) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
                 $atts = $r->getPublic($this);
@@ -3723,12 +3726,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 }
 
                 $route = "/chat/" . $unseen[0]['chatid'];
+
+                if ($notifs) {
+                    $count += $notifs;
+                }
             } else if ($count > 1) {
                 $title = "You have $count new messages";
                 $route = "/chats";
-
-                $n = new Notifications($this->dbhr, $this->dbhm);
-                $notifs = $n->countUnseen($this->id);
 
                 if ($notifs) {
                     $count += $notifs;
@@ -3736,9 +3740,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 }
             } else {
                 # Add in the notifications you see primarily from the newsfeed.
-                $n = new Notifications($this->dbhr, $this->dbhm);
-                $notifs = $n->countUnseen($this->id);
-
                 if ($notifs) {
                     $count += $notifs;
                     $title = "You have $notifs notification" . ($notifs == 1 ? '' : 's');
