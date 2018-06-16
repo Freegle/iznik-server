@@ -17,7 +17,7 @@ function activity() {
                 'recentmessages' => $m->getRecentMessages($grouptype)
             ];
         }
-        break;
+            break;
     }
 
     return($ret);

@@ -3724,10 +3724,18 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
                 $route = "/chat/" . $unseen[0]['chatid'];
             } else if ($count > 1) {
-                $title = "You have $count new messages.";
+                $title = "You have $count new messages";
                 $route = "/chats";
+
+                $n = new Notifications($this->dbhr, $this->dbhm);
+                $notifs = $n->countUnseen($this->id);
+
+                if ($notifs) {
+                    $count += $notifs;
+                    $title .= " and $notifs notification" . ($notifs == 1 ? '' : 's');
+                }
             } else {
-                # Also add in the notifications you see primarily from the newsfeed.
+                # Add in the notifications you see primarily from the newsfeed.
                 $n = new Notifications($this->dbhr, $this->dbhm);
                 $notifs = $n->countUnseen($this->id);
 
