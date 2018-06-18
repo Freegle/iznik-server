@@ -119,6 +119,10 @@ class Notifications
         $idq = $id ? (" AND id = " . intval($id)) : '';
         $sql = "UPDATE users_notifications SET seen = 1 WHERE touser = ? $idq;";
         $rc = $this->dbhm->preExec($sql, [ $userid ] );
+
+        $p = new PushNotifications($this->dbhr, $this->dbhm);
+        $p->notify($userid, MODTOOLS);
+
         return($rc);
     }
 
