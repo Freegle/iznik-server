@@ -83,6 +83,7 @@ function user() {
                     $ret['logcontext'] = $ctx;
 
                     if ($info) {
+                        $u->ensureAvatar($ret['user']);
                         $ret['user']['info'] = $u->getInfo();
                     }
                 }
