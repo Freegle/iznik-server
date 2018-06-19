@@ -186,8 +186,10 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             }
         }
 
-        # Duplicate POST protection
-        if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST')) {
+        # Duplicate POST protection.  We upload multiple images so don't protect against those.
+        if ((DUPLICATE_POST_PROTECTION > 0) &&
+            array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST') &&
+            $call != 'image') {
             # We want to make sure that we don't get duplicate POST requests within the same session.  We can't do this
             # using information stored in the session because when Redis is used as the session handler, there is
             # no session locking, and therefore two requests in quick succession could be allowed.  So instead
