@@ -94,13 +94,13 @@ try {
         $_SESSION['src'] = $_REQUEST['src'];
     }
 
-# Server-side rendering.  The webpack build produces an index.html which will
-# run the app, but we need to be able to serve up real HTML for web crawlers (even Google is
-# not yet reliable to properly index single-page apps).  We have a cron prerender script which
-# does this.
-#
-# So here we look at the URL and see if we have a pre-rendered <body> in the DB; if so then we
-# use that.  Otherwise we just use what's in index.html.
+    # Server-side rendering.  The webpack build produces an index.html which will
+    # run the app, but we need to be able to serve up real HTML for web crawlers (even Google is
+    # not yet reliable to properly index single-page apps).  We have a cron prerender script which
+    # does this.
+    #
+    # So here we look at the URL and see if we have a pre-rendered <body> in the DB; if so then we
+    # use that.  Otherwise we just use what's in index.html.
     $prerender = NULL;
 
 #error_log("Consider pre-render " . presdef('id', $_SESSION, 'no id'));
@@ -125,6 +125,25 @@ try {
         }
     }
 
+    $inspectlet = '';
+
+    if (INSPECTLET) {
+        $inspectlet = <<<EOF
+<!-- Begin Inspectlet Asynchronous Code -->
+<script type="text/javascript">
+(function() {
+window.__insp = window.__insp || [];
+__insp.push(['wid', zzzzz]);
+var ldinsp = function(){
+if(typeof window.__inspld != "undefined") return; window.__inspld = 1; var insp = document.createElement('script'); insp.type = 'text/javascript'; insp.async = true; insp.id = "inspsync"; insp.src = ('https:' == document.location.protocol ? 'https' : 'http') + '://cdn.inspectlet.com/inspectlet.js?wid=1810954883&r=' + Math.floor(new Date().getTime()/3600000); var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(insp, x); };
+setTimeout(ldinsp, 0);
+})();
+</script>
+<!-- End Inspectlet Asynchronous Code -->
+EOF;
+        $inspectlet = str_replace('zzzzz', INSPECTLET, $inspectlet);
+    }
+
     if ($prerender) {
         #error_log("Pre-render $url");
         $head = $prerender['head'];
@@ -133,7 +152,8 @@ try {
 
         # Load the AdSense script.  The actual ads are inserted in the views.
         $adsense = '<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>';
-        $indexhtml = "<!DOCTYPE HTML><html><head>{$head}{$adsense}</head>$body</html>";
+
+        $indexhtml = "<!DOCTYPE HTML><html><head>{$head}{$adsense}{$inspectlet}</head>$body</html>";
 
         if (!MODTOOLS) {
             # Google init map have put some stuff in which will cause JS errors if we execute as is.
@@ -244,7 +264,7 @@ try {
 
         $indexhtml = preg_replace('/\<title\>.*?\<\/title\>/', "<title>" . htmlentities($title) . "</title>", $indexhtml);
         $prehead = '<meta itemprop="title" content="' . $title . '"/><meta name="description" content="' . $desc . '"/><meta property="og:description" content="' . $desc . '" /><meta property="og:title" content="' . $title . '"/><meta property="og:image" content="' . $image . '"/>';
-        $indexhtml = str_replace('</head>', "$prehead</head>", $indexhtml);
+        $indexhtml = str_replace('</head>', "$prehead$inspectlet</head>", $indexhtml);
 
         echo $indexhtml;
     }

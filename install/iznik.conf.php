@@ -27,6 +27,9 @@ define('GOOGLE_CLIENT_SECRET', 'zzz');
 define('GOOGLE_APP_NAME', 'zzz');
 define('GOOGLE_SITE_VERIFICATION', 'zzz');
 
+# For website analysis.
+define('INSPECTLET', zzz);
+
 # We support Facebook login, but you have to create your own app
 define('FBAPP_ID', 'zzz');
 define('FBAPP_SECRET', 'zzz');
