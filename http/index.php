@@ -127,7 +127,7 @@ try {
 
     $inspectlet = '';
 
-    if (INSPECTLET) {
+    if (!pres('nocache', $_REQUEST) && INSPECTLET) {
         $inspectlet = <<<EOF
 <!-- Begin Inspectlet Asynchronous Code -->
 <script type="text/javascript">
@@ -156,9 +156,12 @@ EOF;
         $indexhtml = "<!DOCTYPE HTML><html><head>{$head}{$adsense}{$inspectlet}</head>$body</html>";
 
         if (!MODTOOLS) {
-            # Google init map have put some stuff in which will cause JS errors if we execute as is.
+            # Google init map have put some stuff in which will cause JS errors if we execute as is.  Ditto Inspectlet.
             #$indexhtml = preg_replace('/\<script type="text\/javascript" charset="UTF-8" src="https:\/\/maps.googleapis.com.*?<\/script>/m', '', $indexhtml);
             $indexhtml = preg_replace('/\<script src="https:\/\/apis.google.com\/\_.*?<\/script>/m', '', $indexhtml);
+            $indexhtml = preg_replace('/\<script type="text\/javascript" async="" id="inspsync".*?<\/script>/m', '', $indexhtml);
+            $indexhtml = preg_replace('/\<script src="https:\/\/apis.google.com\/\_.*?<\/script>/m', '', $indexhtml);
+            $indexhtml = preg_replace('/<link rel="preload" href="https:\/\/adservice.google.co.uk.*?<\/script><style/m', '<style ', $indexhtml);
             $indexhtml = str_replace(' gapi_processed="true"', '', $indexhtml);
         }
 
