@@ -123,6 +123,7 @@ require_once(IZNIK_BASE . '/http/api/notification.php');
 require_once(IZNIK_BASE . '/http/api/mentions.php');
 require_once(IZNIK_BASE . '/http/api/logs.php');
 require_once(IZNIK_BASE . '/http/api/visualise.php');
+require_once(IZNIK_BASE . '/http/api/domains.php');
 
 use GeoIp2\Database\Reader;
 
@@ -331,6 +332,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'communityevent':
                     $ret = communityevent();
+                    break;
+                case 'domains':
+                    $ret = domains();
                     break;
                 case 'locations':
                     $ret = locations();
