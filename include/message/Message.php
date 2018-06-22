@@ -2744,7 +2744,7 @@ class Message
         $textbody = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\r\n\r\n", $textbody);
 
         // Our own footer.
-        $textbody = preg_replace('/This message was from user .*?, and this mail was sent to .*?$/m', "", $textbody);
+        $textbody = preg_replace('/This message was from user .*?, and this mail was sent to .*?$/mi', "", $textbody);
         $textbody = preg_replace('/Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice./', "", $textbody);
 
         return(trim($textbody));
