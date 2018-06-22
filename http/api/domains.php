@@ -17,7 +17,6 @@ function domains() {
                 if (count($domains) === 0) {
                     # This is not a common domain.  It may be a typo.  See if there are suggestions we can make.,
                     $sql = "SELECT * FROM domains_common WHERE damlevlim(`domain`, ?, " . strlen($domain) . ") < 3 ORDER BY count DESC LIMIT 5;";
-                    error_log($sql);
                     $suggestions = $dbhr->preQuery($sql, [ $domain ]);
 
                     $ret['suggestions'] = [];
