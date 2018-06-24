@@ -26,7 +26,7 @@ foreach ($emails as $email) {
 
         if (count($domains) === 0) {
             # This is not a common domain.  It may be a typo.  See if there are suggestions we can make.,
-            $sql = "SELECT * FROM domains_common WHERE damlevlim(`domain`, ?, " . strlen($domain) . ") < 3 ORDER BY count DESC LIMIT 1;";
+            $sql = "SELECT * FROM domains_common WHERE damlevlim(`domain`, ?, " . strlen($domain) . ") < 2 ORDER BY count DESC LIMIT 1;";
             $suggestions = $dbhr->preQuery($sql, [ $domain ], FALSE, FALSE);
 
             foreach ($suggestions as $suggestion) {

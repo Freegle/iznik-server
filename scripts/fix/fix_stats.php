@@ -6,14 +6,12 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
-for ($i = 400; $i < 533; $i++) {
-    $date = date('Y-m-d', strtotime("$i days ago"));
+    $date = '2018-02-03';
     error_log($date);
 
     $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' ORDER BY nameshort ASC;");
     foreach ($groups as $group) {
         error_log("...{$group['nameshort']}");
         $s = new Stats($dbhr, $dbhm, $group['id']);
-        $s->generate($date, [Stats::OUTCOMES]);
+        $s->generate($date, [Stats::APPROVED_MEMBER_COUNT]);
     }
-}
