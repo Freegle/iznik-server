@@ -2620,6 +2620,10 @@ class Message
             #error_log("Converted HTML text $textbody");
         }
 
+        # Convert unicode spaces to ascii spaces
+        $textbody = str_replace("\xc2\xa0", "\x20", $textbody);
+
+        # Remove basic quoting.
         $textbody = trim(preg_replace('#(^\w.+:\n)?(^(>|\|).*(\n|$))+#mi', "", $textbody));
 
         # We might have a section like this, for example from eM Client, which could be top or bottom-quoted.
@@ -2745,7 +2749,13 @@ class Message
 
         // Our own footer.
         $textbody = preg_replace('/This message was from user .*?, and this mail was sent to .*?$/mi', "", $textbody);
-        $textbody = preg_replace('/Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice./', "", $textbody);
+        $textbody = preg_replace('/Freegle is registered as a charity.*?nice./mi', "", $textbody);
+
+        # Quoting timestamp
+        $textbody = preg_replace('/^On .*?\> wrote\:/mi', "", $textbody);
+
+        # | is used to quote.
+        $textbody = str_replace('|', '', $textbody);
 
         return(trim($textbody));
     }
