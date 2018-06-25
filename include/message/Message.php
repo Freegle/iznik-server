@@ -2755,7 +2755,12 @@ class Message
         $textbody = preg_replace('/^On .*?\> wrote\:/mi', "", $textbody);
 
         # | is used to quote.
-        $textbody = str_replace('|', '', $textbody);
+        $textbody = preg_replace('/^\|/mi', '', $textbody);
+
+        $textbody = trim($textbody);
+        if (substr($textbody, -1) == '|') {
+            $textbody = substr($textbody, 0, strlen($textbody) - 1);
+        }
 
         return(trim($textbody));
     }
