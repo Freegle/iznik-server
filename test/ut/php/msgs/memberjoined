@@ -27,7 +27,7 @@ Received: from [216.39.60.222] by ng3.bullet.mail.gq1.yahoo.com with NNFMP; 20
 Received: from [10.193.39.27] by tg14.bullet.mail.gq1.yahoo.com with NNFMP; 20
  Jan 2016 16:54:20 -0000
 X-Yahoo-Newman-Property: groups-notify
-X-Originating-IP: 98.139.170.166
+X-Originating-IP: 10.0.0.1
 X-eGroups-Msg-Info: 1:12:0:0
 X-Sender: notify@yahoogroups.com
 X-Apparently-To: testgroup-owner@yahoogroups.com
@@ -36,7 +36,7 @@ Received: from unknown (HELO mtaq6.grp.bf1.yahoo.com) (10.193.84.37) by
  m10.grp.bf1.yahoo.com with SMTP; 20 Jan 2016 16:54:20 -0000
 Received: (qmail 5278 invoked from network); 20 Jan 2016 16:54:20 -0000
 Received: from unknown (HELO mta1002.groups.mail.bf1.yahoo.com)
- (98.139.170.166) by mtaq6.grp.bf1.yahoo.com with SMTP; 20 Jan 2016 16:54:20
+ (10.0.0.1) by mtaq6.grp.bf1.yahoo.com with SMTP; 20 Jan 2016 16:54:20
  -0000
 Return-Path: <notify@yahoogroups.com>
 Received-SPF: pass (domain of yahoogroups.com designates 72.30.234.86 as

@@ -734,7 +734,7 @@ And something after it.', $stripped);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $m->save();
         $atts = $m->getAttachments();
-        assertEquals(1, count($atts));
+        assertEquals(2, count($atts));
         $m->delete();
 
         error_log(__METHOD__ . " end");

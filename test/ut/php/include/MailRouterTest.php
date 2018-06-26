@@ -1228,8 +1228,8 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(1, count($msgs));
         $lines = explode("\n", $msgs[0]['message']);
         error_log(var_export($lines, TRUE));
-        assertEquals('This is a rich text reply. ', $lines[0]);
-        assertEquals('  ', $lines[1]);
+        assertEquals('This is a rich text reply.', trim($lines[0]));
+        assertEquals('', trim($lines[1]));
         assertEquals('Hopefully you\'ll receive it and it\'ll get parsed ok.', $lines[2]);
         assertEquals($origid, $msgs[0]['refmsg']['id']);
 

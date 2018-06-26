@@ -16,7 +16,7 @@ X-Received: (qmail 2487 invoked by uid 102); 3 May 2016 00:58:55 -0000
 X-Received: from unknown (HELO mtaq1.grp.bf1.yahoo.com) (10.193.84.32)
   by m3.grp.bf1.yahoo.com with SMTP; 3 May 2016 00:58:55 -0000
 X-Received: (qmail 15216 invoked from network); 3 May 2016 00:58:55 -0000
-X-Received: from unknown (HELO mta1003.groups.mail.bf1.yahoo.com) (98.139.170.167)
+X-Received: from unknown (HELO mta1003.groups.mail.bf1.yahoo.com) (10.0.0.1)
   by mtaq1.grp.bf1.yahoo.com with SMTP; 3 May 2016 00:58:55 -0000
 X-Received-SPF: none (domain of test.com does not designate permitted sender hosts)
 X-YMailISG: BfVVWd4WLDsaKvbNoFVGAd2ZTwzxYPt7L8KYYMjp97zuegsM
@@ -58,7 +58,7 @@ Message-ID: <5727F78D.9030504@test.com>
 User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101
  Thunderbird/38.7.2
 In-Reply-To: <57267A55.4070406@test.com>
-X-Originating-IP: 98.139.170.167
+X-Originating-IP: 10.0.0.1
 X-Original-From: Test User <test@test.com>
 From: "Test User test@test.com [FreeglePlayground]" <FreeglePlayground@yahoogroups.com>
 X-Yahoo-Profile: thriftytalk
