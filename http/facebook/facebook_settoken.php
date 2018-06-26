@@ -39,7 +39,7 @@ if ($id && $token) {
                     $totalPages[] = $page;
                 }
 
-                $url = pres('paging', $body) ? presdef('next', $body['paging'], NULL) : NULL;
+                $url = pres('paging', $body) ? ('/me/accounts?after=' . presdef('after', $body['paging']['cursors'], NULL)) : NULL;
                 #error_log("Next url $url");
             } while ($url);
 
