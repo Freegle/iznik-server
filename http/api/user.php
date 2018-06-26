@@ -32,6 +32,7 @@ function user() {
     $yahooPostingStatus = presdef('yahooPostingStatus', $_REQUEST, NULL);
     $ourPostingStatus = presdef('ourPostingStatus', $_REQUEST, NULL);
     $ourEmailFrequency = presdef('emailfrequency', $_REQUEST, NULL);
+    $chatmodstatus = presdef('chatmodstatus', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -256,6 +257,10 @@ function user() {
 
                 if (array_key_exists('onholidaytill', $_REQUEST)) {
                     $u->setPrivate('onholidaytill', presdef('onholidaytill', $_REQUEST, NULL));
+                }
+
+                if ($chatmodstatus !== NULL) {
+                    $u->setPrivate('chatmodstatus', $chatmodstatus);
                 }
 
                 $ret = [

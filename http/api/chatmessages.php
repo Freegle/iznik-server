@@ -77,6 +77,15 @@ function chatmessages() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+                } else if ($action == ChatMessage::ACTION_APPROVE_ALL_FUTURE && $id) {
+                    $m->approve($id);
+                    $u = User::get($dbhr, $dbhm, $m->getPrivate('userid'));
+                    $u->setPrivate('chatmodstatus', User::CHAT_MODSTATUS_UNMODERATED);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
                 } else if ($action == ChatMessage::ACTION_REJECT && $id) {
                     $m->reject($id);
                     $ret = [

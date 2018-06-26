@@ -30,6 +30,7 @@ class ChatMessage extends Entity
     const TYPE_SCHEDULE_UPDATED = 'ScheduleUpdated';
 
     const ACTION_APPROVE = 'Approve';
+    const ACTION_APPROVE_ALL_FUTURE = 'ApproveAllFuture';
     const ACTION_REJECT = 'Reject';
     const ACTION_HOLD = 'Hold';
     const ACTION_RELEASE = 'Release';
@@ -138,7 +139,9 @@ class ChatMessage extends Entity
 
             # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
             # include user text.
-            if (!$u->isModerator() && ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER)) {
+            if (!$u->isModerator() &&
+                $u->getPrivate('chatmodstatus') == User::CHAT_MODSTATUS_MODERATED &&
+                ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER)) {
                 # We check the language (second parameter to checkReview) only for non-platform messages.
                 # The reason for this is that the language detection code doesn't work under current HHVM and throws
                 # a fatal error, but does work under PHP which is what the incoming email processing code uses -

@@ -92,6 +92,10 @@ class User extends Entity
     const SRC_NOTIFICATIONS_EMAIL = 'notifemail';
     const SRC_NEWSFEED_DIGEST = 'newsfeeddigest';
 
+    # Chat mod status
+    const CHAT_MODSTATUS_MODERATED = 'Moderated';
+    const CHAT_MODSTATUS_UNMODERATED = 'Unmoderated';
+
     /** @var  $log Log */
     private $log;
     var $user;

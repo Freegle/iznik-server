@@ -390,6 +390,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $mid2 = $ret['id'];
 
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
+        self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+
         # Now log in as the other user.
         assertTrue($this->user2->login('testpw'));
 
@@ -503,6 +506,47 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testReviewUnmod() {
+        error_log(__METHOD__);
+
+        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
+        $this->user->setPrivate('chatmodstatus', User::CHAT_MODSTATUS_UNMODERATED);
+        assertTrue($this->user->login('testpw'));
+
+        # Create a chat to the second user
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $this->uid2
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $this->cid = $ret['id'];
+        assertNotNull($this->cid);
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test with link http://spam.wherever ',
+            'refchatid' => $this->cid
+        ]);
+        error_log("Create message " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $mid1 = $ret['id'];
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test with link http://ham.wherever '
+        ]);
+        error_log("Create message " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $mid2 = $ret['id'];
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
+        self::assertEquals(0, $cm->getPrivate('reviewrequired'));
 
         error_log(__METHOD__ . " end");
     }
