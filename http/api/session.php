@@ -57,6 +57,7 @@ function session() {
                 }
 
                 $ret['emails'] = $me->getEmails();
+                $ret['me']['phone'] = $me->getPhone();
 
                 # Get groups including work when we're on ModTools; don't need that on the user site.
                 $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS, TRUE);
@@ -333,6 +334,15 @@ function session() {
                 if ($email) {
                     if (!$me->verifyEmail($email)) {
                         $ret = ['ret' => 10, 'status' => "We've sent a verification mail; please check your mailbox." ];
+                    }
+                }
+
+                if (array_key_exists('phone', $_REQUEST)) {
+                    $phone = $_REQUEST['phone'];
+                    if ($phone) {
+                        $me->addPhone($phone);
+                    } else {
+                        $me->removePhone();
                     }
                 }
 

@@ -1627,6 +1627,11 @@ class ChatRoom extends Entity
                                         $chat['chatid']
                                     ]);
 
+                                    if ($chattype == ChatRoom::TYPE_USER2USER) {
+                                        # Send any SMS.
+                                        $thisu->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid']);
+                                    }
+
                                     $notified++;
                                 } catch (Exception $e) {
                                     error_log("Send to {$member['userid']} failed with " . $e->getMessage());

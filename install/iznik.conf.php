@@ -44,6 +44,11 @@ define('TWITTER_CONSUMER_SECRET', 'zzzz');
 define('TWITTER_ACCOUNT_TOKEN', 'zzz');
 define('TWITTER_ACCOUNT_SECRET', 'zzz');
 
+# We can send SMS
+define('TWILIO_SID', 'zzzz');
+define('TWILIO_AUTH', 'zzzz');
+define('TWILIO_NUMBER', 'zzzz');
+
 # We access PayPal to retrieve info on donations
 define('PAYPAL_USERNAME', 'zzzz');
 define('PAYPAL_PASSWORD', 'zzzz');

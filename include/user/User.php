@@ -21,6 +21,7 @@ require_once(IZNIK_BASE . '/mailtemplates/invite.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 use Jenssegers\ImageHash\ImageHash;
+use Twilio\Rest\Client;
 
 class User extends Entity
 {
@@ -4138,47 +4139,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return($ret);
     }
 
-    private function exportContext($item, $key)
-    {
-        if ($item) {
-            $expand = [
-                'msgid' => [
-                    'table' => 'messages',
-                    'atts' => [ 'id', 'subject' ]
-                ],
-                'groupid' => [
-                    'table' => 'groups',
-                    'atts' => [ 'id', 'nameshort' ]
-                ],
-                'eventid' => [
-                    'table' => 'communityevents',
-                    'atts' => [ 'id', 'title' ]
-                ],
-                'volunteeringid' => [
-                    'table' => 'volunteering',
-                    'atts' => [ 'id', 'title' ]
-                ]
-            ];
-
-            foreach ($expand as $att => $info) {
-                if ($att == $key && $item) {
-                    if (!array_key_exists($info['table'], $this->additional)) {
-                        $this->additional[$info['table']] = [];
-                    }
-
-                    if (!array_key_exists($item, $this->additional[$info['table']])) {
-                        $sql = "SELECT " . implode(',', $info['atts']) . " FROM {$info['table']} WHERE id = $item;";
-                        $data = $this->dbhr->preQuery($sql);
-
-                        if (count($data)) {
-                            $this->additional[$info['table']][$item] = $data[0];
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     public function requestExport() {
         $tag = randstr(64);
         $this->dbhm->preExec("INSERT INTO users_exports (userid, tag) VALUES (?, ?);", [
@@ -4302,6 +4262,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             if ($email['validated']) {
                 $email['validated'] = ISODate($email['validated']);
             }
+        }
+
+        $phones = $this->dbhr->preQuery("SELECT number FROM users_phones WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($phones as $phone) {
+            $d['phone'] = $phone['number'];
         }
 
         error_log("...logins");
@@ -4904,6 +4872,78 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
 
             $ret[] = $thisone;
+        }
+
+        return($ret);
+    }
+
+    public function formatPhone($num) {
+        $num = str_replace(' ', '', $num);
+        $num = str_replace('+44', '', $num);
+        $num = str_replace('+', '', $num);
+
+        if (substr($num, 0, 1) === '0') {
+            $num = substr($num, 1);
+        }
+
+        $num = "+44$num";
+
+        return($num);
+    }
+
+    public function sms($msg, $url) {
+        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1;", [
+            $this->id
+        ]);
+
+        foreach ($phones as $phone) {
+            $client = new Client(TWILIO_SID, TWILIO_AUTH);
+
+            $text = "$msg Click $url Don't reply to this text.";
+
+            try {
+                $rsp = $client->messages->create(
+                    $this->formatPhone($phone['number']),
+                    array(
+                        'from' => TWILIO_FROM,
+                        'body' => $text
+                    )
+                );
+
+                $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = NULL WHERE id = ?;", [
+                    $phone['id']
+                ]);
+            } catch (Exception $e) {
+                error_log("Send to {$phone['number']} failed with " . $e->getMessage());
+                $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = ? WHERE id = ?;", [
+                    $e->getMessage(),
+                    $phone['id']
+                ]);
+            }
+        }
+    }
+
+    public function addPhone($phone) {
+        $this->dbhm->preExec("REPLACE INTO users_phones (userid, number, valid) VALUES (?, ?, 1);", [
+            $this->id,
+            $this->formatPhone($phone),
+        ]);
+    }
+
+    public function removePhone() {
+        $this->dbhm->preExec("DELETE FROM users_phones WHERE userid = ?;", [
+            $this->id
+        ]);
+    }
+
+    public function getPhone() {
+        $ret = NULL;
+        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($phones as $phone) {
+            $ret = $phone['number'];
         }
 
         return($ret);
