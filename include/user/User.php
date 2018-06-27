@@ -4722,6 +4722,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $this->id
         ]);
 
+        # Delete any phone numbers.
+        $this->dbhm->preExec("DELETE FROM users_phones WHERE userid = ?;", [
+            $this->id
+        ]);
+
         # Delete the content (but not subject) of any messages, and any email header information such as their
         # name and email address.
         $msgs = $this->dbhm->preQuery("SELECT id FROM messages WHERE fromuser = ?;", [
