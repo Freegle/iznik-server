@@ -4915,7 +4915,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     )
                 );
 
-                $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = NULL WHERE id = ?;", [
+                $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = NULL, count = count + 1 WHERE id = ?;", [
                     $phone['id']
                 ]);
             } catch (Exception $e) {
