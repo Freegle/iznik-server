@@ -26,7 +26,6 @@ $helper = $fb->getRedirectLoginHelper();
 $permissions = [
     'manage_pages',
     'publish_pages',
-    'user_managed_groups',
     'publish_actions'
 ];
 

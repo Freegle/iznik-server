@@ -6,6 +6,7 @@ function socialactions() {
     $id = presdef('id', $_REQUEST, NULL);
     $id = $id ? intval($id) : $id;
     $uid = intval(presdef('uid', $_REQUEST, NULL));
+    $msgid = intval(presdef('msgid', $_REQUEST, NULL));
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 

@@ -353,11 +353,7 @@ class Group extends Entity
             ])[0]['count'] : 0,
             'spammembers' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users INNER JOIN memberships ON memberships.groupid = ? AND memberships.userid = users.id WHERE suspectcount > 0;", [
                 $this->id
-            ])[0]['count'],
-            'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
-                $this->id
-            ])[0]['count'],
-            'fbgroups' => $f->getPostableMessagesCount($this->id)
+            ])[0]['count']
         ];
 
         return($ret);

@@ -87,52 +87,6 @@ class messagesTest extends IznikAPITestCase {
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        # This should be outstanding for Facebook posting.  Add a Facebook group, and we can find it via the session.
-        $ret = $this->call('group', 'POST', [
-            'action' => 'AddFacebookGroup',
-            'id' => $group1,
-            'facebookid' => 'UTTest',
-            'name' => 'UTTest'
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        $ret = $this->call('session', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        self::assertEquals(1, count($ret['groups']));
-        self::assertEquals(1, count($ret['groups'][0]['facebook']));
-
-        $uid = $ret['groups'][0]['facebook'][0]['uid'];
-        error_log("UID is $uid");
-
-        $ret = $this->call('messages', 'GET', [
-            'uid' => $uid,
-            'facebook_postable' => TRUE
-        ]);
-        error_log("Get outstanding Facebook on $group1 should be $id " . var_export($ret, true));
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-
-        error_log("Record share");
-
-        $ret = $this->call('group', 'POST', [
-            'action' => 'RecordFacebookShare',
-            'uid' => $uid,
-            'msgid' => $msgs[0]['id'],
-            'msgarrival' => ISODate('@' . strtotime('now'))
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        error_log("Remove group");
-        $ret = $this->call('group', 'POST', [
-            'action' => 'RemoveFacebookGroup',
-            'id' => $group1,
-            'uid' => $uid
-        ]);
-        error_log("Remove returned " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-
         # Omit groupid - should use groups for currently logged in user.
         $ret = $this->call('messages', 'GET', [
         ]);

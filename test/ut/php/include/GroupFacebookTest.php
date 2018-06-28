@@ -37,8 +37,6 @@ class groupFacebookTest extends IznikTestCase {
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
         $t->getPostsToShare('a', "last week");
         $posts = $t->getPostsToShare($t->getPublic()['sharefrom'], "last week");
-        $count = $t->updatePostableCount();
-        self::assertEquals($count, count($posts));
 
         $gid = $g->create('testgroup', Group::GROUP_UT);
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);

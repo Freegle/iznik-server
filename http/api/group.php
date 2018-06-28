@@ -291,52 +291,6 @@ function group() {
                         break;
                     }
 
-                    case 'AddFacebookGroup': {
-                        $name = presdef('name', $_REQUEST, NULL);
-                        $facebookid = presdef('facebookid', $_REQUEST, NULL);
-                        $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
-
-                        if ($id && $name && $facebookid) {
-                            $accessToken = NULL;
-
-                            if (pres('access_token', $_REQUEST)) {
-                                # We need to get a long-lived token
-                                $fb = new Facebook\Facebook([
-                                    'app_id' => FBGRAFFITIAPP_ID,
-                                    'app_secret' => FBGRAFFITIAPP_SECRET
-                                ]);
-                                $accessToken = new \Facebook\Authentication\AccessToken(presdef('access_token', $_REQUEST, NULL));
-
-                                $oAuth2Client = $fb->getOAuth2Client();
-                                $tokenMetadata = $oAuth2Client->debugToken($accessToken);
-                                $tokenMetadata->validateAppId(FBGRAFFITIAPP_ID);
-                                $tokenMetadata->validateExpiration();
-                                $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
-                            }
-
-                            $f = new GroupFacebook($dbhr, $dbhm);
-                            $f->add($id, (string)$accessToken, $name, $facebookid, GroupFacebook::TYPE_GROUP);
-                            $ret = ['ret' => 0, 'status' => 'Success'];
-                        }
-
-                        break;
-                    }
-
-                    case 'RecordFacebookShare': {
-                        $uid = intval(presdef('uid', $_REQUEST, NULL));
-                        $msgid = intval(presdef('msgid', $_REQUEST, NULL));
-                        $arrival = presdef('msgarrival', $_REQUEST, NULL);
-                        $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
-
-                        if ($uid && $arrival) {
-                            $f = new GroupFacebook($dbhr, $dbhm, $uid);
-                            $f->updatePostableMessages($msgid, $arrival);
-                            $ret = ['ret' => 0, 'status' => 'Success'];
-                        }
-
-                        break;
-                    }
-
                     case 'RemoveFacebookGroup': {
                         $uid = intval(presdef('uid', $_REQUEST, NULL));
                         $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
@@ -348,8 +302,7 @@ function group() {
                         }
 
                         break;
-                    }
-                }
+                    }                }
 
                 break;
             }
