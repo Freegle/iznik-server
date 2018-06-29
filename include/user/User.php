@@ -4902,11 +4902,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
 
         foreach ($phones as $phone) {
-            $client = new Client(TWILIO_SID, TWILIO_AUTH);
-
-            $text = "$msg Click $url Don't reply to this text.";
-
             try {
+                $client = new Client(TWILIO_SID, TWILIO_AUTH);
+
+                $text = "$msg Click $url Don't reply to this text.";
+
                 $rsp = $client->messages->create(
                     $this->formatPhone($phone['number']),
                     array(
@@ -4915,9 +4915,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     )
                 );
 
-                $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = NULL WHERE id = ?;", [
+                $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), count = count + 1, lastresponse = ? WHERE id = ?;", [
+                    $rsp->sid,
                     $phone['id']
                 ]);
+                error_log("Sent SMS to {$phone['number']} result {$rsp->sid}");
             } catch (Exception $e) {
                 error_log("Send to {$phone['number']} failed with " . $e->getMessage());
                 $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = ? WHERE id = ?;", [
