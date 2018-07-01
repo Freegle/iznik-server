@@ -19,9 +19,11 @@ function domains() {
                     $sql = "SELECT * FROM domains_common WHERE damlevlim(`domain`, ?, " . strlen($domain) . ") < 3 ORDER BY count DESC LIMIT 5;";
                     $suggestions = $dbhr->preQuery($sql, [ $domain ]);
 
-                    $ret['suggestions'] = [];
-                    foreach ($suggestions as $s) {
-                        $ret['suggestions'][] = $s['domain'];
+                    if (count($suggestions)) {
+                        $ret['suggestions'] = [];
+                        foreach ($suggestions as $s) {
+                            $ret['suggestions'][] = $s['domain'];
+                        }
                     }
                 }
             }
