@@ -49,6 +49,7 @@ class User extends Entity
     const PERM_BUSINESS_CARDS = 'BusinessCards';
     const PERM_NEWSLETTER = 'Newsletter';
     const PERM_NATIONAL_VOLUNTEERS = 'NationalVolunteers';
+    const PERM_TEAMS = 'Teams';
 
     const HAPPY = 'Happy';
     const FINE = 'Fine';
@@ -2531,6 +2532,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         $this->dbhm->preExec("UPDATE IGNORE users_thanks SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE modnotifs SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_chatlists_index SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE teams_members SET userid = $id1 WHERE userid = $id2;");
 
                         # Merge chat rooms.  There might have be two separate rooms already, which means that we need
                         # to make sure that messages from both end up in the same one.

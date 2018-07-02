@@ -73,17 +73,19 @@ class Schedule extends Entity
             $schedule1 = json_decode($schedules[0]['schedule'], TRUE);
             $schedule2 = json_decode($schedules[1]['schedule'], TRUE);
 
-            foreach ($schedule1 as $slot1) {
-                foreach ($schedule2 as $slot2) {
-                    #error_log("Compare {$slot1['date']} {$slot1['hour']} av {$slot1['available']} to {$slot2['date']} {$slot2['hour']} av {$slot2['available']} ");
-                    $key = $slot1['date'] . $slot1['hour'];
+            if ($schedule1 && $schedule2) {
+                foreach ($schedule1 as $slot1) {
+                    foreach ($schedule2 as $slot2) {
+                        #error_log("Compare {$slot1['date']} {$slot1['hour']} av {$slot1['available']} to {$slot2['date']} {$slot2['hour']} av {$slot2['available']} ");
+                        $key = $slot1['date'] . $slot1['hour'];
 
-                    if ($slot1['available'] && $slot2['available'] &&
-                        $slot1['date'] == $slot2['date'] &&
-                        $slot1['hour'] == $slot2['hour'] &&
-                        !array_key_exists($key, $matches)) {
-                        $matches[$key] = $slot1;
-                        #error_log("Matches {$slot1['date']} {$slot1['hour']} av {$slot1['available']} to {$slot2['date']} {$slot2['hour']} av {$slot2['available']} ");
+                        if ($slot1['available'] && $slot2['available'] &&
+                            $slot1['date'] == $slot2['date'] &&
+                            $slot1['hour'] == $slot2['hour'] &&
+                            !array_key_exists($key, $matches)) {
+                            $matches[$key] = $slot1;
+                            #error_log("Matches {$slot1['date']} {$slot1['hour']} av {$slot1['available']} to {$slot2['date']} {$slot2['hour']} av {$slot2['available']} ");
+                        }
                     }
                 }
             }

@@ -72,6 +72,7 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/config/BulkOp.php');
 require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
+require_once(IZNIK_BASE . '/include/user/Team.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/abtest.php');
@@ -124,6 +125,7 @@ require_once(IZNIK_BASE . '/http/api/mentions.php');
 require_once(IZNIK_BASE . '/http/api/logs.php');
 require_once(IZNIK_BASE . '/http/api/visualise.php');
 require_once(IZNIK_BASE . '/http/api/domains.php');
+require_once(IZNIK_BASE . '/http/api/team.php');
 
 use GeoIp2\Database\Reader;
 
@@ -398,6 +400,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'mentions':
                     $ret = mentions();
+                    break;
+                case 'team':
+                    $ret = team();
                     break;
                 case 'visualise':
                     $ret = visualise();
