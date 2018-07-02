@@ -113,7 +113,8 @@ class User extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
     }
 
-    public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $usecache = TRUE) {
+    public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $usecache = TRUE)
+    {
         if ($id) {
             # We cache the constructed user.
             if ($usecache && array_key_exists($id, User::$cache) && User::$cache[$id]->getId() == $id) {
@@ -135,7 +136,7 @@ class User extends Entity
                     #error_log("Fetched $id as " . $u->getId() . " mod " . $u->isModerator());
                     User::$cache[$id] = $u;
                     User::$cacheDeleted[$id] = FALSE;
-                    return($u);
+                    return ($u);
                 }
             }
         }
@@ -151,10 +152,11 @@ class User extends Entity
             User::$cacheDeleted[$id] = FALSE;
         }
 
-        return($u);
+        return ($u);
     }
 
-    public static function clearCache($id = NULL) {
+    public static function clearCache($id = NULL)
+    {
         # Remove this user from our cache.
         #error_log("Clear $id from cache");
         if ($id) {
@@ -165,11 +167,13 @@ class User extends Entity
         }
     }
 
-    public function hashPassword($pw) {
+    public function hashPassword($pw)
+    {
         return sha1($pw . PASSWORD_SALT);
     }
 
-    public function login($pw, $force = FALSE) {
+    public function login($pw, $force = FALSE)
+    {
         # TODO lockout
         if ($this->id) {
             $pw = $this->hashPassword($pw);
@@ -199,16 +203,17 @@ class User extends Entity
             }
         }
 
-        return(FALSE);
+        return (FALSE);
     }
 
-    public function linkLogin($key) {
+    public function linkLogin($key)
+    {
         $ret = FALSE;
 
         if (presdef('id', $_SESSION, NULL) != $this->id) {
             # We're not already logged in as this user.
             $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ? AND credentials = ?;";
-            $logins = $this->dbhr->preQuery($sql, [ $this->id, User::LOGIN_LINK, $key ], FALSE, FALSE);
+            $logins = $this->dbhr->preQuery($sql, [$this->id, User::LOGIN_LINK, $key], FALSE, FALSE);
             foreach ($logins as $login) {
                 # We found a match - log them in.
                 $s = new Session($this->dbhr, $this->dbhm);
@@ -226,25 +231,28 @@ class User extends Entity
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function getToken() {
+    public function getToken()
+    {
         $s = new Session($this->dbhr, $this->dbhm);
-        return($s->getToken($this->id));
+        return ($s->getToken($this->id));
     }
 
-    public function getBounce() {
-        return("bounce-{$this->id}-" . time() . "@" . USER_DOMAIN);
+    public function getBounce()
+    {
+        return ("bounce-{$this->id}-" . time() . "@" . USER_DOMAIN);
     }
 
-    public function getName($default = TRUE) {
+    public function getName($default = TRUE)
+    {
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.
         $name = NULL;
         if ($this->user['fullname']) {
             $name = $this->user['fullname'];
-        } else if ($this->user['firstname'] || $this->user['lastname'] ) {
+        } else if ($this->user['firstname'] || $this->user['lastname']) {
             $name = $this->user['firstname'] . ' ' . $this->user['lastname'];
         }
 
@@ -255,7 +263,7 @@ class User extends Entity
             $name = MODTOOLS ? 'Someone' : 'A freegler';
         }
 
-        return($name);
+        return ($name);
     }
 
     /**
@@ -266,13 +274,14 @@ class User extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($firstname, $lastname, $fullname, $reason = '', $yahooUserId = NULL, $yahooid = NULL) {
+    public function create($firstname, $lastname, $fullname, $reason = '', $yahooUserId = NULL, $yahooid = NULL)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         try {
             $src = presdef('src', $_SESSION, NULL);
             $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooUserId, yahooid, source) VALUES (?, ?, ?, ?, ?, ?)",
-                [ $firstname, $lastname, $fullname, $yahooUserId, $yahooid, $src ]);
+                [$firstname, $lastname, $fullname, $yahooUserId, $yahooid, $src]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -289,40 +298,43 @@ class User extends Entity
                 'text' => $this->getName() . " #$id " . $reason
             ]);
 
-            return($id);
+            return ($id);
         } else {
-            return(NULL);
+            return (NULL);
         }
     }
 
-    public function inventPassword() {
-        $lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
-        $bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
+    public function inventPassword()
+    {
+        $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
+        $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
         $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
 
         $pw = '';
 
         do {
             $length = \Wordle\array_weighted_rand($lengths);
-            $start  = \Wordle\array_weighted_rand($bigrams);
+            $start = \Wordle\array_weighted_rand($bigrams);
             $pw .= \Wordle\fill_word($start, $length, $trigrams);
         } while (strlen($pw) < 6);
 
         $pw = strtolower($pw);
-        return($pw);
+        return ($pw);
     }
 
-    public function findByYahooUserId($id) {
+    public function findByYahooUserId($id)
+    {
         # Take care not to pick up empty or null else that will cause is to overmerge.
-        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooUserId = ? AND yahooUserId IS NOT NULL AND LENGTH(yahooUserId) > 0;", [ $id ]);
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooUserId = ? AND yahooUserId IS NOT NULL AND LENGTH(yahooUserId) > 0;", [$id]);
         if (count($users) == 1) {
-            return($users[0]['id']);
+            return ($users[0]['id']);
         }
 
-        return(NULL);
+        return (NULL);
     }
 
-    public function getEmails($recent = FALSE) {
+    public function getEmails($recent = FALSE)
+    {
         # Don't return canon - don't need it on the client.
         $ordq = $recent ? 'id' : 'preferred';
 
@@ -336,10 +348,11 @@ class User extends Entity
             }
         }
 
-        return($this->emails);
+        return ($this->emails);
     }
 
-    public function getEmailPreferred() {
+    public function getEmailPreferred()
+    {
         # This gets the email address which we think the user actually uses.  So we pay attention to:
         # - the preferred flag, which gets set by end user action
         # - the date added, as most recently added emails are most likely to be right
@@ -355,10 +368,11 @@ class User extends Entity
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function getOurEmail($emails = NULL) {
+    public function getOurEmail($emails = NULL)
+    {
         $emails = $emails ? $emails : $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",
             [$this->id]);
         $ret = NULL;
@@ -370,37 +384,42 @@ class User extends Entity
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function getAnEmailId() {
+    public function getAnEmailId()
+    {
         $emails = $this->dbhr->preQuery("SELECT id FROM users_emails WHERE userid = ? ORDER BY preferred DESC;",
             [$this->id]);
-        return(count($emails) == 0 ? NULL : $emails[0]['id']);
+        return (count($emails) == 0 ? NULL : $emails[0]['id']);
     }
 
-    public function isApprovedMember($groupid) {
-        $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ? AND collection = 'Approved';", [ $this->id, $groupid ]);
-        return(count($membs) > 0 ? $membs[0]['id'] : NULL);
+    public function isApprovedMember($groupid)
+    {
+        $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ? AND collection = 'Approved';", [$this->id, $groupid]);
+        return (count($membs) > 0 ? $membs[0]['id'] : NULL);
     }
 
-    public function getEmailAge($email) {
+    public function getEmailAge($email)
+    {
         $emails = $this->dbhr->preQuery("SELECT TIMESTAMPDIFF(HOUR, added, NOW()) AS ago FROM users_emails WHERE email LIKE ?;", [
             $email
         ]);
 
-        return(count($emails) > 0 ? $emails[0]['ago'] : NULL);
+        return (count($emails) > 0 ? $emails[0]['ago'] : NULL);
     }
 
-    public function getEmailForYahooGroup($groupid, $oursonly = FALSE, $approvedonly = TRUE) {
+    public function getEmailForYahooGroup($groupid, $oursonly = FALSE, $approvedonly = TRUE)
+    {
         # Any of the emails will do.
         $emails = $this->getEmailsForYahooGroup($groupid, $oursonly, $approvedonly);
         $eid = count($emails) > 0 ? $emails[0][0] : NULL;
         $email = count($emails) > 0 ? $emails[0][1] : NULL;
-        return([$eid, $email]);
+        return ([$eid, $email]);
     }
 
-    public function getEmailsForYahooGroup($groupid, $oursonly = FALSE, $approvedonly) {
+    public function getEmailsForYahooGroup($groupid, $oursonly = FALSE, $approvedonly)
+    {
         $emailq = "";
 
         # We must check memberships_yahoo rather than memberships, because memberships can get set to Approved by
@@ -427,13 +446,14 @@ class User extends Entity
 
         $ret = [];
         foreach ($emails as $email) {
-            $ret[] = [ $email['emailid'], $email['email'] ];
+            $ret[] = [$email['emailid'], $email['email']];
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function getIdForEmail($email) {
+    public function getIdForEmail($email)
+    {
         # Email is a unique key but conceivably we could be called with an email for another user.
         $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE (canon = ? OR canon = ?);", [
             User::canonMail($email),
@@ -441,13 +461,14 @@ class User extends Entity
         ]);
 
         foreach ($ids as $id) {
-            return($id);
+            return ($id);
         }
 
-        return(NULL);
+        return (NULL);
     }
 
-    public function getEmailById($id) {
+    public function getEmailById($id)
+    {
         # Email is a unique key but conceivably we could be called with an email for another user.
         $emails = $this->dbhr->preQuery("SELECT email FROM users_emails WHERE id = ?;", [
             $id
@@ -459,10 +480,11 @@ class User extends Entity
             $ret = $email['email'];
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function findByEmail($email) {
+    public function findByEmail($email)
+    {
         if (preg_match('/.*\-(.*)\@' . USER_DOMAIN . '/', $email, $matches)) {
             # Our own email addresses have the UID in there.  This will match even if the email address has
             # somehow been removed from the list.
@@ -472,7 +494,7 @@ class User extends Entity
             ]);
 
             foreach ($users as $user) {
-                return($user['id']);
+                return ($user['id']);
             }
         }
 
@@ -486,13 +508,14 @@ class User extends Entity
             ]);
 
         foreach ($users as $user) {
-            return($user['userid']);
+            return ($user['userid']);
         }
 
-        return(NULL);
+        return (NULL);
     }
 
-    public function findByEmailHash($hash) {
+    public function findByEmailHash($hash)
+    {
         # Take care not to pick up empty or null else that will cause is to overmerge.
         $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE md5hash LIKE ? AND md5hash IS NOT NULL AND LENGTH(md5hash) > 0;",
             [
@@ -500,26 +523,28 @@ class User extends Entity
             ]);
 
         foreach ($users as $user) {
-            return($user['userid']);
+            return ($user['userid']);
         }
 
-        return(NULL);
+        return (NULL);
     }
 
-    public function findByYahooId($id) {
+    public function findByYahooId($id)
+    {
         # Take care not to pick up empty or null else that will cause is to overmerge.
         $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooid = ? AND yahooid IS NOT NULL AND LENGTH(yahooid) > 0;",
-            [ $id ]);
+            [$id]);
 
         foreach ($users as $user) {
-            return($user['id']);
+            return ($user['id']);
         }
 
-        return(NULL);
+        return (NULL);
     }
 
     # TODO The $old paramter can be retired after 01/07/17
-    public static function canonMail($email, $old = FALSE) {
+    public static function canonMail($email, $old = FALSE)
+    {
         # Googlemail is Gmail really in US and UK.
         $email = str_replace('@googlemail.', '@gmail.', $email);
         $email = str_replace('@googlemail.co.uk', '@gmail.co.uk', $email);
@@ -554,7 +579,7 @@ class User extends Entity
             $email = $lhs . str_replace('.', '', $rhs);
         }
 
-        return($email);
+        return ($email);
     }
 
     public function addEmail($email, $primary = 1, $changeprimary = TRUE)
@@ -563,7 +588,7 @@ class User extends Entity
         $this->emails = NULL;
 
         if (stripos($email, '-owner@yahoogroups.co') !== FALSE ||
-            stripos($email, '-volunteers@' .GROUP_DOMAIN) !== FALSE) {
+            stripos($email, '-volunteers@' . GROUP_DOMAIN) !== FALSE) {
             # We don't allow people to add Yahoo owner addresses as the address of an individual user, or
             # the volunteer addresses.
             $rc = NULL;
@@ -616,10 +641,11 @@ class User extends Entity
             }
         }
 
-        return($rc);
+        return ($rc);
     }
 
-    public function unbounce($emailid, $log) {
+    public function unbounce($emailid, $log)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
@@ -635,10 +661,10 @@ class User extends Entity
         }
 
         if ($emailid) {
-            $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $emailid ]);
+            $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [$emailid]);
         }
 
-        $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
+        $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [$this->id]);
     }
 
     public function removeEmail($email)
@@ -648,16 +674,17 @@ class User extends Entity
 
         $rc = $this->dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email = ?;",
             [$this->id, $email]);
-        return($rc);
+        return ($rc);
     }
 
-    private function updateSystemRole($role) {
+    private function updateSystemRole($role)
+    {
         #error_log("Update systemrole $role on {$this->id}");
         User::clearCache($this->id);
 
         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
             $sql = "UPDATE users SET systemrole = ? WHERE id = ? AND systemrole = ?;";
-            $this->dbhm->preExec($sql, [ User::SYSTEMROLE_MODERATOR, $this->id, User::SYSTEMROLE_USER ]);
+            $this->dbhm->preExec($sql, [User::SYSTEMROLE_MODERATOR, $this->id, User::SYSTEMROLE_USER]);
             $this->user['systemrole'] = $this->user['systemrole'] == User::SYSTEMROLE_USER ?
                 User::SYSTEMROLE_MODERATOR : $this->user['systemrole'];
         } else if ($this->user['systemrole'] == User::SYSTEMROLE_MODERATOR) {
@@ -671,23 +698,25 @@ class User extends Entity
 
             if (count($roles) == 0) {
                 $sql = "UPDATE users SET systemrole = ? WHERE id = ?;";
-                $this->dbhm->preExec($sql, [ User::SYSTEMROLE_USER, $this->id ]);
+                $this->dbhm->preExec($sql, [User::SYSTEMROLE_USER, $this->id]);
                 $this->user['systemrole'] = User::SYSTEMROLE_USER;
             }
         }
     }
-    
-    public function postToCollection($groupid) {
+
+    public function postToCollection($groupid)
+    {
         # Which collection should we post to?  If this is a group on Yahoo then ourPostingStatus will be NULL.  We
         # will post to Pending, and send the message to Yahoo; if the user is unmoderated on there it will come back
         # to us and move to Approved.  If there is a value for ourPostingStatus, then this is a native group and
         # we will use that.
         $ps = $this->getMembershipAtt($groupid, 'ourPostingStatus');
         $coll = (!$ps || $ps == Group::POSTING_MODERATED) ? MessageCollection::PENDING : MessageCollection::APPROVED;
-        return($coll);
+        return ($coll);
     }
 
-    private function addYahooMembership($membershipid, $role, $emailid, $collection) {
+    private function addYahooMembership($membershipid, $role, $emailid, $collection)
+    {
         $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
         $this->dbhm->preExec($sql, [
             $membershipid,
@@ -697,7 +726,8 @@ class User extends Entity
         ]);
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE) {
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE)
+    {
         $this->memberships = NULL;
         $me = whoAmI($this->dbhr, $this->dbhm);
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
@@ -713,7 +743,7 @@ class User extends Entity
 
         foreach ($banneds as $banned) {
             error_log("{$this->id} on $groupid is banned");
-            return(FALSE);
+            return (FALSE);
         }
 
         # We don't want to use REPLACE INTO because the membershipid is a foreign key in some tables (such as
@@ -825,10 +855,11 @@ class User extends Entity
             $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_PENDING, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
         }
 
-        return($rc);
+        return ($rc);
     }
 
-    public function isRejected($groupid) {
+    public function isRejected($groupid)
+    {
         # We use this to check if a member has recently been rejected.  We call it when we are dealing with a
         # member that we think should be pending, to check that they haven't been rejected and therefore
         # we shouldn't continue processing them.
@@ -850,10 +881,11 @@ class User extends Entity
 
         $ret = count($logs) > 0;
 
-        return($ret);
+        return ($ret);
     }
 
-    public function isPendingMember($groupid) {
+    public function isPendingMember($groupid)
+    {
         $ret = false;
         $sql = "SELECT userid FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
         $membs = $this->dbhr->preQuery($sql, [
@@ -862,39 +894,43 @@ class User extends Entity
             MembershipCollection::PENDING
         ]);
 
-        return(count($membs) > 0);
+        return (count($membs) > 0);
     }
 
-    private function cacheMemberships() {
+    private function cacheMemberships()
+    {
         # We get all the memberships in a single call, because some members are on many groups and this can
         # save hundreds of calls to the DB.
         if (!$this->memberships) {
             $this->memberships = [];
 
-            $membs = $this->dbhr->preQuery("SELECT memberships.*, groups.type FROM memberships INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ?;", [ $this->id ]);
+            $membs = $this->dbhr->preQuery("SELECT memberships.*, groups.type FROM memberships INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ?;", [$this->id]);
             foreach ($membs as $memb) {
                 $this->memberships[$memb['groupid']] = $memb;
             }
         }
 
-        return($this->memberships);
+        return ($this->memberships);
     }
 
-    public function clearMembershipCache() {
+    public function clearMembershipCache()
+    {
         $this->memberships = NULL;
     }
 
-    public function getMembershipAtt($groupid, $att) {
+    public function getMembershipAtt($groupid, $att)
+    {
         $this->cacheMemberships();
         $val = NULL;
         if (pres($groupid, $this->memberships)) {
             $val = presdef($att, $this->memberships[$groupid], NULL);
         }
 
-        return($val);
+        return ($val);
     }
 
-    public function setMembershipAtt($groupid, $att, $val) {
+    public function setMembershipAtt($groupid, $att, $val)
+    {
         $this->clearMembershipCache();
         Session::clearSessionCache();
         $sql = "UPDATE memberships SET $att = ? WHERE groupid = ? AND userid = ?;";
@@ -904,10 +940,11 @@ class User extends Entity
             $this->id
         ]);
 
-        return($rc);
+        return ($rc);
     }
 
-    public function setYahooMembershipAtt($groupid, $emailid, $att, $val) {
+    public function setYahooMembershipAtt($groupid, $emailid, $att, $val)
+    {
         $sql = "UPDATE memberships_yahoo SET $att = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?) AND emailid = ?;";
         $rc = $this->dbhm->preExec($sql, [
             $val,
@@ -916,10 +953,11 @@ class User extends Entity
             $emailid
         ]);
 
-        return($rc);
+        return ($rc);
     }
 
-    public function removeMembership($groupid, $ban = FALSE, $spam = FALSE, $byemail = NULL) {
+    public function removeMembership($groupid, $ban = FALSE, $spam = FALSE, $byemail = NULL)
+    {
         $this->clearMembershipCache();
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -945,7 +983,7 @@ class User extends Entity
 
         # Trigger removal of any Yahoo memberships.
         $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ? AND memberships_yahoo.role = 'Member';";
-        $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
+        $emails = $this->dbhr->preQuery($sql, [$groupid, $this->id]);
         #error_log("$sql, $groupid, {$this->id}");
 
         foreach ($emails as $email) {
@@ -1009,16 +1047,17 @@ class User extends Entity
                 $groupid
             ]);
 
-        return($rc);
+        return ($rc);
     }
 
-    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE, $pernickety = FALSE) {
+    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE, $pernickety = FALSE)
+    {
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $publishq = MODTOOLS ? "" : "AND groups.publish = 1";
         $sql = "SELECT memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
-        $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $groups = $this->dbhr->preQuery($sql, [$this->id]);
         #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
@@ -1060,17 +1099,18 @@ class User extends Entity
                 }
 
                 # See if there is a membersync pending
-                $syncpendings = $this->dbhr->preQuery("SELECT lastupdated, lastprocessed FROM memberships_yahoo_dump WHERE groupid = ? AND (lastprocessed IS NULL OR lastupdated > lastprocessed);", [ $group['groupid'] ]);
+                $syncpendings = $this->dbhr->preQuery("SELECT lastupdated, lastprocessed FROM memberships_yahoo_dump WHERE groupid = ? AND (lastprocessed IS NULL OR lastupdated > lastprocessed);", [$group['groupid']]);
                 $one['syncpending'] = count($syncpendings) > 0;
             }
 
             $ret[] = $one;
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function getConfigs() {
+    public function getConfigs()
+    {
         $ret = [];
         $me = whoAmI($this->dbhr, $this->dbhm);
 
@@ -1123,16 +1163,17 @@ class User extends Entity
         }
 
         # Return in alphabetical order.
-        usort($ret, function($a, $b) {
-            return(strcmp(strtolower($a['name']), strtolower($b['name'])));
+        usort($ret, function ($a, $b) {
+            return (strcmp(strtolower($a['name']), strtolower($b['name'])));
         });
 
-        return($ret);
+        return ($ret);
     }
-    
-    public function getModeratorships() {
+
+    public function getModeratorships()
+    {
         $this->cacheMemberships();
-        
+
         $ret = [];
         foreach ($this->memberships AS $membership) {
             if ($membership['role'] == 'Owner' || $membership['role'] == 'Moderator') {
@@ -1140,14 +1181,15 @@ class User extends Entity
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function isModOrOwner($groupid) {
+    public function isModOrOwner($groupid)
+    {
         # Very frequently used.  Cache in session.
         if (array_key_exists('modorowner', $_SESSION) && array_key_exists($this->id, $_SESSION['modorowner']) && array_key_exists($groupid, $_SESSION['modorowner'][$this->id])) {
             #error_log("{$this->id} group $groupid cached");
-            return($_SESSION['modorowner'][$this->id][$groupid]);
+            return ($_SESSION['modorowner'][$this->id][$groupid]);
         } else {
             $sql = "SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;";
             #error_log("$sql {$this->id}, $groupid");
@@ -1162,11 +1204,12 @@ class User extends Entity
             }
 
             $_SESSION['modorowner'][$this->id][$groupid] = FALSE;
-            return(FALSE);
+            return (FALSE);
         }
     }
 
-    public function getLogins($credentials = TRUE) {
+    public function getLogins($credentials = TRUE)
+    {
         $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
             [$this->id]);
 
@@ -1179,18 +1222,19 @@ class User extends Entity
             $login['uid'] = '' . $login['uid'];
         }
 
-        return($logins);
+        return ($logins);
     }
 
-    public function findByLogin($type, $uid) {
+    public function findByLogin($type, $uid)
+    {
         $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE uid = ? AND type = ?;",
-            [ $uid, $type]);
+            [$uid, $type]);
 
         foreach ($logins as $login) {
-            return($login['userid']);
+            return ($login['userid']);
         }
 
-        return(NULL);
+        return (NULL);
     }
 
     public function addLogin($type, $uid, $creds = NULL)
@@ -1211,17 +1255,18 @@ class User extends Entity
         global $sessionPrepared;
         $sessionPrepared = FALSE;
 
-        return($rc);
+        return ($rc);
     }
 
     public function removeLogin($type, $uid)
     {
         $rc = $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ? AND type = ? AND uid = ?;",
             [$this->id, $type, $uid]);
-        return($rc);
+        return ($rc);
     }
 
-    public function getRoleForGroup($groupid, $overrides = TRUE) {
+    public function getRoleForGroup($groupid, $overrides = TRUE)
+    {
         # We can have a number of roles on a group
         # - none, we can only see what is member
         # - member, we are a group member and can see some extra info
@@ -1264,10 +1309,11 @@ class User extends Entity
             }
         }
 
-        return($role);
+        return ($role);
     }
 
-    public function moderatorForUser($userid) {
+    public function moderatorForUser($userid)
+    {
         # There are times when we want to check whether we can administer a user, but when we are not immediately
         # within the context of a known group.  We can administer a user when:
         # - they're only a user themselves
@@ -1275,7 +1321,7 @@ class User extends Entity
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         $usermemberships = [];
-        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member');", [ $userid ]);
+        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member');", [$userid]);
         foreach ($groups as $group) {
             $usermemberships[] = $group['groupid'];
         }
@@ -1286,7 +1332,7 @@ class User extends Entity
         #error_log("Compare groups " . var_export($usermemberships, TRUE) . " vs " . var_export($mymodships, TRUE));
         $canmod = count(array_intersect($usermemberships, $mymodships)) > 0;
 
-        return($canmod);
+        return ($canmod);
     }
 
     public function getSetting($setting, $default)
@@ -1299,30 +1345,33 @@ class User extends Entity
             $ret = array_key_exists($setting, $settings) ? $settings[$setting] : $default;
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function setGroupSettings($groupid, $settings) {
+    public function setGroupSettings($groupid, $settings)
+    {
         $this->clearMembershipCache();
         $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
-        return($this->dbhm->preExec($sql, [
+        return ($this->dbhm->preExec($sql, [
             json_encode($settings),
             $this->id,
             $groupid
         ]));
     }
 
-    public function activeModForGroup($groupid, $mysettings = NULL) {
+    public function activeModForGroup($groupid, $mysettings = NULL)
+    {
         $mysettings = $mysettings ? $mysettings : $this->getGroupSettings($groupid);
 
         # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
         # to active.
         # TODO Retire showmessages entirely and remove from user configs.
         $active = array_key_exists('active', $mysettings) ? $mysettings['active'] : (!array_key_exists('showmessages', $mysettings) || $mysettings['showmessages']);
-        return($active);
+        return ($active);
     }
 
-    public function getGroupSettings($groupid, $configid = NULL) {
+    public function getGroupSettings($groupid, $configid = NULL)
+    {
         # We have some parameters which may give us some info which saves queries
         $this->cacheMemberships();
 
@@ -1366,10 +1415,11 @@ class User extends Entity
             $settings['volunteeringallowed'] = $set['volunteeringallowed'];
         }
 
-        return($settings);
+        return ($settings);
     }
 
-    public function setRole($role, $groupid) {
+    public function setRole($role, $groupid)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         Session::clearSessionCache();
@@ -1397,10 +1447,11 @@ class User extends Entity
         # Not the end of the world if this fails.
         $this->updateSystemRole($role);
 
-        return($rc);
+        return ($rc);
     }
 
-    public function getInfo() {
+    public function getInfo()
+    {
         # Extra user info.
         $ret = [];
         $start = date('Y-m-d', strtotime("90 days ago"));
@@ -1453,7 +1504,7 @@ class User extends Entity
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $ret['replytime'] = $r->replyTime($this->id);
-        $ret['nudges'] =  $r->nudgeCount($this->id);
+        $ret['nudges'] = $r->nudgeCount($this->id);
 
         # Number of items collected.
         $mysqltime = date("Y-m-d", strtotime("90 days ago"));
@@ -1466,10 +1517,11 @@ class User extends Entity
 
         $ret['collected'] = $collected[0]['count'];
 
-        return($ret);
+        return ($ret);
     }
 
-    private function md5_hex_to_dec($hex_str) {
+    private function md5_hex_to_dec($hex_str)
+    {
         $arr = str_split($hex_str, 4);
         foreach ($arr as $grp) {
             $dec[] = str_pad(hexdec($grp), 5, '0', STR_PAD_LEFT);
@@ -1477,7 +1529,8 @@ class User extends Entity
         return floatval("0." . implode('', $dec));
     }
 
-    public function getDistance($mylat, $mylng) {
+    public function getDistance($mylat, $mylng)
+    {
         $p1 = new POI($mylat, $mylng);
 
         list ($tlat, $tlng) = $this->getLatLng();
@@ -1498,26 +1551,28 @@ class User extends Entity
         $metres = $p1->getDistanceInMetersTo($p2);
         $miles = $metres / 1609.344;
         $miles = $miles > 10 ? round($miles) : round($miles, 1);
-        return($miles);
+        return ($miles);
     }
 
-    public function gravatar( $email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array() ) {
+    public function gravatar($email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array())
+    {
         $url = 'https://www.gravatar.com/avatar/';
-        $url .= md5( strtolower( trim( $email ) ) );
+        $url .= md5(strtolower(trim($email)));
         $url .= "?s=$s&d=$d&r=$r";
-        if ( $img ) {
+        if ($img) {
             $url = '<img src="' . $url . '"';
-            foreach ( $atts as $key => $val )
+            foreach ($atts as $key => $val)
                 $url .= ' ' . $key . '="' . $val . '"';
             $url .= ' />';
         }
         return $url;
     }
 
-    public function getPublicLocation() {
+    public function getPublicLocation()
+    {
         $loc = NULL;
         $grp = NULL;
-        
+
         $aid = NULL;
         $lid = NULL;
         $lat = NULL;
@@ -1579,16 +1634,17 @@ class User extends Entity
             }
         }
 
-        $display = $loc ? ($loc . ($grp ? ", $grp" : "")): ($grp ? $grp : '');
+        $display = $loc ? ($loc . ($grp ? ", $grp" : "")) : ($grp ? $grp : '');
 
-        return([
+        return ([
             'display' => $display,
             'location' => $loc,
             'groupname' => $grp
         ]);
     }
 
-    public function ensureAvatar(&$atts) {
+    public function ensureAvatar(&$atts)
+    {
         # This involves querying external sites, so we need to use it with care, otherwise we can hang our
         # system.  It can also cause updates, so if we call it lots of times, it can result in cluster issues.
         $forcedefault = FALSE;
@@ -1630,7 +1686,7 @@ class User extends Entity
                         'default' => FALSE,
                         'TN' => TRUE
                     ];
-                } else if (!ourDomain($email['email'])){
+                } else if (!ourDomain($email['email'])) {
                     # Try for gravatar
                     $gurl = $this->gravatar($email['email'], 200, 404);
                     $g = @file_get_contents($gurl);
@@ -1713,10 +1769,11 @@ class User extends Entity
         }
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [ MessageCollection::APPROVED ]) {
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED])
+    {
         $atts = parent::getPublic();
 
-        $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
+        $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : ['dummy' => TRUE];
         $atts['settings']['notificationmails'] = array_key_exists('notificationmails', $atts['settings']) ? $atts['settings']['notificationmails'] : TRUE;
         $atts['settings']['modnotifs'] = array_key_exists('modnotifs', $atts['settings']) ? $atts['settings']['modnotifs'] : 4;
         $atts['settings']['backupmodnotifs'] = array_key_exists('backupmodnotifs', $atts['settings']) ? $atts['settings']['backupmodnotifs'] : 12;
@@ -1740,7 +1797,7 @@ class User extends Entity
 
         $atts['added'] = ISODate($atts['added']);
 
-        foreach(['fullname', 'firstname', 'lastname'] as $att) {
+        foreach (['fullname', 'firstname', 'lastname'] as $att) {
             # Make sure we don't return an email if somehow one has snuck in.
             $atts[$att] = strpos($atts[$att], '@') !== FALSE ? substr($atts[$att], 0, strpos($atts[$att], '@')) : $atts[$att];
         }
@@ -1794,7 +1851,7 @@ class User extends Entity
         } else {
             # Don't show some attributes unless they're a mod or ourselves.
             $showmod = $this->isModerator() && presdef('showmod', $atts['settings'], FALSE);
-            $atts['settings'] = [ 'showmod' => $showmod ];
+            $atts['settings'] = ['showmod' => $showmod];
             $atts['yahooid'] = NULL;
             $atts['yahooUserId'] = NULL;
         }
@@ -1837,7 +1894,7 @@ class User extends Entity
             $modships = count($modships) == 0 ? [0] : $modships;
             $sql = "SELECT COUNT(*) AS count FROM `users_modmails` WHERE userid = ? AND groupid IN (" . implode(',', $modships) . ");";
             #error_log("Find modmails $sql");
-            $modmails = count($modships) == 0 ? [ [ 'count' => 0 ]] : $this->dbhr->preQuery($sql, [ $this->id ]);
+            $modmails = count($modships) == 0 ? [['count' => 0]] : $this->dbhr->preQuery($sql, [$this->id]);
             $atts['modmails'] = $modmails[0]['count'];
 
             if ($logs) {
@@ -2155,7 +2212,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
 
             if ($emailhistory) {
-                $emails = $this->dbhr->preQuery("SELECT * FROM logs_emails WHERE userid = ?;", [ $this->id ]);
+                $emails = $this->dbhr->preQuery("SELECT * FROM logs_emails WHERE userid = ?;", [$this->id]);
                 $atts['emailhistory'] = [];
                 foreach ($emails as &$email) {
                     $email['timestamp'] = ISODate($email['timestamp']);
@@ -2165,10 +2222,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($atts);
+        return ($atts);
     }
 
-    public function getOurEmailId() {
+    public function getOurEmailId()
+    {
         # For groups we host, we need to know our own email for this user so that we can return it as the
         # email used on the group.
         if (!$this->ouremailid) {
@@ -2180,37 +2238,42 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($this->ouremailid);
+        return ($this->ouremailid);
     }
 
-    public static function getSessions($dbhr, $dbhm, $id) {
+    public static function getSessions($dbhr, $dbhm, $id)
+    {
         $e = new Events($dbhr, $dbhm);
         $sessions = $e->listSessions($id);
-        return($sessions);
+        return ($sessions);
     }
 
-    public function isAdmin() {
-        return($this->user['systemrole'] == User::SYSTEMROLE_ADMIN);
+    public function isAdmin()
+    {
+        return ($this->user['systemrole'] == User::SYSTEMROLE_ADMIN);
     }
 
-    public function isAdminOrSupport() {
-        return($this->user['systemrole'] == User::SYSTEMROLE_ADMIN || $this->user['systemrole'] == User::SYSTEMROLE_SUPPORT);
+    public function isAdminOrSupport()
+    {
+        return ($this->user['systemrole'] == User::SYSTEMROLE_ADMIN || $this->user['systemrole'] == User::SYSTEMROLE_SUPPORT);
     }
 
-    public function isModerator() {
-        return($this->user['systemrole'] == User::SYSTEMROLE_ADMIN ||
+    public function isModerator()
+    {
+        return ($this->user['systemrole'] == User::SYSTEMROLE_ADMIN ||
             $this->user['systemrole'] == User::SYSTEMROLE_SUPPORT ||
             $this->user['systemrole'] == User::SYSTEMROLE_MODERATOR);
     }
 
-    public function systemRoleMax($role1, $role2) {
+    public function systemRoleMax($role1, $role2)
+    {
         $role = User::SYSTEMROLE_USER;
 
         if ($role1 == User::SYSTEMROLE_MODERATOR || $role2 == User::SYSTEMROLE_MODERATOR) {
             $role = User::SYSTEMROLE_MODERATOR;
         }
 
-        if ($role1 == User::SYSTEMROLE_SUPPORT|| $role2 == User::SYSTEMROLE_SUPPORT) {
+        if ($role1 == User::SYSTEMROLE_SUPPORT || $role2 == User::SYSTEMROLE_SUPPORT) {
             $role = User::SYSTEMROLE_SUPPORT;
         }
 
@@ -2218,10 +2281,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $role = User::SYSTEMROLE_ADMIN;
         }
 
-        return($role);
+        return ($role);
     }
 
-    public function roleMax($role1, $role2) {
+    public function roleMax($role1, $role2)
+    {
         $role = User::ROLE_NONMEMBER;
 
         if ($role1 == User::ROLE_MEMBER || $role2 == User::ROLE_MEMBER) {
@@ -2236,10 +2300,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $role = User::ROLE_OWNER;
         }
 
-        return($role);
+        return ($role);
     }
 
-    public function roleMin($role1, $role2) {
+    public function roleMin($role1, $role2)
+    {
         $role = User::ROLE_OWNER;
 
         if ($role1 == User::ROLE_MODERATOR || $role2 == User::ROLE_MODERATOR) {
@@ -2254,10 +2319,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $role = User::ROLE_NONMEMBER;
         }
 
-        return($role);
+        return ($role);
     }
 
-    public function merge($id1, $id2, $reason) {
+    public function merge($id1, $id2, $reason)
+    {
         error_log("Merge $id1, $id2, $reason");
 
         # We might not be able to merge them, if one or the other has the setting to prevent that.
@@ -2366,7 +2432,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                             $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships_yahoo SET membershipid = ? WHERE membershipid = ?;", [
                                 $id1memb['id'],
                                 $id2memb['id']
-                            ]) ;
+                            ]);
                             #error_log("$rc2 from UPDATE IGNORE memberships_yahoo SET membershipid = {$id1memb['id']} WHERE membershipid = {$id2memb['id']};");
                         }
 
@@ -2455,7 +2521,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         $this->dbhm->preExec("UPDATE IGNORE users_phones SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_requests SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec(   "UPDATE IGNORE users_requests SET completedby = $id1 WHERE completedby = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_requests SET completedby = $id1 WHERE completedby = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_searches SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE newsfeed SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE messages_reneged SET userid = $id1 WHERE userid = $id2;");
@@ -2612,15 +2678,17 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
     # Default mailer is to use the standard PHP one, but this can be overridden in UT.
-    private function mailer() {
+    private function mailer()
+    {
         call_user_func_array('mail', func_get_args());
     }
 
-    private function maybeMail($groupid, $subject, $body, $action) {
+    private function maybeMail($groupid, $subject, $body, $action)
+    {
         if ($body) {
             # We have a mail to send.
             list ($eid, $to) = $this->getEmailForYahooGroup($groupid, FALSE, FALSE);
@@ -2667,7 +2735,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function mail($groupid, $subject, $body, $stdmsgid, $action = NULL) {
+    public function mail($groupid, $subject, $body, $stdmsgid, $action = NULL)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $this->log->log([
@@ -2683,7 +2752,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->maybeMail($groupid, $subject, $body, $action);
     }
 
-    public function reject($groupid, $subject, $body, $stdmsgid) {
+    public function reject($groupid, $subject, $body, $stdmsgid)
+    {
         # No need for a transaction - if things go wrong, the member will remain in pending, which is the correct
         # behaviour.
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -2699,7 +2769,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
 
         $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+        $members = $this->dbhr->preQuery($sql, [$this->id, $groupid, MembershipCollection::PENDING]);
         foreach ($members as $member) {
             if (pres('yahooreject', $member)) {
                 # We can trigger rejection by email - do so.
@@ -2708,7 +2778,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if (pres('yahooUserId', $this->user)) {
                 $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
-                $emails = $this->dbhr->preQuery($sql, [ $this->id ]);
+                $emails = $this->dbhr->preQuery($sql, [$this->id]);
                 $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
 
                 # It would be odd for them to be on Yahoo with no email but handle it anyway.
@@ -2752,10 +2822,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         # Delete from memberships - after emailing, otherwise we won't find the right email for this grup.
         $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $this->dbhm->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+        $this->dbhm->preExec($sql, [$this->id, $groupid, MembershipCollection::PENDING]);
     }
 
-    public function approve($groupid, $subject, $body, $stdmsgid) {
+    public function approve($groupid, $subject, $body, $stdmsgid)
+    {
         # No need for a transaction - if things go wrong, the member will remain in pending, which is the correct
         # behaviour.
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -2771,7 +2842,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
 
         $sql = "SELECT memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE userid = ? AND groupid = ? AND memberships_yahoo.collection = ?;";
-        $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+        $members = $this->dbhr->preQuery($sql, [$this->id, $groupid, MembershipCollection::PENDING]);
 
         foreach ($members as $member) {
             if (pres('yahooapprove', $member)) {
@@ -2783,7 +2854,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if (pres('yahooUserId', $this->user)) {
                 $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
-                $emails = $this->dbhr->preQuery($sql, [ $this->id ]);
+                $emails = $this->dbhr->preQuery($sql, [$this->id]);
                 $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
 
                 # It would be odd for them to be on Yahoo with no email but handle it anyway.
@@ -2833,7 +2904,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function markYahooApproved($groupid, $emailid) {
+    public function markYahooApproved($groupid, $emailid)
+    {
         # Move a member from pending to approved in response to a Yahoo notification mail.
         #
         # Note that we will not always have a pending member application.  For example, suppose we have an
@@ -2845,11 +2917,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         # We'll pick them up on the next sync or when they post.
         #
         # No need for a transaction - if things go wrong, the member will remain in pending, which is recoverable.
-        $emails = $this->dbhr->preQuery("SELECT email FROM users_emails WHERE id = ?;", [ $emailid ]);
+        $emails = $this->dbhr->preQuery("SELECT email FROM users_emails WHERE id = ?;", [$emailid]);
         $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
 
         $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+        $members = $this->dbhr->preQuery($sql, [$this->id, $groupid, MembershipCollection::PENDING]);
 
         foreach ($members as $member) {
             $this->log->log([
@@ -2889,11 +2961,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
     }
 
-    function hold($groupid) {
+    function hold($groupid)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $sql = "UPDATE memberships SET heldby = ? WHERE userid = ? AND groupid = ?;";
-        $rc = $this->dbhm->preExec($sql, [ $me->getId(), $this->id, $groupid ]);
+        $rc = $this->dbhm->preExec($sql, [$me->getId(), $this->id, $groupid]);
 
         if ($rc) {
             $this->log->log([
@@ -2907,25 +2980,27 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->notif->notifyGroupMods($groupid);
     }
 
-    function isHeld($groupid) {
+    function isHeld($groupid)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $sql = "SELECT heldby FROM memberships WHERE userid = ? AND groupid = ?;";
-        $membs = $this->dbhm->preQuery($sql, [ $this->id, $groupid ]);
+        $membs = $this->dbhm->preQuery($sql, [$this->id, $groupid]);
         $ret = NULL;
 
         foreach ($membs as $memb) {
             $ret = $memb['heldby'];
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    function release($groupid) {
+    function release($groupid)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $sql = "UPDATE memberships SET heldby = NULL WHERE userid = ? AND groupid = ?;";
-        $rc = $this->dbhm->preExec($sql, [ $this->id, $groupid ]);
+        $rc = $this->dbhm->preExec($sql, [$this->id, $groupid]);
 
         if ($rc) {
             $this->log->log([
@@ -2939,14 +3014,15 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->notif->notifyGroupMods($groupid);
     }
 
-    public function getComments() {
+    public function getComments()
+    {
         # We can only see comments on groups on which we have mod status.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $groupids = $me ? $me->getModeratorships() : [];
         $groupids = count($groupids) == 0 ? [0] : $groupids;
 
         $sql = "SELECT * FROM users_comments WHERE userid = ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC;";
-        $comments = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $comments = $this->dbhr->preQuery($sql, [$this->id]);
 
         foreach ($comments as &$comment) {
             $comment['date'] = ISODate($comment['date']);
@@ -2960,17 +3036,18 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($comments);
+        return ($comments);
     }
 
-    public function getComment($id) {
+    public function getComment($id)
+    {
         # We can only see comments on groups on which we have mod status.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $groupids = $me ? $me->getModeratorships() : [];
         $groupids = count($groupids) == 0 ? [0] : $groupids;
 
         $sql = "SELECT * FROM users_comments WHERE id = ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC;";
-        $comments = $this->dbhr->preQuery($sql, [ $id ]);
+        $comments = $this->dbhr->preQuery($sql, [$id]);
 
         foreach ($comments as &$comment) {
             $comment['date'] = ISODate($comment['date']);
@@ -2980,15 +3057,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $comment['byuser'] = $u->getPublic();
             }
 
-            return($comment);
+            return ($comment);
         }
 
-        return(NULL);
+        return (NULL);
     }
 
     public function addComment($groupid, $user1 = NULL, $user2 = NULL, $user3 = NULL, $user4 = NULL, $user5 = NULL,
                                $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
-                               $user11 = NULL, $byuserid = NULL, $checkperms = TRUE) {
+                               $user11 = NULL, $byuserid = NULL, $checkperms = TRUE)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         # By any supplied user else logged in user if any.
@@ -2996,7 +3074,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         # Can only add comments for a group on which we're a mod.
         $rc = NULL;
-        $groups = $checkperms ? ($me ? $me->getModeratorships() : [0]) : [ $groupid ];
+        $groups = $checkperms ? ($me ? $me->getModeratorships() : [0]) : [$groupid];
         foreach ($groups as $modgroupid) {
             if ($groupid == $modgroupid) {
                 $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
@@ -3010,12 +3088,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($rc);
+        return ($rc);
     }
 
     public function editComment($id, $user1 = NULL, $user2 = NULL, $user3 = NULL, $user4 = NULL, $user5 = NULL,
-                               $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
-                               $user11 = NULL) {
+                                $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
+                                $user11 = NULL)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         # Update to logged in user if any.
@@ -3027,7 +3106,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $groups = $me ? $me->getModeratorships() : [0];
         foreach ($groups as $modgroupid) {
             $sql = "SELECT id FROM users_comments WHERE id = ? AND groupid = ?;";
-            $comments = $this->dbhr->preQuery($sql, [ $id, $modgroupid ]);
+            $comments = $this->dbhr->preQuery($sql, [$id, $modgroupid]);
             foreach ($comments as $comment) {
                 $sql = "UPDATE users_comments SET byuserid = ?, user1 = ?, user2 = ?, user3 = ?, user4 = ?, user5 = ?, user6 = ?, user7 = ?, user8 = ?, user9 = ?, user10 = ?, user11 = ? WHERE id = ?;";
                 $rc = $this->dbhm->preExec($sql, [
@@ -3038,36 +3117,39 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($rc);
+        return ($rc);
     }
 
-    public function deleteComment($id) {
+    public function deleteComment($id)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         # Can only delete comments for a group on which we're a mod.
         $rc = FALSE;
         $groups = $me ? $me->getModeratorships() : [];
         foreach ($groups as $modgroupid) {
-            $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE id = ? AND groupid = ?;", [ $id, $modgroupid ]);
+            $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE id = ? AND groupid = ?;", [$id, $modgroupid]);
         }
 
-        return($rc);
+        return ($rc);
     }
 
-    public function deleteComments() {
+    public function deleteComments()
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         # Can only delete comments for a group on which we're a mod.
         $rc = FALSE;
         $groups = $me ? $me->getModeratorships() : [];
         foreach ($groups as $modgroupid) {
-            $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE userid = ? AND groupid = ?;", [ $this->id, $modgroupid ]);
+            $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE userid = ? AND groupid = ?;", [$this->id, $modgroupid]);
         }
 
-        return($rc);
+        return ($rc);
     }
 
-    public function split($email, $name = NULL) {
+    public function split($email, $name = NULL)
+    {
         # We want to ensure that the current user has no reference to these values.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $l = new Log($this->dbhr, $this->dbhm);
@@ -3128,17 +3210,18 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
 
         # Zap any existing sessions for either.
-        $this->dbhm->preExec("DELETE FROM sessions WHERE userid IN (?, ?);", [ $this->id, $uid2 ]);
+        $this->dbhm->preExec("DELETE FROM sessions WHERE userid IN (?, ?);", [$this->id, $uid2]);
 
         # We can't tell which user any existing logins relate to.  So remove them all.  If they log in with native,
         # then they'll have to get a new password.  If they use social login, then it should hook the user up again
         # when they next do.
-        $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ?;", [ $this->id ]);
+        $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ?;", [$this->id]);
 
-        return($uid2);
+        return ($uid2);
     }
 
-    public function welcome($email, $password) {
+    public function welcome($email, $password)
+    {
         $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new Twig_Environment($loader);
 
@@ -3151,7 +3234,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             ->setSubject("Welcome to " . SITE_NAME . "!")
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setTo($email)
-            ->setBody("Thanks for joining"  . SITE_NAME . "!" . ($password ? "  Here's your password: $password." : ''));
+            ->setBody("Thanks for joining" . SITE_NAME . "!" . ($password ? "  Here's your password: $password." : ''));
 
         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
         # Outlook.
@@ -3166,7 +3249,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->sendIt($mailer, $message);
     }
 
-    public function forgotPassword($email) {
+    public function forgotPassword($email)
+    {
         $link = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FORGOT_PASSWORD, TRUE);
         $html = forgot_password(USER_SITE, USERLOGO, $email, $link);
 
@@ -3189,7 +3273,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->sendIt($mailer, $message);
     }
 
-    public function verifyEmail($email) {
+    public function verifyEmail($email)
+    {
         # If this is one of our current emails, then we can just make it the primary.
         $emails = $this->getEmails();
         $handled = FALSE;
@@ -3217,7 +3302,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     [$email, $canon, $key, strrev($canon), $key]);
             } while (!$this->dbhm->rowsAffected());
 
-            $confirm  = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
+            $confirm = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
 
             list ($transport, $mailer) = getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
@@ -3226,7 +3311,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 ->setSubject("Please verify your email")
                 ->setFrom([NOREPLY_ADDR => SITE_NAME])
                 ->setReturnPath($this->getBounce())
-                ->setTo([ $email => $this->getName() ])
+                ->setTo([$email => $this->getName()])
                 ->setBody("Someone, probably you, has said that $email is their email address.\n\nIf this was you, please click on the link below to verify the address; if this wasn't you, please just ignore this mail.\n\n$confirm");
 
             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
@@ -3241,13 +3326,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $this->sendIt($mailer, $message);
         }
 
-        return($handled);
+        return ($handled);
     }
 
-    public function confirmEmail($key) {
+    public function confirmEmail($key)
+    {
         $rc = FALSE;
         $sql = "SELECT * FROM users_emails WHERE validatekey = ?;";
-        $mails = $this->dbhr->preQuery($sql, [ $key ]);
+        $mails = $this->dbhr->preQuery($sql, [$key]);
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         foreach ($mails as $mail) {
@@ -3256,16 +3342,17 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $this->merge($this->id, $mail['userid'], "Verified ownership of email {$mail['email']}");
             }
 
-            $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE id = ?;", [ $this->id ]);
-            $this->dbhm->preExec("UPDATE users_emails SET userid = ?, preferred = 1, validated = NOW(), validatekey = NULL WHERE id = ?;", [ $this->id, $mail['id']]);
+            $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE id = ?;", [$this->id]);
+            $this->dbhm->preExec("UPDATE users_emails SET userid = ?, preferred = 1, validated = NOW(), validatekey = NULL WHERE id = ?;", [$this->id, $mail['id']]);
             $this->addEmail($mail['email'], 1);
             $rc = TRUE;
         }
 
-        return($rc);
+        return ($rc);
     }
 
-    public function inventEmail($force = FALSE) {
+    public function inventEmail($force = FALSE)
+    {
         # An invented email is one on our domain that doesn't give away too much detail, but isn't just a string of
         # numbers (ideally).  We may already have one.
         $email = NULL;
@@ -3274,7 +3361,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             # We want the most recent of our own emails.
             $emails = $this->getEmails(TRUE);
             foreach ($emails as $thisemail) {
-                if (strpos($thisemail['email'], USER_DOMAIN ) !== FALSE) {
+                if (strpos($thisemail['email'], USER_DOMAIN) !== FALSE) {
                     $email = $thisemail['email'];
                     break;
                 }
@@ -3314,20 +3401,21 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $email = substr($email, 0, $p) . '-' . $this->id . '@' . USER_DOMAIN;
                 } else {
                     # We can't make up something similar to their existing email address so invent from scratch.
-                    $lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
-                    $bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
+                    $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
+                    $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
                     $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
                     $length = \Wordle\array_weighted_rand($lengths);
-                    $start  = \Wordle\array_weighted_rand($bigrams);
+                    $start = \Wordle\array_weighted_rand($bigrams);
                     $email = strtolower(\Wordle\fill_word($start, $length, $trigrams)) . '-' . $this->id . '@' . USER_DOMAIN;
                 }
             }
         }
 
-        return($email);
+        return ($email);
     }
 
-    public function triggerYahooApplication($groupid, $log = TRUE) {
+    public function triggerYahooApplication($groupid, $log = TRUE)
+    {
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $email = $this->inventEmail();
         $emailid = $this->addEmail($email, 0);
@@ -3377,10 +3465,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             ]);
         }
 
-        return($email);
+        return ($email);
     }
 
-    public function submitYahooQueued($groupid) {
+    public function submitYahooQueued($groupid)
+    {
         # Get an email address we can use on the group.
         $submitted = 0;
         list ($eid, $email) = $this->getEmailForYahooGroup($groupid, TRUE);
@@ -3405,10 +3494,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($submitted);
+        return ($submitted);
     }
 
-    public function delete($groupid = NULL, $subject = NULL, $body = NULL, $log = TRUE) {
+    public function delete($groupid = NULL, $subject = NULL, $body = NULL, $log = TRUE)
+    {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         # Delete memberships.  This will remove any Yahoo memberships.
@@ -3430,20 +3520,23 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             ]);
         }
 
-        return($rc);
+        return ($rc);
     }
 
-    public function getUnsubLink($domain, $id, $type = NULL) {
-        return(User::loginLink($domain, $id, "/unsubscribe/$id", $type));
+    public function getUnsubLink($domain, $id, $type = NULL)
+    {
+        return (User::loginLink($domain, $id, "/unsubscribe/$id", $type));
     }
 
-    public function listUnsubscribe($domain, $id, $type = NULL) {
+    public function listUnsubscribe($domain, $id, $type = NULL)
+    {
         # Generates the value for the List-Unsubscribe header field.
-        $ret = "<mailto:unsubscribe-$id@" . USER_SITE . ">, <" . $this->getUnsubLink($domain, $id, $type) .">";
-        return($ret);
+        $ret = "<mailto:unsubscribe-$id@" . USER_SITE . ">, <" . $this->getUnsubLink($domain, $id, $type) . ">";
+        return ($ret);
     }
 
-    public function loginLink($domain, $id, $url = '/', $type = NULL, $auto = FALSE) {
+    public function loginLink($domain, $id, $url = '/', $type = NULL, $auto = FALSE)
+    {
         $p = strpos($url, '?');
         $ret = $p === FALSE ? "https://$domain$url?u=$id&src=$type" : "https://$domain$url&u=$id&src=$type";
 
@@ -3451,7 +3544,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             # Get a per-user link we can use to log in without a password.
             $key = NULL;
             $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
-            $logins = $this->dbhr->preQuery($sql, [ $id, User::LOGIN_LINK ]);
+            $logins = $this->dbhr->preQuery($sql, [$id, User::LOGIN_LINK]);
             foreach ($logins as $login) {
                 $key = $login['credentials'];
             }
@@ -3473,10 +3566,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ret = $p === FALSE ? ("https://$domain$url?u=$id&k=$key$src") : ("https://$domain$url&u=$id&k=$key$src");
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE) {
+    public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE)
+    {
         $sendit = TRUE;
 
         if ($g) {
@@ -3542,13 +3636,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         #error_log("Sendit? $sendit");
-        return($sendit);
+        return ($sendit);
     }
 
-    public function getMembershipHistory() {
+    public function getMembershipHistory()
+    {
         # We get this from our logs.
         $sql = "SELECT * FROM logs WHERE user = ? AND `type` = 'User' ORDER BY id DESC;";
-        $logs = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $logs = $this->dbhr->preQuery($sql, [$this->id]);
 
         $ret = [];
         foreach ($logs as $log) {
@@ -3561,10 +3656,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 case Log::SUBTYPE_LEFT:
                 case Log::SUBTYPE_YAHOO_APPLIED:
                 case Log::SUBTYPE_YAHOO_JOINED:
-                {
-                    $thisone = $log['subtype'];
-                    break;
-                }
+                    {
+                        $thisone = $log['subtype'];
+                        break;
+                    }
             }
 
             #error_log("{$log['subtype']} gives $thisone {$log['groupid']}");
@@ -3579,7 +3674,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
     public function search($search, $ctx)
@@ -3619,7 +3714,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             # We also want the Yahoo details.  Get them all in a single query for performance.
             $sql = "SELECT DISTINCT memberships.id AS membershipid, memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ? AND onyahoo = 1;";
             #error_log("$sql {$user['userid']}");
-            $membs = $this->dbhr->preQuery($sql, [ $user['userid']]);
+            $membs = $this->dbhr->preQuery($sql, [$user['userid']]);
 
             foreach ($thisone['memberof'] as &$member) {
                 foreach ($membs as $memb) {
@@ -3642,7 +3737,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             # Also return the chats for this user.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
-            $rooms = $r->listForUser($user['userid'], [ ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER ]);
+            $rooms = $r->listForUser($user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER]);
             $thisone['chatrooms'] = [];
 
             if ($rooms) {
@@ -3663,20 +3758,23 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ret[] = $thisone;
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function setPrivate($att, $val) {
+    public function setPrivate($att, $val)
+    {
         User::clearCache($this->id);
         parent::setPrivate($att, $val);
     }
 
-    public function canMerge() {
+    public function canMerge()
+    {
         $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
-        return(array_key_exists('canmerge', $settings) ? $settings['canmerge'] : TRUE);
+        return (array_key_exists('canmerge', $settings) ? $settings['canmerge'] : TRUE);
     }
 
-    public function notifsOn($type, $groupid = NULL) {
+    public function notifsOn($type, $groupid = NULL)
+    {
         $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
         $notifs = pres('notifications', $settings);
 
@@ -3696,10 +3794,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         #error_log("Notifs on for type $type ? $ret from " . var_export($notifs, TRUE));
-        return($ret);
+        return ($ret);
     }
 
-    public function getNotificationPayload($modtools) {
+    public function getNotificationPayload($modtools)
+    {
         # This gets a notification count/title/message for this user.
         $count = 0;
         $title = NULL;
@@ -3711,7 +3810,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if (!$modtools) {
             # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
-            $unseen = $r->allUnseenForUser($this->id, [ ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD ], $modtools);
+            $unseen = $r->allUnseenForUser($this->id, [ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD], $modtools);
             $count = count($unseen);
             foreach ($unseen as $un) {
                 $chatids[] = $un['chatid'];
@@ -3787,19 +3886,22 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
 
-        return([$count, $title, $message, $chatids, $route]);
+        return ([$count, $title, $message, $chatids, $route]);
     }
 
-    public function hasPermission($perm) {
+    public function hasPermission($perm)
+    {
         $perms = $this->user['permissions'];
-        return($perms && stripos($perms, $perm) !== FALSE);
+        return ($perms && stripos($perms, $perm) !== FALSE);
     }
 
-    public function sendIt($mailer, $message) {
+    public function sendIt($mailer, $message)
+    {
         $mailer->send($message);
     }
 
-    public function thankDonation() {
+    public function thankDonation()
+    {
         list ($transport, $mailer) = getMailer();
         $message = Swift_Message::newInstance()
             ->setSubject("Thank you for supporting Freegle!")
@@ -3810,7 +3912,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $headers = $message->getHeaders();
         $headers->addTextHeader('X-Freegle-Mail-Type', 'ThankDonation');
 
-        $html = donation_thank($this->getName(), $this->getEmailPreferred(), $this->loginLink(USER_SITE , $this->id, '/?src=thankdonation'), $this->loginLink(USER_SITE, $this->id, '/settings?src=thankdonation'));
+        $html = donation_thank($this->getName(), $this->getEmailPreferred(), $this->loginLink(USER_SITE, $this->id, '/?src=thankdonation'), $this->loginLink(USER_SITE, $this->id, '/settings?src=thankdonation'));
 
         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
         # Outlook.
@@ -3824,7 +3926,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->sendIt($mailer, $message);
     }
 
-    public function invite($email) {
+    public function invite($email)
+    {
         $ret = FALSE;
 
         # We can only invite logged in.
@@ -3855,7 +3958,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         list ($transport, $mailer) = getMailer();
                         $message = Swift_Message::newInstance()
                             ->setSubject("$fromname has invited you to try Freegle!")
-                            ->setFrom([ NOREPLY_ADDR => SITE_NAME ])
+                            ->setFrom([NOREPLY_ADDR => SITE_NAME])
                             ->setReplyTo($frommail)
                             ->setTo($email)
                             ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
@@ -3885,8 +3988,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 }
             }
         }
-        
-        return($ret);
+
+        return ($ret);
     }
 
     public function inviteOutcome($id, $outcome)
@@ -3914,7 +4017,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function listInvitations() {
+    public function listInvitations()
+    {
         $ret = [];
         $invites = $this->dbhr->preQuery("SELECT id, email, date, outcome, outcometimestamp FROM users_invitations WHERE userid = ?;", [
             $this->id
@@ -3927,10 +4031,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ret[] = $invite;
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function getLatLng($usedef = TRUE, $usegroup = TRUE) {
+    public function getLatLng($usedef = TRUE, $usegroup = TRUE)
+    {
         $s = $this->getPrivate('settings');
         $lat = NULL;
         $lng = NULL;
@@ -3970,10 +4075,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $lng = $lng ? $lng : -2.5209;
         }
 
-        return([$lat, $lng]);
+        return ([$lat, $lng]);
     }
 
-    public function isFreegleMod() {
+    public function isFreegleMod()
+    {
         $ret = FALSE;
 
         $this->cacheMemberships();
@@ -3984,10 +4090,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function getKudos($id = NULL) {
+    public function getKudos($id = NULL)
+    {
         $id = $id ? $id : $this->id;
         $kudos = [
             'userid' => $id,
@@ -4009,10 +4116,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $kudos = $k;
         }
 
-        return($kudos);
+        return ($kudos);
     }
 
-    public function updateKudos($id = NULL) {
+    public function updateKudos($id = NULL)
+    {
         $current = $this->getKudos($id);
 
         # Only update if we don't have one or it's older than a day.  This avoids repeatedly updating the entry
@@ -4051,15 +4159,15 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             # Do they have a Facebook login?
             $facebook = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_logins WHERE userid = ? AND type = ?", [
-                $id,
-                User::LOGIN_FACEBOOK
-            ])[0]['count'] > 0;
+                    $id,
+                    User::LOGIN_FACEBOOK
+                ])[0]['count'] > 0;
 
             # Have they posted using the platform?
             $platform = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND date >= '$start' AND sourceheader = ?;", [
-                $id,
-                Message::PLATFORM
-            ])[0]['count'] > 0;
+                    $id,
+                    Message::PLATFORM
+                ])[0]['count'] > 0;
 
             $kudos = $posts + $chats + $newsfeed + $events + $vols;
 
@@ -4084,7 +4192,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function topKudos($gid, $limit = 10) {
+    public function topKudos($gid, $limit = 10)
+    {
         $kudos = $this->dbhr->preQuery("SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? WHERE memberships.role = ? ORDER BY kudos DESC LIMIT $limit;", [
             $gid,
             User::ROLE_MEMBER
@@ -4105,10 +4214,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ret[] = $thisone;
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function possibleMods($gid, $limit = 10) {
+    public function possibleMods($gid, $limit = 10)
+    {
         # We look for users who are not mods with top kudos who also:
         # - active in last 60 days
         # - not bouncing
@@ -4136,20 +4246,22 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ret[] = $thisone;
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function requestExport() {
+    public function requestExport()
+    {
         $tag = randstr(64);
         $this->dbhm->preExec("INSERT INTO users_exports (userid, tag) VALUES (?, ?);", [
             $this->id,
             $tag
         ]);
 
-        return([ $this->dbhm->lastInsertId(), $tag]);
+        return ([$this->dbhm->lastInsertId(), $tag]);
     }
 
-    public function export($exportid, $tag) {
+    public function export($exportid, $tag)
+    {
         $this->dbhm->preExec("UPDATE users_exports SET started = NOW() WHERE id = ? AND tag = ?;", [
             $exportid,
             $tag
@@ -4218,25 +4330,53 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $d['Show_members_that_you_are_a_moderator'] = pres('showmod', $settings) ? 'Yes' : 'No';
 
                 switch (presdef('modnotifs', $settings, 4)) {
-                    case 24: $d['Send_notifications_of_active_mod_work'] = 'After 24 hours'; break;
-                    case 12: $d['Send_notifications_of_active_mod_work'] = 'After 12 hours'; break;
-                    case 4: $d['Send_notifications_of_active_mod_work'] = 'After 4 hours'; break;
-                    case 2: $d['Send_notifications_of_active_mod_work'] = 'After 2 hours'; break;
-                    case 1: $d['Send_notifications_of_active_mod_work'] = 'After 1 hours'; break;
-                    case 0: $d['Send_notifications_of_active_mod_work'] = 'Immediately'; break;
-                    case -1: $d['Send_notifications_of_active_mod_work'] = 'Never'; break;
+                    case 24:
+                        $d['Send_notifications_of_active_mod_work'] = 'After 24 hours';
+                        break;
+                    case 12:
+                        $d['Send_notifications_of_active_mod_work'] = 'After 12 hours';
+                        break;
+                    case 4:
+                        $d['Send_notifications_of_active_mod_work'] = 'After 4 hours';
+                        break;
+                    case 2:
+                        $d['Send_notifications_of_active_mod_work'] = 'After 2 hours';
+                        break;
+                    case 1:
+                        $d['Send_notifications_of_active_mod_work'] = 'After 1 hours';
+                        break;
+                    case 0:
+                        $d['Send_notifications_of_active_mod_work'] = 'Immediately';
+                        break;
+                    case -1:
+                        $d['Send_notifications_of_active_mod_work'] = 'Never';
+                        break;
                 }
 
                 switch (presdef('backupmodnotifs', $settings, 12)) {
-                    case 24: $d['Send_notifications_of_backup_mod_work'] = 'After 24 hours'; break;
-                    case 12: $d['Send_notifications_of_backup_mod_work'] = 'After 12 hours'; break;
-                    case 4: $d['Send_notifications_of_backup_mod_work'] = 'After 4 hours'; break;
-                    case 2: $d['Send_notifications_of_backup_mod_work'] = 'After 2 hours'; break;
-                    case 1: $d['Send_notifications_of_backup_mod_work'] = 'After 1 hours'; break;
-                    case 0: $d['Send_notifications_of_backup_mod_work'] = 'Immediately'; break;
-                    case -1: $d['Send_notifications_of_backup_mod_work'] = 'Never'; break;
+                    case 24:
+                        $d['Send_notifications_of_backup_mod_work'] = 'After 24 hours';
+                        break;
+                    case 12:
+                        $d['Send_notifications_of_backup_mod_work'] = 'After 12 hours';
+                        break;
+                    case 4:
+                        $d['Send_notifications_of_backup_mod_work'] = 'After 4 hours';
+                        break;
+                    case 2:
+                        $d['Send_notifications_of_backup_mod_work'] = 'After 2 hours';
+                        break;
+                    case 1:
+                        $d['Send_notifications_of_backup_mod_work'] = 'After 1 hours';
+                        break;
+                    case 0:
+                        $d['Send_notifications_of_backup_mod_work'] = 'Immediately';
+                        break;
+                    case -1:
+                        $d['Send_notifications_of_backup_mod_work'] = 'Never';
+                        break;
                 }
-                
+
                 $d['Show_members_that_you_are_a_moderator'] = presdef('showmod', $settings, TRUE) ? 'Yes' : 'No';
             }
         }
@@ -4494,7 +4634,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             ];
 
             $sql = "SELECT date, lastip FROM chat_roster WHERE `chatid` = ? AND userid = ?;";
-            $roster = $this->dbhr->preQuery($sql, [ $chatid['id'], $this->id ]);
+            $roster = $this->dbhr->preQuery($sql, [$chatid['id'], $this->id]);
             foreach ($roster as $rost) {
                 $thisone['lastip'] = $rost['lastip'];
                 $thisone['date'] = ISODate($rost['date']);
@@ -4662,10 +4802,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
         error_log("...completed, length " . strlen($data));
 
-        return($ret);
+        return ($ret);
     }
 
-    function getExport($userid, $id, $tag) {
+    function getExport($userid, $id, $tag)
+    {
         $ret = NULL;
 
         $exports = $this->dbhr->preQuery("SELECT * FROM users_exports WHERE userid = ? AND id = ? AND tag = ?;", [
@@ -4694,10 +4835,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function forget() {
+    public function forget()
+    {
         # Wipe a user of personal data, for the GDPR right to be forgotten.  We don't delete the user entirely
         # otherwise it would message up the stats.
 
@@ -4792,7 +4934,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
     }
 
-    public function userRetention($userid = NULL) {
+    public function userRetention($userid = NULL)
+    {
         # Find users who:
         # - were added six months ago
         # - are not on any groups
@@ -4803,7 +4946,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         #
         # We have no good reason to keep any data about them, and should therefore purge them.
         $count = 0;
-        $userq = $userid ? " users.id = $userid AND ": '';
+        $userq = $userid ? " users.id = $userid AND " : '';
         $mysqltime = date("Y-m-d", strtotime("6 months ago"));
         $sql = "SELECT users.id FROM users LEFT JOIN memberships ON users.id = memberships.userid LEFT JOIN spam_users ON users.id = spam_users.userid LEFT JOIN users_comments ON users.id = users_comments.userid WHERE $userq memberships.userid IS NULL AND spam_users.userid IS NULL AND spam_users.userid IS NULL AND users.lastaccess < '$mysqltime' AND systemrole = ?;";
         error_log($sql);
@@ -4830,10 +4973,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         error_log("...removed $count");
 
-        return($count);
+        return ($count);
     }
 
-    public function recordActive() {
+    public function recordActive()
+    {
         # We record this on an hourly basis.  Avoid pointless mod ops for cluster health.
         $now = date("Y-m-d H:00:00", time());
         $already = $this->dbhr->preQuery("SELECT * FROM users_active WHERE userid = ? AND timestamp = ?;", [
@@ -4846,12 +4990,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function getActive() {
-        $active = $this->dbhr->preQuery("SELECT * FROM users_active WHERE userid = ?;", [ $this->id ], FALSE, FALSE);
-        return($active);
+    public function getActive()
+    {
+        $active = $this->dbhr->preQuery("SELECT * FROM users_active WHERE userid = ?;", [$this->id], FALSE, FALSE);
+        return ($active);
     }
 
-    public function mostActive($gid, $limit = 20) {
+    public function mostActive($gid, $limit = 20)
+    {
         $earliest = date("Y-m-d", strtotime("Midnight 30 days ago"));
 
         $users = $this->dbhr->preQuery("SELECT users_active.userid, COUNT(*) AS count FROM users_active inner join users ON users.id = users_active.userid INNER JOIN memberships ON memberships.userid = users.id WHERE groupid = ? AND systemrole = ? AND timestamp >= ? GROUP BY users_active.userid ORDER BY count DESC LIMIT $limit", [
@@ -4879,10 +5025,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ret[] = $thisone;
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function formatPhone($num) {
+    public function formatPhone($num)
+    {
         $num = str_replace(' ', '', $num);
         $num = str_replace('+44', '', $num);
         $num = str_replace('+', '', $num);
@@ -4893,34 +5040,43 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         $num = "+44$num";
 
-        return($num);
+        return ($num);
     }
 
-    public function sms($msg, $url) {
+    public function sms($msg, $url)
+    {
         $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1;", [
             $this->id
         ]);
 
         foreach ($phones as $phone) {
             try {
-                $client = new Client(TWILIO_SID, TWILIO_AUTH);
+                $last = presdef('lastsent', $phone, NULL);
+                $last = $last ? strtotime($last) : NULL;
+                error_log("Last $last");
 
-                $text = "$msg Click $url Don't reply to this text.";
+                # Only send one SMS per day.  This keeps the cost down.
+                if (!$last || (time() - $last > 24 * 60 * 60)) {
+                    $client = new Client(TWILIO_SID, TWILIO_AUTH);
 
-                $rsp = $client->messages->create(
-                    $this->formatPhone($phone['number']),
-                    array(
-                        'from' => TWILIO_FROM,
-                        'body' => $text,
-                        'statusCallback' => 'https://' . USER_SITE . '/twilio/status.php'
-                    )
-                );
+                    $text = "$msg Click $url Don't reply to this text.  No more texts sent today.";
+                    $rsp = $client->messages->create(
+                        $this->formatPhone($phone['number']),
+                        array(
+                            'from' => TWILIO_FROM,
+                            'body' => $text,
+                            'statusCallback' => 'https://' . USER_SITE . '/twilio/status.php'
+                        )
+                    );
 
-                $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), count = count + 1, lastresponse = ? WHERE id = ?;", [
-                    $rsp->sid,
-                    $phone['id']
-                ]);
-                error_log("Sent SMS to {$phone['number']} result {$rsp->sid}");
+                    $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), count = count + 1, lastresponse = ? WHERE id = ?;", [
+                        $rsp->sid,
+                        $phone['id']
+                    ]);
+                    error_log("Sent SMS to {$phone['number']} result {$rsp->sid}");
+                } else {
+                    error_log("Don't send, too recent");
+                }
             } catch (Exception $e) {
                 error_log("Send to {$phone['number']} failed with " . $e->getMessage());
                 $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = ? WHERE id = ?;", [
@@ -4928,23 +5084,27 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $phone['id']
                 ]);
             }
+
         }
     }
 
-    public function addPhone($phone) {
+    public function addPhone($phone)
+    {
         $this->dbhm->preExec("REPLACE INTO users_phones (userid, number, valid) VALUES (?, ?, 1);", [
             $this->id,
             $this->formatPhone($phone),
         ]);
     }
 
-    public function removePhone() {
+    public function removePhone()
+    {
         $this->dbhm->preExec("DELETE FROM users_phones WHERE userid = ?;", [
             $this->id
         ]);
     }
 
-    public function getPhone() {
+    public function getPhone()
+    {
         $ret = NULL;
         $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ?;", [
             $this->id
@@ -4954,6 +5114,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ret = $phone['number'];
         }
 
-        return($ret);
+        return ($ret);
     }
 }

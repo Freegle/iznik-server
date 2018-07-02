@@ -14,6 +14,7 @@ $lockh = lockScript(basename(__FILE__));
 $bads = $dbhr->preQuery("SELECT * FROM users_phones WHERE laststatus IN ('failed', 'undelivered') AND valid = 1");
 
 foreach ($bads as $bad) {
+    error_log("Bad number {$bad['number']} for user #{$bad['userid']} status {$bad['laststatus']}");
     $dbhm->preExec("UPDATE users_phones SET valid = 0 WHERE id = ?;", [
         $bad['id']
     ]);

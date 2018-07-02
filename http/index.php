@@ -174,6 +174,10 @@ EOF;
         $title = SITE_NAME;
         $desc = SITE_DESC;
         $image = USERLOGO;;
+        $type = "product";
+        $url = 'https://' . USER_SITE . $_SERVER['REQUEST_URI'];
+        $p = strpos($url, '?');
+        $url = $p !== -1 ? substr($url, 0, $p) : $url;
 
         if (preg_match('/\/explore\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
             # Individual group - preview with name, tagline, image.
@@ -188,6 +192,7 @@ EOF;
                 $title = $atts['namedisplay'];
                 $desc = presdef('tagline', $atts, $groupdescdef);
                 $image = presdef('profile', $atts, USERLOGO);
+                $type = "product.group";
             }
         } else if (preg_match('/\/message\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
             # Individual message - preview with subject and photo.
@@ -221,6 +226,7 @@ EOF;
                 $title = $atts['title'];
                 $desc = $atts['title'];
                 $image = $photo ? $photo['path'] : USERLOGO;
+                $type = "article";
             }
         } else if (preg_match('/\/story\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
             # Story - preview with headline and description
@@ -234,6 +240,7 @@ EOF;
                 $title = $atts['headline'];
                 $desc = "Click to read more";
                 $image = $photo ? $photo['path'] : USERLOGO;
+                $type = "article";
             }
         } else if (preg_match('/\/chat\/(.*)\/external/', $_SERVER["REQUEST_URI"], $matches)) {
             # External link to a chat reply.
@@ -259,6 +266,7 @@ EOF;
                     $image = $atts['user']['profile']['url'];
                 }
             }
+            $type = "article";
         }
 
         # Splice them in.
@@ -266,7 +274,7 @@ EOF;
         $desc = htmlentities(preg_replace("/[\r\n]*/","",$desc));
 
         $indexhtml = preg_replace('/\<title\>.*?\<\/title\>/', "<title>" . htmlentities($title) . "</title>", $indexhtml);
-        $prehead = '<meta itemprop="title" content="' . $title . '"/><meta name="description" content="' . $desc . '"/><meta property="og:description" content="' . $desc . '" /><meta property="og:title" content="' . $title . '"/><meta property="og:image" content="' . $image . '"/>';
+        $prehead = '<meta itemprop="title" content="' . $title . '"/><meta name="description" content="' . $desc . '"/><meta property="og:description" content="' . $desc . '" /><meta property="og:title" content="' . $title . '"/><meta property="og:image" content="' . $image . '"/><meta property="og:type" content="' . $type . '"/><meta property="og:url" content="' . $url . '"/><meta property="fb:app_id" content="' . FBAPP_ID . '"/>';
         $indexhtml = str_replace('</head>', "$prehead$inspectlet</head>", $indexhtml);
 
         echo $indexhtml;
