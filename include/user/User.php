@@ -4911,7 +4911,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $this->formatPhone($phone['number']),
                     array(
                         'from' => TWILIO_FROM,
-                        'body' => $text
+                        'body' => $text,
+                        'statusCallback' => 'https://' . USER_SITE . '/twilio/status.php'
                     )
                 );
 
