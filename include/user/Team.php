@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
 
 class Team extends Entity
 {
-    var $publicatts = array('id', 'name', 'description');
+    var $publicatts = array('id', 'name', 'description', 'type');
     var $settableatts = array('name', 'description');
 
     const TEAM_BOARD = 'Board';
