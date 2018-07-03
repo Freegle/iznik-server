@@ -45,6 +45,20 @@ class Team extends Entity
         return($id);
     }
 
+    public function findByName($name) {
+        $ret = NULL;
+
+        $teams = $this->dbhr->preQuery("SELECT * FROM teams WHERE name LIKE ?;", [
+            $name
+        ]);
+
+        foreach ($teams as $team) {
+            $ret = $team['id'];
+        }
+
+        return($ret);
+    }
+
     public function listAll() {
         $teams = $this->dbhr->preQuery("SELECT * FROM teams ORDER BY LOWER(name) ASC;", []);
 
@@ -80,6 +94,67 @@ class Team extends Entity
         ]);
 
         return(count($membs) > 0 ? $membs : NULL);
+    }
+
+    public function getVolunteers() {
+        # A pseudo-team of all the volunteers who are ok with being public.  We dip into the user tables for performance,
+        # otherwise we'd have to instantiate each user.
+        $vols = $this->dbhr->preQuery("SELECT DISTINCT userid, firstname, lastname, fullname, users.added, users.settings FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND memberships.role IN (?, ?) INNER JOIN users ON users.id = memberships.userid WHERE groups.type = ?;", [
+            User::ROLE_MODERATOR,
+            User::ROLE_OWNER,
+            Group::GROUP_FREEGLE
+        ]);
+
+        $ret = [];
+
+        foreach ($vols as $vol) {
+            $settings = json_decode($vol['settings'], true);
+
+            # We want people who are happy to be shown as a mod, and also have a non-default profile.
+            if (pres('showmod', $settings) && (!array_key_exists('useprofile', $settings) || $settings['useprofile'])) {
+                $name = NULL;
+                if ($vol['fullname']) {
+                    $name = $vol['fullname'];
+                } else if ($vol['firstname'] || $vol['lastname']) {
+                    $name = $vol['firstname'] . ' ' . $vol['lastname'];
+                }
+
+                $profiles = $this->dbhr->preQuery("SELECT id, url, `default` FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
+                    $vol['userid']
+                ]);
+
+                if (count($profiles) > 0) {
+                    # Anything we have wins
+                    foreach ($profiles as $profile) {
+                        if (!$profile['default']) {
+                            # If it's a gravatar image we can return a thumbnail url that specifies a different size.
+                            $turl = pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
+                            $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
+
+                            $profile = [
+                                'url' => pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
+                                'turl' => $turl,
+                                'default' => FALSE
+                            ];
+                        }
+                    }
+                } else {
+                    $u = new User($this->dbhr, $this->dbhm, $vol['userid']);
+                    $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                    $u->ensureAvatar($atts);
+                    $profile = $atts['profile'];
+                }
+
+                $ret[] = [
+                    'userid' => $vol['userid'],
+                    'added' => $vol['added'],
+                    'displayname' => $name,
+                    'profile' => $profile
+                ];
+            }
+        }
+
+        return($ret);
     }
 
     public function delete() {

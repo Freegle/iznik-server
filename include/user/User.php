@@ -1728,26 +1728,7 @@ class User extends Entity
                 # We think we have a profile.  Make sure we can fetch it and filter out other people's
                 # default images.
                 $atts['profile']['default'] = TRUE;
-                $hasher = new ImageHash;
-                $data = file_get_contents($atts['profile']['url']);
-                $hash = NULL;
-
-                if ($data) {
-                    $img = @imagecreatefromstring($data);
-
-                    if ($img) {
-                        $hash = $hasher->hash($img);
-                        $atts['profile']['default'] = FALSE;
-                    }
-                }
-
-                if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash == 'c0c0e070e0603100') {
-                    # This is a default profile - replace it with ours.
-                    $atts['profile']['url'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
-                    $atts['profile']['turl'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
-                    $atts['profile']['default'] = TRUE;
-                    $hash = NULL;
-                }
+                $this->filterDefault($profile, $hash);
             }
 
             if ($atts['profile']['default']) {
@@ -1767,6 +1748,31 @@ class User extends Entity
                 $atts['profile']['default'],
                 $hash
             ]);
+        }
+    }
+
+    public function filterDefault(&$profile, &$hash) {
+        $hasher = new ImageHash;
+        $data = $profile['url'] && strlen($profile['url']) ? file_get_contents($profile['url']) : NULL;
+        $hash = NULL;
+
+        if ($data) {
+            $img = @imagecreatefromstring($data);
+
+            if ($img) {
+                $hash = $hasher->hash($img);
+                $profile['default'] = FALSE;
+            }
+        }
+
+        if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' ||
+            $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash == 'c0c0e070e0603100' ||
+            $hash == 'f0f0316870f07130' || $hash == '242e070e060b0d24') {
+            # This is a default profile - replace it with ours.
+            $profile['url'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+            $profile['turl'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+            $profile['default'] = TRUE;
+            $hash = NULL;
         }
     }
 

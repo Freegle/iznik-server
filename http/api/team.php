@@ -5,13 +5,20 @@ function team() {
     $me = whoAmI($dbhr, $dbhm);
 
     $id = intval(presdef('id', $_REQUEST, NULL));
+    $name = presdef('name', $_REQUEST, NULL);
 
     $t = new Team($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            if ($id) {
+            if (!$id && $name) {
+                # See if we can find the team by name.
+                $id = $t->findByName($name);
+                $t = new Team($dbhr, $dbhm, $id);
+            }
+
+            if ($id || $name == Team::TEAM_VOLUNTEERS) {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
@@ -19,24 +26,33 @@ function team() {
                 ];
 
                 $ret['team']['members'] = [];
-                $membs = $t->getMembers();
+                $membs = $name == Team::TEAM_VOLUNTEERS ? $t->getVolunteers() : $t->getMembers();
 
                 if ($membs) {
                     $members = [];
                     foreach ($membs as $memb) {
-                        $u = User::get($dbhr, $dbhm, $memb['userid']);
-                        $ctx = NULL;
-                        $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-                        $u->ensureAvatar($atts);
+                        if ($name == Team::TEAM_VOLUNTEERS) {
+                            # We already have the atts we need, which were grabbed for performance inside the list.
+                            $atts = $memb;
+                        } else {
+                            $u = User::get($dbhr, $dbhm, $memb['userid']);
+                            $ctx = NULL;
+                            $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
 
-                        if ($memb['nameoverride']) {
+                            $u->ensureAvatar($atts);
+                        }
+
+                        if (pres('nameoverride', $memb)) {
                             $atts['displayname'] = $memb['nameoverride'];
                         }
 
-                        if ($memb['imageoverride']) {
+                        if (pres('imageoverride', $memb)) {
                             $atts['profile']['url'] = $memb['imageoverride'];
                             $atts['profile']['turl'] = $memb['imageoverride'];
                         }
+
+                        $atts['description'] = presdef('description', $memb, NULL);
+                        $atts['added'] = ISODate($memb['added']);
 
                         $members[] = $atts;
                     }
