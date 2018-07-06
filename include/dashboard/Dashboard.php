@@ -24,6 +24,7 @@ class Dashboard {
         $usecache = NULL;
         $typeq = $type ? " AND `type` = " . $this->dbhr->quote($type) : '';
         $startq = " AND start = " . $this->dbhr->quote($start);
+        $userq = $this->me ? (" userid = " . $this->me->getId() . " AND ") : '';
 
         # Get the possible groups.
         if ($systemwide) {
@@ -33,7 +34,7 @@ class Dashboard {
                 $overlaps[$group['id']] = 1;
             }
 
-            $usecache = "SELECT * FROM users_dashboard WHERE systemwide = 1 $typeq $startq;";
+            $usecache = "SELECT * FROM users_dashboard WHERE $userq systemwide = 1 $typeq $startq;";
         } else if ($region) {
             $groups = $this->dbhr->preQuery("SELECT groups.id FROM groups WHERE region LIKE ?;", [ $region ]);
             foreach ($groups as $group) {
@@ -43,7 +44,7 @@ class Dashboard {
         } else if ($groupid) {
             $groupids[] = $groupid;
 
-            $usecache = "SELECT * FROM users_dashboard WHERE groupid = " . intval($groupid) . " $typeq $startq;";
+            $usecache = "SELECT * FROM users_dashboard WHERE $userq groupid = " . intval($groupid) . " $typeq $startq;";
         } else if ($this->me && $allgroups) {
             $groupids = $this->me->getModeratorships();
 
@@ -69,6 +70,8 @@ class Dashboard {
             if (count($cached) > 0) {
                 $ret = json_decode($cached[0]['data'], TRUE);
                 $ret['cached'] = TRUE;
+                $ret['cachedid'] = $cached[0]['id'];
+                $ret['cachesql'] = $usecache;
             }
         }
 
