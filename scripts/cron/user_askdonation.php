@@ -10,8 +10,9 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/misc/Donations.php');
-require_once(IZNIK_BASE . '/mailtemplates/donations/collected.php');
-require_once(IZNIK_BASE . '/mailtemplates/donations/bland.php');
+
+$loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/donations');
+$twig = new Twig_Environment($loader);
 
 $start = date('Y-m-d H:i', strtotime("yesterday 5pm"));
 $end = date('Y-m-d H:i', strtotime('today 5pm'));
@@ -33,7 +34,7 @@ foreach ($users as $user) {
     $lastask = $d->lastAsk($user['userid']);
     $ours = $u->getOurEmail();
     
-    if (time() - strtotime($lastask) > 7 * 24 * 60 * 60) {
+    if (!$lastask || time() - strtotime($lastask) > 7 * 24 * 60 * 60) {
         # Find the most recent message they have taken.
         $messages = $dbhr->preQuery("SELECT DISTINCT msgid, messages.date, subject FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.userid = ? AND messages_outcomes.userid = ? AND messages_outcomes.userid != messages.fromuser ORDER BY messages_outcomes.timestamp DESC LIMIT 1;", [
             ChatMessage::TYPE_INTERESTED,
@@ -54,13 +55,19 @@ foreach ($users as $user) {
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReplyTo(NOREPLY_ADDR)
                     ->setTo($u->getEmailPreferred())
-                    ->setBody($ours ? "We think that you've received this item on Freegle:\r\n\r\n{$message['subject']}\r\n\r\n(If we're wrong, just delete this message.)\r\n\r\nFreegle is free to use, but it's not free to run.  This month we're trying to raise " . DONATION_TARGET . " to keep us going.\r\n\r\nIf you can, please donate &pound;1 through PayPal:\r\n\r\nhttp://freegle.in/paypal\r\n\r\nWe realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!\r\n" :
+                    ->setBody($ours ? "We think that you've received this item on Freegle:\r\n\r\n{$message['subject']}\r\n\r\n(If we're wrong, just delete this message.)\r\n\r\n If you've not already, why not send a thanks to the person who gave it?  Just to be nice.\r\n\r\nFreegle is free to use, but it's not free to run.  This month we're trying to raise " . DONATION_TARGET . " to keep us going.\r\n\r\nIf you can, please donate &pound;1 through PayPal:\r\n\r\nhttp://freegle.in/paypal\r\n\r\nWe realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!\r\n" :
                         "Thank you for using your local Freegle group.\r\n\r\nFreegle is free to use, but it's not free to run.  This month we're trying to raise " . DONATION_TARGET . " to keep us going.\r\n\r\nIf you can, please donate &pound;1 through PayPal:\r\n\r\nhttp://freegle.in/paypal\r\n\r\nWe realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!\r\n"
                     );
                 $headers = $m->getHeaders();
                 $headers->addTextHeader('X-Freegle-Mail-Type', 'AskDonation');
 
-                $html = $ours ? donation_collected($u->getName(), $u->getEmailPreferred(), $message['subject'], DONATION_TARGET) : donation_bland($u->getName(), $u->getEmailPreferred(), DONATION_TARGET);
+                $html = $twig->render('collected.html', [
+                    'name' => $u->getName(),
+                    'email' => $u->getEmailPreferred(),
+                    'subject' => $message['subject'],
+                    'target' => DONATION_TARGET,
+                    'unsubscribe' => $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", NULL)
+                ]);
 
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                 # Outlook.
@@ -72,7 +79,9 @@ foreach ($users as $user) {
                 $m->attach($htmlPart);
 
                 $mailer->send($m);
-            } catch (Exception $e) {};
+            } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
         }
+
+        $d->recordAsk($user['userid']);
     }
 }
