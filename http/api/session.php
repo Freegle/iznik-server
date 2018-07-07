@@ -58,6 +58,7 @@ function session() {
 
                 $ret['emails'] = $me->getEmails();
                 $ret['me']['phone'] = $me->getPhone();
+                $ret['me']['aboutme'] = $me->getAboutMe();
 
                 # Get groups including work when we're on ModTools; don't need that on the user site.
                 $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS, TRUE);
@@ -362,6 +363,18 @@ function session() {
 
                 if (array_key_exists('newslettersallowed', $_REQUEST)) {
                     $me->setPrivate('newslettersallowed', $_REQUEST['newslettersallowed']);
+                }
+
+                if (array_key_exists('aboutme', $_REQUEST)) {
+                    $me->setAboutMe($_REQUEST['aboutme']);
+
+                    if (strlen($_REQUEST['aboutme'])) {
+                        # Newsworthy.  But people might edit them a lot, so hide any recent other ones from
+                        # the same user.
+                        $n = new Newsfeed($dbhr, $dbhm);
+                        $n->deleteRecent($me->getId(), Newsfeed::TYPE_ABOUT_ME);
+                        $n->create(Newsfeed::TYPE_ABOUT_ME, $me->getId(), $_REQUEST['aboutme']);
+                    }
                 }
 
                 Session::clearSessionCache();

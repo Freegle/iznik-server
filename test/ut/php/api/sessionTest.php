@@ -523,4 +523,35 @@ class sessionTest extends IznikAPITestCase
         $u = new User($this->dbhr, $this->dbhm, $id);
         self::assertEquals(strpos($u->getName(), 'Deleted User'), 0);
     }
+
+    public function testAboutMe()
+    {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertNotNull($u->addEmail('test@test.com'));
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test@test.com',
+            'password' => 'testpw'
+        ]);
+        error_log("Got info" . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session', 'PATCH', [
+            'aboutme' => "Something about me"
+        ]);
+        self::assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $id,
+            'info' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals('Something about me', $ret['user']['info']['aboutme']['text']);
+
+        error_log(__METHOD__ . " end");
+    }
 }

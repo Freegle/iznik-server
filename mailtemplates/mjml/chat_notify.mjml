@@ -90,6 +90,18 @@
             <mj-raw>
               {% endfor %}
             </mj-raw>
+            <mj-raw>
+                {% if aboutme is defined and aboutme %}
+            </mj-raw>
+            <mj-text container-background-color="#F7F6EC">
+              <em>About&nbsp;{{ name }}:</em>
+            </mj-text>
+            <mj-text container-background-color="#F7F6EC">
+              "{{ aboutme }}"
+            </mj-text>
+            <mj-raw>
+              {% endif %}
+            </mj-raw>
             <mj-button align="left" href="{{ reply }}" font-family="Helvetica" background-color="darkgreen" color="white">
               Reply
             </mj-button>

@@ -932,11 +932,13 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
         error_log("Profile " . var_export($atts['profile'], TRUE));
-        assertTrue($atts['profile']['gravatardefault']);
+        assertTrue($atts['profile']['gravatar']);
         error_log("norfolkmod@gmail.com URL {$atts['profile']['url']}");
 
         $uid = $u->create("Test", "User", "Test User");
-        $u->addEmail('gravatar@ehibbert.org.uk');
+        error_log("Created user $uid");
+        $eid = $u->addEmail('gravatar@ehibbert.org.uk');
+        error_log("Email $eid");
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
         error_log("gravatar@ehibbert.org.uk " . var_export($atts['profile'], TRUE));

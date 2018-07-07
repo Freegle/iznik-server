@@ -538,8 +538,8 @@ class chatRoomsTest extends IznikTestCase {
 //        explode(',',
 ////            'freegle@litmustest.com'
 ////            "barracuda@barracuda.emailtests.com, previews_01@gmx.de, litmuscheck01@gmail.com, litmuscheck05@yahoo.com, litmuscheck01@mail.com, litmuscheck03@outlook.com, litmuscheck02@emailtests.onmicrosoft.com, previews_99@web.de, litmuscheck03@mail.ru, litmuscheck07@gmail.com, litmuscheck05@gapps.emailtests.com, litmuscheck05@ms.emailtests.com, litmustestprod01@gd-testing.com, litmustestprod02@yandex.com, litmuscheck004@aol.com, d64dfa3af2@s.litmustest.com, d64dfa3af2@sg3.emailtests.com, d64dfa3af2@ml.emailtests.com"
-////        'edward@ehibbert.org.uk'
-//        'activate@liveintent.com, edward@ehibbert.org.uk'
+//        'edward@ehibbert.org.uk'
+////        'activate@liveintent.com, edward@ehibbert.org.uk'
 //    );
 //
 //        foreach ($tosends as $tosend) {
@@ -550,6 +550,7 @@ class chatRoomsTest extends IznikTestCase {
 //            $u1 = $u->create(NULL, NULL, "Test User 1");
 //            $u->addMembership($this->groupid);
 //            $u->addEmail('test1@test.com');
+//            $u->setAboutMe('Some text about me');
 //
 //            $u2 = $u->findByEmail($emailto);
 //
@@ -572,7 +573,7 @@ class chatRoomsTest extends IznikTestCase {
 //            assertNull($r->replyTime($u1));
 //
 //            $m = new ChatMessage($this->dbhr, $this->dbhm);
-//            $cm = $m->create($id, $u1, "Testing" . rand(), ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+//            $cm = $m->create($id, $u1, "Testing" . rand(), ChatMessage::TYPE_INTERESTED, NULL, TRUE, NULL, NULL, NULL, NULL);
 //
 //            # Notify - will email just one as we don't notify our own by default.
 //            assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));

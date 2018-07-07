@@ -1092,7 +1092,7 @@ class ChatRoom extends Entity
     public function getMessages($limit = 100, $seenbyall = NULL)
     {
         $seenfilt = $seenbyall === NULL ? '' : " AND seenbyall = $seenbyall ";
-        $sql = "SELECT id, userid FROM chat_messages WHERE chatid = ? $seenfilt ORDER BY date DESC LIMIT $limit;";
+        $sql = "SELECT id, userid, type FROM chat_messages WHERE chatid = ? $seenfilt ORDER BY date DESC LIMIT $limit;";
         $msgs = $this->dbhr->preQuery($sql, [$this->id]);
         $msgs = array_reverse($msgs);
         $users = [];
@@ -1146,6 +1146,11 @@ class ChatRoom extends Entity
                     if (!array_key_exists($msg['userid'], $users)) {
                         $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                         $users[$msg['userid']] = $u->getPublic(NULL, FALSE);
+                    }
+
+                    if ($msg['type'] == ChatMessage::TYPE_INTERESTED) {
+                        # Find any "about me" info.
+                        $users[$msg['userid']]['aboutme'] = $u->getAboutMe();
                     }
 
                     $ret[] = $atts;
@@ -1471,6 +1476,11 @@ class ChatRoom extends Entity
                                     }
                                 }
 
+                                if ($unmailedmsg['type'] == ChatMessage::TYPE_INTERESTED) {
+                                    # Add any "about me" info.
+                                    $aboutu = $otheru;
+                                }
+
                                 $lastfrom = $unmailedmsg['userid'];
 
                                 if ($unmailedmsg['imageid']) {
@@ -1556,6 +1566,7 @@ class ChatRoom extends Entity
                                             'messages' => $twigmessages,
                                             'backcolour' => '#FFF8DC',
                                             'email' => $to,
+                                            'aboutme' => $aboutu ? $aboutu->getAboutMe()['text'] : NULL,
                                             'LI_HASH' => $lihash,
                                             'LI_PLACEMENT_ID' => $placement
                                         ]);

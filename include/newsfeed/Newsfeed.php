@@ -37,6 +37,7 @@ class Newsfeed extends Entity
     const TYPE_REFER_TO_TAKEN = 'ReferToTaken';
     const TYPE_REFER_TO_RECEIVED = 'ReferToReceived';
     const TYPE_ATTACH_TO_THREAD = 'AttachToThread';
+    const TYPE_ABOUT_ME = 'AboutMe';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -620,9 +621,16 @@ class Newsfeed extends Entity
                     $count++;
 
                     $str = $feed['message'];
+
+                    switch ($feed['type']) {
+                        case Newsfeed::TYPE_ABOUT_ME: {
+                            $str = 'Wrote a bit about themself: ' . $str;
+                            break;
+                        }
+                    }
+
                     $this->snip($str);
 
-                    # Get the
                     $short = $feed['message'];
                     $this->snip($short, 40);
                     $subj = '"' . $short . '" ' . " ($count conversations " . ($count != 1 ? 's' : '') . " from your neighbours)";
@@ -756,5 +764,15 @@ class Newsfeed extends Entity
         ], FALSE, FALSE);
 
         return(count($unfollows) > 0);
+    }
+
+    public function deleteRecent($userid, $type, $within = "24 hours ago") {
+        $mysqltime = date("Y-m-d H:i:s", strtotime($within));
+        error_log("UPDATE newsfeed SET deleted = NOW() WHERE timestamp >= '$mysqltime' AND userid = $userid AND type = '$type';");
+        $this->dbhm->preExec("UPDATE newsfeed SET deleted = NOW() WHERE timestamp >= ? AND userid = ? AND type = ?;", [
+            $mysqltime,
+            $userid,
+            $type
+        ]);
     }
 }

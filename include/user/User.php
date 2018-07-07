@@ -1518,7 +1518,26 @@ class User extends Entity
 
         $ret['collected'] = $collected[0]['count'];
 
+        $ret['aboutme'] = $this->getAboutMe();
+
         return ($ret);
+    }
+
+    public function getAboutMe() {
+        $ret = NULL;
+
+        $aboutmes = $this->dbhr->preQuery("SELECT * FROM users_aboutme WHERE userid = ? ORDER BY timestamp DESC LIMIT 1;", [
+            $this->id
+        ]);
+
+        foreach ($aboutmes as $aboutme) {
+            $ret = [
+                'timestamp' => ISODate($aboutme['timestamp']),
+                'text' => $aboutme['text']
+            ];
+        }
+
+        return($ret);
     }
 
     private function md5_hex_to_dec($hex_str)
@@ -1728,7 +1747,7 @@ class User extends Entity
                 # We think we have a profile.  Make sure we can fetch it and filter out other people's
                 # default images.
                 $atts['profile']['default'] = TRUE;
-                $this->filterDefault($profile, $hash);
+                $this->filterDefault($atts['profile'], $hash);
             }
 
             if ($atts['profile']['default']) {
@@ -1737,7 +1756,7 @@ class User extends Entity
                     'url' => $this->gravatar($this->getEmailPreferred(), 200, 'identicon'),
                     'turl' => $this->gravatar($this->getEmailPreferred(), 100, 'identicon'),
                     'default' => FALSE,
-                    'gravatardefault' => TRUE
+                    'gravatar' => TRUE
                 ];
             }
 
@@ -2539,6 +2558,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         $this->dbhm->preExec("UPDATE IGNORE modnotifs SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_chatlists_index SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE teams_members SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_aboutme SET userid = $id1 WHERE userid = $id2;");
 
                         # Merge chat rooms.  There might have be two separate rooms already, which means that we need
                         # to make sure that messages from both end up in the same one.
@@ -4722,6 +4742,15 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $dd['timestamp'] = ISODate($dd['timestamp']);
         }
 
+        error_log("...aboutme");
+        $d['aboutme'] = $this->dbhr->preQuery("SELECT timestamp, text FROM users_aboutme WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($d['aboutme'] as &$dd) {
+            $dd['timestamp'] = ISODate($dd['timestamp']);
+        }
+
         error_log("...stories");
         $d['stories'] = $this->dbhr->preQuery("SELECT date, headline, story FROM users_stories WHERE userid = ?;", [
             $this->id
@@ -4920,6 +4949,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $this->id
         ]);
         $this->dbhm->preExec("DELETE FROM users_searches WHERE userid = ?;", [
+            $this->id
+        ]);
+        $this->dbhm->preExec("DELETE FROM users_aboutme WHERE userid = ?;", [
             $this->id
         ]);
 
@@ -5123,5 +5155,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         return ($ret);
+    }
+
+    public function setAboutMe($text) {
+        $this->dbhm->preExec("INSERT INTO users_aboutme (userid, text) VALUES (?, ?);", [
+            $this->id,
+            $text
+        ]);
+
+        return($this->dbhm->lastInsertId());
     }
 }
