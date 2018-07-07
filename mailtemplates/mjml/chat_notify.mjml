@@ -29,7 +29,7 @@
               {% for message in messages %}
             </mj-raw>
               <mj-raw>
-                {% if message.mine is defined and mine %}
+                {% if message.mine is defined and message.mine %}
               </mj-raw>
                 <mj-text align="right" color="grey">
                   <em>You wrote:</em>
@@ -56,9 +56,15 @@
               <mj-raw>
                 {% else %}
               </mj-raw>
+                <mj-raw>
+                    {% if message.fromname is defined and message.fromname %}
+                </mj-raw>
                 <mj-text align="left" color="grey">
                   <em>{{ message.fromname }}&nbsp;wrote:</em>
                 </mj-text>
+                <mj-raw>
+                    {% endif %}
+                </mj-raw>
                 <mj-text align="left" color="blue">
                   <span style="font-weight: bold">{{ message.message|nl2br }}</span>
                 </mj-text>
