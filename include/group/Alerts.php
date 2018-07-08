@@ -74,12 +74,16 @@ class Alert extends Entity
         return($ret);
     }
 
-    public function constructMessage($to, $toname, $from, $subject, $text, $html) {
+    public function constructMessage($to, $toname, $touid, $from, $subject, $text, $html) {
         $message = Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from])
             ->setTo([$to => $toname])
             ->setBody($text);
+
+        if ($touid) {
+            $message->setReturnPath("bounce-$touid-" . time() . "@" . USER_DOMAIN);
+        }
 
         if ($html && strlen($html) > 10) {
             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
@@ -291,7 +295,7 @@ class Alert extends Entity
                                         'https://' . USER_SITE . "/alert/viewed/$trackid";
                                 }
 
-                                $msg = $this->constructMessage($email['email'], $u->getName(), $from, $this->alert['subject'], $text, $html);
+                                $msg = $this->constructMessage($email['email'], $u->getName(), $u->getId(), $from, $this->alert['subject'], $text, $html);
                                 $mailer->send($msg);
                                 $done++;
                             }
@@ -334,7 +338,7 @@ class Alert extends Entity
                 }
 
                 error_log("Mail " . $g->getModsEmail());
-                $msg = $this->constructMessage($g->getModsEmail(), $toname, $from, $this->alert['subject'], $text, $html);
+                $msg = $this->constructMessage($g->getModsEmail(), $toname, NULL, $from, $this->alert['subject'], $text, $html);
                 $mailer->send($msg);
                 $done++;
             } catch (Exception $e) {
@@ -356,7 +360,7 @@ class Alert extends Entity
                 'https://' . USER_SITE);
 
             $text = $this->alert['text'];
-            $msg = $this->constructMessage($from, $g->getPrivate('nameshort'), $from, $this->alert['subject'], $text, $html);
+            $msg = $this->constructMessage($from, $g->getPrivate('nameshort'), NULL, $from, $this->alert['subject'], $text, $html);
             $mailer->send($msg);
         }
 

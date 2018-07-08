@@ -39,7 +39,7 @@ if (count($opts) < 2) {
         foreach ($membs as $memb) {
             $u = new User($dbhr, $dbhm, $memb['userid']);
 
-            if ($type == Notifications::TYPE_TRY_FEED) {
+            if ($type == Notifications::TYPE_TRY_FEED || $type == Notifications::TYPE_ABOUT_ME) {
                 # Don't send these too often.  Helps when notifying multiple groups
                 $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
                 $recent = $dbhr->preQuery("SELECT * FROM users_notifications WHERE touser = ? AND type = ? AND timestamp > '$mysqltime';", [
