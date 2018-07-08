@@ -17,6 +17,7 @@ class Notifications
     const TYPE_MEMBERSHIP_PENDING = 'MembershipPending';
     const TYPE_MEMBERSHIP_APPROVED = 'MembershipApproved';
     const TYPE_MEMBERSHIP_REJECTED = 'MembershipRejected';
+    const TYPE_ABOUT_ME = 'AboutMe';
 
     private $dbhr, $dbhm, $log;
 
@@ -235,6 +236,10 @@ class Notifications
                                 break;
                             case Notifications::TYPE_MEMBERSHIP_REJECTED:
                                 $str .= $fromname . " your application to {$notif['url']} was denied.\n";
+                                $count++;
+                                break;
+                            case Notifications::TYPE_ABOUT_ME:
+                                $str .= "Why not introduce yourself to other freeglers by telling us a bit about you?  You'll get a better response and it makes freegling more fun.\n";
                                 $count++;
                                 break;
                         }

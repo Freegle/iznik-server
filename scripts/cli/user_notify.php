@@ -15,7 +15,7 @@ if (count($opts) < 2) {
     $id = presdef('i', $opts, NULL);
     $gid = presdef('g', $opts, NULL);
     $type = $opts['t'];
-    $url = $opts['u'];
+    $url = presdef('u', $opts, NULL);
     $n = new Notifications($dbhr, $dbhm);
 
     if ($id) {
