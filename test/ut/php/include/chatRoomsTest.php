@@ -512,7 +512,7 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $mid = $m->create($id, $u2, "Test");
 
-        # Check that this message doesn't get notifed.
+        # Check that this message doesn't get notified.
         $r = $this->getMockBuilder('ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('mailer'))
@@ -527,6 +527,10 @@ class chatRoomsTest extends IznikTestCase {
         # Notify - will email none
         error_log("Will email none");
         assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+
+        # Chat still shouldn't show in the list for this user.
+        self::assertEquals(0, count($r->listForUser($u1, NULL, NULL, FALSE)));
+        self::assertEquals(1, count($r->listForUser($u2, NULL, NULL, FALSE)));
 
         error_log(__METHOD__ . " end");
     }
