@@ -90,7 +90,7 @@ class messageTest extends IznikTestCase {
     public function testRelated() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
@@ -120,7 +120,7 @@ class messageTest extends IznikTestCase {
         assertEquals(0, $m->recordRelated());
 
         # TAKEN with similar wording - should match
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Test items (location)', $msg);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
@@ -131,19 +131,19 @@ class messageTest extends IznikTestCase {
     public function testRelated2() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] Offer - Pedestal Fan - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id2, $already) = $m->save();
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
@@ -153,7 +153,7 @@ class messageTest extends IznikTestCase {
         # We don't match on messages with outcomes so hack this out out again.
         $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = $id1;");
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
@@ -175,14 +175,14 @@ class messageTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid2 = $g->create('testgroup2', Group::GROUP_REUSE);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
@@ -194,14 +194,14 @@ class messageTest extends IznikTestCase {
         assertEquals($gid1, $m1->getGroups(FALSE, TRUE)[0]);
         assertEquals($gid2, $m2->getGroups(FALSE, TRUE)[0]);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id3, $already) = $m->save();
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
@@ -219,7 +219,7 @@ class messageTest extends IznikTestCase {
     public function testNoSender() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/nosender');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nosender');
         $msg = str_replace('Basic test', 'OFFER: Test item', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
@@ -244,7 +244,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
@@ -295,7 +295,7 @@ class messageTest extends IznikTestCase {
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -305,7 +305,7 @@ class messageTest extends IznikTestCase {
 
         # Now from a different email but the same Yahoo UID.  This shouldn't trigger a merge as we should identify
         # them by the UID.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_ireplace('test@test.com', 'test2@test.com', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -327,7 +327,7 @@ class messageTest extends IznikTestCase {
     public function testHebrew() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '=?windows-1255?B?UkU6IE1hdGFub3MgTGFFdnlvbmltIFB1cmltIDIwMTYg7sf6yMzw5Q==?=
 =?windows-1255?B?yfog7MjgxuHA6cnwxOnt?=', $msg);
 
@@ -342,7 +342,7 @@ class messageTest extends IznikTestCase {
     public function testPrune() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/prune'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -350,7 +350,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertGreaterThan(0, strlen($m->getMessage()));
 
-        $msg = $this->unique(file_get_contents('msgs/prune2'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune2'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -365,13 +365,13 @@ class messageTest extends IznikTestCase {
     public function testReverseSubject() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', '[StevenageFreegle] OFFER: Ninky nonk train and night garden characters St NIcks [1 Attachment]', $msg);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -381,7 +381,7 @@ class messageTest extends IznikTestCase {
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -392,13 +392,13 @@ class messageTest extends IznikTestCase {
 
         assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'Bexley Freegle OFFER: compost bin (Bexley DA5)', $msg);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: compost bin (Bexley DA5)', $m->reverseSubject());
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'OFFER/CYNNIG: Windows 95 & 98 on DVD (Criccieth LL52)', $msg);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -410,19 +410,19 @@ class messageTest extends IznikTestCase {
     public function testStripQuoted() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply.", $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text2'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text2'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply.", $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text3'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text3'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
@@ -430,56 +430,56 @@ class messageTest extends IznikTestCase {
 
 And something after it.', $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text4'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text4'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals('Replying.', $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text5'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text5'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply.", $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text6'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text6'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply.", $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text7'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text7'));
         $msg = str_replace('USER_SITE', USER_SITE, $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply with https://" . USER_SITE ." an url and https://" . USER_SITE, $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text8'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text8'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals('Ok, here\'s a reply.', $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text9'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text9'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply to:\r\n\r\nSomewhere.", $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text10'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text10'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply", $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text11'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text11'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply", $stripped);
 
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text12'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text12'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
@@ -491,7 +491,7 @@ And something after it.', $stripped);
     public function testCensor() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/phonemail'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/phonemail'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $atts = $m->getPublic();
@@ -503,7 +503,7 @@ And something after it.', $stripped);
     public function testModmail() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/modmail'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/modmail'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->getPrivate('modmail'));
@@ -514,29 +514,29 @@ And something after it.', $stripped);
     public function testAutoReply() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertFalse($m->isAutoreply());;
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: Out of the office', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isAutoreply());
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Hey.', 'I aim to respond within', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isAutoreply());
 
-        $msg = $this->unique(file_get_contents('msgs/autosubmitted'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/autosubmitted'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isAutoreply());
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id, $already) = $m->save();
@@ -550,18 +550,18 @@ And something after it.', $stripped);
     public function testBounce() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertFalse($m->isBounce());;
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: Mail delivery failed', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isBounce());
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Hey.', '550 No such user', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -582,7 +582,7 @@ And something after it.', $stripped);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
 
         # Put two messages on the group - one eligible for autorepost, the other not yet.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('test@test.com', $email, $msg);
         $msg = str_replace('Basic test', 'OFFER: Test not due (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -595,7 +595,7 @@ And something after it.', $stripped);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents('msgs/attachment'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
         $msg = str_replace('test@test.com', $email, $msg);
         $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -673,7 +673,7 @@ And something after it.', $stripped);
 
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('test@test.com', $email, $msg);
         $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -721,7 +721,7 @@ And something after it.', $stripped);
     public function testTN() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/tnatt1'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tnatt1'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $m->save();
@@ -729,7 +729,7 @@ And something after it.', $stripped);
         assertEquals(1, count($atts));
         $m->delete();
 
-        $msg = $this->unique(file_get_contents('msgs/tnatt2'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tnatt2'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $m->save();
@@ -781,7 +781,7 @@ And something after it.', $stripped);
     public function testTNShow() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('test@test.com', 'test@user.trashnothing.com', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
@@ -797,7 +797,7 @@ And something after it.', $stripped);
 //    public function testSpecial() {
 //        error_log(__METHOD__);
 //
-//        $msg = file_get_contents('msgs/special');
+//        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special');
 //
 //        $m = new Message($this->dbhr, $this->dbhm);
 //        $rc = $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);

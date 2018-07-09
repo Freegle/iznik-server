@@ -67,7 +67,7 @@ class spammersAPITest extends IznikAPITestCase {
         assertTrue($u->addMembership($this->groupid));
 
         # And create a message from them, so that gets removed too.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();

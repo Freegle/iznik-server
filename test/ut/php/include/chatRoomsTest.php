@@ -129,14 +129,14 @@ class chatRoomsTest extends IznikTestCase {
         assertNull($r->replyTime($u1));
         assertNull($r->replyTime($u2));
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($msgid, $already) = $m->save();
 
-        $data = file_get_contents('images/chair.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
         $attid = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid);
@@ -193,7 +193,7 @@ class chatRoomsTest extends IznikTestCase {
         
         # Now send an email reply to this notification, but from a different email.  That email should
         # get attached to the correct user.
-        $msg = $this->unique(file_get_contents('msgs/notif_reply_text'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
         $mid = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();

@@ -34,7 +34,7 @@ class BounceTest extends IznikTestCase
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@test.com');
 
-        $msg = file_get_contents('msgs/bounce');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/bounce');
         $b = new Bounce($this->dbhr, $this->dbhm);
         $id = $b->save("bounce-{$this->uid}-1234@" . USER_DOMAIN, $msg);
         assertNotNull($id);

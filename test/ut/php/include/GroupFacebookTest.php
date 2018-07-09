@@ -61,7 +61,7 @@ class groupFacebookTest extends IznikTestCase {
 //        $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
 //
 //        foreach ($ids as $uid) {
-//            $msg = $this->unique(file_get_contents('msgs/basic'));
+//            $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
 //            $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 //
 //            $m = new Message($this->dbhr, $this->dbhm);
@@ -110,7 +110,7 @@ class groupFacebookTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);

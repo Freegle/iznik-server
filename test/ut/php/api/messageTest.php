@@ -48,7 +48,7 @@ class messageAPITest extends IznikAPITestCase
         $g->setPrivate('onhere', 1);
 
         # Create a group with a message on it
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -83,7 +83,7 @@ class messageAPITest extends IznikAPITestCase
         $g->setPrivate('onhere', TRUE);
 
         # Create a group with a message on it
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -147,7 +147,7 @@ class messageAPITest extends IznikAPITestCase
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -172,7 +172,7 @@ class messageAPITest extends IznikAPITestCase
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -228,7 +228,7 @@ class messageAPITest extends IznikAPITestCase
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
-        $msg = file_get_contents('msgs/spam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
@@ -311,7 +311,7 @@ class messageAPITest extends IznikAPITestCase
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
-        $msg = file_get_contents('msgs/spam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
@@ -378,7 +378,7 @@ class messageAPITest extends IznikAPITestCase
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
-        $msg = file_get_contents('msgs/spam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
@@ -435,7 +435,7 @@ class messageAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -568,7 +568,7 @@ class messageAPITest extends IznikAPITestCase
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Subject: Basic test', 'Subject: OFFER: thing (place)', $msg);
 
@@ -724,7 +724,7 @@ class messageAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_OTHER);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -807,7 +807,7 @@ class messageAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -902,7 +902,7 @@ class messageAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
-        $origmsg = file_get_contents('msgs/spam');
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $origmsg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1015,7 +1015,7 @@ class messageAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1088,8 +1088,8 @@ class messageAPITest extends IznikAPITestCase
 
         # Create an attachment
         $cwd = getcwd();
-        $data = file_get_contents('images/chair.jpg');
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         file_put_contents("/tmp/chair.jpg", $data);
         chdir($cwd);
 
@@ -1237,7 +1237,7 @@ class messageAPITest extends IznikAPITestCase
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Can create drafts when not logged in.
-        $data = file_get_contents('images/chair.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         file_put_contents("/tmp/chair.jpg", $data);
 
         $ret = $this->call('image', 'POST', [
@@ -1380,7 +1380,7 @@ class messageAPITest extends IznikAPITestCase
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
-        $data = file_get_contents('images/chair.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         file_put_contents("/tmp/chair.jpg", $data);
 
         $ret = $this->call('image', 'POST', [
@@ -1596,7 +1596,7 @@ class messageAPITest extends IznikAPITestCase
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
-        $data = file_get_contents('images/chair.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         file_put_contents("/tmp/chair.jpg", $data);
 
         $ret = $this->call('image', 'POST', [
@@ -2088,7 +2088,7 @@ class messageAPITest extends IznikAPITestCase
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id1 = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -2123,7 +2123,7 @@ class messageAPITest extends IznikAPITestCase
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $uid3 = $u->create(NULL, NULL, 'Test User');
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Basic test', 'OFFER: A thing (A place)', $msg);
 
@@ -2231,7 +2231,7 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $origmsg = file_get_contents('msgs/basic');
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
@@ -2319,7 +2319,7 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $origmsg = file_get_contents('msgs/basic');
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
@@ -2366,7 +2366,7 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $origmsg = file_get_contents('msgs/basic');
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
@@ -2413,7 +2413,7 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $origmsg = file_get_contents('msgs/basic');
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
@@ -2460,7 +2460,7 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $origmsg = file_get_contents('msgs/basic');
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
@@ -2515,7 +2515,7 @@ class messageAPITest extends IznikAPITestCase
         $u->addMembership($group1);
 
         # Put a message on the group.
-        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
@@ -2523,7 +2523,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
 
         # Create a chat reply by email.
-        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: OFFER: a test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);

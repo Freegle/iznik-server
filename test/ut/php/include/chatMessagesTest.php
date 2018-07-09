@@ -84,7 +84,7 @@ class chatMessagesTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
-        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
@@ -93,7 +93,7 @@ class chatMessagesTest extends IznikTestCase {
 
         # Now reply to it with spam.
         error_log("Reply with spam");
-        $msg = $this->unique(file_get_contents('msgs/spamreply'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
         $rc = $r->route();
@@ -114,7 +114,7 @@ class chatMessagesTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
-        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
@@ -123,7 +123,7 @@ class chatMessagesTest extends IznikTestCase {
 
         # Now reply to it with spam.
         error_log("Reply with spam");
-        $msg = $this->unique(file_get_contents('msgs/spamreply'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
         $rc = $r->route();
@@ -144,7 +144,7 @@ class chatMessagesTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
-        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
@@ -159,7 +159,7 @@ class chatMessagesTest extends IznikTestCase {
         $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'UT Test');
 
         # Now reply from them.
-        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: OFFER: a test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
@@ -218,7 +218,7 @@ class chatMessagesTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
-        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
@@ -232,7 +232,7 @@ class chatMessagesTest extends IznikTestCase {
         $u->addEmail($email, FALSE, FALSE);
 
         error_log("Reply with to self $email");
-        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, $email, $email, $msg);
         $rc = $r->route();
@@ -249,7 +249,7 @@ class chatMessagesTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
-        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
@@ -258,7 +258,7 @@ class chatMessagesTest extends IznikTestCase {
 
         # Now reply to it with spam that is marked as to be junked (weight loss in spam_keywords).
         error_log("Reply with spam");
-        $msg = $this->unique(file_get_contents('msgs/spamreply3'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply3'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
         $rc = $r->route();
@@ -273,7 +273,7 @@ class chatMessagesTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
-        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('OFFER: a test item (location)', 'OFFER: A spade and broom handle (Conniburrow MK14', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -281,7 +281,7 @@ class chatMessagesTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('OFFER: a test item (location)', 'Wanted: bike (Conniburrow MK14', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -289,7 +289,7 @@ class chatMessagesTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: A spade and broom handle (Conniburrow MK14)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
@@ -420,6 +420,53 @@ class chatMessagesTest extends IznikTestCase {
 
         # Keywords
         assertTrue($m->checkReview("Please reply to $email"));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testReplyWithAttachment() {
+        error_log(__METHOD__);
+
+        # Put a valid message on a group.
+        error_log("Put valid message on");
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Now reply to it with an attachment.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replyimage'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $replyid);
+        $atts = $m->getAttachments();
+
+        # Expect one of these to have been stripped as too small
+        self::assertEquals(1, count($atts));
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $replyid);
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('test@test.com');
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rooms = $r->listForUser($uid);
+        self::assertEquals(1, count($rooms));
+        $rid = $rooms[0];
+        assertNotNull($rid);
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $rid);
+        $msgs = $r->getMessages();
+        self::assertEquals(2, count($msgs));
+        error_log("Chat messages " . var_export($msgs, TRUE));
+        self::assertEquals('Here\'s a photo and a signature image.', $msgs[0][0]['message']);
+
+        # Should be an image in the second one.
+        assertTrue(array_key_exists('image', $msgs[0][1]));
 
         error_log(__METHOD__ . " end");
     }

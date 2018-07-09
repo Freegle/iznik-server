@@ -60,7 +60,7 @@ class statsTest extends IznikTestCase {
         ], MembershipCollection::APPROVED);
         assertEquals(0, $rc['ret']);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('FreeglePlayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);

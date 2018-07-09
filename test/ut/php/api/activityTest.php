@@ -53,7 +53,7 @@ class activityAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $origmsg = file_get_contents('msgs/basic');
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);

@@ -47,7 +47,7 @@ class imageAPITest extends IznikAPITestCase
         $g->setPrivate('onhere', 1);
 
         # Create a group with a message on it
-        $msg = file_get_contents('msgs/attachment');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -64,7 +64,9 @@ class imageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
-        assertEquals(2, count($ret['message']['attachments']));
+
+        # One image stripped out due to aspect ratio.
+        assertEquals(1, count($ret['message']['attachments']));
         $img1 = $ret['message']['attachments'][0]['id'];
 
         $ret = $this->call('image', 'GET', [
@@ -115,7 +117,7 @@ class imageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $data = file_get_contents('images/pan.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/pan.jpg');
         file_put_contents("/tmp/pan.jpg", $data);
 
         $ret = $this->call('image', 'POST', [
@@ -168,7 +170,7 @@ class imageAPITest extends IznikAPITestCase
     public function testOCR() {
         error_log(__METHOD__);
 
-        $data = file_get_contents('images/giveandtake.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/giveandtake.jpg');
         file_put_contents("/tmp/giveandtake.jpg", $data);
 
         $ret = $this->call('image', 'POST', [

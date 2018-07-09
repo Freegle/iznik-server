@@ -66,7 +66,7 @@ class MailRouterTest extends IznikTestCase {
         $u2->setPrivate('yahooUserId', -time());
         assertGreaterThan(0, $u->addEmail('test2@test.com'));
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("X-Yahoo-Group-Post: member; u=420816297", "X-Yahoo-Group-Post: member; u=-1", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -77,7 +77,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals($uid, $m->getFromuser());
 
-        $msg = $this->unique(file_get_contents('msgs/fromyahoo'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/fromyahoo'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -88,7 +88,7 @@ class MailRouterTest extends IznikTestCase {
         # Test group override
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
-        $msg = $this->unique(file_get_contents('msgs/fromyahoo'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/fromyahoo'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -100,7 +100,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals($gid, $groups[0]);
         assertTrue($m->isApproved($gid));
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -114,7 +114,7 @@ class MailRouterTest extends IznikTestCase {
     public function testHamNoGroup() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("freegleplayground@yahoogroups.com", "nogroup@yahoogroups.com", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -126,7 +126,7 @@ class MailRouterTest extends IznikTestCase {
     public function testConfirmMod() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/confirmmod_real');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/confirmmod_real');
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -191,7 +191,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(User::ROLE_OWNER, $u->getRoleForGroup($gid));
 
         # Try a fake confirm
-        $msg = file_get_contents('msgs/confirmmod_fake');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/confirmmod_fake');
         error_log("Fake confirm");
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->received(Message::YAHOO_SYSTEM, NULL, "modconfirm-$gid-$uid-$key@iznik.modtools.org", $msg);
@@ -205,7 +205,7 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $msg = file_get_contents('msgs/spam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_replace("FreeglePlayground <freegleplayground@yahoogroups.com>", "Nowhere <nogroup@yahoogroups.com>", $msg);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -226,7 +226,7 @@ class MailRouterTest extends IznikTestCase {
             $g->create("testgroup$i", Group::GROUP_REUSE);
             $groups[] = $g;
 
-            $msg = $this->unique(file_get_contents('msgs/basic'));
+            $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
             $msg = str_replace('Basic test', $subj, $msg);
             $msg = "X-Apparently-To: testgroup$i@yahoogroups.com\r\n" . $msg;
 
@@ -257,7 +257,7 @@ class MailRouterTest extends IznikTestCase {
     public function testSpam() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/spam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
@@ -294,7 +294,7 @@ class MailRouterTest extends IznikTestCase {
     public function testMoreSpam() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/spamcam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamcam');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
@@ -321,17 +321,17 @@ class MailRouterTest extends IznikTestCase {
             ->getMock();
         $r->method('mail')->willReturn(false);
 
-        $msg = file_get_contents('msgs/greetingsspam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam');
         $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
-        $msg = file_get_contents('msgs/greetingsspam2');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam2');
         $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
-        $msg = file_get_contents('msgs/greetingsspam3');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam3');
         $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
@@ -360,7 +360,7 @@ class MailRouterTest extends IznikTestCase {
             'UT Test'
         ]);
 
-        $msg = file_get_contents('msgs/basic');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = str_replace('Hey', "Please reply to $email", $msg);
 
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -373,7 +373,7 @@ class MailRouterTest extends IznikTestCase {
     public function testSpamOverride() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/spam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
@@ -391,7 +391,7 @@ class MailRouterTest extends IznikTestCase {
     public function testWhitelist() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/spam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_replace('Precedence: junk', 'X-Freegle-IP: 1.2.3.4', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
@@ -407,7 +407,7 @@ class MailRouterTest extends IznikTestCase {
     public function testPending() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
@@ -450,7 +450,7 @@ class MailRouterTest extends IznikTestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setSettings([ 'autoapprove' => [ 'members' => 1 ]]);
 
-        $msg = $this->unique(file_get_contents('msgs/approvemember'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approvemember'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
@@ -480,7 +480,7 @@ class MailRouterTest extends IznikTestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         error_log("First copy on $gid");
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
@@ -517,7 +517,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Now the same, but with a TN post which has no messageid.
         error_log("Now TN post");
-        $msg = file_get_contents('msgs/tn');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());
@@ -531,7 +531,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull(new Message($this->dbhr, $this->dbhm, $id));
         error_log("Pending id $id");
 
-        $msg = file_get_contents('msgs/tn');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id2 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals($id, $id2);
@@ -543,7 +543,7 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Force a TN message to spam
-        $msg = file_get_contents('msgs/tn');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
@@ -561,7 +561,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull(new Spam($this->dbhr, $this->dbhm, $id));
         error_log("Spam id $id");
 
-        $msg = file_get_contents('msgs/tn');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
         $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -578,7 +578,7 @@ class MailRouterTest extends IznikTestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         error_log("First copy on $gid");
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
 
         # Send to approved first.
@@ -614,7 +614,7 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Sorry, Cameroon folk.
-        $msg = file_get_contents('msgs/cameroon');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/cameroon');
         $msg = str_replace('freegleplayground@yahoogroups.com', 'b.com', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
@@ -635,7 +635,7 @@ class MailRouterTest extends IznikTestCase {
     public function testFailSpam() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/spam');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
 
         # Make the attempt to mark as spam fail.
         $r = $this->getMockBuilder('MailRouter')
@@ -662,7 +662,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
 
         # Make the geo lookup throw an exception, which it does for unknown IPs
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('X-Originating-IP: 1.2.3.4', 'X-Originating-IP: 238.162.112.228', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
@@ -676,7 +676,7 @@ class MailRouterTest extends IznikTestCase {
     public function testFailHam() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
 
         # Make the attempt to mark the message as approved
         $r = $this->getMockBuilder('MailRouter')
@@ -717,7 +717,7 @@ class MailRouterTest extends IznikTestCase {
         for ($i = 0; $i < Spam::USER_THRESHOLD + 2; $i++) {
             error_log("User $i");
 
-            $msg = $this->unique(file_get_contents('msgs/basic'));
+            $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
             $msg = str_replace(
                 'From: "Test User" <test@test.com>',
                 'From: "Test User ' . $i . '" <test' . $i . '@test.com>',
@@ -750,7 +750,7 @@ class MailRouterTest extends IznikTestCase {
             $g = Group::get($this->dbhr, $this->dbhm);
             $g->create("testgroup$i", Group::GROUP_REUSE);
 
-            $msg = $this->unique(file_get_contents('msgs/basic'));
+            $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
             $msg = str_replace(
                 'To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>',
                 'To: "testgroup' . $i . '@yahoogroups.com" <testgroup' . $i . '@yahoogroups.com>',
@@ -769,7 +769,7 @@ class MailRouterTest extends IznikTestCase {
         for ($i = 0; $i < Spam::SUBJECT_THRESHOLD + 2; $i++) {
             error_log("Group $i");
 
-            $msg = $this->unique(file_get_contents('msgs/basic'));
+            $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
             $msg = str_replace('Subject: Basic test', 'Subject: Modified subject', $msg);
             $msg = "X-Apparently-To: testgroup$i@yahoogroups.com\r\n" . $msg;
 
@@ -798,7 +798,7 @@ class MailRouterTest extends IznikTestCase {
             error_log("Group $i");
             $g->create("testgroup$i", Group::GROUP_OTHER);
 
-            $msg = $this->unique(file_get_contents('msgs/basic'));
+            $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
 
             $msg = "X-Apparently-To: testgroup$i@yahoogroups.com\r\n" . $msg;
             $msg = str_replace('1.2.3.4', '4.3.2.1', $msg);
@@ -821,7 +821,7 @@ class MailRouterTest extends IznikTestCase {
     function testRouteAll() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -833,7 +833,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Force exception
         error_log("Now force exception");
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -861,7 +861,7 @@ class MailRouterTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
-        $msg = file_get_contents('msgs/attachment_large');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment_large');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
@@ -887,7 +887,7 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         # A request to confirm an application
-        $msg = file_get_contents('msgs/application');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/application');
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
 
@@ -908,7 +908,7 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         # A request to confirm an application
-        $msg = file_get_contents('msgs/confirmnoemail');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/confirmnoemail');
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
@@ -927,7 +927,7 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         # A request to confirm an application
-        $msg = file_get_contents('msgs/replytext');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext');
         $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
@@ -950,7 +950,7 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         # A request to confirm an application
-        $msg = file_get_contents('msgs/approvemember');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approvemember');
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -976,7 +976,7 @@ class MailRouterTest extends IznikTestCase {
 
         # And again with a friendly name.  The user exists and should have the name upgraded.
         $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = $gid;");
-        $msg = file_get_contents('msgs/approvemember2');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approvemember2');
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -990,7 +990,7 @@ class MailRouterTest extends IznikTestCase {
 
         # And again with a join comment.
         $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = $gid;");
-        $msg = file_get_contents('msgs/approvemembercomment');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approvemembercomment');
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -1027,7 +1027,7 @@ class MailRouterTest extends IznikTestCase {
         $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
         assertEquals(1, count($membs));
 
-        $msg = file_get_contents('msgs/memberjoined');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/memberjoined');
         $msg = str_replace('test@test.com', 'test@direct.ilovefreegle.org', $msg);
         $r->log = TRUE;
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'test@direct.ilovefreegle.org', $msg);
@@ -1064,7 +1064,7 @@ class MailRouterTest extends IznikTestCase {
         $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
         assertEquals(1, count($membs));
 
-        $msg = file_get_contents('msgs/alreadyjoined');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/alreadyjoined');
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
@@ -1085,7 +1085,7 @@ class MailRouterTest extends IznikTestCase {
             ->getMock();
         $r->method('mail')->willReturn(false);
 
-        $msg = file_get_contents('msgs/invite');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/invite');
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
@@ -1096,7 +1096,7 @@ class MailRouterTest extends IznikTestCase {
     public function testNullFromUser() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/nullfromuser');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nullfromuser');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($m->getFromuser());
@@ -1116,7 +1116,7 @@ class MailRouterTest extends IznikTestCase {
     public function testPound() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/poundsign'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/poundsign'));
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -1142,7 +1142,7 @@ class MailRouterTest extends IznikTestCase {
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Send a message.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -1155,7 +1155,7 @@ class MailRouterTest extends IznikTestCase {
         $m->promise($uid2);
 
         # Send a purported reply.  This should result in the replying user being created.
-        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
@@ -1204,7 +1204,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Now send another reply, but in HTML with no text body.
         error_log("Now HTML");
-        $msg = $this->unique(file_get_contents('msgs/replyhtml'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replyhtml'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test3@test.com', 'test@test.com', $msg);
@@ -1265,7 +1265,7 @@ class MailRouterTest extends IznikTestCase {
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Send a message.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -1274,7 +1274,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
 
         error_log("Send reply with two texts");
-        $msg = $this->unique(file_get_contents('msgs/twotexts'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/twotexts'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
@@ -1330,7 +1330,7 @@ Bev", $msgs[0]['message']);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Send a message.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -1343,7 +1343,7 @@ Bev", $msgs[0]['message']);
         $m->promise($uid3);
 
         # Send a purported reply.  This should result in the replying user being created.
-        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test2@test.com', "replyto-$origid-$uid2@" . USER_DOMAIN, $msg);
@@ -1394,7 +1394,7 @@ Bev", $msgs[0]['message']);
         $u->setMembershipAtt($gid, 'emailfrequency', 24);
 
         # Turn off by email
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', "digestoff-$uid-$gid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
@@ -1417,7 +1417,7 @@ Bev", $msgs[0]['message']);
         $u->addMembership($gid);
 
         # Turn events off by email
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', "eventsoff-$uid-$gid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
@@ -1446,7 +1446,7 @@ Bev", $msgs[0]['message']);
         $u->addMembership($gid);
 
         # Turn off by email
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', "notificationmailsoff-$uid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
@@ -1473,7 +1473,7 @@ Bev", $msgs[0]['message']);
         $u->addMembership($gid);
 
         # Turn events off by email
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', "relevantoff-$uid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
@@ -1496,7 +1496,7 @@ Bev", $msgs[0]['message']);
         $u->addMembership($gid);
 
         # Turn events off by email
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', "newslettersoff-$uid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
@@ -1512,7 +1512,7 @@ Bev", $msgs[0]['message']);
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
-        $msg = $this->unique(file_get_contents('msgs/tovols'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-volunteers@' . GROUP_DOMAIN, $msg);
@@ -1522,7 +1522,7 @@ Bev", $msgs[0]['message']);
         assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 
         # And again now we know them, using the auto this time.
-        $msg = $this->unique(file_get_contents('msgs/tovols'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-auto@' . GROUP_DOMAIN, $msg);
@@ -1532,7 +1532,7 @@ Bev", $msgs[0]['message']);
         assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 
         # And with spam
-        $msg = $this->unique(file_get_contents('msgs/spamreply')  . "\r\nhttp://dbltest.com\r\n");
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply')  . "\r\nhttp://dbltest.com\r\n");
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         error_log("Reply with spam $msg");
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1554,7 +1554,7 @@ Bev", $msgs[0]['message']);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 0);
 
-        $msg = $this->unique(file_get_contents('msgs/tovols'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
@@ -1577,7 +1577,7 @@ Bev", $msgs[0]['message']);
 
         # Mail - first to pending for new member, noderated by default, then to approved for group settings.
 
-        $msg = $this->unique(file_get_contents('msgs/nativebymail'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         error_log("Mail message $id");
@@ -1587,7 +1587,7 @@ Bev", $msgs[0]['message']);
         assertTrue($m->isPending($gid));
 
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
-        $msg = $this->unique(file_get_contents('msgs/nativebymail'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         error_log("Mail message $id");
@@ -1598,7 +1598,7 @@ Bev", $msgs[0]['message']);
 
         # Test moderated
         $g->setSettings([ 'moderated' => TRUE ]);
-        $msg = $this->unique(file_get_contents('msgs/nativebymail'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         error_log("Mail message $id");
@@ -1609,7 +1609,7 @@ Bev", $msgs[0]['message']);
 
         # Unsubscribe
 
-        $msg = $this->unique(file_get_contents('msgs/tovols'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-unsubscribe@' . GROUP_DOMAIN, $msg);
@@ -1654,7 +1654,7 @@ Bev", $msgs[0]['message']);
         assertGreaterThan(0, $u->addEmail($email));
 
         # Send a message.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1664,7 +1664,7 @@ Bev", $msgs[0]['message']);
         assertEquals(MailRouter::APPROVED, $rc);
 
         # Send a purported reply.  This should result in the replying user being created.
-        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_replace("To: test@test.com", "To: $email, testgroup1@yahoogroups.com", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1707,7 +1707,7 @@ Bev", $msgs[0]['message']);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid, User::ROLE_MODERATOR);
 
-        $msg = $this->unique(file_get_contents('msgs/yahooapproved'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/yahooapproved'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $mid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -1732,7 +1732,7 @@ Bev", $msgs[0]['message']);
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($gid, User::ROLE_MEMBER);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>', 'To: ' . MODERATOR_EMAIL, $msg);
         $msg = str_replace('X-Apparently-To: freegleplayground@yahoogroups.com', 'X-Apparently-To: ' . MODERATOR_EMAIL, $msg);
 
@@ -1748,7 +1748,7 @@ Bev", $msgs[0]['message']);
 //    public function testSpecial() {
 //        error_log(__METHOD__);
 //
-//        $msg = $this->unique(file_get_contents('msgs/special'));
+//        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));
 //        $r = new MailRouter($this->dbhr, $this->dbhm);
 //        $m = new Message($this->dbhr, $this->dbhm, 25206247);
 //        $r->route($m);

@@ -978,6 +978,9 @@ class MailRouter
 
                                 $cm->chatByEmail($mid, $this->msg->getID());
 
+                                # Add any photos.
+                                $this->addPhotosToChat($chatid);
+
                                 # The user sending this is up to date with this conversation.  This prevents us
                                 # notifying her about other messages.
                                 $r->mailedLastForUser($fromid);
@@ -1019,6 +1022,9 @@ class MailRouter
                                     $mid = $cm->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
 
                                     $cm->chatByEmail($mid, $this->msg->getID());
+
+                                    # Add any photos.
+                                    $this->addPhotosToChat($chatid);
 
                                     # The user sending this is up to date with this conversation.  This prevents us
                                     # notifying her about other messages
@@ -1086,6 +1092,9 @@ class MailRouter
 
                                 $m->chatByEmail($mid, $this->msg->getID());
 
+                                # Add any photos.
+                                $this->addPhotosToChat($rid);
+
                                 # The user sending this is up to date with this conversation.  This prevents us
                                 # notifying her about other messages
                                 $r->mailedLastForUser($this->msg->getFromuser());
@@ -1121,6 +1130,22 @@ class MailRouter
         error_log("Routed #" . $this->msg->getID(). " " . $this->msg->getMessageID() . " " . $this->msg->getEnvelopefrom() . " -> " . $this->msg->getEnvelopeto() . " " . $this->msg->getSubject() . " " . $ret);
 
         return($ret);
+    }
+
+    private function addPhotosToChat($rid) {
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        $atts = $this->msg->getAttachments();
+        foreach ($atts as $att) {
+            $aid = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
+            $data = $att->getData();
+            $ct = $att->getContentType();
+            $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
+            try {
+                $aid2 = $a->create($aid, $ct, $data);
+                $m->setPrivate('imageid', $aid2);
+            } catch (Exception $e) { error_log("Create failed " . $e->getMessage()); }
+        }
     }
 
     public function routeAll() {

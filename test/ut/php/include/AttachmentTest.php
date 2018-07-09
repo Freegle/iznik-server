@@ -29,7 +29,7 @@ class AttachmentTest extends IznikTestCase {
     public function testIdentify() {
         error_log(__METHOD__);
 
-        $data = file_get_contents('images/chair.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm);
         $attid = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid);
@@ -46,7 +46,7 @@ class AttachmentTest extends IznikTestCase {
     public function testArchive() {
         error_log(__METHOD__);
 
-        $data = file_get_contents('images/chair.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm);
         $attid = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid);
@@ -62,12 +62,12 @@ class AttachmentTest extends IznikTestCase {
     public function testHash() {
         error_log(__METHOD__);
 
-        $data = file_get_contents('images/chair.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
         $attid1 = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid1);
 
-        $data = file_get_contents('images/chair.jpg');
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
         $attid2 = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid1);

@@ -1340,6 +1340,7 @@ class ChatRoom extends Entity
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
+                $aboutu = NULL;
 
                 # We email them if they have mails turned on, and even if they don't have any current memberships.
                 # Although that runs the risk of annoying them if they've left, we also have to be able to handle

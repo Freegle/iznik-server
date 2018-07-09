@@ -51,7 +51,7 @@ class digestTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
@@ -92,7 +92,7 @@ class digestTest extends IznikTestCase {
         $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
@@ -155,7 +155,7 @@ class digestTest extends IznikTestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 0);
         $g->setPrivate('onhere', 1);
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
@@ -190,7 +190,7 @@ class digestTest extends IznikTestCase {
         $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
@@ -249,7 +249,7 @@ class digestTest extends IznikTestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', TRUE);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -259,7 +259,7 @@ class digestTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test thing (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -269,7 +269,7 @@ class digestTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'TAKEN: Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -311,7 +311,7 @@ class digestTest extends IznikTestCase {
 //        $gid = $g->create("testgroup", Group::GROUP_REUSE);
 //        $g->setPrivate('onyahoo', 0);
 //        $g->setPrivate('onhere', 1);
-//        $msg = $this->unique(file_get_contents('msgs/attachment'));
+//        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
 //        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
 //        $msg = str_replace('Test att', 'OFFER: Test item (location)', $msg);
 //
@@ -365,7 +365,7 @@ class digestTest extends IznikTestCase {
 //        $gid = $g->create("testgroup", Group::GROUP_REUSE);
 //        $g->setPrivate('onyahoo', 0);
 //        $g->setPrivate('onhere', 1);
-//        $msg = $this->unique(file_get_contents('msgs/attachment'));
+//        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
 //        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
 //        $msg = str_replace('Test att', 'OFFER: Test 1 (location)', $msg);
 //
@@ -376,7 +376,7 @@ class digestTest extends IznikTestCase {
 //        $rc = $r->route();
 //        assertEquals(MailRouter::APPROVED, $rc);
 //
-//        $msg = $this->unique(file_get_contents('msgs/attachment'));
+//        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
 //        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
 //        $msg = str_replace('Test att', 'OFFER: Test 2 (location)', $msg);
 //
@@ -387,7 +387,7 @@ class digestTest extends IznikTestCase {
 //        $rc = $r->route();
 //        assertEquals(MailRouter::APPROVED, $rc);
 //
-//        $msg = $this->unique(file_get_contents('msgs/attachment'));
+//        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
 //        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
 //        $msg = str_replace('Test att', 'OFFER: Test 3 (location)', $msg);
 //

@@ -353,7 +353,7 @@ class sessionTest extends IznikAPITestCase
         $u->addMembership($group2, User::ROLE_MODERATOR);
 
         # Send one message to pending on each.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -363,7 +363,7 @@ class sessionTest extends IznikAPITestCase
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);

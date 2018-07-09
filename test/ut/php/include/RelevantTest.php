@@ -89,7 +89,7 @@ class RelevantTest extends IznikTestCase
         $g->setPrivate('onhere', 1);
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
@@ -102,7 +102,7 @@ class RelevantTest extends IznikTestCase
         error_log("User $uid $email message $id");
         error_log("Emails after first " . var_export($u->getEmails(), TRUE));
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'WANTED: Another thing (location)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
@@ -137,7 +137,7 @@ class RelevantTest extends IznikTestCase
 
         # Add two relevant messages.
         error_log("Add two relevant");
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: thing (location)', $msg);
         $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: ' . gmdate(DATE_RFC822, time()), $msg);
@@ -151,7 +151,7 @@ class RelevantTest extends IznikTestCase
         assertNotNull($id);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', "OFFER: objets d'art (location)", $msg);
         $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: ' . gmdate(DATE_RFC822, time()), $msg);

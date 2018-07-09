@@ -34,7 +34,7 @@ class IncomingMessageTest extends IznikTestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $t = "TestUser" . microtime(true) . "@test.com";
         $msg = str_replace('From: "Test User" <test@test.com>', 'From: "' . $t . '" <test@test.com>', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
@@ -89,7 +89,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testAttachment() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/attachment');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('MessageMaker', $m->getSourceheader());
@@ -106,16 +106,14 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         list($id, $already) = $m->save();
         assertNotNull($id);
 
-        # Check the saved attachments
+        # Check the saved attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getAttachments();
         assertEquals('image/png', $atts[0]->getContentType());
         assertEquals(7975, strlen($atts[0]->getData()));
-        assertEquals('image/png', $atts[1]->getContentType());
-        assertEquals(9695, strlen($atts[1]->getData()));
 
-        # Check the returned attachments
+        # Check the returned attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getPublic();
-        assertEquals(2, count($atts['attachments']));
+        assertEquals(1, count($atts['attachments']));
 
         $m->delete();
 
@@ -125,16 +123,16 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testAttachmentDup() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/attachmentdup');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachmentdup');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
 
         list($id, $already) = $m->save();
         assertNotNull($id);
 
-        # Check the returned attachments
+        # Check the returned attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getPublic();
-        assertEquals(2, count($atts['attachments']));
+        assertEquals(1, count($atts['attachments']));
 
         $m->delete();
 
@@ -144,7 +142,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testEmbedded() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/inlinephoto');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/inlinephoto');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
 
@@ -181,7 +179,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testPending() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/approve');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approve');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
 
@@ -203,7 +201,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testTN() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/tn'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());

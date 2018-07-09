@@ -122,7 +122,7 @@ class membershipsAPITest extends IznikAPITestCase {
         error_log(__METHOD__);
 
         # Check that if we join a group we can see messages on it immediately.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);

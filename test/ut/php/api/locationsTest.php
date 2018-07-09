@@ -90,7 +90,7 @@ class locationsAPITest extends IznikAPITestCase
         $this->group->setPrivate('lng', 179.3);
 
         # Create a message which should have the first subject suggested.
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
 
@@ -157,7 +157,7 @@ class locationsAPITest extends IznikAPITestCase
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Basic test', 'OFFER: Test (TV13 1HH)', $msg);
 

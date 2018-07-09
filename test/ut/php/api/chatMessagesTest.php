@@ -176,7 +176,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $uid2 = $u->create(NULL, NULL, 'Test User');
 
         $this->user2->addEmail('test@test.com');
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);

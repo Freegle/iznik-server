@@ -47,7 +47,7 @@ class visualiseTest extends IznikTestCase {
         ]));
 
         # Send a message.
-        $msg = $this->unique(file_get_contents('msgs/attachment'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
         $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 

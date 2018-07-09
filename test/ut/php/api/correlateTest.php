@@ -43,7 +43,7 @@ class correlateTest extends IznikAPITestCase {
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
-        $msg = file_get_contents('msgs/approve');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approve');
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msgid = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -125,7 +125,7 @@ class correlateTest extends IznikAPITestCase {
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
-        $msg = file_get_contents('msgs/fromyahoo');
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/fromyahoo');
         $origmsg = $msg;
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);

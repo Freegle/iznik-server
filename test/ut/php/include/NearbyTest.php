@@ -86,7 +86,7 @@ class nearbyTest extends IznikTestCase {
 
         # Create a message at this location on this group.
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('test@test.com', $email, $msg);
         $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
