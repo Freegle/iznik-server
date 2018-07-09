@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
-require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
+require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
@@ -298,6 +298,10 @@ class User extends Entity
                 'byuser' => $me ? $me->getId() : NULL,
                 'text' => $this->getName() . " #$id " . $reason
             ]);
+
+            # Encourage them to introduce themselves.
+            $n = new Notifications($this->dbhr, $this->dbhm);
+            $n->add(NULL, $id, Notifications::TYPE_ABOUT_ME, NULL, NULL, NULL);
 
             return ($id);
         } else {
