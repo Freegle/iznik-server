@@ -177,7 +177,8 @@ class Volunteering extends Entity
 
         if ($atts['userid']) {
             $u = User::get($this->dbhr, $this->dbhm, $atts['userid']);
-            $atts['user'] = $u->getPublic();
+            $ctx = NULL;
+            $atts['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
         }
 
         $atts['renewed'] = pres('renewed', $atts) ? ISODate($atts['renewed']) : NULL;

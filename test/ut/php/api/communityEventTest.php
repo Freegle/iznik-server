@@ -185,5 +185,18 @@ class communityEventAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testEH() {
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+        error_log("Login as $uid");
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertTrue($u->login('1qwert'));
+
+        $ret = $this->call('communityevent', 'GET', [
+        ]);
+
+        error_log("Took " . $ret['duration']);
+    }
 }
 
