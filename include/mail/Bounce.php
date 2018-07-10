@@ -97,6 +97,10 @@ class Bounce
                                         $this->isPermanent($code)
                                     ]);
 
+                                    $this->dbhm->preExec("UPDATE users_emails SET bounced = NOW() WHERE email LIKE ?;", [
+                                        $email
+                                    ]);
+
                                     $ret = TRUE;
                                 }
                             }

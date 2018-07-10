@@ -338,13 +338,14 @@ class User extends Entity
         return (NULL);
     }
 
-    public function getEmails($recent = FALSE)
+    public function getEmails($recent = FALSE, $nobouncing = FALSE)
     {
         # Don't return canon - don't need it on the client.
         $ordq = $recent ? 'id' : 'preferred';
 
         if (!$this->emails) {
-            $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY $ordq DESC, email ASC;";
+            $bounceq = $nobouncing ? " AND bounced IS NULL " : '';
+            $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? $bounceq ORDER BY $ordq DESC, email ASC;";
             #error_log("$sql, {$this->id}");
             $this->emails = $this->dbhr->preQuery($sql, [$this->id]);
 

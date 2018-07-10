@@ -254,7 +254,9 @@ class Alert extends Entity
             foreach ($mods as $mod) {
                 $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
 
-                $emails = $u->getEmails();
+                # Get emails excluding bouncing.
+                $emails = $u->getEmails(FALSE, TRUE);
+
                 foreach ($emails as $email) {
                     try {
                         error_log("check {$email['email']} real " . realEmail($email['email']));
