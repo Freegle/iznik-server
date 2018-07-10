@@ -70,7 +70,8 @@ class Visualise extends Entity
                 }
             }
 
-            $atts = $fu->getPublic();
+            $ctx = NULL;
+            $atts = $fu->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
             $fu->ensureAvatar($atts);
             list ($flat, $flng) = $fu->getLatLng(FALSE, FALSE);
 
@@ -86,7 +87,8 @@ class Visualise extends Entity
             }
 
             if ($ok) {
-                $atts = $fu->getPublic();
+                $ctx = NULL;
+                $atts = $fu->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
                 $tu->ensureAvatar($atts);
                 list ($tlat, $tlng) = $tu->getLatLng(FALSE, FALSE);
 
@@ -114,7 +116,8 @@ class Visualise extends Entity
 
                 foreach ($others as $other) {
                     $u = User::get($this->dbhr, $this->dbhm, $other['userid']);
-                    $atts = $u->getPublic();
+                    $ctx = NULL;
+                    $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
                     $u->ensureAvatar($atts);
                 }
             }
@@ -140,7 +143,8 @@ class Visualise extends Entity
         ];
         
         $u = User::get($this->dbhr, $this->dbhm, $ret['fromuser']);
-        $atts = $u->getPublic();
+        $ctx = NULL;
+        $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
         $ret['from'] = [
             'id' => $ret['fromuser'],
             'icon' => $atts['profile']['turl']
@@ -148,7 +152,8 @@ class Visualise extends Entity
         unset($atts['fromuser']);
 
         $u = User::get($this->dbhr, $this->dbhm, $ret['touser']);
-        $atts = $u->getPublic();
+        $ctx = NULL;
+        $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
         $ret['to'] = [
             'id' => $ret['touser'],
             'icon' => $atts['profile']['turl']
@@ -166,7 +171,8 @@ class Visualise extends Entity
 
         foreach ($others as $other) {
             $u = User::get($this->dbhr, $this->dbhm, $other['userid']);
-            $atts = $u->getPublic();
+            $ctx = NULL;
+            $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
             $u->ensureAvatar($atts);
             list ($lat, $lng) = $u->getLatLng(FALSE, FALSE);
 

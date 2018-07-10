@@ -787,7 +787,7 @@ class Message
         # - it's our message
         if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
             # Add replies, as long as they're not awaiting review or rejected, or blocked.
-            $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? AND chat_messages.type = ? AND chat_roster.status != ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
+            $sql = "SELECT DISTINCT t.* FROM (SELECT chat_messages.id, chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != ? AND chat_messages.type = ? AND chat_roster.status != ? GROUP BY chat_messages.userid, chat_messages.chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [
                 $this->id,
                 $this->fromuser,
@@ -804,7 +804,7 @@ class Message
                     $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
                     $thisone = [
                         'id' => $reply['id'],
-                        'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE),
+                        'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE),
                         'chatid' => $reply['chatid']
                     ];
 
@@ -944,7 +944,9 @@ class Message
 
         if (pres('heldby', $ret)) {
             $u = User::get($this->dbhr, $this->dbhm, $ret['heldby']);
-            $ret['heldby'] = $u->getPublic();
+            $ctx = NULL;
+            $ret['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+
             filterResult($ret['heldby']);
         }
 

@@ -571,7 +571,8 @@ class Group extends Entity
 
             if (pres('heldby', $thisone)) {
                 $u = User::get($this->dbhr, $this->dbhm, $thisone['heldby']);
-                $thisone['heldby'] = $u->getPublic();
+                $ctx = NULL;
+                $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
             }
 
             $ret[] = $thisone;

@@ -109,11 +109,13 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals(MembershipCollection::PENDING, $ret['addedto']);
 
-        # Should have a notification.
+        # Should have two notifications.
         $ret = $this->call('notification', 'GET', []);
+        error_log("Notifications after join " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        self::assertEquals(1, count($ret['notifications']));
+        self::assertEquals(2, count($ret['notifications']));
         self::assertEquals(Notifications::TYPE_MEMBERSHIP_PENDING, $ret['notifications'][0]['type']);
+        self::assertEquals(Notifications::TYPE_ABOUT_ME, $ret['notifications'][1]['type']);
 
         error_log(__METHOD__ . " end");
     }

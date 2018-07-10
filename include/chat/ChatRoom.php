@@ -1068,11 +1068,13 @@ class ChatRoom extends Entity
                 $thisone['chatroom'] = $r->getPublic();
 
                 $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
-                $thisone['fromuser'] = $u->getPublic();
+                $ctx = NULL;
+                $thisone['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
 
                 $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
                 $u = User::get($this->dbhr, $this->dbhm, $touserid);
-                $thisone['touser'] = $u->getPublic();
+                $ctx = NULL;
+                $thisone['touser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
 
                 $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
                 $thisone['group'] = $g->getPublic();
@@ -1145,7 +1147,8 @@ class ChatRoom extends Entity
 
                     if (!array_key_exists($msg['userid'], $users)) {
                         $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
-                        $users[$msg['userid']] = $u->getPublic(NULL, FALSE);
+                        $ctx = NULL;
+                        $users[$msg['userid']] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
                     }
 
                     if ($msg['type'] == ChatMessage::TYPE_INTERESTED) {

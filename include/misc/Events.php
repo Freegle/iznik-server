@@ -154,7 +154,8 @@ class Events {
 
                 if ($userid) {
                     $u = User::get($this->dbhr, $this->dbhm, $userid);
-                    $thisone['user'] = $u->getPublic(NULL, FALSE);
+                    $ctx = NULL;
+                    $thisone['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
                 }
 
                 $ret[] = $thisone;

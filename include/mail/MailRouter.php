@@ -230,7 +230,7 @@ class MailRouter
                         # distinguish between owner and moderator via this route.
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-                        if ($u->getPublic()['id'] == $userid) {
+                        if ($u->getId() == $userid) {
                             if ($log) {
                                 error_log("Userid $userid is valid");
                             }

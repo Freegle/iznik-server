@@ -234,7 +234,7 @@ class ModConfig extends Entity
     public function canModify() {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
-        $systemrole = $me ? $me->getPublic()['systemrole'] : User::SYSTEMROLE_USER;
+        $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 
 //        error_log("Canmod {$this->id} systemrole $systemrole");
 
@@ -259,7 +259,7 @@ class ModConfig extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        $systemrole = $me->getPublic()['systemrole'];
+        $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 
         #error_log("Cansee {$this->id} systemrole $systemrole");
 

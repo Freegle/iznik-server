@@ -28,7 +28,7 @@ function modconfig() {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else {
                     $name = presdef('name', $_REQUEST, NULL);
-                    $systemrole = $me->getPublic()['systemrole'];
+                    $systemrole = $me->getPrivate('systemrole');
 
                     if (!$name) {
                         $ret = [

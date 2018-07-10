@@ -184,18 +184,18 @@ class newsfeedAPITest extends IznikAPITestCase {
         self::assertEquals(1, $ret['newsfeed']['loves']);
         self::assertTrue($ret['newsfeed']['loved']);
 
-        # Will have generated a notification
+        # Will have generated a notification, plus the one for "about me".
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('notification', 'GET', [
             'count' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        self::assertEquals(1, $ret['count']);
+        self::assertEquals(2, $ret['count']);
 
         $ret = $this->call('notification', 'GET', []);
         error_log("Notifications " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        self::assertEquals(1, count($ret['notifications']));
+        self::assertEquals(2, count($ret['notifications']));
         self::assertEquals($this->uid2, $ret['notifications'][0]['fromuser']['id']);
         $notifid = $ret['notifications'][0]['id'];
 

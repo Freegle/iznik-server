@@ -107,7 +107,8 @@ class notificationsTest extends IznikTestCase {
         error_log("Reply $rid");
         $n->add($uid2, $uid1, Notifications::TYPE_LOVED_POST, $nid);
 
-        self::assertEquals(2, $n->sendEmails($uid1, '0 seconds ago', '7 days ago'));
+        # We have the "about me" notification as well as the expected 2.
+        self::assertEquals(3, $n->sendEmails($uid1, '0 seconds ago', '7 days ago'));
         $rid2 = $f->create(Newsfeed::TYPE_MESSAGE, $uid1, 'Test reply to reply', NULL, NULL, $nid);
         error_log("Reply $rid2");
 
@@ -115,7 +116,7 @@ class notificationsTest extends IznikTestCase {
 //        $n->add($uid2, $uid1, Notifications::TYPE_COMMENT_ON_YOUR_POST, $nid);
 //        $n->add($uid1, $uid2, Notifications::TYPE_COMMENT_ON_COMMENT, $rid);
 
-        self::assertEquals(2, $n->sendEmails($uid2, '0 seconds ago', '7 days ago'));
+        self::assertEquals(3, $n->sendEmails($uid2, '0 seconds ago', '7 days ago'));
 
         error_log(__METHOD__ . " end");
     }

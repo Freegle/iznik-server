@@ -27,7 +27,7 @@ function stdmsg() {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else {
                     $name = presdef('title', $_REQUEST, NULL);
-                    $systemrole = $me->getPublic()['systemrole'];
+                    $systemrole = $me->getPrivate('systemrole');
 
                     if (!$name) {
                         $ret = [
