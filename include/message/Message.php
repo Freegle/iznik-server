@@ -786,9 +786,15 @@ class Message
         # - we're on ModTools and we're a mod for this message
         # - it's our message
         if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
-            # Add replies, as long as they're not awaiting review or rejected.
-            $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? AND chat_messages.type = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
-            $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser, ChatMessage::TYPE_INTERESTED]);
+            # Add replies, as long as they're not awaiting review or rejected, or blocked.
+            $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? AND chat_messages.type = ? AND chat_roster.status != ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
+            $replies = $this->dbhr->preQuery($sql, [
+                $this->id,
+                $this->fromuser,
+                ChatMessage::TYPE_INTERESTED,
+                ChatRoom::STATUS_BLOCKED
+            ]);
+
             $ret['replies'] = [];
             $ret['replycount'] = count($replies);
 
