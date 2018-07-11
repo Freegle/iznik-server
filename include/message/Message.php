@@ -1495,6 +1495,7 @@ class Message
                 # We don't want Yahoo's megaphone images - they're just generic footer images.  Likewise Avast.
                 if ((stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) &&
                     (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE) &&
+                    (stripos($src, 'http://li.ilovefreegle.org') === FALSE) &&
                     (stripos($src, 'https://ipmcdn.avast.com') === FALSE)) {
                     #error_log("Get inline image $src");
                     $ctx = stream_context_create(array('http' =>
