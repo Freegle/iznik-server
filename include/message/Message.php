@@ -1819,8 +1819,8 @@ class Message
                 # it chews up disk space.
                 $i = new Image($data);
                 if ($i->img) {
-                    $w = $i->width();
-                    $h = $i->height();
+                    $ow = $w = $i->width();
+                    $oh = $h = $i->height();
 
                     if (strlen($data) > 300000) {
                         $w = min(1024, $w);
@@ -1829,8 +1829,8 @@ class Message
                         $ct = 'image/jpeg';
                     }
 
-                    if ($w && $h) {
-                        $r = $w / $h;
+                    if ($ow && $oh) {
+                        $r = $ow / $oh;
 
                         # We want to remove images which are likely to be signature images.
                         #
@@ -1839,7 +1839,7 @@ class Message
                         #
                         # We also only want images which are a decent size; otherwise more likely to just be
                         # logos and suchlike.
-                        if ($w > 150 && $h > 150 && ($w > 600 || $h > 600 || ($r >= 0.5 && $r <= 1.5))) {
+                        if ($ow > 150 && $oh > 150 && ($ow > 600 || $oh > 600 || ($r >= 0.5 && $r <= 1.5))) {
                             $a->create($msgid, $ct, $data);
                         }
                     }
