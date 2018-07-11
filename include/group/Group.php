@@ -11,10 +11,13 @@ require_once(IZNIK_BASE . '/include/group/Facebook.php');
 class Group extends Entity
 {
     # We have a cache of users, because we create users a _lot_, and this can speed things up significantly by avoiding
-    # hitting the DB.
-    static $cache = [];
-    static $cacheDeleted = [];
-    const CACHE_SIZE = 100;
+    # hitting the DB.  This is only preserved within this process.
+    static $processCache = [];
+    static $processCacheDeleted = [];
+    const PROCESS_CACHE_SIZE = 100;
+
+    # We also cache the objects in redis, to reduce DB load.  This is shared across processes.
+    const REDIS_CACHE_EXPIRY = 600;
     
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo', 'publish',
@@ -45,15 +48,49 @@ class Group extends Entity
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts);
+        # We cache groups in redis, to reduce DB load.  Because we do it at the group level, we don't use the
+        # generalised DB query caching in db.php, so we disable that by appropriate parameters to DB calls and
+        # fetch().
+        $this->cachekey = $id ? "group-$id" : NULL;
 
-        if ($id && !$this->id) {
-            # We were passed an id, but didn't find the group.  See if the id is a legacyid.
-            #
-            # This assumes that the legacy and current ids don't clash.  Which they don't.  So that's a good assumption.
-            $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE legacyid = ?;", [ $id ]);
-            foreach ($groups as $group) {
-                $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts);
+        # Check if this group is in redis.
+        $cached = $this->getRedis()->mget([ $this->cachekey ]);
+
+        if ($cached && $cached[0]) {
+            # We got it.  That saves us some DB ops.
+            $obj = unserialize($cached[0]);
+
+            foreach ($obj as $key => $val) {
+                #error_log("Restore $key => " . var_export($val, TRUE));
+                $this->$key = $val;
+            }
+
+            # We didn't serialise the PDO objects.
+            $this->dbhr = $dbhr;
+            $this->dbhm = $dbhm;
+        } else {
+            # We didn't find it in redis.
+            $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, NULL, FALSE);
+
+            if ($id && !$this->id) {
+                # We were passed an id, but didn't find the group.  See if the id is a legacyid.
+                #
+                # This assumes that the legacy and current ids don't clash.  Which they don't.  So that's a good assumption.
+                $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE legacyid = ?;", [ $id ]);
+                foreach ($groups as $group) {
+                    $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts, NULL, FALSE);
+                }
+            }
+
+            if ($id) {
+                # Store object in redis for next time.
+                $this->dbhm = NULL;
+                $this->dbhr = NULL;
+                $s = serialize($this);
+                $this->dbhm = $dbhm;
+                $this->dbhr = $dbhr;
+
+                $this->getRedis()->setex($this->cachekey, Group::REDIS_CACHE_EXPIRY, $s);
             }
         }
 
@@ -110,57 +147,62 @@ class Group extends Entity
     public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $gsecache = TRUE) {
         if ($id) {
             # We cache the constructed group.
-            if ($gsecache && array_key_exists($id, Group::$cache) && Group::$cache[$id]->getId() == $id) {
+            if ($gsecache && array_key_exists($id, Group::$processCache) && Group::$processCache[$id]->getId() == $id) {
                 # We found it.
                 #error_log("Found $id in cache");
 
                 # @var Group
-                $g = Group::$cache[$id];
+                $g = Group::$processCache[$id];
 
-                if (!Group::$cacheDeleted[$id]) {
+                if (!Group::$processCacheDeleted[$id]) {
                     # And it's not zapped - so we can use it.
                     #error_log("Not zapped");
                     return ($g);
                 } else {
-                    # It's zapped - so refetch.  It's important that we do this using the original DB handles, because
-                    # whatever caused us to zap the cache might have done a modification operation which in turn
-                    # zapped the SQL read cache.
+                    # It's zapped - so refetch.
                     #error_log("Zapped, refetch " . $id);
-                    $g->fetch($g->dbhr, $g->dbhm, $id, 'groups', 'group', $g->publicatts);
+                    $g->fetch($g->dbhr, $g->dbhm, $id, 'groups', 'group', $g->publicatts, NULL, FALSE);
 
                     if (!$g->group['settings'] || strlen($g->group['settings']) == 0) {
                         $g->group['settings'] = json_encode($g->defaultSettings);
                     }
 
-                    Group::$cache[$id] = $g;
-                    Group::$cacheDeleted[$id] = FALSE;
+                    Group::$processCache[$id] = $g;
+                    Group::$processCacheDeleted[$id] = FALSE;
                     return($g);
                 }
             }
         }
 
-        # Not cached.
         #error_log("$id not in cache");
         $g = new Group($dbhr, $dbhm, $id);
 
-        if ($id && count(Group::$cache) < Group::CACHE_SIZE) {
-            # Store for next time
+        if ($id && count(Group::$processCache) < Group::PROCESS_CACHE_SIZE) {
+            # Store for next time in this process.
             #error_log("store $id in cache");
-            Group::$cache[$id] = $g;
-            Group::$cacheDeleted[$id] = FALSE;
+            Group::$processCache[$id] = $g;
+            Group::$processCacheDeleted[$id] = FALSE;
         }
 
         return($g);
     }
 
     public static function clearCache($id = NULL) {
-        # Remove this group from our cache.
+        # Remove this group from our process cache.
         #error_log("Clear $id from cache");
         if ($id) {
-            Group::$cacheDeleted[$id] = TRUE;
+            Group::$processCacheDeleted[$id] = TRUE;
         } else {
-            Group::$cache = [];
-            Group::$cacheDeleted = [];
+            Group::$processCache = [];
+            Group::$processCacheDeleted = [];
+        }
+
+        # And redis.
+        $cache = new Redis();
+        @$cache->pconnect(REDIS_CONNECT);
+
+        if ($cache->isConnected()) {
+            $cache->del("group-$id");
         }
     }
 
@@ -174,6 +216,12 @@ class Group extends Entity
 
     public function getDefaults() {
         return($this->defaultSettings);
+    }
+
+    public function setPrivate($att, $val) {
+        # We override this in order to clear our cache, which would otherwise be out of date.
+        parent::setPrivate($att, $val);
+        Group::clearCache($this->id);
     }
 
     public function create($shortname, $type) {

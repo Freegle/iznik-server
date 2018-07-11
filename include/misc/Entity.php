@@ -6,13 +6,14 @@ require_once(IZNIK_BASE . '/include/misc/Log.php');
 # Base class used for groups, users, messages, with some basic fetching and attribute manipulation.
 class Entity
 {
-    /** @var  $dbhr LoggedPDO */
-    var $dbhr;
-    /** @var  $dbhm LoggedPDO */
-    var $dbhm;
-    var $id;
-    var $publicatts = array();
-    private $name, $table;
+    /** @public  $dbhr LoggedPDO */
+    public $dbhr;
+    /** @public  $dbhm LoggedPDO */
+    public $dbhm;
+    public $id;
+    public $publicatts = array();
+    public $name, $table;
+    public $redis;
 
     /**
      * @return mixed
@@ -22,7 +23,7 @@ class Entity
         return $this->id;
     }
 
-    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $fetched = NULL)
+    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $fetched = NULL, $allowcache = TRUE)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -33,7 +34,13 @@ class Entity
         $this->table = $table;
 
         if ($id) {
-            $entities = $fetched ? [ $fetched ] : $dbhr->preQuery("SELECT * FROM $table WHERE id = ?;", [$id]);
+            $entities = $fetched ? [ $fetched ] : $dbhr->preQuery("SELECT * FROM $table WHERE id = ?;",
+                [
+                    $id
+                ],
+                FALSE,
+                $allowcache);
+
             foreach ($entities as $entity) {
                 $this->$name = $entity;
                 $this->id = $id;
@@ -103,5 +110,14 @@ class Entity
                 $this->setPrivate($att, $settings[$att]);
             }
         }
+    }
+
+    public function getRedis() {
+        if (!$this->redis) {
+            $this->redis = new Redis();
+            @$this->redis->pconnect(REDIS_CONNECT);
+        }
+
+        return($this->redis);
     }
 }

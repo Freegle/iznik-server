@@ -212,6 +212,7 @@ class LoggedPDO {
 
         return($this->cache);
     }
+
     public function getWaitTime() {
         return $this->dbwaittime;
     }
