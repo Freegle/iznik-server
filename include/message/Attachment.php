@@ -134,6 +134,7 @@ class Attachment
         if ($imgid) {
             $this->id = $imgid;
             $this->contentType = $ct;
+            $this->hash = $hash;
         }
 
         return($imgid);

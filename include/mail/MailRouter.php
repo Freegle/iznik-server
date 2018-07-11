@@ -1143,7 +1143,13 @@ class MailRouter
             $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
             try {
                 $aid2 = $a->create($aid, $ct, $data);
-                $m->setPrivate('imageid', $aid2);
+
+                if ($a->getHash() == '61e4d4a2e4bb8a5d') {
+                    # Images to suppress, e.g. our logo.
+                    $a->delete();
+                } else {
+                    $m->setPrivate('imageid', $aid2);
+                }
             } catch (Exception $e) { error_log("Create failed " . $e->getMessage()); }
         }
     }
