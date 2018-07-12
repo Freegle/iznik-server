@@ -295,7 +295,7 @@ class userTest extends IznikTestCase {
 
         $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
-        assertEquals(User::ROLE_MODERATOR, $m->getRoleForMessage());
+        assertEquals(User::ROLE_MODERATOR, $m->getRoleForMessage()[0]);
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         error_log("Check role for group");
         assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
@@ -303,7 +303,7 @@ class userTest extends IznikTestCase {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $me->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         assertEquals(User::SYSTEMROLE_ADMIN, $me->getPrivate('systemrole'));
-        assertEquals(User::ROLE_OWNER, $m->getRoleForMessage());
+        assertEquals(User::ROLE_OWNER, $m->getRoleForMessage()[0]);
 
         # Ban ourselves; can't rejoin
         error_log("Ban " . $u->getId() . " from $group2");

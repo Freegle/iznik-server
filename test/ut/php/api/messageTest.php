@@ -2598,4 +2598,35 @@ class messageAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testEH() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onhere', TRUE);
+
+        # Create a group with a message on it
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $a = new Message($this->dbhr, $this->dbhm, $id);
+        $a->setYahooApprovedId($group1, 42);
+        $a->setPrivate('sourceheader', Message::PLATFORM);
+
+        # Should be able to see this message even logged out.
+        $this->dbhr->errorLog = TRUE;
+        $this->dbhm->errorLog = TRUE;
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'collection' => 'Approved'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $this->dbhr->errorLog = FALSE;
+        $this->dbhm->errorLog = FALSE;
+    }
 }

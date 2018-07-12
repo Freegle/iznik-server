@@ -491,49 +491,52 @@ class Message
         # We might also be a partner.
         $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
         $role = pres('partner', $_SESSION) ? User::ROLE_MEMBER : User::ROLE_NONMEMBER;
+        $groupid = NULL;
 
         if ($me) {
-            $sql = "SELECT role, messages_groups.collection FROM memberships
+            if ($me->getId() == $this->fromuser) {
+                # It's our message.  We have full rights.
+                $role = User::ROLE_MODERATOR;
+            } else {
+                $sql = "SELECT role, messages_groups.groupid, messages_groups.collection FROM memberships
               INNER JOIN messages_groups ON messages_groups.msgid = ?
                   AND messages_groups.groupid = memberships.groupid
                   AND userid = ?;";
-            $groups = $this->dbhr->preQuery($sql, [
-                $this->id,
-                $me->getId()
-            ]);
+                $groups = $this->dbhr->preQuery($sql, [
+                    $this->id,
+                    $me->getId()
+                ]);
 
-            #error_log("$sql {$this->id}, " . $me->getId() . " " . var_export($groups, TRUE));
+                #error_log("$sql {$this->id}, " . $me->getId() . " " . var_export($groups, TRUE));
 
-            foreach ($groups as $group) {
-                switch ($group['role']) {
-                    case User::ROLE_OWNER:
-                        # Owner is highest.
-                        $role = $group['role'];
-                        break;
-                    case User::ROLE_MODERATOR:
-                        # Upgrade from member or non-member to mod.
-                        $role = ($role == User::ROLE_MEMBER || $role == User::ROLE_NONMEMBER) ? User::ROLE_MODERATOR : $role;
-                        break;
-                    case User::ROLE_MEMBER:
-                        # Just a member
-                        $role = User::ROLE_MEMBER;
-                        break;
+                foreach ($groups as $group) {
+                    switch ($group['role']) {
+                        case User::ROLE_OWNER:
+                            # Owner is highest.
+                            $role = $group['role'];
+                            break;
+                        case User::ROLE_MODERATOR:
+                            # Upgrade from member or non-member to mod.
+                            $role = ($role == User::ROLE_MEMBER || $role == User::ROLE_NONMEMBER) ? User::ROLE_MODERATOR : $role;
+                            break;
+                        case User::ROLE_MEMBER:
+                            # Just a member
+                            $role = User::ROLE_MEMBER;
+                            break;
+                    }
+
+                    $groupid = $group['groupid'];
                 }
 
-                if ($me->getId() == $this->fromuser) {
-                    # It's our message.  We have full rights.
-                    $role = User::ROLE_MODERATOR;
-                }
-            }
-
-            if ($overrides) {
-                switch ($me->getPrivate('systemrole')) {
-                    case User::SYSTEMROLE_SUPPORT:
-                        $role = User::ROLE_MODERATOR;
-                        break;
-                    case User::SYSTEMROLE_ADMIN:
-                        $role = User::ROLE_OWNER;
-                        break;
+                if ($overrides) {
+                    switch ($me->getPrivate('systemrole')) {
+                        case User::SYSTEMROLE_SUPPORT:
+                            $role = User::ROLE_MODERATOR;
+                            break;
+                        case User::SYSTEMROLE_ADMIN:
+                            $role = User::ROLE_OWNER;
+                            break;
+                    }
                 }
             }
         }
@@ -551,7 +554,7 @@ class Message
             }
         }
 
-        return($role);
+        return([ $role, $groupid ]);
     }
 
     public function canSee($atts) {
@@ -654,7 +657,7 @@ class Message
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $ret = [];
-        $role = $this->getRoleForMessage();
+        $role = $this->getRoleForMessage()[0];
         $ret['myrole'] = $role;
 
         foreach ($this->nonMemberAtts as $att) {
@@ -835,7 +838,6 @@ class Message
             $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
             $ret['replycount'] = $replies[0]['count'];
         }
-
 
         if ($this->type == Message::TYPE_OFFER) {
             # Add any promises, i.e. one or more people we've said can have this.

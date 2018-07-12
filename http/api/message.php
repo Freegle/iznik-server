@@ -201,7 +201,7 @@ function message() {
                         }
                     }
                 } else if ($_REQUEST['type'] == 'DELETE') {
-                    $role = $m->getRoleForMessage();
+                    $role = $m->getRoleForMessage()[0];
                     if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
                         $ret = ['ret' => 2, 'status' => 'Permission denied'];
                     } else {
@@ -221,7 +221,7 @@ function message() {
             $ret = ['ret' => 3, 'status' => 'Message does not exist'];
 
             if ($m->getID()) {
-                $role = $m->getRoleForMessage();
+                $role = $m->getRoleForMessage()[0];
 
                 # We might not be logged in - but might still have permissions to modify this message if
                 # we created it.
@@ -262,7 +262,7 @@ function message() {
         case 'POST': {
             $m = new Message($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            $role = $m ? $m->getRoleForMessage() : User::ROLE_NONMEMBER;
+            $role = $m ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
@@ -519,7 +519,7 @@ function message() {
                             $m = new Message($dbhr, $dbhm, $id);
                             $ret = ['ret' => 4, 'status' => 'Failed to edit message'];
 
-                            $role = $m->getRoleForMessage();
+                            $role = $m->getRoleForMessage()[0];
 
                             if ($role == User::ROLE_MODERATOR || $role = User::ROLE_OWNER) {
                                 $rc = $m->backToDraft();

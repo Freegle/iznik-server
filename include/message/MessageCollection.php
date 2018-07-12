@@ -174,6 +174,7 @@ class MessageCollection
     public function fillIn($msglist, $limit, $messagetype) {
         $msgs = [];
         $groups = [];
+        $roles = [];
 
         # Don't return the message attribute as it will be huge.  They can get that via a call to the
         # message API call.
@@ -183,13 +184,29 @@ class MessageCollection
 
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
-                $role = $m->getRoleForMessage(FALSE);
+                $role = NULL;
+
+                $thisgroups = $m->getGroups(TRUE);
+
+                foreach ($thisgroups as $groupid) {
+                    if (array_key_exists($groupid, $roles)) {
+                        $role = $roles[$groupid];
+                    }
+                }
+
+                if (!$role) {
+                    list ($role, $gid) = $m->getRoleForMessage(FALSE);
+
+                    if ($gid) {
+                        # Save the role on this group for later messages.
+                        $roles[$gid] = $role;
+                    }
+                }
+
                 $cansee = $m->canSee($public);
                 $coll = presdef('collection', $msg, MessageCollection::APPROVED);
 
                 if ($cansee && $coll != MessageCollection::DRAFT) {
-                    $thisgroups = $m->getGroups(TRUE);
-
                     # Make sure we only return this if it's on a group.
                     $cansee = FALSE;
 
