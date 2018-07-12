@@ -563,6 +563,7 @@ class Message
         #   - we're a member, or
         #   - we have publish consent, or
         #   - it's a TrashNothing message (the TN TOS allows this).
+        # - for pending messages, if it's a platform message (this allows Facebook share preview to work)
         $role = $atts['myrole'];
 
         $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
@@ -578,7 +579,7 @@ class Message
                 #error_log("...onhere " . $g->getPrivate('onhere'));
 
                 if ((($this->getSourceheader() == Message::PLATFORM || ($atts['publishconsent'] || $role == User::ROLE_MEMBER)) &&
-                    $group['collection'] == MessageCollection::APPROVED &&
+                    ($group['collection'] == MessageCollection::APPROVED || ($group['collection'] == MessageCollection::PENDING && $this->getSourceheader() == Message::PLATFORM)) &&
                     $g->getPrivate('type') == Group::GROUP_FREEGLE &&
                     $g->getPrivate('onhere') || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE)
                 ) {

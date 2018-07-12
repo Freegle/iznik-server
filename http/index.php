@@ -201,6 +201,7 @@ EOF;
             if ($m->getID()) {
                 $atts = $m->getPublic();
 
+                #
                 if ($m->canSee($atts)) {
                     $rsptext = '';
                     if ($m->getType() == Message::TYPE_OFFER) {
