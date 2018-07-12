@@ -36,6 +36,7 @@ class Message
     const OUTCOME_RECEIVED = 'Received';
     const OUTCOME_WITHDRAWN = 'Withdrawn';
     const OUTCOME_REPOST = 'Repost';
+    const OUTCOME_EXPIRED = 'Expired';
 
     const LIKE_LOVE = 'Love';
     const LIKE_LAUGH = 'Laugh';
@@ -855,20 +856,35 @@ class Message
             $ret['promised'] = count($promises) > 0;
         }
 
+        # Add derived attributes.
+        $ret['arrival'] = ISODate($ret['arrival']);
+        $ret['date'] = ISODate($ret['date']);
+        $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
+        $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
         # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
-        $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
-        $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+        if ($ret['arrival'] > 90) {
+            # Assume anything this old is no longer available.
+            $ret['outcomes'] = [
+                [
+                    'timestamp' => $ret['arrival'],
+                    'outcome' => Message::OUTCOME_EXPIRED
+                ]
+            ];
+        } else {
+            $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
+            $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
 
-        # We can only see the details of the outcome if we have access.
-        foreach ($ret['outcomes'] as &$outcome) {
-            if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
-                $outcome['userid'] = NULL;
-                $outcome['happiness'] = NULL;
-                $outcome['comments'] = NULL;
+            # We can only see the details of the outcome if we have access.
+            foreach ($ret['outcomes'] as &$outcome) {
+                if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
+                    $outcome['userid'] = NULL;
+                    $outcome['happiness'] = NULL;
+                    $outcome['comments'] = NULL;
+                }
+
+                $outcome['timestamp'] = ISODate($outcome['timestamp']);
             }
-
-            $outcome['timestamp'] = ISODate($outcome['timestamp']);
         }
 
         if ($role == User::ROLE_NONMEMBER) {
@@ -879,12 +895,6 @@ class Message
             # We can't do this in HTML, so just zap it.
             $ret['htmlbody'] = NULL;
         }
-
-        # Add derived attributes.
-        $ret['arrival'] = ISODate($ret['arrival']);
-        $ret['date'] = ISODate($ret['date']);
-        $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
-        $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
         # We have a flag for FOP - but legacy posting methods might put it in the body.
         $ret['FOP'] = (pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
