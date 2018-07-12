@@ -4747,8 +4747,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $dd['timestamp'] = ISODate($dd['timestamp']);
         }
 
-        error_log("...aboutme");
-        $d['aboutme'] = $this->dbhr->preQuery("SELECT timestamp, text FROM users_aboutme WHERE userid = ?;", [
+        $d['aboutme'] = $this->dbhr->preQuery("SELECT timestamp, text FROM users_aboutme WHERE userid = ? AND LENGTH(text) > 5;", [
             $this->id
         ]);
 

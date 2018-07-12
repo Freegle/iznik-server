@@ -368,7 +368,7 @@ function session() {
                 if (array_key_exists('aboutme', $_REQUEST)) {
                     $me->setAboutMe($_REQUEST['aboutme']);
 
-                    if (strlen($_REQUEST['aboutme'])) {
+                    if (strlen($_REQUEST['aboutme']) > 5) {
                         # Newsworthy.  But people might edit them a lot, so hide any recent other ones from
                         # the same user.
                         $n = new Newsfeed($dbhr, $dbhm);
