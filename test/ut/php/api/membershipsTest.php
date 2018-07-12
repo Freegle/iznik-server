@@ -136,7 +136,16 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(MailRouter::APPROVED, $rc);
         error_log("Approved id $id");
 
-        # Our role should be non-member.
+        # We have moderator role on our own message.
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+
+        self::assertEquals('Moderator', $ret['message']['myrole']);
+
+        # Set this message so that it's not from us, and then remove our membership.  Then our role should be
+        # non-member.
+        $m->setPrivate('fromuser', NULL);
         $this->user->removeMembership($this->groupid);
 
         $ret = $this->call('message', 'GET', [
@@ -153,14 +162,6 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         self::assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
-
-        # Our role should be member.
-        $ret = $this->call('message', 'GET', [
-            'id' => $id
-        ]);
-
-        # We have moderator role on our own message.
-        self::assertEquals('Moderator', $ret['message']['myrole']);
 
         error_log(__METHOD__ . " end");
     }

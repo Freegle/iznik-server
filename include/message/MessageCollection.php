@@ -179,6 +179,7 @@ class MessageCollection
         # Don't return the message attribute as it will be huge.  They can get that via a call to the
         # message API call.
         foreach ($msglist as $msg) {
+            error_log("Message {$msg['id']}");
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
             $public = $m->getPublic(TRUE, TRUE);
 
@@ -189,13 +190,16 @@ class MessageCollection
                 $thisgroups = $m->getGroups(TRUE);
 
                 foreach ($thisgroups as $groupid) {
+                    error_log("Got role? $groupid");
                     if (array_key_exists($groupid, $roles)) {
                         $role = $roles[$groupid];
+                        error_log("Saved roll get $role");
                     }
                 }
 
                 if (!$role) {
                     list ($role, $gid) = $m->getRoleForMessage(FALSE);
+                    error_log("Got role $role for $gid");
 
                     if ($gid) {
                         # Save the role on this group for later messages.

@@ -293,6 +293,9 @@ class userTest extends IznikTestCase {
         list($mid, $already) = $m->save();
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
+        # Make it not from us else we'll have moderator role.
+        $m->setPrivate('fromuser', NULL);
+
         $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
         assertEquals(User::ROLE_MODERATOR, $m->getRoleForMessage()[0]);
