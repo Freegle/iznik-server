@@ -862,8 +862,10 @@ class Message
         $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
         $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
+        $arrivalago = floor((time() - strtotime($ret['arrival'])) / 86400);
+
         # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
-        if ($ret['arrival'] > 90) {
+        if ($arrivalago > 90) {
             # Assume anything this old is no longer available.
             $ret['outcomes'] = [
                 [
