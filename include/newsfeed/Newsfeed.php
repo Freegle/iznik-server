@@ -378,10 +378,13 @@ class Newsfeed extends Entity
             $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
             $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
+            $mysqltime = date('Y-m-d', strtotime("30 days ago"));
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
-            $sql = "SELECT DISTINCT userid FROM newsfeed FORCE INDEX (position) WHERE MBRContains($box, position) AND replyto IS NULL LIMIT $limit;";
-            $others = $this->dbhr->preQuery($sql);
+            $sql = "SELECT DISTINCT userid FROM newsfeed FORCE INDEX (position) WHERE MBRContains($box, position) AND replyto IS NULL AND type != ? AND timestamp >= '$mysqltime' LIMIT $limit;";
+            $others = $this->dbhr->preQuery($sql, [
+                Newsfeed::TYPE_ALERT
+            ]);
             #error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid using $sql");
         } while ($dist < $max && count($others) < $limit);
 
