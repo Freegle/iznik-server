@@ -1109,7 +1109,8 @@ class ChatRoom extends Entity
 
         $modaccess = FALSE;
 
-        if ($myid && $myid != $this->chatroom['user1'] && $myid != $this->chatroom['user1']) {
+        if ($myid && $myid != $this->chatroom['user1'] && $myid != $this->chatroom['user2']) {
+            #error_log("Check mod access $myid, {$this->chatroom['user1']}, {$this->chatroom['user2']}");
             $modaccess = $me->moderatorForUser($this->chatroom['user1']) ||
                 $me->moderatorForUser($this->chatroom['user2']);
         }
@@ -1127,6 +1128,7 @@ class ChatRoom extends Entity
                 $lastmsg = $atts['message'];
                 $lastref = $refmsgid;
 
+                #error_log("COnsider review {$atts['reviewrequired']}, {$msg['userid']}, $myid, $modaccess");
                 if ($atts['reviewrequired'] && $msg['userid'] != $myid && !$modaccess) {
                     # This message is held for review, and we didn't send it.  So we shouldn't see it.
                 } else if ($atts['reviewrejected']) {

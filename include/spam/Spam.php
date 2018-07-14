@@ -688,7 +688,7 @@ class Spam {
         # know who's asking.
         $spammers = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE id = ?;", [ $id ]);
         foreach ($spammers as $spammer) {
-            $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid WHERE id = ?;";
+            $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid = ? WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [
                 $collection,
                 $reason ? $reason : $spammer['reason'],
