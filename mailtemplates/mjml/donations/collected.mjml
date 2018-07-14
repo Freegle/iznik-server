@@ -40,7 +40,7 @@
               {% if subject is defined and subject is not null %}
             </mj-raw>
             <mj-text>
-              We think that you've just got this from Freegle:
+              Did you just get this from Freegle?
             </mj-text>
             <mj-text><b>{{ subject }}</b></mj-text>
             <mj-text>
