@@ -1153,6 +1153,7 @@ class ChatRoom extends Entity
 
                     if ($msg['type'] == ChatMessage::TYPE_INTERESTED) {
                         # Find any "about me" info.
+                        $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                         $users[$msg['userid']]['aboutme'] = $u->getAboutMe();
                     }
 
