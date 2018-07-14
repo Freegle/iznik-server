@@ -49,7 +49,7 @@ class Notifications
     public function get($userid, &$ctx) {
         $ret = [];
         $idq = $ctx && pres('id', $ctx) ? (" AND id < " . intval($ctx['id'])) : '';
-        $sql = "SELECT * FROM users_notifications WHERE touser = ? $idq ORDER BY id DESC LIMIT 100;";
+        $sql = "SELECT * FROM users_notifications WHERE touser = ? $idq ORDER BY id DESC LIMIT 10;";
         $notifs = $this->dbhr->preQuery($sql, [ $userid ]);
 
         foreach ($notifs as &$notif) {
