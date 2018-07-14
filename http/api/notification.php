@@ -25,12 +25,14 @@ function notification() {
                     $me->recordActive();
                 } else {
                     $ctx = presdef('context', $_REQUEST, NULL);
+                    $notifs = $n->get($me->getId(), $ctx);
+                    #error_log("Notification context " . var_export($ctx, TRUE));
 
                     $ret = [
                         'ret' => 0,
                         'context' => $ctx,
                         'status' => 'Success',
-                        'notifications' => $n->get($me->getId(), $ctx)
+                        'notifications' => $notifs
                     ];
                 }
 
