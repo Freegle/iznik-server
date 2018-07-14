@@ -54,6 +54,7 @@ class MessageCollection
             case MessageCollection::ALLUSER:
                 # The ones users should be able to see, e.g. on My Posts.
                 $this->collection = [
+                    MessageCollection::DRAFT,
                     MessageCollection::APPROVED,
                     MessageCollection::PENDING,
                     MessageCollection::REJECTED,
