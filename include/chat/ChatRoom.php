@@ -1644,7 +1644,7 @@ class ChatRoom extends Entity
 
                                     if ($chattype == ChatRoom::TYPE_USER2USER) {
                                         # Send any SMS.
-                                        $thisu->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid']);
+                                        $thisu->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid'] . '?src=sms');
                                     }
 
                                     $notified++;
