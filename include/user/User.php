@@ -1324,19 +1324,23 @@ class User extends Entity
         # within the context of a known group.  We can administer a user when:
         # - they're only a user themselves
         # - we are a mod on one of the groups on which they are a member.
-        $u = User::get($this->dbhr, $this->dbhm, $userid);
+        # - it's us
+        if ($userid != $this->getId()) {
+            $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-        $usermemberships = [];
-        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member');", [$userid]);
-        foreach ($groups as $group) {
-            $usermemberships[] = $group['groupid'];
+            $usermemberships = [];
+            $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member');", [$userid]);
+            foreach ($groups as $group) {
+                $usermemberships[] = $group['groupid'];
+            }
+
+            $mymodships = $this->getModeratorships();
+
+            # Is there any group which we mod and which they are a member of?
+            $canmod = count(array_intersect($usermemberships, $mymodships)) > 0;
+        } else {
+            $canmod = TRUE;
         }
-
-        $mymodships = $this->getModeratorships();
-
-        # Is there any group which we mod and which they are a member of?
-        #error_log("Compare groups " . var_export($usermemberships, TRUE) . " vs " . var_export($mymodships, TRUE));
-        $canmod = count(array_intersect($usermemberships, $mymodships)) > 0;
 
         return ($canmod);
     }
@@ -2406,8 +2410,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                             #
                             # Our new membership has the highest role.
                             $id1memb = $id1membs[0];
-                            #error_log("...as is $id1");
                             $role = User::roleMax($id1memb['role'], $id2memb['role']);
+                            #error_log("...as is $id1, roles {$id1memb['role']} vs {$id2memb['role']} => $role");
 
                             if ($role != $id1memb['role']) {
                                 $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [

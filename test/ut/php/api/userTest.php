@@ -436,6 +436,11 @@ class userAPITest extends IznikAPITestCase {
         $u4 = User::get($this->dbhm, $this->dbhm);
         $id4 = $u4->create('Test', 'User', NULL);
         $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $u4->addEmail('test4@test.com', 0);
+        $u5 = User::get($this->dbhm, $this->dbhm);
+        $id5 = $u5->create('Test', 'User', NULL);
+        $u5->addEmail('test5@test.com', 0);
+        $u5->addMembership($this->groupid);
 
         # Can't merge not a mod
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -475,6 +480,18 @@ class userAPITest extends IznikAPITestCase {
         $id = $u1->findByEmail('test3@test.com');
         $u = new User($this->dbhr, $this->dbhm, $id);
         self::assertEquals('test3@test.com', $u->getEmailPreferred());
+
+        # Merge self and check still mod.
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Merge',
+            'email1' => 'test5@test.com',
+            'email2' => 'test4@test.com',
+            'reason' => 'UT'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $u1->findByEmail('test4@test.com');
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        self::assertTrue($u->isModOrOwner($this->groupid));
 
         error_log(__METHOD__ . " end");
     }
