@@ -684,13 +684,15 @@ class Spam {
             'text' => $text
         ]);
 
-        # Don't want to lose any existing reason.
+        # Don't want to lose any existing reason, but update the user when removal is requested so that we
+        # know who's asking.
         $spammers = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE id = ?;", [ $id ]);
         foreach ($spammers as $spammer) {
-            $sql = "UPDATE spam_users SET collection = ?, reason = ? WHERE id = ?;";
+            $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [
                 $collection,
                 $reason ? $reason : $spammer['reason'],
+                $collection == Spam::TYPE_PENDING_REMOVE && $me ? $me->getId() : $spammer['byuserid'],
                 $id
             ]);
         }
