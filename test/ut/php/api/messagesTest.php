@@ -634,5 +634,26 @@ class messagesTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testAllUser() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+        $_SESSION['id'] = $uid;
+
+        $ret = $this->call('messages', 'GET', [
+            'collection' => MessageCollection::ALLUSER,
+            'modtools' => FALSE,
+            'types' => [
+                Message::TYPE_OFFER,
+                Message::TYPE_WANTED
+            ]
+        ]);
+
+        error_log(var_export($ret, TRUE));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

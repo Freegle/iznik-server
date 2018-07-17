@@ -653,7 +653,25 @@ class Message
         return($text ? $text : '');
     }
 
-    public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE) {
+    private function getUser($uid, $messagehistory, &$userlist) {
+        # Get the user details, relative to the groups this message appears on.
+        if ($userlist && array_key_exists($uid, $userlist)) {
+            $atts = $userlist[$uid][1];
+        } else {
+            $u = User::get($this->dbhr, $this->dbhm, $uid);
+            $ctx = NULL;
+            $atts = $u->getPublic(MODTOOLS ? $this->getGroups() : NULL, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
+
+            # Save for next time.
+            $userlist[$uid] = [ $u, $atts];
+        }
+
+        return($atts);
+    }
+
+    public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL) {
+        # userlist is a way to cache users.  This avoids getting the same users repeatedly, e.g. when used from
+        # MessageCollection for ALLUSER messages.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $ret = [];
@@ -700,9 +718,7 @@ class Message
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                 if (pres('approvedby', $group)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
-                    $ctx = NULL;
-                    $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                    $group['approvedby'] = $this->getUser($group['approvedby'], $messagehistory, $userlist);
                 }
             }
 
@@ -806,10 +822,9 @@ class Message
             foreach ($replies as $reply) {
                 $ctx = NULL;
                 if ($reply['userid']) {
-                    $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
                     $thisone = [
                         'id' => $reply['id'],
-                        'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE),
+                        'user' => $this->getUser($reply['userid'], $messagehistory, $userlist),
                         'chatid' => $reply['chatid']
                     ];
 
@@ -914,10 +929,7 @@ class Message
             # We know who sent this.  We may be able to return this (depending on the role we have for the message
             # and hence the attributes we have already filled in).  We also want to know if we have consent
             # to republish it.
-            $u = User::get($this->dbhr, $this->dbhm, $this->fromuser);
-
-            # Get the user details, relative to the groups this message appears on.
-            $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
+            $ret['fromuser'] = $this->getUser($this->fromuser, $messagehistory, $userlist);
 
             if (pres('partner', $_REQUEST) && !pres('partner', $_SESSION)) {
                 $_SESSION['partner'] = partner($this->dbhr, $_REQUEST['partner']);
@@ -925,9 +937,11 @@ class Message
 
             if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                 # We can see their emails.
+                $u = $userlist[$this->fromuser][0];
                 $ret['fromuser']['emails'] = $u->getEmails();
             } else if (pres('partner', $_SESSION)) {
                 # Partners can see emails which belong to us, for the purposes of replying.
+                $u = $userlist[$this->fromuser][0];
                 $emails = $u->getEmails();
                 $ret['fromuser']['emails'] = [];
                 foreach ($emails as $email) {
@@ -958,10 +972,7 @@ class Message
         }
 
         if (pres('heldby', $ret)) {
-            $u = User::get($this->dbhr, $this->dbhm, $ret['heldby']);
-            $ctx = NULL;
-            $ret['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-
+            $ret['heldby'] = $this->getUser($ret['heldby'], $messagehistory, $userlist);
             filterResult($ret['heldby']);
         }
 
