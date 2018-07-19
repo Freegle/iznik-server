@@ -769,11 +769,11 @@ And something after it.', $stripped);
         $g->setSettings([ 'includearea' => FALSE ]);
 
         $m->constructSubject($gid);
-        self::assertEquals('OFFER: xmas decorations (TV13)', $m->getSubject());
+        self::assertEquals(strtolower('OFFER: xmas decorations (TV13)'), strtolower($m->getSubject()));
 
         $g->setSettings([ 'includepc' => FALSE ]);
         $m->constructSubject($gid);
-        self::assertEquals('OFFER: xmas decorations (Tuvalu Central)', $m->getSubject());
+        self::assertEquals(strtolower('OFFER: xmas decorations (Tuvalu Central)'), strtolower($m->getSubject()));
 
         error_log(__METHOD__ . " end");
     }

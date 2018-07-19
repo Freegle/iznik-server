@@ -25,7 +25,7 @@ class searchTest extends IznikTestCase
 
         $this->dbhm->preExec("DROP TABLE IF EXISTS test_index");
         $this->dbhm->preExec("CREATE TABLE test_index LIKE messages_index");
-        $this->s = new Search($this->dbhr, $this->dbhm, 'test_index', 'msgid', 'arrival', 'words', 'groupid');
+        $this->s = new Search($this->dbhr, $this->dbhm, 'test_index', 'msgid', 'arrival', 'words', 'groupid', NULL,'words_cache');
         $this->dbhm->preExec("DELETE FROM words WHERE word = 'zzzutzzz';");
         $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
     }
@@ -219,10 +219,4 @@ class searchTest extends IznikTestCase
 //            error_log("#{$res['id']} " . $m->getSubject());
 //        }
 //    }
-
-    public function testNewportPagnell() {
-        $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
-        $ctx = NULL;
-        var_dump($s->search("newport pagnell", $ctx, 10, NULL, [ 21529 ]));
-    }
 }

@@ -21,6 +21,7 @@ class Search
     private $sortatt;
     private $sortlim;
     private $wordtab;
+    private $cachetab;
     private $wordcache = [];
 
     # Common words to remove before indexing, because they are so generic that they
@@ -34,7 +35,7 @@ class Search
         'working', 'broken', 'black', 'white', 'grey', 'blue', 'green', 'red', 'yellow', 'brown', 'orange', 'machine'
     );
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt, $sortlim = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt, $sortlim = NULL, $cachetab = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -42,6 +43,7 @@ class Search
         $this->idatt = $idatt;
         $this->sortatt = $sortatt;
         $this->wordtab = $wordtab;
+        $this->cachetab = $cachetab;
         $this->filtatt = $filtatt;
         $this->sortlim = $sortlim;
     }
@@ -135,19 +137,37 @@ class Search
     }
 
     private function getWordsTypo($word, $limit) {
-        # We assume they got the first letter right.  This is purely to speed up this calculation and stop it scanning
-        # as many rows.
-        $sql = "SELECT id FROM {$this->wordtab} WHERE `word` LIKE ? AND damlevlim(`word`, ?, " . strlen($word) . ") < 2 ORDER BY popularity DESC LIMIT $limit;";
-        $res = array();
-        $ids = $this->dbhr->preQuery($sql,
-            [
-                substr($word, 0, 1) . '%',
-                $word
+        # We might have a cached set of words.
+        $ret = '0';
+        $earliest = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
+        $cached = $this->cachetab ? $this->dbhr->preQuery("SELECT * FROM {$this->cachetab} WHERE search LIKE ? AND added > '$earliest';", [
+            $word
+        ]) : [];
+
+        if (count($cached) > 0) {
+            $ret = $cached[0]['words'];
+        } else {
+            # We assume they got the first letter right.  This is purely to speed up this calculation and stop it scanning
+            # as many rows.
+            $sql = "SELECT id FROM {$this->wordtab} WHERE `word` LIKE ? AND damlevlim(`word`, ?, " . strlen($word) . ") < 2 ORDER BY popularity DESC LIMIT $limit;";
+            $res = array();
+            $ids = $this->dbhr->preQuery($sql,
+                [
+                    substr($word, 0, 1) . '%',
+                    $word
+                ]);
+            foreach ($ids as $id) {
+                $res[] = $id['id'];
+            }
+
+            $ret = count($res) > 0 ? implode(',', $res) : '0';
+            $this->dbhm->preExec("REPLACE INTO {$this->cachetab} (search, words) VALUES (?, ?);", [
+                $word,
+                $ret
             ]);
-        foreach ($ids as $id) {
-            $res[] = $id['id'];
         }
-        return(count($res) > 0 ? implode(',', $res) : '0');
+
+        return($ret);
     }
 
     public function add($extid, $string, $sortval, $filtval)

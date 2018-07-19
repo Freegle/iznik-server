@@ -433,7 +433,7 @@ class Message
         }
 
         $start = strtotime("30 days ago");
-        $this->s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid', $start);
+        $this->s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid', $start, 'words_cache');
     }
 
     /**
