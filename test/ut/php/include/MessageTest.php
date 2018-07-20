@@ -485,6 +485,12 @@ And something after it.', $stripped);
         $stripped = $m->stripQuoted();
         assertEquals("Great thank youFriday evening around 7?Maria", $stripped);
 
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text13'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals("Yes no problem, roughly how big is it. Will depends if it car or van. On 20 Jul 2018 10:39 am, gothe <notify-4703531-875040@users.ilovefreegle.org> wrote:", $stripped);
+
         error_log(__METHOD__ . " end");
     }
     

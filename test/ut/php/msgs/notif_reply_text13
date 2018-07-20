@@ -1,0 +1,45 @@
+From test@test.com Fri Jul 20 10:43:24 2018
+Return-path: <test@test.com>
+Envelope-to: notify-4703531-875040@users.ilovefreegle.org
+Received: from sonic301-21.consmr.mail.ir2.yahoo.com ([77.238.176.98])
+	by bulk1.ilovefreegle.org with esmtp (Exim 4.86_2)
+	(envelope-from <test@test.com>)
+	id 1fgSse-0003Xj-6E
+	for notify-4703531-875040@users.ilovefreegle.org; Fri, 20 Jul 2018 10:43:24 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.co.uk; s=s2048; t=1532083404; bh=dsZHpVTQq7lNC7e3qMM7qfXG15RFCURhJPJXl1wJVZ8=; h=Date:Subject:From:To:From:Subject; b=onLw9PUaZNE/ZIbD8tFEn9P6lxbe0YOLtK24ZtQZ1rkabbCHwVpa4MvGPnRi0ctAmdMajnoZTaLDGHM2T2+eTOOA5ZDmo3At0G2CmR3M2kSgOWcZYhLSXn5NmmJoWrgURjN5dHwLLhd8k/pJtVgyJnoBK1VMONXaYehxirj2ori6wbtvi+H69o5ed6ILvrQUbecoJlM4Av2soMre2Csromdd1ziESiwahLX2aMK5vDyZxmxcqYOiEB63jS22mvqJeH2D4h4gzSfdsdxb1zMfptYLvGIhj4a446t+pitkdA/BCmgyflBDX6IuPcCAZ6lb8hxNPQ4vJpukrly43Gx6Fg==
+X-YMail-OSG: CofMHzsVM1lpsxqkeXDLw0OSocKnfTk9A3DGJIpAkk262M8NRTHV2c7VhOkizMM
+ St6CXrZpZt5YocF2UJfTEMql0yReGdHhV1VAck3bWVt_IKz3Gr2Jv.2xS3YdxBWD6waItx30Ceyl
+ Atg4_2ynSQJlmNNIisjVqFi9ins1PPurz1qm3N.idKu7jyi58DUj4Dx8GD6M35oChgAbEKAUK9gh
+ 6Zd3TVeoy_ZHZ14LgRx_8AIgPX67E_ykQMZvHWmYnNiizSx.Atoj69foPafRM09IGW29J7UacvQp
+ aOJotd4_8gJcHqkCcQxb9hvC3YZ73VLDLYG1UgiuJkEwWBbp.9zXZui8pmzwRH4bZzJcsIXco0wi
+ eR1GkauHA_pdzPSuQkN4sjMta9uFTmFzDa1XhRnfwVmFmbxVvl55c.3fbpkpKSE0mFyUh8V2QsE6
+ WhkTtNmwrpCM_YvNiPiSmjaZBVjpWjEu1JU53ninHz7NIyCQG0D7VlBw7ApXu9YshIQPjkWZQ9dd
+ DPm0VhtvS4YjGhVEeN548XN695FsWCGgzvfJ7mICq4fPp5iidT5CYX2_4.Zw5IGnU1s7CZqP6qIq
+ ndemZbiMxSl5MIj5i_LDwunzEycXf39AEjCEYAqJ46z0NnAh1J.wRLjbIUI_QTzrn5oP9qHWGyA2
+ 3Bl6aAh.t00kVXqHWsEDFaOn4nRWycj1fX6USFNAbBT1MHf6fGQZzxHHroo8s.uvmh5ji4UZgo_s
+ 696LrzE2Pfk5MJLIuGAssPoUOXmWufTNwJK4PS1j847pumt_L7ZFp5pwyakP2XmndbZkzrN8FYGS
+ STTro1uvEYHCTu4WzwcSDDDDJkZ9HHa_TPWVuiQ_Zw7qnKMAxc7kOLMOgmfnhqhlv149x9sf0jwP
+ rsZ57QoRZhxEyLliEdbee0juODCOf8YlLJfFk6ABRpkLAQeBUjDI_MqCf6wiJZsWS9kwsjFvQWBp
+ L6tCdXKsIx7UvfjtYsUUOFlEFIsAY2lTtC3ZZHdK5d6eprPEsC2GumfJdkC2u7NpWp41157dO9My
+ O0Ue6oKtlNaGFVlXEFDQt
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic301.consmr.mail.ir2.yahoo.com with HTTP; Fri, 20 Jul 2018 10:43:24 +0000
+Received: from 85.255.234.89 (EHLO [10.5.34.36]) ([85.255.234.89])
+          by smtp424.mail.ir2.yahoo.com (Oath Hermes SMTP Server) with ESMTPA ID 7ad6b7b70cbc3dee14e5798d3a656bf0
+          for <notify-4703531-875040@users.ilovefreegle.org>;
+          Fri, 20 Jul 2018 10:43:20 +0000 (UTC)
+Date: Fri, 20 Jul 2018 11:43:18 +0100
+Subject: Re: OFFER: Glass Bath / Shower Screen - with fitting instructions
+ (Penrith CA11)
+From: test <test@test.com>
+To: gothe <notify-4703531-875040@users.ilovefreegle.org>
+MIME-Version: 1.0
+X-Priority: 3
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+
+WWVzIG5vIHByb2JsZW0sIHJvdWdobHkgaG93IGJpZyBpcyBpdC4gV2lsbCBkZXBlbmRzIGlmIGl0
+IGNhciBvciB2YW4uIE9uIDIwIEp1bCAyMDE4IDEwOjM5IGFtLCBnb3RoZSA8bm90aWZ5LTQ3MDM1
+MzEtODc1MDQwQHVzZXJzLmlsb3ZlZnJlZWdsZS5vcmc+IHdyb3RlOgo+Cj4gSGkgLSBjb3VsZCB5
+b3UgY29sbGVjdCBzb21ldGltZSBiZXR3ZWVuIDkgJiAxMiBtaWRkYXkgPyAKPgo=
+
+

@@ -1500,7 +1500,6 @@ class Message
         $this->tnpostid = $Parser->getHeader('x-trash-nothing-post-id');
 
         $this->textbody = $Parser->getMessageBody('text');
-        error_log("Text body is {$this->textbody}");
         $this->htmlbody = $Parser->getMessageBody('html');
 
         if ($this->htmlbody) {
@@ -2675,7 +2674,10 @@ class Message
         $textbody = str_replace("\xc2\xa0", "\x20", $textbody);
 
         # Remove basic quoting.
-        $textbody = trim(preg_replace('#(^\w.+:\n)?(^(>|\|).*(\n|$))+#mi', "", $textbody));
+        error_log("BEfore quote $textbody");
+        #$textbody = trim(preg_replace('#(^\w.+:\n)?(^(>|\|).*(\n|$))+#mi', "", $textbody));
+        $textbody = trim(preg_replace('#(^(>|\|).*(\n|$))+#mi', "", $textbody));
+        error_log("After squote $textbody");
 
         # We might have a section like this, for example from eM Client, which could be top or bottom-quoted.
         #
@@ -2741,7 +2743,7 @@ class Message
         #
         # On Sat, May 14, 2016 at 2:19 PM, Edward Hibbert <
         # notify-5147-16226909@users.ilovefreegle.org> wrote:
-        if (preg_match('/(.*)On.*wrote\:$(.*)/ms', $textbody, $matches)) {
+        if (preg_match('/(.*)^(\s*)On.*wrote\:$(.*)/ms', $textbody, $matches)) {
             $textbody = $matches[1] . $matches[2];
         }
 
