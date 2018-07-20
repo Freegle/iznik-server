@@ -535,25 +535,29 @@ class Newsfeed extends Entity
     }
 
     public function getUnseen($userid) {
-        # Find the last one we saw.
-        $seens = $this->dbhr->preQuery("SELECT timestamp FROM newsfeed INNER JOIN newsfeed_users ON newsfeed_users.newsfeedid = newsfeed.id WHERE newsfeed_users.userid = ?;", [
-            $userid
-        ]);
+        # We used to call getFeed and process the results, but that had poor performance as we access this
+        # unseen count on every page.
+        $dist = $this->getNearbyDistance($userid);
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-        $lastseen = NULL;
-        foreach ($seens as $seen) {
-            $lastseen = $seen['timestamp'];
-        }
+        if ($userid) {
+            # We want the newsfeed items which are close to us.  Use the location in settings, or failing that the
+            # last location they've posted from.
+            list ($lat, $lng) = $u->getLatLng();
 
-        # Get the first few user-posted messages.  This keeps the unseen count low - if it gets too high
-        # it puts people off.
-        $ctx = NULL;
-        list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
-        $count = 0;
-        foreach ($feeds as $feed) {
-            if (($lastseen == NULL || strtotime($feed['timestamp']) > strtotime($lastseen)) && $feed['userid'] != $userid) {
-                $count++;
-            }
+            # To use the spatial index we need to have a box.
+            $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
+            $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
+
+            $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
+
+            # We return most recent first.
+            $first = $dist ? ("(MBRContains($box, position) OR `type` IN ('" . Newsfeed::TYPE_CENTRAL_PUBLICITY . "', '" . Newsfeed::TYPE_ALERT . "')) AND") : '';
+
+            $sql = "SELECT COUNT(DISTINCT(newsfeed.id)) AS count FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid LEFT JOIN newsfeed_users ON newsfeed_users.newsfeedid = newsfeed.id AND newsfeed_users.userid = $userid WHERE $first replyto IS NULL AND newsfeed.userid != $userid AND type = " . Newsfeed::TYPE_MESSAGE . " AND hidden IS NULL AND (newsfeed_users.newsfeedid IS NULL OR newsfeed.id > newsfeed_users.newsfeedid) LIMIT 10;";
+
+            # Don't return too many otherwise it's off-putting.
+            $count = min(10, $this->dbhr->preQuery($sql)[0]['count']);
         }
 
         return($count);
