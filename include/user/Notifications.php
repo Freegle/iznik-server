@@ -69,24 +69,49 @@ class Notifications
                     unset($not['position']);
                     $this->snip($not['message']);
 
-                    if ($not['replyto']) {
-                        $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [
-                            $not['replyto']
-                        ]);
+                    if (pres('deleted', $not)) {
+                        # This item has been deleted - don't show the corresponding notification.
+                        if (!$notif['seen']) {
+                            # This notification hasn't been seen, and would therefore show in the count. Mark it
+                            # as seen for next time.
+                            $this->dbhm->background("UPDATE users_notifications SET seen = 1 WHERE id = {$notif['id']}");
+                        }
 
-                        foreach ($origs as &$orig) {
-                            $this->snip($orig['message']);
-                            unset($orig['position']);
-                            $not['replyto'] = $orig;
+                        $notif = NULL;
+                    } else {
+                        if ($not['replyto']) {
+                            $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [
+                                $not['replyto']
+                            ]);
+
+                            foreach ($origs as &$orig) {
+                                $this->snip($orig['message']);
+                                unset($orig['position']);
+                                $not['replyto'] = $orig;
+                            }
+                        }
+
+                        unset($not['position']);
+                        $notif['newsfeed'] = $not;
+
+                        if (pres('deleted', $not['replyto'])) {
+                            # This notification is for a newsfeed item which is in a deleted thread.  Don't show it.
+
+                            if (!$notif['seen']) {
+                                # This notification hasn't been seen, and would therefore show in the count. Mark it
+                                # as seen for next time.
+                                $this->dbhm->background("UPDATE users_notifications SET seen = 1 WHERE id = {$notif['id']}");
+                            }
+
+                            $notif = NULL;
                         }
                     }
-
-                    unset($not['position']);
-                    $notif['newsfeed'] = $not;
                 }
             }
 
-            $ret[] = $notif;
+            if ($notif) {
+                $ret[] = $notif;
+            }
 
             $ctx = [
                 'id' => $notif['id']
