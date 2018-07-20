@@ -886,12 +886,16 @@ class ChatRoom extends Entity
                 ]);
 
             if ($unseens[0]['count'] == 0) {
-                $sql = "UPDATE chat_messages SET seenbyall = 1 WHERE chatid = ? AND id <= ?;";
-                $this->dbhm->preExec($sql, [$this->id, $lastmsgseen]);
+                $this->seenByAll($lastmsgseen);
             }
         }
 
         $this->updateAnyCachedChatLists();
+    }
+
+    public function seenByAll($lastmsgseen) {
+        $sql = "UPDATE chat_messages SET seenbyall = 1 WHERE chatid = ? AND id <= ?;";
+        $this->dbhm->preExec($sql, [$this->id, $lastmsgseen]);
     }
 
     public function getRoster()
@@ -1637,6 +1641,15 @@ class ChatRoom extends Entity
                                         $textsummary,
                                         $thisu->getOurEmail() ? $html : NULL,
                                         $fromuid);
+
+                                    if ($chattype == ChatRoom::TYPE_USER2USER) {
+                                        # Request read receipt.  We will often not get these for privacy reasons, but if
+                                        # we do, it's useful to have to that we can display feedback to the sender.
+                                        $headers = $message->getHeaders();
+                                        $headers->addTextHeader('Disposition-Notification-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
+                                        $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
+                                    }
+
                                     $this->mailer($message);
 
                                     $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [

@@ -54,6 +54,7 @@ class MailRouter
     const PENDING = 'Pending';
     const TO_USER = "ToUser";
     const TO_SYSTEM ='ToSystem';
+    const RECEIPT = 'ReadReceipt';
     const DROPPED ='Dropped';
     const TO_VOLUNTEERS = "ToVolunteers";
 
@@ -541,6 +542,19 @@ class MailRouter
 
                 $ret = MailRouter::TO_SYSTEM;
             }
+        } else if (preg_match('/readreceipt-(.*)-(.*)-(.*)@/', $to, $matches) == 1) {
+            # Read receipt
+            $chatid = intval($matches[1]);
+            $userid = intval($matches[2]);
+            $msgid = intval($matches[3]);
+            error_log("Read receipt $chatid, $userid, $msgid");
+
+            # The receipt has seen this message, and the message has been seen by all people in the chat (because
+            # we only generate these for user 2 user.
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+            $r->updateRoster($userid, $msgid);
+            $r->seenByAll($msgid);
+            $ret = MailRouter::RECEIPT;
         } else if (preg_match('/eventsoff-(.*)-(.*)@/', $to, $matches) == 1) {
             # Request to turn events email off.
             $uid = intval($matches[1]);

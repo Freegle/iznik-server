@@ -535,56 +535,111 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-//    public function testNotifyNewMails() {
-//        error_log(__METHOD__ );
-//
-//        $tosends =
-//        explode(',',
-////            'freegle@litmustest.com'
-////            "barracuda@barracuda.emailtests.com, previews_01@gmx.de, litmuscheck01@gmail.com, litmuscheck05@yahoo.com, litmuscheck01@mail.com, litmuscheck03@outlook.com, litmuscheck02@emailtests.onmicrosoft.com, previews_99@web.de, litmuscheck03@mail.ru, litmuscheck07@gmail.com, litmuscheck05@gapps.emailtests.com, litmuscheck05@ms.emailtests.com, litmustestprod01@gd-testing.com, litmustestprod02@yandex.com, litmuscheck004@aol.com, d64dfa3af2@s.litmustest.com, d64dfa3af2@sg3.emailtests.com, d64dfa3af2@ml.emailtests.com"
-//        'edward@ehibbert.org.uk'
-////        'activate@liveintent.com, edward@ehibbert.org.uk'
-//    );
-//
-//        foreach ($tosends as $tosend) {
-//            error_log("Send to $tosend");
-//            $emailto = trim($tosend);
-//
-//            $u = User::get($this->dbhr, $this->dbhm);
-//            $u1 = $u->create(NULL, NULL, "Test User 1");
-//            $u->addMembership($this->groupid);
-//            $u->addEmail('test1@test.com');
-//            $u->setAboutMe('Some text about me');
-//
-//            $u2 = $u->findByEmail($emailto);
-//
-//            if (!$u2) {
-//                $u2 = $u->create(NULL, NULL, "Test User 2");
-//            }
-//
-//            $u = User::get($this->dbhr, $this->dbhm, $u2);
-//
-//            $u->addMembership($this->groupid);
-//            $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-//            $u->addEmail($email);
-//            $u->addEmail($emailto);
-//
-//            $r = new ChatRoom($this->dbhr, $this->dbhm);
-//            $id = $r->createConversation($u1, $u2);
-//            error_log("Chat room $id for $u1 <-> $u2");
-//            assertNotNull($id);
-//
-//            assertNull($r->replyTime($u1));
-//
-//            $m = new ChatMessage($this->dbhr, $this->dbhm);
-//            $cm = $m->create($id, $u1, "Testing" . rand(), ChatMessage::TYPE_INTERESTED, NULL, TRUE, NULL, NULL, NULL, NULL);
-//
-//            # Notify - will email just one as we don't notify our own by default.
-//            assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
-//        }
-//
-//        error_log(__METHOD__ . " end");
-//    }
+    public function testReadReceipt() {
+        error_log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+        error_log("Chat room $id for $u1 <-> $u2");
+        assertNotNull($id);
+
+        assertNull($r->replyTime($u1));
+        assertNull($r->replyTime($u2));
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        error_log("Created chat message $cm");
+
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        # Notify - will email just one as we don't notify our own by default.
+        error_log("Will email justone");
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+
+        # Now fake a read receipt.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
+        $mr = new MailRouter($this->dbhm, $this->dbhm);
+        $mid = $mr->received(Message::EMAIL, 'from2@test.com', "readreceipt-$id-$u2-$cm@" . USER_DOMAIN, $msg);
+        $rc = $mr->route();
+        assertEquals(MailRouter::RECEIPT, $rc);
+
+        # Should have updated the last message seen.
+        self::assertEquals($r->lastSeenForUser($u2), $cm);
+
+        error_log(__METHOD__ . " end");
+    }
+
+
+    public function testNotifyNewMails() {
+        error_log(__METHOD__ );
+
+        $tosends =
+        explode(',',
+//            'freegle@litmustest.com'
+//            "barracuda@barracuda.emailtests.com, previews_01@gmx.de, litmuscheck01@gmail.com, litmuscheck05@yahoo.com, litmuscheck01@mail.com, litmuscheck03@outlook.com, litmuscheck02@emailtests.onmicrosoft.com, previews_99@web.de, litmuscheck03@mail.ru, litmuscheck07@gmail.com, litmuscheck05@gapps.emailtests.com, litmuscheck05@ms.emailtests.com, litmustestprod01@gd-testing.com, litmustestprod02@yandex.com, litmuscheck004@aol.com, d64dfa3af2@s.litmustest.com, d64dfa3af2@sg3.emailtests.com, d64dfa3af2@ml.emailtests.com"
+        'edward@ehibbert.org.uk'
+//        'activate@liveintent.com, edward@ehibbert.org.uk'
+    );
+
+        foreach ($tosends as $tosend) {
+            error_log("Send to $tosend");
+            $emailto = trim($tosend);
+
+            $u = User::get($this->dbhr, $this->dbhm);
+            $u1 = $u->create(NULL, NULL, "Test User 1");
+            $u->addMembership($this->groupid);
+            $u->addEmail('test1@test.com');
+            $u->setAboutMe('Some text about me');
+
+            $u2 = $u->findByEmail($emailto);
+
+            if (!$u2) {
+                $u2 = $u->create(NULL, NULL, "Test User 2");
+            }
+
+            $u = User::get($this->dbhr, $this->dbhm, $u2);
+
+            $u->addMembership($this->groupid);
+            $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+            $u->addEmail($email);
+            $u->addEmail($emailto);
+
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            $id = $r->createConversation($u1, $u2);
+            error_log("Chat room $id for $u1 <-> $u2");
+            assertNotNull($id);
+
+            assertNull($r->replyTime($u1));
+
+            $m = new ChatMessage($this->dbhr, $this->dbhm);
+            $cm = $m->create($id, $u1, "Testing" . rand(), ChatMessage::TYPE_INTERESTED, NULL, TRUE, NULL, NULL, NULL, NULL);
+
+            # Notify - will email just one as we don't notify our own by default.
+            assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        }
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

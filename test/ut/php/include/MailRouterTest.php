@@ -1745,7 +1745,7 @@ Bev", $msgs[0]['message']);
         error_log(__METHOD__ . " end");
     }
 
-//    public function testSpecial() {
+    //    public function testSpecial() {
 //        error_log(__METHOD__);
 //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));
