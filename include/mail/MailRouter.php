@@ -1013,7 +1013,12 @@ class MailRouter
                         }
                     } else if (preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
                         # It's a reply to an email notification.
-                        if (!$this->msg->isBounce()) {
+                        if (stripos($this->msg->getSubject(), 'Read report') === 0) {
+                            # This is a read receipt which has been sent to the wrong place by a silly email client.
+                            # Just drop these.
+                            if ($log) { error_log("Misdirected read receipt drop"); }
+                            $ret = MailRouter::DROPPED;
+                        } else if (!$this->msg->isBounce()) {
                             $chatid = intval($matches[1]);
                             $userid = intval($matches[2]);
                             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
