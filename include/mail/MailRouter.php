@@ -987,10 +987,15 @@ class MailRouter
                                 # Now add this into the conversation as a message.  This will notify them.
                                 $textbody = $this->msg->stripQuoted();
 
-                                $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                                $mid = $cm->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
+                                if (strlen($textbody)) {
+                                    # Sometimes people will just email the photos, with no message.  We don't want to
+                                    # create a blank chat message in that case, and such a message would get held
+                                    # for review anyway.
+                                    $cm = new ChatMessage($this->dbhr, $this->dbhm);
+                                    $mid = $cm->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
 
-                                $cm->chatByEmail($mid, $this->msg->getID());
+                                    $cm->chatByEmail($mid, $this->msg->getID());
+                                }
 
                                 # Add any photos.
                                 $this->addPhotosToChat($chatid);
@@ -1153,6 +1158,7 @@ class MailRouter
 
     private function addPhotosToChat($rid) {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $count = 0;
 
         $atts = $this->msg->getAttachments();
         foreach ($atts as $att) {
@@ -1168,9 +1174,12 @@ class MailRouter
                     $a->delete();
                 } else {
                     $m->setPrivate('imageid', $aid2);
+                    $count++;
                 }
             } catch (Exception $e) { error_log("Create failed " . $e->getMessage()); }
         }
+
+        return($count);
     }
 
     public function routeAll() {

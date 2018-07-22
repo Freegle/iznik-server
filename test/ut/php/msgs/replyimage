@@ -1,9 +1,9 @@
-From: "Edward Hibbert" <edward@ehibbert.org.uk>
-To: "Edward Hibbert" <edward@ehibbert.org.uk>
+From: "Edward Hibbert" <test@test.com>
+To: "Edward Hibbert" <test@test.com>
 Subject: Re: OFFER: a test item (location)
 Date: Mon, 09 Jul 2018 07:15:47 +0000
 Message-Id: <emaeecde7d-9773-48fc-bda0-e1193ebf6b3e@desktop-890t9k5>
-Reply-To: "Edward Hibbert" <edward@ehibbert.org.uk>
+Reply-To: "Edward Hibbert" <test@test.com>
 User-Agent: eM_Client/7.1.31849.0
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="------=_MB0401C1AC-22E9-4B1B-B6C9-BC554905E00B"
@@ -16,7 +16,6 @@ Content-Type: multipart/alternative;
 Content-Type: text/plain; format=flowed; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-Here's a photo and a signature image.
 --------=_MBD0F75CEE-9671-4CA0-B3FE-9A41A11BDB11
 Content-Type: text/html; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
@@ -35,7 +34,7 @@ li[style=3D'text-align: center;'], li[style=3D'text-align: right;'] {  list=
 body { font-family: Tahoma; font-size: 12pt;   }
 ]]></style>
 </head>
-<body>Here's a photo and a signature image.</body></html>
+<body></body></html>
 --------=_MBD0F75CEE-9671-4CA0-B3FE-9A41A11BDB11--
 
 --------=_MB0401C1AC-22E9-4B1B-B6C9-BC554905E00B
