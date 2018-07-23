@@ -2803,6 +2803,8 @@ class Message
         // Our own footer.
         $textbody = preg_replace('/This message was from user .*?, and this mail was sent to .*?$/mi', "", $textbody);
         $textbody = preg_replace('/Freegle is registered as a charity.*?nice./mi', "", $textbody);
+        $textbody = preg_replace('/This mail was sent to.*?/mi', "", $textbody);
+        $textbody = preg_replace('/You can change your settings by clicking here.*?/mi', "", $textbody);
 
         # Quoting timestamp
         $textbody = preg_replace('/^On .*?\> wrote\:/mi', "", $textbody);
