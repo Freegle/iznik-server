@@ -192,7 +192,11 @@ class PushNotifications
 
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
                         list ($chatcount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
-                        #error_log("Notify for $userid count $count title $title message $message");
+                        #error_log("Notify for $userid count $chatcount title $title message $message");
+
+                        if ($chatcount === 0) {
+                            $message = MODTOOLS ? "Work cleared" : "Notifications cleared";
+                        }
 
                         $payload = [
                             'badge' => $chatcount,
@@ -200,7 +204,7 @@ class PushNotifications
                             'title' => $title,
                             'message' => $message,
                             'chatids' => $chatids,
-                            'content-available' => 1,
+                            'content-available' => $chatcount > 0,
                             'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
                             'modtools' => $modtools,
                             'route' => $route
@@ -225,7 +229,7 @@ class PushNotifications
                             'title' => $title,
                             'message' => $message,
                             'chatids' => $chatids,
-                            'content-available' => 1,
+                            'content-available' => $chatcount > 0,
                             'modtools' => $modtools,
                             'route' => $route
                         ];

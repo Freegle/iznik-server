@@ -1,5 +1,5 @@
 <?php
-const MODTOOLS = FALSE;
+const MODTOOLS = TRUE;
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
