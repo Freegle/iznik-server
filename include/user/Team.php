@@ -11,8 +11,8 @@ require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
 
 class Team extends Entity
 {
-    var $publicatts = array('id', 'name', 'description', 'type');
-    var $settableatts = array('name', 'description');
+    var $publicatts = array('id', 'name', 'description', 'type', 'email');
+    var $settableatts = array('name', 'description', 'email');
 
     const TEAM_BOARD = 'Board';
     const TEAM_GAT = 'GAT';
@@ -26,11 +26,12 @@ class Team extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'teams', 'team', $this->publicatts);
     }
 
-    public function create($name, $description) {
+    public function create($name, $email, $description) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO teams (name, description) VALUES (?,?);", [
+        $rc = $this->dbhm->preExec("INSERT INTO teams (name, email, description) VALUES (?,?,?);", [
             $name,
+            $email,
             $description
         ]);
 

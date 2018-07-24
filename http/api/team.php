@@ -79,10 +79,11 @@ function team() {
             if ($me && $me->hasPermission(User::PERM_TEAMS)) {
                 $name = presdef('name', $_REQUEST, NULL);
                 $desc = presdef('description', $_REQUEST, NULL);
+                $email = presdef('email', $_REQUEST, NULL);
                 $id = NULL;
 
                 if ($name) {
-                    $id = $t->create($name, $desc);
+                    $id = $t->create($name, $email, $desc);
                 }
 
                 $ret = $id ? ['ret' => 0, 'status' => 'Success', 'id' => $id] : ['ret' => 2, 'status' => 'Create failed'];

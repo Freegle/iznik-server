@@ -54,6 +54,7 @@ class teamAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('team', 'POST', [
             'name' => 'UTTest',
+            'email' => 'test@test.com',
             'dup' => 1
         ]);
         assertEquals(1, $ret['ret']);
@@ -64,6 +65,7 @@ class teamAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('team', 'POST', [
             'name' => 'UTTest',
+            'email' => 'test@test.com',
             'dup' => 2
         ]);
         assertEquals(0, $ret['ret']);
