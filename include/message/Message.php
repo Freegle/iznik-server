@@ -3376,8 +3376,10 @@ class Message
                     $rc = FALSE;
                 }
             } else {
-                # No need to submit by email.
+                # No need to submit by email.  Just notify the group mods.
                 $rc = TRUE;
+                $n = new PushNotifications($this->dbhr, $this->dbhm);
+                $n->notifyGroupMods($groupid);
             }
 
             # This message is now not a draft.
