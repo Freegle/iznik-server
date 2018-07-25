@@ -369,11 +369,19 @@ function session() {
                     $me->setAboutMe($_REQUEST['aboutme']);
 
                     if (strlen($_REQUEST['aboutme']) > 5) {
-                        # Newsworthy.  But people might edit them a lot, so hide any recent other ones from
-                        # the same user.
+                        # Newsworthy.  But people might edit them a lot for typos, so look for a recent other
+                        # one and update that before adding a new one.
                         $n = new Newsfeed($dbhr, $dbhm);
-                        $n->deleteRecent($me->getId(), Newsfeed::TYPE_ABOUT_ME);
-                        $n->create(Newsfeed::TYPE_ABOUT_ME, $me->getId(), $_REQUEST['aboutme']);
+                        $nid = $n->findRecent($me->getId(), Newsfeed::TYPE_ABOUT_ME);
+
+                        if ($nid) {
+                            # Found a recent one - update it.
+                            $n = new Newsfeed($dbhr, $dbhm, $nid);
+                            $n->setPrivate('message', $_REQUEST['aboutme']);
+                        } else {
+                            # No recent ones - add a new item
+                            $n->create(Newsfeed::TYPE_ABOUT_ME, $me->getId(), $_REQUEST['aboutme']);
+                        }
                     }
                 }
 

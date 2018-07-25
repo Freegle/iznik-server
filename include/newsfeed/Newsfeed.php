@@ -773,9 +773,20 @@ class Newsfeed extends Entity
         return(count($unfollows) > 0);
     }
 
+    public function findRecent($userid, $type, $within = "24 hours ago") {
+        $mysqltime = date("Y-m-d H:i:s", strtotime($within));
+        $ns = $this->dbhm->preQuery("SELECT id FROM newsfeed WHERE timestamp >= ? AND userid = ? AND type = ? AND deleted IS NULL ORDER BY timestamp DESC;", [
+            $mysqltime,
+            $userid,
+            $type
+        ]);
+
+        return(count($ns) > 0 ? $ns[0]['id'] : NULL);
+    }
+
     public function deleteRecent($userid, $type, $within = "24 hours ago") {
         $mysqltime = date("Y-m-d H:i:s", strtotime($within));
-        error_log("UPDATE newsfeed SET deleted = NOW() WHERE timestamp >= '$mysqltime' AND userid = $userid AND type = '$type';");
+        #error_log("UPDATE newsfeed SET deleted = NOW() WHERE timestamp >= '$mysqltime' AND userid = $userid AND type = '$type';");
         $this->dbhm->preExec("UPDATE newsfeed SET deleted = NOW() WHERE timestamp >= ? AND userid = ? AND type = ?;", [
             $mysqltime,
             $userid,
