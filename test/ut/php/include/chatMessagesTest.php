@@ -463,10 +463,10 @@ class chatMessagesTest extends IznikTestCase {
         $msgs = $r->getMessages();
         self::assertEquals(2, count($msgs));
         error_log("Chat messages " . var_export($msgs, TRUE));
-        self::assertEquals('Here\'s a photo and a signature image.', $msgs[0][0]['message']);
+        self::assertEquals('', $msgs[0][0]['message']);
 
         # Should be an image in the second one.
-        assertTrue(array_key_exists('image', $msgs[0][1]));
+        assertTrue(array_key_exists('image', $msgs[0][0]));
 
         error_log(__METHOD__ . " end");
     }
