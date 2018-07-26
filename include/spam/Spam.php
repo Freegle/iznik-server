@@ -587,7 +587,7 @@ class Spam {
         # Delete any notifications from spammers
         $notifs = $this->dbhr->preQuery("SELECT id FROM users_notifications WHERE fromuser IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
         foreach ($notifs as $notif) {
-            $sql = "DELETE FROM users_notifications WHERE fromuser = ?;";
+            $sql = "DELETE FROM users_notifications WHERE id = ?;";
             $this->dbhm->preExec($sql, [ $notif['id'] ]);
         }
 
