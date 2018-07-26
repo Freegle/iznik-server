@@ -580,7 +580,7 @@ class Spam {
         # Delete any newsfeed items from spammers.
         $newsfeeds = $this->dbhr->preQuery("SELECT id FROM newsfeed WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
         foreach ($newsfeeds as $newsfeed) {
-            $sql = "DELETE FROM newsfeed WHERE userid = ?;";
+            $sql = "DELETE FROM newsfeed WHERE id = ?;";
             $this->dbhm->preExec($sql, [ $newsfeed['id'] ]);
         }
 
