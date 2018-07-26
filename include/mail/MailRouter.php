@@ -1043,10 +1043,15 @@ class MailRouter
                                     # Now add this into the conversation as a message.  This will notify them.
                                     $textbody = $this->msg->stripQuoted();
 
-                                    $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                                    $mid = $cm->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+                                    if (strlen($textbody)) {
+                                        # Sometimes people will just email the photos, with no message.  We don't want to
+                                        # create a blank chat message in that case, and such a message would get held
+                                        # for review anyway.
+                                        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+                                        $mid = $cm->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
 
-                                    $cm->chatByEmail($mid, $this->msg->getID());
+                                        $cm->chatByEmail($mid, $this->msg->getID());
+                                    }
 
                                     # Add any photos.
                                     $this->addPhotosToChat($chatid);
