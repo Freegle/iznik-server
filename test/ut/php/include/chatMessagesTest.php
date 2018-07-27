@@ -470,6 +470,30 @@ class chatMessagesTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testUser2ModSpam() {
+        error_log(__METHOD__);
+        $gid = $this->groupid;
+        error_log("Created group $gid");
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create("Test", "User", "Test User");
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+        $uid2 = $u->create("Test", "User", "Test User");
+        $u->addMembership($gid);
+        $r = new ChatRoom($this->dbhm, $this->dbhm);
+        $rid = $r->createUser2Mod($uid2, $gid);
+
+        # Add a spammy chat message
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $mid = $m->create($rid, $uid2, "<script");
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
+        $atts = $m->getPublic();
+
+        # Should be unseen by mod even though spam.
+        self::assertEquals(1, $r->unseenCountForUser($uid1));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

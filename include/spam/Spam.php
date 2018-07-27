@@ -222,7 +222,7 @@ class Spam {
         # Spammer trick is to encode the dot in URLs.
         $message = str_replace('&#12290;', '.', $message);
 
-        error_log("Check review $message len " . strlen($message) . " blankok? $blankok");
+        #error_log("Check review $message len " . strlen($message) . " blankok? $blankok");
         $check = strlen($message) == 0;
 
         if (!$check && stripos($message, '<script') !== FALSE) {

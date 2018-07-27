@@ -135,11 +135,16 @@ class ChatMessage extends Entity
             $spam = 0;
             $blocked = FALSE;
 
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+            $chattype = $r->getPrivate('chattype');
             $u = new User($this->dbhr, $this->dbhm, $userid);
 
             # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
             # include user text.
-            if (!$u->isModerator() &&
+            #
+            # We also don't want to check for spam in chats between users and mods.
+            if (!$chattype == ChatRoom::TYPE_USER2MOD &&
+                !$u->isModerator() &&
                 $u->getPrivate('chatmodstatus') == User::CHAT_MODSTATUS_MODERATED &&
                 ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER)) {
                 # We check the language (second parameter to checkReview) only for non-platform messages.
@@ -186,7 +191,6 @@ class ChatMessage extends Entity
 
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
             $r->updateMessageCounts();
-            $chattype = $r->getPrivate('chattype');
 
             if ($chattype == ChatRoom::TYPE_USER2USER || $chattype == ChatRoom::TYPE_USER2MOD) {
                 # If anyone has closed this chat so that it no longer appears in their list, we want to open it again.
