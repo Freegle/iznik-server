@@ -12,7 +12,7 @@ require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
 class Story extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'date', 'public', 'headline', 'story', 'reviewed');
+    var $publicatts = array('id', 'date', 'public', 'headline', 'story', 'reviewed', 'newsletterreviewed');
     var $settableatts = array('public', 'headline', 'story', 'reviewed', 'newsletterreviewed', 'newsletter');
 
     const ASK_OUTCOME_THRESHOLD = 3;
