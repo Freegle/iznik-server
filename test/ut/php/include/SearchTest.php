@@ -28,6 +28,7 @@ class searchTest extends IznikTestCase
         $this->s = new Search($this->dbhr, $this->dbhm, 'test_index', 'msgid', 'arrival', 'words', 'groupid', NULL,'words_cache');
         $this->dbhm->preExec("DELETE FROM words WHERE word = 'zzzutzzz';");
         $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $this->dbhm->preExec("DELETE FROM words_cache WHERE search LIKE 'zzzutzzz';");
     }
 
     protected function tearDown()
