@@ -35,6 +35,7 @@
     "kasp3r/link-preview": "^2.0",
     "twig/twig": "~1.0",
     "patrickschur/language-detection": "^3.2",
-    "twilio/sdk": "^5.19"
+    "twilio/sdk": "^5.19",
+    "php-ai/php-ml": "^0.4.1"
   }
 }

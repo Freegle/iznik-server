@@ -589,6 +589,15 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testJools() {
+        $r = new ChatRoom($this->dbhr, $this->dbhm, 4741594);
+        $_SESSION['id'] = 19800614;
+        $count = $r->unseenCountForUser(19800614);
+        error_log("Unseen $count");
+        $atts = $r->getMessages();
+//        error_log("Got " . var_export($atts, TRUE));
+    }
+
 //    public function testNotifyNewMails() {
 //        error_log(__METHOD__ );
 //
