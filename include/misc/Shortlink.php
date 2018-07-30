@@ -51,6 +51,10 @@ class Shortlink extends Entity
                 $url = $g->getPrivate('onhere') ? ('https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort')) : ('https://groups.yahoo.com/' . $g->getPrivate('nameshort'));
             } else {
                 $url = $link['url'];
+
+                if (strpos($url, 'http://groups.yahoo.com/group/') === 0) {
+                    $url = str_replace('http://groups.yahoo.com/group/', 'http://groups.yahoo.com/neo/groups/', $url);
+                }
             }
 
             $this->dbhm->background("UPDATE shortlinks SET clicks = clicks + 1 WHERE id = {$link['id']};");
