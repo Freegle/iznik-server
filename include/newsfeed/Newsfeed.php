@@ -535,15 +535,6 @@ class Newsfeed extends Entity
     }
 
     public function getUnseen($userid) {
-        if (array_key_exists('newsfeedunseen', $_SESSION)) {
-            # We cache the count in the session and update it periodically for performance reasons.
-            $last = presdef('newsfeedunseentime', $_SESSION, NULL);
-
-            if (!$last && time() - $last < 300) {
-                return($_SESSION['newsfeedunseen']);
-            }
-        }
-
         # We used to call getFeed and process the results, but that had poor performance as we access this
         # unseen count on every page.
         $dist = $this->getNearbyDistance($userid);
@@ -568,9 +559,6 @@ class Newsfeed extends Entity
             # Don't return too many otherwise it's off-putting.
             $count = min(10, $this->dbhr->preQuery($sql)[0]['count']);
         }
-
-        $_SESSION['newsfeedunseen'] = $count;
-        $_SESSION['newsfeedunseentime'] = time();
 
         return($count);
     }

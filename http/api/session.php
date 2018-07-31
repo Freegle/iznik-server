@@ -156,6 +156,11 @@ function session() {
                     $ret['work']['stories'] = $s->getReviewCount(FALSE);
 
                     $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
+                } else {
+                    # Newsfeed count.  We return this in the session to avoid getting it on each page transition
+                    # in the client.
+                    $n = new Newsfeed($dbhr, $dbhm);
+                    $ret['newsfeedcount'] = $n->getUnseen($me->getId());
                 }
 
                 $ret['logins'] = $me->getLogins(FALSE);
