@@ -427,7 +427,10 @@ class LoggedPDO {
                             error_log($msg);
                             $try = $this->tries;
                         }
-                    } else if (stripos($e->getMessage(), 'has gone away') !== FALSE || stripos($e->getMessage(), 'Lost connection to MySQL server') !== FALSE) {
+                    } else if (stripos($e->getMessage(), 'has gone away') !== FALSE ||
+                        stripos($e->getMessage(), 'Lost connection to MySQL server') !== FALSE ||
+                        stripis($e->getMessage(), 'Call to a member function prepare() on a non-object (null)')
+                    ) {
                         # Try re-opening the connection.
                         $try++;
                         $this->_db = NULL;
