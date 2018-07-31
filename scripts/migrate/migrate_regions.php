@@ -16,7 +16,7 @@ $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle';");
 
 foreach ($groups as $group) {
     $fgroups = $dbhf->preQuery("SELECT regionTitle FROM perch_groups INNER JOIN perch_regions ON perch_regions.regionID = perch_groups.regionID WHERE groupURL = ?;", [
-        'http://groups.yahoo.com/group/' . $group['nameshort']
+        'http://groups.yahoo.com/groups/neo/' . $group['nameshort']
     ]);
     $found = FALSE;
     foreach ($fgroups as $fgroup) {

@@ -72,7 +72,7 @@ class Shortlink extends Entity
                 $link['nameshort'] = $g->getPrivate('nameshort');
 
                 # Where we redirect to depends on the group settings.
-                $link['url'] = $g->getPrivate('onhere') ? ('https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort')) : ('https://groups.yahoo.com/' . $g->getPrivate('nameshort'));
+                $link['url'] = $g->getPrivate('onhere') ? ('https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort')) : ('https://groups.yahoo.com/neo/groups' . $g->getPrivate('nameshort'));
             }
         }
 
