@@ -22,7 +22,7 @@ function logIt($msg) {
     # We might already have a row for this eximid.
     $logs = $dbhr->preQuery("SELECT * FROM logs_emails WHERE eximid = ?;", [
         $msg['eximid']
-    ]);
+    ], FALSE, FALSE);
 
     if (count($logs) == 0) {
         # We don't - just insert.  Use IGNORE in case we have a stupid long eximid.
