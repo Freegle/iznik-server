@@ -711,6 +711,7 @@ class Message
         $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
         $showarea = TRUE;
         $showpc = TRUE;
+        $expiretime = 90;
 
         foreach ($ret['groups'] as &$group) {
             $group['arrival'] = ISODate($group['arrival']);
@@ -723,6 +724,13 @@ class Message
             }
 
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+
+            # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
+            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+            $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+            $maxreposts = $repost * $reposts['max'];
+            $expiretime = max($expiretime, $maxreposts);
+
             $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
             $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
 
@@ -882,7 +890,7 @@ class Message
         $arrivalago = floor((time() - strtotime($ret['arrival'])) / 86400);
 
         # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
-        if ($arrivalago > 90) {
+        if ($arrivalago > $expiretime) {
             # Assume anything this old is no longer available.
             $ret['outcomes'] = [
                 [
