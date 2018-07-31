@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 $m = new ChatMessage($dbhr, $dbhm);
 
 $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
-$messages = $dbhr->preQuery("SELECT DISTINCT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE date > '$mysqltime' AND reviewedby IS NULL AND chat_messages.type IN (?, ?) AND chat_rooms.chattype = ? ORDER BY chat_messages.id DESC;", [
+$messages = $dbhr->preQuery("SELECT DISTINCT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE date > '$mysqltime' AND reviewedby IS NULL AND chat_messages.type IN (?, ?) AND chat_rooms.chattype = ? ORDER BY chat_messages.id DESC;", [
     ChatMessage::TYPE_DEFAULT,
     ChatMessage::TYPE_INTERESTED,
     ChatRoom::TYPE_USER2USER
