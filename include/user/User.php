@@ -36,6 +36,10 @@ class User extends Entity
     const KUDOS_FREQUENT = 'Frequent';
     const KUDOS_AVID = 'Avid';
 
+    const RATING_UP = 'Up';
+    const RATING_DOWN = 'Down';
+    const RATING_MINE = 'Mine';
+
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft');
 
@@ -1529,6 +1533,8 @@ class User extends Entity
 
         $ret['aboutme'] = $this->getAboutMe();
 
+        $ret['ratings'] = $this->getRating();
+
         return ($ret);
     }
 
@@ -2568,6 +2574,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         $this->dbhm->preExec("UPDATE IGNORE users_chatlists_index SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE teams_members SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_aboutme SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE ratings SET rater = $id1 WHERE rater = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE ratings SET ratee = $id1 WHERE ratee = $id2;");
 
                         # Merge chat rooms.  There might have be two separate rooms already, which means that we need
                         # to make sure that messages from both end up in the same one.
@@ -4609,6 +4617,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $d['comments'][] = $comm;
         }
 
+        error_log("...ratings");
+        $d['ratings'] = $this->getRated();
+
         error_log("...locations");
         $d['locations'] = [];
 
@@ -4943,7 +4954,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         # Delete completely any community events, volunteering opportunities, newsfeed posts, searches and stories
-        # they have created (their personal details might be in there).
+        # they have created (their personal details might be in there), and any ratings by or about them.
         $this->dbhm->preExec("DELETE FROM communityevents WHERE userid = ?;", [
             $this->id
         ]);
@@ -4960,6 +4971,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $this->id
         ]);
         $this->dbhm->preExec("DELETE FROM users_aboutme WHERE userid = ?;", [
+            $this->id
+        ]);
+        $this->dbhm->preExec("DELETE FROM ratings WHERE rater = ?;", [
+            $this->id
+        ]);
+        $this->dbhm->preExec("DELETE FROM ratings WHERE ratee = ?;", [
             $this->id
         ]);
 
@@ -5172,5 +5189,60 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
 
         return($this->dbhm->lastInsertId());
+    }
+
+    public function rate($rater, $ratee, $rating) {
+        if ($rater != $ratee) {
+            # Can't rate yourself.
+            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating) VALUES (?, ?, ?);", [
+                $rater,
+                $ratee,
+                $rating
+            ]);
+        }
+    }
+
+    public function getRating() {
+        $ratings = $this->dbhr->preQuery("SELECT COUNT(*) AS count, rating FROM ratings WHERE ratee = ? GROUP BY rating;", [
+            $this->id
+        ], FALSE);
+
+        $ret = [
+            User::RATING_UP => 0,
+            User::RATING_DOWN => 0,
+            User::RATING_MINE => NULL
+        ];
+
+        foreach ($ratings as $rate) {
+            $ret[$rate['rating']] = $rate['count'];
+        }
+
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        if ($myid) {
+            $ratings = $this->dbhr->preQuery("SELECT rating FROM ratings WHERE ratee = ? AND rater = ?;", [
+                $this->id,
+                $myid
+            ]);
+
+            foreach ($ratings as $rating) {
+                $ret[User::RATING_MINE] = $rating['rating'];
+            }
+        }
+
+        return($ret);
+    }
+
+    public function getRated() {
+        $rateds = $this->dbhr->preQuery("SELECT * FROM ratings WHERE rater = ?;", [
+            $this->id
+        ]);
+
+        foreach ($rateds as &$rate) {
+            $rate['timestamp'] = ISODate($rate['timestamp']);
+        }
+
+        return($rateds);
     }
 }

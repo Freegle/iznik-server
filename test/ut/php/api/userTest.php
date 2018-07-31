@@ -541,6 +541,52 @@ class userAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testRating() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+
+        $ret = $this->call('user', 'GET', [
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Rate',
+            'ratee' => $uid,
+            'rating' => User::RATING_UP
+        ]);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Rate',
+            'ratee' => $uid,
+            'rating' => User::RATING_DOWN
+        ]);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testActive() {
         error_log(__METHOD__);
 

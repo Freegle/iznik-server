@@ -297,29 +297,40 @@ function user() {
                 }
             }
 
-            if ($me && $action == 'Merge') {
-                $email1 = presdef('email1', $_REQUEST, NULL);
-                $email2 = presdef('email2', $_REQUEST, NULL);
-                $reason = presdef('reason', $_REQUEST, NULL);
-                $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
+            if ($me) {
+                if ($action == 'Merge') {
+                    $email1 = presdef('email1', $_REQUEST, NULL);
+                    $email2 = presdef('email2', $_REQUEST, NULL);
+                    $reason = presdef('reason', $_REQUEST, NULL);
+                    $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
 
-                if (strlen($email1) && strlen($email2)) {
-                    $u = new User($dbhr, $dbhm);
-                    $uid1 = $u->findByEmail($email1);
-                    $uid2 = $u->findByEmail($email2);
+                    if (strlen($email1) && strlen($email2)) {
+                        $u = new User($dbhr, $dbhm);
+                        $uid1 = $u->findByEmail($email1);
+                        $uid2 = $u->findByEmail($email2);
 
-                    $ret = ['ret' => 3, 'status' => "Can't find those users."];
+                        $ret = ['ret' => 3, 'status' => "Can't find those users."];
 
-                    if ($uid1 && $uid2) {
-                        $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
+                        if ($uid1 && $uid2) {
+                            $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
 
-                        if ($me->isAdminOrSupport() ||
-                            ($me->moderatorForUser($uid1) && $me->moderatorForUser($uid2))) {
-                            $u->merge($uid2, $uid1, $reason);
-                            $u = new User($dbhr, $dbhm, $uid2);
-                            $u->addEmail($email2, 1, TRUE);
-                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                            if ($me->isAdminOrSupport() ||
+                                ($me->moderatorForUser($uid1) && $me->moderatorForUser($uid2))) {
+                                $u->merge($uid2, $uid1, $reason);
+                                $u = new User($dbhr, $dbhm, $uid2);
+                                $u->addEmail($email2, 1, TRUE);
+                                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                            }
                         }
+                    }
+                } else if ($action == 'Rate') {
+                    $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
+                    $ratee = intval(presdef('ratee', $_REQUEST, 0));
+                    $rating = presdef('rating', $_REQUEST, NULL);
+
+                    if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN)) {
+                        $me->rate($me->getId(), $ratee, $rating);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
                     }
                 }
             }

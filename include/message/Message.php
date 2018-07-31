@@ -661,6 +661,7 @@ class Message
             $u = User::get($this->dbhr, $this->dbhm, $uid);
             $ctx = NULL;
             $atts = $u->getPublic(MODTOOLS ? $this->getGroups() : NULL, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
+            $atts['info'] = $u->getInfo();
 
             # Save for next time.
             $userlist[$uid] = [ $u, $atts];
