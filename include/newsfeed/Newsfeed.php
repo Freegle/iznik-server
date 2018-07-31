@@ -541,6 +541,13 @@ class Newsfeed extends Entity
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         if ($userid) {
+            # Get the last one seen if any.  Getting this makes the query below better indexed.
+            $lasts = $this->dbhr->preQuery("SELECT newsfeedid FROM newsfeed_users WHERE userid = ?;", [
+                $userid
+            ]);
+
+            $last = count($lasts) > 0 ? $lasts[0]['newsfeedid'] : 0;
+
             # We want the newsfeed items which are close to us.  Use the location in settings, or failing that the
             # last location they've posted from.
             list ($lat, $lng) = $u->getLatLng();
@@ -554,7 +561,7 @@ class Newsfeed extends Entity
             # We return most recent first.
             $first = $dist ? ("(MBRContains($box, position) OR `type` IN ('" . Newsfeed::TYPE_CENTRAL_PUBLICITY . "', '" . Newsfeed::TYPE_ALERT . "')) AND") : '';
 
-            $sql = "SELECT COUNT(DISTINCT(newsfeed.id)) AS count FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid LEFT JOIN newsfeed_users ON newsfeed_users.newsfeedid = newsfeed.id AND newsfeed_users.userid = $userid WHERE $first replyto IS NULL AND newsfeed.userid != $userid AND type = " . Newsfeed::TYPE_MESSAGE . " AND hidden IS NULL AND (newsfeed_users.newsfeedid IS NULL OR newsfeed.id > newsfeed_users.newsfeedid) LIMIT 10;";
+            $sql = "SELECT COUNT(DISTINCT(newsfeed.id)) AS count FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid LEFT JOIN newsfeed_users ON newsfeed_users.newsfeedid = newsfeed.id AND newsfeed_users.userid = $userid WHERE newsfeed.id > $last AND $first replyto IS NULL AND newsfeed.userid != $userid AND type = " . Newsfeed::TYPE_MESSAGE . " AND hidden IS NULL LIMIT 10;";
 
             # Don't return too many otherwise it's off-putting.
             $count = min(10, $this->dbhr->preQuery($sql)[0]['count']);
