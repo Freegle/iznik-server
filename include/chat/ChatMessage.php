@@ -192,6 +192,9 @@ class ChatMessage extends Entity
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
             $r->updateMessageCounts();
 
+            # Update the reply time now we've replied.
+            $r->replyTime($userid, TRUE);
+
             if ($chattype == ChatRoom::TYPE_USER2USER || $chattype == ChatRoom::TYPE_USER2MOD) {
                 # If anyone has closed this chat so that it no longer appears in their list, we want to open it again.
                 # If they have blocked it, we don't want to notify them.

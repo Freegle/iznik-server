@@ -1808,30 +1808,48 @@ class ChatRoom extends Entity
         return ($rc);
     }
 
-    public function replyTime($userid) {
-        # Calculate typical reply time.
-        $delays = [];
+    public function replyTime($userid, $force = FALSE) {
+        $times = $this->dbhr->preQuery("SELECT replytime FROM users_replytime WHERE userid = ?;", [
+            $userid
+        ]);
 
-        $mysqltime = date("Y-m-d", strtotime("90 days ago"));
-        $msgs = $this->dbhr->preQuery("SELECT id, chatid, date FROM chat_messages WHERE userid = ? AND date > ?;", [ $userid, $mysqltime ], FALSE);
+        if (!$force && count($times) > 0) {
+            $ret = $times[0]['replytime'];
+        } else {
+            # Calculate typical reply time.
+            $delays = [];
 
-        foreach ($msgs as $msg) {
-            #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}");
-            # Find the previous message in this conversation.
-            $lasts = $this->dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE chatid = ? AND id < ? AND userid != ?;", [
-                $msg['chatid'],
-                $msg['id'],
-                $userid
-            ]);
+            $mysqltime = date("Y-m-d", strtotime("90 days ago"));
+            $msgs = $this->dbhr->preQuery("SELECT chat_messages.id, chat_messages.chatid, chat_messages.date FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.userid = ? AND chat_messages.date > ? AND chat_rooms.chattype = ?;", [
+                $userid,
+                $mysqltime,
+                ChatRoom::TYPE_USER2USER
+            ], FALSE);
 
-            if (count($lasts) > 0 && $lasts[0]['max']) {
-                $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
-                #error_log("Last {$lasts[0]['max']} delay $thisdelay");
-                $delays[] = $thisdelay;
+            foreach ($msgs as $msg) {
+                #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}");
+                # Find the previous message in this conversation.
+                $lasts = $this->dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE chatid = ? AND id < ? AND userid != ?;", [
+                    $msg['chatid'],
+                    $msg['id'],
+                    $userid
+                ]);
+
+                if (count($lasts) > 0 && $lasts[0]['max']) {
+                    $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
+                    #error_log("Last {$lasts[0]['max']} delay $thisdelay");
+                    $delays[] = $thisdelay;
+                }
             }
+
+            $ret = (count($delays) > 0) ? calculate_median($delays) : NULL;
+
+            $this->dbhm->preExec("REPLACE INTO users_replytime (userid, replytime) VALUES (?, ?);", [
+                $userid,
+                $ret
+            ]);
         }
 
-        $ret = (count($delays) > 0) ? calculate_median($delays) : NULL;
         #error_log("Return $ret for $userid");
 
         return($ret);
