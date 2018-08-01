@@ -3008,119 +3008,118 @@ class Message
 
     public function suggestSubject($groupid, $subject) {
         $newsubj = $subject;
+        $type = $this->determineType($subject);
 
-        if ($this->getSourceheader() != Message::PLATFORM) {
+        # We only need to do this for OFFER/WANTED messages (TAKEN/RECEIVED are less important and tend to be
+        # automatically generated), and also for messages which aren't from a platform which constructs the subject
+        # line in a trustworthy way (i.e. us and TN).
+        $srchdr = $this->getSourceheader();
+
+        if ($srchdr != Message::PLATFORM && strpos($srchdr, 'TN-') !== 0 &&
+            ($type == Message::TYPE_OFFER || $type == Message::TYPE_WANTED)) {
             # We only need to do this if the message came from elsewhere - ones we composed are well formatted and
             # already mapped.
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
             # This method is used to improve subjects, and also to map - because we need to make sure we understand the
             # subject format before can map.
-            $type = $this->determineType($subject);
             $keywords = $g->getSetting('keywords', []);
 
-            switch ($type) {
-                case Message::TYPE_OFFER:
-                case Message::TYPE_TAKEN:
-                case Message::TYPE_WANTED:
-                case Message::TYPE_RECEIVED:
-                    # Remove any subject tag.
-                    $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
+            # Remove any subject tag.
+            $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
 
-                    $pretag = $subject;
+            $pretag = $subject;
 
-                    # Strip any of the keywords.
-                    foreach ($this->keywords()[$type] as $keyword) {
-                        $subject = preg_replace('/(^|\b)' . preg_quote($keyword) . '\b/i', '', $subject);
+            # Strip any of the keywords.
+            foreach ($this->keywords()[$type] as $keyword) {
+                $subject = preg_replace('/(^|\b)' . preg_quote($keyword) . '\b/i', '', $subject);
+            }
+
+            # Only proceed if we found the type tag.
+            if ($subject != $pretag) {
+                # Shrink multiple spaces
+                $subject = preg_replace('/\s+/', ' ', $subject);
+                $subject = trim($subject);
+
+                # Find a location in the subject.  Only seek ) at end because if it's in the middle it's probably
+                # not a location.
+                $loc = NULL;
+                $l = new Location($this->dbhr, $this->dbhm);
+
+                if (preg_match('/(.*)\((.*)\)$/', $subject, $matches)) {
+                    # Find the residue, which will be the item, and tidy it.
+                    $residue = trim($matches[1]);
+
+                    $aloc = $matches[2];
+
+                    # Check if it's a good location.
+                    #error_log("Check loc $aloc");
+                    $locs = $l->search($aloc, $groupid, 1);
+                    #error_log(var_export($locs, TRUE));
+
+                    if (count($locs) == 1) {
+                        # Take the name we found, which may be better than the one we have, if only in capitalisation.
+                        $loc = $locs[0];
                     }
+                } else {
+                    # The subject is not well-formed.  But we can try anyway.
+                    #
+                    # Look for an exact match for a known location in the subject.
+                    $locs = $l->locsForGroup($groupid);
+                    $bestpos = 0;
+                    $bestlen = 0;
+                    $loc = NULL;
 
-                    # Only proceed if we found the type tag.
-                    if ($subject != $pretag) {
-                        # Shrink multiple spaces
-                        $subject = preg_replace('/\s+/', ' ', $subject);
-                        $subject = trim($subject);
+                    foreach ($locs as $aloc) {
+                        #error_log($aloc['name']);
+                        $xp = '/\b' . preg_quote($aloc['name'],'/') . '\b/i';
+                        #error_log($xp);
+                        $p = preg_match($xp, $subject, $matches, PREG_OFFSET_CAPTURE);
+                        #error_log("$subject matches as $p with $xp");
+                        $p = $p ? $matches[0][1] : FALSE;
+                        #error_log("p2 $p");
 
-                        # Find a location in the subject.  Only seek ) at end because if it's in the middle it's probably
-                        # not a location.
-                        $loc = NULL;
-                        $l = new Location($this->dbhr, $this->dbhm);
-
-                        if (preg_match('/(.*)\((.*)\)$/', $subject, $matches)) {
-                            # Find the residue, which will be the item, and tidy it.
-                            $residue = trim($matches[1]);
-
-                            $aloc = $matches[2];
-
-                            # Check if it's a good location.
-                            #error_log("Check loc $aloc");
-                            $locs = $l->search($aloc, $groupid, 1);
-                            #error_log(var_export($locs, TRUE));
-
-                            if (count($locs) == 1) {
-                                # Take the name we found, which may be better than the one we have, if only in capitalisation.
-                                $loc = $locs[0];
-                            }
-                        } else {
-                            # The subject is not well-formed.  But we can try anyway.
-                            #
-                            # Look for an exact match for a known location in the subject.
-                            $locs = $l->locsForGroup($groupid);
-                            $bestpos = 0;
-                            $bestlen = 0;
-                            $loc = NULL;
-
-                            foreach ($locs as $aloc) {
-                                #error_log($aloc['name']);
-                                $xp = '/\b' . preg_quote($aloc['name'],'/') . '\b/i';
-                                #error_log($xp);
-                                $p = preg_match($xp, $subject, $matches, PREG_OFFSET_CAPTURE);
-                                #error_log("$subject matches as $p with $xp");
-                                $p = $p ? $matches[0][1] : FALSE;
-                                #error_log("p2 $p");
-
-                                if ($p !== FALSE &&
-                                    (strlen($aloc['name']) > $bestlen ||
-                                        (strlen($aloc['name']) == $bestlen && $p > $bestpos))) {
-                                    # The longer a location is, the more likely it is to be the correct one.  If we get a
-                                    # tie, then the further right it is, the more likely to be a location.
-                                    $loc = $aloc;
-                                    $bestpos = $p;
-                                    $bestlen = strlen($loc['name']);
-                                }
-                            }
-
-                            $residue = preg_replace('/' . preg_quote($loc['name']) . '/i', '', $subject);
-                        }
-
-                        if ($loc) {
-                            $punc = '\(|\)|\[|\]|\,|\.|\-|\{|\}|\:|\;| ';
-                            $residue = preg_replace('/^(' . $punc . ')*/','', $residue);
-                            $residue = preg_replace('/(' . $punc . '){2,}$/','', $residue);
-                            $residue = trim($residue);
-
-                            if ($residue == strtoupper($residue)) {
-                                # All upper case.  Stop it being shouty.
-                                $residue = strtolower($residue);
-                            }
-
-                            $typeval = presdef(strtolower($type), $keywords, strtoupper($type));
-                            $newsubj = $typeval . ": $residue ({$loc['name']})";
-
-                            $this->lat = $loc['lat'];
-                            $this->lng = $loc['lng'];
-                            $this->locationid = $loc['id'];
-
-                            if ($this->fromuser) {
-                                # Save off this as the last known location for this user.
-                                $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
-                                    $this->locationid,
-                                    $this->fromuser
-                                ]);
-                                User::clearCache($this->fromuser);
-                            }
+                        if ($p !== FALSE &&
+                            (strlen($aloc['name']) > $bestlen ||
+                                (strlen($aloc['name']) == $bestlen && $p > $bestpos))) {
+                            # The longer a location is, the more likely it is to be the correct one.  If we get a
+                            # tie, then the further right it is, the more likely to be a location.
+                            $loc = $aloc;
+                            $bestpos = $p;
+                            $bestlen = strlen($loc['name']);
                         }
                     }
-                    break;
+
+                    $residue = preg_replace('/' . preg_quote($loc['name']) . '/i', '', $subject);
+                }
+
+                if ($loc) {
+                    $punc = '\(|\)|\[|\]|\,|\.|\-|\{|\}|\:|\;| ';
+                    $residue = preg_replace('/^(' . $punc . ')*/','', $residue);
+                    $residue = preg_replace('/(' . $punc . '){2,}$/','', $residue);
+                    $residue = trim($residue);
+
+                    if ($residue == strtoupper($residue)) {
+                        # All upper case.  Stop it being shouty.
+                        $residue = strtolower($residue);
+                    }
+
+                    $typeval = presdef(strtolower($type), $keywords, strtoupper($type));
+                    $newsubj = $typeval . ": $residue ({$loc['name']})";
+
+                    $this->lat = $loc['lat'];
+                    $this->lng = $loc['lng'];
+                    $this->locationid = $loc['id'];
+
+                    if ($this->fromuser) {
+                        # Save off this as the last known location for this user.
+                        $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
+                            $this->locationid,
+                            $this->fromuser
+                        ]);
+                        User::clearCache($this->fromuser);
+                    }
+                }
             }
         }
 
