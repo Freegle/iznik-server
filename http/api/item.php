@@ -14,6 +14,7 @@ function item() {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 if ($typeahead) {
+                    # This will be quick as we only look for exact words.
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
