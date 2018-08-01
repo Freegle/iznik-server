@@ -390,13 +390,18 @@ class Spam {
     }
 
     public function checkReferToSpammer($text) {
-        # Check if it contains a reference to a known spammer.
-        $spammers = $this->dbhr->preQuery("SELECT users_emails.email FROM spam_users INNER JOIN users_emails ON spam_users.userid = users_emails.userid WHERE collection = ? AND INSTR(LOWER(?), LOWER(email)) != 0;", [
-            Spam::TYPE_SPAMMER,
-            $text
-        ]);
+        $ret = NULL;
 
-        $ret = count($spammers) > 0 ? $spammers[0]['email'] : NULL;
+        if (strpos($text, '@') !== FALSE) {
+            # Check if it contains a reference to a known spammer.
+            $spammers = $this->dbhr->preQuery("SELECT users_emails.email FROM spam_users INNER JOIN users_emails ON spam_users.userid = users_emails.userid WHERE collection = ? AND INSTR(LOWER(?), LOWER(email)) != 0;", [
+                Spam::TYPE_SPAMMER,
+                $text
+            ]);
+
+            $ret = count($spammers) > 0 ? $spammers[0]['email'] : NULL;
+        }
+
         return($ret);
     }
 
