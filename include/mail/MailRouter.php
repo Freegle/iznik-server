@@ -660,9 +660,14 @@ class MailRouter
                                     # one example is twitter email confirmations, where the URL is quoted (weirdly).
                                     $textbody = $this->msg->getTextbody();
 
-                                    $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                    $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
-                                    if ($this->log) { error_log("Created message $mid"); }
+                                    if (strlen($textbody)) {
+                                        $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                        $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+                                        if ($this->log) { error_log("Created message $mid"); }
+                                    }
+
+                                    # Add any photos.
+                                    $this->addPhotosToChat($chatid);
 
                                     $m->chatByEmail($mid, $this->msg->getID());
 
