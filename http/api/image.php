@@ -16,6 +16,7 @@ function image() {
     $chatmessage = presdef('chatmessage', $_REQUEST, NULL);
     $user = presdef('user', $_REQUEST, NULL);
     $newsfeed = presdef('newsfeed', $_REQUEST, NULL);
+    $story = presdef('story', $_REQUEST, NULL);
     $circle = presdef('circle', $_REQUEST, NULL);
 
     $sizelimit = 800;
@@ -34,6 +35,8 @@ function image() {
         $type = Attachment::TYPE_USER;
     } else if ($newsfeed) {
         $type = Attachment::TYPE_NEWSFEED;
+    } else if ($story) {
+        $type = Attachment::TYPE_STORY;
     } else {
         $type = Attachment::TYPE_MESSAGE;
     }

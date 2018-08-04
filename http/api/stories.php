@@ -84,7 +84,8 @@ function stories() {
                 $id = $s->create($me->getId(),
                     array_key_exists('public', $_REQUEST) ? filter_var($_REQUEST['public'], FILTER_VALIDATE_BOOLEAN) : FALSE,
                     presdef('headline', $_REQUEST, NULL),
-                    presdef('story', $_REQUEST, NULL));
+                    presdef('story', $_REQUEST, NULL),
+                    intval(presdef('photo', $_REQUEST, NULL)));
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',

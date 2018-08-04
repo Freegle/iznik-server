@@ -26,7 +26,7 @@ class Story extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'users_stories', 'story', $this->publicatts);
     }
 
-    public function create($userid, $public, $headline, $story) {
+    public function create($userid, $public, $headline, $story, $photo = NULL) {
         $id = NULL;
 
         $rc = $this->dbhm->preExec("INSERT INTO users_stories (public, userid, headline, story) VALUES (?,?,?,?);", [
@@ -42,9 +42,17 @@ class Story extends Entity
             if ($id) {
                 $this->fetch($this->dbhm, $this->dbhm, $id, 'users_stories', 'story', $this->publicatts);
             }
+
+            if ($photo) {
+                $this->setPhoto($photo);
+            }
         }
 
         return($id);
+    }
+
+    public function setPhoto($photoid) {
+        $this->dbhm->preExec("UPDATE users_stories_images SET storyid = ? WHERE id = ?;", [ $this->id, $photoid ]);
     }
 
     public function getPublic() {
@@ -88,6 +96,17 @@ class Story extends Entity
                 $me->getId()
             ], FALSE, FALSE);
             $ret['liked'] = $likes[0]['count'] > 0;
+        }
+
+        $photos = $this->dbhr->preQuery("SELECT id FROM users_stories_images WHERE storyid = ?;", [ $this->id ]);
+        foreach ($photos as $photo) {
+            $a = new Attachment($this->dbhr, $this->dbhm, $photo['id'], Attachment::TYPE_STORY);
+
+            $ret['photo'] = [
+                'id' => $photo['id'],
+                'path' => $a->getPath(FALSE),
+                'paththumb' => $a->getPath(TRUE)
+            ];
         }
 
         return($ret);

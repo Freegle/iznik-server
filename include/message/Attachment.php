@@ -34,6 +34,7 @@ class Attachment
     const TYPE_USER = 'User';
     const TYPE_NEWSFEED = 'Newsfeed';
     const TYPE_VOLUNTEERING = 'Volunteering';
+    const TYPE_STORY = 'Story';
 
     /**
      * @return mixed
@@ -63,6 +64,7 @@ class Attachment
             case Attachment::TYPE_CHAT_MESSAGE: $name = 'mimg'; break;
             case Attachment::TYPE_USER: $name = 'uimg'; break;
             case Attachment::TYPE_NEWSFEED: $name = 'fimg'; break;
+            case Attachment::TYPE_STORY: $name = 'simg'; break;
         }
 
         $name = $thumb ? "t$name" : $name;
@@ -103,6 +105,7 @@ class Attachment
             case Attachment::TYPE_CHAT_MESSAGE: $this->table = 'chat_images'; $this->idatt = 'chatmsgid'; break;
             case Attachment::TYPE_USER: $this->table = 'users_images'; $this->idatt = 'userid'; break;
             case Attachment::TYPE_NEWSFEED: $this->table = 'newsfeed_images'; $this->idatt = 'newsfeedid'; break;
+            case Attachment::TYPE_STORY: $this->table = 'users_stories_images'; $this->idatt = 'storyid'; break;
         }
 
         if ($id) {

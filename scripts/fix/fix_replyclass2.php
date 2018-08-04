@@ -163,4 +163,4 @@ for ($i = 0; $i < count($samples); $i++) {
     }
 }
 
-error_log("\n\nPredicted Up $up Down $down, wrong $wrong right $right (" . (100 * $right / ($wrong + $right)) . " badly wrong $badlywrong (" . (100 * $badlywrong / ($wrong + $right)) . "%)");
+error_log("\n\nPredicted Up $up Down $down, right $right (" . (100 * $right / ($wrong + $right)) . "%) wrong $wrong badly wrong $badlywrong (" . (100 * $badlywrong / ($wrong + $right)) . "%)");

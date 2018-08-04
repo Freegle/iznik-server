@@ -16,6 +16,7 @@ function volunteering() {
 
     $pending = array_key_exists('pending', $_REQUEST) ? filter_var($_REQUEST['pending'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $systemwide = array_key_exists('systemwide', $_REQUEST) ? filter_var($_REQUEST['systemwide'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $online = array_key_exists('online', $_REQUEST) ? filter_var($_REQUEST['online'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ctx = presdef('context', $_REQUEST, NULL);
 
     $c = new Volunteering($dbhr, $dbhm, $id);

@@ -219,8 +219,16 @@ class Twitter {
             $link = 'https://' . USER_SITE . "/story/{$story['id']}?src=tweetstory&t=". time();
 
             $status .= " $link";
-            $img = rand(1, 5);
-            $rc = $this->tweet($status, file_get_contents(IZNIK_BASE . "/http/images/stories/story$img.png"));
+
+            if (pres('photo', $atts)) {
+                $image = $atts['photo']['path'];
+            } else {
+                $img = rand(1, 5);
+                $image = IZNIK_BASE . "/http/images/stories/story$img.png";
+
+            }
+
+            $rc = $this->tweet($status, file_get_contents($image));
 
             $this->dbhm->preExec("UPDATE users_stories SET tweeted = 1 WHERE id = ?;", [ $story['id'] ]);
         }
