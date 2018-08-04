@@ -3,9 +3,9 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: May 18, 2018 at 07:14 PM
--- Server version: 5.7.20-18-57
--- PHP Version: 7.0.25-0ubuntu0.16.04.1
+-- Generation Time: Aug 04, 2018 at 10:12 AM
+-- Server version: 5.7.21-20-57
+-- PHP Version: 7.0.30-0ubuntu0.16.04.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -590,6 +590,34 @@ CREATE TABLE `communityevents_images` (
   `identification` mediumtext COLLATE utf8mb4_unicode_ci,
   `hash` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Attachments parsed out from messages and resized' KEY_BLOCK_SIZE=16 ROW_FORMAT=COMPRESSED;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domains`
+--
+
+CREATE TABLE `domains` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `domain` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sent` int(11) NOT NULL,
+  `defers` int(11) NOT NULL,
+  `avgdly` int(11) NOT NULL,
+  `problem` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Statistics on email domains we''ve sent to recently';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domains_common`
+--
+
+CREATE TABLE `domains_common` (
+  `id` bigint(20) NOT NULL,
+  `domain` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `count` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -1228,7 +1256,7 @@ CREATE TABLE `messages_drafts` (
 CREATE TABLE `messages_groups` (
   `msgid` bigint(20) UNSIGNED NOT NULL COMMENT 'id in the messages table',
   `groupid` bigint(20) UNSIGNED NOT NULL,
-  `collection` enum('Incoming','Pending','Approved','Spam','QueuedYahooUser','Rejected') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `collection` enum('Incoming','Pending','Approved','Spam','QueuedYahooUser','Rejected','QueuedUser') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `arrival` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ;
 
@@ -1491,7 +1519,7 @@ CREATE TABLE `newsfeed` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `type` enum('Message','CommunityEvent','VolunteerOpportunity','CentralPublicity','Alert','Story','ReferToWanted','ReferToOffer','ReferToTaken','ReferToReceived') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Message',
+  `type` enum('Message','CommunityEvent','VolunteerOpportunity','CentralPublicity','Alert','Story','ReferToWanted','ReferToOffer','ReferToTaken','ReferToReceived','AboutMe') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Message',
   `userid` bigint(20) UNSIGNED DEFAULT NULL,
   `imageid` bigint(20) UNSIGNED DEFAULT NULL,
   `msgid` bigint(20) UNSIGNED DEFAULT NULL,
@@ -1508,7 +1536,8 @@ CREATE TABLE `newsfeed` (
   `deletedby` bigint(20) UNSIGNED DEFAULT NULL,
   `hidden` timestamp NULL DEFAULT NULL,
   `hiddenby` bigint(20) UNSIGNED DEFAULT NULL,
-  `closed` tinyint(1) NOT NULL DEFAULT '0'
+  `closed` tinyint(1) NOT NULL DEFAULT '0',
+  `html` text COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1849,25 +1878,15 @@ CREATE TABLE `prerender` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `schedules`
+-- Table structure for table `ratings`
 --
 
-CREATE TABLE `schedules` (
+CREATE TABLE `ratings` (
   `id` bigint(20) UNSIGNED NOT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `agreed` timestamp NULL DEFAULT NULL,
-  `schedule` text COLLATE utf8mb4_unicode_ci
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `schedules_users`
---
-
-CREATE TABLE `schedules_users` (
-  `userid` bigint(20) UNSIGNED NOT NULL,
-  `scheduleid` bigint(20) UNSIGNED NOT NULL
+  `rater` bigint(20) UNSIGNED NOT NULL,
+  `ratee` bigint(10) UNSIGNED NOT NULL,
+  `rating` enum('Up','Down') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1937,7 +1956,8 @@ CREATE TABLE `spam_keywords` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `word` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   `exclude` text COLLATE utf8mb4_unicode_ci,
-  `action` enum('Review','Spam') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Review'
+  `action` enum('Review','Spam') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Review',
+  `type` enum('Literal','Regex') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Literal'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Keywords often used by spammers';
 
 -- --------------------------------------------------------
@@ -2044,6 +2064,36 @@ CREATE TABLE `supporters` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `teams`
+--
+
+CREATE TABLE `teams` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `type` enum('Team','Role') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Team',
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Users who have particular roles in the organisation';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `teams_members`
+--
+
+CREATE TABLE `teams_members` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `userid` bigint(20) UNSIGNED NOT NULL,
+  `teamid` bigint(20) UNSIGNED NOT NULL,
+  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `nameoverride` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `imageoverride` longtext COLLATE utf8mb4_unicode_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -2071,10 +2121,36 @@ CREATE TABLE `users` (
   `lastrelevantcheck` timestamp NULL DEFAULT NULL,
   `lastidlechaseup` timestamp NULL DEFAULT NULL,
   `bouncing` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Whether preferred email has been determined to be bouncing',
-  `permissions` set('BusinessCardsAdmin','Newsletter','NationalVolunteers') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `permissions` set('BusinessCardsAdmin','Newsletter','NationalVolunteers','Teams') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `invitesleft` int(10) UNSIGNED DEFAULT '10',
-  `source` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `source` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `chatmodstatus` enum('Moderated','Unmoderated') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Moderated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_aboutme`
+--
+
+CREATE TABLE `users_aboutme` (
+  `id` bigint(20) NOT NULL,
+  `userid` bigint(20) UNSIGNED NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `text` text COLLATE utf8mb4_unicode_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_active`
+--
+
+CREATE TABLE `users_active` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `userid` bigint(20) UNSIGNED DEFAULT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Track when users are active hourly';
 
 -- --------------------------------------------------------
 
@@ -2350,7 +2426,7 @@ CREATE TABLE `users_notifications` (
   `fromuser` bigint(20) UNSIGNED DEFAULT NULL,
   `touser` bigint(20) UNSIGNED NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `type` enum('CommentOnYourPost','CommentOnCommented','LovedPost','LovedComment','TryFeed') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('CommentOnYourPost','CommentOnCommented','LovedPost','LovedComment','TryFeed','MembershipPending','MembershipApproved','MembershipRejected','AboutMe') COLLATE utf8mb4_unicode_ci NOT NULL,
   `newsfeedid` bigint(20) UNSIGNED DEFAULT NULL,
   `url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `seen` tinyint(1) NOT NULL DEFAULT '0'
@@ -2379,7 +2455,14 @@ CREATE TABLE `users_nudges` (
 CREATE TABLE `users_phones` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `userid` bigint(20) UNSIGNED NOT NULL,
-  `number` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL
+  `number` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT '1',
+  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastsent` timestamp NULL DEFAULT NULL,
+  `lastresponse` text COLLATE utf8mb4_unicode_ci,
+  `laststatus` enum('queued','failed','sent','delivered','undelivered') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `laststatusreceived` timestamp NULL DEFAULT NULL,
+  `count` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -2401,6 +2484,19 @@ CREATE TABLE `users_push_notifications` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `users_replytime`
+--
+
+CREATE TABLE `users_replytime` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `userid` bigint(20) UNSIGNED NOT NULL,
+  `replytime` int(11) DEFAULT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users_requests`
 --
 
@@ -2416,6 +2512,19 @@ CREATE TABLE `users_requests` (
   `notifiedmods` timestamp NULL DEFAULT NULL,
   `paid` tinyint(1) NOT NULL DEFAULT '0',
   `amount` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_schedules`
+--
+
+CREATE TABLE `users_schedules` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `userid` bigint(20) UNSIGNED NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `schedule` text COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -2751,6 +2860,15 @@ CREATE TABLE `vw_src` (
 -- --------------------------------------------------------
 
 --
+-- Stand-in structure for view `VW_SupportCallAverage`
+--
+CREATE TABLE `VW_SupportCallAverage` (
+  `AVG(total)` decimal(46,4)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `weights`
 --
 
@@ -2774,6 +2892,19 @@ CREATE TABLE `words` (
   `soundex` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
   `popularity` bigint(20) NOT NULL DEFAULT '0' COMMENT 'Negative as DESC index not supported'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unique words for searches' ROW_FORMAT=DYNAMIC;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `words_cache`
+--
+
+CREATE TABLE `words_cache` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `search` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `words` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -2892,6 +3023,15 @@ DROP TABLE IF EXISTS `vw_src`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_src`  AS  select count(0) AS `count`,`logs_src`.`src` AS `src` from `logs_src` group by `logs_src`.`src` order by `count` desc ;
 
+-- --------------------------------------------------------
+
+--
+-- Structure for view `VW_SupportCallAverage`
+--
+DROP TABLE IF EXISTS `VW_SupportCallAverage`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `VW_SupportCallAverage`  AS  select avg(`t`.`total`) AS `AVG(total)` from (select `stats`.`date` AS `date`,sum(`stats`.`count`) AS `total` from `stats` where ((`stats`.`type` = 'SupportQueries') and ((to_days(now()) - to_days(`stats`.`date`)) <= 31)) group by `stats`.`date`) `t` ;
+
 --
 -- Indexes for dumped tables
 --
@@ -2989,7 +3129,8 @@ ALTER TABLE `chat_messages`
   ADD KEY `refchatid` (`refchatid`),
   ADD KEY `refchatid_2` (`refchatid`),
   ADD KEY `imageid` (`imageid`),
-  ADD KEY `scheduleid` (`scheduleid`);
+  ADD KEY `scheduleid` (`scheduleid`),
+  ADD KEY `chatmax` (`chatid`,`id`,`userid`,`date`) USING BTREE;
 
 --
 -- Indexes for table `chat_messages_byemail`
@@ -3019,9 +3160,7 @@ ALTER TABLE `chat_rooms`
   ADD KEY `synctofacebookgroupid` (`synctofacebookgroupid`),
   ADD KEY `chattype` (`chattype`),
   ADD KEY `groupid` (`groupid`),
-  ADD KEY `chattype_2` (`chattype`),
-  ADD KEY `chattype_3` (`chattype`),
-  ADD KEY `chattype_4` (`chattype`);
+  ADD KEY `typelatest` (`chattype`,`latestmessage`);
 
 --
 -- Indexes for table `chat_roster`
@@ -3051,7 +3190,8 @@ ALTER TABLE `communityevents`
 ALTER TABLE `communityevents_dates`
   ADD PRIMARY KEY (`id`),
   ADD KEY `start` (`start`),
-  ADD KEY `eventid` (`eventid`);
+  ADD KEY `eventid` (`eventid`),
+  ADD KEY `end` (`end`);
 
 --
 -- Indexes for table `communityevents_groups`
@@ -3068,6 +3208,21 @@ ALTER TABLE `communityevents_images`
   ADD PRIMARY KEY (`id`),
   ADD KEY `incomingid` (`eventid`),
   ADD KEY `hash` (`hash`);
+
+--
+-- Indexes for table `domains`
+--
+ALTER TABLE `domains`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `domain` (`domain`),
+  ADD KEY `problem` (`problem`);
+
+--
+-- Indexes for table `domains_common`
+--
+ALTER TABLE `domains_common`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `domain` (`domain`);
 
 --
 -- Indexes for table `ebay_favourites`
@@ -3089,7 +3244,8 @@ ALTER TABLE `groups`
   ADD KEY `profile` (`profile`),
   ADD KEY `cover` (`cover`),
   ADD KEY `legacyid` (`legacyid`),
-  ADD KEY `authorityid` (`authorityid`);
+  ADD KEY `authorityid` (`authorityid`),
+  ADD KEY `type` (`type`);
 
 --
 -- Indexes for table `groups_digests`
@@ -3736,18 +3892,13 @@ ALTER TABLE `prerender`
   ADD UNIQUE KEY `url` (`url`);
 
 --
--- Indexes for table `schedules`
+-- Indexes for table `ratings`
 --
-ALTER TABLE `schedules`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `schedules_users`
---
-ALTER TABLE `schedules_users`
-  ADD UNIQUE KEY `userid_2` (`userid`,`scheduleid`),
-  ADD KEY `userid` (`userid`),
-  ADD KEY `scheduleid` (`scheduleid`);
+ALTER TABLE `ratings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `rater_2` (`rater`,`ratee`),
+  ADD KEY `rater` (`rater`),
+  ADD KEY `ratee` (`ratee`);
 
 --
 -- Indexes for table `search_history`
@@ -3841,6 +3992,22 @@ ALTER TABLE `supporters`
   ADD KEY `display` (`display`);
 
 --
+-- Indexes for table `teams`
+--
+ALTER TABLE `teams`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indexes for table `teams_members`
+--
+ALTER TABLE `teams_members`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `userid_2` (`userid`,`teamid`),
+  ADD KEY `userid` (`userid`),
+  ADD KEY `teamid` (`teamid`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -3859,6 +4026,22 @@ ALTER TABLE `users`
   ADD KEY `suspectcount_2` (`suspectcount`),
   ADD KEY `lastlocation` (`lastlocation`),
   ADD KEY `lastrelevantcheck` (`lastrelevantcheck`);
+
+--
+-- Indexes for table `users_aboutme`
+--
+ALTER TABLE `users_aboutme`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `userid` (`userid`),
+  ADD KEY `userid_2` (`userid`,`timestamp`);
+
+--
+-- Indexes for table `users_active`
+--
+ALTER TABLE `users_active`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `userid_2` (`userid`,`timestamp`),
+  ADD KEY `timestamp` (`timestamp`);
 
 --
 -- Indexes for table `users_addresses`
@@ -4032,7 +4215,9 @@ ALTER TABLE `users_nudges`
 --
 ALTER TABLE `users_phones`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `userid` (`userid`);
+  ADD UNIQUE KEY `userid` (`userid`) USING BTREE,
+  ADD KEY `number` (`number`),
+  ADD KEY `laststatus` (`laststatus`,`valid`) USING BTREE;
 
 --
 -- Indexes for table `users_push_notifications`
@@ -4044,6 +4229,13 @@ ALTER TABLE `users_push_notifications`
   ADD KEY `type` (`type`);
 
 --
+-- Indexes for table `users_replytime`
+--
+ALTER TABLE `users_replytime`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `userid` (`userid`) USING BTREE;
+
+--
 -- Indexes for table `users_requests`
 --
 ALTER TABLE `users_requests`
@@ -4052,6 +4244,13 @@ ALTER TABLE `users_requests`
   ADD KEY `userid` (`userid`),
   ADD KEY `completedby` (`completedby`),
   ADD KEY `completed` (`completed`);
+
+--
+-- Indexes for table `users_schedules`
+--
+ALTER TABLE `users_schedules`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `userid` (`userid`);
 
 --
 -- Indexes for table `users_searches`
@@ -4121,7 +4320,8 @@ ALTER TABLE `volunteering`
 ALTER TABLE `volunteering_dates`
   ADD PRIMARY KEY (`id`),
   ADD KEY `start` (`start`),
-  ADD KEY `eventid` (`volunteeringid`);
+  ADD KEY `eventid` (`volunteeringid`),
+  ADD KEY `end` (`end`);
 
 --
 -- Indexes for table `volunteering_groups`
@@ -4166,6 +4366,13 @@ ALTER TABLE `words`
   ADD KEY `firstthree` (`firstthree`,`popularity`);
 
 --
+-- Indexes for table `words_cache`
+--
+ALTER TABLE `words_cache`
+  ADD UNIQUE KEY `id` (`id`),
+  ADD UNIQUE KEY `search` (`search`) USING BTREE;
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -4173,27 +4380,27 @@ ALTER TABLE `words`
 -- AUTO_INCREMENT for table `abtest`
 --
 ALTER TABLE `abtest`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4505815;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6901602;
 --
 -- AUTO_INCREMENT for table `admins`
 --
 ALTER TABLE `admins`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6211;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6507;
 --
 -- AUTO_INCREMENT for table `alerts`
 --
 ALTER TABLE `alerts`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8191;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8712;
 --
 -- AUTO_INCREMENT for table `alerts_tracking`
 --
 ALTER TABLE `alerts_tracking`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=173086;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=183378;
 --
 -- AUTO_INCREMENT for table `authorities`
 --
 ALTER TABLE `authorities`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117370;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117432;
 --
 -- AUTO_INCREMENT for table `aviva_history`
 --
@@ -4208,57 +4415,67 @@ ALTER TABLE `aviva_votes`
 -- AUTO_INCREMENT for table `bounces`
 --
 ALTER TABLE `bounces`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15223075;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36471987;
 --
 -- AUTO_INCREMENT for table `bounces_emails`
 --
 ALTER TABLE `bounces_emails`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20395528;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38283192;
 --
 -- AUTO_INCREMENT for table `chat_images`
 --
 ALTER TABLE `chat_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72847;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115785;
 --
 -- AUTO_INCREMENT for table `chat_messages`
 --
 ALTER TABLE `chat_messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13808950;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15917121;
 --
 -- AUTO_INCREMENT for table `chat_messages_byemail`
 --
 ALTER TABLE `chat_messages_byemail`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1957132;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2707476;
 --
 -- AUTO_INCREMENT for table `chat_messages_held`
 --
 ALTER TABLE `chat_messages_held`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=280;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=315;
 --
 -- AUTO_INCREMENT for table `chat_rooms`
 --
 ALTER TABLE `chat_rooms`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4324339;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4793742;
 --
 -- AUTO_INCREMENT for table `chat_roster`
 --
 ALTER TABLE `chat_roster`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=332437348;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=346350633;
 --
 -- AUTO_INCREMENT for table `communityevents`
 --
 ALTER TABLE `communityevents`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=137401;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139941;
 --
 -- AUTO_INCREMENT for table `communityevents_dates`
 --
 ALTER TABLE `communityevents_dates`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=137542;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=141384;
 --
 -- AUTO_INCREMENT for table `communityevents_images`
 --
 ALTER TABLE `communityevents_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8692;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10218;
+--
+-- AUTO_INCREMENT for table `domains`
+--
+ALTER TABLE `domains`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33171;
+--
+-- AUTO_INCREMENT for table `domains_common`
+--
+ALTER TABLE `domains_common`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1077;
 --
 -- AUTO_INCREMENT for table `ebay_favourites`
 --
@@ -4268,77 +4485,77 @@ ALTER TABLE `ebay_favourites`
 -- AUTO_INCREMENT for table `groups`
 --
 ALTER TABLE `groups`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique ID of group', AUTO_INCREMENT=464881;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique ID of group', AUTO_INCREMENT=481785;
 --
 -- AUTO_INCREMENT for table `groups_digests`
 --
 ALTER TABLE `groups_digests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=776915506;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=853156176;
 --
 -- AUTO_INCREMENT for table `groups_facebook`
 --
 ALTER TABLE `groups_facebook`
-  MODIFY `uid` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3784;
+  MODIFY `uid` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4146;
 --
 -- AUTO_INCREMENT for table `groups_facebook_toshare`
 --
 ALTER TABLE `groups_facebook_toshare`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27557023;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32939844;
 --
 -- AUTO_INCREMENT for table `groups_images`
 --
 ALTER TABLE `groups_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4573;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4986;
 --
 -- AUTO_INCREMENT for table `items`
 --
 ALTER TABLE `items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2394487;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2648376;
 --
 -- AUTO_INCREMENT for table `items_non`
 --
 ALTER TABLE `items_non`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3715108;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4362003;
 --
 -- AUTO_INCREMENT for table `link_previews`
 --
 ALTER TABLE `link_previews`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2272;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=228453;
 --
 -- AUTO_INCREMENT for table `locations`
 --
 ALTER TABLE `locations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9491719;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9510615;
 --
 -- AUTO_INCREMENT for table `locations_grids`
 --
 ALTER TABLE `locations_grids`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=771541;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=810921;
 --
 -- AUTO_INCREMENT for table `logos`
 --
 ALTER TABLE `logos`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=235;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=243;
 --
 -- AUTO_INCREMENT for table `logs`
 --
 ALTER TABLE `logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique ID', AUTO_INCREMENT=201838831;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique ID', AUTO_INCREMENT=225814434;
 --
 -- AUTO_INCREMENT for table `logs_api`
 --
 ALTER TABLE `logs_api`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22886143;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41865615;
 --
 -- AUTO_INCREMENT for table `logs_emails`
 --
 ALTER TABLE `logs_emails`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=425404420;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=690391011;
 --
 -- AUTO_INCREMENT for table `logs_errors`
 --
 ALTER TABLE `logs_errors`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111385;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111486;
 --
 -- AUTO_INCREMENT for table `logs_events`
 --
@@ -4353,147 +4570,147 @@ ALTER TABLE `logs_profile`
 -- AUTO_INCREMENT for table `logs_sql`
 --
 ALTER TABLE `logs_sql`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=659530219;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1111849182;
 --
 -- AUTO_INCREMENT for table `logs_src`
 --
 ALTER TABLE `logs_src`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53219860;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62378460;
 --
 -- AUTO_INCREMENT for table `memberships`
 --
 ALTER TABLE `memberships`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44537164;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45321897;
 --
 -- AUTO_INCREMENT for table `memberships_history`
 --
 ALTER TABLE `memberships_history`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34703929;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35215191;
 --
 -- AUTO_INCREMENT for table `memberships_yahoo`
 --
 ALTER TABLE `memberships_yahoo`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27259747;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27911724;
 --
 -- AUTO_INCREMENT for table `memberships_yahoo_dump`
 --
 ALTER TABLE `memberships_yahoo_dump`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1463284;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1511994;
 --
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique iD', AUTO_INCREMENT=47727757;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique iD', AUTO_INCREMENT=50565147;
 --
 -- AUTO_INCREMENT for table `messages_attachments`
 --
 ALTER TABLE `messages_attachments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9753025;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10554840;
 --
 -- AUTO_INCREMENT for table `messages_attachments_items`
 --
 ALTER TABLE `messages_attachments_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3170347;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3817221;
 --
 -- AUTO_INCREMENT for table `messages_drafts`
 --
 ALTER TABLE `messages_drafts`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1998211;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2266398;
 --
 -- AUTO_INCREMENT for table `messages_history`
 --
 ALTER TABLE `messages_history`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique iD', AUTO_INCREMENT=3269716;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique iD', AUTO_INCREMENT=5742150;
 --
 -- AUTO_INCREMENT for table `messages_outcomes`
 --
 ALTER TABLE `messages_outcomes`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1414786;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1674843;
 --
 -- AUTO_INCREMENT for table `messages_outcomes_intended`
 --
 ALTER TABLE `messages_outcomes_intended`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=359140;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=424104;
 --
 -- AUTO_INCREMENT for table `messages_postings`
 --
 ALTER TABLE `messages_postings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2417368;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2841795;
 --
 -- AUTO_INCREMENT for table `messages_promises`
 --
 ALTER TABLE `messages_promises`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=173737;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=204498;
 --
 -- AUTO_INCREMENT for table `messages_reneged`
 --
 ALTER TABLE `messages_reneged`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14617;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20241;
 --
 -- AUTO_INCREMENT for table `messages_spamham`
 --
 ALTER TABLE `messages_spamham`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61189;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64668;
 --
 -- AUTO_INCREMENT for table `modnotifs`
 --
 ALTER TABLE `modnotifs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75655;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=143694;
 --
 -- AUTO_INCREMENT for table `mod_bulkops`
 --
 ALTER TABLE `mod_bulkops`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30784;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31455;
 --
 -- AUTO_INCREMENT for table `mod_bulkops_run`
 --
 ALTER TABLE `mod_bulkops_run`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5080951;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5083323;
 --
 -- AUTO_INCREMENT for table `mod_configs`
 --
 ALTER TABLE `mod_configs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique ID of config', AUTO_INCREMENT=67162;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique ID of config', AUTO_INCREMENT=69264;
 --
 -- AUTO_INCREMENT for table `mod_stdmsgs`
 --
 ALTER TABLE `mod_stdmsgs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique ID of standard message', AUTO_INCREMENT=193495;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique ID of standard message', AUTO_INCREMENT=196023;
 --
 -- AUTO_INCREMENT for table `newsfeed`
 --
 ALTER TABLE `newsfeed`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41803;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53475;
 --
 -- AUTO_INCREMENT for table `newsfeed_images`
 --
 ALTER TABLE `newsfeed_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1507;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2565;
 --
 -- AUTO_INCREMENT for table `newsfeed_unfollow`
 --
 ALTER TABLE `newsfeed_unfollow`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2383;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2931;
 --
 -- AUTO_INCREMENT for table `newsfeed_users`
 --
 ALTER TABLE `newsfeed_users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22137211;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28212924;
 --
 -- AUTO_INCREMENT for table `newsletters`
 --
 ALTER TABLE `newsletters`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=505;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=594;
 --
 -- AUTO_INCREMENT for table `newsletters_articles`
 --
 ALTER TABLE `newsletters_articles`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2044;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2319;
 --
 -- AUTO_INCREMENT for table `newsletters_images`
 --
 ALTER TABLE `newsletters_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=199;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=168;
 --
 -- AUTO_INCREMENT for table `os_county_electoral_division_region`
 --
@@ -4503,7 +4720,7 @@ ALTER TABLE `os_county_electoral_division_region`
 -- AUTO_INCREMENT for table `paf_addresses`
 --
 ALTER TABLE `paf_addresses`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121995451;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123906671;
 --
 -- AUTO_INCREMENT for table `paf_buildingname`
 --
@@ -4513,32 +4730,32 @@ ALTER TABLE `paf_buildingname`
 -- AUTO_INCREMENT for table `paf_departmentname`
 --
 ALTER TABLE `paf_departmentname`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64669;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65945;
 --
 -- AUTO_INCREMENT for table `paf_dependentlocality`
 --
 ALTER TABLE `paf_dependentlocality`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68932;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68945;
 --
 -- AUTO_INCREMENT for table `paf_dependentthoroughfaredescriptor`
 --
 ALTER TABLE `paf_dependentthoroughfaredescriptor`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74692;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74756;
 --
 -- AUTO_INCREMENT for table `paf_doubledependentlocality`
 --
 ALTER TABLE `paf_doubledependentlocality`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11827;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11837;
 --
 -- AUTO_INCREMENT for table `paf_organisationname`
 --
 ALTER TABLE `paf_organisationname`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48076;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48617;
 --
 -- AUTO_INCREMENT for table `paf_pobox`
 --
 ALTER TABLE `paf_pobox`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=418288;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=421250;
 --
 -- AUTO_INCREMENT for table `paf_posttown`
 --
@@ -4548,52 +4765,52 @@ ALTER TABLE `paf_posttown`
 -- AUTO_INCREMENT for table `paf_subbuildingname`
 --
 ALTER TABLE `paf_subbuildingname`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4196584;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4215983;
 --
 -- AUTO_INCREMENT for table `paf_thoroughfaredescriptor`
 --
 ALTER TABLE `paf_thoroughfaredescriptor`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1090978;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1093424;
 --
 -- AUTO_INCREMENT for table `partners_keys`
 --
 ALTER TABLE `partners_keys`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 --
 -- AUTO_INCREMENT for table `plugin`
 --
 ALTER TABLE `plugin`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5433892;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5648727;
 --
 -- AUTO_INCREMENT for table `polls`
 --
 ALTER TABLE `polls`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=268;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
 --
 -- AUTO_INCREMENT for table `prerender`
 --
 ALTER TABLE `prerender`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14977411;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17780121;
 --
--- AUTO_INCREMENT for table `schedules`
+-- AUTO_INCREMENT for table `ratings`
 --
-ALTER TABLE `schedules`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=295;
+ALTER TABLE `ratings`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=963;
 --
 -- AUTO_INCREMENT for table `search_history`
 --
 ALTER TABLE `search_history`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35878660;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41463699;
 --
 -- AUTO_INCREMENT for table `sessions`
 --
 ALTER TABLE `sessions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9422113;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9935925;
 --
 -- AUTO_INCREMENT for table `shortlinks`
 --
 ALTER TABLE `shortlinks`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11665;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16566;
 --
 -- AUTO_INCREMENT for table `spam_countries`
 --
@@ -4603,97 +4820,117 @@ ALTER TABLE `spam_countries`
 -- AUTO_INCREMENT for table `spam_keywords`
 --
 ALTER TABLE `spam_keywords`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=472;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=492;
 --
 -- AUTO_INCREMENT for table `spam_users`
 --
 ALTER TABLE `spam_users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23065;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23670;
 --
 -- AUTO_INCREMENT for table `spam_whitelist_ips`
 --
 ALTER TABLE `spam_whitelist_ips`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5071;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3186;
 --
 -- AUTO_INCREMENT for table `spam_whitelist_links`
 --
 ALTER TABLE `spam_whitelist_links`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=176407;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=240090;
 --
 -- AUTO_INCREMENT for table `spam_whitelist_subjects`
 --
 ALTER TABLE `spam_whitelist_subjects`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14866;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14946;
 --
 -- AUTO_INCREMENT for table `stats`
 --
 ALTER TABLE `stats`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39799900;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43878867;
 --
 -- AUTO_INCREMENT for table `supporters`
 --
 ALTER TABLE `supporters`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=133569;
 --
+-- AUTO_INCREMENT for table `teams`
+--
+ALTER TABLE `teams`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=108;
+--
+-- AUTO_INCREMENT for table `teams_members`
+--
+ALTER TABLE `teams_members`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=267;
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35934889;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36507018;
+--
+-- AUTO_INCREMENT for table `users_aboutme`
+--
+ALTER TABLE `users_aboutme`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4656;
+--
+-- AUTO_INCREMENT for table `users_active`
+--
+ALTER TABLE `users_active`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4802346;
 --
 -- AUTO_INCREMENT for table `users_addresses`
 --
 ALTER TABLE `users_addresses`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17698;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22515;
 --
 -- AUTO_INCREMENT for table `users_chatlists`
 --
 ALTER TABLE `users_chatlists`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27464374;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56077206;
 --
 -- AUTO_INCREMENT for table `users_chatlists_index`
 --
 ALTER TABLE `users_chatlists_index`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=223555921;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=484948977;
 --
 -- AUTO_INCREMENT for table `users_comments`
 --
 ALTER TABLE `users_comments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=154207;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=159630;
 --
 -- AUTO_INCREMENT for table `users_dashboard`
 --
 ALTER TABLE `users_dashboard`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=339211;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=965895;
 --
 -- AUTO_INCREMENT for table `users_donations`
 --
 ALTER TABLE `users_donations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1842628;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2059944;
 --
 -- AUTO_INCREMENT for table `users_donations_asks`
 --
 ALTER TABLE `users_donations_asks`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19041;
 --
 -- AUTO_INCREMENT for table `users_emails`
 --
 ALTER TABLE `users_emails`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120464701;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121232850;
 --
 -- AUTO_INCREMENT for table `users_exports`
 --
 ALTER TABLE `users_exports`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=403;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=933;
 --
 -- AUTO_INCREMENT for table `users_images`
 --
 ALTER TABLE `users_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3041881;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3140070;
 --
 -- AUTO_INCREMENT for table `users_invitations`
 --
 ALTER TABLE `users_invitations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11899;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13860;
 --
 -- AUTO_INCREMENT for table `users_kudos`
 --
@@ -4703,87 +4940,102 @@ ALTER TABLE `users_kudos`
 -- AUTO_INCREMENT for table `users_logins`
 --
 ALTER TABLE `users_logins`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7464271;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7644612;
 --
 -- AUTO_INCREMENT for table `users_modmails`
 --
 ALTER TABLE `users_modmails`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=549496;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=829245;
 --
 -- AUTO_INCREMENT for table `users_notifications`
 --
 ALTER TABLE `users_notifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1669027;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2036382;
 --
 -- AUTO_INCREMENT for table `users_nudges`
 --
 ALTER TABLE `users_nudges`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64576;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87849;
 --
 -- AUTO_INCREMENT for table `users_phones`
 --
 ALTER TABLE `users_phones`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12786;
 --
 -- AUTO_INCREMENT for table `users_push_notifications`
 --
 ALTER TABLE `users_push_notifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8813623;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11093406;
+--
+-- AUTO_INCREMENT for table `users_replytime`
+--
+ALTER TABLE `users_replytime`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=231261;
 --
 -- AUTO_INCREMENT for table `users_requests`
 --
 ALTER TABLE `users_requests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5170;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5367;
+--
+-- AUTO_INCREMENT for table `users_schedules`
+--
+ALTER TABLE `users_schedules`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60333;
 --
 -- AUTO_INCREMENT for table `users_searches`
 --
 ALTER TABLE `users_searches`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17727085;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20196168;
 --
 -- AUTO_INCREMENT for table `users_stories`
 --
 ALTER TABLE `users_stories`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4009;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4644;
 --
 -- AUTO_INCREMENT for table `users_stories_requested`
 --
 ALTER TABLE `users_stories_requested`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116512;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=126942;
 --
 -- AUTO_INCREMENT for table `users_thanks`
 --
 ALTER TABLE `users_thanks`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10576;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11658;
 --
 -- AUTO_INCREMENT for table `visualise`
 --
 ALTER TABLE `visualise`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=446542;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=736050;
 --
 -- AUTO_INCREMENT for table `volunteering`
 --
 ALTER TABLE `volunteering`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6760;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8271;
 --
 -- AUTO_INCREMENT for table `volunteering_dates`
 --
 ALTER TABLE `volunteering_dates`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2398;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2997;
 --
 -- AUTO_INCREMENT for table `volunteering_images`
 --
 ALTER TABLE `volunteering_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=681;
 --
 -- AUTO_INCREMENT for table `vouchers`
 --
 ALTER TABLE `vouchers`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4000;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4203;
 --
 -- AUTO_INCREMENT for table `words`
 --
 ALTER TABLE `words`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12167641;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12504375;
+--
+-- AUTO_INCREMENT for table `words_cache`
+--
+ALTER TABLE `words_cache`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=108330;
 --
 -- Constraints for dumped tables
 --
@@ -4826,7 +5078,7 @@ ALTER TABLE `chat_messages`
   ADD CONSTRAINT `_chat_messages_ibfk_4` FOREIGN KEY (`reviewedby`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `_chat_messages_ibfk_5` FOREIGN KEY (`refchatid`) REFERENCES `chat_rooms` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `chat_messages_ibfk_1` FOREIGN KEY (`imageid`) REFERENCES `chat_images` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `chat_messages_ibfk_2` FOREIGN KEY (`scheduleid`) REFERENCES `schedules` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `chat_messages_ibfk_2` FOREIGN KEY (`scheduleid`) REFERENCES `users_schedules` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `chat_messages_byemail`
@@ -5213,11 +5465,11 @@ ALTER TABLE `polls_users`
   ADD CONSTRAINT `polls_users_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `schedules_users`
+-- Constraints for table `ratings`
 --
-ALTER TABLE `schedules_users`
-  ADD CONSTRAINT `schedules_users_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `schedules_users_ibfk_2` FOREIGN KEY (`scheduleid`) REFERENCES `schedules` (`id`) ON DELETE CASCADE;
+ALTER TABLE `ratings`
+  ADD CONSTRAINT `ratings_ibfk_1` FOREIGN KEY (`rater`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `ratings_ibfk_2` FOREIGN KEY (`ratee`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `sessions`
@@ -5251,10 +5503,29 @@ ALTER TABLE `stats`
   ADD CONSTRAINT `_stats_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `teams_members`
+--
+ALTER TABLE `teams_members`
+  ADD CONSTRAINT `teams_members_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `teams_members_ibfk_2` FOREIGN KEY (`teamid`) REFERENCES `teams` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `users`
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`lastlocation`) REFERENCES `locations` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `users_aboutme`
+--
+ALTER TABLE `users_aboutme`
+  ADD CONSTRAINT `users_aboutme_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `users_active`
+--
+ALTER TABLE `users_active`
+  ADD CONSTRAINT `users_active_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `users_addresses`
@@ -5383,12 +5654,24 @@ ALTER TABLE `users_push_notifications`
   ADD CONSTRAINT `users_push_notifications_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `users_replytime`
+--
+ALTER TABLE `users_replytime`
+  ADD CONSTRAINT `users_replytime_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `users_requests`
 --
 ALTER TABLE `users_requests`
   ADD CONSTRAINT `users_requests_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `users_requests_ibfk_2` FOREIGN KEY (`addressid`) REFERENCES `users_addresses` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `users_requests_ibfk_3` FOREIGN KEY (`completedby`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `users_schedules`
+--
+ALTER TABLE `users_schedules`
+  ADD CONSTRAINT `users_schedules_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `users_stories`
