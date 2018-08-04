@@ -1810,7 +1810,7 @@ class User extends Entity
         }
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED])
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
         $atts = parent::getPublic();
 
@@ -1906,7 +1906,7 @@ class User extends Entity
                 $atts['messagehistory'] = [];
                 $sql = NULL;
                 $collq = count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ") : '';
-                $earliest = date('Y-m-d', strtotime("midnight 30 days ago"));
+                $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
 
                 if ($groupids && count($groupids) > 0) {
                     # On these groups
@@ -3751,7 +3751,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
 
             $ctx = NULL;
-            $thisone = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE, []);
+            $thisone = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE, [], TRUE);
 
             # We might not have the emails.
             $thisone['email'] = $u->getEmailPreferred();

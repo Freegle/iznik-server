@@ -548,7 +548,8 @@ class userAPITest extends IznikAPITestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
 
         $ret = $this->call('user', 'GET', [
-            'info' => TRUE
+            'info' => TRUE,
+            'id' => $uid
         ]);
 
         self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);

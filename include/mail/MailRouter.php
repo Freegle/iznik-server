@@ -664,12 +664,12 @@ class MailRouter
                                         $m = new ChatMessage($this->dbhr, $this->dbhm);
                                         $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
                                         if ($this->log) { error_log("Created message $mid"); }
-                                    }
+
+                                        $m->chatByEmail($mid, $this->msg->getID());
+                                        }
 
                                     # Add any photos.
                                     $this->addPhotosToChat($chatid);
-
-                                    $m->chatByEmail($mid, $this->msg->getID());
 
                                     # The user sending this is up to date with this conversation.  This prevents us
                                     # notifying her about other messages
