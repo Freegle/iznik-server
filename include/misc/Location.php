@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
+require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
 class Location extends Entity
 {
@@ -470,22 +471,21 @@ class Location extends Entity
     }
 
     public function groupsNear($radius = Location::NEARBY, $expand = FALSE, $limit = 10) {
-        # To make this efficient we filter on lat/lng first, then the Haversine distance as a filter for the radius,
-        # but we order by the distance to the group polygon (dist), rather than to the centre (hav), because that
+        # To make this efficient we want to use the spatial index on polyindex.  So first get a bounding box
+        # that covers the point and radius.
+        $ne = GreatCircle::getPositionByDistance(sqrt($radius*$radius*2)*1609.34, 45, $this->loc['lat'], $this->loc['lng']);
+        $sw = GreatCircle::getPositionByDistance(sqrt($radius*$radius*2)*1609.34, 225, $this->loc['lat'], $this->loc['lng']);
+
+        $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
+
+        # We order by the distance to the group polygon (dist), rather than to the centre (hav), because that
         # reflects which group you are genuinely closest to.
         #
         # Favour groups hosted by us if there's a tie.
-        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE id IN (SELECT id FROM groups WHERE lat BETWEEN ? AND ? AND lng BETWEEN ? AND ? AND (poly IS NOT NULL OR polyofficial IS NOT NULL) AND publish = 1) HAVING hav < ? AND hav IS NOT NULL ORDER BY dist ASC, external ASC LIMIT $limit;";
-        $groups = $this->dbhr->preQuery($sql, [
-            $this->loc['lng'],
-            $this->loc['lat'],
-            $this->loc['lat'],
-            $this->loc['lng'],
-            $this->loc['lat'] - 1,
-            $this->loc['lat'] + 1,
-            $this->loc['lng'] - 1,
-            $this->loc['lng'] + 1,
-            $radius ]);
+        $sql = "SELECT id, nameshort, ST_distance(POINT({$this->loc['lng']}, {$this->loc['lat']}), polyindex) AS dist, haversine(lat, lng, {$this->loc['lat']}, {$this->loc['lng']}) AS hav FROM groups WHERE MBRIntersects(polyindex, $box) AND publish = 1 HAVING hav < $radius AND hav IS NOT NULL ORDER BY dist ASC, external ASC LIMIT $limit;";
+        #error_log("Find near $sql");
+        $groups = $this->dbhr->preQuery($sql);
+
         #error_log("Find near $sql " .
         # var_export([ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ], TRUE));
         $ret = [];

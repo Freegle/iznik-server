@@ -221,6 +221,12 @@ class Group extends Entity
     public function setPrivate($att, $val) {
         # We override this in order to clear our cache, which would otherwise be out of date.
         parent::setPrivate($att, $val);
+
+        if ($att == 'poly' || $att == 'polyofficial') {
+            $this->dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
+                $this->id
+            ]);
+        }
         Group::clearCache($this->id);
     }
 
@@ -233,7 +239,7 @@ class Group extends Entity
                 return(NULL);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded, licenserequired, onyahoo) VALUES (?, ?, NOW(),?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded, licenserequired, onyahoo, polyindex) VALUES (?, ?, NOW(),?,?,POINT(0, 0))", [
                 $shortname,
                 $type,
                 $type != Group::GROUP_FREEGLE ? 0 : 1,
@@ -251,6 +257,7 @@ class Group extends Entity
                 $sid = $s->create($linkname, Shortlink::TYPE_GROUP, $id);
             }
         } catch (Exception $e) {
+            error_log("Create group exception " . $e->getMessage());
             $id = NULL;
             $rc = 0;
         }

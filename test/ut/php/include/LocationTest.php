@@ -245,7 +245,7 @@ class locationTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm);
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
-        $groups = $l->groupsNear();
+        $groups = $l->groupsNear(500);
         error_log(var_export($groups, TRUE));
         assertTrue(in_array($gid, $groups));
 
