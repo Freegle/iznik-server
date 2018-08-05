@@ -758,14 +758,15 @@ class Newsfeed extends Entity
                 if ($mod->activeModForGroup($groupid)) {
                     # Find posts relating to this group or in its area.
                     $start = date('Y-m-d', strtotime($timeago));
-                    $sql = "SELECT newsfeed.* FROM newsfeed INNER JOIN groups ON (newsfeed.groupid = groups.id OR MBRContains(groups.polyindex, newsfeed.position)) WHERE added >= ? AND newsfeed.id > ? AND groups.id = ? AND deleted IS NULL AND newsfeed.type IN (?, ?, ?) AND newsfeed.replyto IS NULL ORDER BY added ASC";
+                    $sql = "SELECT newsfeed.* FROM newsfeed INNER JOIN groups ON (newsfeed.groupid = groups.id OR MBRContains(groups.polyindex, newsfeed.position)) WHERE added >= ? AND newsfeed.id > ? AND groups.id = ? AND deleted IS NULL AND newsfeed.type IN (?, ?, ?) AND newsfeed.replyto IS NULL AND newsfeed.hidden IS NULL AND newsfeed.userid != ? ORDER BY added ASC";
                     $thislot = $this->dbhr->preQuery($sql, [
                         $start,
                         $lastseen,
                         $groupid,
                         Newsfeed::TYPE_MESSAGE,
                         Newsfeed::TYPE_STORY,
-                        Newsfeed::TYPE_ABOUT_ME
+                        Newsfeed::TYPE_ABOUT_ME,
+                        $userid
                     ]);
 
                     #error_log("Active mod for $groupid found " . count($thislot) . " from $sql, $start, $lastseen, $groupid");
@@ -820,8 +821,7 @@ class Newsfeed extends Entity
                     ->setSubject($subj)
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath($mod->getBounce())
-                    #->setTo([ $mod->getEmailPreferred() => $mod->getName() ])
-                    ->setTo([ 'log@ehibbert.org.uk' => $mod->getName() ])
+                    ->setTo([ $mod->getEmailPreferred() => $mod->getName() ])
                     ->setBody("Recent newsfeed posts from your members:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
 
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
