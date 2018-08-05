@@ -622,7 +622,7 @@ class Newsfeed extends Entity
 
             # Get the first few user-posted messages within 10 miles.
             $ctx = NULL;
-            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY ], $ctx, TRUE);
+            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY, Newsfeed::TYPE_ABOUT_ME ], $ctx, TRUE);
             $textsumm = '';
             $twigitems = [];
             $max = 0;
@@ -638,12 +638,13 @@ class Newsfeed extends Entity
 
                     switch ($feed['type']) {
                         case Newsfeed::TYPE_ABOUT_ME: {
-                            $str = 'Wrote a bit about themself: ' . $str;
+                            $str = 'Wrote a bit about themself: "' . $str . '"';
                             break;
                         }
                     }
 
                     $this->snip($str);
+                    $feed['message'] = $str;
 
                     $short = $feed['message'];
                     $this->snip($short, 40);
@@ -723,6 +724,118 @@ class Newsfeed extends Entity
                     list ($transport, $mailer) = getMailer();
                     $this->sendIt($mailer, $message);
                 }
+            }
+        }
+
+        return($count);
+    }
+
+    public function modnotif($userid, $timeago = "24 hours ago") {
+        $count = 0;
+
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new Twig_Environment($loader);
+
+        $mod = User::get($this->dbhr, $this->dbhm, $userid);
+
+        # We might or might not want these.
+        if ($mod->getSetting('modnotifnewsfeed', TRUE) && $mod->sendOurMails() && $mod->getEmailPreferred() != MODERATOR_EMAIL) {
+            # Find the last one we saw.  Use master as we might have updated this for a previous group.
+            $seens = $this->dbhm->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
+                $userid
+            ]);
+
+            $lastseen = 0;
+            foreach ($seens as $seen) {
+                $lastseen = $seen['newsfeedid'];
+            }
+
+            # Find the groups that we're an active mod on.
+            $feeds = [];
+            $groups = $mod->getModeratorships();
+
+            foreach ($groups as $groupid) {
+                if ($mod->activeModForGroup($groupid)) {
+                    # Find posts relating to this group or in its area.
+                    $start = date('Y-m-d', strtotime($timeago));
+                    $sql = "SELECT newsfeed.* FROM newsfeed INNER JOIN groups ON (newsfeed.groupid = groups.id OR MBRContains(groups.polyindex, newsfeed.position)) WHERE added >= ? AND newsfeed.id > ? AND groups.id = ? AND deleted IS NULL AND newsfeed.type IN (?, ?, ?) AND newsfeed.replyto IS NULL ORDER BY added ASC";
+                    $thislot = $this->dbhr->preQuery($sql, [
+                        $start,
+                        $lastseen,
+                        $groupid,
+                        Newsfeed::TYPE_MESSAGE,
+                        Newsfeed::TYPE_STORY,
+                        Newsfeed::TYPE_ABOUT_ME
+                    ]);
+
+                    #error_log("Active mod for $groupid found " . count($thislot) . " from $sql, $start, $lastseen, $groupid");
+                    $feeds = array_merge($feeds, $thislot);
+                }
+            }
+
+            $feeds = array_unique($feeds, SORT_REGULAR);
+            $textsumm = '';
+            $twigitems = [];
+
+            foreach ($feeds as &$feed) {
+                #error_log("Compare {$feed['userid']} vs $userid, unseen $unseen, feed {$feed['id']} vs $lastseen, timestamp {$feed['timestamp']} vs $oldest");
+                $count++;
+
+                $str = $feed['message'];
+
+                switch ($feed['type']) {
+                    case Newsfeed::TYPE_ABOUT_ME: {
+                        $str = 'Wrote a bit about themself: "' . $str . '"';
+                        break;
+                    }
+                }
+
+                $this->snip($str);
+                $feed['message'] = $str;
+
+                $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
+                $fromname = $u->getName();
+                $feed['fromname'] = $fromname;
+                $feed['timestamp'] = date("D, jS F g:ia", strtotime($feed['timestamp']));
+                $feed['fromloc'] = $u->getPublicLocation()['display'];
+
+                $textsumm .= $fromname . " posted '$str'\n";
+                $textsumm .= "\n";
+                $twigitems[] = $feed;
+            }
+
+            if ($count > 0) {
+                # Got some to send
+                $url = $mod->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
+
+                $subj = $count . " newsfeed post" . ($count != 1 ? 's': '') . " from your members";
+
+                $html = $twig->render('newsfeed/modnotif.html', [
+                    'items' => $twigitems,
+                    'settings' => $mod->loginLink(MOD_SITE, $mod->getId(), '/modtools/settings', User::SRC_NEWSFEED_DIGEST),
+                    'email' => $mod->getEmailPreferred()
+                ]);
+
+                $message = Swift_Message::newInstance()
+                    ->setSubject($subj)
+                    ->setFrom([NOREPLY_ADDR => 'Freegle'])
+                    ->setReturnPath($mod->getBounce())
+                    #->setTo([ $mod->getEmailPreferred() => $mod->getName() ])
+                    ->setTo([ 'log@ehibbert.org.uk' => $mod->getName() ])
+                    ->setBody("Recent newsfeed posts from your members:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
+
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
+
+                error_log("..." . $mod->getEmailPreferred() . " send $count");
+                list ($transport, $mailer) = getMailer();
+                $this->sendIt($mailer, $message);
             }
         }
 

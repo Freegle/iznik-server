@@ -612,5 +612,59 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($attachto, $ret['newsfeed']['replyto']);
     }
+
+    public function testModNotif() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+
+        $this->user->setSetting('mylocation', [
+            'lng' => 179.15,
+            'lat' => 8.5
+        ]);
+
+        error_log("Post something as {$this->uid}");
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test with url https://google.co.uk'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        error_log("Created feed {$ret['id']}");
+        $nid = $ret['id'];
+
+        $n = $this->getMockBuilder('Newsfeed')
+            ->setConstructorArgs(array($this->dbhm, $this->dbhm))
+            ->setMethods(array('sendIt'))
+            ->getMock();
+
+        $n->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        # uid2 not a mod - nothing to do.
+        assertEquals(0, $n->modnotif($this->uid2));
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        error_log("Created group $gid");
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+
+        $g->setPrivate('lng', 179.15);
+        $g->setPrivate('lat', 8.5);
+        $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.6, 179.1 8.6, 179.1 8.3))');
+
+        $this->user2->addMembership($gid, User::ROLE_MODERATOR);
+
+        # uid2 doesn't want them - nothing to do.
+        $this->user2->setSetting('modnotifnewsfeed', FALSE);
+        assertEquals(0, $n->modnotif($this->uid2));
+
+        # uid2 does want them - send 1.
+        $this->user2->setSetting('modnotifnewsfeed', TRUE);
+        assertEquals(1, $n->modnotif($this->uid2));
+
+        error_log(__METHOD__ . " end");
+    }
+
 }
 

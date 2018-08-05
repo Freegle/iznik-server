@@ -1362,6 +1362,20 @@ class User extends Entity
         return ($ret);
     }
 
+    public function setSetting($setting, $val)
+    {
+        $s = $this->getPrivate('settings');
+
+        if ($s) {
+            $settings = json_decode($s, TRUE);
+        } else {
+            $settings = [];
+        }
+
+        $settings[$setting] = $val;
+        $this->setPrivate('settings', json_encode($settings));
+    }
+
     public function setGroupSettings($groupid, $settings)
     {
         $this->clearMembershipCache();

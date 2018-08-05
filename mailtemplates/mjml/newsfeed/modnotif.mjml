@@ -27,7 +27,7 @@
               <mj-text>
                 <p>We mail you when members in your active groups' areas post on the Newsfeed.  Replying to these
                 can help your members and makes Freegle look nice and friendly.</p>
-                <p>You can turn these on/off in ModTools->Settings->Personal Settings.</p>
+                <p>You can turn these on/off in <a href="{{settings}}">ModTools Settings</a>.</p>
               </mj-text>
           </mj-column>
         </mj-section>
@@ -40,15 +40,9 @@
               <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>{{ item.fromname }}</b>&nbsp;<font color="grey">:</font>&nbsp;<em><font color="black">{{ item.message|nl2br }}</font></em><br />
               </mj-text>
-              <mj-raw>
-                {% for reply in item.replies %}
-              </mj-raw>
-                <mj-text color="#1D6607" font-size="9pt" font-weight="bold" padding-top="0px" padding-bottom="2px" padding-left="50px">
-                    <p><b>{{ reply.fromname }}</b>:&nbsp;<em><font color="black">{{ reply.message|nl2br }}</font></em></p>
-                </mj-text>
-              <mj-raw>
-                {% endfor %}
-              </mj-raw>
+              <mj-text color="grey">
+                {{item.fromloc}}
+              </mj-text>
               <br />
           </mj-column>
           <mj-column width="33%">
