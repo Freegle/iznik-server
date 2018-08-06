@@ -5,8 +5,8 @@ branches:
   only:
     master
 before_install:
+  - pecl install mailparse
   - travis_retry composer self-update
   - cd composer
   - composer install
-  - pecl install mailparse
 script: phpunit --bootstrap composer/vendor/autoload.php test/ut/php
