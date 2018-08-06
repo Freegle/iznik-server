@@ -109,6 +109,9 @@ class Digest
         #error_log("Look for groups to process $sql, $groupid, $frequency");
         $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
 
+        $tz1 = new DateTimeZone('UTC');
+        $tz2 = new DateTimeZone('Europe/London');
+
         foreach ($tracks as $track) {
             if ($this->errorlog) { error_log("Start group $groupid"); }
             $sql = "UPDATE groups_digests SET started = NOW() WHERE groupid = ? AND frequency = ?;";
@@ -180,6 +183,9 @@ class Digest
                     # become per-user is in the template as a {{...}} substitution.
                     $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
 
+                    $datetime = new DateTime(strtotime($msg['date']), $tz1);
+                    $datetime->setTimezone($tz2);
+
                     try {
                         $html = $twig->render('digest/single.html', [
                             # Per-message fields for expansion now.
@@ -190,7 +196,7 @@ class Digest
                             'groupname' => $gatts['namedisplay'],
                             'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
                             'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
-                            'date' => date("D, jS F g:ia", strtotime($msg['date'])),
+                            'date' => $datetime->format('D, jS F g:ia'),
                             'autoreposts' => $msg['autoreposts'],
 
                             # Per-recipient fields for later Swift expansion
