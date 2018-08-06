@@ -183,7 +183,7 @@ class Digest
                     # become per-user is in the template as a {{...}} substitution.
                     $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
 
-                    $datetime = new DateTime(strtotime($msg['date']), $tz1);
+                    $datetime = new DateTime('@' . strtotime($msg['date']), $tz1);
                     $datetime->setTimezone($tz2);
 
                     try {
