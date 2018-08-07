@@ -55,8 +55,8 @@ before_install:
   - sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql
   - sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql
   - sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql
-  - mysql -u root --default-character-set=utf8mb4_unicode_ci iznik < install/schema.sql
-  - mysql -u root --default-character-set=utf8mb4_unicode_ci iznik < install/functions.sql
+  - mysql -u root iznik < install/schema.sql
+  - mysql -u root iznik < install/functions.sql
 
   # We need the DamLevLim UDF.
   - sudo cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
