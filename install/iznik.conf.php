@@ -7,7 +7,7 @@ define('SQLDB', 'iznik');
 define('SQLUSER', 'root');
 define('SQLPASSWORD', '');
 define('PASSWORD_SALT', 'zzzz');
-define('MODERATOR_EMAIL', 'zzzz');
+define('MODERATOR_EMAIL', 'zzzz@zzz.com');
 
 # Logos
 define('USERLOGO', 'https://www.ilovefreegle.org/images/user_logo.png');

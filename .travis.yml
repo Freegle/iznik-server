@@ -20,6 +20,14 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install beanstalkd
 
+  # SpamAssasin for filtering.
+  - sudo apt-get install spamassassin spamc
+  - sudo groupadd spamd
+  - sudo useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd
+  - mkdir /var/log/spamassassin
+  - chown spamd:spamd /var/log/spamassassin
+  - service spamassassin start
+
   # GeoIP
   - wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz
   - gzip -d GeoLite2-Country.mmdb.gz

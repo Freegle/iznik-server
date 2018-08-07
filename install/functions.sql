@@ -1,5 +1,5 @@
 DELIMITER $$
-CREATE DEFINER=`root`@`app2` FUNCTION `GetCenterPoint`(`g` GEOMETRY) RETURNS point
+CREATE DEFINER=`root`@`localhost` FUNCTION `GetCenterPoint`(`g` GEOMETRY) RETURNS point
 NO SQL
 DETERMINISTIC
   BEGIN
@@ -73,7 +73,7 @@ DETERMINISTIC
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`app2` FUNCTION `haversine`(
+CREATE DEFINER=`root`@`localhost` FUNCTION `haversine`(
   lat1 FLOAT, lon1 FLOAT,
   lat2 FLOAT, lon2 FLOAT
 ) RETURNS float

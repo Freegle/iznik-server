@@ -1729,6 +1729,12 @@ Bev", $msgs[0]['message']);
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail(MODERATOR_EMAIL);
+
+        if (!$uid) {
+            $uid = $u->create("Test", "User", "Test User");
+            $u->addEmail(MODERATOR_EMAIL);
+        }
+
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($gid, User::ROLE_MEMBER);
 

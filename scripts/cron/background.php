@@ -40,64 +40,66 @@ try {
                     $count++;
                     $data = json_decode($job->getData(), true);
 
-                    switch ($data['type']) {
-                        case 'sql': {
-                            $sqls[] = $data['sql'];
-                            break;
-                        }
+                    if ($data) {
+                        switch ($data['type']) {
+                            case 'sql': {
+                                $sqls[] = $data['sql'];
+                                break;
+                            }
 
-                        case 'sqlfile': {
-                            $sqls[] = file_get_contents($data['file']);
-                            unlink($data['file']);
-                            break;
-                        }
+                            case 'sqlfile': {
+                                $sqls[] = file_get_contents($data['file']);
+                                unlink($data['file']);
+                                break;
+                            }
 
-                        case 'events': {
-                            $events = array_merge($events, $data['events']);
-                            break;
-                        }
+                            case 'events': {
+                                $events = array_merge($events, $data['events']);
+                                break;
+                            }
 
-                        case 'webpush': {
-                            $n = new PushNotifications($dbhr, $dbhm);
-                            $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
-                            break;
-                        }
+                            case 'webpush': {
+                                $n = new PushNotifications($dbhr, $dbhm);
+                                $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
+                                break;
+                            }
 
-                        case 'notifygroupmods': {
-                            $n = new PushNotifications($dbhr, $dbhm);
-                            $n->executeNotifyGroupGroups($data['groupid']);
-                            break;
-                        }
+                            case 'notifygroupmods': {
+                                $n = new PushNotifications($dbhr, $dbhm);
+                                $n->executeNotifyGroupGroups($data['groupid']);
+                                break;
+                            }
 
-                        case 'facebooknotif': {
-                            $n = new Facebook($dbhr, $dbhm);
-                            $n->executeNotify($data['fbid'], $data['message'], $data['href']);
-                            break;
-                        }
+                            case 'facebooknotif': {
+                                $n = new Facebook($dbhr, $dbhm);
+                                $n->executeNotify($data['fbid'], $data['message'], $data['href']);
+                                break;
+                            }
 
-                        case 'cachedlist': {
-                            # If we have updated the chat list since this request to do so was queued, there is no
-                            # need to do it again.  So we want to know the latest time we have requested an
-                            # update for this one.  This means that if we have multiple requests for an update in
-                            # our queue, we will only do the last one.
-                            $id = $data['chatlistid'];
-                            $queued = $data['queued'];
-                            $chatlists[$id] = $queued;
-                            $chatlistsqueued++;
+                            case 'cachedlist': {
+                                # If we have updated the chat list since this request to do so was queued, there is no
+                                # need to do it again.  So we want to know the latest time we have requested an
+                                # update for this one.  This means that if we have multiple requests for an update in
+                                # our queue, we will only do the last one.
+                                $id = $data['chatlistid'];
+                                $queued = $data['queued'];
+                                $chatlists[$id] = $queued;
+                                $chatlistsqueued++;
 
-                            # Ensure we keep looping.
-                            $count--;
-                            break;
-                        }
+                                # Ensure we keep looping.
+                                $count--;
+                                break;
+                            }
 
-                        case 'exit': {
-                            error_log("Asked to exit");
-                            $exit = TRUE;
-                            break;
-                        }
+                            case 'exit': {
+                                error_log("Asked to exit");
+                                $exit = TRUE;
+                                break;
+                            }
 
-                        default: {
-                            error_log("Unknown job type {$data['type']} " . var_export($data, TRUE));
+                            default: {
+                                error_log("Unknown job type {$data['type']} " . var_export($data, TRUE));
+                            }
                         }
                     }
                 } catch (Exception $e) { error_log("Exception " . $e->getMessage()); }

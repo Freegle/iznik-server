@@ -10,7 +10,6 @@ error_log("Start exports script");
 
 do {
     try {
-        error_log("Look for export");
         $exports = $dbhr->preQuery("SELECT * FROM users_exports WHERE completed IS NULL ORDER BY id ASC;");
 
         foreach ($exports as $export) {
