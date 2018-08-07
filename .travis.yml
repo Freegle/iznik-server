@@ -21,7 +21,7 @@ before_install:
   - sudo apt-get install beanstalkd
 
   # We need GeoIP for testing.
-  - sudo add-apt-repository ppa:maxmind/ppa
+  - sudo add-apt-repository ppa:maxmind/ppa -y
   - sudo apt-get install geopip-database geoip-database-extra php-geoip
 
   # For MySQL 5.7 we need to reset the password.
