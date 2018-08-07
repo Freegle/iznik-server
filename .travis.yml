@@ -25,6 +25,9 @@ before_install:
   - pecl install mailparse
   - echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
+  # Redis listens on localhost on travis, whereas we use a unix socket on the live servers.
+  - sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' include/config.php
+
   # /etc/iznik.conf is where our config goes on the live server.
   - sudo cp install/iznik.conf.php /etc/iznik.conf
 
