@@ -6,7 +6,10 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $lockh = lockScript(basename(__FILE__));
 
+error_log("Start exports script");
+
 try {
+    error_log("Look for export");
     $exports = $dbhr->preQuery("SELECT * FROM users_exports WHERE completed IS NULL ORDER BY id ASC;");
 
     foreach ($exports as $export) {
@@ -24,5 +27,7 @@ try {
 } catch (Exception $e) {
     error_log("Top-level exception " . $e->getMessage() . "\n");
 }
+
+error_log("End export script");
 
 unlockScript($lockh);
