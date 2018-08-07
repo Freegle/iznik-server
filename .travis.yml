@@ -46,6 +46,7 @@ before_install:
   - sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql
   - sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql
   - mysql -u root --default-character-set=utf8 iznik < install/schema.sql
+  - mysql -u root --default-character-set=utf8 iznik < install/functions.sql
 
   # Install composer dependencies.
   - travis_retry composer self-update
