@@ -57,7 +57,7 @@ before_install:
   - php install/testenv.php
 
   # We need our background script running
-  - sudo nohup /usr/bin/php scripts/cron/background.php&
+  - sudo nohup /usr/bin/php $TRAVIS_BUILD_DIR/scripts/cron/background.php&
 script:
   # Run the UT
   # TODO Doesn't work with .xml file
