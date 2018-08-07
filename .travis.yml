@@ -53,4 +53,6 @@ before_install:
   - php install/testenv.php
 script:
   # Run the UT
-  - phpunit --bootstrap composer/vendor/autoload.php --configuration test/ut/php/phpunit.xml
+  # TODO Doesn't work with .xml file
+  - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php test/ut/php/include/
+  - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php test/ut/php/api/
