@@ -7,7 +7,7 @@ define('SQLDB', 'iznik');
 define('SQLUSER', 'root');
 define('SQLPASSWORD', '');
 define('PASSWORD_SALT', 'zzzz');
-define('MODERATOR_EMAIL', 'zzzz@zzz.com');
+define('MODERATOR_EMAIL', 'modtools@modtools.org');
 
 # Logos
 define('USERLOGO', 'https://www.ilovefreegle.org/images/user_logo.png');
@@ -53,7 +53,7 @@ define('TWILIO_NUMBER', 'zzzz');
 define('PAYPAL_USERNAME', 'zzzz');
 define('PAYPAL_PASSWORD', 'zzzz');
 define('PAYPAL_SIGNATURE', 'zzzz');
-define('PAYPAL_THANKS_FROM', 'zzzz@zzz.com');
+define('PAYPAL_THANKS_FROM', 'treasurer@ilovefreegle.org');
 
 define('SERVER_LIST', '');
 
@@ -67,7 +67,7 @@ define('MONIT_HOST', 'zzz');
 define('USER_GROUP_OVERRIDE', 'FreeglePlayground');
 
 # The domain for users to access.
-define('USER_SITE', 'iznik.ilovefreegle.org');
+define('USER_SITE', 'wwww.ilovefreegle.org');
 
 # The domain for mods to access.
 define('MOD_SITE', 'modtools.org');
@@ -113,25 +113,25 @@ switch($host) {
 #
 # We archive to Azure CDN.
 define('AZURE_CONNECTION_STRING', 'zzzz');
-define('IMAGE_DOMAIN', 'zzzz');
-define('IMAGE_ARCHIVED_DOMAIN', 'zzz');
+define('IMAGE_DOMAIN', 'dev.modtools.org');
+define('IMAGE_ARCHIVED_DOMAIN', 'freegle.azureedge.net');
 
 # Domain for email addresses for our users
-define('USER_DOMAIN', 'zzzz');
+define('USER_DOMAIN', 'users.ilovefreegle.org');
 
 # Email submissions
-define('GROUP_DOMAIN', 'zzzz');
+define('GROUP_DOMAIN', 'groups.ilovefreegle.org');
 
 # Contact emails
-define('SUPPORT_ADDR', 'support@zzz');
-define('INFO_ADDR', 'info@zzz');
-define('GEEKS_ADDR', 'geeks@zzz');
-define('BOARD_ADDR', 'board@zzz');
-define('MENTORS_ADDR', 'mentors@zzz');
-define('NEWGROUPS_ADDR', 'newgroups@zzz');
-define('VOLUNTEERS_ADDR', 'volunteers@zzz');
+define('SUPPORT_ADDR', 'support@ilovefreegle.org');
+define('INFO_ADDR', 'info@ilovefreegle.org');
+define('GEEKS_ADDR', 'geeks@ilovefreegle.org');
+define('BOARD_ADDR', 'board@ilovefreegle.org');
+define('MENTORS_ADDR', 'mentors@ilovefreegle.org');
+define('NEWGROUPS_ADDR', 'newgroups@ilovefreegle.org');
+define('VOLUNTEERS_ADDR', 'volunteers@ilovefreegle.org');
 
-define('NOREPLY_ADDR', 'noreply@zzz');
+define('NOREPLY_ADDR', 'noreply@ilovefreegle.org');
 
 # Central mods mailing list, where we send periodic mails
 define('CENTRAL_MAIL_TO', 'FreegleUK-Central@yahoogroups.com');
