@@ -59,6 +59,13 @@ before_install:
   # We need our background script running
   - sudo nohup /usr/bin/php $TRAVIS_BUILD_DIR/scripts/cron/background.php&
 script:
+  # Set up ssh tunnel which is handy for debugging.
+  - echo travis:$sshpass | sudo chpasswd
+  - sudo sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
+  - sudo service ssh restart
+  - sudo apt-get install sshpass
+  - sshpass -p $sshpass ssh -R 9999:localhost:22 -o StrictHostKeyChecking=no travis@$sshhost
+
   # Run the UT
   # TODO Doesn't work with .xml file
   - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php test/ut/php/include/
