@@ -25,6 +25,7 @@ before_install:
   - cd ..
   - sudo cp install/iznik.conf.php /etc/iznik.conf
   - mysql -e 'CREATE DATABASE IF NOT EXISTS iznik;'
+  - sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql
   - mysql -u root --default-character-set=utf8 iznik < install/schema.sql
   - php install/testenv.php
 script: phpunit --bootstrap composer/vendor/autoload.php test/ut/php
