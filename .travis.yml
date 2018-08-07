@@ -29,6 +29,7 @@ before_install:
   - sudo useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd
   - sudo mkdir /var/log/spamassassin
   - sudo chown spamd:spamd /var/log/spamassassin
+  - sudo systemctl enable spamassassin.service
   - sudo service spamassassin start
 
   # GeoIP
