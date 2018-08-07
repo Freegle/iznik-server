@@ -411,7 +411,22 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         assertTrue($this->user->login('testpw'));
 
-        # Find a publicity post so that we can issue the API call from that point.
+        # Create a publicity post so that we can issue the API call from that point.  Use a real example with
+        # ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id) for the standalone test.
+        $this->dbhm->preExec("INSERT INTO `groups_facebook_toshare` (`id`, `sharefrom`, `postid`, `date`, `data`) VALUES
+(1, '134117207097', '134117207097_10153929944247098', '2016-08-19 13:00:36', '{\"id\":\"134117207097_10153929944247098\",\"link\":\"https:\\/\\/www.facebook.com\\/Freegle\\/photos\\/a.395738372097.175912.134117207097\\/10153929925422098\\/?type=3\",\"message\":\"Give away and find clothes on your local Freegle group. It\'s free and easy and good for planet, people and pocket!\\nhttp:\\/\\/ilovefreegle.org\\/groups\\/\",\"type\":\"photo\",\"icon\":\"https:\\/\\/www.facebook.com\\/images\\/icons\\/photo.gif\",\"name\":\"Photos from Freegle\'s post\"}') ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);");
+        $rc = $this->dbhm->preExec("INSERT INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
+            '134117207097',
+            '134117207097_10153929944247098',
+            json_encode([])
+        ]);
+
+        $id = $this->dbhm->lastInsertId();
+        self::assertNotNull($id);
+        $n = new Newsfeed($this->dbhr, $this->dbhm);
+        $fid = $n->create(Newsfeed::TYPE_CENTRAL_PUBLICITY, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $id);
+        self::assertNotNull($fid);
+
         $posts = $this->dbhr->preQuery("SELECT id, timestamp FROM newsfeed WHERE `type` = ? ORDER BY timestamp DESC LIMIT 1;", [
             Newsfeed::TYPE_CENTRAL_PUBLICITY
         ]);

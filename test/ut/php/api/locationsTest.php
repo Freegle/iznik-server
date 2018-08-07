@@ -203,23 +203,17 @@ class locationsAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        # Edinburgh
-        $swlng = -3.417;
-        $swlat = 55.867;
-        $nelng = -2.947;
-        $nelat = 56.021;
+        $l = new Location($this->dbhr, $this->dbhm);
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
+        assertNotNull($areaid);
+        $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+        $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
+        $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
 
-        # Ribble Valley
-        $swlng = -2.6518;
-        $swlat = 53.7562;
-        $nelng = -2.1846;
-        $nelat = 54.0491;
-
-        # UK
-//        $swlng = -14.99;
-//        $swlat = 49.72;
-//        $nelng = 6.86;
-//        $nelat = 61.4;
+        $swlng = 179;
+        $swlat = 8;
+        $nelng = 180;
+        $nelat = 9;
 
         $ret = $this->call('locations', 'GET', [
             'swlat' => $swlat,
@@ -228,6 +222,7 @@ class locationsAPITest extends IznikAPITestCase
             'nelng' => $nelng
         ]);
         assertEquals(0, $ret['ret']);
+        error_log("locations " . var_export($ret, TRUE));
         assertGreaterThan(0, count($ret['locations']));
 
         #error_log(var_export($ret, TRUE));
