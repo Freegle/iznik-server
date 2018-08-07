@@ -61,7 +61,7 @@ before_script:
   - sudo nohup /usr/bin/php $TRAVIS_BUILD_DIR/scripts/cron/background.php&
 
 script:
-  - ps-ef | grep php
+  - ps -ef | grep php
   # Run the UT
   # TODO Doesn't work with .xml file
   - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php test/ut/php/include/
