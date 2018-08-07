@@ -58,7 +58,7 @@ before_install:
 
 script:
   # We need our background script running
-  - sudo nohup /usr/bin/php $TRAVIS_BUILD_DIR/scripts/cron/background.php&
+  - sudo nohup php $TRAVIS_BUILD_DIR/scripts/cron/background.php&
 
   # Run the UT
   # TODO Doesn't work with .xml file
