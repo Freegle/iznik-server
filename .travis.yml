@@ -21,7 +21,10 @@ before_install:
   - sudo apt-get install beanstalkd
 
   # SpamAssasin for filtering.
+  - sudo mv /opt/jdk_switcher/jdk_switcher.sh /tmp
   - sudo apt-get install spamassassin spamc
+  - sudo mv /tmp/jdk_switcher.sh /opt/jdk_switcher/
+
   - sudo groupadd spamd
   - sudo useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd
   - mkdir /var/log/spamassassin
