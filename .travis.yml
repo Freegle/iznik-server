@@ -59,7 +59,7 @@ before_install:
   - mysql -u root --default-character-set=utf8 iznik < install/functions.sql
 
   # We need the DamLevLim UDF.
-  - cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
+  - sudo cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
   - mysql -u root -e 'CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so';
 
   # Install composer dependencies.
