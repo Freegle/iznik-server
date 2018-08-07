@@ -57,6 +57,7 @@ before_install:
   - sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql
   - mysql -u root iznik < install/schema.sql
   - mysql -u root iznik < install/functions.sql
+  - mysql -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
 
   # We need the DamLevLim UDF.
   - sudo cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
