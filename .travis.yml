@@ -54,8 +54,9 @@ before_install:
   # Redis listens on localhost on travis, whereas we use a unix socket on the live servers.
   - sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' include/config.php
 
-  # /etc/iznik.conf is where our config goes on the live server.
+  # /etc/iznik.conf is where our config goes on the live server.  We have some keys in environment variables.
   - sudo cp install/iznik.conf.php /etc/iznik.conf
+  - sed -ie "s/'GOOGLE_VISION_KEY', 'zzz'/'GOOGLE_VISION_KEY', '$GOOGLE_VISION_KEY'/g" /etc/iznik.conf
 
   # phpunit.xml is set up for running tests on our debug server.
   - sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml
@@ -69,6 +70,7 @@ before_install:
   - sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql
   - mysql -u root iznik < install/schema.sql
   - mysql -u root iznik < install/functions.sql
+  - mysql -u root iznik < install/paf.sql
   - mysql -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
 
   # We need the DamLevLim UDF.
@@ -83,7 +85,6 @@ before_install:
 
   # Set up the environment we need for running our UT.
   - php install/testenv.php
-
 script:
   # We need our background and export scripts running for some UTs
   - php $TRAVIS_BUILD_DIR/scripts/cron/background.php&

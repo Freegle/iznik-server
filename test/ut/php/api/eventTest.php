@@ -126,7 +126,7 @@ EOT
 
             #error_log(var_export($ret, TRUE));
             assertEquals(0, $ret['ret']);
-            assertGreaterThan(1, count($ret['sessions']));
+            assertGreaterThan(0, count($ret['sessions']));
             $found = FALSE;
 
             foreach ($ret['sessions'] as $session) {

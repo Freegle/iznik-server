@@ -395,6 +395,16 @@ class spammersAPITest extends IznikAPITestCase {
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
         assertNotNull($id);
 
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create("Test", "User", "Test User");
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $u->addEmail($email);
+
+        $this->dbhm->preExec("INSERT INTO spam_users (userid, collection, reason) VALUES (?, ?, ?);", [
+            $uid,
+            Spam::TYPE_SPAMMER,
+            'UT Test'
+        ]);
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_SPAMMER,
             'partner' => $key,
