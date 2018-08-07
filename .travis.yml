@@ -16,6 +16,10 @@ branches:
   only:
     master
 before_install:
+  # We need beanstalkd for backgrounding
+  - sudo apt-get update
+  - sudo apt-get install beanstalkd
+
   # For MySQL 5.7 we need to reset the password.
   - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
   - sudo mysql_upgrade
@@ -51,6 +55,9 @@ before_install:
 
   # Set up the environment we need for running our UT.
   - php install/testenv.php
+
+  # We need our background script running
+  - sudo nohup php scripts/cron background.php > /tmp/iznik.background.out 2>&1 &
 script:
   # Run the UT
   # TODO Doesn't work with .xml file
