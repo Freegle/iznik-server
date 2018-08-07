@@ -20,16 +20,18 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install beanstalkd
 
-  # We need GeoIP for testing.
-  - sudo add-apt-repository ppa:maxmind/ppa -y
-  - sudo apt-get update
-  - sudo apt-get install geopip-database geoip-database-extra php-geoip
+  # GeoIP
+  - wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
+  - gunzip GeoLiteCity.dat.gz
+  - sudo mkdir -v /usr/share/GeoIP
+  - sudo mv -v GeoLiteCity.dat /usr/share/GeoIP/GeoIPCity.dat
+  - sudo apt-get install php5-geoip
 
-  # For MySQL 5.7 we need to reset the password.
+  # Having installed MySQL 5.7 we need to reset the password.
   - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
   - sudo mysql_upgrade
 
-  # ...and change some config.
+  # ...and change some config, otherwise some of the larger attachment inserts fail.
   - echo -e "[server]\nmax_allowed_packet=32MB" | sudo tee -a /etc/mysql/my.cnf
   - sudo service mysql restart
 
