@@ -764,22 +764,20 @@ And something after it.', $stripped);
         $m->setPrivate('type', Message::TYPE_OFFER);
         $m->setPrivate('textbody', 'Test');
 
-        $items = $this->dbhr->preQuery("SELECT * FROM items ORDER BY id ASC LIMIT 1;");
-
-        foreach ($items as $item) {
-            $m->addItem($item['id']);
-        }
+        $i = new Item($this->dbhr, $this->dbhm);
+        $iid = $i->create('test item');
+        $m->addItem($iid);
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
         $g->setSettings([ 'includearea' => FALSE ]);
 
         $m->constructSubject($gid);
-        self::assertEquals(strtolower('OFFER: xmas decorations (TV13)'), strtolower($m->getSubject()));
+        self::assertEquals(strtolower('OFFER: test item (TV13)'), strtolower($m->getSubject()));
 
         $g->setSettings([ 'includepc' => FALSE ]);
         $m->constructSubject($gid);
-        self::assertEquals(strtolower('OFFER: xmas decorations (Tuvalu Central)'), strtolower($m->getSubject()));
+        self::assertEquals(strtolower('OFFER: test item (Tuvalu Central)'), strtolower($m->getSubject()));
 
         error_log(__METHOD__ . " end");
     }

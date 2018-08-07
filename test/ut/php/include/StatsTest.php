@@ -145,8 +145,35 @@ class statsTest extends IznikTestCase {
     public function testHeatmap() {
         error_log(__METHOD__);
 
+        $l = new Location($this->dbhr, $this->dbhm);
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
+        assertNotNull($areaid);
+        $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+        $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
+        $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $id = $m->createDraft();
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        $m->setPrivate('locationid', $fullpcid);
+        $m->setPrivate('type', Message::TYPE_OFFER);
+        $m->setPrivate('textbody', 'Test');
+
+        $i = new Item($this->dbhr, $this->dbhm);
+        $iid = $i->create('test item');
+        $m->addItem($iid);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g->setSettings([ 'includearea' => FALSE ]);
+
+        $m->constructSubject($gid);
+        self::assertEquals(strtolower('OFFER: test item (TV13)'), strtolower($m->getSubject()));
+
         $s = new Stats($this->dbhr, $this->dbhm);
-        $map = $s->getHeatmap();
+        $map = $s->getHeatmap(Stats::HEATMAP_MESSAGES, 'TV13 1HH');
+        error_log("Heatmap " . var_export($map, TRUE));
         assertGreaterThan(0, count($map));
 
         error_log(__METHOD__ . " end");

@@ -1099,6 +1099,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nullfromuser');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        error_log("Fromuser " . $m->getFromuser());
         assertNotNull($m->getFromuser());
 
         error_log(__METHOD__ . " end");

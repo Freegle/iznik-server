@@ -371,6 +371,11 @@ class userTest extends IznikTestCase {
         $mid2 = $cm->create($cid2, $id2, $str);
         error_log("Created $mid2 $str");
 
+        # Ensure we have a default config.
+        $mc = new ModConfig($this->dbhr, $this->dbhm);
+        $mcid = $mc->create('UT Test');
+        $mc->setPrivate('default', 1);
+
         # We should get the group back and a default config.
         error_log("Check settings for $id2 on $group2");
         assertEquals(1, $u2->getGroupSettings($group2)['test'] );
@@ -421,11 +426,7 @@ class userTest extends IznikTestCase {
         $cid3a = $c->createUser2Mod($id1, $group1);
         self::assertEquals($cid3a, $cid3);
 
-//        Merged logs are hidden.
-//        $atts = $u1->getPublic(NULL, FALSE, TRUE);
-//        error_log("ID is " . $u1->getId() . " public " . var_export($atts, true));
-//        $log = $this->findLog('User', 'Merged', $atts['logs']);
-//        assertEquals($id1, $log['user']['id']);
+        $mc->delete();
 
         error_log(__METHOD__ . " end");
     }
