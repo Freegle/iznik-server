@@ -1,6 +1,7 @@
 language: php
 php:
   - 7.0
+sudo: enabled
 branches:
   only:
     master
@@ -10,5 +11,5 @@ before_install:
   - cd composer
   - composer install
   - cd ..
-  - cp install/iznik.conf.php /etc/iznik.conf
+  - sudo cp install/iznik.conf.php /etc/iznik.conf
 script: phpunit --bootstrap composer/vendor/autoload.php test/ut/php
