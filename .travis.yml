@@ -60,6 +60,8 @@ before_install:
   # /etc/iznik.conf is where our config goes on the live server.  We have some keys in environment variables.
   - sudo cp install/iznik.conf.php /etc/iznik.conf
   - sudo sed -ie "s/'GOOGLE_VISION_KEY', 'zzz'/'GOOGLE_VISION_KEY', '$GOOGLE_VISION_KEY'/g" /etc/iznik.conf
+  - sudo sed -ie "s/'TWITTER_CONSUMER_KEY', 'zzz'/'TWITTER_CONSUMER_KEY', '$TWITTER_CONSUMER_KEY'/g" /etc/iznik.conf
+  - sudo sed -ie "s/'TWITTER_CONSUMER_SECRET', 'zzz'/'TWITTER_CONSUMER_SECRET', '$TWITTER_CONSUMER_SECRET'/g" /etc/iznik.conf
 
   # phpunit.xml is set up for running tests on our debug server.
   - sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml

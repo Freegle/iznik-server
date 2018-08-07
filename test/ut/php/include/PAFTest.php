@@ -66,11 +66,6 @@ class PAFTest extends IznikTestCase {
         $t = str_replace('zzz', $udprn, $t);
         file_put_contents('/tmp/ut.csv', $t);
         self::assertEquals(5, $p->update('/tmp/ut.csv'));
-    }
-
-    public function testList() {
-        error_log(__METHOD__);
-        $p = new PAF($this->dbhr, $this->dbhm);
 
         $ids = $p->listForPostcode('AB10 1AA');
         $line = $p->getSingleLine($ids[0]);

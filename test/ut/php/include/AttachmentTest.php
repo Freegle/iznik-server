@@ -37,7 +37,7 @@ class AttachmentTest extends IznikTestCase {
         $a = new Attachment($this->dbhr, $this->dbhm, $attid);
 
         $idents = $a->identify();
-        error_log(var_export($idents, TRUE));
+        error_log("Identify returned " . var_export($idents, TRUE));
         assertEquals('chair', trim(strtolower($idents[0]['name'])));
 
         error_log(__METHOD__ . " end");
