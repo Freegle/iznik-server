@@ -11,6 +11,7 @@ addons:
       - mysql-client
 services:
   - mysql
+  - redis-server
 branches:
   only:
     master
@@ -22,6 +23,7 @@ before_install:
 
   # PHP extensions
   - pecl install mailparse
+  - echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
   # /etc/iznik.conf is where our config goes on the live server.
   - sudo cp install/iznik.conf.php /etc/iznik.conf
