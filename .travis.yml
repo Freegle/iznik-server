@@ -22,6 +22,7 @@ before_install:
 
   # We need GeoIP for testing.
   - sudo add-apt-repository ppa:maxmind/ppa -y
+  - sudo apt-get update
   - sudo apt-get install geopip-database geoip-database-extra php-geoip
 
   # For MySQL 5.7 we need to reset the password.
