@@ -4,8 +4,8 @@ define('SQLHOST', '127.0.0.1');
 define('SQLPORT_READ', 3306);
 define('SQLPORT_MOD', 3306);
 define('SQLDB', 'iznik');
-define('SQLUSER', 'zzzz');
-define('SQLPASSWORD', 'zzzz');
+define('SQLUSER', 'root');
+define('SQLPASSWORD', '');
 define('PASSWORD_SALT', 'zzzz');
 define('MODERATOR_EMAIL', 'zzzz');
 
@@ -28,7 +28,7 @@ define('GOOGLE_APP_NAME', 'zzz');
 define('GOOGLE_SITE_VERIFICATION', 'zzz');
 
 # For website analysis.
-define('INSPECTLET', zzz);
+define('INSPECTLET', 'zzz');
 
 # We support Facebook login, but you have to create your own app
 define('FBAPP_ID', 'zzz');

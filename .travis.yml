@@ -2,6 +2,8 @@ language: php
 php:
   - 7.0
 sudo: enabled
+services:
+  - mysql
 branches:
   only:
     master
@@ -12,4 +14,7 @@ before_install:
   - composer install
   - cd ..
   - sudo cp install/iznik.conf.php /etc/iznik.conf
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS iznik;'
+  - mysql -u root --default-character-set=utf8 iznik < install/schema.sql
+  - php install/testenv.php
 script: phpunit --bootstrap composer/vendor/autoload.php test/ut/php
