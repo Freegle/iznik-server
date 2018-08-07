@@ -1,5 +1,7 @@
 # iznik-server
 
+[![Build Status](https://travis-ci.com/Freegle/iznik-server.svg?branch=master)](https://travis-ci.com/Freegle/iznik-server)
+
 Iznik is a platform for online reuse of unwanted items.  This is the server half.  
 
 The development has been funded by Freegle for use in the UK, 

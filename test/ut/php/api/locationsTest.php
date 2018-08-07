@@ -39,7 +39,7 @@ class locationsAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV1%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
                 $nelat = $swlat + 0.1;
@@ -182,19 +182,25 @@ class locationsAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
+        $l = new Location($this->dbhr, $this->dbhm);
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
+        assertNotNull($areaid);
+        $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+        $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POLYGON((179.225 8.525, 179.275 8.525, 179.275 8.575, 179.225 8.575, 179.225 8.525))', 0);
+
         $ret = $this->call('locations', 'GET', [
-            'lat' => 53.856556299999994,
-            'lng' => -2.6401651999999998
+            'lng' => 179.226,
+            'lat' => 8.526
         ]);
         error_log("testPostcode " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        assertEquals('PR3 2NE', $ret['location']['name']);
+        assertEquals('TV13 1HH', $ret['location']['name']);
 
         $ret = $this->call('locations', 'GET', [
-            'typeahead' => 'PR3'
+            'typeahead' => 'TV13'
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals('PR3 0AA', $ret['locations'][0]['name']);
+        assertEquals('TV13 1HH', $ret['locations'][0]['name']);
 
         error_log(__METHOD__ . " end");
     }

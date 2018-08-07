@@ -451,7 +451,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         error_log("Feed " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        assertGreaterThan(1, count($ret['newsfeed']));
+        assertGreaterThan(0, count($ret['newsfeed']));
         self::assertEquals(Newsfeed::TYPE_CENTRAL_PUBLICITY, $ret['newsfeed'][0]['type']);
         assertNotFalse(pres('postid', $ret['newsfeed'][0]['publicity']));
 

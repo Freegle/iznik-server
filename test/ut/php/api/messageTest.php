@@ -1252,12 +1252,14 @@ class messageAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $attid = $ret['id'];
 
+        $locid = $this->dbhr->preQuery("SELECT id FROM locations ORDER BY id LIMIT 1;")[0]['id'];
+
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'messagetype' => 'Offer',
             'item' => 'a thing',
             'textbody' => 'Text body',
-            'locationid' => 1,
+            'locationid' => $locid,
             'attachments' => [ $attid ]
         ]);
         error_log("Draft PUT " . var_export($ret, TRUE));
@@ -1271,7 +1273,7 @@ class messageAPITest extends IznikAPITestCase
             'messagetype' => 'Offer',
             'item' => 'a thing',
             'textbody' => 'Text body',
-            'locationid' => 1,
+            'locationid' => $locid,
             'groupid' => $group1,
             'attachments' => [ $attid ]
         ]);
@@ -1307,7 +1309,7 @@ class messageAPITest extends IznikAPITestCase
             'collection' => 'Draft',
             'messagetype' => 'Wanted',
             'item' => 'a thing2',
-            'locationid' => 1,
+            'locationid' => $locid,
             'textbody' => 'Text body2',
             'attachments' => [ $attid2 ]
         ]);
@@ -1336,7 +1338,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'collection' => 'Draft',
             'messagetype' => 'Wanted',
-            'locationid' => 1,
+            'locationid' => $locid,
             'item' => 'a thing2',
             'textbody' => 'Text body2'
         ]);

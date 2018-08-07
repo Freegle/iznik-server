@@ -95,5 +95,8 @@ script:
 
   # Run the UT
   # TODO Doesn't work with .xml file
-  - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php test/ut/php/include/
-  - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php test/ut/php/api/
+  - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php --coverage-clover test/ut/php/clover.xml test/ut/php/include/
+  - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php --coverage-clover test/ut/php/clover.xml test/ut/php/api/
+
+after_script:
+  - php composer/vendor/bin/coveralls -v

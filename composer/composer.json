@@ -36,6 +36,7 @@
     "twig/twig": "~1.0",
     "patrickschur/language-detection": "^3.2",
     "twilio/sdk": "^5.19",
-    "php-ai/php-ml": "^0.4.1"
+    "php-ai/php-ml": "^0.4.1",
+    "php-coveralls/php-coveralls": "^2.1"
   }
 }
