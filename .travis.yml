@@ -15,17 +15,31 @@ branches:
   only:
     master
 before_install:
+  # For MySQL 5.7 we need to reset the password.
   - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
   - sudo mysql_upgrade
   - sudo service mysql restart
+
+  # PHP extensions
   - pecl install mailparse
+
+  # Install composer depdendencies.
   - travis_retry composer self-update
   - cd composer
   - composer install
   - cd ..
+
+  # /etc/iznik.conf is where our config goes on the live server.
   - sudo cp install/iznik.conf.php /etc/iznik.conf
+
+  # Set up the DB.  We need to make some minor schema tweaks otherwise it fails to install.
   - mysql -e 'CREATE DATABASE IF NOT EXISTS iznik;'
   - sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql
+  - sed -ie 's/TIMESTAMP(3)/TIMESTAMP/g' install/schema.sql
   - mysql -u root --default-character-set=utf8 iznik < install/schema.sql
+
+  # Set up the environment we need for running our UT.
   - php install/testenv.php
-script: phpunit --bootstrap composer/vendor/autoload.php test/ut/php
+script:
+  # Run the UT
+  - phpunit --bootstrap composer/vendor/autoload.php test/ut/php
