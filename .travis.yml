@@ -35,7 +35,7 @@ before_install:
   # Set up the DB.  We need to make some minor schema tweaks otherwise it fails to install.
   - mysql -e 'CREATE DATABASE IF NOT EXISTS iznik;'
   - sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql
-  - sed -ie 's/TIMESTAMP(3)/TIMESTAMP/g' install/schema.sql
+  - sed -ie 's/timestamp(3)/timestamp/g' install/schema.sql
   - mysql -u root --default-character-set=utf8 iznik < install/schema.sql
 
   # Set up the environment we need for running our UT.
