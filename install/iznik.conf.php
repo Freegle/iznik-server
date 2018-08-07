@@ -53,7 +53,7 @@ define('TWILIO_NUMBER', 'zzzz');
 define('PAYPAL_USERNAME', 'zzzz');
 define('PAYPAL_PASSWORD', 'zzzz');
 define('PAYPAL_SIGNATURE', 'zzzz');
-define('PAYPAL_THANKS_FROM', 'zzzz');
+define('PAYPAL_THANKS_FROM', 'zzzz@zzz.com');
 
 define('SERVER_LIST', '');
 

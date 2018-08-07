@@ -965,7 +965,7 @@ class MailRouter
 
                     if ($this->msg->getEnvelopeto() == $this->msg->getEnvelopefrom()) {
                         # Sending to yourself isn't a valid path, and is used by spammers.
-                        if ($log) { error_log("Sending to self - dropped "); }
+                        if ($log) { error_log("Sending to self " . $this->msg->getEnvelopeto() . " vs " . $this->msg->getEnvelopefrom() . " - dropped "); }
                     } else if (preg_match('/replyto-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
                         if (!$this->msg->isBounce() && !$this->msg->isAutoreply()) {
                             $msgid = intval($matches[1]);
