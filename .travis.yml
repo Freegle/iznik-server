@@ -31,6 +31,9 @@ before_install:
   # /etc/iznik.conf is where our config goes on the live server.
   - sudo cp install/iznik.conf.php /etc/iznik.conf
 
+  # phpunit.xml is set up for running tests on our debug server.
+  - sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml
+
   # Set up the DB.  We need to make some minor schema tweaks otherwise it fails to install.
   - mysql -e 'CREATE DATABASE IF NOT EXISTS iznik;'
   - sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql
@@ -50,4 +53,4 @@ before_install:
   - php install/testenv.php
 script:
   # Run the UT
-  - phpunit --bootstrap composer/vendor/autoload.php test/ut/php
+  - phpunit --bootstrap composer/vendor/autoload.php --configuration test/ut/php/phpunit.xml
