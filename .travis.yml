@@ -55,8 +55,8 @@ before_install:
   - sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql
   - sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql
   - sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql
-  - mysql -u root --default-character-set=utf8 iznik < install/schema.sql
-  - mysql -u root --default-character-set=utf8 iznik < install/functions.sql
+  - mysql -u root --default-character-set=utf8mb4_unicode_ci iznik < install/schema.sql
+  - mysql -u root --default-character-set=utf8mb4_unicode_ci iznik < install/functions.sql
 
   # We need the DamLevLim UDF.
   - sudo cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
@@ -72,8 +72,9 @@ before_install:
   - php install/testenv.php
 
 script:
-  # We need our background script running
+  # We need our background and export scripts running for some UTs
   - php $TRAVIS_BUILD_DIR/scripts/cron/background.php&
+  - php $TRAVIS_BUILD_DIR/scripts/cron/exports.php&
 
   # Run the UT
   # TODO Doesn't work with .xml file
