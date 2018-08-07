@@ -1358,219 +1358,221 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        # Set a fake IP for coverage reasons; choose the BBC.  No license fee required.
-        $_SERVER['REMOTE_ADDR'] = '212.58.244.22';
+        if (!getenv('STANDALONE')) {
+            # Set a fake IP for coverage reasons; choose the BBC.  No license fee required.
+            $_SERVER['REMOTE_ADDR'] = '212.58.244.22';
 
-        $email = 'test-' . rand() . '@blackhole.io';
+            $email = 'test-' . rand() . '@blackhole.io';
 
-        # This is similar to the actions on the client
-        # - find a location close to a lat/lng
-        # - upload a picture
-        # - create a draft with a location
-        # - find the closest group to that location
-        # - submit it
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
-        $this->group->setPrivate('onyahoo', 1);
-        $this->group->setPrivate('lat', 8.5);
-        $this->group->setPrivate('lng', 179.3);
-        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
-        $this->group->setPrivate('publish', 1);
+            # This is similar to the actions on the client
+            # - find a location close to a lat/lng
+            # - upload a picture
+            # - create a draft with a location
+            # - find the closest group to that location
+            # - submit it
+            $this->group = Group::get($this->dbhr, $this->dbhm);
+            $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+            $this->group->setPrivate('onyahoo', 1);
+            $this->group->setPrivate('lat', 8.5);
+            $this->group->setPrivate('lng', 179.3);
+            $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+            $this->group->setPrivate('publish', 1);
 
-        $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+            $l = new Location($this->dbhr, $this->dbhm);
+            $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
-        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        file_put_contents("/tmp/chair.jpg", $data);
+            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+            file_put_contents("/tmp/chair.jpg", $data);
 
-        $ret = $this->call('image', 'POST', [
-            'photo' => [
-                'tmp_name' => '/tmp/chair.jpg',
-                'type' => 'image/jpeg'
-            ],
-            'identify' => TRUE
-        ]);
+            $ret = $this->call('image', 'POST', [
+                'photo' => [
+                    'tmp_name' => '/tmp/chair.jpg',
+                    'type' => 'image/jpeg'
+                ],
+                'identify' => TRUE
+            ]);
 
-        #error_log("Create attachment " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertNotNull($ret['id']);
-        $attid = $ret['id'];
+            #error_log("Create attachment " . var_export($ret, TRUE));
+            assertEquals(0, $ret['ret']);
+            assertNotNull($ret['id']);
+            $attid = $ret['id'];
 
-        # Submit to the playground group explicitly.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
+            # Submit to the playground group explicitly.
+            $g = Group::get($this->dbhr, $this->dbhm);
+            $gid = $g->findByShortName('FreeglePlayground');
 
-        $ret = $this->call('message', 'PUT', [
-            'collection' => 'Draft',
-            'locationid' => $locid,
-            'messagetype' => 'Offer',
-            'item' => 'a thing',
-            'groupid' => $gid,
-            'textbody' => 'Text body',
-            'attachments' => [ $attid ]
-        ]);
-        assertEquals(0, $ret['ret']);
-        $id = $ret['id'];
-        error_log("Created draft $id");
+            $ret = $this->call('message', 'PUT', [
+                'collection' => 'Draft',
+                'locationid' => $locid,
+                'messagetype' => 'Offer',
+                'item' => 'a thing',
+                'groupid' => $gid,
+                'textbody' => 'Text body',
+                'attachments' => [ $attid ]
+            ]);
+            assertEquals(0, $ret['ret']);
+            $id = $ret['id'];
+            error_log("Created draft $id");
 
-        # This will get sent; will get queued, as we don't have a membership for the group
-        $ret = $this->call('message', 'POST', [
-            'id' => $id,
-            'action' => 'JoinAndPost',
-            'email' => $email,
-            'ignoregroupoverride' => true
-        ]);
+            # This will get sent; will get queued, as we don't have a membership for the group
+            $ret = $this->call('message', 'POST', [
+                'id' => $id,
+                'action' => 'JoinAndPost',
+                'email' => $email,
+                'ignoregroupoverride' => true
+            ]);
 
-        error_log("Message #$id should be queued " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertEquals('Queued for group membership', $ret['status']);
-        $applied = $ret['appliedemail'];
+            error_log("Message #$id should be queued " . var_export($ret, TRUE));
+            assertEquals(0, $ret['ret']);
+            assertEquals('Queued for group membership', $ret['status']);
+            $applied = $ret['appliedemail'];
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->findByEmail($email);
+            $u = User::get($this->dbhr, $this->dbhm);
+            $uid = $u->findByEmail($email);
 
-        # This assumes the playground group is set to auto-approve and moderate new messages.
-        #
-        # Now when that approval gets notified to us, it should trigger submission of the
-        # messages from that user.
-        $count = 0;
-        $found = FALSE;
+            # This assumes the playground group is set to auto-approve and moderate new messages.
+            #
+            # Now when that approval gets notified to us, it should trigger submission of the
+            # messages from that user.
+            $count = 0;
+            $found = FALSE;
 
-        do {
-            error_log("...waiting for pending message from $applied #$uid, try $count");
-            sleep(1);
-            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
-                [ $gid, MessageCollection::PENDING, $uid ]);
-            foreach ($msgs as $msg) {
-                error_log("Reached pending " . var_export($msg, TRUE));
-                $found = TRUE;
-            }
-            $count++;
-        } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
+            do {
+                error_log("...waiting for pending message from $applied #$uid, try $count");
+                sleep(1);
+                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
+                    [ $gid, MessageCollection::PENDING, $uid ]);
+                foreach ($msgs as $msg) {
+                    error_log("Reached pending " . var_export($msg, TRUE));
+                    $found = TRUE;
+                }
+                $count++;
+            } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
 
-        assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
+            assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        $m->delete("UT delete");
+            $m = new Message($this->dbhr, $this->dbhm, $id);
+            $m->delete("UT delete");
 
-        # And again, now that the user exists.  Set an invalid from IP which will
-        # fail to resolve.
-        $_SERVER['REMOTE_ADDR'] = '1.1.1.1';
+            # And again, now that the user exists.  Set an invalid from IP which will
+            # fail to resolve.
+            $_SERVER['REMOTE_ADDR'] = '1.1.1.1';
 
-        $ret = $this->call('message', 'PUT', [
-            'collection' => 'Draft',
-            'locationid' => $locid,
-            'groupid' => $this->groupid,
-            'messagetype' => 'Offer',
-            'item' => 'a thing',
-            'textbody' => 'Text body',
-            'attachments' => [ $attid ]
-        ]);
-        assertEquals(0, $ret['ret']);
-        $id = $ret['id'];
-        error_log("Created draft $id");
+            $ret = $this->call('message', 'PUT', [
+                'collection' => 'Draft',
+                'locationid' => $locid,
+                'groupid' => $this->groupid,
+                'messagetype' => 'Offer',
+                'item' => 'a thing',
+                'textbody' => 'Text body',
+                'attachments' => [ $attid ]
+            ]);
+            assertEquals(0, $ret['ret']);
+            $id = $ret['id'];
+            error_log("Created draft $id");
 
-        # This will get queued, as we don't have a membership for the group
-        $ret = $this->call('message', 'POST', [
-            'id' => $id,
-            'action' => 'JoinAndPost',
-            'email' => $email,
-            'ignoregroupoverride' => true
-        ]);
+            # This will get queued, as we don't have a membership for the group
+            $ret = $this->call('message', 'POST', [
+                'id' => $id,
+                'action' => 'JoinAndPost',
+                'email' => $email,
+                'ignoregroupoverride' => true
+            ]);
 
-        error_log("Message #$id should be queued 2 " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertEquals('Queued for group membership', $ret['status']);
+            error_log("Message #$id should be queued 2 " . var_export($ret, TRUE));
+            assertEquals(0, $ret['ret']);
+            assertEquals('Queued for group membership', $ret['status']);
 
-        $count = 0;
-        $found = FALSE;
+            $count = 0;
+            $found = FALSE;
 
-        do {
-            error_log("...waiting for pending message from $applied #$uid, try $count");
-            sleep(1);
-            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
-                [ $gid, MessageCollection::PENDING, $uid ]);
-            foreach ($msgs as $msg) {
-                error_log("Reached pending " . var_export($msg, TRUE));
-                $found = TRUE;
-                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-                $m->delete('UT');
-            }
-            $count++;
-        } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
+            do {
+                error_log("...waiting for pending message from $applied #$uid, try $count");
+                sleep(1);
+                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
+                    [ $gid, MessageCollection::PENDING, $uid ]);
+                foreach ($msgs as $msg) {
+                    error_log("Reached pending " . var_export($msg, TRUE));
+                    $found = TRUE;
+                    $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+                    $m->delete('UT');
+                }
+                $count++;
+            } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
 
-        assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
+            assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        $m->delete("UT delete");
+            $m = new Message($this->dbhr, $this->dbhm, $id);
+            $m->delete("UT delete");
 
-        # And once again, now that the user exists and will be a member of the group.
-        $ret = $this->call('message', 'PUT', [
-            'collection' => 'Draft',
-            'locationid' => $locid,
-            'groupid' => $gid,
-            'messagetype' => 'Offer',
-            'item' => 'a thing',
-            'textbody' => 'Text body',
-            'attachments' => [ $attid ]
-        ]);
-        assertEquals(0, $ret['ret']);
-        $id = $ret['id'];
-        error_log("Created draft $id");
+            # And once again, now that the user exists and will be a member of the group.
+            $ret = $this->call('message', 'PUT', [
+                'collection' => 'Draft',
+                'locationid' => $locid,
+                'groupid' => $gid,
+                'messagetype' => 'Offer',
+                'item' => 'a thing',
+                'textbody' => 'Text body',
+                'attachments' => [ $attid ]
+            ]);
+            assertEquals(0, $ret['ret']);
+            $id = $ret['id'];
+            error_log("Created draft $id");
 
-        $ret = $this->call('message', 'POST', [
-            'id' => $id,
-            'action' => 'JoinAndPost',
-            'email' => $email,
-            'ignoregroupoverride' => true
-        ]);
+            $ret = $this->call('message', 'POST', [
+                'id' => $id,
+                'action' => 'JoinAndPost',
+                'email' => $email,
+                'ignoregroupoverride' => true
+            ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals('Success', $ret['status']);
+            assertEquals(0, $ret['ret']);
+            assertEquals('Success', $ret['status']);
 
-        $count = 0;
-        $found = FALSE;
+            $count = 0;
+            $found = FALSE;
 
-        do {
-            error_log("...waiting for pending message from $applied #$uid, try $count");
-            sleep(1);
-            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
-                [ $gid, MessageCollection::PENDING, $uid ]);
-            foreach ($msgs as $msg) {
-                error_log("Reached pending " . var_export($msg, TRUE));
-                $found = TRUE;
-                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-                $m->delete('UT');
-            }
-            $count++;
-        } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
+            do {
+                error_log("...waiting for pending message from $applied #$uid, try $count");
+                sleep(1);
+                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
+                    [ $gid, MessageCollection::PENDING, $uid ]);
+                foreach ($msgs as $msg) {
+                    error_log("Reached pending " . var_export($msg, TRUE));
+                    $found = TRUE;
+                    $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+                    $m->delete('UT');
+                }
+                $count++;
+            } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
 
-        assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
+            assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
-        # Now approve the message and wait for it to reach the group.
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        $m->approve($gid, NULL, NULL, NULL);
+            # Now approve the message and wait for it to reach the group.
+            $m = new Message($this->dbhr, $this->dbhm, $id);
+            $m->approve($gid, NULL, NULL, NULL);
 
-        do {
-            error_log("...waiting for approved message from $applied #$uid, try $count");
-            sleep(1);
-            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ? AND yahooapprovedid IS NOT NULL;",
-                [ $gid, MessageCollection::APPROVED, $uid ]);
-            foreach ($msgs as $msg) {
-                error_log("Reached approved" . var_export($msg, TRUE));
-                $found = TRUE;
-                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+            do {
+                error_log("...waiting for approved message from $applied #$uid, try $count");
+                sleep(1);
+                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ? AND yahooapprovedid IS NOT NULL;",
+                    [ $gid, MessageCollection::APPROVED, $uid ]);
+                foreach ($msgs as $msg) {
+                    error_log("Reached approved" . var_export($msg, TRUE));
+                    $found = TRUE;
+                    $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
 
-                # Check that the attachment is present.
-                $atts = $m->getAttachments();
-                assertEquals(1, count($atts));
+                    # Check that the attachment is present.
+                    $atts = $m->getAttachments();
+                    assertEquals(1, count($atts));
 
-                $m->delete('UT');
-            }
-            $count++;
-        } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
+                    $m->delete('UT');
+                }
+                $count++;
+            } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
 
-        assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
+            assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
+        }
 
         error_log(__METHOD__ . " end");
     }
@@ -1579,89 +1581,91 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $email = 'test-' . rand() . '@blackhole.io';
+        if (!getenv('STANDALONE')) {
+            $email = 'test-' . rand() . '@blackhole.io';
 
-        # This is similar to the actions on the client
-        # - find a location close to a lat/lng
-        # - upload a picture
-        # - create a draft with a location
-        # - find the closest group to that location
-        # - submit it
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
-        $this->group->setPrivate('lat', 8.5);
-        $this->group->setPrivate('lng', 179.3);
-        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+            # This is similar to the actions on the client
+            # - find a location close to a lat/lng
+            # - upload a picture
+            # - create a draft with a location
+            # - find the closest group to that location
+            # - submit it
+            $this->group = Group::get($this->dbhr, $this->dbhm);
+            $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+            $this->group->setPrivate('lat', 8.5);
+            $this->group->setPrivate('lng', 179.3);
+            $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
 
-        $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+            $l = new Location($this->dbhr, $this->dbhm);
+            $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
-        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        file_put_contents("/tmp/chair.jpg", $data);
+            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+            file_put_contents("/tmp/chair.jpg", $data);
 
-        $ret = $this->call('image', 'POST', [
-            'photo' => [
-                'tmp_name' => '/tmp/chair.jpg',
-                'type' => 'image/jpeg'
-            ],
-            'identify' => TRUE
-        ]);
+            $ret = $this->call('image', 'POST', [
+                'photo' => [
+                    'tmp_name' => '/tmp/chair.jpg',
+                    'type' => 'image/jpeg'
+                ],
+                'identify' => TRUE
+            ]);
 
-        #error_log("Create attachment " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertNotNull($ret['id']);
-        $attid = $ret['id'];
+            #error_log("Create attachment " . var_export($ret, TRUE));
+            assertEquals(0, $ret['ret']);
+            assertNotNull($ret['id']);
+            $attid = $ret['id'];
 
-        # Find a location
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
+            # Find a location
+            $g = Group::get($this->dbhr, $this->dbhm);
+            $gid = $g->findByShortName('FreeglePlayground');
 
-        $ret = $this->call('message', 'PUT', [
-            'collection' => 'Draft',
-            'locationid' => $locid,
-            'messagetype' => 'Offer',
-            'item' => 'a thing',
-            'groupid' => $gid,
-            'textbody' => 'Text body',
-            'attachments' => [ $attid ]
-        ]);
-        assertEquals(0, $ret['ret']);
-        $id = $ret['id'];
-        error_log("Created draft $id");
+            $ret = $this->call('message', 'PUT', [
+                'collection' => 'Draft',
+                'locationid' => $locid,
+                'messagetype' => 'Offer',
+                'item' => 'a thing',
+                'groupid' => $gid,
+                'textbody' => 'Text body',
+                'attachments' => [ $attid ]
+            ]);
+            assertEquals(0, $ret['ret']);
+            $id = $ret['id'];
+            error_log("Created draft $id");
 
-        # This will get sent; will get queued, as we don't have a membership for the group
-        $ret = $this->call('message', 'POST', [
-            'id' => $id,
-            'action' => 'JoinAndPost',
-            'email' => $email,
-            'ignoregroupoverride' => true
-        ]);
+            # This will get sent; will get queued, as we don't have a membership for the group
+            $ret = $this->call('message', 'POST', [
+                'id' => $id,
+                'action' => 'JoinAndPost',
+                'email' => $email,
+                'ignoregroupoverride' => true
+            ]);
 
-        error_log("Message #$id should be queued " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertEquals('Queued for group membership', $ret['status']);
-        $applied = $ret['appliedemail'];
+            error_log("Message #$id should be queued " . var_export($ret, TRUE));
+            assertEquals(0, $ret['ret']);
+            assertEquals('Queued for group membership', $ret['status']);
+            $applied = $ret['appliedemail'];
 
-        # Now to get coverage, invoke the submission arm in here, rather than on the separate mail server.  This
-        # assumes we run tests faster than Yahoo responds.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->findByEmail($email);
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        error_log("User id $uid");
+            # Now to get coverage, invoke the submission arm in here, rather than on the separate mail server.  This
+            # assumes we run tests faster than Yahoo responds.
+            $u = User::get($this->dbhr, $this->dbhm);
+            $uid = $u->findByEmail($email);
+            $u = User::get($this->dbhr, $this->dbhm, $uid);
+            error_log("User id $uid");
 //        $eid = $u->addEmail($applied);
 //        error_log("Added email $eid");
-        $emails = $u->getEmails();
-        error_log("Email " . var_export($emails, TRUE));
-        $gemail = NULL;
-        foreach ($emails as $anemail) {
-            if ($anemail['email'] != $email) {
-                $gemail = $anemail['id'];
+            $emails = $u->getEmails();
+            error_log("Email " . var_export($emails, TRUE));
+            $gemail = NULL;
+            foreach ($emails as $anemail) {
+                if ($anemail['email'] != $email) {
+                    $gemail = $anemail['id'];
+                }
             }
-        }
-        $u->addMembership($gid, User::ROLE_MEMBER, $gemail);
+            $u->addMembership($gid, User::ROLE_MEMBER, $gemail);
 
-        $rc = $u->submitYahooQueued($gid);
-        assertEquals(1, $rc);
+            $rc = $u->submitYahooQueued($gid);
+            assertEquals(1, $rc);
+        }
 
         error_log(__METHOD__ . " end");
     }
