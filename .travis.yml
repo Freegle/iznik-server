@@ -22,13 +22,14 @@ before_install:
 
   # SpamAssasin for filtering.
   - sudo mv /opt/jdk_switcher/jdk_switcher.sh /tmp
-  - sudo apt-get install spamassassin spamc
+  - sudo apt-get install spamassassin spamc psmisc
   - sudo mv /tmp/jdk_switcher.sh /opt/jdk_switcher/
 
   - sudo groupadd spamd
   - sudo useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd
   - sudo mkdir /var/log/spamassassin
   - sudo sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/spamassassin
+  - sudo killall -9 spamd
   - sudo service spamassassin start
 
   # GeoIP
