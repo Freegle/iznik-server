@@ -23,12 +23,6 @@ before_install:
   # PHP extensions
   - pecl install mailparse
 
-  # Install composer depdendencies.
-  - travis_retry composer self-update
-  - cd composer
-  - composer install
-  - cd ..
-
   # /etc/iznik.conf is where our config goes on the live server.
   - sudo cp install/iznik.conf.php /etc/iznik.conf
 
@@ -36,7 +30,14 @@ before_install:
   - mysql -e 'CREATE DATABASE IF NOT EXISTS iznik;'
   - sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql
   - sed -ie 's/timestamp(3)/timestamp/g' install/schema.sql
+  - sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql
   - mysql -u root --default-character-set=utf8 iznik < install/schema.sql
+
+  # Install composer dependencies.
+  - travis_retry composer self-update
+  - cd composer
+  - composer install
+  - cd ..
 
   # Set up the environment we need for running our UT.
   - php install/testenv.php
