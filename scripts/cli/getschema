@@ -1,0 +1,1 @@
+mysqldump -u root -h 127.0.0.1 --no-data --single-transaction=TRUE iznik > ../../install/schema.sql
