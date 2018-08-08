@@ -486,9 +486,8 @@ class Location extends Entity
         #error_log("Find near $sql");
         $groups = $this->dbhr->preQuery($sql);
 
-        #error_log("Find near $sql " .
-        # var_export([ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ], TRUE));
         $ret = [];
+
         foreach ($groups as $group) {
             if ($expand) {
                 $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
