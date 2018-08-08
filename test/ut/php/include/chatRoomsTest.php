@@ -319,8 +319,7 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
 
         error_log("Mailed " . var_export($this->msgsSent, TRUE));
-        self::assertEquals('Test User 1 has updated when they may be available: Wednesday morning
-', $this->msgsSent[0]['body']);
+        self::assertEquals("Test User 1 has updated when they may be available: Wednesday morning\r\n", $this->msgsSent[0]['body']);
 
         error_log(__METHOD__ . " end");
     }

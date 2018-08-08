@@ -52,6 +52,13 @@ class itemTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $i = new Item($this->dbhr, $this->dbhm);
+        $iid = $i->findByName('sofa');
+
+        if (!$iid) {
+            $i->create('sofa');
+            $i->setWeight(37);
+        }
+
         $id = $i->create('UTTest sofa');
         $i = new Item($this->dbhr, $this->dbhm, $id);
         self::assertEquals(37, $i->estimateWeight());
