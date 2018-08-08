@@ -2683,10 +2683,9 @@ class Message
         $textbody = str_replace("\xc2\xa0", "\x20", $textbody);
 
         # Remove basic quoting.
-        error_log("BEfore quote $textbody");
-        #$textbody = trim(preg_replace('#(^\w.+:\n)?(^(>|\|).*(\n|$))+#mi', "", $textbody));
+        #error_log("BEfore quote $textbody");
         $textbody = trim(preg_replace('#(^(>|\|).*(\n|$))+#mi', "", $textbody));
-        error_log("After squote $textbody");
+        #error_log("After squote $textbody");
 
         # We might have a section like this, for example from eM Client, which could be top or bottom-quoted.
         #
@@ -2793,7 +2792,7 @@ class Message
         $textbody = preg_replace('/^Sent from Mail.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my BlackBerry.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from myMail for iOS.*/ms', '', $textbody);
-        $textbody = preg_replace('/^\r\n---\r\nThis email has been checked for viruses.*/ms', '', $textbody);
+        $textbody = preg_replace('/^(\r\n|\r|\n)---(\r\n|\r|\n)This email has been checked for viruses.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from TypeApp.*/ms', '', $textbody);
         $textbody = preg_replace('/^Enviado a partir do meu smartphone.*/ms', '', $textbody);
 
@@ -2816,7 +2815,7 @@ class Message
         $textbody = preg_replace('/You can change your settings by clicking here.*?/mi', "", $textbody);
 
         # Quoting timestamp
-        $textbody = preg_replace('/^On .*?\> wrote\:/mi', "", $textbody);
+        $textbody = preg_replace('/^(\s*?)On .*?\> wrote\:/mi', "", $textbody);
 
         # | is used to quote.
         $textbody = preg_replace('/^\|/mi', '', $textbody);

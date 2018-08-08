@@ -1298,11 +1298,7 @@ class MailRouterTest extends IznikTestCase {
 
         error_log("Chat messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
-        assertEquals("Not sure how to send to a phone so hope this is OK instead. Two have been ta
-
-ken, currently have 6 others.
-
-Bev", $msgs[0]['message']);
+        assertEquals("Not sure how to send to a phone so hope this is OK instead. Two have been ta\r\n\r\nken, currently have 6 others.\r\n\r\nBev", $msgs[0]['message']);
         assertEquals($origid, $msgs[0]['refmsg']['id']);
 
         error_log(__METHOD__ . " end");

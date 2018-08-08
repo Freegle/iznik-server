@@ -221,8 +221,17 @@ class locationTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $l = new Location($this->dbhr, $this->dbhm);
+
+        if (!$l->findByName('PR3 2NE')) {
+            $pcid = $l->create(NULL, 'PR3 2NE', 'Postcode', 'POINT(-2.64225600682264 53.8521694004918)');
+        }
+
         $loc = $l->closestPostcode(53.856556299999994, -2.6401651999999998);
         assertEquals("PR3 2NE", $loc['name']);
+
+        if (!$l->findByName('RM9 6SR')) {
+            $pcid = $l->create(NULL, 'PR3 2NE', 'Postcode', 'POINT(0.14700179589836 51.531097253523)');
+        }
 
         $loc = $l->closestPostcode(51.530687199999996, 0.146932);
         assertEquals("RM9 6SR", $loc['name']);
