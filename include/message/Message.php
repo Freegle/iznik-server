@@ -3288,7 +3288,7 @@ class Message
                 $this->setPrivate('fromip', $ip);
 
                 try {
-                    $reader = new Reader('/usr/local/share/GeoIP/GeoLite2-Country.mmdb');
+                    $reader = new Reader('/usr/share/GeoIP/GeoLite2-Country.mmdb');
                     $record = $reader->country($ip);
                     $this->setPrivate('fromcountry', $record->country->isoCode);
                 } catch (Exception $e) {
