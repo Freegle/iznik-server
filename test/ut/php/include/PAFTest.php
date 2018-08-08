@@ -19,6 +19,10 @@ class PAFTest extends IznikTestCase {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV1%';");
+        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'ZZZZ ZZZ';");
     }
 
     protected function tearDown() {
@@ -31,6 +35,20 @@ class PAFTest extends IznikTestCase {
     public function testLoad() {
         error_log(__METHOD__);
 
+        $l = new Location($this->dbhm, $this->dbhm);
+        $pcid = $l->create(NULL, 'TV10 1AA', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+        error_log("TV10 1AA => $pcid");
+        $pcid = $l->create(NULL, 'TV10 1AB', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+        error_log("TV10 1AB => $pcid");
+        $pcid = $l->create(NULL, 'TV10 1AF', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+        error_log("TV10 1AF => $pcid");
+        $pcid = $l->create(NULL, 'ZZZZ ZZZ', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+        error_log("ZZZZ ZZZ => $pcid");
+
+        if (file_exists('/tmp/ut_paf0000000000.csv')) {
+            unlink('/tmp/ut_paf0000000000.csv');
+        }
+
         global $dbconfig;
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
@@ -41,36 +59,31 @@ class PAFTest extends IznikTestCase {
             ->getMock();
         $mock->method('preExec')->willReturn(TRUE);
 
-        $l = new Location($this->dbhr, $mock);
-        $pcid = $l->create(NULL, 'TV10 1AA', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-        $pcid = $l->create(NULL, 'TV10 1AB', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-        $pcid = $l->create(NULL, 'TV10 1AF', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-
-        if (file_exists('/tmp/ut_paf0000000000.csv')) {
-            unlink('/tmp/ut_paf0000000000.csv');
-        }
-
-        $p = new PAF($this->dbhr, $mock);
+        $p = new PAF($this->dbhm, $mock);
+        error_log("First load - just generates csv.");
         $p->load(UT_DIR . '/php/misc/pc.csv', '/tmp/ut_paf');
 
         $csv = file_get_contents('/tmp/ut_paf0000000000.csv');
         error_log("CSV is $csv");
 
-        # We've just loaded - should be the same.
-        self::assertEquals(0, $p->update(UT_DIR . '/php/misc/pc.csv'));
+        # We
+        error_log("Update - postcodes 4 diffs (2 in same UDPRN)");
+        self::assertEquals(4, $p->update(UT_DIR . '/php/misc/pc.csv'));
 
         # Load a version where fields have changed and there's a new one.
         $t = file_get_contents(UT_DIR . '/php/misc/pc2.csv');
-        $max = $this->dbhr->preQuery("SELECT MAX(udprn) AS max FROM paf_addresses;");
+        $max = $this->dbhm->preQuery("SELECT MAX(udprn) AS max FROM paf_addresses;");
         $udprn = intval($max[0]['max']) + 1;
         $t = str_replace('zzz', $udprn, $t);
         file_put_contents('/tmp/ut.csv', $t);
+        error_log("Update with changes");
         self::assertEquals(5, $p->update('/tmp/ut.csv'));
 
-        $ids = $p->listForPostcode('AB10 1AA');
+        $ids = $p->listForPostcode('SA65 9ET');
+        assertGreaterThan(0, count($ids));
         $line = $p->getSingleLine($ids[0]);
         error_log($line);
-        self::assertEquals("Resources Management, St. Nicholas House Broad Street, ABERDEEN AB10 1AA", $line);
+        self::assertEquals("FISHGUARD SA65 9ET", $line);
 
         error_log(__METHOD__ . " end");
     }

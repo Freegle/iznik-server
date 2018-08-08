@@ -81,6 +81,7 @@ class PAF
 
             $fields = str_getcsv($row);
             $pcid = $l->findByName($fields[0]);
+            #error_log("UDPRN {$fields[12]} found postcode $pcid from {$fields[0]}");
 
             if (!$pcid) {
                 if (!in_array($fields[0], $unknowns)) {
@@ -121,6 +122,7 @@ class PAF
             # Parse the line.
             $fields = str_getcsv($row);
             $postcode = $l->findByName($fields[0]);
+            #error_log("Found $postcode from {$fields[0]}");
 
             if (!$postcode) {
                 error_log("Failed to find postcode for {$fields[0]} - is Doogal cron running OK?");
@@ -302,6 +304,8 @@ class PAF
 
             $str = implode($delimiter, $addr) . $delimiter . $a->getPostTown() . " " . $address['postcode'];
         }
+
+        $str = strpos($str, ", ") === 0 ? substr($str, 2) : $str;
 
         return($str);
     }
