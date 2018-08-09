@@ -33,7 +33,12 @@ class twitterTest extends IznikTestCase {
 
         if (!$gid) {
             $gid = $g->create('FreeglePlayground', Group::GROUP_REUSE);
-            $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+        }
+
+        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+        $atts = $t->getPublic();
+
+        if (pres($atts, 'secret')) {
             $t->set('FreeglePlaygrnd', PLAYGROUND_TOKEN, PLAYGROUND_SECRET);
         }
 

@@ -15,10 +15,10 @@ class Preview extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'link_previews', 'link', $this->publicatts);
     }
 
-    public function create($url) {
+    public function create($url, $forcespam = FALSE) {
         $id = NULL;
 
-        if (checkSpamhaus($url)) {
+        if (checkSpamhaus($url) || $forcespam) {
             $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `spam`) VALUES (?,1) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
                 $url
             ]);

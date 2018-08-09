@@ -62,7 +62,7 @@ class PreviewTest extends IznikTestCase {
         $atts = $l->getPublic();
         self::assertEquals(1, $atts['invalid']);
 
-        $id = $l->create('https://dbltest.com');
+        $id = $l->create('https://dbltest.com', TRUE);
         assertNotNull($id);
         $atts = $l->getPublic();
         self::assertEquals(1, $atts['spam']);
