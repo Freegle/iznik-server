@@ -48,8 +48,7 @@ X-YMailISG: 1K6EkZkWLDuAAkQx4CMnDNvDGADz7yeUHqHigYDImv0wwjjm
  SBM1E8Pe0P12OigqZTO0tE_e1Vl7D2bUBRgs.ibbhPtqsiZOeyYL69rqUx.R
  4uAbvyxfxWutuIrSQ3WtWotD8mY-
 X-RocketHELO: n13-vm6.bullet.mail.bf1.yahoo.com
-X-RocketMAILFROM: StevenageFreegle-noreply@yahoogroups.com
-X-RocketRCPTTO: 0-stevenagefreegle@yahoogroups.com
+X-RocketRCPTTO: 0-testgroup@groups.ilovefreegle.org
 X-RocketMSGID:1448187407.385036.25878@mta1003.groups.mail.bf1.yahoo.com#0
 X-Originating-IP: [66.196.81.189]
 Authentication-Results: mta1003.groups.mail.bf1.yahoo.com  from=yahoogroups.com; domainkeys=neutral (no sig);  from=yahoogroups.com; dkim=pass (ok)
@@ -59,15 +58,13 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoogroups.com; s=echoe
 Received: from [72.30.235.65] by n13.bullet.mail.bf1.yahoo.com with NNFMP; 22 Nov 2015 10:16:47 -0000
 Received: from [10.193.242.235] by t2.bullet.mail.bf1.yahoo.com with NNFMP; 22 Nov 2015 10:16:47 -0000
 Received: from [127.0.0.1] by gapi8.grp.bf1.yahoo.com with NNFMP; 22 Nov 2015 10:16:47 -0000
-X-Sender: StevenageFreegle-noreply@yahoogroups.com
-X-Apparently-To: stevenagefreegle@yahoogroups.com
+X-Apparently-To: testgroup@groups.ilovefreegle.org
 X-Received: (qmail 8823 invoked by uid 102); 22 Nov 2015 10:07:04 -0000
 X-Received: from unknown (HELO mtaq4.grp.bf1.yahoo.com) (10.193.84.143)
   by m2.grp.bf1.yahoo.com with SMTP; 22 Nov 2015 10:07:04 -0000
 X-Received: (qmail 14781 invoked from network); 22 Nov 2015 10:07:04 -0000
 X-Received: from unknown (HELO mta1004.groups.mail.bf1.yahoo.com) (98.139.245.163)
   by mtaq4.grp.bf1.yahoo.com with SMTP; 22 Nov 2015 10:07:04 -0000
-X-Original-Return-Path: <StevenageFreegle-noreply@yahoogroups.com>
 X-Received-SPF: pass (domain of yahoogroups.com designates 72.30.235.210 as permitted sender)
 X-YMailISG: hIUKiYAWLDvJ0mX1n_X5ycjwafV8Ev_MtNkdHrOQ8bU4GEtm
  SubrFDAvZGrHMOw8kS7JN_S.Mbbm2.EUP6n_TRSRZmMQYORCMqeutIXTekyg
@@ -105,23 +102,23 @@ X-Mailer: Yahoo Groups Message Poster
 Message-ID: <n2s447+1heat00@YahooGroups.com>
 X-Originating-IP: 154.70.125.156
 X-Yahoo-Post-IP: 154.70.125.156
-X-Original-Reply-To: lindsaymarshawn@yahoo.com
-X-Yahoo-Profile: lindsaymarshawn
-X-eGroups-Edited-By: martinfreegle@gmail.com
-From: "lindsaymarshawn@yahoo.com [StevenageFreegle]" <StevenageFreegle-noreply@yahoogroups.com>
-X-Original-From: lindsaymarshawn@yahoo.com
-To: StevenageFreegle@yahoogroups.com
-X-eGroups-Approved-By: carjan1949 via web; 22 Nov 2015 02:16:47 -0000
-Sender: StevenageFreegle@yahoogroups.com
+X-Original-Reply-To: xxxx@yahoo.com
+X-Yahoo-Profile: xxxx
+X-eGroups-Edited-By: xxxx@gmail.com
+From: xxxx@yahoo.com
+X-Original-From: xxxx@yahoo.com
+To: testgroup@groups.ilovefreegle.org
+X-eGroups-Approved-By: xxxx via web; 22 Nov 2015 02:16:47 -0000
+Sender: testgroup@groups.ilovefreegle.org
 MIME-Version: 1.0
-Mailing-List: list StevenageFreegle@yahoogroups.com; contact StevenageFreegle-owner@yahoogroups.com
-Delivered-To: mailing list StevenageFreegle@yahoogroups.com
+Mailing-List: list testgroup@groups.ilovefreegle.org; contact StevenageFreegle-owner@yahoogroups.com
+Delivered-To: mailing list testgroup@groups.ilovefreegle.org
 List-Id: <StevenageFreegle.yahoogroups.com>
 Precedence: bulk
 List-Unsubscribe: <mailto:StevenageFreegle-unsubscribe@yahoogroups.com>
 Date: 22 Nov 2015 02:07:03 -0800
 Subject: [StevenageFreegle] OFFER kids ferrari car (Letchworth GC)
-Reply-To: lindsaymarshawn@yahoo.com
+Reply-To: xxxx@yahoo.com
 X-Yahoo-Newman-Property: groups-email-ff-m
 Content-Type: multipart/alternative;
  boundary="9nlWnTS9ocNmxdhsK3FKVLWiM6a5jwOaA8HvrLV"

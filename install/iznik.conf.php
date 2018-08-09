@@ -142,4 +142,5 @@ define('DONATION_TARGET', 2000);
 # For test scripts
 define('USER_TEST_SITE', 'https://iznik.ilovefreegle.org');
 define('MOD_TEST_SITE', 'https://iznik.modtools.org');
-
+define('PLAYGROUND_TOKEN', 'zzzz');
+define('PLAYGROUND_SECRET', 'zzzz');

@@ -963,7 +963,7 @@ class MailRouter
                     $uid = NULL;
                     $ret = MailRouter::DROPPED;
 
-                    if ($this->msg->getEnvelopeto() == $this->msg->getEnvelopefrom()) {
+                    if (strlen($this->msg->getEnvelopeto()) && $this->msg->getEnvelopeto() == $this->msg->getEnvelopefrom()) {
                         # Sending to yourself isn't a valid path, and is used by spammers.
                         if ($log) { error_log("Sending to self " . $this->msg->getEnvelopeto() . " vs " . $this->msg->getEnvelopefrom() . " - dropped "); }
                     } else if (preg_match('/replyto-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {

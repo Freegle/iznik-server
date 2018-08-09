@@ -55,6 +55,7 @@ class itemTest extends IznikTestCase {
         $iid = $i->findByName('sofa');
 
         if (!$iid) {
+            error_log("Create sofa");
             $i->create('sofa');
             $i->setWeight(37);
         }

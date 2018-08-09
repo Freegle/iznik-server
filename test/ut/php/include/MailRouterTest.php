@@ -276,7 +276,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(1, count($spam->getGroups()));
         assertEquals($id, $spam->getID());
         assertEquals(0, strpos($spam->getMessageID(), 'GTUBE1.1010101@example.net'));
-        assertEquals($msg, $spam->getMessage());
+        assertEquals(str_replace("\r\n", "\n", $msg), str_replace("\r\n", "\n", $spam->getMessage()));
         assertEquals(Message::YAHOO_APPROVED, $spam->getSource());
         assertEquals('from1@test.com', $spam->getEnvelopefrom());
         assertEquals('to@test.com', $spam->getEnvelopeto());
@@ -293,6 +293,9 @@ class MailRouterTest extends IznikTestCase {
 
     public function testMoreSpam() {
         error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamcam');
         $m = new Message($this->dbhr, $this->dbhm);
