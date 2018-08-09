@@ -7,6 +7,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/message/Item.php');
 
 $g = new Group($dbhr, $dbhm);
 $gid = $g->findByShortName('FreeglePlayground');
@@ -29,6 +30,15 @@ if (!$gid) {
     $u->addEmail('test@test.com');
     $u->addLogin(User::LOGIN_NATIVE, NULL, 'freegle');
     $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+    $i = new Item($dbhr, $dbhm);
+    $i->create('chair');
+
+    $dbhm->preExec("INSERT INTO `spam_keywords` (`id`, `word`, `exclude`, `action`, `type`) VALUES (8, 'viagra', NULL, 'Spam', 'Literal'), (76, 'weight loss', NULL, 'Spam', 'Literal');");
+    $dbhm->preExec("INSERT INTO `locations` (`id`, `osm_id`, `name`, `type`, `osm_place`, `geometry`, `ourgeometry`, `gridid`, `postcodeid`, `areaid`, `canon`, `popularity`, `osm_amenity`, `osm_shop`, `maxdimension`, `lat`, `lng`, `timestamp`) VALUES
+      (1687412, '189543628', 'SA65 9ET', 'Line', 0, GeomFromText('POINT(-4.939858 52.006292)'), NULL, NULL, NULL, NULL, 'sa659et', 0, 0, 0, '0.002916', '52.006292', '-4.939858', '2016-08-23 06:01:25');
+      INSERT INTO `paf_addresses` (`id`, `postcodeid`) VALUES   (102367696, 1687412);
+    ");
 } else {
     error_log("Test environment already set up.");
 }

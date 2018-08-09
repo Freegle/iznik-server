@@ -62,6 +62,7 @@ before_install:
   - sudo sed -ie "s/'GOOGLE_VISION_KEY', 'zzz'/'GOOGLE_VISION_KEY', '$GOOGLE_VISION_KEY'/g" /etc/iznik.conf
   - sudo sed -ie "s/'TWITTER_CONSUMER_KEY', 'zzzz'/'TWITTER_CONSUMER_KEY', '$TWITTER_CONSUMER_KEY'/g" /etc/iznik.conf
   - sudo sed -ie "s/'TWITTER_CONSUMER_SECRET', 'zzzz'/'TWITTER_CONSUMER_SECRET', '$TWITTER_CONSUMER_SECRET'/g" /etc/iznik.conf
+  - sudo sed -ie "s/'AZURE_CONNECTION_STRING', 'zzzz'/'AZURE_CONNECTION_STRING', '$AZURE_CONNECTION_STRING'/g" /etc/iznik.conf
 
   # phpunit.xml is set up for running tests on our debug server.
   - sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml
@@ -75,8 +76,6 @@ before_install:
   - sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql
   - mysql -u root iznik < install/schema.sql
   - mysql -u root iznik < install/functions.sql
-  - mysql -u root iznik < install/paf.sql
-  - mysql -u root iznik < install/spam.sql
   - mysql -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
 
   # We need the DamLevLim UDF.

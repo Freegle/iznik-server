@@ -28,6 +28,15 @@ class twitterTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
+        if (!$gid) {
+            $gid = $g->create('FreeglePlayground', Group::GROUP_REUSE);
+            $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+            $t->set('FreeglePlaygrnd', getenv('PLAYGROUND_TOKEN'), getenv('PLAYGROUND_SECRET'));
+        }
+
         $this->tidy();
     }
 
@@ -36,6 +45,13 @@ class twitterTest extends IznikTestCase {
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
+
+        if (!$gid) {
+            $gid = $g->create('FreeglePlayground', Group::GROUP_REUSE);
+            $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+            $t->set('FreeglePlaygrnd', getenv('PLAYGROUND_TOKEN'), getenv('PLAYGROUND_SECRET'));
+        }
+
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $t->tweet('Test - ignore', $data);
