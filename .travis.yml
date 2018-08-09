@@ -100,4 +100,4 @@ script:
   - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php  --coverage-clover test/ut/php/clover.xml --configuration test/ut/php/phpunit.xml test/ut/php/
 
 after_script:
-  - travis_retry php composer/vendor/bin/php-coveralls -v
+  - php composer/vendor/bin/php-coveralls -v
