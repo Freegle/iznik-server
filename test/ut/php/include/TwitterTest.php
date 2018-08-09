@@ -95,7 +95,7 @@ class twitterTest extends IznikTestCase {
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
         $sender->setPrivate('publishconsent', 1);
 
-        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+        $t = new Twitter($this->dbhm, $this->dbhm, $gid);
 
         # Fake message onto group.
         $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
