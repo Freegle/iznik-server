@@ -622,7 +622,8 @@ class MailRouter
                 if ($spamscore < MailRouter::ASSASSIN_THRESHOLD) {
                     # Now do our own checks.
                     if ($this->log) { error_log("Passed SpamAssassin $spamscore"); }
-                    $rc = $this->spam->checkMessage($this->msg);
+                    list ($rc, $reason) = $this->spam->checkMessage($this->msg);
+                    #error_log("Spam reason " . var_export($reason, TRUE));
 
                     if (!$rc) {
                         $ret = MailRouter::FAILURE;

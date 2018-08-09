@@ -397,7 +397,11 @@ class chatMessagesTest extends IznikTestCase {
         assertTrue($m->checkSpam('weight loss'));
 
         # Domain
-        assertTrue($m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
+        if (!getenv('STANDALONE')) {
+            # TODO This doesn't work on Travis because Spamhaus doesn't let you test when you're using a
+            # general public DNS server.
+            assertTrue($m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
+        }
 
         error_log(__METHOD__ . " end");
     }
