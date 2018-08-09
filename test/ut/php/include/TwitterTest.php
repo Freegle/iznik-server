@@ -98,11 +98,22 @@ class twitterTest extends IznikTestCase {
         $t = new Twitter($this->dbhm, $this->dbhm, $gid);
 
         # Fake message onto group.
-        $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
-            $id,
+        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?;", [
+            MessageCollection::APPROVED,
             $id,
             $gid
         ]);
+
+        $mock = $this->getMockBuilder('TwitterOAuth')
+            ->setMethods(['post', 'get', 'setTimeouts'])
+            ->getMock();
+
+        $mock->method('get')->willReturn(true);
+        $mock->method('setTimeouts')->willReturn(true);
+        $mock->method('post')->willReturn([
+            'test' => TRUE
+        ]);
+        $t->setTw($mock);
 
         $count = $t->tweetMessages();
         assertGreaterThanOrEqual(1, $count);

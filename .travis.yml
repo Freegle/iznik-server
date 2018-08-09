@@ -99,7 +99,7 @@ script:
   # Run the UT
   #- composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php --coverage-clover test/ut/php/clover.xml test/ut/php/include/
   #- composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php --coverage-clover test/ut/php/clover.xml test/ut/php/api/
-  - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php  --configuration test/ut/php/phpunit.xml test/ut/php/
+  - composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php  --coverage-clover test/ut/php/clover.xml --configuration test/ut/php/phpunit.xml test/ut/php/
 
 after_script:
   - php composer/vendor/bin/coveralls -v
