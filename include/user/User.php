@@ -239,12 +239,6 @@ class User extends Entity
         return ($ret);
     }
 
-    public function getToken()
-    {
-        $s = new Session($this->dbhr, $this->dbhm);
-        return ($s->getToken($this->id));
-    }
-
     public function getBounce()
     {
         return ("bounce-{$this->id}-" . time() . "@" . USER_DOMAIN);
@@ -479,7 +473,6 @@ class User extends Entity
 
     public function getEmailById($id)
     {
-        # Email is a unique key but conceivably we could be called with an email for another user.
         $emails = $this->dbhr->preQuery("SELECT email FROM users_emails WHERE id = ?;", [
             $id
         ]);

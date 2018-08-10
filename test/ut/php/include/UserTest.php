@@ -113,8 +113,11 @@ class userTest extends IznikTestCase {
         assertEquals(0, count($u->getEmails()));
 
         # Add an email - should work.
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
+        $eid = $u->addEmail('test@test.com');
+        assertGreaterThan(0, $eid);
         assertEquals(0, $u->getEmailAge('test@test.com'));
+        assertEquals('test@test.com', $u->getEmailById($eid));
+        assertEquals($id, $u->findByEmailHash(md5('test@test.com')));
 
         # Check it's there
         $emails = $u->getEmails();
