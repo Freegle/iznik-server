@@ -224,6 +224,7 @@ class twitterTest extends IznikTestCase {
 
         $s = new Story($this->dbhr, $this->dbhm);
         $sid = $s->create(NULL, 1, 'Test Story', 'Test Story');
+        $s->setPrivate('reviewed', 1);
 
         $mock = $this->getMockBuilder('Twitter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, NULL))
@@ -231,7 +232,7 @@ class twitterTest extends IznikTestCase {
             ->getMock();
         $mock->method('tweet')->willReturn(true);
 
-        $mock->tweetStory($sid);
+        self::assertEquals(1, $mock->tweetStory($sid));
 
         error_log(__METHOD__ . " end");
     }

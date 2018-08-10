@@ -59,7 +59,7 @@ class teamAPITest extends IznikAPITestCase {
         ]);
         assertEquals(1, $ret['ret']);
 
-        $this->user->setPrivate('permissions', 'Teams');
+        $this->user->setPrivate('permissions', User::PERM_TEAMS);
 
         # Can now create.
         assertTrue($this->user->login('testpw'));

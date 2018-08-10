@@ -50,7 +50,7 @@ class User extends Entity
     const ROLE_OWNER = 'Owner';
 
     # Permissions
-    const PERM_BUSINESS_CARDS = 'BusinessCards';
+    const PERM_BUSINESS_CARDS = 'BusinessCardsAdmin';
     const PERM_NEWSLETTER = 'Newsletter';
     const PERM_NATIONAL_VOLUNTEERS = 'NationalVolunteers';
     const PERM_TEAMS = 'Teams';

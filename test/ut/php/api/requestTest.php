@@ -83,11 +83,57 @@ class requestAPITest extends IznikAPITestCase {
         assertEquals(Request::TYPE_BUSINESS_CARDS, $ret['request']['type']);
         self::assertEquals($aid, $ret['request']['address']['id']);
 
+        # Mark as paid.
+        $this->dbhm->preExec("UPDATE users_requests SET paid = 1 WHERE id = ?;", [
+            $id
+        ]);
+
         # List
         $ret = $this->call('request', 'GET', []);
         error_log("List " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(1, count($ret['requests']));
+
+        # List outstanding - without permission
+        $ret = $this->call('request', 'GET', [
+            'outstanding' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(0, count($ret['requests']));
+
+        # List outstanding - with permission
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created {$this->uid}");
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->user->setPrivate('permissions', User::PERM_BUSINESS_CARDS);
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('request', 'GET', [
+            'outstanding' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(1, count($ret['requests']));
+
+        # Not recently complete yet
+        $ret = $this->call('request', 'GET', [
+            'recent' => TRUE,
+            'recentid' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(0, count($ret['recent']));
+
+        $this->dbhm->preExec("UPDATE users_requests SET completed = NOW(), completedby = ? WHERE id = ?;", [
+            $this->uid,
+            $id
+        ]);
+
+        $ret = $this->call('request', 'GET', [
+            'recent' => TRUE,
+            'recentid' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(1, count($ret['recent']));
+
 
         # Delete
         $ret = $this->call('request', 'DELETE', [

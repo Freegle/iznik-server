@@ -92,11 +92,12 @@ class Request extends Entity
         return($ret);
     }
 
-    public function listRecent() {
+    public function listRecent($id = NULL) {
         $ret = [];
 
         $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
-        $requests = $this->dbhr->preQuery("SELECT completedby, COUNT(*) AS count FROM users_requests WHERE completed IS NOT NULL AND completedby IS NOT NULL AND completed > ? GROUP BY completedby", [
+        $idq = $id ? " AND id = $id " : "";
+        $requests = $this->dbhr->preQuery("SELECT completedby, COUNT(*) AS count FROM users_requests WHERE completed IS NOT NULL AND completedby IS NOT NULL AND completed > ? $idq GROUP BY completedby", [
             $mysqltime
         ]);
 

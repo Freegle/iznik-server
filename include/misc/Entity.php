@@ -98,6 +98,7 @@ class Entity
     public function setPrivate($att, $val) {
         if ($this->{$this->name}[$att] != $val) {
             $rc = $this->dbhm->preExec("UPDATE {$this->table} SET `$att` = ? WHERE id = {$this->id};", [$val]);
+            #error_log("RC $rc for set of $att = $val for {$this->id} in {$this->table}");
             if ($rc) {
                 $this->{$this->name}[$att] = $val;
             }

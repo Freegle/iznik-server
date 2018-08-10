@@ -207,6 +207,9 @@ class Twitter {
         $idq = $id ? " AND id = $id " : "";
         $sql = "SELECT id FROM users_stories WHERE public = 1 and reviewed = 1 $idq ORDER BY tweeted ASC LIMIT 1;";
         $stories = $this->dbhr->preQuery($sql);
+
+        $count = 0;
+
         foreach ($stories as $story) {
             $s = new Story($this->dbhr, $this->dbhm, $story['id']);
 
@@ -230,8 +233,14 @@ class Twitter {
 
             $rc = $this->tweet($status, file_get_contents($image));
 
+            if ($rc) {
+                $count++;
+            }
+
             $this->dbhm->preExec("UPDATE users_stories SET tweeted = 1 WHERE id = ?;", [ $story['id'] ]);
         }
+
+        return($count);
     }
 
     public function tweetMessages() {

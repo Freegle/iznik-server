@@ -16,6 +16,7 @@ function request() {
             case 'GET': {
                 $outstanding = array_key_exists('outstanding', $_REQUEST) ? filter_var($_REQUEST['outstanding'], FILTER_VALIDATE_BOOLEAN) : FALSE;
                 $recent = array_key_exists('recent', $_REQUEST) ? filter_var($_REQUEST['recent'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+                $recentid = array_key_exists('recentid', $_REQUEST) ? intval($_REQUEST['recentid']) : NULL;
 
                 if ($id) {
                     $ret = ['ret' => 3, 'status' => 'Access denied'];
@@ -40,7 +41,7 @@ function request() {
                     $ret = [
                         'status' => 'Success',
                         'ret' => 0,
-                        'recent' => $me->hasPermission(User::PERM_BUSINESS_CARDS) ? $r->listRecent() : []
+                        'recent' => $me->hasPermission(User::PERM_BUSINESS_CARDS) ? $r->listRecent($recentid) : []
                     ];
                 } else {
                     # List all for this user.
@@ -96,7 +97,7 @@ function request() {
             case 'DELETE': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($r->getPrivate('userid') == $myid) {
+                if ($r->getPrivate('userid') == $myid || $me->hasPermission(User::PERM_BUSINESS_CARDS)) {
                     $r->delete();
 
                     $ret = [
