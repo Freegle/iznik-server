@@ -121,7 +121,7 @@ class addressAPITest extends IznikAPITestCase
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
 
-        $postcode = $this->dbhr->preQuery("SELECT id, postcodeid FROM paf_addresses LIMIT 1;");
+        $postcode = $this->dbhr->preQuery("SELECT id, postcodeid FROM paf_addresses WHERE postcodeid IS NOT NULL LIMIT 1;");
 
         error_log("Get for postcode {$postcode[0]['postcodeid']}");
 

@@ -209,9 +209,13 @@ class twitterTest extends IznikTestCase {
         $end = date("Y-m-d H:i:s", strtotime('+4 hours'));
         $e->addDate($start, $end);
 
-        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+        $mock = $this->getMockBuilder('Twitter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $gid))
+            ->setMethods(['tweet'])
+            ->getMock();
+        $mock->method('tweet')->willReturn(true);
 
-        $count = $t->tweetEvents();
+        $count = $mock->tweetEvents();
         assertGreaterThanOrEqual(1, $count);
 
         error_log(__METHOD__ . " end");
