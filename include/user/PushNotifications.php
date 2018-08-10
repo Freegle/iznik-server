@@ -194,9 +194,7 @@ class PushNotifications
                         list ($chatcount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
                         #error_log("Notify for $userid count $chatcount title $title message $message");
 
-                        if ($chatcount === 0) {
-                            $message = MODTOOLS ? "Work cleared" : "Notifications cleared";
-                        }
+                        $message = ($chatcount === 0) ? "" : $message;
 
                         $payload = [
                             'badge' => $chatcount,
