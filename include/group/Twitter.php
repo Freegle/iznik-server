@@ -231,7 +231,8 @@ class Twitter {
 
             }
 
-            $rc = $this->tweet($status, file_get_contents($image));
+            $data = @file_get_contents($image);
+            $rc = $this->tweet($status, $data);
 
             if ($rc) {
                 $count++;
