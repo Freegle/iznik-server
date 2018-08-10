@@ -3464,9 +3464,24 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
                     $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
                     $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
-                    $length = \Wordle\array_weighted_rand($lengths);
-                    $start = \Wordle\array_weighted_rand($bigrams);
-                    $email = strtolower(\Wordle\fill_word($start, $length, $trigrams)) . '-' . $this->id . '@' . USER_DOMAIN;
+
+                    do {
+                        $length = \Wordle\array_weighted_rand($lengths);
+                        $start = \Wordle\array_weighted_rand($bigrams);
+                        $email = strtolower(\Wordle\fill_word($start, $length, $trigrams)) . '-' . $this->id . '@' . USER_DOMAIN;
+
+                        # We might just happen to have invented an email with their personal information in it.  This
+                        # actually happened in the UT with "test".
+                        foreach (['firstname', 'lastname', 'fullname'] as $att) {
+                            $words = explode(' ', $this->user[$att]);
+                            foreach ($words as $word) {
+                                $p = stripos($email, $word);
+                                $q = strpos($email, '@');
+
+                                $email = ($p !== FALSE && $p < $q) ? NULL : $email;
+                            }
+                        }
+                    } while (!$email);
                 }
             }
         }
