@@ -122,11 +122,14 @@ class requestAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals(0, count($ret['recent']));
 
-        $this->dbhm->preExec("UPDATE users_requests SET completed = NOW(), completedby = ? WHERE id = ?;", [
-            $this->uid,
-            $id
+        # Complete it
+        $ret = $this->call('request', 'POST', [
+            'action' => 'Completed',
+            'id' => $id
         ]);
+        assertEquals(0, $ret['ret']);
 
+        # Now recently complete
         $ret = $this->call('request', 'GET', [
             'recent' => TRUE,
             'recentid' => $id
