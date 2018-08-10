@@ -10,6 +10,7 @@
             <directory suffix=".php">include</directory>
             <exclude>
                 <directory suffix=".php">lib</directory>
+                <directory suffix=".php">test</directory>
             </exclude>
         </whitelist>
     </filter>
