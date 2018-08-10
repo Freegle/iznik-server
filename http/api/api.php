@@ -1,8 +1,10 @@
 <?php
 $scriptstart = microtime(true);
 
-$_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['REQUEST_METHOD']);
-$_REQUEST['type'] = $_SERVER['REQUEST_METHOD'];
+if (array_key_exists('REQUEST_METHOD', $_SERVER)) {
+    $_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['REQUEST_METHOD']);
+    $_REQUEST['type'] = $_SERVER['REQUEST_METHOD'];
+}
 
 if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
     # Used by Backbone's emulateHTTP to work around servers which don't handle verbs like PATCH very well.
@@ -175,7 +177,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             # Check that we're not posting from a blocked country.
             try {
                 $reader = new Reader('/usr/share/GeoIP/GeoLite2-Country.mmdb');
-                $ip = presdef('REMOTE_ADDR', $_SERVER);
+                $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
                 $record = $reader->country($ip);
                 $country = $record->country->name;
                 # Failed to look it up.

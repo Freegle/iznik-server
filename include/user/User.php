@@ -150,7 +150,7 @@ class User extends Entity
         #error_log("$id not in cache");
         $u = new User($dbhr, $dbhm, $id);
 
-        if ($id && count(User::$cache) == User::CACHE_SIZE) {
+        if ($id && count(User::$cache) < User::CACHE_SIZE) {
             # Store for next time
             #error_log("store $id in cache");
             User::$cache[$id] = $u;

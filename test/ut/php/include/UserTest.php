@@ -45,6 +45,17 @@ class userTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         error_log("Created $id");
+
+        error_log("Get - not cached");
+        $u = User::get($this->dbhr, $this->dbhm, $id);
+
+        error_log("Get - cached");
+        $u = User::get($this->dbhr, $this->dbhm, $id);
+
+        error_log("Get - deleted");
+        User::clearCache($id);
+        $u = User::get($this->dbhr, $this->dbhm, $id);
+
         $atts = $u->getPublic();
         assertEquals('Test', $atts['firstname']);
         assertEquals('User', $atts['lastname']);
@@ -70,6 +81,26 @@ class userTest extends IznikTestCase {
         assertEquals('Test User', $u->getName());
         assertEquals($id, $u->getPrivate('id'));
         assertGreaterThan(0, $u->delete());
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testLinkLogin() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+
+        $url1 = $u->loginLink(USER_SITE, $id, '/', NULL, TRUE);
+        error_log("Login url $url1");
+        $url = $u->loginLink(USER_SITE, $id, '/', NULL, TRUE);
+        error_log("Login url $url1");
+        self::assertEquals($url1, $url);
+        $p = strpos($url, 'k=');
+        $key = substr($url, $p + 2);
+        error_log("Key $key");
+        $u->linkLogin($key);
+        self::assertEquals($id, $_SESSION['id']);
 
         error_log(__METHOD__ . " end");
     }
