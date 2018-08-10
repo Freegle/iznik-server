@@ -12,8 +12,8 @@ if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
     #error_log("Request method override to {$_REQUEST['type']}");
 }
 
-require_once('../../include/misc/apiheaders.php');
-require_once('../../include/config.php');
+require_once(IZNIK_BASE . '/include/misc/apiheaders.php');
+require_once(IZNIK_BASE . '/include/config.php');
 
 # We might profile - only the occasional call as it generates a lot of data.
 $xhprof = XHPROF && (mt_rand(0, 1000000) < 1000);
@@ -175,7 +175,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             # Check that we're not posting from a blocked country.
             try {
                 $reader = new Reader('/usr/share/GeoIP/GeoLite2-Country.mmdb');
-                $ip = $_SERVER['REMOTE_ADDR'];
+                $ip = presdef('REMOTE_ADDR', $_SERVER);
                 $record = $reader->country($ip);
                 $country = $record->country->name;
                 # Failed to look it up.

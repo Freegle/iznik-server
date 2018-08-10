@@ -5,12 +5,11 @@
         </testsuite>
     </testsuites>
     <filter>
-        <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">http/api</directory>
-            <directory suffix=".php">include</directory>
+        <whitelist addUncoveredFilesFromWhitelist="true" processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">../../../http/api</directory>
+            <directory suffix=".php">../../../include</directory>
             <exclude>
                 <directory suffix=".php">lib</directory>
-                <directory suffix=".php">test</directory>
             </exclude>
         </whitelist>
     </filter>
