@@ -50,7 +50,7 @@ before_install:
   - sudo service mysql restart
 
   # PHP extensions
-  - pecl install mailparse
+  - travis_retry pecl install mailparse
   - echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
   # Redis listens on localhost on travis, whereas we use a unix socket on the live servers.
