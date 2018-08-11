@@ -28,16 +28,32 @@ function export()
             }
 
             case 'POST': {
-                # Request an export.  We do this in the background because it can take minutes and we don't want
-                # to tie up HHVM.
-                list($id, $tag) = $me->requestExport();
+                $sync = array_key_exists('sync', $_REQUEST) ? filter_var($_REQUEST['sync'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'id' => $id,
-                    'tag' => $tag
-                ];
+                if (!$sync) {
+                    # Request an export.  We do this in the background because it can take minutes and we don't want
+                    # to tie up HHVM, especially if we got multiple happening at the same time.
+                    list($id, $tag) = $me->requestExport();
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'id' => $id,
+                        'tag' => $tag
+                    ];
+                } else {
+                    # Sync, typically in UT.  Do this inline.
+                    list($id, $tag) = $me->requestExport(TRUE);
+                    $me->export($id, $tag);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'id' => $id,
+                        'tag' => $tag,
+                        'export' => $u->getExport($myid, $id, $tag)
+                    ];
+                }
 
                 break;
             }

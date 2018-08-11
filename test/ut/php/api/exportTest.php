@@ -62,8 +62,6 @@ class exportAPITest extends IznikAPITestCase {
             'dup' => 1
         ]);
 
-        error_log("Export returned " . var_export($ret, TRUE));
-
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         assertNotNull($ret['tag']);
@@ -71,7 +69,7 @@ class exportAPITest extends IznikAPITestCase {
         $id = $ret['id'];
         $tag = $ret['tag'];
 
-        # Wait for export to complete.
+        # Wait for export to complete in the background.
         $count = 0;
 
         do {
@@ -87,6 +85,17 @@ class exportAPITest extends IznikAPITestCase {
 
         self::assertLessThan(600, $count);
 
+        assertEquals($this->user->getId(), $ret['export']['data']['Our_internal_ID_for_you']);
+
+        # Now do it again, but sync so that we can get coverage for the export code.
+        $ret = $this->call('export', 'POST', [
+            'dup' => 1,
+            'sync' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        assertNotNull($ret['tag']);
         assertEquals($this->user->getId(), $ret['export']['data']['Our_internal_ID_for_you']);
 
         error_log(__METHOD__ . " end");

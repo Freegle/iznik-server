@@ -4317,10 +4317,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($ret);
     }
 
-    public function requestExport()
+    public function requestExport($sync = FALSE)
     {
         $tag = randstr(64);
-        $this->dbhm->preExec("INSERT INTO users_exports (userid, tag) VALUES (?, ?);", [
+
+        # Flag sync ones as started to avoid window with background thread.
+        $sync = $sync ? "NOW()" : "NULL";
+        $this->dbhm->preExec("INSERT INTO users_exports (userid, tag, started) VALUES (?, ?, $sync);", [
             $this->id,
             $tag
         ]);
