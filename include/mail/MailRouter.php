@@ -667,7 +667,7 @@ class MailRouter
                                         if ($this->log) { error_log("Created message $mid"); }
 
                                         $m->chatByEmail($mid, $this->msg->getID());
-                                        }
+                                    }
 
                                     # Add any photos.
                                     $this->addPhotosToChat($chatid);
