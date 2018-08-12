@@ -86,7 +86,7 @@ before_install:
   # Install composer dependencies.
   - travis_retry composer self-update
   - cd composer
-  - composer install
+  - travis_retry composer install
   - cd ..
 
   # Set up the environment we need for running our UT.
