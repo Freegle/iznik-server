@@ -48,6 +48,11 @@ define('TWITTER_ACCOUNT_SECRET', 'zzz');
 define('TWILIO_SID', 'zzzz');
 define('TWILIO_AUTH', 'zzzz');
 define('TWILIO_NUMBER', 'zzzz');
+define('TWILIO_FROM', 'zzz');
+define('TWILIO_TEST_SID', 'AC7c44dd2723b38c4525befe274be0a104');
+define('TWILIO_TEST_AUTHTOKEN', '567b8afd6eeb940cf83e67c749f2cd21');
+define('TWILIO_TEST_FROM', '+15005550006');
+define('TWILIO_TEST_FROM_INVALID', '+15005550001');
 
 # We access PayPal to retrieve info on donations
 define('PAYPAL_USERNAME', 'zzzz');

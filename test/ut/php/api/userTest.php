@@ -571,6 +571,10 @@ class userAPITest extends IznikAPITestCase {
         self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_UP]);
         self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
 
+        # No API call for showing rated except export which is a bit of a faff.
+        $rated = $this->user->getRated();
+        self::assertEquals($uid, $rated[0]['ratee']);
+
         $ret = $this->call('user', 'POST', [
             'action' => 'Rate',
             'ratee' => $uid,

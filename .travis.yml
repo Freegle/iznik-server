@@ -20,8 +20,8 @@ branches:
     master
 before_install:
   # We need beanstalkd for backgrounding
-  - sudo apt-get update
-  - sudo apt-get install beanstalkd
+  - travis_retry sudo apt-get update
+  - travis_retry sudo apt-get install beanstalkd
 
   # SpamAssasin for filtering.
   - sudo mv /opt/jdk_switcher/jdk_switcher.sh /tmp
@@ -36,7 +36,7 @@ before_install:
   - sudo service spamassassin start
 
   # GeoIP
-  - wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz
+  - travis_retry wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz
   - gzip -d GeoLite2-Country.mmdb.gz
   - sudo mv GeoLite2-Country.mmdb /usr/share/GeoIP
   - sudo apt-get install php5-geoip

@@ -5135,7 +5135,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($num);
     }
 
-    public function sms($msg, $url)
+    public function sms($msg, $url, $from = TWILIO_FROM, $sid = TWILIO_SID, $auth = TWILIO_AUTH)
     {
         $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1;", [
             $this->id
@@ -5145,17 +5145,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             try {
                 $last = presdef('lastsent', $phone, NULL);
                 $last = $last ? strtotime($last) : NULL;
-                error_log("Last $last");
 
                 # Only send one SMS per day.  This keeps the cost down.
                 if (!$last || (time() - $last > 24 * 60 * 60)) {
-                    $client = new Client(TWILIO_SID, TWILIO_AUTH);
+                    $client = new Client($sid, $auth);
 
                     $text = "$msg Click $url Don't reply to this text.  No more texts sent today.";
                     $rsp = $client->messages->create(
                         $this->formatPhone($phone['number']),
                         array(
-                            'from' => TWILIO_FROM,
+                            'from' => $from,
                             'body' => $text,
                             'statusCallback' => 'https://' . USER_SITE . '/twilio/status.php'
                         )

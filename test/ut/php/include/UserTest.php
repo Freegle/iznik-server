@@ -1203,5 +1203,25 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testPhone() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+
+        $u->addPhone('01234 567890');
+        $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
+
+        # Again - too recent to send
+        $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
+
+        # Test with error.
+        $u->removePhone();
+        $u->addPhone('+15005550001');
+        $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
