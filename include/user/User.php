@@ -1477,10 +1477,11 @@ class User extends Entity
         $ret = [];
         $start = date('Y-m-d', strtotime("90 days ago"));
 
-        $replies = $this->dbhr->preQuery("SELECT COUNT(DISTINCT refmsgid) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND chattype = ?;", [
+        $replies = $this->dbhr->preQuery("SELECT COUNT(DISTINCT refmsgid) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND chattype = ? AND type = ?;", [
             $this->id,
             $start,
-            ChatRoom::TYPE_USER2USER
+            ChatRoom::TYPE_USER2USER,
+            ChatMessage::TYPE_INTERESTED
         ]);
 
         $ret['replies'] = $replies[0]['count'];
