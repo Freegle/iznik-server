@@ -135,6 +135,10 @@ class volunteeringTest extends IznikTestCase {
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
         assertEquals(1, count($volunteerings));
 
+        $ctx = NULL;
+        $volunteerings = $c->listForGroup(FALSE, $this->groupid, $ctx);
+        assertEquals(1, count($volunteerings));
+
         $this->dbhm->preExec("DELETE FROM volunteering_dates WHERE id = $did;");
 
         # Should now expire
@@ -155,6 +159,7 @@ class volunteeringTest extends IznikTestCase {
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
         assertEquals(1, count($volunteerings));
+        self::assertEquals($id, $volunteerings[0]['id']);
 
         # Now make it old enough to expire.
         $c->setPrivate('added', '2017-01-01');
@@ -164,6 +169,34 @@ class volunteeringTest extends IznikTestCase {
         $c->expire($id);
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
         assertEquals(0, count($volunteerings));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSystemWide() {
+        error_log(__METHOD__);
+
+        $c = new Volunteering($this->dbhr, $this->dbhm);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addEmail('test@test.com');
+
+        $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        assertNotNull($id);
+
+        self::assertGreaterThan(0, $c->systemWideCount());
+
+        $c->setPrivate('pending', 0);
+
+        # Should see it as not yet expired.
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $ctx = NULL;
+        $volunteerings = $c->listForUser($uid, FALSE, TRUE, $ctx);
+        assertEquals(1, count($volunteerings));
+        self::assertEquals($id, $volunteerings[0]['id']);
 
         error_log(__METHOD__ . " end");
     }
