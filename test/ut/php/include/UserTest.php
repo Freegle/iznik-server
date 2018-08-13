@@ -1193,7 +1193,7 @@ class userTest extends IznikTestCase {
     public function testRetention() {
         error_log(__METHOD__);
 
-        $u = User::get($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid1 = $u->create('Test', 'User', 'Test User');
         $uid2 = $u->create('Test', 'User', 'Test User');
 
