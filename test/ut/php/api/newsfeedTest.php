@@ -36,6 +36,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $l = new Location($this->dbhr, $this->dbhm);
         $this->areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
+        $areaatts = $l->getPublic();
         assertNotNull($this->areaid);
         $this->pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $this->fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
@@ -44,6 +45,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->uid = $this->user->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->user->setPrivate('lastlocation', $this->fullpcid);
+        $this->user->setSetting('mylocation', $areaatts);
+        assertEquals('Tuvalu Central', $this->user->getPublicLocation()['display']);
 
         $this->user2 = User::get($this->dbhr, $this->dbhm);
         $this->uid2 = $this->user2->create(NULL, NULL, 'Test User');

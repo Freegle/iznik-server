@@ -1587,6 +1587,7 @@ class MailRouterTest extends IznikTestCase {
         assertTrue($m->isPending($gid));
 
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        self::assertEquals(MessageCollection::APPROVED, $u->postToCollection($gid));
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);

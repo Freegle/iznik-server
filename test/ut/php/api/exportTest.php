@@ -48,6 +48,17 @@ class exportAPITest extends IznikAPITestCase {
     public function testExport() {
         error_log(__METHOD__);
 
+        # Add some settings for coverage.
+        $this->user->setPrivate('settings', json_encode([
+            'email' => TRUE,
+            'emailmine' => FALSE,
+            'push' => TRUE,
+            'facebook' => TRUE,
+            'app' => TRUE
+        ]));
+
+        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
+
         # Try logged out - should fail
         $_SESSION['id'] = NULL;
 

@@ -629,5 +629,14 @@ class userAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function  testGravatar() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        self::assertNotNull($u->gravatar('edward@ehibbert.org.uk'));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

@@ -1092,11 +1092,6 @@ class User extends Entity
                 $active = $this->activeModForGroup($group['groupid'], $one['mysettings']);
 
                 if ($amod && $active) {
-                    if (!$g) {
-                        # We need to have an actual group object for this.
-                        $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                    }
-
                     # Give a summary of outstanding work.
                     $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
                 }
@@ -4383,7 +4378,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if ($settings) {
             $settings = json_decode($settings, TRUE);
 
-            $location = presdef('id', $settings['mylocation'], NULL);
+            $location = presdef('id', presdef('mylocation', $settings, []), NULL);
 
             if ($location) {
                 $l = new Location($this->dbhr, $this->dbhm, $location);
