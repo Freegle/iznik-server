@@ -4089,7 +4089,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     public function listInvitations()
     {
         $ret = [];
-        $invites = $this->dbhr->preQuery("SELECT id, email, date, outcome, outcometimestamp FROM users_invitations WHERE userid = ?;", [
+
+        # Don't show old invitations - unaccepted ones could languish for ages.
+        $mysqltime = date('Y-m-d', strtotime("30 days ago"));
+        $invites = $this->dbhr->preQuery("SELECT id, email, date, outcome, outcometimestamp FROM users_invitations WHERE userid = ? AND date > '$mysqltime';", [
             $this->id
         ]);
 
