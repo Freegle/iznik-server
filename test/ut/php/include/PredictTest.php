@@ -12,7 +12,7 @@ require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class ProfileTest extends IznikTestCase {
+class PredictTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() {
@@ -61,7 +61,7 @@ class ProfileTest extends IznikTestCase {
         # Now train on these.  This means we'll work on both live and Travis; we might include a few live ratings
         # but that's ok.
         error_log("Train on test");
-        $p = new Profile($this->dbhr, $this->dbhm);
+        $p = new Predict($this->dbhr, $this->dbhm);
         list ($accuracy, $count) = $p->train($minratingid);
 
         error_log("Accuracy $accuracy on $count");
@@ -78,7 +78,7 @@ class ProfileTest extends IznikTestCase {
         # Now repeat the train and check on whatever is in the DB.  On Travis this will be the same, but if we
         # are running on a real DB it will act as a check against this going rogue in production.
         error_log("Train on rest");
-        $p = new Profile($this->dbhr, $this->dbhm);
+        $p = new Predict($this->dbhr, $this->dbhm);
         list ($accuracy, $count) = $p->train();
         self::assertGreaterThan(0.8, $accuracy);
         self::assertGreaterThanOrEqual(200, $count);

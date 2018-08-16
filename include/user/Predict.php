@@ -16,7 +16,7 @@ use Phpml\Classification\SVC;
 use Phpml\SupportVectorMachine\Kernel;
 use Phpml\Classification\NaiveBayes;
 
-class Profile extends Entity
+class Predict extends Entity
 {
     const CORPUS_SIZE = 2000;
 
@@ -60,7 +60,7 @@ class Profile extends Entity
 
         # Using id DESC means that we will adapt slowly over time if the way people rate changes.
         $minq = $minrating ? " WHERE id >= $minrating" : '';
-        $ratings = $this->dbhr->preQuery("SELECT * FROM ratings $minq ORDER BY id DESC LIMIT " . Profile::CORPUS_SIZE . ";");
+        $ratings = $this->dbhr->preQuery("SELECT * FROM ratings $minq ORDER BY id DESC LIMIT " . Predict::CORPUS_SIZE . ";");
 
         if (count($ratings)) {
             foreach ($ratings as $rating) {
