@@ -1,3 +1,2 @@
 #!/bin/bash
-cd /var/www/iznik/scripts/incoming
-php bounce.php >> /tmp/iznik_bounce.out 2>&1
+php /var/www/iznik/scripts/incoming/bounce.php >> /tmp/iznik_bounce.out 2>&1

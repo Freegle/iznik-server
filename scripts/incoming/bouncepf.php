@@ -15,4 +15,5 @@ while(!feof(STDIN))
 }
 
 $b = new Bounce($dbhr, $dbhm);
-$b->save($to, $msg);
+$id = $b->save($to, $msg);
+error_log("Saved bounce $id $to");
