@@ -5213,6 +5213,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     }
 
     public function rate($rater, $ratee, $rating) {
+        $ret = NULL;
+
         if ($rater != $ratee) {
             # Can't rate yourself.
             $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating) VALUES (?, ?, ?);", [
@@ -5220,7 +5222,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $ratee,
                 $rating
             ]);
+
+            $ret = $this->dbhm->lastInsertId();
         }
+
+        return($ret);
     }
 
     public function getRating() {
