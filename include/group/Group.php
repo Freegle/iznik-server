@@ -698,7 +698,7 @@ class Group extends Entity
     public function processSetMembers($groupid = NULL) {
         # This is called from the background script.  It's serialised, so we don't need to worry about other
         # copies.
-        $sql = $groupid ? "SELECT * FROM memberships_yahoo_dump WHERE groupid = $groupid;" : "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed AND backgroundok = 1 AND groupid != 353440;";
+        $sql = $groupid ? "SELECT * FROM memberships_yahoo_dump WHERE groupid = $groupid;" : "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL AND backgroundok = 1 UNION SELECT * FROM memberships_yahoo_dump WHERE needsprocessing = 1 AND backgroundok = 1;";
         $groups = $this->dbhr->preQuery($sql);
         $count = 0;
 
