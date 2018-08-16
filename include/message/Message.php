@@ -112,7 +112,9 @@ class Message
         "due to return",
         "annual leave",
         "on holiday",
-        "vacation reply"
+        "vacation reply",
+        "We respond to emails as quickly as we can",
+        "this email address is no longer in use"
     ];
 
     private $autoreply_bodies = [
