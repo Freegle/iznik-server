@@ -15,6 +15,7 @@ use Phpml\Metric\Accuracy;
 use Phpml\Classification\SVC;
 use Phpml\SupportVectorMachine\Kernel;
 use Phpml\Classification\NaiveBayes;
+use Phpml\ModelManager;
 
 class Predict extends Entity
 {
@@ -150,5 +151,22 @@ class Predict extends Entity
 
     public function predict($samples) {
         return($this->classifier->predict($samples));       
+    }
+
+    public function getModel() {
+        $fn = tempnam('/tmp', 'iznik.predict.');
+        $modelManager = new ModelManager();
+        $modelManager->saveToFile($this->classifier, $fn);
+        $data = file_get_contents($fn);
+        unlink($fn);
+        return($data);
+    }
+
+    public function loadModel($data) {
+        $fn = tempnam('/tmp', 'iznik.predict.');
+        file_put_contents($fn, $data);
+        $modelManager = new ModelManager();
+        $this->classifier = $modelManager->restoreFromFile($fn);
+        unlink($fn);
     }
 }

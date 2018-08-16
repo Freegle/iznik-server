@@ -86,6 +86,14 @@ class PredictTest extends IznikTestCase {
         error_log("\n\nRest data accuracy $accuracy predicted Up $up Down $down, right $right (" . (100 * $right / ($wrong + $right)) . "%) wrong $wrong badly wrong $badlywrong (" . (100 * $badlywrong / ($wrong + $right)) . "%)");
         self::assertLessThan(5, 100 * $badlywrong / ($up + $down));
 
+        $data = $p->getModel();
+        error_log("Length of model " . strlen($data));
+
+        $start = microtime(TRUE);
+        $p->loadModel($data);
+        $end = microtime(TRUE);
+        error_log("Model load took " . ($end - $start));
+
         error_log(__METHOD__ . " end");
     }
 }

@@ -205,6 +205,7 @@ class MailRouter
                 $groupid = $matches[1];
                 $userid = $matches[2];
                 $key = $matches[3];
+
                 if ($log) {
                     error_log("Confirm moderation status for $userid on $groupid using $key");
                 }
@@ -534,6 +535,7 @@ class MailRouter
         } else if (preg_match('/digestoff-(.*)-(.*)@/', $to, $matches) == 1) {
             # Request to turn email off.
             $uid = intval($matches[1]);
+            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
             $groupid = intval($matches[2]);
 
             if ($uid && $groupid) {
@@ -546,6 +548,7 @@ class MailRouter
             # Read receipt
             $chatid = intval($matches[1]);
             $userid = intval($matches[2]);
+            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $userid;");
             $msgid = intval($matches[3]);
             error_log("Read receipt $chatid, $userid, $msgid");
 
@@ -558,6 +561,7 @@ class MailRouter
         } else if (preg_match('/eventsoff-(.*)-(.*)@/', $to, $matches) == 1) {
             # Request to turn events email off.
             $uid = intval($matches[1]);
+            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
             $groupid = intval($matches[2]);
 
             if ($uid && $groupid) {
@@ -569,6 +573,7 @@ class MailRouter
         } else if (preg_match('/newslettersoff-(.*)@/', $to, $matches) == 1) {
             # Request to turn newsletters off.
             $uid = intval($matches[1]);
+            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
 
             if ($uid) {
                 $d = new Newsletter($this->dbhr, $this->dbhm);
@@ -579,6 +584,7 @@ class MailRouter
         } else if (preg_match('/relevantoff-(.*)@/', $to, $matches) == 1) {
             # Request to turn "interested in" off.
             $uid = intval($matches[1]);
+            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
 
             if ($uid) {
                 $d = new Relevant($this->dbhr, $this->dbhm);
@@ -589,6 +595,7 @@ class MailRouter
         } else if (preg_match('/volunteeringoff-(.*)-(.*)@/', $to, $matches) == 1) {
             # Request to turn volunteering email off.
             $uid = intval($matches[1]);
+            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
             $groupid = intval($matches[2]);
 
             if ($uid && $groupid) {
@@ -600,6 +607,7 @@ class MailRouter
         } else if (preg_match('/notificationmailsoff-(.*)@/', $to, $matches) == 1) {
             # Request to turn notification email off.
             $uid = intval($matches[1]);
+            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
 
             if ($uid) {
                 $d = new Notifications($this->dbhr, $this->dbhm);
@@ -640,6 +648,7 @@ class MailRouter
                             $envfrom = $this->msg->getFromaddr();
                             $u = new User($this->dbhr, $this->dbhm);
                             $uid = $u->findByEmail($envfrom);
+                            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
 
                             if ($this->log) { error_log("Found $uid from $envfrom"); }
 
@@ -706,6 +715,7 @@ class MailRouter
                 }
 
                 $u = new User($this->dbhr, $this->dbhm, $uid);
+                $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
 
                 # We should always find them as Message::parse should create them
                 if ($u->getId()) {
@@ -727,6 +737,7 @@ class MailRouter
                 $envfrom = $this->msg->getEnvelopeFrom();
                 $u = new User($this->dbhr, $this->dbhm);
                 $uid = $u->findByEmail($envfrom);
+                $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
 
                 if ($uid) {
                     $u = new User($this->dbhr, $this->dbhm, $uid);
@@ -742,7 +753,7 @@ class MailRouter
             $spamscore = NULL;
 
             $groups = $this->msg->getGroups(FALSE, FALSE);
-            error_log("Got groups " . var_export($groups, TRUE));
+            #error_log("Got groups " . var_export($groups, TRUE));
 
             # Check if the group wants us to check for spam.
             # TODO Multiple groups?
@@ -908,6 +919,7 @@ class MailRouter
                         if ($log) { error_log("Email source, user $uid"); }
 
                         if ($uid) {
+                            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
 
                             # Drop unless the email comes from a group member.
@@ -974,6 +986,7 @@ class MailRouter
 
                             $m = new Message($this->dbhr, $this->dbhm, $msgid);
                             $u = User::get($this->dbhr, $this->dbhm, $fromid);
+                            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $fromid;");
 
                             if ($m->getID() && $u->getId() && $m->getFromuser()) {
                                 # The email address that we replied from might not currently be attached to the
@@ -1033,6 +1046,7 @@ class MailRouter
                         } else if (!$this->msg->isBounce()) {
                             $chatid = intval($matches[1]);
                             $userid = intval($matches[2]);
+                            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $userid;");
                             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
                             $u = User::get($this->dbhr, $this->dbhm, $userid);
 
@@ -1088,6 +1102,7 @@ class MailRouter
                             #
                             # We don't want to process replies to ModTools user.  This can happen if MT is a member
                             # rather than a mod on a group.
+                            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = " . $this->msg->getFromuser() . ";");
                             $original = $this->msg->findFromReply($uid);
                             if ($log) { error_log("Paired with $original"); }
 
