@@ -4,7 +4,7 @@ if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
 require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/Profile.php';
+require_once IZNIK_BASE . '/include/user/Predict.php';
 require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
 
