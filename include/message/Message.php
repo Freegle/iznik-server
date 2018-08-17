@@ -112,9 +112,7 @@ class Message
         "due to return",
         "annual leave",
         "on holiday",
-        "vacation reply",
-        "We respond to emails as quickly as we can",
-        "this email address is no longer in use"
+        "vacation reply"
     ];
 
     private $autoreply_bodies = [
@@ -130,7 +128,9 @@ class Message
         "I am currently away",
         "Thanks for your email enquiry",
         "don't check this very often",
-        "below to complete the verification process"
+        "below to complete the verification process",
+        "We respond to emails as quickly as we can",
+        "this email address is no longer in use"
     ];
     
     static public function checkType($type) {
