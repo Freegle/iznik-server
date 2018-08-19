@@ -2533,14 +2533,30 @@ class messageAPITest extends IznikAPITestCase
 
         # Now make it look older.
         $this->dbhm->preExec("UPDATE messages_outcomes_intended SET timestamp = DATE_SUB(timestamp, INTERVAL 3 HOUR) WHERE msgid = ?;", [ $id ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = DATE_SUB(arrival, INTERVAL 20 DAY) WHERE msgid = ?;", [ $id ]);
         assertEquals(1, $this->dbhm->rowsAffected());
         assertEquals(1, $m->processIntendedOutcomes($id));
         $atts = $m->getPublic();
         assertEquals(0, count($atts['outcomes']));
 
+        # The arrival time should have been bumped.
         $groups = $m->getGroups(FALSE, FALSE);
         $arrival2 = strtotime($groups[0]['arrival']);
         assertGreaterThan($arrival, $arrival2);
+
+        # Now try again; shouldn't repost as recently done.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'OutcomeIntended',
+            'outcome' => Message::OUTCOME_REPOST,
+            'dup' => 2
+        ]);
+
+        self::assertEquals(0, $ret['ret']);
+
+        $this->dbhm->preExec("UPDATE messages_outcomes_intended SET timestamp = DATE_SUB(timestamp, INTERVAL 3 HOUR) WHERE msgid = ?;", [ $id ]);
+        assertEquals(1, $this->dbhm->rowsAffected());
+        assertEquals(0, $m->processIntendedOutcomes($id));
 
         $m->delete("UT delete");
 

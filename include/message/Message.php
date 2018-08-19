@@ -3868,19 +3868,27 @@ class Message
                 switch ($intended['outcome']) {
                     case 'Taken':
                         $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);
+                        $count++;
                         break;
                     case 'Received':
                         $m->mark(Message::OUTCOME_RECEIVED, NULL, NULL, NULL);
+                        $count++;
                         break;
                     case 'Withdrawn':
                         $m->withdraw(NULL, NULL);
+                        $count++;
                         break;
                     case 'Repost':
-                        $m->repost();
+                        # We might get an intended outcome of repost multiple times if they click on the reminder
+                        # multiple times with more than 30 minutes in between.  So we shouldn't repost if the
+                        # message is not currently eligible to be reposted.
+                        $atts = $m->getPublic(FALSE, FALSE, FALSE);
+                        if ($atts['canrepost']) {
+                            $m->repost();
+                            $count++;
+                        }
                         break;
                 }
-
-                $count++;
             }
         }
 
