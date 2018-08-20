@@ -21,6 +21,8 @@ class Predict extends Entity
 {
     const CORPUS_SIZE = 2000;
 
+    const WORD_REGEX = "/[^\w]*([\s]+[^\w]*|$)/";
+
     private $classifier, $samples, $users;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
@@ -51,8 +53,8 @@ class Predict extends Entity
     public function train($minrating = NULL)
     {
         # Train our model using thumbs up/down ratings which users have given, and the chat messages.
-        $vectorizer = new TokenCountVectorizer(new WordTokenizer());
-        $tfIdfTransformer = new TfIdfTransformer();
+        $this->vectorizer = new TokenCountVectorizer(new WordTokenizer());
+        $this->tfIdfTransformer = new TfIdfTransformer();
 
         $this->samples = [];
         $labels = [];
@@ -75,12 +77,16 @@ class Predict extends Entity
                 }
             }
 
-            $vectorizer->fit($this->samples);
-            $vectorizer->transform($this->samples);
-            unset($vectorizer);
+            # fit() builds a dictionary from this text.
+            $this->vectorizer->fit($this->samples);
 
-            $tfIdfTransformer->fit($this->samples);
-            $tfIdfTransformer->transform($this->samples);
+            # transform() converts text into vectors.
+            $this->vectorizer->transform($this->samples);
+
+            $this->vocabulary = $this->vectorizer->getVocabulary();
+
+            $this->tfIdfTransformer->fit($this->samples);
+            $this->tfIdfTransformer->transform($this->samples);
 
             $dataset = new ArrayDataset($this->samples, $labels);
             $randomSplit = new StratifiedRandomSplit($dataset, 0.1);
@@ -108,9 +114,9 @@ class Predict extends Entity
         $right = 0;
         $up = 0;
         $down = 0;
-        
-        $predicts = $this->predict($this->samples);
-        
+
+        $predicts = $this->classifier->predict($this->samples);
+
         for ($i = 0; $i < count($this->samples); $i++) {
             $pred = $predicts[$i];
 
@@ -149,8 +155,26 @@ class Predict extends Entity
         return([ $up, $down, $right, $wrong, $badlywrong ]);
     }
 
-    public function predict($samples) {
-        return($this->classifier->predict($samples));       
+    public function predict($uid) {
+        # Predict just one user.
+        $text = $this->getTextForUser($uid);
+
+        # The text might contains words which weren't present in the data set we used to train.  We have to remove
+        # these otherwise the transform will produce vectors which aren't valid.
+        $w = new WordTokenizer();
+        $words = $w->tokenize($text);
+        $words = array_intersect($words, $this->vocabulary);
+        $samples = [ implode(' ', $words) ];
+
+        # We use the vectorizer and tfIdfTransformer we set up during train.  We don't call fit because that
+        # would wipe them.
+        $this->vectorizer->transform($samples);
+        $this->tfIdfTransformer->transform($samples);
+
+        $predicts = $this->classifier->predict($samples);
+        $ret = $predicts[0];
+
+        return($ret);
     }
 
     public function getModel() {
@@ -159,14 +183,15 @@ class Predict extends Entity
         $modelManager->saveToFile($this->classifier, $fn);
         $data = file_get_contents($fn);
         unlink($fn);
-        return($data);
+        return([ $data, $this->vocabulary ]);
     }
 
-    public function loadModel($data) {
+    public function loadModel($model, $vocabulary) {
         $fn = tempnam('/tmp', 'iznik.predict.');
-        file_put_contents($fn, $data);
+        file_put_contents($fn, $model);
         $modelManager = new ModelManager();
         $this->classifier = $modelManager->restoreFromFile($fn);
+        $this->vocabulary = $vocabulary;
         unlink($fn);
     }
 }
