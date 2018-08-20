@@ -3864,10 +3864,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     public function getNotificationPayload($modtools)
     {
         # This gets a notification count/title/message for this user.
-        $count = 0;
+        $total = 0;
+        $notifcount = 0;
+        $chatcount = 0;
         $title = NULL;
         $message = NULL;
-        $unseen = [];
         $chatids = [];
         $route = NULL;
 
@@ -3875,16 +3876,17 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
             $unseen = $r->allUnseenForUser($this->id, [ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD], $modtools);
-            $count = count($unseen);
+            $chatcount = count($unseen);
+            $total = $chatcount;
             foreach ($unseen as $un) {
                 $chatids[] = $un['chatid'];
             };
 
             #error_log("Chats with unseen " . var_export($chatids, TRUE));
             $n = new Notifications($this->dbhr, $this->dbhm);
-            $notifs = $n->countUnseen($this->id);
+            $notifcount = $n->countUnseen($this->id);
 
-            if ($count === 1) {
+            if ($total === 1) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
                 $atts = $r->getPublic($this);
                 $title = $atts['name'];
@@ -3897,22 +3899,22 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
                 $route = "/chat/" . $unseen[0]['chatid'];
 
-                if ($notifs) {
-                    $count += $notifs;
+                if ($notifcount) {
+                    $total += $notifcount;
                 }
-            } else if ($count > 1) {
-                $title = "You have $count new messages";
+            } else if ($total > 1) {
+                $title = "You have $total new messages";
                 $route = "/chats";
 
-                if ($notifs) {
-                    $count += $notifs;
-                    $title .= " and $notifs notification" . ($notifs == 1 ? '' : 's');
+                if ($notifcount) {
+                    $total += $notifcount;
+                    $title .= " and $notifcount notification" . ($notifcount == 1 ? '' : 's');
                 }
             } else {
                 # Add in the notifications you see primarily from the newsfeed.
-                if ($notifs) {
-                    $count += $notifs;
-                    $title = "You have $notifs notification" . ($notifs == 1 ? '' : 's');
+                if ($notifcount) {
+                    $total += $notifcount;
+                    $title = "You have $notifcount notification" . ($notifcount == 1 ? '' : 's');
                     $route = '/';
                 }
             }
@@ -3936,13 +3938,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if (pres('pendingmembers', $work) > 0) {
                 $title .= $work['pendingmembers'] . ' pending member' . (($work['pendingmembers'] != 1) ? 's' : '') . " \n";
-                $count += $work['pendingmembers'];
+                $total += $work['pendingmembers'];
                 $route = 'modtools/members/pending';
             }
 
             if (pres('pending', $work) > 0) {
                 $title .= $work['pending'] . ' pending message' . (($work['pending'] != 1) ? 's' : '') . " \n";
-                $count += $work['pending'];
+                $total += $work['pending'];
                 $route = 'modtools/messages/pending';
             }
 
@@ -3950,7 +3952,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
 
-        return ([$count, $title, $message, $chatids, $route]);
+        return ([$total, $chatcount, $notifcount, $title, $message, $chatids, $route]);
     }
 
     public function hasPermission($perm)

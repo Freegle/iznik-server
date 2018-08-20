@@ -191,14 +191,15 @@ class PushNotifications
                         ];
 
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
-                        list ($chatcount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
-                        #error_log("Notify for $userid count $chatcount title $title message $message");
+                        list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
 
                         $message = ($chatcount === 0) ? "" : $message;
 
                         $payload = [
-                            'badge' => $chatcount,
-                            'count' => $chatcount,
+                            'badge' => $total,
+                            'count' => $total,
+                            'chatcount' => $chatcount,
+                            'notifcount' => $notifscount,
                             'title' => $title,
                             'message' => $message,
                             'chatids' => $chatids,
@@ -219,11 +220,13 @@ class PushNotifications
                         $params = [];
 
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
-                        list ($chatcount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
+                        list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
 
                         $payload = [
-                            'badge' => $chatcount,
-                            'count' => $chatcount,
+                            'badge' => $total,
+                            'count' => $total,
+                            'chatcount' => $chatcount,
+                            'notifcount' => $notifscount,
                             'title' => $title,
                             'message' => $message,
                             'chatids' => $chatids,
