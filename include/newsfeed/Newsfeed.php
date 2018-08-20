@@ -786,7 +786,7 @@ class Newsfeed extends Entity
 
                 switch ($feed['type']) {
                     case Newsfeed::TYPE_ABOUT_ME: {
-                        $str = 'Wrote a bit about themself: "' . $str . '"';
+                        $str = '"' . $str . '"';
                         break;
                     }
                 }
