@@ -77,7 +77,7 @@ class PredictTest extends IznikTestCase {
 
         # Check the actual predict user call.
         error_log("Predict good user {$goodusers[0]}");
-        assertEquals(User::RATING_UP, $p->predict($goodusers[0]));
+        assertEquals(User::RATING_UP, $p->mapredict($goodusers[0]));
         error_log("Predict bad user {$badusers[0]}");
         assertEquals(User::RATING_DOWN, $p->predict($badusers[0]));
 

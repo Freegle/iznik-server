@@ -19,11 +19,11 @@ use Phpml\ModelManager;
 
 class Predict extends Entity
 {
-    const CORPUS_SIZE = 2000;
+    const CORPUS_SIZE = 1500;
 
     const WORD_REGEX = "/[^\w]*([\s]+[^\w]*|$)/";
 
-    private $classifier, $samples, $users;
+    private $classifier, $samples, $users, $vocabulary;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -41,7 +41,7 @@ class Predict extends Entity
         $chatmsgs = $this->dbhr->preQuery("SELECT DISTINCT message FROM chat_messages WHERE userid = ? AND message IS NOT NULL AND type = ? AND date >= '$mysqltime';", [
             $userid,
             ChatMessage::TYPE_INTERESTED
-        ]);
+        ], FALSE, FALSE);
 
         foreach ($chatmsgs as $chatmsg) {
             $msg .= " {$chatmsg['message']}";
@@ -156,23 +156,39 @@ class Predict extends Entity
     }
 
     public function predict($uid) {
-        # Predict just one user.
-        $text = $this->getTextForUser($uid);
+        # Check to see if we have a recent prediction.
+        $mysqltime = date ("Y-m-d", strtotime("24 hours ago"));
+        $predictions = $this->dbhr->preQuery("SELECT * FROM predictions WHERE userid = ? AND timestamp > '$mysqltime';", [
+            $uid
+        ], FALSE, FALSE);
 
-        # The text might contains words which weren't present in the data set we used to train.  We have to remove
-        # these otherwise the transform will produce vectors which aren't valid.
-        $w = new WordTokenizer();
-        $words = $w->tokenize($text);
-        $words = array_intersect($words, $this->vocabulary);
-        $samples = [ implode(' ', $words) ];
+        $ret = NULL;
 
-        # We use the vectorizer and tfIdfTransformer we set up during train.  We don't call fit because that
-        # would wipe them.
-        $this->vectorizer->transform($samples);
-        $this->tfIdfTransformer->transform($samples);
+        if (count($predictions)) {
+            $ret = $predictions[0]['prediction'];
+        } else {
+            # Predict just one user.
+            $text = $this->getTextForUser($uid);
 
-        $predicts = $this->classifier->predict($samples);
-        $ret = $predicts[0];
+            # The text might contains words which weren't present in the data set we used to train.  We have to remove
+            # these otherwise the transform will produce vectors which aren't valid.
+            $w = new WordTokenizer();
+            $words = $w->tokenize($text);
+            $words = array_intersect($words, $this->vocabulary);
+            $samples = [ implode(' ', $words) ];
+
+            # We use the vectorizer and tfIdfTransformer we set up during train.  We don't call fit because that
+            # would wipe them.
+            $this->vectorizer->transform($samples);
+            $this->tfIdfTransformer->transform($samples);
+
+            $predicts = $this->classifier->predict($samples);
+            $ret = $predicts[0];
+            $this->dbhm->preExec("REPLACE INTO predictions (userid, prediction) VALUES (?, ?);", [
+                $uid,
+                $ret
+            ]);
+        }
 
         return($ret);
     }
