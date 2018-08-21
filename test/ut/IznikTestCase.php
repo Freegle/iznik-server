@@ -62,6 +62,8 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->tidy();
 
         @session_destroy();
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
         @session_start();
 
         # Clear duplicate protection.
