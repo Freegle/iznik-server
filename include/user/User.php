@@ -109,6 +109,7 @@ class User extends Entity
     private $spam_users = NULL;
     private $ouremailid = NULL;
     private $emails = NULL;
+    private $emailsord = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -341,11 +342,12 @@ class User extends Entity
         # Don't return canon - don't need it on the client.
         $ordq = $recent ? 'id' : 'preferred';
 
-        if (!$this->emails) {
+        if (!$this->emails || $ordq != $this->emailsord) {
             $bounceq = $nobouncing ? " AND bounced IS NULL " : '';
             $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? $bounceq ORDER BY $ordq DESC, email ASC;";
             #error_log("$sql, {$this->id}");
             $this->emails = $this->dbhr->preQuery($sql, [$this->id]);
+            $this->emailsord = $ordq;
 
             foreach ($this->emails as &$email) {
                 $email['ourdomain'] = ourDomain($email['email']);
@@ -2448,7 +2450,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
                         $rc = $rc2 && $rc ? $rc2 : 0;
                     }
-
 
                     # Now move any id2 Yahoo memberships over to refer to id1 before we delete it.
                     # This might result in duplicates so we use IGNORE.
