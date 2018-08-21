@@ -19,6 +19,7 @@
     "geoip2/geoip2": "^2.3",
     "html2text/html2text": "^3.0",
     "minishlink/web-push": "2.0.1",
+    "kreait/firebase-php": "^4.0",
     "facebook/php-sdk-v4": "^5.1",
     "google/apiclient": "^1.1",
     "jenssegers/imagehash": "^0.4.0",

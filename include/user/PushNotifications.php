@@ -7,6 +7,8 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 use Minishlink\WebPush\WebPush;
 use Pheanstalk\Pheanstalk;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\ServiceAccount;
 
 class PushNotifications
 {
@@ -16,14 +18,22 @@ class PushNotifications
     const PUSH_ANDROID = 'Android';
     const PUSH_IOS = 'IOS';
     const PUSH_FCM = 'FCM';
+    const APPTYPE_MODTOOLS = 'ModTools';
+    const APPTYPE_USER = 'User';
 
-    private $dbhr, $dbhm, $log, $pheanstalk = NULL;
+    private $dbhr, $dbhm, $log, $pheanstalk = NULL, $firebase = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->log = new Log($dbhr, $dbhm);
+
+        $serviceAccount = ServiceAccount::fromJsonFile('/etc/firebase.json');
+        $this->firebase = (new Factory)
+            ->withServiceAccount($serviceAccount)
+            ->create();
+        $this->messaging = $this->firebase->getMessaging();
     }
 
     public function get($userid) {
@@ -45,12 +55,14 @@ class PushNotifications
 
     public function add($userid, $type, $val) {
         $rc = NULL;
+
         if ($userid) {
-            $apptype = MODTOOLS ? 'ModTools' : 'User';
+            $apptype = MODTOOLS ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER;
             $sql = "INSERT INTO users_push_notifications (`userid`, `type`, `subscription`, `apptype`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE userid = ?, type = ?, apptype = ?;";
             $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val, $apptype, $userid, $type, $apptype ]);
             Session::clearSessionCache();
         }
+
         return($rc);
     }
 
@@ -95,6 +107,55 @@ class PushNotifications
         try {
             #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
             switch ($notiftype) {
+                case PushNotifications::PUSH_FCM:
+                    # Everything is in one array as passed to this function; split it out into what we need
+                    # for FCM.
+                    $data = $payload;
+                    unset($data['title']);
+                    unset($data['message']);
+
+                    $message = CloudMessage::fromArray([
+                        'token' => $endpoint,
+                        'notification' => [
+                            'title' => $payload['title'],
+                            'body' => $payload['message']
+                        ],
+                        'data' => $data
+                    ]);
+
+                    # This could be either going to an Android or IOS device; add the platform-specific config
+                    # for both.
+                    $config = AndroidConfig::fromArray([
+                        'ttl' => '3600s',
+                        'priority' => 'normal',
+                        'notification' => [
+                            'title' => $payload['title'],
+                            'body' => $payload['message']
+                            # TODO icon, color?  Should default.
+                        ]
+                    ]);
+
+                    $message = $message->withApnsConfig($config);
+
+                    $config = ApnsConfig::fromArray([
+                        'headers' => [
+                            'apns-priority' => '10',
+                        ],
+                        'payload' => [
+                            'aps' => [
+                                'alert' => [
+                                    'title' => $payload['title'],
+                                    'body' => $payload['message'],
+                                ],
+                                'badge' => $payload['count']
+                            ]
+                        ],
+                    ]);
+
+                    $message = $message->withAndroidConfig($config);
+
+                    $this->messaging->send($message);
+                    break;
                 case PushNotifications::PUSH_GOOGLE:
                 case PushNotifications::PUSH_FIREFOX:
                 case PushNotifications::PUSH_ANDROID:
