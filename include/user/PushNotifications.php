@@ -33,11 +33,13 @@ class PushNotifications
         $this->dbhm = $dbhm;
         $this->log = new Log($dbhr, $dbhm);
 
-        $serviceAccount = ServiceAccount::fromJsonFile('/etc/firebase.json');
-        $this->firebase = (new Factory)
-            ->withServiceAccount($serviceAccount)
-            ->create();
-        $this->messaging = $this->firebase->getMessaging();
+        if (file_exists('/etc/firebase.json')) {
+            $serviceAccount = ServiceAccount::fromJsonFile('/etc/firebase.json');
+            $this->firebase = (new Factory)
+                ->withServiceAccount($serviceAccount)
+                ->create();
+            $this->messaging = $this->firebase->getMessaging();
+        }
     }
 
     public function get($userid) {
