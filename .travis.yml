@@ -97,7 +97,7 @@ script:
   - php $TRAVIS_BUILD_DIR/scripts/cron/exports.php&
 
   # Run the UT
-  - cd $TRAVIS_BUILD_DIR/http; ../composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php -dxdebug.coverage_enable=1 --coverage-clover test/ut/php/clover.xml --configuration test/ut/php/phpunit.xml test/ut/php/
+  - cd $TRAVIS_BUILD_DIR/http; ../composer/vendor/bin/phpunit --bootstrap composer/vendor/autoload.php -dxdebug.coverage_enable=1 --coverage-clover ../test/ut/php/clover.xml --configuration ../test/ut/php/phpunit.xml ../test/ut/php/
 
 after_script:
   - php composer/vendor/bin/php-coveralls -v
