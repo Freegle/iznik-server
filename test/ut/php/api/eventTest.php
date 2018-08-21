@@ -24,16 +24,6 @@ class eventsAPITest extends IznikAPITestCase
         $this->dbhm = $dbhm;
     }
 
-    protected function tearDown()
-    {
-        error_log("Tear_down");
-        parent::tearDown();
-    }
-
-    public function __construct()
-    {
-    }
-
     public function testBasic()
     {
         error_log(__METHOD__);

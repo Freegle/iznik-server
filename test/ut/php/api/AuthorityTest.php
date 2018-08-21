@@ -35,10 +35,6 @@ class authorityAPITest extends IznikAPITestCase
         parent::tearDown();
     }
 
-    public function __construct()
-    {
-    }
-
     public function testBasic()
     {
         error_log(__METHOD__);

@@ -31,15 +31,6 @@ class addressAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
-    public function __construct()
-    {
-    }
-
     public function testBasic()
     {
         error_log(__METHOD__);

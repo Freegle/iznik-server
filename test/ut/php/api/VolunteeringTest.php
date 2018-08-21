@@ -43,13 +43,6 @@ class volunteeringAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test vacancy' OR title = 'UTTest';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testCreate() {
         error_log(__METHOD__);
 

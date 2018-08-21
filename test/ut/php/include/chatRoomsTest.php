@@ -31,13 +31,6 @@ class chatRoomsTest extends IznikTestCase {
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testGroup() {
         error_log(__METHOD__);
 

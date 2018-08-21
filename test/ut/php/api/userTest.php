@@ -51,13 +51,6 @@ class userAPITest extends IznikAPITestCase {
         $this->plugin = new Plugin($this->dbhr, $this->dbhm);
     }
 
-    protected function tearDown() {
-//        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testRegister() {
         error_log(__METHOD__);
         

@@ -36,13 +36,6 @@ class itemAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testCreate() {
         error_log(__METHOD__);
 

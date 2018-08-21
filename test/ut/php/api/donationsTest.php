@@ -26,15 +26,6 @@ class donationsAPITest extends IznikAPITestCase
         $this->dbhm = $dbhm;
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
-    public function __construct()
-    {
-    }
-
     public function testBasic()
     {
         error_log(__METHOD__);

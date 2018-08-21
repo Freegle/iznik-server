@@ -25,13 +25,6 @@ class donationsTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

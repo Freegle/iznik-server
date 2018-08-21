@@ -43,13 +43,6 @@ class communityEventAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM communityevents WHERE title = 'Test event' OR title = 'UTTest';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testCreate() {
         error_log(__METHOD__);
 

@@ -25,10 +25,8 @@ class StoryTest extends IznikTestCase {
     }
 
     protected function tearDown() {
+        parent::tearDown ();
         $this->dbhm->preExec("DELETE FROM users_stories WHERE headline =  'Test';");
-    }
-
-    public function __construct() {
     }
 
     public function testCentral() {

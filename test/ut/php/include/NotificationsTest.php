@@ -58,13 +58,6 @@ class notificationsTest extends IznikTestCase {
         }
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function sendMock($mailer, $message) {
         $this->msgsSent[] = $message->toString();
     }

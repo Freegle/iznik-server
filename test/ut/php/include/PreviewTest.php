@@ -23,12 +23,6 @@ class PreviewTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM link_previews WHERE url = 'https://google.ca';");
     }
 
-    protected function tearDown() {
-    }
-
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

@@ -23,12 +23,6 @@ class RequestTest extends IznikTestCase {
         $this->dbhm = $dbhm;
     }
 
-    protected function tearDown() {
-    }
-
-    public function __construct() {
-    }
-
     public function testCentral() {
         error_log(__METHOD__);
 

@@ -30,7 +30,7 @@ function prepareSession($dbhr, $dbhm) {
         #error_log("prepare " . isset($_SESSION) . " id " . session_id());
         if (!isset($_SESSION) || session_id() == '') {
             #error_log("prepare start");
-            session_start();
+            @session_start();
         }
 
         # We might have a partner key which allows us access to the API when not logged in as a user.

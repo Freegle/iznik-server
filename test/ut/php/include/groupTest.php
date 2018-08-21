@@ -35,13 +35,6 @@ class groupTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users_emails WHERE users_emails.backwards LIKE 'moctset%';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testDefaults() {
         error_log(__METHOD__);
 

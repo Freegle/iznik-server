@@ -26,10 +26,8 @@ class AlertTest extends IznikTestCase {
     }
 
     protected function tearDown() {
+        parent::tearDown ();
         $this->dbhm->preExec("DELETE FROM alerts WHERE subject LIKE 'UT - please ignore';");
-    }
-
-    public function __construct() {
     }
 
     public function testMultiple() {

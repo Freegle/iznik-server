@@ -26,13 +26,6 @@ class userSearchAPITest extends IznikAPITestCase {
         $this->dbhm = $dbhm;
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testSpecial() {
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');

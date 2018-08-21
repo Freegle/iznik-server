@@ -59,15 +59,6 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->cid = $c->createGroupChat('test', $this->groupid);
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
-    public function __construct()
-    {
-    }
-
     public function testGroupGet()
     {
         error_log(__METHOD__);

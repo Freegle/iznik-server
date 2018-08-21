@@ -55,13 +55,6 @@ class stdMessageAPITest extends IznikAPITestCase {
         unset($_SESSION['id']);
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testCreate() {
         error_log(__METHOD__);
 

@@ -31,15 +31,6 @@ class messageAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
-    public function __construct()
-    {
-    }
-
     public function testLoggedOut() {
         error_log(__METHOD__);
 

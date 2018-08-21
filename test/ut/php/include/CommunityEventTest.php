@@ -28,13 +28,6 @@ class communityEventTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM communityevents WHERE title = 'Test event';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

@@ -65,9 +65,6 @@ class newsfeedAPITest extends IznikAPITestCase {
         parent::tearDown ();
     }
 
-    public function __construct() {
-    }
-
     public function sendMock($mailer, $message) {
         $this->msgsSent[] = $message->toString();
     }

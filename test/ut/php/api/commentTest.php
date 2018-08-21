@@ -39,13 +39,6 @@ class commentAPITest extends IznikAPITestCase {
         $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testBase() {
         error_log(__METHOD__);
 

@@ -37,9 +37,6 @@ class volunteeringTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title LIKE 'Test volunteering%';");
     }
 
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

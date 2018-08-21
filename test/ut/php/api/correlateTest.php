@@ -29,13 +29,6 @@ class correlateTest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = 'test@ilovefreegle.org';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testPending() {
         error_log(__METHOD__);
 

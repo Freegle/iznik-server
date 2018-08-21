@@ -26,9 +26,6 @@ class sessionClassTest extends IznikTestCase {
         $_SESSION['id'] = NULL;
     }
 
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

@@ -29,15 +29,6 @@ class imageAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
-    public function __construct()
-    {
-    }
-
     public function testApproved()
     {
         error_log(__METHOD__);

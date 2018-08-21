@@ -29,13 +29,6 @@ class statsTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

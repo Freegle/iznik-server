@@ -23,13 +23,6 @@ class shortlinkTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM shortlinks WHERE name LIKE 'test%';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testGroup() {
         error_log(__METHOD__);
 

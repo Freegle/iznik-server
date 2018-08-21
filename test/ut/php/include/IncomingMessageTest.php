@@ -24,13 +24,6 @@ class IncomingMessageTest extends IznikTestCase {
         $dbhm->exec("DELETE FROM users WHERE yahooUserId = '420816297';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

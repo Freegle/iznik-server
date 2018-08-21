@@ -56,9 +56,6 @@ class groupAPITest extends IznikAPITestCase {
         parent::tearDown ();
     }
 
-    public function __construct() {
-    }
-
     public function testCreate()
     {
         error_log(__METHOD__);

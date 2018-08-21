@@ -46,9 +46,6 @@ class MailRouterTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromip = '4.3.2.1';", []);
     }
 
-    public function __construct() {
-    }
-
     public function testHam() {
         error_log(__METHOD__);
 

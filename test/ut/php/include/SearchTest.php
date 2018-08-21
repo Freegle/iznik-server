@@ -37,10 +37,6 @@ class searchTest extends IznikTestCase
         $this->dbhm->preExec("DROP TABLE IF EXISTS test_index");
     }
 
-    public function __construct()
-    {
-    }
-
     public function testBasic()
     {
         error_log(__METHOD__);

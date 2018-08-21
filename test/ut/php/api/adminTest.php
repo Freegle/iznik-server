@@ -42,15 +42,6 @@ class adminAPITest extends IznikAPITestCase
         $this->groupid = $g->create('testgroup', Group::GROUP_UT);
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
-    public function __construct()
-    {
-    }
-
     public function testBasic()
     {
         error_log(__METHOD__);

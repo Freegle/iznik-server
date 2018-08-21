@@ -35,9 +35,6 @@ abstract class IznikAPITestCase extends IznikTestCase {
         $dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
     }
 
-    public function __construct() {
-    }
-
     public function call($call, $type, $params, $decode = TRUE) {
         $_REQUEST = array_merge($params);
 

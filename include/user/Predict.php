@@ -15,6 +15,7 @@ use Phpml\Metric\Accuracy;
 use Phpml\Classification\SVC;
 use Phpml\SupportVectorMachine\Kernel;
 use Phpml\Classification\NaiveBayes;
+use Phpml\Pipeline;
 use Phpml\ModelManager;
 
 class Predict extends Entity
@@ -23,12 +24,24 @@ class Predict extends Entity
 
     const WORD_REGEX = "/[^\w]*([\s]+[^\w]*|$)/";
 
-    private $classifier, $samples, $users, $vocabulary;
+    private $classifier = NULL, $samples = [], $labels = [], $users = [], $vocabulary = NULL, $pipeline = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $this->vectorizer = new TokenCountVectorizer(new WordTokenizer());
+        $this->tfIdfTransformer = new TfIdfTransformer();
+        $this->classifier = new SVC(Kernel::RBF, 10000);
+
+        $this->pipeline = new Pipeline([
+            $this->vectorizer,
+            $this->tfIdfTransformer,
+        ], $this->classifier);
+
+        $this->samples = [];
+        $this->users = [];
     }
 
     private function getTextForUser($userid)
@@ -53,14 +66,6 @@ class Predict extends Entity
     public function train($minrating = NULL)
     {
         # Train our model using thumbs up/down ratings which users have given, and the chat messages.
-        $this->vectorizer = new TokenCountVectorizer(new WordTokenizer());
-        $this->tfIdfTransformer = new TfIdfTransformer();
-
-        $this->samples = [];
-        $labels = [];
-        $this->users = [];
-        $accuracy = 0;
-
         # Using id DESC means that we will adapt slowly over time if the way people rate changes.
         $minq = $minrating ? " WHERE id >= $minrating" : '';
         $ratings = $this->dbhr->preQuery("SELECT * FROM ratings $minq ORDER BY id DESC LIMIT " . Predict::CORPUS_SIZE . ";");
@@ -73,35 +78,17 @@ class Predict extends Entity
                 if (strlen($text)) {
                     $this->users[] = $rating['ratee'];
                     $this->samples[] = $text;
-                    $labels[] = $rating['rating'];
+                    $this->labels[] = $rating['rating'];
                 }
             }
 
-            # fit() builds a dictionary from this text.
-            $this->vectorizer->fit($this->samples);
-
-            # transform() converts text into vectors.
-            $this->vectorizer->transform($this->samples);
+            $this->pipeline->train($this->samples, $this->labels);
 
             $this->vocabulary = $this->vectorizer->getVocabulary();
-
-            $this->tfIdfTransformer->fit($this->samples);
-            $this->tfIdfTransformer->transform($this->samples);
-
-            $dataset = new ArrayDataset($this->samples, $labels);
-            $randomSplit = new StratifiedRandomSplit($dataset, 0.1);
-
-            $this->classifier = new SVC(Kernel::RBF, 10000);
-
-            $this->classifier->train($randomSplit->getTrainSamples(), $randomSplit->getTrainLabels());
-
-            $predicton = $randomSplit->getTestSamples();
-            $predictedLabels = $this->classifier->predict($predicton);
-
-            $accuracy = Accuracy::score($randomSplit->getTestLabels(), $predictedLabels);
+            error_log("Got vocab " . var_export($this->vocabulary, TRUE));
         }
 
-        return ([$accuracy, count($this->samples)]);
+        return (count($this->samples));
     }
 
     public function checkAccuracy()
@@ -115,7 +102,7 @@ class Predict extends Entity
         $up = 0;
         $down = 0;
 
-        $predicts = $this->classifier->predict($this->samples);
+        $predicts = $this->pipeline->predict($this->samples);
 
         for ($i = 0; $i < count($this->samples); $i++) {
             $pred = $predicts[$i];
@@ -179,10 +166,7 @@ class Predict extends Entity
 
             # We use the vectorizer and tfIdfTransformer we set up during train.  We don't call fit because that
             # would wipe them.
-            $this->vectorizer->transform($samples);
-            $this->tfIdfTransformer->transform($samples);
-
-            $predicts = $this->classifier->predict($samples);
+            $predicts = $this->pipeline->predict($samples);
             $ret = $predicts[0];
             $this->dbhm->preExec("REPLACE INTO predictions (userid, prediction) VALUES (?, ?);", [
                 $uid,
@@ -196,7 +180,7 @@ class Predict extends Entity
     public function getModel() {
         $fn = tempnam('/tmp', 'iznik.predict.');
         $modelManager = new ModelManager();
-        $modelManager->saveToFile($this->classifier, $fn);
+        $modelManager->saveToFile($this->pipeline, $fn);
         $data = file_get_contents($fn);
         unlink($fn);
         return([ $data, $this->vocabulary ]);
@@ -206,7 +190,7 @@ class Predict extends Entity
         $fn = tempnam('/tmp', 'iznik.predict.');
         file_put_contents($fn, $model);
         $modelManager = new ModelManager();
-        $this->classifier = $modelManager->restoreFromFile($fn);
+        $this->pipeline = $modelManager->restoreFromFile($fn);
         $this->vocabulary = $vocabulary;
         unlink($fn);
     }

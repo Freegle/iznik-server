@@ -23,13 +23,6 @@ class FacebookTest extends IznikTestCase {
         $this->dbhm = $dbhm;
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function getJavaScriptHelper() {
         return($this);
     }

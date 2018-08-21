@@ -31,15 +31,6 @@ class invitationAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM users_invitations WHERE email LIKE '%@test.com';");
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
-    public function __construct()
-    {
-    }
-
     public function testAccept()
     {
         error_log(__METHOD__);

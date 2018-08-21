@@ -26,13 +26,6 @@ class domainAPITest extends IznikAPITestCase {
         $dbhm->preExec("REPLACE INTO domains_common (domain, count) VALUES ('test.com', 1);");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

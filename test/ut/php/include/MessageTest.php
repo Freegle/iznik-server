@@ -69,13 +69,6 @@ class messageTest extends IznikTestCase {
         $this->dbhm->preExec($sql);
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testSetFromIP() {
         error_log(__METHOD__);
 

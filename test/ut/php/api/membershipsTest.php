@@ -47,13 +47,6 @@ class membershipsAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testAdd() {
         error_log(__METHOD__);
 

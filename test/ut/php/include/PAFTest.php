@@ -25,13 +25,6 @@ class PAFTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'ZZZZ ZZZ';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testLoad() {
         error_log(__METHOD__);
 

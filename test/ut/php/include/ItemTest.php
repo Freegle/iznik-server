@@ -28,9 +28,6 @@ class itemTest extends IznikTestCase {
         parent::tearDown ();
     }
 
-    public function __construct() {
-    }
-
     public function testErrors() {
         error_log(__METHOD__);
 

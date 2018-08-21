@@ -23,9 +23,6 @@ class AttachmentTest extends IznikTestCase {
         $this->dbhm = $dbhm;
     }
 
-    public function __construct() {
-    }
-
     public function testIdentify() {
         error_log(__METHOD__);
 

@@ -48,13 +48,6 @@ class spammersAPITest extends IznikAPITestCase {
         $this->dbhm->preExec($sql);
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

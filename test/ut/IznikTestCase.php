@@ -11,7 +11,7 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
+abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     const LOG_SLEEP = 600;
     const YAHOO_PATIENCE = 600;
 
@@ -90,9 +90,6 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         } catch (Exception $e) {
             error_log("Session exception " . $e->getMessage());
         }
-    }
-
-    public function __construct() {
     }
 
     public function unique($msg) {

@@ -29,13 +29,6 @@ class storiesAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users_stories WHERE headline LIKE 'Test%';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-    }
-
-    public function __construct() {
-    }
-
     public function testBasic() {
         error_log(__METHOD__);
 

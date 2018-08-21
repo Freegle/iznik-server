@@ -39,15 +39,6 @@ class chatRoomsAPITest extends IznikAPITestCase
         $_SESSION['id'] = NULL;
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
-    public function __construct()
-    {
-    }
-
     public function testUser2User()
     {
         error_log(__METHOD__);
