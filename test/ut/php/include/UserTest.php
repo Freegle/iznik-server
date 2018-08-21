@@ -923,6 +923,7 @@ class userTest extends IznikTestCase {
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
+        assertNotNull($id);
         $u->addEmail('test@test.com');
         $u->thankDonation();
 
@@ -1211,7 +1212,7 @@ class userTest extends IznikTestCase {
 
         # Test with error.
         $u->removePhone();
-        $u->addPhone('+15005550001');
+        assertNotNull($u->addPhone('+15005550001'));
         $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
 
         error_log(__METHOD__ . " end");

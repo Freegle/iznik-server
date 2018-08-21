@@ -87,6 +87,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
                 $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [ $user['userid'] ]);
             }
             @session_destroy();
+            unset($_SESSION);
         } catch (Exception $e) {
             error_log("Session exception " . $e->getMessage());
         }

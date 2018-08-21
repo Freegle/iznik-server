@@ -667,6 +667,8 @@ class messageAPITest extends IznikAPITestCase
 
         # Try to convert it back to a draft.
         error_log("Back to draft");
+//        $this->dbhm->errorLog = TRUE;
+//        $this->dbhr->errorLog = TRUE;
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'RejectToDraft'
@@ -1322,7 +1324,14 @@ class messageAPITest extends IznikAPITestCase
             'collection' => 'Draft'
         ]);
         error_log("Messages " . var_export($ret, TRUE));
-        assertEquals($id, $ret['messages'][0]['id']);
+        $found = FALSE;
+        foreach ($ret['messages'] as $message) {
+            error_log("Compare {$message['id']} to $id");
+            if ($message['id'] == $id) {
+                $found = TRUE;
+            }
+        }
+        assertTrue($found);
 
         # Now remove the attachment
         $ret = $this->call('message', 'PUT', [

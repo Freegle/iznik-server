@@ -81,9 +81,10 @@ class newsfeedAPITest extends IznikAPITestCase {
         error_log("Logged in - empty");
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'GET', []);
+        error_log("Returned " . gettype($ret['newsfeed']));
         assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['ret']['newsfeed']));
-        assertEquals(0, count($ret['ret']['users']));
+        assertEquals(0, count((array)$ret['ret']['newsfeed']));
+        assertEquals(0, count((array)$ret['ret']['users']));
 
         # Post something.
         error_log("Post something as {$this->uid}");

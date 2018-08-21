@@ -78,6 +78,8 @@ class pushNotificationsTest extends IznikTestCase {
         $mock->method('uthook')->willThrowException(new Exception());
         $mock->executeSend(0, PushNotifications::PUSH_GOOGLE, [], 'test', NULL);
 
+        assertTrue(TRUE);
+
         error_log(__METHOD__ . " end");
     }
 
@@ -115,7 +117,9 @@ class pushNotificationsTest extends IznikTestCase {
             ->getMock();
         $mock->method('puts')->willReturn(NULL);
         $mock->poke($id, [ 'ut' => 1 ], FALSE);
-        
+
+        assertTrue(TRUE);
+
         error_log(__METHOD__ . " end");
     }
 }

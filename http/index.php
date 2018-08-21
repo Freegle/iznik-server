@@ -286,5 +286,3 @@ EOF;
     header('Status: 503 Service Temporarily Unavailable');
     header('Retry-After: 300');//300 seconds
 }
-
-?>

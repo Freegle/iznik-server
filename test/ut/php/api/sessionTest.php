@@ -54,6 +54,8 @@ class sessionTest extends IznikAPITestCase
             'junk' => $str
         ]);
 
+        assertEquals(1, $ret['ret']);
+
         error_log(__METHOD__ . " end");
     }
 

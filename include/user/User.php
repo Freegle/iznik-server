@@ -2890,7 +2890,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             if (pres('yahooapprove', $member)) {
                 # We can trigger approval by email - do so.  Yahoo is sluggish so we send multiple times.
                 for ($i = 0; $i < 10; $i++) {
-                    $this->mailer($member['yahooapprove'], "My name is Iznik and I approve this member", "", NULL, '-f' . MODERATOR_EMAIL);
+                    $this->mailer($member['yahooapprove'], "My name is Iznik and I approve this member", NULL, '-f' . MODERATOR_EMAIL);
                 }
             }
 
@@ -5174,6 +5174,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $this->id,
             $this->formatPhone($phone),
         ]);
+
+        return($this->dbhm->lastInsertId());
     }
 
     public function removePhone()

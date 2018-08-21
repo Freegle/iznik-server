@@ -64,6 +64,7 @@ class sessionClassTest extends IznikTestCase {
         # Can call this twice
         prepareSession($this->dbhm, $this->dbhm);
         prepareSession($this->dbhm, $this->dbhm);
+        assertTrue(TRUE);
 
         error_log(__METHOD__ . " end");
     }

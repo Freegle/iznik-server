@@ -83,13 +83,13 @@ class MessageCollection
                     session_id()
                 ]);
 
-                foreach ($msgs as $msg) {
-                    $msgids[] = [
-                        'id' => $msg['msgid'],
-                        'collection' => MessageCollection::DRAFT
-                    ];
+                    foreach ($msgs as $msg) {
+                        $msgids[] = [
+                            'id' => $msg['msgid'],
+                            'collection' => MessageCollection::DRAFT
+                        ];
+                    }
                 }
-            }
 
             $collection = array_filter($this->collection, function ($val) {
                 return ($val != MessageCollection::DRAFT);
@@ -124,7 +124,7 @@ class MessageCollection
                 $outcomeq2 = $hasoutcome !== NULL ? " AND messages_outcomes.msgid IS NULL " : '';
 
                 # We may have some groups to filter by.
-                $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
+                $groupq = $groupids ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
 
                 # We have a complicated set of different queries we can do.  This is because we want to make sure that
                 # the query is as fast as possible, which means:

@@ -36,6 +36,7 @@ class RequestTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
 
         $rid = $r->create($uid, Request::TYPE_BUSINESS_CARDS, NULL, NULL);
+        assertNotNull($rid);
         $r->completed($uid);
 
         error_log(__METHOD__ . " end");
