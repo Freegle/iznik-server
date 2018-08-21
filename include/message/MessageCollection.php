@@ -78,7 +78,7 @@ class MessageCollection
                 $me = whoAmI($this->dbhr, $this->dbhm);
                 $userids = $userids ? $userids : ($me ? [ $me->getId() ] : NULL);
 
-                $sql = (count($userids) > 0) ? ("SELECT msgid FROM messages_drafts WHERE session = ? OR userid IN (" . implode(',', $userids) . ");") : "SELECT msgid FROM messages_drafts WHERE session = ?;";
+                $sql = $userids ? ("SELECT msgid FROM messages_drafts WHERE session = ? OR userid IN (" . implode(',', $userids) . ");") : "SELECT msgid FROM messages_drafts WHERE session = ?;";
                 $msgs = $this->dbhr->preQuery($sql, [
                     session_id()
                 ]);

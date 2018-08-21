@@ -72,6 +72,8 @@ class abtestAPITest extends IznikAPITestCase
             ]);
             assertEquals(0, $ret['ret']);
 
+            error_log("Returned " . var_export($ret, TRUE));
+
             if ($ret['variant']['variant'] == 'a') {
                 $seena = TRUE;
             }

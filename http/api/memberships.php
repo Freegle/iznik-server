@@ -131,16 +131,6 @@ function memberships() {
                                     $ret['logcontext'] = $logctx;
                                 }
                             } else {
-                                if ($me->isAdminOrSupport()) {
-                                    # Get any sessions.
-                                    $u = User::get($dbhr, $dbhm);
-                                    foreach ($members as &$member) {
-                                        if (pres('userid', $member)) {
-                                            $member['sessions'] = $u->getSessions($dbhr, $dbhm, $member['userid']);
-                                        }
-                                    }
-                                }
-
                                 # Get some/all.
                                 $ret = [
                                     'members' => $members,

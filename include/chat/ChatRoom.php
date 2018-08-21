@@ -617,7 +617,7 @@ class ChatRoom extends Entity
     }
 
     public function setCachedList($userid, $chattypes, $modtools, $list, $background) {
-        if (count($list > ChatRoom::CACHED_LIST_SIZE)) {
+        if (count($list) > ChatRoom::CACHED_LIST_SIZE) {
             # Only bother to save for larger numbers.  For smaller lists we work them out on the fly, which
             # saves us disk space except where we need it to speed things up.
             #

@@ -53,11 +53,6 @@ try {
                                 break;
                             }
 
-                            case 'events': {
-                                $events = array_merge($events, $data['events']);
-                                break;
-                            }
-
                             case 'webpush': {
                                 $n = new PushNotifications($dbhr, $dbhm);
                                 $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);

@@ -68,7 +68,6 @@ require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
 require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
-require_once(IZNIK_BASE . '/include/misc/Events.php');
 require_once(IZNIK_BASE . '/include/misc/Shortlink.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
@@ -113,7 +112,6 @@ require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/logo.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/profile.php');
-require_once(IZNIK_BASE . '/http/api/event.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
 require_once(IZNIK_BASE . '/http/api/request.php');
@@ -222,7 +220,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     $last = $predis->get($datakey);
 
                     # Some actions are ok, so we exclude those.
-                    if (!in_array($call, [ 'session', 'correlate', 'chatrooms', 'events', 'upload']) &&
+                    if (!in_array($call, [ 'session', 'correlate', 'chatrooms', 'upload']) &&
                         $last === $req) {
                         # The last POST request was the same.  So this is a duplicate.
                         $predis->del($lockkey);
@@ -291,9 +289,6 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'profile':
                     $ret = profile();
-                    break;
-                case 'event':
-                    $ret = event();
                     break;
                 case 'socialactions':
                     $ret = socialactions();

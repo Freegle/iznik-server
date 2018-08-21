@@ -72,6 +72,7 @@ class apiTest extends IznikAPITestCase {
         # Testing header output is hard
         # TODO ...but doable, apparently.
         $ret = $this->call('test', 'OPTIONS', []);
+        assertTrue(TRUE);
 
         error_log(__METHOD__ . " end");
     }

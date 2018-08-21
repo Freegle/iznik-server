@@ -2285,13 +2285,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($this->ouremailid);
     }
 
-    public static function getSessions($dbhr, $dbhm, $id)
-    {
-        $e = new Events($dbhr, $dbhm);
-        $sessions = $e->listSessions($id);
-        return ($sessions);
-    }
-
     public function isAdmin()
     {
         return ($this->user['systemrole'] == User::SYSTEMROLE_ADMIN);
@@ -3791,7 +3784,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
 
             $thisone['membershiphistory'] = $u->getMembershipHistory();
-            $thisone['sessions'] = $u->getSessions($this->dbhr, $this->dbhm, $user['userid']);
 
             # Make sure there's a link login as admin/support can use that to impersonate.
             if ($me->isAdmin() || ($me->isAdminOrSupport() && !$u->isModerator())) {
