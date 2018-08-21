@@ -144,7 +144,7 @@ if (array_key_exists('model', $_REQUEST)) {
 
 $call = pres('call', $_REQUEST);
 
-if ($_REQUEST['type'] == 'OPTIONS') {
+if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
     # We don't bother returning different values for different calls.
     http_response_code(204);
     @header('Allow: POST, GET, DELETE, PUT');
@@ -171,7 +171,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     }
 
     do {
-        if ($_REQUEST['type'] != 'GET') {
+        if (presdef('type', $_REQUEST, NULL) != 'GET') {
             # Check that we're not posting from a blocked country.
             try {
                 $reader = new Reader('/usr/share/GeoIP/GeoLite2-Country.mmdb');
@@ -191,7 +191,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
 
         # Duplicate POST protection.  We upload multiple images so don't protect against those.
         if ((DUPLICATE_POST_PROTECTION > 0) &&
-            array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST') &&
+            array_key_exists('REQUEST_METHOD', $_SERVER) && (presdef('type', $_REQUEST, NULL) == 'POST') &&
             $call != 'image') {
             # We want to make sure that we don't get duplicate POST requests within the same session.  We can't do this
             # using information stored in the session because when Redis is used as the session handler, there is
@@ -437,7 +437,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             } else {
                 # This is a normal API call.  Add profiling info.
                 $ret['call'] = $call;
-                $ret['type'] = $_REQUEST['type'];
+                $ret['type'] = presdef('type', $_REQUEST, NULL);
                 $ret['session'] = session_id();
                 $ret['duration'] = (microtime(true) - $scriptstart);
                 $ret['cpucost'] = getCpuUsage();
@@ -512,7 +512,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
         $dbhm->rollBack();
     }
 
-    if ($_REQUEST['type'] != 'GET') {
+    if (presdef('type', $_REQUEST, NULL) != 'GET') {
         # This might have changed things.
         $_SESSION['modorowner'] = [];
     }
