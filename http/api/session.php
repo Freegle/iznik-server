@@ -323,7 +323,8 @@ function session() {
                             case PushNotifications::PUSH_GOOGLE:
                             case PushNotifications::PUSH_FIREFOX:
                             case PushNotifications::PUSH_ANDROID:
-                            case PushNotifications::PUSH_FCM:
+                            case PushNotifications::PUSH_FCM_ANDROID:
+                            case PushNotifications::PUSH_FCM_IOS:
                             case PushNotifications::PUSH_IOS:
                                 $n->add($me->getId(), $push['type'], $push['subscription']);
                                 break;

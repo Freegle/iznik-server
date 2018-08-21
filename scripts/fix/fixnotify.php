@@ -12,4 +12,5 @@ $g = Group::get($dbhr, $dbhm);
 
 $gid = $g->findByShortName('EdinburghFreegle');
 #$l->notifyGroupMods($gid);
+$l->notify(35909200, TRUE);
 $l->notify(13437455, TRUE);

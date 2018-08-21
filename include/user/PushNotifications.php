@@ -9,6 +9,9 @@ use Minishlink\WebPush\WebPush;
 use Pheanstalk\Pheanstalk;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\AndroidConfig;
+use Kreait\Firebase\Messaging\ApnsConfig;
 
 class PushNotifications
 {
@@ -17,7 +20,8 @@ class PushNotifications
     const PUSH_TEST = 'Test';
     const PUSH_ANDROID = 'Android';
     const PUSH_IOS = 'IOS';
-    const PUSH_FCM = 'FCM';
+    const PUSH_FCM_ANDROID = 'FCMAndroid';
+    const PUSH_FCM_IOS = 'FCMIOS';
     const APPTYPE_MODTOOLS = 'ModTools';
     const APPTYPE_USER = 'User';
 
@@ -104,15 +108,31 @@ class PushNotifications
     }
 
     public function executeSend($userid, $notiftype, $params, $endpoint, $payload) {
+        #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
         try {
-            #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
             switch ($notiftype) {
-                case PushNotifications::PUSH_FCM:
+                case PushNotifications::PUSH_FCM_ANDROID:
+                case PushNotifications::PUSH_FCM_IOS:
+                {
+                    error_log("FCM notif");
                     # Everything is in one array as passed to this function; split it out into what we need
                     # for FCM.
                     $data = $payload;
                     unset($data['title']);
                     unset($data['message']);
+
+                    # We can only have key => string, so the chatids needs to be converted from an array to
+                    # a string.
+                    $data['chatids'] = implode(',', $data['chatids']);
+
+                    # And anything that isn't a string needs to pretend to be one.  How dull.
+                    foreach ($data as $key => $val) {
+                        if (gettype($val) !== 'string') {
+                            $data[$key] = "$val";
+                        }
+                    }
+
+                    error_log("Data is " . var_export($data, TRUE));
 
                     $message = CloudMessage::fromArray([
                         'token' => $endpoint,
@@ -123,39 +143,39 @@ class PushNotifications
                         'data' => $data
                     ]);
 
-                    # This could be either going to an Android or IOS device; add the platform-specific config
-                    # for both.
-                    $config = AndroidConfig::fromArray([
-                        'ttl' => '3600s',
-                        'priority' => 'normal',
-                        'notification' => [
-                            'title' => $payload['title'],
-                            'body' => $payload['message']
-                            # TODO icon, color?  Should default.
-                        ]
-                    ]);
+                    if ($notiftype == PushNotifications::PUSH_FCM_ANDROID) {
+                        $message = $message->withAndroidConfig([
+                            'ttl' => '3600s',
+                            'priority' => 'normal',
+                            'notification' => [
+                                'title' => $payload['title'],
+                                'body' => $payload['message'],
+                                'tag' => $payload['modtools'] ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER
+                            ],
+                        ]);
+                    } else {
+                        $message = $message->withApnsConfig([
+                            'headers' => [
+                                'apns-priority' => '10',
+                            ],
+                            'payload' => [
+                                'aps' => [
+                                    'alert' => [
+                                        'title' => $payload['title'],
+                                        'body' => $payload['message'],
+                                    ],
+                                    'content-available' => $payload['content-available'],
+                                    'badge' => $payload['count']
+                                ]
+                            ],
+                        ]);
+                    }
 
-                    $message = $message->withApnsConfig($config);
-
-                    $config = ApnsConfig::fromArray([
-                        'headers' => [
-                            'apns-priority' => '10',
-                        ],
-                        'payload' => [
-                            'aps' => [
-                                'alert' => [
-                                    'title' => $payload['title'],
-                                    'body' => $payload['message'],
-                                ],
-                                'badge' => $payload['count']
-                            ]
-                        ],
-                    ]);
-
-                    $message = $message->withAndroidConfig($config);
-
-                    $this->messaging->send($message);
+                    $ret = $this->messaging->send($message);
+                    error_log("FCM send " . var_export($ret, TRUE));
+                    $rc = TRUE;
                     break;
+                }
                 case PushNotifications::PUSH_GOOGLE:
                 case PushNotifications::PUSH_FIREFOX:
                 case PushNotifications::PUSH_ANDROID:
@@ -199,6 +219,7 @@ class PushNotifications
 
                     break;
             }
+
             error_log("Returned " . var_export($rc, TRUE) . " for $userid type $notiftype $endpoint payload " . var_export($payload, TRUE));
             $rc = $this->uthook($rc);
         } catch (Exception $e) {
@@ -218,22 +239,21 @@ class PushNotifications
     public function notify($userid, $modtools = MODTOOLS) {
         $count = 0;
         $u = User::get($this->dbhr, $this->dbhm, $userid);
+        $proceed = $u->notifsOn(User::NOTIFS_PUSH);
+        #error_log("Notify $userid, on $proceed MT $modtools");
 
-        $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?;", [
-            $userid,
-            $modtools ? 'ModTools' : 'User'
-        ]);
+        if ($proceed) {
+            $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?;", [
+                $userid,
+                $modtools ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER
+            ]);
 
-        foreach ($notifs as $notif) {
-            #error_log("Send user $userid {$notif['subscription']} type {$notif['type']}");
-            $payload = NULL;
-            $proceed = TRUE;
-            $params = [];
+            foreach ($notifs as $notif) {
+                #error_log("Send user $userid {$notif['subscription']} type {$notif['type']}");
+                $payload = NULL;
+                $proceed = TRUE;
+                $params = [];
 
-            $u = User::get($this->dbhr, $this->dbhm, $userid);
-            $proceed = $u->notifsOn(User::NOTIFS_PUSH);
-
-            if ($proceed) {
                 list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
 
                 $message = ($chatcount === 0) ? "" : $message;
@@ -254,12 +274,13 @@ class PushNotifications
 
                 switch ($notif['type']) {
                     case PushNotifications::PUSH_GOOGLE:
-                    case PushNotifications::PUSH_ANDROID: {
-                        $params = [
-                            'GCM' => GOOGLE_PUSH_KEY
-                        ];
-                        break;
-                    }
+                    case PushNotifications::PUSH_ANDROID:
+                        {
+                            $params = [
+                                'GCM' => GOOGLE_PUSH_KEY
+                            ];
+                            break;
+                        }
                 }
 
                 $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
