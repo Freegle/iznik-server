@@ -28,6 +28,8 @@ class PAFTest extends IznikTestCase {
     public function testLoad() {
         error_log(__METHOD__);
 
+        assertTrue(TRUE);
+
         if (!getenv('STANDALONE')) {
             # TODO This should be possible to get working on standalone but I've tried for a bit and my head hurts.
             $l = new Location($this->dbhm, $this->dbhm);

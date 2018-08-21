@@ -235,6 +235,8 @@ class Facebook
             'status' => 'Login failed'
         ];
 
+        @session_start();
+
         if (!pres('id', $_SESSION)) {
             # We're not already logged in.  Try to get an access token.
             $fb = $this->getFB();

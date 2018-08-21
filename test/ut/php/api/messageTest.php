@@ -1360,6 +1360,8 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
+        assertTrue(TRUE);
+
         if (!getenv('STANDALONE')) {
             # Set a fake IP for coverage reasons; choose the BBC.  No license fee required.
             $_SERVER['REMOTE_ADDR'] = '212.58.244.22';
@@ -1582,6 +1584,8 @@ class messageAPITest extends IznikAPITestCase
     public function testSubmit2()
     {
         error_log(__METHOD__);
+
+        assertTrue(TRUE);
 
         if (!getenv('STANDALONE')) {
             $email = 'test-' . rand() . '@blackhole.io';
@@ -1996,6 +2000,8 @@ class messageAPITest extends IznikAPITestCase
 
     public function testDoubleModeration() {
         error_log(__METHOD__);
+
+        assertTrue(TRUE);
 
         if (!getenv('STANDALONE')) {
             # We set up a pending message, then approve it, then get a notification from Yahoo that it's pending.

@@ -365,6 +365,9 @@ class groupTest extends IznikTestCase {
             assertEquals($group['id'], $g->getId());
         }
 
+        # Might not be any legacy groups in the DB.
+        assertTrue(TRUE);
+
         error_log(__METHOD__ . " end");
     }
 
