@@ -3952,7 +3952,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
 
-        return ([$total, $chatcount, $notifcount, $title, $message, $chatids, $route]);
+        return ([$total, $chatcount, $notifcount, $title, $message, array_unique($chatids), $route]);
     }
 
     public function hasPermission($perm)

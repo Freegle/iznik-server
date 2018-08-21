@@ -15,6 +15,7 @@ class PushNotifications
     const PUSH_TEST = 'Test';
     const PUSH_ANDROID = 'Android';
     const PUSH_IOS = 'IOS';
+    const PUSH_FCM = 'FCM';
 
     private $dbhr, $dbhm, $log, $pheanstalk = NULL;
 
@@ -168,79 +169,38 @@ class PushNotifications
             $proceed = TRUE;
             $params = [];
 
-            switch ($notif['type']) {
-                case PushNotifications::PUSH_GOOGLE: {
-                    $proceed = $u->notifsOn(User::NOTIFS_PUSH);
-                    $params = [
-                        'GCM' => GOOGLE_PUSH_KEY
-                    ];
-                    break;
-                }
-                case PushNotifications::PUSH_FIREFOX: {
-                    $proceed = $u->notifsOn(User::NOTIFS_PUSH);
-                    $params = [];
-                    break;
-                }
-                case PushNotifications::PUSH_ANDROID: {
-                    $proceed = $u->notifsOn(User::NOTIFS_APP);
+            $u = User::get($this->dbhr, $this->dbhm, $userid);
+            $proceed = $u->notifsOn(User::NOTIFS_PUSH);
 
-                    if ($proceed) {
-                        # We send this via GCM, but we need a payload.
+            if ($proceed) {
+                list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
+
+                $message = ($chatcount === 0) ? "" : $message;
+
+                $payload = [
+                    'badge' => $total,
+                    'count' => $total,
+                    'chatcount' => $chatcount,
+                    'notifcount' => $notifscount,
+                    'title' => $title,
+                    'message' => $message,
+                    'chatids' => $chatids,
+                    'content-available' => $chatcount > 0,
+                    'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
+                    'modtools' => $modtools,
+                    'route' => $route
+                ];
+
+                switch ($notif['type']) {
+                    case PushNotifications::PUSH_GOOGLE:
+                    case PushNotifications::PUSH_ANDROID: {
                         $params = [
                             'GCM' => GOOGLE_PUSH_KEY
                         ];
-
-                        $u = User::get($this->dbhr, $this->dbhm, $userid);
-                        list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
-
-                        $message = ($chatcount === 0) ? "" : $message;
-
-                        $payload = [
-                            'badge' => $total,
-                            'count' => $total,
-                            'chatcount' => $chatcount,
-                            'notifcount' => $notifscount,
-                            'title' => $title,
-                            'message' => $message,
-                            'chatids' => $chatids,
-                            'content-available' => $chatcount > 0,
-                            'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
-                            'modtools' => $modtools,
-                            'route' => $route
-                        ];
+                        break;
                     }
-
-                    break;
                 }
-                case PushNotifications::PUSH_IOS: {
-                    $proceed = $u->notifsOn(User::NOTIFS_APP);
 
-                    if ($proceed) {
-                        # We need the payload.
-                        $params = [];
-
-                        $u = User::get($this->dbhr, $this->dbhm, $userid);
-                        list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
-
-                        $payload = [
-                            'badge' => $total,
-                            'count' => $total,
-                            'chatcount' => $chatcount,
-                            'notifcount' => $notifscount,
-                            'title' => $title,
-                            'message' => $message,
-                            'chatids' => $chatids,
-                            'content-available' => $chatcount > 0,
-                            'modtools' => $modtools,
-                            'route' => $route
-                        ];
-                    }
-
-                    break;
-                }
-            }
-
-            if ($proceed) {
                 $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
                 $count++;
             }
