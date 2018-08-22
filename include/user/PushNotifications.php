@@ -116,12 +116,10 @@ class PushNotifications
                 case PushNotifications::PUSH_FCM_ANDROID:
                 case PushNotifications::PUSH_FCM_IOS:
                 {
-                    error_log("FCM notif");
                     # Everything is in one array as passed to this function; split it out into what we need
                     # for FCM.
+                    #error_log("FCM notif " . var_export($payload, TRUE));
                     $data = $payload;
-                    unset($data['title']);
-                    unset($data['message']);
 
                     # We can only have key => string, so the chatids needs to be converted from an array to
                     # a string.
@@ -134,7 +132,9 @@ class PushNotifications
                         }
                     }
 
-                    error_log("Data is " . var_export($data, TRUE));
+                    $data['notId'] = (string)microtime(TRUE);
+
+                    #error_log("Data is " . var_export($data, TRUE));
 
                     $message = CloudMessage::fromArray([
                         'token' => $endpoint,
@@ -148,33 +148,37 @@ class PushNotifications
                     if ($notiftype == PushNotifications::PUSH_FCM_ANDROID) {
                         $message = $message->withAndroidConfig([
                             'ttl' => '3600s',
-                            'priority' => 'normal',
-                            'notification' => [
-                                'title' => $payload['title'],
-                                'body' => $payload['message'],
-                                'tag' => $payload['modtools'] ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER
-                            ],
+                            'priority' => 'normal'
                         ]);
                     } else {
-                        $message = $message->withApnsConfig([
+                        $params = [
                             'headers' => [
                                 'apns-priority' => '10',
                             ],
                             'payload' => [
                                 'aps' => [
-                                    'alert' => [
-                                        'title' => $payload['title'],
-                                        'body' => $payload['message'],
-                                    ],
-                                    'content-available' => $payload['content-available'],
                                     'badge' => $payload['count']
                                 ]
                             ],
-                        ]);
+                        ];
+
+                        if ($payload['title']) {
+                            $params['payload']['aps']['alert'] = [
+                                'title' => $payload['title'],
+                                'body' => $payload['message'],
+                            ];
+                        }
+
+                        if ($payload['count']) {
+                            $params['payload']['aps']['content-available'] = 1;
+                        }
+
+                        #error_log("Send params " . var_export($params, TRUE));
+                        $message = $message->withApnsConfig($params);
                     }
 
                     $ret = $this->messaging->send($message);
-                    error_log("FCM send " . var_export($ret, TRUE));
+                    #error_log("FCM send " . var_export($ret, TRUE));
                     $rc = TRUE;
                     break;
                 }
@@ -222,7 +226,7 @@ class PushNotifications
                     break;
             }
 
-            error_log("Returned " . var_export($rc, TRUE) . " for $userid type $notiftype $endpoint payload " . var_export($payload, TRUE));
+            #error_log("Returned " . var_export($rc, TRUE) . " for $userid type $notiftype $endpoint payload " . var_export($payload, TRUE));
             $rc = $this->uthook($rc);
         } catch (Exception $e) {
             $rc = [ 'exception' => $e->getMessage() ];
