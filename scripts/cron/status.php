@@ -32,7 +32,7 @@ function status()
         #error_log("$host returned $op err " );
         $info[$host]['monit'] = $op;
 
-        if (strpos($op, "The Monit daemon") === FALSE) {
+        if (strpos($op, "Monit") === FALSE) {
             # Failed to monit.  That doesn't necessarily mean we're in trouble as the underlying components might
             # be ok.
             $warning = TRUE;
@@ -47,7 +47,7 @@ function status()
                         $warning = TRUE;
                         $warningtext = "$host - $lines[$i]";
                         $overallwarning = TRUE;
-                    } else if (!preg_match('/(Online with all services)|(Running)|(Accessible)|(Status ok)/', $lines[$i])) {
+                    } else if (!preg_match('/(Online with all services)|(Running)|(Accessible)|(Status ok)|(OK)/', $lines[$i])) {
                         error_log("Failed on $host - $lines[$i]");
                         $error = TRUE;
                         $errortext = "$host - $lines[$i]";
