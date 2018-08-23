@@ -262,7 +262,7 @@ class PushNotifications
 
                 list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
 
-                $message = ($chatcount === 0) ? "" : $message;
+                $message = ($total === 0) ? "" : $message;
 
                 $payload = [
                     'badge' => $total,
@@ -272,7 +272,7 @@ class PushNotifications
                     'title' => $title,
                     'message' => $message,
                     'chatids' => $chatids,
-                    'content-available' => $chatcount > 0,
+                    'content-available' => $total > 0,
                     'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
                     'modtools' => $modtools,
                     'route' => $route
