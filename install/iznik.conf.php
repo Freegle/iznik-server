@@ -60,6 +60,9 @@ define('PAYPAL_PASSWORD', 'zzzz');
 define('PAYPAL_SIGNATURE', 'zzzz');
 define('PAYPAL_THANKS_FROM', 'treasurer@ilovefreegle.org');
 
+# We verify email addresses.
+define('BRITEVERIFY_PRIVATE_KEY', 'zzzz');
+
 define('SERVER_LIST', '');
 
 # We use beanstalk for backgrounding.
