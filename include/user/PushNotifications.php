@@ -112,6 +112,7 @@ class PushNotifications
     public function executeSend($userid, $notiftype, $params, $endpoint, $payload) {
         #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
         try {
+            #error_log("notiftype " . $notiftype);
             switch ($notiftype) {
                 case PushNotifications::PUSH_FCM_ANDROID:
                 case PushNotifications::PUSH_FCM_IOS:
@@ -136,21 +137,34 @@ class PushNotifications
 
                     #error_log("Data is " . var_export($data, TRUE));
 
-                    $message = CloudMessage::fromArray([
-                        'token' => $endpoint,
-                        'notification' => [
-                            'title' => $payload['title'],
-                            'body' => $payload['message']
-                        ],
-                        'data' => $data
-                    ]);
-
                     if ($notiftype == PushNotifications::PUSH_FCM_ANDROID) {
+                        # Need to omit notification for reasons to do with Cordova plugin.
+                        if ($payload['count']) {
+                            $data['content-available'] = "1";
+                        }
+
+                        $message = CloudMessage::fromArray([
+                            'token' => $endpoint,
+//                            'notification' => [
+//                                'title' => $payload['title'],
+//                                'body' => $payload['message']
+//                            ],
+                            'data' => $data
+                        ]);
+
                         $message = $message->withAndroidConfig([
                             'ttl' => '3600s',
                             'priority' => 'normal'
                         ]);
                     } else {
+                        $message = CloudMessage::fromArray([
+                            'token' => $endpoint,
+                            'notification' => [
+                                'title' => $payload['title'],
+                                'body' => $payload['message']
+                            ],
+                            'data' => $data
+                        ]);
                         $params = [
                             'headers' => [
                                 'apns-priority' => '10',
@@ -169,11 +183,8 @@ class PushNotifications
                             ];
                         }
 
-                        if ($payload['count']) {
-                            $params['payload']['aps']['content-available'] = 1;
-                        }
-
                         #error_log("Send params " . var_export($params, TRUE));
+                        #error_log("Send payload " . var_export($payload, TRUE));
                         $message = $message->withApnsConfig($params);
                     }
 
@@ -187,7 +198,13 @@ class PushNotifications
                 case PushNotifications::PUSH_ANDROID:
                     $params = $params ? $params : [];
                     $webPush = new WebPush($params);
-                    $rc = $webPush->sendNotification($endpoint, $payload, NULL, TRUE);
+                    ##error_log("Send params " . var_export($params, TRUE));
+                    if( ($payload['count'] > 0) && (!is_null($payload['title']))){
+                        $rc = $webPush->sendNotification($endpoint, $payload['title'], NULL, TRUE);
+                    }
+                    else {
+                        $rc = TRUE;
+                    }
                     break;
                 case PushNotifications::PUSH_IOS:
                     try {
@@ -263,6 +280,7 @@ class PushNotifications
                 list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
 
                 $message = ($total === 0) ? "" : $message;
+                if( is_null($message)) $message = "";
 
                 $payload = [
                     'badge' => $total,
