@@ -77,13 +77,14 @@ class PredictTest extends IznikTestCase {
         error_log("Predict bad user {$badusers[0]}");
         assertEquals(User::RATING_DOWN, $p->predict($badusers[0]));
 
-        # Save and restore.
-        list ($model, $dictionary) = $p->getModel();
+        # First one will train and save
+        $p->ensureModel($minratingid, '/tmp/iznik.predictions.ut');
 
-        $start = microtime(TRUE);
-        $p->loadModel($model, $dictionary);
-        $end = microtime(TRUE);
-        error_log("Model load took " . ($end - $start));
+        # Second will retrieve and use
+        $p->ensureModel($minratingid, '/tmp/iznik.predictions.ut');
+
+        assertEquals(User::RATING_UP, $p->predict($goodusers[0]));
+        assertEquals(User::RATING_DOWN, $p->predict($badusers[0]));
 
         # Check the predict call with similar text.
         $uid = $u->create("Test", "User", "Test User");;
@@ -93,8 +94,6 @@ class PredictTest extends IznikTestCase {
         $m->create($chatid, $uid, "I'm rude and it will be awful.", ChatMessage::TYPE_INTERESTED);
         assertEquals(User::RATING_DOWN, $p->predict($uid));
 
-        return;
-
         # Now repeat the train and check on whatever is in the DB.  On Travis this will be the same, but if we
         # are running on a real DB it will act as a check against this going rogue in production.
         error_log("Train on rest");
@@ -102,7 +101,7 @@ class PredictTest extends IznikTestCase {
         $count = $p->train();
         self::assertGreaterThanOrEqual(200, $count);
         list ($up, $down, $right, $wrong, $badlywrong) = $p->checkAccuracy();
-        error_log("\n\nRest data accuracy $accuracy predicted Up $up Down $down, right $right (" . (100 * $right / ($wrong + $right)) . "%) wrong $wrong badly wrong $badlywrong (" . (100 * $badlywrong / ($wrong + $right)) . "%)");
+        error_log("\n\nRest data predicted Up $up Down $down, right $right (" . (100 * $right / ($wrong + $right)) . "%) wrong $wrong badly wrong $badlywrong (" . (100 * $badlywrong / ($wrong + $right)) . "%)");
         self::assertLessThan(6, 100 * $badlywrong / ($up + $down));
 
         error_log(__METHOD__ . " end");

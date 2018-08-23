@@ -85,7 +85,7 @@ class Predict extends Entity
             $this->pipeline->train($this->samples, $this->labels);
 
             $this->vocabulary = $this->vectorizer->getVocabulary();
-            error_log("Got vocab " . var_export($this->vocabulary, TRUE));
+            #error_log("Got vocab " . var_export($this->vocabulary, TRUE));
         }
 
         return (count($this->samples));
@@ -152,6 +152,7 @@ class Predict extends Entity
         $ret = NULL;
 
         if (count($predictions)) {
+            # We already have a prediction.  Return it.
             $ret = $predictions[0]['prediction'];
         } else {
             # Predict just one user.
@@ -193,5 +194,54 @@ class Predict extends Entity
         $this->pipeline = $modelManager->restoreFromFile($fn);
         $this->vocabulary = $vocabulary;
         unlink($fn);
+    }
+
+    public function ensureModel($minrating = NULL, $fn = '/tmp/iznik.predictions') {
+        # We keep a model cached locally on disk which we refresh every 24 hours.  This means we have reasonable
+        # performance but will adapt over time.
+        $train = TRUE;
+
+        error_log("Check for model ");
+        if (file_exists($fn)) {
+            error_log("...exists, age " . (time() - filemtime($fn)));
+            if (time() - filemtime($fn) < 24 * 3600) {
+                # We have a model that's been updated in the last day.
+                error_log("...got recent");
+                $data = file_get_contents($fn);
+                error_log("...length " . strlen($data));
+
+                if ($data) {
+                    $uncompressed = gzuncompress($data);
+                    error_log("...uncompress length " . strlen($uncompressed));
+
+                    if ($uncompressed) {
+                        $decoded = json_decode($uncompressed, TRUE);
+                        error_log("...decoded");
+
+                        if ($decoded) {
+                            error_log("...load");
+                            $this->loadModel($decoded[0], $decoded[1]);
+                            $train = FALSE;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($train) {
+            # We didn't retrieve one.  Build it.
+            error_log("...train");
+            $this->train($minrating);
+
+            # ...and save it.
+            error_log("...retrieve");
+            $data = $this->getModel();
+            error_log("...encoded");
+            $savestr = json_encode($data);
+            error_log("...length " . strlen($savestr));
+            $savecmp = gzcompress($savestr);
+            error_log("...compressed length " . strlen($savecmp));
+            file_put_contents($fn, $savecmp);
+        }
     }
 }

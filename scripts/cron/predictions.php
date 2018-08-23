@@ -5,10 +5,15 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/Predict.php');
 
-$p = new Predict($dbhr, $dbhm);
-error_log("Train");
-$p->train();
+$lockh = lockScript(basename(__FILE__));
 
+$p = new Predict($dbhr, $dbhm);
+
+# Make sure we have a model.
+$p->ensureModel();
+
+# Look for recent chat messages which are replies to OFFER/WANTED posts, and make sure we have a prediction for
+# them.
 $mysqltime = date ("Y-m-d", strtotime("7 days ago"));
 
 $users = $dbhr->preQuery("SELECT DISTINCT userid FROM chat_messages WHERE date > '$mysqltime' AND type = ?;", [
@@ -27,3 +32,5 @@ foreach ($users as $user) {
         error_log("...$count / $total");
     }
 }
+
+unlockScript($lockh);
