@@ -1931,6 +1931,10 @@ class Message
         if ($oldid) {
             # Existing message.
             $this->id = $oldid;
+
+            # We might not have matched the related messages earlier, if things arrived in a strange order.
+            $this->recordRelated();
+
             $already = TRUE;
         } else {
             # New message.  Trigger mapping and get subject suggestion.
