@@ -287,9 +287,6 @@ class ChatRoom extends Entity
                     $ret['user1']['email'] = $u->getEmailPreferred();
                 }
             }
-
-            $spammer = $s->getSpammerByUserid($ret['user1']['id']);
-            $ret['user1']['spammer'] =  $spammer !== NULL;
         }
 
         if (pres('user2', $ret)) {
@@ -639,13 +636,12 @@ class ChatRoom extends Entity
             # still have some chats we need not have.  This will cause more frequent updates of this list than we
             # need, though that won't cause any functional issues.
             # TODO.
+            $sql = '';
             foreach ($list as $room) {
-                $this->dbhm->preExec("REPLACE INTO users_chatlists_index (userid, chatid, chatlistid) VALUES (?, ?, ?);" , [
-                    $userid,
-                    $room['id'],
-                    $chatlistid
-                ]);
+                $sql .= "REPLACE INTO users_chatlists_index (userid, chatid, chatlistid) VALUES ($userid, {$room['id']}, $chatlistid);";
             }
+
+            $this->dbhm->preExec($sql);
         }
     }
 

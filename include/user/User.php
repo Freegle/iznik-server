@@ -107,15 +107,17 @@ class User extends Entity
     private $log;
     var $user;
     private $memberships = NULL;
-    private $spam_users = NULL;
     private $ouremailid = NULL;
     private $emails = NULL;
     private $emailsord = NULL;
+    private $profile = NULL;
+    private $spammer = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         # We don't use Entity::fetch because we can reduce the number of DB ops in getPublic later by
-        # doing a more complex query here.
+        # doing a more complex query here.  This adds code complexity, but as you can imagine the performance of
+        # this class is critical.
         $this->log = new Log($dbhr, $dbhm);
         $this->notif = new PushNotifications($dbhr, $dbhm);
         $this->dbhr = $dbhr;
@@ -125,22 +127,56 @@ class User extends Entity
         $this->id = NULL;
         $this->table = 'users';
         $this->profile = NULL;
+        $this->spammer = [];
 
         if ($id) {
+            $showspammer = FALSE;
+
+            if (pres('id', $_SESSION) != $id) {
+                # We want to check for spammers.  If we're on ModTools and we have suitable rights then we can
+                # return detailed info; otherwise just that they are on the list,.
+                #
+                # We don't do this for our own logged in user, otherwise we recurse to death.
+                $me = whoAmI($dbhr, $dbhm);
+
+                $showspammer = MODTOOLS && $me && in_array($me->getPrivate('systemrole'),[
+                        User::ROLE_MODERATOR,
+                        User::SYSTEMROLE_ADMIN,
+                        User::SYSTEMROLE_SUPPORT
+                    ]);
+            }
+
+            $sql = "SELECT users.*, users_images.id AS imageid, users_images.url AS imageurl, users_images.default AS imagedefault, spam_users.id AS spamid, spam_users.userid AS spamuserid, spam_users.byuserid AS spambyuserid, spam_users.added AS spamadded, spam_users.collection AS spamcollection, spam_users.reason AS spamreason FROM users LEFT JOIN users_images ON users_images.userid = users.id LEFT JOIN spam_users ON spam_users.userid = users.id WHERE users.id = ? ORDER BY imageid DESC LIMIT 1;";
+
             # Fetch the user and any profile image.  There are so many users that there is no point trying
             # to use the query cache.
-            $users = $dbhr->preQuery("SELECT users.*, users_images.id AS imageid, users_images.url AS imageurl, users_images.default AS imagedefault FROM users LEFT JOIN users_images ON users_images.userid = users.id WHERE users.id = ? ORDER BY imageid DESC LIMIT 1;", [
+            $users = $dbhr->preQuery($sql, [
                 $id
             ], FALSE, FALSE);
 
             foreach ($users as &$user) {
+                if ($user['spamid']) {
+                    if ($showspammer) {
+                        # Move spammer out of user attributes.
+                        $this->spammer = [];
+                        foreach (['id', 'userid', 'byuserid', 'added', 'collection', 'reason'] as $att) {
+                            $this->spammer[$att]= $user['spam'. $att];
+                            unset($user['spam' . $att]);
+                        }
+
+                        $this->spammer['added'] = ISODate($this->spammer['added']);
+                    } else {
+                        $this->spammer = TRUE;
+                    }
+                }
+
                 if ($user['imageid']) {
                     # We found a profile.  Move it out of the user attributes.
-                    $this->profile = [
-                        'id' => $user['imageid'],
-                        'url' => $user['imageurl'],
-                        'default' => $user['imagedefault']
-                    ];
+                    $this->profile = [];
+                    foreach (['id', 'url', 'default'] as $att) {
+                        $this->profile[$att]= $user['image'. $att];
+                        unset($user['image' . $att]);
+                    }
 
                     if (!$this->profile['default']) {
                         # If it's a gravatar image we can return a thumbnail url that specifies a different size.
@@ -152,10 +188,6 @@ class User extends Entity
                             'default' => FALSE
                         ];
                     }
-
-                    unset($user['imageid']);
-                    unset($user['imageurl']);
-                    unset($user['imagedefault']);
                 }
 
                 $this->user = $user;
@@ -2275,14 +2307,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $systemrole == User::SYSTEMROLE_SUPPORT
             ) {
                 # Also fetch whether they're on the spammer list.
-                if (!$this->spam_users) {
-                    $sql = "SELECT * FROM spam_users WHERE userid = ?;";
-                    $this->spam_users = $this->dbhr->preQuery($sql, [$this->id]);
-                }
-
-                foreach ($this->spam_users as $spammer) {
-                    $spammer['added'] = ISODate($spammer['added']);
-                    $atts['spammer'] = $spammer;
+                if ($this->spammer) {
+                    $atts['spammer'] = $this->spammer;
                 }
             }
 
