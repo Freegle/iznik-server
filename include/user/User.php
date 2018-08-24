@@ -132,7 +132,7 @@ class User extends Entity
         if ($id) {
             $showspammer = FALSE;
 
-            if (pres('id', $_SESSION) != $id) {
+            if (isset($_SESSION) && pres('id', $_SESSION) && $_SESSION['id'] != $id) {
                 # We want to check for spammers.  If we're on ModTools and we have suitable rights then we can
                 # return detailed info; otherwise just that they are on the list,.
                 #
