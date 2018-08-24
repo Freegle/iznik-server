@@ -100,4 +100,4 @@ script:
   - cd $TRAVIS_BUILD_DIR/http/api; ../../composer/vendor/bin/phpunit --stderr --bootstrap ../../composer/vendor/autoload.php -dxdebug.coverage_enable=1 --coverage-clover ../../test/ut/php/clover.xml --configuration ../../test/ut/php/phpunit.xml ../../test/ut/php/
 
 after_script:
-  - php composer/vendor/php-coveralls/php-coveralls/bin/php-coveralls -v
+  - php $TRAVIS_BUILD_DIR/composer/vendor/bin/php-coveralls -v
