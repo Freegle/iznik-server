@@ -12,6 +12,7 @@ use Kreait\Firebase\ServiceAccount;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\AndroidConfig;
 use Kreait\Firebase\Messaging\ApnsConfig;
+use Kreait\Firebase\Exception\Messaging\InvalidMessage;
 
 class PushNotifications
 {
@@ -188,8 +189,28 @@ class PushNotifications
                         $message = $message->withApnsConfig($params);
                     }
 
+                    try {
+                        $this->messaging->validate($message);
+                    } catch (InvalidMessage $e) {
+                        # We might not want to remove the subscription.  Check the nature of the error
+                        # and (for now) record unknown ones to check.
+                        $error = $e->errors()['error'];
+                        file_put_contents('/tmp/fcmerrors',date(DATE_RFC2822).': '.$userid.' - '.$endpoint.' - '.var_export($error, TRUE)."\r\n",FILE_APPEND);
+                        error_log("FCM InvalidMessage " . var_export($error, TRUE));
+                        $error = $error['details'][0]['errorCode'];
+                        #error_log("FCM InvalidMessage " . $error);
+
+                        if ($error == 'UNREGISTERED') {
+                            # We do want to remove the subscription in this case.
+                            throw new Exception($error);
+                        }
+
+                        $rc = TRUE; // Problem is ignored and subscription/token NOT removed: eyeball logs to check
+                        break;
+                    }
+
                     $ret = $this->messaging->send($message);
-                    #error_log("FCM send " . var_export($ret, TRUE));
+                    error_log("FCM send " . var_export($ret, TRUE));
                     $rc = TRUE;
                     break;
                 }
@@ -200,11 +221,10 @@ class PushNotifications
                     $webPush = new WebPush($params);
                     ##error_log("Send params " . var_export($params, TRUE));
                     if( ($payload['count'] > 0) && (!is_null($payload['title']))){
-                        $rc = $webPush->sendNotification($endpoint, $payload['title'], NULL, TRUE);
+                      $rc = $webPush->sendNotification($endpoint, $payload['title'], NULL, TRUE);
                     }
-                    else {
-                        $rc = TRUE;
-                    }
+                    else
+                      $rc = TRUE;
                     break;
                 case PushNotifications::PUSH_IOS:
                     try {
@@ -247,6 +267,8 @@ class PushNotifications
             $rc = $this->uthook($rc);
         } catch (Exception $e) {
             $rc = [ 'exception' => $e->getMessage() ];
+            #error_log("push exc " . var_export($e, TRUE));
+            #error_log("push exc " . $e->getMessage());
             error_log("Push exception {$rc['exception']}");
         }
 
