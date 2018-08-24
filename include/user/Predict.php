@@ -17,6 +17,115 @@ use Phpml\SupportVectorMachine\Kernel;
 use Phpml\Classification\NaiveBayes;
 use Phpml\Pipeline;
 use Phpml\ModelManager;
+use Phpml\Estimator;
+use Phpml\Transformer;
+use Phpml\Tokenization\Tokenizer;
+
+# Override Pipeline to expose predictProbability.  Can't extend because there are private methods we'd need to call.
+class OurPipeline implements Estimator
+{
+    /**
+     * @var array|Transformer[]
+     */
+    private $transformers = [];
+
+    /**
+     * @var Estimator
+     */
+    private $estimator;
+
+    /**
+     * @param array|Transformer[] $transformers
+     */
+    public function __construct(array $transformers, Estimator $estimator)
+    {
+        foreach ($transformers as $transformer) {
+            $this->addTransformer($transformer);
+        }
+
+        $this->estimator = $estimator;
+    }
+
+    public function addTransformer(Transformer $transformer): void
+    {
+        $this->transformers[] = $transformer;
+    }
+
+    public function setEstimator(Estimator $estimator): void
+    {
+        $this->estimator = $estimator;
+    }
+
+    /**
+     * @return array|Transformer[]
+     */
+    public function getTransformers(): array
+    {
+        return $this->transformers;
+    }
+
+    public function getEstimator(): Estimator
+    {
+        return $this->estimator;
+    }
+
+    public function train(array $samples, array $targets): void
+    {
+        foreach ($this->transformers as $transformer) {
+            $transformer->fit($samples, $targets);
+            $transformer->transform($samples);
+        }
+
+        $this->estimator->train($samples, $targets);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function predict(array $samples)
+    {
+        $this->transformSamples($samples);
+
+        return $this->estimator->predict($samples);
+    }
+
+    public function predictProbability(array $samples)
+    {
+        $this->transformSamples($samples);
+
+        return $this->estimator->predictProbability($samples);
+    }
+
+    private function transformSamples(array &$samples): void
+    {
+        foreach ($this->transformers as $transformer) {
+            $transformer->transform($samples);
+        }
+    }
+}
+
+class BiWordTokenizer implements Tokenizer
+{
+    public function tokenize(string $text): array
+    {
+        # Don't care about case.
+        $text = strtolower($text);
+
+        # Remove all non alphabetic.
+        $text = preg_replace("/[^a-z ]/", '', $text);
+
+        $tokens = [];
+        preg_match_all('/\w\w+/u', $text, $tokens);
+        $words = $tokens[0];
+        $pairs = [];
+        for ($i = 0; $i + 1 < count($words); $i++) {
+            # Return the pair.
+            $pairs[] = $words[$i] . " " . $words[$i + 1];
+        }
+
+        return $pairs;
+    }
+}
 
 class Predict extends Entity
 {
@@ -33,9 +142,19 @@ class Predict extends Entity
 
         $this->vectorizer = new TokenCountVectorizer(new WordTokenizer());
         $this->tfIdfTransformer = new TfIdfTransformer();
-        $this->classifier = new SVC(Kernel::RBF, 10000);
+        $this->classifier = new SVC(
+            Kernel::LINEAR, // $kernel
+            1.0,            // $cost
+            3,              // $degree
+            null,           // $gamma
+            0.0,            // $coef0
+            0.001,          // $tolerance
+            100,            // $cacheSize
+            true,           // $shrinking
+            true            // $probabilityEstimates, set to true
+        );
 
-        $this->pipeline = new Pipeline([
+        $this->pipeline = new OurPipeline([
             $this->vectorizer,
             $this->tfIdfTransformer,
         ], $this->classifier);
@@ -51,9 +170,8 @@ class Predict extends Entity
         # Putting a backstop on the oldest message we look at means we will adapt slowly over time if the way
         # people write changes, rather than accumulating too much historical baggage.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 1 year ago"));
-        $chatmsgs = $this->dbhr->preQuery("SELECT DISTINCT message FROM chat_messages WHERE userid = ? AND message IS NOT NULL AND type = ? AND date >= '$mysqltime';", [
-            $userid,
-            ChatMessage::TYPE_INTERESTED
+        $chatmsgs = $this->dbhr->preQuery("SELECT DISTINCT message FROM chat_messages WHERE userid = ? AND message IS NOT NULL AND date >= '$mysqltime';", [
+            $userid
         ], FALSE, FALSE);
 
         foreach ($chatmsgs as $chatmsg) {
@@ -142,19 +260,18 @@ class Predict extends Entity
         return([ $up, $down, $right, $wrong, $badlywrong ]);
     }
 
-    public function predict($uid) {
-        # Check to see if we have a recent prediction.
-        $mysqltime = date ("Y-m-d", strtotime("24 hours ago"));
-        $predictions = $this->dbhr->preQuery("SELECT * FROM predictions WHERE userid = ? AND timestamp > '$mysqltime';", [
+    public function predict($uid, $checkonly = FALSE, $force = FALSE) {
+        # Check to see if we have a prediction.  They are updated in cron.
+        $predictions = $this->dbhr->preQuery("SELECT * FROM predictions WHERE userid = ?;", [
             $uid
         ], FALSE, FALSE);
 
-        $ret = NULL;
+        $ret = User::RATING_UNKNOWN;
 
-        if (count($predictions)) {
+        if (count($predictions) && !$force) {
             # We already have a prediction.  Return it.
             $ret = $predictions[0]['prediction'];
-        } else {
+        } else if (!$checkonly) {
             # Predict just one user.
             $text = $this->getTextForUser($uid);
 
@@ -167,11 +284,21 @@ class Predict extends Entity
 
             # We use the vectorizer and tfIdfTransformer we set up during train.  We don't call fit because that
             # would wipe them.
-            $predicts = $this->pipeline->predict($samples);
-            $ret = $predicts[0];
-            $this->dbhm->preExec("REPLACE INTO predictions (userid, prediction) VALUES (?, ?);", [
+            $probs = $this->pipeline->predictProbability($samples);
+
+            # We want to be fairly sure each way.
+            if ($probs[0][User::RATING_UP] > 0.7) {
+                $ret = User::RATING_UP;
+            } else if ($probs[0][User::RATING_DOWN] > 0.7) {
+                $ret = User::RATING_DOWN;
+            } else {
+                $ret = User::RATING_UNKNOWN;
+            }
+
+            $this->dbhm->preExec("REPLACE INTO predictions (userid, prediction, probs) VALUES (?, ?, ?);", [
                 $uid,
-                $ret
+                $ret,
+                json_encode($probs)
             ]);
         }
 

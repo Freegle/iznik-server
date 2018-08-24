@@ -39,6 +39,7 @@ class User extends Entity
     const RATING_UP = 'Up';
     const RATING_DOWN = 'Down';
     const RATING_MINE = 'Mine';
+    const RATING_UNKNOWN = 'Unknown';
 
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft');

@@ -1161,6 +1161,16 @@ class ChatRoom extends Entity
                         # Find any "about me" info.
                         $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                         $users[$msg['userid']]['aboutme'] = $u->getAboutMe();
+
+                        # Also any prediction about this user.
+                        # TODO Can't call Predict because this doesn't work from HHVM, which is how we run the
+                        # user-facing code.  Unclear whether this is a PHP 7 incompatibility in HHVM or a bug in
+                        # PHP-ML.
+                        $predictions = $this->dbhr->preQuery("SELECT * FROM predictions WHERE userid = ?;", [
+                            $msg['userid']
+                        ], FALSE, FALSE);
+
+                        $users[$msg['userid']]['prediction'] = count($predictions) == 0 ? User::RATING_UNKNOWN : $predictions[0]['prediction'];
                     }
 
                     $ret[] = $atts;
