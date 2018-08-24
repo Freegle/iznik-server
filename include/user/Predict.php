@@ -170,8 +170,9 @@ class Predict extends Entity
         # Putting a backstop on the oldest message we look at means we will adapt slowly over time if the way
         # people write changes, rather than accumulating too much historical baggage.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 1 year ago"));
-        $chatmsgs = $this->dbhr->preQuery("SELECT DISTINCT message FROM chat_messages WHERE userid = ? AND message IS NOT NULL AND date >= '$mysqltime';", [
-            $userid
+        $chatmsgs = $this->dbhr->preQuery("SELECT DISTINCT message FROM chat_messages WHERE userid = ? AND message IS NOT NULL AND type = ? AND date >= '$mysqltime';", [
+            $userid,
+            ChatMessage::TYPE_INTERESTED
         ], FALSE, FALSE);
 
         foreach ($chatmsgs as $chatmsg) {
