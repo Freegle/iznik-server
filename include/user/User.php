@@ -1556,36 +1556,35 @@ class User extends Entity
             $start,
             ChatRoom::TYPE_USER2USER,
             ChatMessage::TYPE_INTERESTED
-        ]);
+        ], FALSE, FALSE);
 
         $ret['replies'] = $replies[0]['count'];
 
-        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND arrival > ? AND type = 'Offer';", [
+        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, type FROM messages WHERE fromuser = ? AND arrival > ? GROUP BY type;", [
             $this->id,
             $start
-        ]);
+        ], FALSE, FALSE);
 
-        $ret['offers'] = $replies[0]['count'];
-
-        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND arrival > ? AND type = 'Wanted';", [
-            $this->id,
-            $start
-        ]);
-
-        $ret['wanteds'] = $replies[0]['count'];
+        foreach ($counts as $count) {
+            if ($count['type'] == Message::TYPE_OFFER) {
+                $ret['offers'] = $count['count'];
+            } else if ($count['type'] == Message::TYPE_WANTED) {
+                $ret['wanteds'] = $count['count'];
+            }
+        }
 
         $takens = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes WHERE userid = ? AND timestamp > ? AND outcome = ?;", [
             $this->id,
             $start,
             Message::OUTCOME_TAKEN
-        ]);
+        ], FALSE, FALSE);
 
         $ret['taken'] = $takens[0]['count'];
 
         $reneges = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?;", [
             $this->id,
             $start
-        ]);
+        ], FALSE, FALSE);
 
         $ret['reneged'] = $reneges[0]['count'];
 
@@ -1609,7 +1608,7 @@ class User extends Entity
             Message::OUTCOME_TAKEN,
             $this->id,
             $this->id
-        ]);
+        ], FALSE, FALSE);
 
         $ret['collected'] = $collected[0]['count'];
 
@@ -5284,7 +5283,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     public function getRating() {
         $ratings = $this->dbhr->preQuery("SELECT COUNT(*) AS count, rating FROM ratings WHERE ratee = ? GROUP BY rating;", [
             $this->id
-        ], FALSE);
+        ], FALSE, FALSE);
 
         $ret = [
             User::RATING_UP => 0,
@@ -5303,7 +5302,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ratings = $this->dbhr->preQuery("SELECT rating FROM ratings WHERE ratee = ? AND rater = ?;", [
                 $this->id,
                 $myid
-            ]);
+            ], FALSE, FALSE);
 
             foreach ($ratings as $rating) {
                 $ret[User::RATING_MINE] = $rating['rating'];

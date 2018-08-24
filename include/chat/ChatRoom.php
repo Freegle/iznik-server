@@ -885,8 +885,6 @@ class ChatRoom extends Entity
                 $this->seenByAll($lastmsgseen);
             }
         }
-
-        $this->updateAnyCachedChatLists();
     }
 
     public function seenByAll($lastmsgseen) {
@@ -1817,7 +1815,7 @@ class ChatRoom extends Entity
     public function replyTime($userid, $force = FALSE) {
         $times = $this->dbhr->preQuery("SELECT replytime FROM users_replytime WHERE userid = ?;", [
             $userid
-        ]);
+        ], FALSE, FALSE);
 
         if (!$force && count($times) > 0) {
             $ret = $times[0]['replytime'];
@@ -1830,7 +1828,7 @@ class ChatRoom extends Entity
                 $userid,
                 $mysqltime,
                 ChatRoom::TYPE_USER2USER
-            ], FALSE);
+            ], FALSE, FALSE);
 
             foreach ($msgs as $msg) {
                 #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}");
@@ -1839,7 +1837,7 @@ class ChatRoom extends Entity
                     $msg['chatid'],
                     $msg['id'],
                     $userid
-                ]);
+                ], FALSE, FALSE);
 
                 if (count($lasts) > 0 && $lasts[0]['max']) {
                     $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
