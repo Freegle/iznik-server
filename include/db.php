@@ -473,7 +473,7 @@ class LoggedPDO {
         }
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for $sql " . var_export($params, TRUE));
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for "  . substr($sql, 0, 256) . " " . var_export($params, TRUE));
         }
 
         return($ret);
@@ -534,7 +534,7 @@ class LoggedPDO {
         $this->dbwaittime += microtime(true) - $start;
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for $sql ");
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256));
         }
 
         return($ret);
@@ -593,7 +593,7 @@ class LoggedPDO {
         $this->dbwaittime += microtime(true) - $start;
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for $sql ");
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256) . " ");
         }
 
         return($ret);
@@ -767,7 +767,7 @@ class LoggedPDO {
         } while (!$done && $count < 10);
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for background $sql");
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for background " . substr($sql, 0, 256));
         }
 
         return($fn);
