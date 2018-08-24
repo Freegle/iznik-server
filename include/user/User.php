@@ -114,10 +114,54 @@ class User extends Entity
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
+        # We don't use Entity::fetch because we can reduce the number of DB ops in getPublic later by
+        # doing a more complex query here.
         $this->log = new Log($dbhr, $dbhm);
         $this->notif = new PushNotifications($dbhr, $dbhm);
+        $this->dbhr = $dbhr;
+        $this->dbhm = $dbhm;
+        $this->name = 'user';
+        $this->user = NULL;
+        $this->id = NULL;
+        $this->table = 'users';
+        $this->profile = NULL;
 
-        $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
+        if ($id) {
+            # Fetch the user and any profile image.  There are so many users that there is no point trying
+            # to use the query cache.
+            $users = $dbhr->preQuery("SELECT users.*, users_images.id AS imageid, users_images.url AS imageurl, users_images.default AS imagedefault FROM users LEFT JOIN users_images ON users_images.userid = users.id WHERE users.id = ? ORDER BY imageid DESC LIMIT 1;", [
+                $id
+            ], FALSE, FALSE);
+
+            foreach ($users as &$user) {
+                if ($user['imageid']) {
+                    # We found a profile.  Move it out of the user attributes.
+                    $this->profile = [
+                        'id' => $user['imageid'],
+                        'url' => $user['imageurl'],
+                        'default' => $user['imagedefault']
+                    ];
+
+                    if (!$this->profile['default']) {
+                        # If it's a gravatar image we can return a thumbnail url that specifies a different size.
+                        $turl = pres('url', $this->profile) ? $this->profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$this->profile['id']}.jpg");
+                        $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
+                        $this->profile = [
+                            'url' => pres('url', $this->profile) ? $this->profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$this->profile['id']}.jpg"),
+                            'turl' => $turl,
+                            'default' => FALSE
+                        ];
+                    }
+
+                    unset($user['imageid']);
+                    unset($user['imageurl']);
+                    unset($user['imagedefault']);
+                }
+
+                $this->user = $user;
+                $this->id = $id;
+            }
+        }
     }
 
     public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $usecache = TRUE)
@@ -1859,28 +1903,12 @@ class User extends Entity
 
         $emails = NULL;
 
-        if (gettype($atts['settings']) == 'array' && (!array_key_exists('useprofile', $atts['settings']) || $atts['settings']['useprofile'])) {
-            # Find the most recent image.
-            $profiles = $this->dbhr->preQuery("SELECT id, url, `default` FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
-                $this->id
-            ]);
-
-            if (count($profiles) > 0) {
-                # Anything we have wins
-                foreach ($profiles as $profile) {
-                    if (!$profile['default']) {
-                        # If it's a gravatar image we can return a thumbnail url that specifies a different size.
-                        $turl = pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
-                        $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
-
-                        $atts['profile'] = [
-                            'url' => pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
-                            'turl' => $turl,
-                            'default' => FALSE
-                        ];
-                    }
-                }
-            }
+        if (gettype($atts['settings']) == 'array' &&
+            (!array_key_exists('useprofile', $atts['settings']) || $atts['settings']['useprofile']) &&
+            ($this->profile) &&
+            (!$this->profile['default'])) {
+            # Return the profile
+            $atts['profile'] = $this->profile;
         }
 
         if ($me && $this->id == $me->getId()) {
@@ -1941,7 +1969,7 @@ class User extends Entity
             $modships = count($modships) == 0 ? [0] : $modships;
             $sql = "SELECT COUNT(*) AS count FROM `users_modmails` WHERE userid = ? AND groupid IN (" . implode(',', $modships) . ");";
             #error_log("Find modmails $sql");
-            $modmails = count($modships) == 0 ? [['count' => 0]] : $this->dbhr->preQuery($sql, [$this->id]);
+            $modmails = (count($modships) == 0 || $modships == [0]) ? [['count' => 0]] : $this->dbhr->preQuery($sql, [$this->id]);
             $atts['modmails'] = $modmails[0]['count'];
 
             if ($logs) {
