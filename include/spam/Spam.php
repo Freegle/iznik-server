@@ -586,10 +586,6 @@ class Spam {
         foreach ($chats as $chat) {
             $sql = "UPDATE chat_messages SET reviewrejected = 1 WHERE id = ?";
             $this->dbhm->preExec($sql, [ $chat['id'] ]);
-
-            # Upate any chatlists so that we will know that they are a spammer and show a warning.
-            $cr = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
-            $cr->updateAnyCachedChatLists();
         }
 
         # Delete any newsfeed items from spammers.

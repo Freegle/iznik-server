@@ -494,155 +494,12 @@ class ChatRoom extends Entity
             $dates[0]['maxdate'],
             $this->id
         ]);
-
-        $this->updateAnyCachedChatLists();
-    }
-
-    public function updateAnyCachedChatLists() {
-        # Request that any cached chat lists which refer to this chat be updated.
-        $cached = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN users_chatlists ON users_chatlists.id = users_chatlists_index.chatlistid WHERE chatid = ? AND expired = 0;", [
-            $this->id
-        ], FALSE, FALSE);
-
-        foreach ($cached as $c) {
-            $this->queueCachedListUpdate($c['chatlistid']);
-        }
-
-        # If this is a chat relating to a group, then queue updates for all mods for that group.  This handles
-        # the case when a chat is created between a user and the mods, for example.
-        if (pres('groupid', $this->chatroom)) {
-            $mods = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN users_chatlists ON users_chatlists.id = users_chatlists_index.chatlistid INNER JOIN memberships ON users_chatlists_index.userid = memberships.userid WHERE groupid = ? AND role IN ('Owner', 'Moderator') AND expired = 0;",
-                [ $this->chatroom['groupid'] ], FALSE, FALSE);
-
-            foreach ($mods as $mod) {
-                $this->queueCachedListUpdate($mod['chatlistid']);
-            }
-        }
     }
 
     private function getKey($chattypes, $modtools) {
         sort($chattypes);
         $key = json_encode($chattypes) . "-" . ($modtools ? 1 : 0);
         return($key);
-    }
-
-    public function getCachedList($userid, $chattypes, $modtools) {
-        # We maintain a cache of (some of) the lists of chats for users.  This is to speed up processing for
-        # people like mentors who are on very many groups and so have potentially hundreds of chats.
-        $ret = NULL;
-
-        $key = $this->getKey($chattypes, $modtools);
-        $cached = $this->dbhr->preQuery("SELECT * FROM users_chatlists WHERE userid = ? AND `key` = ? AND expired = 0;", [
-            $userid,
-            $key
-        ]);
-
-        foreach ($cached as $c) {
-            $ret = json_decode($c['chatlist'], TRUE);
-        }
-
-        return($ret);
-    }
-
-    public function queueCachedListUpdate($chatlistid) {
-        # Mark this cached list as invalid.  That means that if we need one soon, we will get it the slow - but
-        # up to date - way.
-        $this->dbhm->preExec("UPDATE users_chatlists SET expired = 1 WHERE id = ?;", [
-            $chatlistid
-        ]);
-
-        # Now queue a background update.
-        try {
-            $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
-            $pheanstalk->put(json_encode(array(
-                'type' => 'cachedlist',
-                'queued' => time(),
-                'chatlistid' => $chatlistid,
-                'ttr' => 300
-            )));
-        } catch (Exception $e) {
-            # Try again in case it's a temporary error.
-            error_log("Beanstalk exception " . $e->getMessage());
-        }
-    }
-
-    public function updateCachedList($chatlistid, $queued = NULL) {
-        # We want to update an existing chatlist.  Find it, and get the parameters which we encoded into
-        # the key back again.
-        #error_log("Update chatlist $chatlistid request queued at $queued");
-        $lists = $this->dbhr->preQuery("SELECT id, timestamp, userid, `key` FROM users_chatlists WHERE id = ?;", [
-            $chatlistid
-        ]);
-
-        foreach ($lists as $list) {
-            # If we have updated the list since we queued a request to do so, we don't need to do it again.  This
-            # helps avoid a build up of duplicate requests within the queue causing a car crash pile up of work.
-            if (strtotime($list['timestamp']) < $queued) {
-                #error_log("Last updated " . strtotime($list['timestamp']) . " vs $queued");
-                #error_log("Update");
-                $key = $list['key'];
-
-                if (preg_match('/(.*)\-(.*)/', $key, $matches)) {
-                    $userid = $list['userid'];
-                    $chattypes = json_decode($matches[1], TRUE);
-                    $modtools = intval($matches[2]);
-                    error_log("Update for MT=$modtools, $key, user $userid");
-
-                    # Now get the info we need.  This is the potentially slow bit, which we are trying to
-                    # avoid being user-facing.
-                    $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
-                    $newlist = [];
-
-                    $u = new User($this->dbhr, $this->dbhm, $userid);
-
-                    foreach ($chatids as $chatid) {
-                        # We fake being logged in as this user to ensure we get the right unread count.  This method
-                        # is only called in the context of the background process so we won't mess up other stuff.
-                        $_SESSION['id'] = $userid;
-                        $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-                        $atts = $r->getPublic($u);
-                        $atts['lastmsgseen'] = $r->lastSeenForUser($userid);
-                        $newlist[] = $atts;
-                        $_SESSION['id'] = NULL;
-                    }
-
-                    # And store it.
-                    $this->setCachedList($userid, $chattypes, $modtools, $newlist, TRUE);
-                }
-            }
-        }
-    }
-
-    public function setCachedList($userid, $chattypes, $modtools, $list, $background) {
-        if (count($list) > ChatRoom::CACHED_LIST_SIZE) {
-            # Only bother to save for larger numbers.  For smaller lists we work them out on the fly, which
-            # saves us disk space except where we need it to speed things up.
-            #
-            # Use IGNORE in case the user has been deleted in the mean time, e.g. in UT.
-            $this->dbhm->preExec("INSERT IGNORE INTO users_chatlists (userid, `key`, chatlist, background) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), expired = 0, background = ?;", [
-                $userid,
-                $this->getKey($chattypes, $modtools),
-                json_encode($list),
-                $background,
-                $background
-            ]);
-
-            $chatlistid = $this->dbhm->lastInsertId();
-
-            # We have an index which allows us to go from a chat or user to the chatlist.  We use it to force
-            # refreshes when we change a chat.
-            #
-            # We don't remove entries from this index, so if (for example) we stop being a mod on a group we will
-            # still have some chats we need not have.  This will cause more frequent updates of this list than we
-            # need, though that won't cause any functional issues.
-            # TODO.
-            $sql = '';
-            foreach ($list as $room) {
-                $sql .= "REPLACE INTO users_chatlists_index (userid, chatid, chatlistid) VALUES ($userid, {$room['id']}, $chatlistid);";
-            }
-
-            $this->dbhm->preExec($sql);
-        }
     }
 
     public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS)
@@ -810,17 +667,6 @@ class ChatRoom extends Entity
                     $msg['max']
                 ]);
         }
-
-        # We might have cached lists.
-        $cached = $this->dbhr->preQuery("SELECT DISTINCT chatlistid FROM users_chatlists_index INNER JOIN users_chatlists ON users_chatlists.id = users_chatlists_index.chatlistid WHERE chatid = ? AND users_chatlists_index.userid = ? AND expired = 0;", [
-            $this->id,
-            $userid
-        ], FALSE, FALSE);
-
-        foreach ($cached as $c) {
-            #error_log("Queue update for {$c['chatlistid']}");
-            $this->queueCachedListUpdate($c['chatlistid']);
-        }
     }
 
     public function updateRoster($userid, $lastmsgseen, $status = ChatRoom::STATUS_ONLINE)
@@ -844,9 +690,6 @@ class ChatRoom extends Entity
                 $this->id,
                 $userid
             ], FALSE);
-
-            # This chat should then not show, so we need to update cached lists.
-            $this->updateAnyCachedChatLists();
         }
 
         if ($lastmsgseen && !is_nan($lastmsgseen)) {
