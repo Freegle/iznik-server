@@ -163,14 +163,15 @@ class Predict extends Entity
         $this->users = [];
     }
 
-    private function getTextForUser($userid)
+    private function getTextForUser($userid, $chatid = NULL)
     {
         $msg = '';
 
         # Putting a backstop on the oldest message we look at means we will adapt slowly over time if the way
         # people write changes, rather than accumulating too much historical baggage.
+        $chatq = $chatid ? " AND chatid = $chatid " : "";
         $mysqltime = date ("Y-m-d", strtotime("Midnight 1 year ago"));
-        $chatmsgs = $this->dbhr->preQuery("SELECT DISTINCT message FROM chat_messages WHERE userid = ? AND message IS NOT NULL AND type = ? AND date >= '$mysqltime';", [
+        $chatmsgs = $this->dbhr->preQuery("SELECT DISTINCT message FROM chat_messages WHERE userid = ? AND message IS NOT NULL AND type = ? AND date >= '$mysqltime' $chatq;", [
             $userid,
             ChatMessage::TYPE_INTERESTED
         ], FALSE, FALSE);
@@ -191,8 +192,12 @@ class Predict extends Entity
 
         if (count($ratings)) {
             foreach ($ratings as $rating) {
-                # Find all the text from this user.
-                $text = $this->getTextForUser($rating['ratee']);
+                # Find the chat between these users.
+                $r = new ChatRoom($this->dbhr, $this->dbhm);
+
+                # Train on this specific conversation, because that's the one which didn't work out.
+                $chatid = $r->createConversation($rating['rater'], $rating['ratee']);
+                $text = $this->getTextForUser($rating['ratee'], $chatid);
 
                 if (strlen($text)) {
                     $this->users[] = $rating['ratee'];
@@ -274,7 +279,7 @@ class Predict extends Entity
             $ret = $predictions[0]['prediction'];
         } else if (!$checkonly) {
             # Predict just one user.
-            $text = $this->getTextForUser($uid);
+            $text = $this->getTextForUser($uid, NULL);
 
             # The text might contains words which weren't present in the data set we used to train.  We have to remove
             # these otherwise the transform will produce vectors which aren't valid.
