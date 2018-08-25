@@ -34,22 +34,20 @@ function chatrooms() {
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
-                    if (!$ret['chatrooms']) {
-                        $rooms = $r->listForUser($myid, $chattypes, $search);
-                        $ret['chatrooms'] = [];
+                    $rooms = $r->listForUser($myid, $chattypes, $search);
+                    $ret['chatrooms'] = [];
 
-                        if ($rooms) {
-                            foreach ($rooms as $room) {
-                                $r = new ChatRoom($dbhr, $dbhm, $room);
-                                $atts = $r->getPublic($me, $mepub);
-                                $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
-                                $ret['chatrooms'][] = $atts;
-                            }
+                    if ($rooms) {
+                        foreach ($rooms as $room) {
+                            $r = new ChatRoom($dbhr, $dbhm, $room);
+                            $atts = $r->getPublic($me, $mepub);
+                            $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
+                            $ret['chatrooms'][] = $atts;
                         }
+                    }
 
-                        if (!$search) {
-                            $r->setCachedList($myid, $chattypes, MODTOOLS, $ret['chatrooms'], FALSE);
-                        }
+                    if (!$search) {
+                        $r->setCachedList($myid, $chattypes, MODTOOLS, $ret['chatrooms'], FALSE);
                     }
                 }
             }
