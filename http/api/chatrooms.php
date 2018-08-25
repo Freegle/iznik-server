@@ -45,10 +45,6 @@ function chatrooms() {
                             $ret['chatrooms'][] = $atts;
                         }
                     }
-
-                    if (!$search) {
-                        $r->setCachedList($myid, $chattypes, MODTOOLS, $ret['chatrooms'], FALSE);
-                    }
                 }
             }
             break;
