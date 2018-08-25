@@ -433,6 +433,8 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
+        $fromuid = $m->getFromuser();
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -442,6 +444,12 @@ class chatMessagesTest extends IznikTestCase {
         $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $replyid);
         $atts = $m->getAttachments();
+
+        # Notification payload for recipient.
+        $u = new User($this->dbhr, $this->dbhm, $fromuid);
+        list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
+        assertEquals(1, $total);
+        assertEquals("You have 1 notification", $title);
 
         # Expect one of these to have been stripped as too small
         self::assertEquals(1, count($atts));
