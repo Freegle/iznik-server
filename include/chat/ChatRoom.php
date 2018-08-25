@@ -441,16 +441,7 @@ class ChatRoom extends Entity
     public function allUnseenForUser($userid, $chattypes, $modtools = FALSE)
     {
         # Get all unseen messages.  We might have a cached version.
-        $cached = $this->getCachedList($userid, $chattypes, MODTOOLS);
-        $chatids = [];
-
-        if ($cached) {
-            foreach ($cached as $c) {
-                $chatids[] = $c['id'];
-            }
-        } else {
-            $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
-        }
+        $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
 
         $ret = [];
 
