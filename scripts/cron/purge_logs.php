@@ -8,6 +8,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
@@ -216,7 +218,7 @@ try {
     error_log("Activity logs:");
     $total = 0;
     do {
-        $count = $dbhm->exec("UPDATE users_active SET userid = NULL WHERE userid IS NOT NULL AND timestamp < '$start'; LIMIT 1000;");
+        $count = $dbhm->exec("UPDATE users_active SET userid = NULL WHERE userid IS NOT NULL AND timestamp < '$start' LIMIT 1000;");
         $total += $count;
         error_log("...$total");
         set_time_limit(600);
@@ -225,5 +227,6 @@ try {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
 }
 
-
 error_log("Completed");
+
+unlockScript($lockh);
