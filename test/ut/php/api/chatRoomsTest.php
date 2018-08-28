@@ -71,6 +71,15 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals('Test User', $ret['chatrooms'][0]['name']);
 
         $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2USER ],
+            'summary' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
+        assertEquals('Test User', $ret['chatrooms'][0]['name']);
+
+        $ret = $this->call('chatrooms', 'GET', [
             'id' => $rid
         ]);
         assertEquals(0, $ret['ret']);
@@ -119,6 +128,15 @@ class chatRoomsAPITest extends IznikAPITestCase
         # Now we're talking.
         $ret = $this->call('chatrooms', 'GET', [
             'chattypes' => [ ChatRoom::TYPE_MOD2MOD ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
+        assertEquals('testgroup Mods', $ret['chatrooms'][0]['name']);
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_MOD2MOD ],
+            'summary' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatrooms']));
@@ -185,6 +203,14 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals(1, count($ret['chatrooms']));
         assertEquals($rid, $ret['chatrooms'][0]['id']);
 
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2MOD ],
+            'summary' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
+
         # Now create a group mod
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -204,6 +230,14 @@ class chatRoomsAPITest extends IznikAPITestCase
         $u->setRole(USer::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('chatrooms', 'GET', [
             'chattypes' => [ ChatRoom::TYPE_USER2MOD ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2MOD ],
+            'summary' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatrooms']));

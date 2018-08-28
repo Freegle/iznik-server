@@ -257,103 +257,120 @@ class ChatRoom extends Entity
         return ($id);
     }
 
-    public function getPublic($me = NULL, $mepub = NULL)
+    public function getPublic($me = NULL, $mepub = NULL, $summary = FALSE)
     {
         $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
+        $u1id = presdef('user1', $this->chatroom, NULL);
+        $u2id = presdef('user2', $this->chatroom, NULL);
+        $gid = $this->chatroom['groupid'];
+        
         $ret = $this->getAtts($this->publicatts);
 
-        if (pres('groupid', $ret)) {
+        if (pres('groupid', $ret) && !$summary) {
             $g = Group::get($this->dbhr, $this->dbhm, $ret['groupid']);
             unset($ret['groupid']);
             $ret['group'] = $g->getPublic();
         }
 
-        # We return whether someone is on the spammer list so that we can warn members.
-        $s = new Spam($this->dbhr, $this->dbhm);
+        if (!$summary) {
+            if (pres('user1', $ret)) {
+                if ($ret['user1'] == $myid && $mepub) {
+                    $ret['user1'] = $mepub;
+                } else {
+                    $u = $ret['user1'] == $myid ? $me : User::get($this->dbhr, $this->dbhm, $ret['user1']);
+                    unset($ret['user1']);
+                    $ctx = NULL;
+                    $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
 
-        if (pres('user1', $ret)) {
-            if ($ret['user1'] == $myid && $mepub) {
-                $ret['user1'] = $mepub;
-            } else {
-                $u = $ret['user1'] == $myid ? $me : User::get($this->dbhr, $this->dbhm, $ret['user1']);
-                unset($ret['user1']);
-                $ctx = NULL;
-                $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
-
-                if (pres('group', $ret)) {
-                    # As a mod we can see the email
-                    $ret['user1']['email'] = $u->getEmailPreferred();
-                }
-            }
-        }
-
-        if (pres('user2', $ret)) {
-            if ($ret['user2'] == $myid && $mepub) {
-                $ret['user2'] = $mepub;
-            } else {
-                $u = $ret['user2'] == $myid ? $me : User::get($this->dbhr, $this->dbhm, $ret['user2']);
-                unset($ret['user2']);
-                $ctx = NULL;
-                $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
-
-                if (pres('group', $ret)) {
-                    # As a mod we can see the email
-                    $ret['user2']['email'] = $u->getEmailPreferred();
+                    if (pres('group', $ret)) {
+                        # As a mod we can see the email
+                        $ret['user1']['email'] = $u->getEmailPreferred();
+                    }
                 }
             }
 
-            $spammer = $s->getSpammerByUserid($ret['user2']['id']);
-            $ret['user2']['spammer'] =  $spammer !== NULL;
+            if (pres('user2', $ret)) {
+                if ($ret['user2'] == $myid && $mepub) {
+                    $ret['user2'] = $mepub;
+                } else {
+                    $u = $ret['user2'] == $myid ? $me : User::get($this->dbhr, $this->dbhm, $ret['user2']);
+                    unset($ret['user2']);
+                    $ctx = NULL;
+                    $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+
+                    if (pres('group', $ret)) {
+                        # As a mod we can see the email
+                        $ret['user2']['email'] = $u->getEmailPreferred();
+                    }
+                }
+            }
+        }
+        
+        if (!$summary) {
+            # We return whether someone is on the spammer list so that we can warn members.
+            $s = new Spam($this->dbhr, $this->dbhm);
+            $ret['user1']['spammer'] = $s->getSpammerByUserid($u1id) !== NULL;
+            $ret['user2']['spammer'] = $s->getSpammerByUserid($u2id) !== NULL;
         }
 
-        # Icon for chat
+        # Icon for chat.  We assume that any user icons will have been created by this point.  We dip down into
+        # the icon name format here rather than instatiate the User/Group objects for performance.
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
-                $ret['icon'] = ($ret['user1']['id'] == $myid) ? $ret['user2']['profile']['url'] : $ret['user1']['profile']['url'];
+                $ret['icon'] = 'https://' . IMAGE_DOMAIN . "/tuimg_" . ($u1id == $myid ? $u2id : $u1id) . ".jpg";
                 break;
             case ChatRoom::TYPE_USER2MOD:
-                $ret['icon'] = $ret['user1']['id'] == $myid ? $ret['group']['profile'] : $ret['user1']['profile']['url'];
+                $ret['icon'] = $u1id == $myid ? ("https://" . IMAGE_DOMAIN . "/gimg_$gid.jpg") : ("https://" . IMAGE_DOMAIN . "/tuimg_$u1id.jpg");
                 break;
             case ChatRoom::TYPE_MOD2MOD:
-                $ret['icon'] = $ret['group']['profile'];
+                $ret['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_$gid.jpg";
                 break;
             case ChatRoom::TYPE_GROUP:
-                $ret['icon'] = $ret['group']['profile'];
+                $ret['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_$gid.jpg";
                 break;
         }
 
         $ret['unseen'] = $this->unseenCountForUser($myid);
 
-        # The name we return is not the one we created it with, which is internal.
+        # The name we return is not the one we created it with, which is internal.  
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
-                # We use the name of the user who isn't us, because that's who we're chatting to.
-                $ret['name'] = ($ret['user1']['id'] != $myid) ? $ret['user1']['displayname'] :
-                    $ret['user2']['displayname'];
+                if ($summary) {
+                    # We use the name of the user who isn't us, because that's who we're chatting to.
+                    $ret['name'] = $this->getUserName($myid == $u1id ? $u2id : $u1id);
+                } else {
+                    $ret['name'] = $u1id != $myid ? $ret['user1']['displayname'] : $ret['user2']['displayname'];
+                }
                 break;
             case ChatRoom::TYPE_USER2MOD:
                 # If we started it, we're chatting to the group volunteers; otherwise to the user.
-                $username = $ret['user1']['displayname'];
-                $username = strlen(trim($username)) > 0 ? $username : 'A freegler';
-                $email = presdef('email', $ret['user1'], 'No email');
-                $ret['name'] = $ret['user1']['id'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "$username ($email) on {$ret['group']['nameshort']}";
+                if ($summary) {
+                    $ret['name'] = ($u1id == $myid) ? ($this->getGroupName($gid) . " Volunteers") : ($this->getUserName($u1id) . " on " . $this->getGroupName($gid));
+                } else {
+                    $username = $ret['user1']['displayname'];
+                    $username = strlen(trim($username)) > 0 ? $username : 'A freegler';
+                    $ret['name'] = $u1id == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "$username on {$ret['group']['nameshort']}";
+                }
+                
                 break;
             case ChatRoom::TYPE_MOD2MOD:
                 # Mods chatting to each other.
-                $ret['name'] = "{$ret['group']['namedisplay']} Mods";
+                $ret['name'] = $summary ? ($this->getGroupName($gid) . " Mods") : "{$ret['group']['namedisplay']} Mods";
                 break;
             case ChatRoom::TYPE_GROUP:
                 # Members chatting to each other
-                $ret['name'] = "{$ret['group']['namedisplay']} Discussion";
+                $ret['name'] = $summary ? ($this->getGroupName($gid) . " Discussion") : "{$ret['group']['namedisplay']} Discussion";
                 break;
         }
 
-        $refmsgs = $this->dbhr->preQuery("SELECT DISTINCT refmsgid FROM chat_messages INNER JOIN messages ON messages.id = refmsgid AND messages.type IN ('Offer', 'Wanted') WHERE chatid = ? ORDER BY refmsgid DESC;", [$this->id]);
-        $ret['refmsgids'] = [];
-        foreach ($refmsgs as $refmsg) {
-            $ret['refmsgids'][] = $refmsg['refmsgid'];
+        if (!$summary) {
+            $refmsgs = $this->dbhr->preQuery("SELECT DISTINCT refmsgid FROM chat_messages INNER JOIN messages ON messages.id = refmsgid AND messages.type IN ('Offer', 'Wanted') WHERE chatid = ? ORDER BY refmsgid DESC;", [$this->id]);
+            $ret['refmsgids'] = [];
+            foreach ($refmsgs as $refmsg) {
+                $ret['refmsgids'][] = $refmsg['refmsgid'];
+            }
         }
 
         $lasts = $this->dbhr->preQuery("SELECT id, date, message, type FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
@@ -383,6 +400,27 @@ class ChatRoom extends Entity
         }
 
         return ($ret);
+    }
+    
+    private function getGroupName($gid) {
+        # We go direct to the DB to minimise DB ops in the summary case, which is a critical path.
+        $names = $this->dbhr->preQuery("SELECT CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS name FROM groups WHERE id = ?;", [
+            $gid
+        ]);
+        
+        return($names[0]['name']);
+    }
+    
+    private function getUserName($uid) {                    
+        # We go direct to the DB to minimise DB ops in the summary case, which is a critical path.
+        $names = $this->dbhr->preQuery("SELECT CASE WHEN fullname IS NOT NULL THEN fullname ELSE CONCAT(firstname, ' ', lastname) END AS name FROM users WHERE id = ?;", [
+            $uid
+        ], FALSE, FALSE);
+        
+        $name = $names[0]['name'];
+        $name = $name && strlen(trim($name)) ? $name : 'A freegler';
+        
+        return($name);
     }
 
     public function splitEmoji($msg) {

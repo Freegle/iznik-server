@@ -12,6 +12,7 @@ function chatrooms() {
     $chattype = presdef('chattype', $_REQUEST, ChatRoom::TYPE_USER2USER);
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $search = presdef('search', $_REQUEST, NULL);
+    $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -40,8 +41,12 @@ function chatrooms() {
                     if ($rooms) {
                         foreach ($rooms as $room) {
                             $r = new ChatRoom($dbhr, $dbhm, $room);
-                            $atts = $r->getPublic($me, $mepub);
-                            $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
+                            $atts = $r->getPublic($me, $mepub, $summary);
+
+                            if (!$summary) {
+                                $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
+                            }
+
                             $ret['chatrooms'][] = $atts;
                         }
                     }
