@@ -275,12 +275,11 @@ class ChatRoom extends Entity
         }
 
         if (!$summary) {
-            if (pres('user1', $ret)) {
-                if ($ret['user1'] == $myid && $mepub) {
+            if ($u1id) {
+                if ($u1id == $myid && $mepub) {
                     $ret['user1'] = $mepub;
                 } else {
-                    $u = $ret['user1'] == $myid ? $me : User::get($this->dbhr, $this->dbhm, $ret['user1']);
-                    unset($ret['user1']);
+                    $u = $u1id == $myid ? $me : User::get($this->dbhr, $this->dbhm, $u1id);
                     $ctx = NULL;
                     $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
 
@@ -291,12 +290,11 @@ class ChatRoom extends Entity
                 }
             }
 
-            if (pres('user2', $ret)) {
-                if ($ret['user2'] == $myid && $mepub) {
+            if ($u2id) {
+                if ($u2id == $myid && $mepub) {
                     $ret['user2'] = $mepub;
                 } else {
-                    $u = $ret['user2'] == $myid ? $me : User::get($this->dbhr, $this->dbhm, $ret['user2']);
-                    unset($ret['user2']);
+                    $u = $u2id == $myid ? $me : User::get($this->dbhr, $this->dbhm, $u2id);
                     $ctx = NULL;
                     $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
 
@@ -311,8 +309,14 @@ class ChatRoom extends Entity
         if (!$summary) {
             # We return whether someone is on the spammer list so that we can warn members.
             $s = new Spam($this->dbhr, $this->dbhm);
-            $ret['user1']['spammer'] = $s->getSpammerByUserid($u1id) !== NULL;
-            $ret['user2']['spammer'] = $s->getSpammerByUserid($u2id) !== NULL;
+
+            if ($u1id) {
+                $ret['user1']['spammer'] = $s->getSpammerByUserid($u1id) !== NULL;
+            }
+
+            if ($u2id) {
+                $ret['user2']['spammer'] = $s->getSpammerByUserid($u2id) !== NULL;
+            }
         }
 
         # Icon for chat.  We assume that any user icons will have been created by this point.  We dip down into
