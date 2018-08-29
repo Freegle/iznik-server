@@ -113,7 +113,7 @@ class PushNotifications
     public function executeSend($userid, $notiftype, $params, $endpoint, $payload) {
         #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
         try {
-            #error_log("notiftype " . $notiftype);
+            #error_log("notiftype " . $notiftype . " userid ".$userid);
             switch ($notiftype) {
                 case PushNotifications::PUSH_FCM_ANDROID:
                 case PushNotifications::PUSH_FCM_IOS:
@@ -172,7 +172,8 @@ class PushNotifications
                             ],
                             'payload' => [
                                 'aps' => [
-                                    'badge' => $payload['count']
+                                    'badge' => $payload['count'],
+                                    'content-available' => 1
                                 ]
                             ],
                         ];
@@ -197,12 +198,21 @@ class PushNotifications
                         $error = $e->errors()['error'];
                         file_put_contents('/tmp/fcmerrors',date(DATE_RFC2822).': '.$userid.' - '.$endpoint.' - '.var_export($error, TRUE)."\r\n",FILE_APPEND);
                         error_log("FCM InvalidMessage " . var_export($error, TRUE));
-                        $error = $error['details'][0]['errorCode'];
-                        #error_log("FCM InvalidMessage " . $error);
+                        $errorCode = $error['details'][0]['errorCode'];
+                        error_log("FCM errorCode " . $errorCode);
 
-                        if ($error == 'UNREGISTERED') {
+                        if ($errorCode == 'UNREGISTERED') {
                             # We do want to remove the subscription in this case.
-                            throw new Exception($error);
+                            throw new Exception($errorCode);
+                        }
+
+                        foreach ($error['details'] as $detail) {
+                            if (array_key_exists('fieldViolations',$detail)) {
+                                if ($detail['fieldViolations'][0]['description'] == 'Invalid registration token') {
+                                    # We do want to remove the subscription in this case.
+                                    throw new Exception($detail['fieldViolations'][0]['description']);
+                                }
+                            }
                         }
 
                         $rc = TRUE; // Problem is ignored and subscription/token NOT removed: eyeball logs to check
@@ -284,20 +294,16 @@ class PushNotifications
     public function notify($userid, $modtools = MODTOOLS) {
         $count = 0;
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        $proceedpush = $u->notifsOn(User::NOTIFS_PUSH);
-        $proceedapp = $u->notifsOn(User::NOTIFS_APP);
+        $proceed = $u->notifsOn(User::NOTIFS_PUSH);
         #error_log("Notify $userid, on $proceed MT $modtools");
 
-        $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?;", [
-            $userid,
-            $modtools ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER
-        ]);
+        if ($proceed) {
+            $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?;", [
+                $userid,
+                $modtools ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER
+            ]);
 
-        foreach ($notifs as $notif) {
-            if ($proceedpush && in_array($notif['type'],
-                    [ PushNotifications::PUSH_FIREFOX, PushNotifications::PUSH_GOOGLE ]) ||
-               ($proceedapp && in_array(notif['$type'],
-                       [ PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS, PushNotifications::PUSH_IOS, PushNotifications::PUSH_ANDROID ] ))) {
+            foreach ($notifs as $notif) {
                 #error_log("Send user $userid {$notif['subscription']} type {$notif['type']}");
                 $payload = NULL;
                 $proceed = TRUE;
