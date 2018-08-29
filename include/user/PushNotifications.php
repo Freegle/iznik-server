@@ -284,16 +284,20 @@ class PushNotifications
     public function notify($userid, $modtools = MODTOOLS) {
         $count = 0;
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        $proceed = $u->notifsOn(User::NOTIFS_PUSH);
+        $proceedpush = $u->notifsOn(User::NOTIFS_PUSH);
+        $proceedapp = $u->notifsOn(User::NOTIFS_APP);
         #error_log("Notify $userid, on $proceed MT $modtools");
 
-        if ($proceed) {
-            $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?;", [
-                $userid,
-                $modtools ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER
-            ]);
+        $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?;", [
+            $userid,
+            $modtools ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER
+        ]);
 
-            foreach ($notifs as $notif) {
+        foreach ($notifs as $notif) {
+            if ($proceedpush && in_array($notif['type'],
+                    [ PushNotifications::PUSH_FIREFOX, PushNotifications::PUSH_GOOGLE ]) ||
+               ($proceedapp && in_array(notif['$type'],
+                       [ PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS, PushNotifications::PUSH_IOS, PushNotifications::PUSH_ANDROID ] ))) {
                 #error_log("Send user $userid {$notif['subscription']} type {$notif['type']}");
                 $payload = NULL;
                 $proceed = TRUE;
