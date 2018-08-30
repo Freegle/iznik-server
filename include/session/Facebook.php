@@ -274,7 +274,7 @@ class Facebook
             $fb->setDefaultAccessToken(FBAPP_ID . '|' . FBAPP_SECRET);
 
             $result = $fb->post("/$fbid/notifications", $notif);
-            error_log("...notified $fbid OK");
+            error_log("...notified Facebook $fbid OK");
             #error_log("Notify returned " . var_export($result, TRUE));
         } catch (Exception $e) {
             $msg = $e->getMessage();
