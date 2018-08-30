@@ -436,10 +436,11 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                 print $ret['img'];
             } else {
                 # This is a normal API call.  Add profiling info.
+                $duration = (microtime(true) - $scriptstart);
                 $ret['call'] = $call;
                 $ret['type'] = presdef('type', $_REQUEST, NULL);
                 $ret['session'] = session_id();
-                $ret['duration'] = (microtime(true) - $scriptstart);
+                $ret['duration'] = $duration;
                 $ret['cpucost'] = getCpuUsage();
                 $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();
                 $ret['includetime'] = $includetime;
@@ -450,6 +451,13 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                 filterResult($ret);
                 $str = json_encode($ret);
                 echo $str;
+
+                if ($duration > 1000) {
+                    # Slow call.
+                    $stamp = microtime(true);
+                    error_log("Slow API call $call stamp $stamp");
+                    file_put_contents("/tmp/iznik.slowapi.$stamp", var_export($_REQUEST, TRUE));
+                }
             }
 
             if ($apicallretries > 0) {
