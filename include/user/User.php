@@ -2007,12 +2007,13 @@ class User extends Entity
                 # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
                 # - creation - either of ourselves or others during syncing.
                 # - deletion of users due to syncing
+                # Don't cache as there might be a lot, they're rarely used, and it can cause UT issues.
                 $me = whoAmI($this->dbhr, $this->dbhm);
                 $startq = $ctx ? " AND id < {$ctx['id']} " : '';
                 $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND groupid IN (" . implode(',', $modships) . ")";
                 $modq = $modmailsonly ? $modmailq : '';
                 $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
-                $logs = $this->dbhr->preQuery($sql, [$this->id, $this->id]);
+                $logs = $this->dbhr->preQuery($sql, [$this->id, $this->id], FALSE, FALSE);
                 #error_log($sql . $this->id);
                 $atts['logs'] = [];
                 $groups = [];
