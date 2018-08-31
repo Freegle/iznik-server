@@ -25,8 +25,7 @@ $helper = $fb->getRedirectLoginHelper();
 
 $permissions = [
     'manage_pages',
-    'publish_pages',
-    'publish_actions'
+    'publish_pages'
 ];
 
 $_SESSION['graffitigroup'] = $groupid;
