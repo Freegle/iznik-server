@@ -43,7 +43,7 @@
             <mj-raw>
             {% if subject is defined and subject is not null %}
             </mj-raw>
-            <mj-text>We think you were interested in: <b>{{ subject }}</b></mj-text>
+            <mj-text>We think you were talking about: <b>{{ subject }}</b></mj-text>
             <mj-raw>
             {% endif %}
             </mj-raw>
