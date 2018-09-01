@@ -179,8 +179,13 @@ function memberships() {
                         $addtocoll = MembershipCollection::APPROVED;
                     } else if ($userid) {
                         # We're adding ourselves, i.e. joining a group.  If the group approves members then we should
-                        # add to pending.
-                        $addtocoll = $g->getSetting('approvemembers', FALSE) ? MembershipCollection::PENDING : MembershipCollection::APPROVED;
+                        # add to pending unless the member is already approved.  That can happen if the client keeps
+                        # sending the join for some reason.
+                        if ($g->getSetting('approvemembers', FALSE)) {
+                            $addtocoll =  $u->isApprovedMember($groupid) ? MembershipCollection::APPROVED: MembershipCollection::PENDING;
+                        } else {
+                            $addtocoll = MembershipCollection::APPROVED;
+                        }
                     }
 
                     if ($email) {
