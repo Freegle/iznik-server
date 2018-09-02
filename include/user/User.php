@@ -1167,10 +1167,9 @@ class User extends Entity
             $one['mysettings']['emailfrequency'] = ($pernickety || $this->sendOurMails($g, FALSE, FALSE)) ? $one['mysettings']['emailfrequency'] : 0;
 
             if ($getwork) {
-                # We only need finding out how much work there is if we are interested in seeing it.
-                $active = $this->activeModForGroup($group['groupid'], $one['mysettings']);
-
-                if ($amod && $active) {
+                # We need to find out how much work there is whether or not we are an active mod because we need
+                # to be able to see that it is there.  The UI shows it less obviously.
+                if ($amod) {
                     # Give a summary of outstanding work.
                     $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
                 }
