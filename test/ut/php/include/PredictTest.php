@@ -116,17 +116,15 @@ class PredictTest extends IznikTestCase {
         $m->create($chatid, $uid, "I'm rude and it will be awful.", ChatMessage::TYPE_INTERESTED);
         assertEquals(User::RATING_DOWN, $p->predict($uid));
 
-        return;
-
         # Now repeat the train and check on whatever is in the DB.  On Travis this will be the same, but if we
         # are running on a real DB it will act as a check against this going rogue in production.
         error_log("Train on rest");
         $p = new Predict($this->dbhr, $this->dbhm);
         $count = $p->train();
-        self::assertGreaterThanOrEqual(200, $count);
+        self::assertGreaterThanOrEqual(PredictTest::SIZE * 2, $count);
         list ($up, $down, $right, $wrong, $badlywrong) = $p->checkAccuracy();
-        error_log("\n\nRest data predicted Up $up Down $down, right $right (" . (PredictTest::SIZE * $right / ($wrong + $right)) . "%) wrong $wrong badly wrong $badlywrong (" . (PredictTest::SIZE * $badlywrong / ($wrong + $right)) . "%)");
-        self::assertLessThan(6, PredictTest::SIZE * $badlywrong / ($up + $down));
+        error_log("\n\nRest data predicted Up $up Down $down, right $right (" . (100 * $right / ($wrong + $right)) . "%) wrong $wrong badly wrong $badlywrong (" . (100 * $badlywrong / ($wrong + $right)) . "%)");
+        self::assertLessThan(6, 100 * $badlywrong / ($up + $down));
 
         error_log(__METHOD__ . " end");
     }

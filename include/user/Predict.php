@@ -219,7 +219,8 @@ class Predict extends Entity
     {
         # We want to check the accuracy beyond what the model does.  That checks how often we are right or wrong,
         # but for us it's much worse to predict that someone is not a good freegler when they are than it is
-        # to predict that they are a good freegler when they're not.
+        # to predict that they are a good freegler when they're not.  So we only score the accuracy based on
+        # when either the preidction or the reality is bad.
         $wrong = 0;
         $badlywrong = 0;
         $right = 0;
@@ -251,15 +252,17 @@ class Predict extends Entity
                 }
             }
 
-            if ($verdict > 0 && $pred === 'Down') {
-                error_log("User {$this->users[$i]} predict wrong Down but ratings say Up");
-                $wrong++;
-                $badlywrong++;
-            } else if ($verdict < 0 && $pred === 'Up') {
-                error_log("User {$this->users[$i]} predict wrong Up but ratings say Down");
-                $wrong++;
-            } else {
-                $right++;
+            if ($pred == 'Down' || $verdict < 0) {
+                if ($verdict > 0 && $pred === 'Down') {
+                    error_log("User {$this->users[$i]} predict wrong Down but ratings say Up");
+                    $wrong++;
+                    $badlywrong++;
+                } else if ($verdict < 0 && $pred === 'Up') {
+                    error_log("User {$this->users[$i]} predict wrong Up but ratings say Down");
+                    $wrong++;
+                } else {
+                    $right++;
+                }
             }
         }
 
