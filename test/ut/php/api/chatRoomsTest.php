@@ -130,7 +130,9 @@ class chatRoomsAPITest extends IznikAPITestCase
             'chattypes' => [ ChatRoom::TYPE_MOD2MOD ]
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['chatrooms']));
+
+        # Two rooms - one we've creted, and the automatic mod chat.
+        assertEquals(2, count($ret['chatrooms']));
         assertEquals($rid, $ret['chatrooms'][0]['id']);
         assertEquals('testgroup Mods', $ret['chatrooms'][0]['name']);
 
@@ -139,7 +141,7 @@ class chatRoomsAPITest extends IznikAPITestCase
             'summary' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['chatrooms']));
+        assertEquals(2, count($ret['chatrooms']));
         assertEquals($rid, $ret['chatrooms'][0]['id']);
         assertEquals('testgroup Mods', $ret['chatrooms'][0]['name']);
 

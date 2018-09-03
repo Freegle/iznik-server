@@ -151,7 +151,9 @@ class chatMessagesAPITest extends IznikAPITestCase
             'chattypes' => [ ChatRoom::TYPE_MOD2MOD ]
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['chatrooms']));
+
+        # Two rooms - one we've creted, and the automatic mod chat.
+        assertEquals(2, count($ret['chatrooms']));
         assertEquals($this->cid, $ret['chatrooms'][0]['id']);
 
         error_log(__METHOD__ . " end");
