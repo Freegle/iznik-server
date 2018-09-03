@@ -932,8 +932,11 @@ class MailRouter
                                     # Whether we post to pending or approved depends on the group setting,
                                     # and if that is set not to moderate, the user setting.  Similar code for
                                     # this setting in message API call.
+                                    #
+                                    # For posts by email we moderate all posts by moderators, to avoid accidents -
+                                    # this has been requested by volunteers.
                                     $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                                    $ps = $g->getSetting('moderated', 0) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
+                                    $ps = ($u->isModerator() || $g->getSetting('moderated', 0)) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
                                     $ps = $ps ? $ps : Group::POSTING_MODERATED;
                                     if ($log) { error_log("Member, Our PS is $ps"); }
 
