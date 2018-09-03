@@ -255,6 +255,11 @@ class Group extends Entity
                 $linkname = str_replace('_', '', $linkname);
                 $s = new Shortlink($this->dbhr, $this->dbhm);
                 $sid = $s->create($linkname, Shortlink::TYPE_GROUP, $id);
+
+                # And a group chat.
+                $r = new ChatRoom($this->dbhr, $this->dbhm);
+                $r->createGroupChat("$shortname Volunteers", $id, TRUE, TRUE);
+                $r->setPrivate('description', "$shortname Volunteers");
             }
         } catch (Exception $e) {
             error_log("Create group exception " . $e->getMessage());
