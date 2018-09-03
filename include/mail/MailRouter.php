@@ -936,7 +936,7 @@ class MailRouter
                                     # For posts by email we moderate all posts by moderators, to avoid accidents -
                                     # this has been requested by volunteers.
                                     $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                                    $ps = ($u->isModerator() || $g->getSetting('moderated', 0)) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
+                                    $ps = ($u->isModOrOwner($group['groupid']) || $g->getSetting('moderated', 0)) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
                                     $ps = $ps ? $ps : Group::POSTING_MODERATED;
                                     if ($log) { error_log("Member, Our PS is $ps"); }
 
