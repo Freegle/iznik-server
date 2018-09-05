@@ -262,6 +262,11 @@ class Alert extends Entity
                         error_log("check {$email['email']} real " . realEmail($email['email']));
 
                         if (realEmail($email['email'])) {
+                            # Check if we have already mailed them.
+                            $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
+                            $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
+                            $gotprevious = count($previous) > 0;
+
                             # Record for tracking that we have processed this group.
                             $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
                                 [
@@ -272,15 +277,11 @@ class Alert extends Entity
                                     Alert::TYPE_MODEMAIL
                                 ]
                             );
-
-                            # We don't want to send to a personal email if they've already been mailed at that email - even
-                            # if it was on another group.  This is because some people are on many groups, with many emails,
-                            # and this can flood them.  They may get a copy via the owner address, though.
-                            $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
-                            $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
-                            $gotprevious = count($previous) > 0;
-
+                            
                             if (!$gotprevious) {
+                                # We don't want to send to a personal email if they've already been mailed at that email - even
+                                # if it was on another group.  This is because some people are on many groups, with many emails,
+                                # and this can flood them.  They may get a copy via the owner address, though.
                                 $trackid = $this->dbhm->lastInsertId();
                                 $html = alert_tpl(
                                     $g->getPrivate('nameshort'),
