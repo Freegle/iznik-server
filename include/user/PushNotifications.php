@@ -113,7 +113,7 @@ class PushNotifications
     public function executeSend($userid, $notiftype, $params, $endpoint, $payload) {
         #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
         try {
-            #error_log("notiftype " . $notiftype . " userid ".$userid);
+            error_log("notiftype " . $notiftype . " userid ".$userid);
             switch ($notiftype) {
                 case PushNotifications::PUSH_FCM_ANDROID:
                 case PushNotifications::PUSH_FCM_IOS:
