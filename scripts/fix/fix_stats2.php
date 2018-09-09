@@ -11,11 +11,10 @@ foreach ($groups as $group) {
     error_log("...{$group['nameshort']}");
     $epoch = strtotime("today");
 
-    for ($i = 0; $i < 1router; $i++) {
+    for ($i = 0; $i < 20; $i++) {
         $date = date('Y-m-d', $epoch);
         $s = new Stats($dbhr, $dbhm, $group['id']);
-        $s->generate($date, [ Stats::WEIGHT ]);
-        #$s->generate($date);
+        $s->generate($date);
         $epoch -= 24 * 60 * 60;
     }
 }
