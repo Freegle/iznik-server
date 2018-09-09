@@ -14,12 +14,8 @@ if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
     #error_log("Request method override to {$_REQUEST['type']}");
 }
 
-if (!defined('IZNIK_BASE')) {
-    define('IZNIK_BASE', dirname(__FILE__) . '/../..');
-}
-
-require_once(IZNIK_BASE . '/include/misc/apiheaders.php');
-require_once(IZNIK_BASE . '/include/config.php');
+require_once('../../include/misc/apiheaders.php');
+require_once('../../include/config.php');
 
 # We might profile - only the occasional call as it generates a lot of data.
 $xhprof = XHPROF && (mt_rand(0, 1000000) < 1000);
