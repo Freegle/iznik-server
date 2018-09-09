@@ -120,7 +120,7 @@ class Alert extends Entity
             # This alert might be for a specific group, or all Freegle groups.  We only process a single group in this
             # pass.  If it's for multiple, we'll update the progress and do the next one next time.
             $groupid = $a->getPrivate('groupid');
-            $groupq =  $groupid ? " WHERE id = $groupid " : (" WHERE `type` = '$type' AND id > {$alert['groupprogress']} AND publish = 1 LIMIT 1");
+            $groupq =  $groupid ? " WHERE id = $groupid " : (" WHERE `type` = '$type' AND id > {$alert['groupprogress']} AND publish = 1 ORDER BY id ASC LIMIT 1");
 
             $groups = $this->dbhr->preQuery("SELECT id, nameshort FROM groups $groupq;");
             $complete = count($groups) == 0;
@@ -262,23 +262,26 @@ class Alert extends Entity
                         error_log("check {$email['email']} real " . realEmail($email['email']));
 
                         if (realEmail($email['email'])) {
-                            # We don't want to send to a personal email if they've already been mailed at that email - even
-                            # if it was on another group.  This is because some people are on many groups, with many emails,
-                            # and this can flood them.  They may get a copy via the owner address, though.
+                            # Check if we have already mailed them.
                             $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
                             $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
                             $gotprevious = count($previous) > 0;
 
+                            # Record for tracking that we have processed this group.
+                            $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
+                                [
+                                    $this->id,
+                                    $groupid,
+                                    $mod['userid'],
+                                    $email['id'],
+                                    Alert::TYPE_MODEMAIL
+                                ]
+                            );
+                            
                             if (!$gotprevious) {
-                                $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
-                                    [
-                                        $this->id,
-                                        $groupid,
-                                        $mod['userid'],
-                                        $email['id'],
-                                        Alert::TYPE_MODEMAIL
-                                    ]
-                                );
+                                # We don't want to send to a personal email if they've already been mailed at that email - even
+                                # if it was on another group.  This is because some people are on many groups, with many emails,
+                                # and this can flood them.  They may get a copy via the owner address, though.
                                 $trackid = $this->dbhm->lastInsertId();
                                 $html = alert_tpl(
                                     $g->getPrivate('nameshort'),

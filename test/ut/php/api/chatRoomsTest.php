@@ -130,18 +130,22 @@ class chatRoomsAPITest extends IznikAPITestCase
             'chattypes' => [ ChatRoom::TYPE_MOD2MOD ]
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['chatrooms']));
-        assertEquals($rid, $ret['chatrooms'][0]['id']);
-        assertEquals('testgroup Mods', $ret['chatrooms'][0]['name']);
+
+        # Two rooms - one we've creted, and the automatic mod chat.
+        assertEquals(2, count($ret['chatrooms']));
+        assertTrue($rid == $ret['chatrooms'][0]['id'] || $rid == $ret['chatrooms'][1]['id']);
+        $ratts = $rid == $ret['chatrooms'][0]['id'] ? $ret['chatrooms'][0] : $ret['chatrooms'][1];
+        assertEquals('testgroup Mods', $ratts['name']);
 
         $ret = $this->call('chatrooms', 'GET', [
             'chattypes' => [ ChatRoom::TYPE_MOD2MOD ],
             'summary' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['chatrooms']));
-        assertEquals($rid, $ret['chatrooms'][0]['id']);
-        assertEquals('testgroup Mods', $ret['chatrooms'][0]['name']);
+        assertEquals(2, count($ret['chatrooms']));
+        assertTrue($rid == $ret['chatrooms'][0]['id'] || $rid == $ret['chatrooms'][1]['id']);
+        $ratts = $rid == $ret['chatrooms'][0]['id'] ? $ret['chatrooms'][0] : $ret['chatrooms'][1];
+        assertEquals('testgroup Mods', $ratts['name']);
 
         $ret = $this->call('chatrooms', 'GET', [
             'id' => $rid
