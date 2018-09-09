@@ -115,12 +115,19 @@ RUN apt-get install curl \
 # Redis.  Won't start listening on ::1.
 RUN	sed -ie 's/::1//g' /etc/redis/redis.conf \
 	&& sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' include/config.php
-  
-# Tidy image	
+
+# Cron jobs for background scripts
+RUN cat install/crontab | crontab -u root -
+
+# Tidy image
 RUN rm -rf /var/lib/apt/lists/* 
 
 # What happens when we start the container
 # First start some services.  MySQL is a bit of a faff.
+#
+# This isn't very Docker, as each container should really only have one command.  I don't want to require docker-compose
+# as that's extra faff for the user.  If you are reading this and know why this is obviously stupid, perhaps you
+# could fix it.
 CMD rm -r /var/lib/mysql \
     && rm /var/log/mysql/error.log \
 	&& mkdir /var/lib/mysql \
@@ -134,6 +141,8 @@ CMD rm -r /var/lib/mysql \
 	&& /etc/init.d/hhvm start \
 	&& /etc/init.d/nginx start \
 	&& /etc/init.d/ssh start \
+	&& /etc/init.d/spamassassin start \
+	&& /etc/init.d/cron start \
     # Set up the environment we need for running our UT.  Putting this here means it gets reset each
     # time we start the container.
 	# 
@@ -149,9 +158,6 @@ CMD rm -r /var/lib/mysql \
     && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'" \
     && mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'" \
     && php install/testenv.php \
-    # We need some scripts running (which would be started via cron on live)
-    && nohup php scripts/cron/background.php& \
-    && nohup php scripts/cron/exports.php& \
     # Keep it alive
 	&& bash
 	
