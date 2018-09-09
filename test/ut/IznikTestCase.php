@@ -55,6 +55,11 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
         error_reporting(E_ALL);
 
+        if (file_exists(IZNIK_BASE . '/standalone')) {
+            # Probably in Docket
+            putenv('STANDALONE=1');
+        }
+
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;

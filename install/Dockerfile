@@ -45,7 +45,7 @@ RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libs
 	libreadline6-dev librecode-dev libsnmp-dev libtidy-dev libxslt1-dev libssl-dev libxml2 libxml2-dev libpspell-dev libicu-dev \
 	sysstat libwww-perl nasm php-zip unzip mysql-client php-mysql php-xdebug pflogsumm mailutils nginx psmisc \
 	build-essential chrpath libssl-dev libxft-dev libfreetype6-dev libfreetype6 libfontconfig1-dev libfontconfig1  \
-	monit iotop openssh-client php-dev php-gd phpunit gsutil php-redis php-gmp xfsprogs php-soap php-mbstring php-curl \
+	monit iotop openssh-client php-dev php-gd gsutil php-redis php-gmp xfsprogs php-soap php-mbstring php-curl \
 	php-xml php-mailparse php-mysql php-zip vim net-tools telnet \
 	&& apt-get remove -y apache2* sendmail* mlocate
 
@@ -88,7 +88,8 @@ RUN mkdir -p /var/www \
 	&& apt-get update \
 	&& apt-get install -y git \
 	&& git clone https://github.com/Freegle/iznik-server.git iznik \
-	&& cp iznik/install/mysqldamlevlim.so /usr/lib/mysql/plugin/
+	&& cp iznik/install/mysqldamlevlim.so /usr/lib/mysql/plugin/ \
+	&& touch iznik/standalone
 
 WORKDIR /var/www/iznik
 
@@ -148,6 +149,10 @@ CMD rm -r /var/lib/mysql \
     && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'" \
     && mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'" \
     && php install/testenv.php \
+    # We need some scripts running (which would be started via cron on live)
+    && nohup php scripts/cron/background.php& \
+    && nohup php scripts/cron/exports.php& \
+    # Keep it alive
 	&& bash
 	
 #
