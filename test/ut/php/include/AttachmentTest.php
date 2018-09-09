@@ -26,16 +26,18 @@ class AttachmentTest extends IznikTestCase {
     public function testIdentify() {
         error_log(__METHOD__);
 
-        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        $a = new Attachment($this->dbhr, $this->dbhm);
-        $attid = $a->create(NULL, 'image/jpeg', $data);
-        assertNotNull($attid);
+        if (!getenv('STANDALONE')) {
+            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+            $a = new Attachment($this->dbhr, $this->dbhm);
+            $attid = $a->create(NULL, 'image/jpeg', $data);
+            assertNotNull($attid);
 
-        $a = new Attachment($this->dbhr, $this->dbhm, $attid);
+            $a = new Attachment($this->dbhr, $this->dbhm, $attid);
 
-        $idents = $a->identify();
-        error_log("Identify returned " . var_export($idents, TRUE));
-        assertEquals('chair', trim(strtolower($idents[0]['name'])));
+            $idents = $a->identify();
+            error_log("Identify returned " . var_export($idents, TRUE));
+            assertEquals('chair', trim(strtolower($idents[0]['name'])));
+        }
 
         error_log(__METHOD__ . " end");
     }

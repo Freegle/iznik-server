@@ -158,7 +158,7 @@ CMD rm -r /var/lib/mysql \
     && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'" \
     && mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'" \
     && php install/testenv.php \
-    # Keep it alive
+    # Keep the container alive
 	&& bash
 	
 #
