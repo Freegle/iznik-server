@@ -1,3 +1,3 @@
 # Cron jobs for background scripts on Docker
-*/1 * * * * cd /var/www/iznik.mt.live/scripts/cron; hhvm ./background.php >> /tmp/iznik.background.out 2>&1
+*/1 * * * * cd /var/www/iznik/scripts/cron; hhvm ./background.php >> /tmp/iznik.background.out 2>&1
 */1 * * * * cd /var/www/iznik/scripts/cron; hhvm ./exports.php >> /tmp/iznik.exports.out 2>&1
