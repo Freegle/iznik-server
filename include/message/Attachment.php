@@ -293,7 +293,7 @@ class Attachment
                 $rsp = json_decode($json_response, TRUE);
                 #error_log("Identified {$this->id} by Google $json_response for $r_json");
 
-                if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('labelAnnotations', $rsp['responses'][0])) {
+                if ($rsp && array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('labelAnnotations', $rsp['responses'][0])) {
                     $rsps = $rsp['responses'][0]['labelAnnotations'];
                     $i = new Item($this->dbhr, $this->dbhm);
 

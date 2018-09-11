@@ -39,21 +39,27 @@ class AttachmentTest extends IznikTestCase {
             assertEquals('chair', trim(strtolower($idents[0]['name'])));
         }
 
+        assertTrue(TRUE);
+
         error_log(__METHOD__ . " end");
     }
 
     public function testArchive() {
         error_log(__METHOD__);
 
-        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        $a = new Attachment($this->dbhr, $this->dbhm);
-        $attid = $a->create(NULL, 'image/jpeg', $data);
-        assertNotNull($attid);
+        if (!getenv('STANDALONE')) {
+            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+            $a = new Attachment($this->dbhr, $this->dbhm);
+            $attid = $a->create(NULL, 'image/jpeg', $data);
+            assertNotNull($attid);
 
-        assertTrue($a->archive());
-        $dat2 = $a->getData();
+            assertTrue($a->archive());
+            $dat2 = $a->getData();
 
-        assertEquals($data, $dat2);
+            assertEquals($data, $dat2);
+        }
+
+        assertTrue(TRUE);
 
         error_log(__METHOD__ . " end");
     }
