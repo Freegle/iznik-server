@@ -134,7 +134,7 @@ class PushNotifications
                         }
                     }
 
-                    $data['notId'] = (string)microtime(TRUE);
+                    $data['notId'] = (string)floor(microtime(TRUE));
 
                     #error_log("Data is " . var_export($data, TRUE));
 
@@ -146,10 +146,6 @@ class PushNotifications
 
                         $message = CloudMessage::fromArray([
                             'token' => $endpoint,
-//                            'notification' => [
-//                                'title' => $payload['title'],
-//                                'body' => $payload['message']
-//                            ],
                             'data' => $data
                         ]);
 
@@ -158,32 +154,39 @@ class PushNotifications
                             'priority' => 'normal'
                         ]);
                     } else {
-                        $message = CloudMessage::fromArray([
+                        $ios = [
                             'token' => $endpoint,
-                            'notification' => [
-                                'title' => $payload['title'],
-                                'body' => $payload['message']
-                            ],
                             'data' => $data
-                        ]);
+                        ];
+
+                        if (!empty($payload['title'])) {   // Don't set notification if clearing
+                            $iostitle = $payload['title'];
+                            $iosbody = $payload['message'];
+
+                            if (empty($iosbody)) {  // older iOS only shows body and doesn't show if body empty
+                                $iosbody = $iostitle;
+                                $iostitle = ' ';
+                            }
+
+                            $ios['notification'] = [
+                                'title' => $iostitle,
+                                'body' => $iosbody
+                            ];
+                        }
+
+                        #error_log("ios is " . var_export($ios, TRUE));
+                        $message = CloudMessage::fromArray($ios);
                         $params = [
                             'headers' => [
                                 'apns-priority' => '10',
                             ],
                             'payload' => [
                                 'aps' => [
-                                    'badge' => $payload['count'],
-                                    'content-available' => 1
+                                    'badge' => $payload['count']
+                                    //'content-available' => 1
                                 ]
                             ],
                         ];
-
-                        if ($payload['title']) {
-                            $params['payload']['aps']['alert'] = [
-                                'title' => $payload['title'],
-                                'body' => $payload['message'],
-                            ];
-                        }
 
                         #error_log("Send params " . var_export($params, TRUE));
                         #error_log("Send payload " . var_export($payload, TRUE));
@@ -198,7 +201,10 @@ class PushNotifications
                         $error = $e->errors()['error'];
                         file_put_contents('/tmp/fcmerrors',date(DATE_RFC2822).': '.$userid.' - '.$endpoint.' - '.var_export($error, TRUE)."\r\n",FILE_APPEND);
                         error_log("FCM InvalidMessage " . var_export($error, TRUE));
-                        $errorCode = $error['details'][0]['errorCode'];
+                        $errorCode = 'CODE NOT FOUND';
+                        if (array_key_exists('errorCode',$error['details'][0])) {
+                          $errorCode = $error['details'][0]['errorCode'];
+                        }
                         error_log("FCM errorCode " . $errorCode);
 
                         if ($errorCode == 'UNREGISTERED') {
