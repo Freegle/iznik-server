@@ -882,7 +882,7 @@ class User extends Entity
             $headers->addTextHeader('X-Freegle-Mail-Type', 'Added');
             $this->sendIt($mailer, $message);
         }
-        // @codeCoverageIgnoreStart
+        // @codeCoverageIgnoreEnd
 
         if ($added) {
             # The membership didn't already exist.  We might want to send a welcome mail.
@@ -4234,7 +4234,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($kudos);
     }
 
-    public function updateKudos($id = NULL)
+    public function updateKudos($id = NULL, $force = FALSE)
     {
         $current = $this->getKudos($id);
 
@@ -4286,11 +4286,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             $kudos = $posts + $chats + $newsfeed + $events + $vols;
 
-            if ($kudos > 0) {
+            if ($kudos > 0 || $force) {
                 # No sense in creating entries which are blank or the same.
                 $current = $this->getKudos($id);
 
-                if ($current['kudos'] != $kudos) {
+                if ($current['kudos'] != $kudos || $force) {
                     $this->dbhm->preExec("REPLACE INTO users_kudos (userid, kudos, posts, chats, newsfeed, events, vols, facebook, platform) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", [
                         $id,
                         $kudos,

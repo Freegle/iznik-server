@@ -1217,5 +1217,25 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testKudos() {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhm, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $rc = $u->addMembership($gid);
+        assertNotNull($u->isApprovedMember($gid));
+
+        $u->updateKudos($uid, TRUE);
+        $kudos = $u->getKudos($uid);
+        assertEquals(0, $kudos['kudos']);
+        $top = $u->topKudos($gid);
+        assertEquals($uid, $top[0]['user']['id']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
