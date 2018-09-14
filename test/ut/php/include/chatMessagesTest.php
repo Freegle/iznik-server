@@ -151,6 +151,19 @@ class chatMessagesTest extends IznikTestCase {
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'UT Test');
 
+        # Check they show as on the list, but only when we're a mod
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $atts = $u->getPublic();
+        assertFalse(array_key_exists('spammer', $atts));
+        $u2 = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create('Test', 'User', 'Test User');
+        assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u2->login('testpw'));
+        $u2->setPrivate('systemrole', User::ROLE_MODERATOR);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $atts = $u->getPublic();
+        assertTrue(array_key_exists('spammer', $atts));
+
         # Now reply from them.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: OFFER: a test item (location)', $msg);
