@@ -1564,6 +1564,9 @@ class User extends Entity
             $start
         ], FALSE, FALSE);
 
+        $ret['offers'] = 0;
+        $ret['wanteds'] = 0;
+
         foreach ($counts as $count) {
             if ($count['type'] == Message::TYPE_OFFER) {
                 $ret['offers'] = $count['count'];
