@@ -1210,17 +1210,29 @@ class User extends Entity
                 } else if ($thisone['default']) {
                     $thisone['cansee'] = ModConfig::CANSEE_DEFAULT;
                 } else {
-                    # Need to find out who shared it
-                    $sql = "SELECT userid, groupid FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND userid != {$this->id} AND role IN ('Moderator', 'Owner') AND configid = {$id['id']};";
+                    # Need to find out who shared it.  Pluck data directly because this is performance-significant
+                    # for people on many groups.
+                    $sql = "SELECT userid, firstname, lastname, fullname, groupid, nameshort, namefull FROM memberships INNER JOIN users ON users.id = memberships.userid INNER JOIN groups ON groups.id = memberships.groupid WHERE groupid IN (" . implode(',', $modships) . ") AND userid != {$this->id} AND role IN ('Moderator', 'Owner') AND configid = {$id['id']};";
                     $shareds = $this->dbhr->preQuery($sql);
 
                     foreach ($shareds as $shared) {
                         $thisone['cansee'] = ModConfig::CANSEE_SHARED;
-                        $u = User::get($this->dbhr, $this->dbhm, $shared['userid']);
-                        $g = Group::get($this->dbhr, $this->dbhm, $shared['groupid']);
+                        $thisone['sharedon'] = [
+                            'namedisplay' => $shared['namefull'] ? $shared['namefull'] : $shared['nameshort']
+                        ];
+
+                        $name = 'Unknown';
+                        if ($shared['fullname']) {
+                            $name = $shared['fullname'];
+                        } else if ($shared['firstname'] || $shared['lastname']) {
+                            $name = $shared['firstname'] . ' ' . $shared['lastname'];
+                        }
+
+                        $thisone['sharedby'] = [
+                            'displayname' => $name
+                        ];
+
                         $ctx = NULL;
-                        $thisone['sharedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
-                        $thisone['sharedon'] = $g->getPublic();
                     }
                 }
             }

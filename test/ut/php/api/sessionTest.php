@@ -556,4 +556,12 @@ class sessionTest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+//    public function testSheila() {
+//        $_SESSION['id'] = 25880780;
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//        $ret = $this->call('session', 'GET', []);
+//        #error_log(var_export($ret, TRUE));
+//    }
 }
