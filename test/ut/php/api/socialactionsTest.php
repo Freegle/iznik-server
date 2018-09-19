@@ -42,8 +42,11 @@ class socialactionsAPITest extends IznikAPITestCase
         $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
 
         $ids2 = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
-        assertEquals(1, count($ids));
-        assertEquals($ids, $ids2[$gid]);
+
+        if (!getenv('STANDALONE')) {
+            assertEquals(1, count($ids2));
+            assertEquals($ids, $ids2[$gid]);
+        }
 
         foreach ($ids as $uid) {
             # Delete the last share so that there will be at least one.
