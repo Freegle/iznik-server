@@ -556,13 +556,13 @@ class sessionTest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
-
-    public function testSheila() {
-        $_SESSION['id'] = 25880780;
-        $this->dbhr->errorLog = TRUE;
-        $this->dbhm->errorLog = TRUE;
-        $ret = $this->call('session', 'GET', []);
-        error_log("Duration {$ret['duration']} DB {$ret['dbwaittime']}");
-        #error_log(var_export($ret, TRUE));
-    }
+//
+//    public function testSheila() {
+//        $_SESSION['id'] = 25880780;
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//        $ret = $this->call('session', 'GET', []);
+//        error_log("Duration {$ret['duration']} DB {$ret['dbwaittime']}");
+//        #error_log(var_export($ret, TRUE));
+//    }
 }
