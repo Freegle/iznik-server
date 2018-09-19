@@ -438,13 +438,14 @@ class Group extends Entity
             $atts[$datefield] = pres($datefield, $atts) ? ISODate($atts[$datefield]) : NULL;
         }
 
-        # Images
+        # Images.  We pass those ids in to get the paths.  This removes the DB operations for constructing the
+        # Attachment, which is valuable for people on many groups.
         if (defined('IMAGE_DOMAIN')) {
-            $a = new Attachment($this->dbhr, $this->dbhm, $atts['profile'], Attachment::TYPE_GROUP);
-            $b = new Attachment($this->dbhr, $this->dbhm, $atts['cover'], Attachment::TYPE_GROUP);
+            $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
+            $b = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
 
-            $atts['profile'] = $atts['profile'] ? $a->getPath(FALSE) : NULL;
-            $atts['cover'] = $atts['cover'] ? $b->getPath(FALSE) : NULL;
+            $atts['profile'] = $atts['profile'] ? $a->getPath(FALSE, $atts['profile']) : NULL;
+            $atts['cover'] = $atts['cover'] ? $b->getPath(FALSE, $atts['cover']) : NULL;
         }
 
         $atts['url'] = $atts['onhere'] ? ('https://' . USER_SITE . '/explore/' . $atts['nameshort']) : ("https://groups.yahoo.com/neo/groups/" . $atts['nameshort'] . "/info");

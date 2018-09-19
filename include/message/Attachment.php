@@ -52,9 +52,11 @@ class Attachment
         return $this->contentType;
     }
 
-    public function getPath($thumb = FALSE) {
+    public function getPath($thumb = FALSE, $id = NULL) {
         # We serve up our attachment names as though they are files.
         # When these are fetched it will go through image.php
+        $id = $id ? $id : $this->id;
+
         switch ($this->type) {
             case Attachment::TYPE_MESSAGE: $name = 'img'; break;
             case Attachment::TYPE_GROUP: $name = 'gimg'; break;
@@ -70,7 +72,7 @@ class Attachment
         $name = $thumb ? "t$name" : $name;
         $domain = $this->archived ? IMAGE_ARCHIVED_DOMAIN : IMAGE_DOMAIN;
 
-        return("https://$domain/{$name}_{$this->id}.jpg");
+        return("https://$domain/{$name}_$id.jpg");
     }
 
     public function getPublic() {

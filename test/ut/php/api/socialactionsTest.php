@@ -88,6 +88,10 @@ class socialactionsAPITest extends IznikAPITestCase
             assertEquals(0, $ret['ret']);
         }
 
+        $ids2 = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
+        assertEquals(1, count($ids));
+        assertEquals($ids, $ids2[$gid]);
+
         error_log(__METHOD__ . " end");
     }
 

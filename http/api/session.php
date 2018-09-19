@@ -75,14 +75,12 @@ function session() {
                     # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
                     # Facebook, even though that makes the code hackier.
                     $gids = [];
-                    $facebooks = [];
 
                     foreach ($ret['groups'] as $group) {
                         $gids[] = $group['id'];
-
-                        $facebooks[$group['id']] = GroupFacebook::listForGroup($dbhr, $dbhm, $group['id']);
                     }
 
+                    $facebooks[] = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
                     $twitters = [];
 
                     if (count($gids) > 0) {

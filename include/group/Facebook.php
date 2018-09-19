@@ -287,6 +287,19 @@ class GroupFacebook {
         return($ids);
     }
 
+    public static function listForGroups($dbhr, $dbhm, $gids) {
+        $ids = [];
+
+        if (count($gids)) {
+            $groups = $dbhr->preQuery("SELECT uid, groupid FROM groups_facebook WHERE groupid IN (" . implode(',', $gids) . ");");
+            foreach ($groups as $group) {
+                $ids[$group['groupid']][] = $group['uid'];
+            }
+        }
+
+        return($ids);
+    }
+
     public function pollForChanges() {
         $fb = $this->getFB(FALSE);
         $count = 0;
