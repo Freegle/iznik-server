@@ -41,6 +41,10 @@ class socialactionsAPITest extends IznikAPITestCase
 
         $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
 
+        $ids2 = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
+        assertEquals(1, count($ids));
+        assertEquals($ids, $ids2[$gid]);
+
         foreach ($ids as $uid) {
             # Delete the last share so that there will be at least one.
             $this->dbhm->preExec("DELETE FROM groups_facebook_shares WHERE groupid = $gid ORDER BY date DESC LIMIT 1;");
@@ -87,10 +91,6 @@ class socialactionsAPITest extends IznikAPITestCase
             $ret = $this->call('socialactions', 'GET', []);
             assertEquals(0, $ret['ret']);
         }
-
-        $ids2 = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
-        assertEquals(1, count($ids));
-        assertEquals($ids, $ids2[$gid]);
 
         error_log(__METHOD__ . " end");
     }
