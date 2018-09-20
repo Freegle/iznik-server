@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
 $opts = getopt('f:t:');
 
@@ -24,6 +25,7 @@ if (count($opts) < 2) {
 
     if ($srcid && $dstid) {
         # First move the members.
+        error_log("Move members");
         $membs = $dbhr->preQuery("SELECT * FROM memberships WHERE groupid = ?;", [ $srcid ]);
         foreach ($membs as $memb) {
             $membs2 = $dbhr->preQuery("SELECT * FROM memberships WHERE groupid = ? AND userid = ?;", [$dstid, $memb['userid']]);
@@ -37,6 +39,10 @@ if (count($opts) < 2) {
                 }
 
                 $moved++;
+
+                if ($moved % 1000 === 0) {
+                    error_log("...$moved");
+                }
             } else {
                 $alreadys++;
             }
@@ -47,6 +53,9 @@ if (count($opts) < 2) {
             error_log("Update $table");
             $dbhm->preExec("UPDATE IGNORE $table SET groupid = $dstid WHERE groupid = $srcid");
         }
+
+        # Hide the old group.
+        $dbhm->preExec("UPDATE groups SET publish = 0, onmap = 0 WHERE id = $srcid;");
 
         # Regenerate the stats on the group.
         $i = 0;
