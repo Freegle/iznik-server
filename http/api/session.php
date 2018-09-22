@@ -80,7 +80,7 @@ function session() {
                         $gids[] = $group['id'];
                     }
 
-                    $facebooks[] = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
+                    $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
                     $twitters = [];
 
                     if (count($gids) > 0) {
