@@ -649,6 +649,16 @@ class Location extends Entity
                 $thisone['polygon'] = NULL;
 
                 $geom = $a->geomAsText();
+
+                if (strpos($geom, 'POINT(') !== FALSE) {
+                    # Point location.  Return a basic polygon to make it visible and editable.
+                    $swlat = $thisone['lat'] - 0.0005;
+                    $swlng = $thisone['lng'] - 0.0005;
+                    $nelat = $thisone['lat'] + 0.0005;
+                    $nelng = $thisone['lng'] + 0.0005;
+                    $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+                }
+
                 #error_log("For {$area['areaid']} {$thisone['name']} geom $geom");
 
                 if (strpos($geom, 'POLYGON') === FALSE) {
