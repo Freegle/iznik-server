@@ -813,26 +813,26 @@ class Message
             ];
         }
 
+        # Can always see the replycount.  The count should include even people who are blocked.
+        $sql = "SELECT DISTINCT t.*FROM (SELECT chat_messages.id, chat_roster.status , chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != ? AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid) t ORDER BY lastdate DESC;";
+        $replies = $this->dbhr->preQuery($sql, [
+            $this->id,
+            $this->fromuser,
+            ChatMessage::TYPE_INTERESTED
+        ]);
+
+        $ret['replies'] = [];
+        $ret['replycount'] = count($replies);
+
         # Can see replies if:
         # - we want everything
         # - we're on ModTools and we're a mod for this message
         # - it's our message
         if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
             # Add replies, as long as they're not awaiting review or rejected, or blocked.
-            $sql = "SELECT DISTINCT t.* FROM (SELECT chat_messages.id, chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != ? AND chat_messages.type = ? AND chat_roster.status != ? GROUP BY chat_messages.userid, chat_messages.chatid) t ORDER BY lastdate DESC;";
-            $replies = $this->dbhr->preQuery($sql, [
-                $this->id,
-                $this->fromuser,
-                ChatMessage::TYPE_INTERESTED,
-                ChatRoom::STATUS_BLOCKED
-            ]);
-
-            $ret['replies'] = [];
-            $ret['replycount'] = count($replies);
-
             foreach ($replies as $reply) {
                 $ctx = NULL;
-                if ($reply['userid']) {
+                if ($reply['userid'] && $reply['status'] != ChatRoom::STATUS_BLOCKED) {
                     $thisone = [
                         'id' => $reply['id'],
                         'user' => $this->getUser($reply['userid'], $messagehistory, $userlist),
