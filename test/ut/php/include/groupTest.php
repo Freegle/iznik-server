@@ -211,7 +211,7 @@ class groupTest extends IznikTestCase {
         # Test that the merge history is there.
         $this->waitBackground();
         error_log("Check merge history for {$membs[0]['userid']}");
-        $u = User::get($this->dbhr, $this->dbhm, $membs[0]['userid']);
+        $u = User::get($this->dbhm, $this->dbhm, $membs[0]['userid']);
         $ctx = NULL;
         $atts = $u->getPublic(NULL, FALSE, TRUE, $ctx);
         error_log("Merge history " . var_export($atts, TRUE));

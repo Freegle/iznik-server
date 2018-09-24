@@ -194,6 +194,11 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id3, $already) = $m->save();
 
+        $m1 = new Message($this->dbhr, $this->dbhm, $id1);
+        assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        assertEquals(FALSE, $m2->hasOutcome());
+
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
@@ -202,8 +207,8 @@ class messageTest extends IznikTestCase {
         list($id4, $already) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
-        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         assertEquals(Message::OUTCOME_TAKEN, $m2->hasOutcome());
 
         error_log(__METHOD__ . " end");
