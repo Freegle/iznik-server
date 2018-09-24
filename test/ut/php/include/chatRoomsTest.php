@@ -258,6 +258,8 @@ class chatRoomsTest extends IznikTestCase {
         # Notify - will email just one.
         error_log("Will email justone");
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        assertContains('Test desc', $this->msgsSent[0]['body']);
+        assertContains('sent you an address', $this->msgsSent[0]['body']);
 
         error_log(__METHOD__ . " end");
     }
