@@ -1026,10 +1026,11 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
         return ($ret);
     }
 
-    public function getMessages($limit = 100, $seenbyall = NULL)
+    public function getMessages($limit = 100, $seenbyall = NULL, &$ctx)
     {
+        $ctxq = $ctx ? (" AND chat_messages.id < " . intval($ctx['id']) . " ") : '';
         $seenfilt = $seenbyall === NULL ? '' : " AND seenbyall = $seenbyall ";
-        $sql = "SELECT id, userid, type FROM chat_messages WHERE chatid = ? $seenfilt ORDER BY date DESC LIMIT $limit;";
+        $sql = "SELECT id, userid, type FROM chat_messages WHERE chatid = ? $seenfilt $ctxq ORDER BY id DESC LIMIT $limit;";
         $msgs = $this->dbhr->preQuery($sql, [$this->id]);
         $msgs = array_reverse($msgs);
         $users = [];
@@ -1052,6 +1053,7 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
 
         $lastmsg = NULL;
         $lastref = NULL;
+        $ctx = NULL;
 
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
@@ -1109,6 +1111,8 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                     $lastdate = $atts['date'];
                 }
             }
+
+            $ctx['id'] = pres('id', $ctx) ? min($ctx['id'], $msg['id']) : $msg['id'];
         }
 
         return ([$ret, $users]);

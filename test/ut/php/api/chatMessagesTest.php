@@ -543,4 +543,60 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testContext() {
+        error_log(__METHOD__);
+
+        # Set up a conversation with lots of messages.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($this->uid, $this->uid2);
+
+        for ($i = 0; $i < 10; $i++) {
+            $cm = new ChatMessage($this->dbhr, $this->dbhm);
+            $cid = $cm->create($rid, $this->uid, "Test message $i");
+            error_log("Created chat message $cid in $rid");
+        }
+
+        assertTrue($this->user->login('testpw'));
+
+        # Get all.
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $rid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(10, count($ret['chatmessages']));
+
+        # Get first lot.
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $rid,
+            'limit' => 5
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(5, count($ret['chatmessages']));
+
+        for ($i = 5; $i < 10; $i++) {
+            assertEquals("Test message $i", $ret['chatmessages'][$i - 5]['message']);
+        }
+
+        $ctx = $ret['context'];
+
+        # Get second lot.
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $rid,
+            'limit' => 5,
+            'context' => $ctx
+        ]);
+
+        error_log("Got second " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(5, count($ret['chatmessages']));
+
+        for ($i = 0; $i < 5; $i++) {
+            assertEquals("Test message $i", $ret['chatmessages'][$i]['message']);
+        }
+
+        error_log(__METHOD__ . " end");
+    }
 }

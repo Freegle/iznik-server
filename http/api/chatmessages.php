@@ -10,6 +10,7 @@ function chatmessages() {
     $addressid = presdef('addressid', $_REQUEST, NULL);
     $reportreason = presdef('reportreason', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
+    $limit = array_key_exists('limit', $_REQUEST) ? intval($_REQUEST['limit']) : 100;
 
     $r = new ChatRoom($dbhr, $dbhm, $roomid);
     $id = intval(presdef('id', $_REQUEST, NULL));
@@ -40,12 +41,13 @@ function chatmessages() {
                         $u = User::get($dbhr, $dbhm, $ret['chatmessage']['userid']);
                         $ret['chatmessage']['user'] = $u->getPublic(NULL, FALSE);
                     } else {
-                        list($msgs, $users) = $r->getMessages();
+                        list($msgs, $users) = $r->getMessages($limit, NULL, $ctx);
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
                             'chatmessages' => $msgs,
-                            'chatusers' => $users
+                            'chatusers' => $users,
+                            'context' => $ctx
                         ];
                     }
                 } else if ($me->isModerator()) {
