@@ -1026,7 +1026,7 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
         return ($ret);
     }
 
-    public function getMessages($limit = 100, $seenbyall = NULL, &$ctx)
+    public function getMessages($limit = 100, $seenbyall = NULL, &$ctx = NULL)
     {
         $ctxq = $ctx ? (" AND chat_messages.id < " . intval($ctx['id']) . " ") : '';
         $seenfilt = $seenbyall === NULL ? '' : " AND seenbyall = $seenbyall ";
@@ -1109,10 +1109,10 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                     $ret[] = $atts;
                     $lastuser = $msg['userid'];
                     $lastdate = $atts['date'];
+
+                    $ctx['id'] = pres('id', $ctx) ? min($ctx['id'], $msg['id']) : $msg['id'];
                 }
             }
-
-            $ctx['id'] = pres('id', $ctx) ? min($ctx['id'], $msg['id']) : $msg['id'];
         }
 
         return ([$ret, $users]);
