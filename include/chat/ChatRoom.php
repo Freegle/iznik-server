@@ -50,13 +50,16 @@ class ChatRoom extends Entity
         $this->id = $id;
         $this->table = 'chat_rooms';
 
-        $this->ourFetch($id);
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        $this->ourFetch($id, $myid);
 
         $this->log = new Log($dbhr, $dbhm);
     }
 
-    private function ourFetch($id = NULL) {
-        $this->id = $id ? $id : $this->id;
+    private function ourFetch($id, $myid) {
+        $this->id = $id;
 
         if ($this->id) {
             # This is a slightly complicated query which:
@@ -64,18 +67,30 @@ class ChatRoom extends Entity
             # - gets the group name from the groups table, which we use in naming the chat
             # - gets user names for the users (if present), which we also use in naming the chat
             # - gets the most recent chat message (if any) which we need for getPublic()
+            # - gets the count of unread messages for the logged in user.
+            #
             # We do this because chat rooms are performance critical, especially for people with many chats.
             $sql = "
 SELECT chat_rooms.*, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname, 
 chat_messages.id AS chatmsgid, chat_messages.message AS chatmsg, chat_messages.date AS chatmsgdate, chat_messages.type AS chatmsgtype,
 CASE WHEN u1.fullname IS NOT NULL THEN u1.fullname ELSE CONCAT(u1.firstname, ' ', u1.lastname) END AS u1name,
-CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' ', u2.lastname) END AS u2name  
+CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' ', u2.lastname) END AS u2name,
+(SELECT COUNT(*) AS count FROM chat_messages WHERE id > 
+  COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ? AND status != ? AND status != ?), 0) 
+  AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS myunseencount  
 FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid 
 LEFT JOIN chat_messages ON chat_rooms.id = chat_messages.chatid AND reviewrequired = 0 AND reviewrejected = 0
 LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
 LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
 WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+
             $entities = $this->dbhm->preQuery($sql, [
+                $this->id,
+                $myid,
+                ChatRoom::STATUS_CLOSED,
+                ChatRoom::STATUS_BLOCKED,
+                $this->id,
+                $myid,
                 $this->id
             ],
                 FALSE,
@@ -149,7 +164,10 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
         }
 
         if ($rc && $id) {
-            $this->ourFetch($id);
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
+
+            $this->ourFetch($id, $myid);
             $this->chatroom['groupname'] = $this->getGroupName($gid);
             return ($id);
         } else {
@@ -204,14 +222,14 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
         }
 
         if ($id) {
-            $this->ourFetch($id);
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
+
+            $this->ourFetch($id, $myid);
 
             # Ensure the two members are in the roster.
             $this->updateRoster($user1, NULL);
             $this->updateRoster($user2, NULL);
-
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me ? $me->getId() : NULL;
 
             # Poke the (other) member(s) to let them know to pick up the new chat
             $n = new PushNotifications($this->dbhr, $this->dbhm);
@@ -273,7 +291,10 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
         }
 
         if ($id) {
-            $this->ourFetch($id);
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
+
+            $this->ourFetch($id, $myid);
 
             # Ensure this user is in the roster.
             $this->updateRoster($user1, NULL);
@@ -379,7 +400,7 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                 break;
         }
 
-        $ret['unseen'] = $this->unseenCountForUser($myid);
+        $ret['unseen'] = $this->chatroom['myunseencount'];
 
         # The name we return is not the one we created it with, which is internal.  
         switch ($this->chatroom['chattype']) {
