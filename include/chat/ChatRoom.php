@@ -40,9 +40,41 @@ class ChatRoom extends Entity
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
-        # Always use the master, because cached results mess up presence.
-        $this->fetch($dbhm, $dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+        # Always use the master, because cached results mess up presence.  We don't use fetch() because
+        # we want to get all the info we will need for the summary in a single DB op.  This helps significantly
+        # for users with many chats.
+        $this->dbhr = $dbhr;
+        $this->dbhm = $dbhm;
+        $this->name = 'chatroom';
+        $this->chatroom = NULL;
+        $this->id = $id;
+        $this->table = 'chat_rooms';
+
+        $this->ourFetch($id);
+
         $this->log = new Log($dbhr, $dbhm);
+    }
+
+    private function ourFetch($id = NULL) {
+        $this->id = $id ? $id : $this->id;
+
+        if ($this->id) {
+            # This is a slightly complicated query which:
+            # - gets the chatroom object
+            # - gets the group name from the groups table, which we use in naming the chat
+            # - gets the most recent chat message (if any) which we need for getPublic()
+            # We do this because chat rooms are performance critical, especially for people with many chats.
+            $sql = "SELECT chat_rooms.*, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname, chat_messages.id AS chatmsgid, chat_messages.message AS chatmsg, chat_messages.date AS chatmsgdate, chat_messages.type AS chatmsgtype FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid LEFT JOIN chat_messages ON chat_rooms.id = chat_messages.chatid AND reviewrequired = 0 AND reviewrejected = 0 WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+            $entities = $this->dbhm->preQuery($sql, [
+                $this->id
+            ],
+                FALSE,
+                FALSE);
+
+            foreach ($entities as $entity) {
+                $this->chatroom = $entity;
+            }
+        }
     }
 
     # This can be overridden in UT.
@@ -107,7 +139,8 @@ class ChatRoom extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+            $this->ourFetch($id);
+            $this->chatroom['groupname'] = $this->getGroupName($gid);
             return ($id);
         } else {
             return (NULL);
@@ -161,7 +194,7 @@ class ChatRoom extends Entity
         }
 
         if ($id) {
-            $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+            $this->ourFetch($id);
 
             # Ensure the two members are in the roster.
             $this->updateRoster($user1, NULL);
@@ -230,7 +263,7 @@ class ChatRoom extends Entity
         }
 
         if ($id) {
-            $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+            $this->ourFetch($id);
 
             # Ensure this user is in the roster.
             $this->updateRoster($user1, NULL);
@@ -377,16 +410,16 @@ class ChatRoom extends Entity
             }
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id, date, message, type FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
+        # We got the info we need to construct the snippet in the original construct.
         $ret['lastmsg'] = 0;
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
 
-        foreach ($lasts as $last) {
-            $ret['lastmsg'] = $last['id'];
-            $ret['lastdate'] = ISODate($last['date']);
+        if ($this->chatroom['chatmsgid']) {
+            $ret['lastmsg'] = $this->chatroom['chatmsgid'];
+            $ret['lastdate'] = ISODate($this->chatroom['chatmsgdate']);
 
-            switch ($last['type']) {
+            switch ($this->chatroom['chatmsgtype']) {
                 case ChatMessage::TYPE_ADDRESS: $ret['snippet'] = 'Address sent...'; break;
                 case ChatMessage::TYPE_NUDGE: $ret['snippet'] = 'Nudged'; break;
                 case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Availability updated...'; break;
@@ -394,7 +427,7 @@ class ChatRoom extends Entity
                 default: {
                     # We don't want to land in the middle of an encoded emoji otherwise it will display
                     # wrongly.
-                    $msg = $last['message'];
+                    $msg = $this->chatroom['chatmsg'];
                     $msg = $this->splitEmoji($msg);
 
                     $ret['snippet'] = substr($msg, 0, 30);
@@ -407,12 +440,16 @@ class ChatRoom extends Entity
     }
     
     private function getGroupName($gid) {
-        # We go direct to the DB to minimise DB ops in the summary case, which is a critical path.
-        $names = $this->dbhr->preQuery("SELECT CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS name FROM groups WHERE id = ?;", [
-            $gid
-        ]);
-        
-        return($names[0]['name']);
+        if (!pres('groupname', $this->chatroom)) {
+            # We go direct to the DB to minimise DB ops in the summary case, which is a critical path.
+            $names = $this->dbhr->preQuery("SELECT CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS name FROM groups WHERE id = ?;", [
+                $gid
+            ]);
+
+            $this->chatroom['groupname'] = $names[0]['name'];
+        }
+
+        return($this->chatroom['groupname']);
     }
     
     private function getUserName($uid) {                    
@@ -535,9 +572,10 @@ class ChatRoom extends Entity
         return($key);
     }
 
-    public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS)
+    public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS, $chatid = NULL)
     {
         $ret = [];
+        $chatq = $chatid ? "chat_rooms.id = $chatid AND " : '';
 
         if ($userid) {
             # The chats we can see are:
@@ -568,7 +606,7 @@ class ChatRoom extends Entity
 
             if (!$chattypes || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
                 # We want chats marked by groupid for which we are an active mod.
-                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE t1.role IN ('Moderator', 'Owner') $activeq AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
+                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE $chatq t1.role IN ('Moderator', 'Owner') $activeq AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
                 #error_log("Mod2Mod chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
                 #error_log("Add " . count($rooms) . " mod chats using $sql");
@@ -578,7 +616,7 @@ class ChatRoom extends Entity
                 # If we're on ModTools then we want User2Mod chats for our group.
                 #
                 # If we're on the user site then we only want User2Mod chats where we are a user.
-                $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
+                $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
                 #error_log("List for user, $sql modtools $modtools");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
                 #error_log("Add " . count($rooms) . " user to mod chats using $sql");
@@ -588,7 +626,7 @@ class ChatRoom extends Entity
                 # We want chats where we are one of the users.  If the chat is closed or blocked we don't want to see
                 # it unless we're on MT.
                 $statusq = $modtools ? '' : "AND (status IS NULL OR status NOT IN ('Closed', 'Blocked'))";
-                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' $statusq $countq;";
+                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' $statusq $countq;";
                 #error_log("User chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid, $userid]));
                 #error_log("Add " . count($rooms) . " user to user chats using $sql");
@@ -596,7 +634,7 @@ class ChatRoom extends Entity
 
             if (MODTOOLS && (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes))) {
                 # We want chats marked by groupid for which we are a member.  This is mod-only function.
-                $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (status IS NULL OR status != 'Closed') $countq;";
+                $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (status IS NULL OR status != 'Closed') $countq;";
                 #error_log("Group chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
                 #error_log("Add " . count($rooms) . " group chats using $sql");
@@ -614,7 +652,7 @@ class ChatRoom extends Entity
                     if ($search) {
                         # We want to apply a search filter.
                         $r = new ChatRoom($this->dbhr, $this->dbhm, $room['id']);
-                        $name = $r->getPublic($me, $mepub)['name'];
+                        $name = $r->getPublic($me, $mepub, TRUE)['name'];
 
                         if (stripos($name, $search) === FALSE) {
                             # We didn't get a match easily.  Now we have to search in the messages.
@@ -661,8 +699,9 @@ class ChatRoom extends Entity
             # It's one of ours - so we can see it.
             $cansee = TRUE;
         } else {
-            # It might be a group chat which we can see.
-            $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL);
+            # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
+            # but using a specific chatid to save time.
+            $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL, $this->id);
             #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
             $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
         }

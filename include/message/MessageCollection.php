@@ -74,11 +74,15 @@ class MessageCollection
             $msgids = [];
 
             if (in_array(MessageCollection::DRAFT, $this->collection)) {
-                # Draft messages are handled differently, as they're not attached to any group.
+                # Draft messages are handled differently, as they're not attached to any group.  Only show
+                # recent drafts - if they've not completed within a reasonable time they're probably stuck.
+                $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
+                $oldest = " AND timestamp >= '$mysqltime' ";
+
                 $me = whoAmI($this->dbhr, $this->dbhm);
                 $userids = $userids ? $userids : ($me ? [ $me->getId() ] : NULL);
 
-                $sql = $userids ? ("SELECT msgid FROM messages_drafts WHERE session = ? OR userid IN (" . implode(',', $userids) . ");") : "SELECT msgid FROM messages_drafts WHERE session = ?;";
+                $sql = $userids ? ("SELECT msgid FROM messages_drafts WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) $oldest;") : "SELECT msgid FROM messages_drafts WHERE session = ? $oldest;";
                 $msgs = $this->dbhr->preQuery($sql, [
                     session_id()
                 ]);

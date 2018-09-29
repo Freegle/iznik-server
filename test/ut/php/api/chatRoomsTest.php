@@ -26,15 +26,21 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
 
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($this->uid);
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        assertEquals($this->uid, $this->user->getId());
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        assertNotNull($this->groupid);
 
         $_SESSION['id'] = NULL;
     }
@@ -297,14 +303,16 @@ class chatRoomsAPITest extends IznikAPITestCase
     public function testNudge() {
         error_log(__METHOD__);
 
-        $u = User::get($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhr);
         $uid = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($uid);
+        assertNotNull($this->uid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create an unseen message
-        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $c = new ChatRoom($this->dbhr, $this->dbhr);
         $rid = $c->createConversation($this->uid, $uid);
-        error_log("Created room $rid");
+        error_log("Created room $rid between {$this->uid} and $uid");
 
         assertTrue($this->user->login('testpw'));
 
@@ -352,17 +360,16 @@ class chatRoomsAPITest extends IznikAPITestCase
 //        $ctx = NULL;
 //        $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
 //
-//
 //        $uid = $u->findByEmail('edward@ehibbert.org.uk');
 //        $u = new User($this->dbhr, $this->dbhm, $uid);
-//        assertTrue($u->login('1qwert'));
-//        error_log("logged in");
+//        $_SESSION['id'] = $uid;
 //        $ret = $this->call('chatrooms', 'GET', [
 //            'chattypes' => [
 //                ChatRoom::TYPE_USER2USER,
 //                ChatRoom::TYPE_USER2MOD,
 //                ChatRoom::TYPE_GROUP,
-//            ]
+//            ],
+//            'summary' => TRUE
 //        ]);
 //        assertEquals(0, $ret['ret']);
 //        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
