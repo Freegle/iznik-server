@@ -62,9 +62,19 @@ class ChatRoom extends Entity
             # This is a slightly complicated query which:
             # - gets the chatroom object
             # - gets the group name from the groups table, which we use in naming the chat
+            # - gets user names for the users (if present), which we also use in naming the chat
             # - gets the most recent chat message (if any) which we need for getPublic()
             # We do this because chat rooms are performance critical, especially for people with many chats.
-            $sql = "SELECT chat_rooms.*, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname, chat_messages.id AS chatmsgid, chat_messages.message AS chatmsg, chat_messages.date AS chatmsgdate, chat_messages.type AS chatmsgtype FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid LEFT JOIN chat_messages ON chat_rooms.id = chat_messages.chatid AND reviewrequired = 0 AND reviewrejected = 0 WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+            $sql = "
+SELECT chat_rooms.*, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname, 
+chat_messages.id AS chatmsgid, chat_messages.message AS chatmsg, chat_messages.date AS chatmsgdate, chat_messages.type AS chatmsgtype,
+CASE WHEN u1.fullname IS NOT NULL THEN u1.fullname ELSE CONCAT(u1.firstname, ' ', u1.lastname) END AS u1name,
+CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' ', u2.lastname) END AS u2name  
+FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid 
+LEFT JOIN chat_messages ON chat_rooms.id = chat_messages.chatid AND reviewrequired = 0 AND reviewrejected = 0
+LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
+LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
+WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
             $entities = $this->dbhm->preQuery($sql, [
                 $this->id
             ],
@@ -440,27 +450,18 @@ class ChatRoom extends Entity
     }
     
     private function getGroupName($gid) {
-        if (!pres('groupname', $this->chatroom)) {
-            # We go direct to the DB to minimise DB ops in the summary case, which is a critical path.
-            $names = $this->dbhr->preQuery("SELECT CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS name FROM groups WHERE id = ?;", [
-                $gid
-            ]);
-
-            $this->chatroom['groupname'] = $names[0]['name'];
-        }
-
         return($this->chatroom['groupname']);
     }
     
-    private function getUserName($uid) {                    
-        # We go direct to the DB to minimise DB ops in the summary case, which is a critical path.
-        $names = $this->dbhr->preQuery("SELECT CASE WHEN fullname IS NOT NULL THEN fullname ELSE CONCAT(firstname, ' ', lastname) END AS name FROM users WHERE id = ?;", [
-            $uid
-        ], FALSE, FALSE);
-        
-        $name = $names[0]['name'];
-        $name = $name && strlen(trim($name)) ? $name : 'A freegler';
-        
+    private function getUserName($uid) {
+        $name = 'A freegler';
+
+        if ($uid == $this->chatroom['user1']) {
+            $name = $this->chatroom['u1name'];
+        } else if ($uid == $this->chatroom['user2']) {
+            $name = $this->chatroom['u2name'];
+        }
+
         return($name);
     }
 
