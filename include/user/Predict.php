@@ -197,12 +197,15 @@ class Predict extends Entity
 
                 # Train on this specific conversation, because that's the one which didn't work out.
                 $chatid = $r->createConversation($rating['rater'], $rating['ratee']);
-                $text = $this->getTextForUser($rating['ratee'], $chatid);
 
-                if (strlen($text)) {
-                    $this->users[] = $rating['ratee'];
-                    $this->samples[] = $text;
-                    $this->labels[] = $rating['rating'];
+                if ($chatid) {
+                    $text = $this->getTextForUser($rating['ratee'], $chatid);
+
+                    if (strlen($text)) {
+                        $this->users[] = $rating['ratee'];
+                        $this->samples[] = $text;
+                        $this->labels[] = $rating['rating'];
+                    }
                 }
             }
 

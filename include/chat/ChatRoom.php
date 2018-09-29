@@ -175,7 +175,7 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
         }
     }
 
-    public function createConversation($user1, $user2)
+    public function createConversation($user1, $user2, $checkonly = FALSE)
     {
         $id = NULL;
 
@@ -197,7 +197,7 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
         if (count($chats) > 0) {
             # We have an existing chat.  That'll do nicely.
             $id = $chats[0]['id'];
-        } else {
+        } else if (!$checkonly) {
             # We don't.  Create one.
             $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2, chattype) VALUES (?,?,?)", [
                 $user1,
