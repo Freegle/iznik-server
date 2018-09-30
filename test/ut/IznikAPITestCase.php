@@ -25,6 +25,9 @@ abstract class IznikAPITestCase extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
+        $this->dbhr->errorLog = FALSE;
+        $this->dbhm->errorLog = FALSE;
+
         $_SERVER['HTTP_HOST'] = 'localhost';
         $_SERVER['REQUEST_URI'] = '/';
         $_SESSION['id'] = NULL;
