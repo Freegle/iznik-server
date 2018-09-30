@@ -127,10 +127,7 @@ function session() {
                             if (array_key_exists($group['id'], $facebooks)) {
                                 $group['facebook'] = [];
 
-                                foreach ($facebooks[$group['id']] as $uid) {
-                                    $f = new GroupFacebook($dbhr, $dbhm, $uid);
-                                    $atts = $f->getPublic();
-                                    unset($atts['token']);
+                                foreach ($facebooks[$group['id']] as $atts) {
                                     $group['facebook'][] = $atts;
                                 }
                             }

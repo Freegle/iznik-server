@@ -41,11 +41,22 @@ class socialactionsAPITest extends IznikAPITestCase
 
         $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
 
-        $ids2 = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
+        $fbs = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
 
         if (!getenv('STANDALONE')) {
-            assertEquals(1, count($ids2));
-            assertEquals($ids, $ids2[$gid]);
+            assertEquals(1, count($fbs));
+
+            foreach ($ids as $id) {
+                $found = FALSE;
+
+                foreach ($fbs[$gid] as $fb) {
+                   if ($fb['uid'] == $id) {
+                       $found = TRUE;
+                   }
+                }
+
+                assertTrue($found);
+            }
         }
 
         foreach ($ids as $uid) {

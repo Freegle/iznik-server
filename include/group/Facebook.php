@@ -16,7 +16,7 @@ use Facebook\FacebookRequest;
 use Facebook\FacebookRequestException;
 
 class GroupFacebook {
-    var $publicatts = ['name', 'token', 'type', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'sharefrom', 'token', 'groupid', 'id', 'lastupdated', 'uid' ];
+    static public $publicatts = ['name', 'token', 'type', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'sharefrom', 'token', 'groupid', 'id', 'lastupdated', 'uid' ];
 
     const TYPE_PAGE = 'Page';
 
@@ -29,7 +29,7 @@ class GroupFacebook {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        foreach ($this->publicatts as $att) {
+        foreach (GroupFacebook::$publicatts as $att) {
             $this->$att = NULL;
         }
 
@@ -38,7 +38,7 @@ class GroupFacebook {
         if ($id) {
             $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE uid = ?;", [ $id ]);
             foreach ($groups as $group) {
-                foreach ($this->publicatts as $att) {
+                foreach (GroupFacebook::$publicatts as $att) {
                     $this->$att = $group[$att];
                 }
             }
@@ -287,17 +287,21 @@ class GroupFacebook {
         return($ids);
     }
 
-    public static function listForGroups($dbhr, $dbhm, $gids) {
-        $ids = [];
+    public static function listForGroups($dbhr, $dbhm, $gids, $token = FALSE) {
+        $ret = [];
 
         if (count($gids)) {
-            $groups = $dbhr->preQuery("SELECT uid, groupid FROM groups_facebook WHERE groupid IN (" . implode(',', $gids) . ");");
-            foreach ($groups as $group) {
-                $ids[$group['groupid']][] = $group['uid'];
+            $groups = $dbhr->preQuery("SELECT " . implode(',', GroupFacebook::$publicatts) . " FROM groups_facebook WHERE groupid IN (" . implode(',', $gids) . ");");
+            foreach ($groups as &$group) {
+                if (!$token) {
+                    unset($group['token']);
+                }
+
+                $ret[$group['groupid']][] = $group;
             }
         }
 
-        return($ids);
+        return($ret);
     }
 
     public function pollForChanges() {
