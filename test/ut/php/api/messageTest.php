@@ -51,8 +51,6 @@ class messageAPITest extends IznikAPITestCase
         $a->setPrivate('sourceheader', Message::PLATFORM);
 
         # Should be able to see this message even logged out.
-        $this->dbhr->setErrorLog(TRUE);
-
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'collection' => 'Approved'
