@@ -13,6 +13,7 @@ require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
+require_once(IZNIK_BASE . '/include/group/GroupCollection.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
@@ -1144,9 +1145,14 @@ class User extends Entity
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
 
-        foreach ($groups as $group) {
-            $g = NULL;
-            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+        # Get all the groups efficiently.
+        $groupids = array_column($groups, 'groupid');
+        $gc = new GroupCollection($this->dbhr, $this->dbhm, $groupids);
+        $groupobjs = $gc->get();
+
+        for ($i = 0; $i < count($groupids); $i++) {
+            $group = $groups[$i];
+            $g = $groupobjs[$i];
             $one = $g->getPublic();
 
             $one['role'] = $group['role'];

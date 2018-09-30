@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/group/Facebook.php');
 
 class Group extends Entity
 {
-    # We have a cache of users, because we create users a _lot_, and this can speed things up significantly by avoiding
+    # We have a cache of groups, because we create groups a _lot_, and this can speed things up significantly by avoiding
     # hitting the DB.  This is only preserved within this process.
     static $processCache = [];
     static $processCacheDeleted = [];
@@ -46,54 +46,63 @@ class Group extends Entity
 
     public $defaultSettings;
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $atts = NULL)
     {
-        # We cache groups in redis, to reduce DB load.  Because we do it at the group level, we don't use the
-        # generalised DB query caching in db.php, so we disable that by appropriate parameters to DB calls and
-        # fetch().
-        $this->cachekey = $id ? "group-$id" : NULL;
-
-        # Check if this group is in redis.
-        $cached = $this->getRedis()->mget([ $this->cachekey ]);
-
-        if ($cached && $cached[0]) {
-            # We got it.  That saves us some DB ops.
-            $obj = unserialize($cached[0]);
-
-            foreach ($obj as $key => $val) {
-                #error_log("Restore $key => " . var_export($val, TRUE));
-                $this->$key = $val;
-            }
-
-            # We didn't serialise the PDO objects.
-            $this->dbhr = $dbhr;
-            $this->dbhm = $dbhm;
+        if ($atts) {
+            # We've been passed all the atts we need to construct the group
+            $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, $atts, FALSE);
         } else {
-            # We didn't find it in redis.
-            $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, NULL, FALSE);
+            # We cache groups in redis, to reduce DB load.  Because we do it at the group level, we don't use the
+            # generalised DB query caching in db.php, so we disable that by appropriate parameters to DB calls and
+            # fetch().
+            $this->cachekey = $id ? "group-$id" : NULL;
 
-            if ($id && !$this->id) {
-                # We were passed an id, but didn't find the group.  See if the id is a legacyid.
-                #
-                # This assumes that the legacy and current ids don't clash.  Which they don't.  So that's a good assumption.
-                $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE legacyid = ?;", [ $id ]);
-                foreach ($groups as $group) {
-                    $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts, NULL, FALSE);
+            # Check if this group is in redis.
+            $cached = $this->getRedis()->mget([ $this->cachekey ]);
+
+            if ($cached && $cached[0]) {
+                # We got it.  That saves us some DB ops.
+                $obj = unserialize($cached[0]);
+
+                foreach ($obj as $key => $val) {
+                    #error_log("Restore $key => " . var_export($val, TRUE));
+                    $this->$key = $val;
                 }
-            }
 
-            if ($id) {
-                # Store object in redis for next time.
-                $this->dbhm = NULL;
-                $this->dbhr = NULL;
-                $s = serialize($this);
-                $this->dbhm = $dbhm;
+                # We didn't serialise the PDO objects.
                 $this->dbhr = $dbhr;
+                $this->dbhm = $dbhm;
+            } else {
+                # We didn't find it in redis.
+                $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, NULL, FALSE);
 
-                $this->getRedis()->setex($this->cachekey, Group::REDIS_CACHE_EXPIRY, $s);
+                if ($id && !$this->id) {
+                    # We were passed an id, but didn't find the group.  See if the id is a legacyid.
+                    #
+                    # This assumes that the legacy and current ids don't clash.  Which they don't.  So that's a good assumption.
+                    $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE legacyid = ?;", [ $id ]);
+                    foreach ($groups as $group) {
+                        $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts, NULL, FALSE);
+                    }
+                }
+
+                if ($id) {
+                    # Store object in redis for next time.
+                    $this->dbhm = NULL;
+                    $this->dbhr = NULL;
+                    $s = serialize($this);
+                    $this->dbhm = $dbhm;
+                    $this->dbhr = $dbhr;
+
+                    $this->getRedis()->setex($this->cachekey, Group::REDIS_CACHE_EXPIRY, $s);
+                }
             }
         }
 
+        $this->setDefaults();
+    }
+
+    public function setDefaults() {
         $this->defaultSettings = [
             'showchat' => 1,
             'communityevents' => 1,
@@ -141,7 +150,7 @@ class Group extends Entity
             $this->group['settings'] = json_encode($this->defaultSettings);
         }
 
-        $this->log = new Log($dbhr, $dbhm);
+        $this->log = new Log($this->dbhr, $this->dbhm);
     }
 
     public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $gsecache = TRUE) {

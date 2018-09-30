@@ -41,7 +41,6 @@ class dbTest extends IznikTestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $this->dbhm->setErrorLog(TRUE);
         $tables = $this->dbhm->retryQuery('SHOW COLUMNS FROM test;')->fetchAll();
         assertEquals('id', $tables[0]['Field']);
         assertGreaterThan(0, $this->dbhm->getWaitTime());
@@ -52,7 +51,6 @@ class dbTest extends IznikTestCase {
             1 => null,
             2 => null
         ], $this->dbhm->getErrorInfo($sth));
-        $this->dbhm->setErrorLog(FALSE);
 
         error_log(__METHOD__ . " end");
     }
