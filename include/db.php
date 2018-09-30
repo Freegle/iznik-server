@@ -155,6 +155,14 @@ class LoggedPDO {
     }
 
     /**
+     * @param boolean $errorLog
+     */
+    public function setErrorLog($errorLog)
+    {
+        $this->errorLog = $errorLog;
+    }
+
+    /**
      * @param null $pheanstalk
      */
     public function setPheanstalk($pheanstalk)
