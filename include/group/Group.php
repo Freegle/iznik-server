@@ -381,50 +381,80 @@ class Group extends Entity
         # to active.
         # TODO Retire showmessages entirely and remove from user configs.
         $active = array_key_exists('active', $mysettings) ? $mysettings['active'] : (!array_key_exists('showmessages', $mysettings) || $mysettings['showmessages']);
-        $spam = $active ? 'spam' : 'spamother';
 
         # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
         #
         # See also MessageCollection.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
         $eventsqltime = date("Y-m-d H:i:s", time());
-        $f = new GroupFacebook($this->dbhr, $this->dbhm);
 
         $ret = [
-            'pending' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL;", [
+            'pending' => 0,
+            'pendingother' => 0,
+            'spam' => 0,
+            'pendingmembers' => 0,
+            'pendingmembersother' => 0,
+            'pendingevents' => 0,
+            'pendingvolunteering' => 0,
+            'spammembers' => 0
+        ];
+
+        if ($active) {
+            # Use GROUP to reduce number of DB queries.
+            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_groups.collection, messages.heldby IS NOT NULL AS held FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL GROUP BY messages_groups.collection;", [
                 $this->id,
-                MessageCollection::PENDING
-            ])[0]['count'] : 0,
-            'pendingother' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NOT NULL;", [
-                $this->id,
-                MessageCollection::PENDING
-            ])[0]['count'] : 0,
-            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.arrival >= '$mysqltime' AND messages_groups.deleted = 0 " . ($active ? "AND messages.heldby IS NULL" : "") . ";", [
-                $this->id,
+                MessageCollection::PENDING,
                 MessageCollection::SPAM
-            ])[0]['count'],
-            'pendingmembers' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NULL;", [
+            ], FALSE, FALSE);
+
+            foreach ($counts as $count) {
+                if ($count['collection'] == MessageCollection::PENDING) {
+                    if ($count['held']) {
+                        $ret['pendingother'] = $count['count'];
+                    } else {
+                        $ret['pending'] = $count['count'];
+                    }
+                } else {
+                    $ret['spam'] = $count['count'];
+                }
+            }
+
+            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE groupid = ? AND collection IN (?, ?);", [
                 $this->id,
-                MembershipCollection::PENDING
-            ])[0]['count'] : 0,
-            'pendingmembersother' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NOT NULL;", [
-                $this->id,
-                MembershipCollection::PENDING
-            ])[0]['count'] : 0,
-            'pendingevents' => $active ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ?;", [
+                MembershipCollection::PENDING,
+                MembershipCollection::SPAM
+            ], FALSE, FALSE);
+
+            foreach ($counts as $count) {
+                if ($count['collection'] == MembershipCollection::PENDING) {
+                    if ($count['held']) {
+                        $ret['pendingmembersother'] = $count['count'];
+                    } else {
+                        $ret['pendingmembers'] = $count['count'];
+                    }
+                } else {
+                    $ret['spam'] = $count['count'];
+                }
+            }
+
+            $ret['pendingevents'] = $this->dbhr->preQuery("SELECT COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ?;", [
                 $this->id,
                 $eventsqltime
-            ])[0]['count'] : 0,
-            'pendingvolunteering' => $active ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid = ? AND volunteering.pending = 1 AND volunteering.deleted = 0 AND volunteering.expired = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?);", [
+            ])[0]['count'];
+
+            $ret['pendingvolunteering'] = $this->dbhr->preQuery("SELECT COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid = ? AND volunteering.pending = 1 AND volunteering.deleted = 0 AND volunteering.expired = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?);", [
                 $this->id,
                 $eventsqltime,
                 $eventsqltime
-            ])[0]['count'] : 0,
-            'spammembers' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users INNER JOIN memberships ON memberships.groupid = ? AND memberships.userid = users.id WHERE suspectcount > 0;", [
-                $this->id
-            ])[0]['count']
-        ];
+            ])[0]['count'];
+        } else {
+            $ret['spamother'] = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.arrival >= '$mysqltime' AND messages_groups.deleted = 0 " . ($active ? "AND messages.heldby IS NULL" : "") . ";", [
+                $this->id,
+                MessageCollection::SPAM
+            ])[0]['count'];
+        }
 
+        error_log("Work " . var_export($ret, TRUE));
         return($ret);
     }
 

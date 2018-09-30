@@ -52,7 +52,7 @@ class GroupFacebook {
 
     public function getPublic() {
         $ret = [];
-        foreach ($this->publicatts as $att) {
+        foreach (GroupFacebook::$publicatts as $att) {
             $ret[$att] = $this->$att;
         }
 
