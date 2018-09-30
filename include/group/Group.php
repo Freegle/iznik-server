@@ -454,7 +454,6 @@ class Group extends Entity
             ])[0]['count'];
         }
 
-        error_log("Work " . var_export($ret, TRUE));
         return($ret);
     }
 
