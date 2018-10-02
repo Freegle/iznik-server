@@ -62,11 +62,11 @@ class ChatRoom extends Entity
         $this->id = $id;
 
         if ($this->id) {
-            $this->chatroom = $this->fetchRooms([ $id ], $myid)[0];
+            $this->chatroom = $this->fetchRooms([ $id ], $myid, FALSE)[0];
         }
     }
 
-    public function fetchRooms($ids, $myid) {
+    public function fetchRooms($ids, $myid, $public) {
         # This is a slightly complicated query which:
         # - gets the chatroom object
         # - gets the group name from the groups table, which we use in naming the chat
@@ -99,18 +99,23 @@ WHERE chat_rooms.id IN $idlist;";
             $myid,
         ],FALSE,FALSE);
 
+        $ret = [];
+
         foreach ($rooms as &$room) {
             # Get the latest message.  Possible could combine with previous query if we were cleverer.
-            $latest = $this->dbhr->preQuery("SELECT chat_messages.id AS chatmsgid, chat_messages.message AS chatmsg, chat_messages.date AS chatmsgdate, chat_messages.type AS chatmsgtype FROM chat_messages WHERE chat_messages.chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1;", [
+            $latest = $this->dbhr->preQuery("SELECT chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastmsgdate, chat_messages.type AS chatmsgtype FROM chat_messages WHERE chat_messages.chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1;", [
                 $room['id']
             ], FALSE, FALSE);
 
+            $room['created'] = ISODate($room['created']);
+
             if (count($latest) > 0) {
                 $room = array_merge($room, $latest[0]);
+                $room['lastmsgdate'] = ISODate($room['lastmsgdate']);
             } else{
-                $room['chatmsgid'] = NULL;
+                $room['lastmsg'] = NULL;
                 $room['chatmsg'] = NULL;
-                $room['chatmsgdate'] = NULL;
+                $room['lastdate'] = NULL;
                 $room['chatmsgtype'] = NULL;
             }
 
@@ -132,9 +137,55 @@ WHERE chat_rooms.id IN $idlist;";
                     $room['name'] = $room['groupname'] . " Discussion";
                     break;
             }
+
+            if ($public) {
+                # We want the public version of the attributes.  This is similar code to getPublic(); perhaps
+                # could be combined.
+                $thisone = [
+                    'chattype' => $room['chattype'],
+                    'description' => $room['description'],
+                    'groupid' => $room['groupid'],
+                    'lastdate' => presdef('lastmsgdate', $room, NULL),
+                    'lastmsg' => presdef('lastmsg', $room, NULL),
+                    'synctofacebook' => $room['synctofacebook'],
+                    'unseen' => $room['unseen'],
+                    'name' => $room['name'],
+                    'id' => $room['id']
+                ];
+                
+                $thisone['snippet'] = $this->getSnippet($room['chatmsgtype'], $room['chatmsg']);
+
+                switch ($room['chattype']) {
+                    case ChatRoom::TYPE_USER2USER:
+                        if ($room['user1'] == $myid) {
+                            $thisone['icon'] = $room['u2imageurl'] ? $room['u2imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['user2']  . ".jpg");
+                        } else {
+                            $thisone['icon'] = $room['u1imageurl'] ? $room['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['user1'] . ".jpg");
+                        }
+                        break;
+                    case ChatRoom::TYPE_USER2MOD:
+                        if ($room['user1'] == $myid) {
+                            $thisone['icon'] =  "https://" . IMAGE_DOMAIN . "/gimg_{$room['groupid']}.jpg";
+                        } else{
+                            $thisone['icon'] = $room['u1imageurl'] ? $room['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['user1'] . ".jpg");
+                        }
+                        break;
+                    case ChatRoom::TYPE_MOD2MOD:
+                        $thisone['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_{$room['groupid']}.jpg";
+                        break;
+                    case ChatRoom::TYPE_GROUP:
+                        $thisone['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_{$room['groupid']}.jpg";
+                        break;
+                }
+
+                $ret[] = $thisone;
+            } else {
+                # We are fetching internally
+                $ret[] = $room;
+            }
         }
 
-        return($rooms);
+        return($ret);
     }
 
     # This can be overridden in UT.
@@ -490,27 +541,33 @@ WHERE chat_rooms.id IN $idlist;";
         $ret['snippet'] = '';
 
         if (pres('chatmsgid', $this->chatroom)) {
-            $ret['lastmsg'] = $this->chatroom['chatmsgid'];
-            $ret['lastdate'] = ISODate($this->chatroom['chatmsgdate']);
+            $ret['lastmsg'] = $this->chatroom['lastmsg'];
+            $ret['lastdate'] = $this->chatroom['lastdate'];
 
-            switch ($this->chatroom['chatmsgtype']) {
-                case ChatMessage::TYPE_ADDRESS: $ret['snippet'] = 'Address sent...'; break;
-                case ChatMessage::TYPE_NUDGE: $ret['snippet'] = 'Nudged'; break;
-                case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Availability updated...'; break;
-                case ChatMessage::TYPE_SCHEDULE_UPDATED: $ret['snippet'] = 'Availability updated...'; break;
-                default: {
-                    # We don't want to land in the middle of an encoded emoji otherwise it will display
-                    # wrongly.
-                    $msg = $this->chatroom['chatmsg'];
-                    $msg = $this->splitEmoji($msg);
-
-                    $ret['snippet'] = substr($msg, 0, 30);
-                    break;
-                }
-            }
+            $ret['snippet'] = $this->getSnippet($this->chatroom['chatmsgtype'], $this->chatroom['chatmsg']);
         }
 
         return ($ret);
+    }
+
+    private function getSnippet($msgtype, $chatmsg) {
+        switch ($msgtype) {
+            case ChatMessage::TYPE_ADDRESS: $ret = 'Address sent...'; break;
+            case ChatMessage::TYPE_NUDGE: $ret = 'Nudged'; break;
+            case ChatMessage::TYPE_SCHEDULE: $ret = 'Availability updated...'; break;
+            case ChatMessage::TYPE_SCHEDULE_UPDATED: $ret = 'Availability updated...'; break;
+            default: {
+                # We don't want to land in the middle of an encoded emoji otherwise it will display
+                # wrongly.
+                $msg = $chatmsg;
+                $msg = $this->splitEmoji($msg);
+
+                $ret = substr($msg, 0, 30);
+                break;
+            }
+        }
+        
+        return($ret);
     }
     
     private function getGroupName($gid) {

@@ -35,7 +35,7 @@ function chatrooms() {
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
-                    $rooms = $r->listForUser($myid, $chattypes, $search);
+                    $rooms = $r->listForUser($myid, $chattypes, $search, TRUE);
                     $ret['chatrooms'] = [];
 
                     if ($rooms) {
