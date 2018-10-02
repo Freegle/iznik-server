@@ -103,7 +103,7 @@ WHERE chat_rooms.id IN $idlist;";
 
         foreach ($rooms as &$room) {
             # Get the latest message.  Possible could combine with previous query if we were cleverer.
-            $latest = $this->dbhr->preQuery("SELECT chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastmsgdate, chat_messages.type AS chatmsgtype FROM chat_messages WHERE chat_messages.chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1;", [
+            $latest = $this->dbhr->preQuery("SELECT chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastdate, chat_messages.type AS chatmsgtype FROM chat_messages WHERE chat_messages.chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1;", [
                 $room['id']
             ], FALSE, FALSE);
 
@@ -111,7 +111,7 @@ WHERE chat_rooms.id IN $idlist;";
 
             if (count($latest) > 0) {
                 $room = array_merge($room, $latest[0]);
-                $room['lastmsgdate'] = ISODate($room['lastmsgdate']);
+                $room['lastdate'] = ISODate($room['lastdate']);
             } else{
                 $room['lastmsg'] = NULL;
                 $room['chatmsg'] = NULL;
@@ -145,7 +145,7 @@ WHERE chat_rooms.id IN $idlist;";
                     'chattype' => $room['chattype'],
                     'description' => $room['description'],
                     'groupid' => $room['groupid'],
-                    'lastdate' => presdef('lastmsgdate', $room, NULL),
+                    'lastdate' => presdef('lastdate', $room, NULL),
                     'lastmsg' => presdef('lastmsg', $room, NULL),
                     'synctofacebook' => $room['synctofacebook'],
                     'unseen' => $room['unseen'],
@@ -540,7 +540,7 @@ WHERE chat_rooms.id IN $idlist;";
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
 
-        if (pres('chatmsgid', $this->chatroom)) {
+        if (pres('lastmsg', $this->chatroom)) {
             $ret['lastmsg'] = $this->chatroom['lastmsg'];
             $ret['lastdate'] = $this->chatroom['lastdate'];
 
@@ -1392,12 +1392,11 @@ WHERE chat_rooms.id IN $idlist;";
             #error_log("Check chat {$chat['chatid']}");
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
-            $lastmaxseen = $r->lastSeenByAll();
             $lastmaxmailed = $r->lastMailedToAll();
             $maxmailednow = 0;
             $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $delay);
 
-            #error_log("Notmailed " . count($notmailed));
+            #error_log("Notmailed " . count($notmailed) . " with last message {$chatatts['lastmsg']}");
 
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed the messages in this chat.
