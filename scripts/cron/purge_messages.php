@@ -72,13 +72,13 @@ try {
 
     error_log("Deleted $total");
 
-    # Purge messages which have been in Pending or Queued for ages.  Probably the group isn't being sync'd properly
+    # Purge messages which have been in Spam, Pending or Queued for ages.  Probably the group isn't being sync'd properly
     $start = date('Y-m-d', strtotime("midnight 31 days ago"));
     error_log("Purge pending / queued before $start");
 
     $total = 0;
     do {
-        $sql = "SELECT msgid FROM messages_groups WHERE collection IN ('" . MessageCollection::PENDING . "', '" . MessageCollection::QUEUED_YAHOO_USER . "') AND arrival < '$start' LIMIT 1000;";
+        $sql = "SELECT msgid FROM messages_groups WHERE collection IN ('" . MessageCollection::SPAM . "', '" . MessageCollection::PENDING . "', '" . MessageCollection::QUEUED_YAHOO_USER . "') AND arrival < '$start' LIMIT 1000;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
             $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
