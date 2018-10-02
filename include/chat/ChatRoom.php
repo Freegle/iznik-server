@@ -62,48 +62,79 @@ class ChatRoom extends Entity
         $this->id = $id;
 
         if ($this->id) {
-            # This is a slightly complicated query which:
-            # - gets the chatroom object
-            # - gets the group name from the groups table, which we use in naming the chat
-            # - gets user names for the users (if present), which we also use in naming the chat
-            # - gets the most recent chat message (if any) which we need for getPublic()
-            # - gets the count of unread messages for the logged in user.
-            #
-            # We do this because chat rooms are performance critical, especially for people with many chats.
-            $sql = "
+            $this->chatroom = $this->fetchRooms([ $id ], $myid)[0];
+        }
+    }
+
+    public function fetchRooms($ids, $myid) {
+        # This is a slightly complicated query which:
+        # - gets the chatroom object
+        # - gets the group name from the groups table, which we use in naming the chat
+        # - gets user names for the users (if present), which we also use in naming the chat
+        # - gets the most recent chat message (if any) which we need for getPublic()
+        # - gets the count of unread messages for the logged in user.
+        #
+        # We do this because chat rooms are performance critical, especially for people with many chats.
+        $idlist = "(" . implode(',', $ids) . ")";
+        $sql = "
 SELECT chat_rooms.*, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname, 
-chat_messages.id AS chatmsgid, chat_messages.message AS chatmsg, chat_messages.date AS chatmsgdate, chat_messages.type AS chatmsgtype,
 CASE WHEN u1.fullname IS NOT NULL THEN u1.fullname ELSE CONCAT(u1.firstname, ' ', u1.lastname) END AS u1name,
 CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' ', u2.lastname) END AS u2name,
 (SELECT COUNT(*) AS count FROM chat_messages WHERE id > 
-  COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ? AND status != ? AND status != ?), 0) 
-  AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS myunseencount,
+  COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = ? AND status != ? AND status != ?), 0) 
+  AND chatid = chat_rooms.id AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS unseen,
 i1.url AS u1imageurl,
-i2.url AS u2imageurl    
+i2.url AS u2imageurl
 FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid 
-LEFT JOIN chat_messages ON chat_rooms.id = chat_messages.chatid AND reviewrequired = 0 AND reviewrejected = 0
 LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
 LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
 LEFT JOIN users_images i1 ON i1.userid = u1.id
 LEFT JOIN users_images i2 ON i2.userid = u2.id 
-WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+WHERE chat_rooms.id IN $idlist;";
 
-            $entities = $this->dbhm->preQuery($sql, [
-                $this->id,
-                $myid,
-                ChatRoom::STATUS_CLOSED,
-                ChatRoom::STATUS_BLOCKED,
-                $this->id,
-                $myid,
-                $this->id
-            ],
-                FALSE,
-                FALSE);
+        $rooms = $this->dbhm->preQuery($sql, [
+            $myid,
+            ChatRoom::STATUS_CLOSED,
+            ChatRoom::STATUS_BLOCKED,
+            $myid,
+        ],FALSE,FALSE);
 
-            foreach ($entities as $entity) {
-                $this->chatroom = $entity;
+        foreach ($rooms as &$room) {
+            # Get the latest message.  Possible could combine with previous query if we were cleverer.
+            $latest = $this->dbhr->preQuery("SELECT chat_messages.id AS chatmsgid, chat_messages.message AS chatmsg, chat_messages.date AS chatmsgdate, chat_messages.type AS chatmsgtype FROM chat_messages WHERE chat_messages.chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1;", [
+                $room['id']
+            ], FALSE, FALSE);
+
+            if (count($latest) > 0) {
+                $room = array_merge($room, $latest[0]);
+            } else{
+                $room['chatmsgid'] = NULL;
+                $room['chatmsg'] = NULL;
+                $room['chatmsgdate'] = NULL;
+                $room['chatmsgtype'] = NULL;
+            }
+
+            switch ($room['chattype']) {
+                case ChatRoom::TYPE_USER2USER:
+                    # We use the name of the user who isn't us, because that's who we're chatting to.
+                    $room['name'] = $myid == $room['user1'] ? $room['u2name'] : $room['u1name'];
+                    break;
+                case ChatRoom::TYPE_USER2MOD:
+                    # If we started it, we're chatting to the group volunteers; otherwise to the user.
+                    $room['name'] = ($room['user1'] == $myid) ? ($room['groupname'] . " Volunteers") : ($room['u1name'] . " on " . $room['groupname']);
+                    break;
+                case ChatRoom::TYPE_MOD2MOD:
+                    # Mods chatting to each other.
+                    $room['name'] = $room['groupname'] . " Mods";
+                    break;
+                case ChatRoom::TYPE_GROUP:
+                    # Members chatting to each other
+                    $room['name'] = $room['groupname'] . " Discussion";
+                    break;
             }
         }
+
+        return($rooms);
     }
 
     # This can be overridden in UT.
@@ -412,7 +443,7 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                 break;
         }
 
-        $ret['unseen'] = $this->chatroom['myunseencount'];
+        $ret['unseen'] = $this->chatroom['unseen'];
 
         # The name we return is not the one we created it with, which is internal.  
         switch ($this->chatroom['chattype']) {
@@ -458,7 +489,7 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
 
-        if ($this->chatroom['chatmsgid']) {
+        if (pres('chatmsgid', $this->chatroom)) {
             $ret['lastmsg'] = $this->chatroom['chatmsgid'];
             $ret['lastdate'] = ISODate($this->chatroom['chatmsgdate']);
 

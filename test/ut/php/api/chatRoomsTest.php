@@ -73,6 +73,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatrooms']));
+        error_log("Got chat room " . var_export($ret, TRUE));
         assertEquals($rid, $ret['chatrooms'][0]['id']);
         assertEquals('Test User', $ret['chatrooms'][0]['name']);
 
@@ -350,28 +351,28 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
-//
-//    public function testEH() {
-//        $u = new User($this->dbhr, $this->dbhm);
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
-//
-//        $u = new User($this->dbhr, $this->dbhm, 19002018);
-//        $ctx = NULL;
-//        $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
-//
-//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-//        $u = new User($this->dbhr, $this->dbhm, $uid);
-//        $_SESSION['id'] = $uid;
-//        $ret = $this->call('chatrooms', 'GET', [
-//            'chattypes' => [
-//                ChatRoom::TYPE_USER2USER,
-//                ChatRoom::TYPE_USER2MOD,
-//                ChatRoom::TYPE_GROUP,
-//            ],
-//            'summary' => TRUE
-//        ]);
-//        assertEquals(0, $ret['ret']);
-//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-//    }
+
+    public function testEH() {
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->dbhr->errorLog = TRUE;
+        $this->dbhm->errorLog = TRUE;
+
+        $u = new User($this->dbhr, $this->dbhm, 19002018);
+        $ctx = NULL;
+        $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+
+        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $_SESSION['id'] = $uid;
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [
+                ChatRoom::TYPE_USER2USER,
+                ChatRoom::TYPE_USER2MOD,
+                ChatRoom::TYPE_GROUP,
+            ],
+            'summary' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+    }
 }
