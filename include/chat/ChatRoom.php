@@ -77,11 +77,15 @@ CASE WHEN u1.fullname IS NOT NULL THEN u1.fullname ELSE CONCAT(u1.firstname, ' '
 CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' ', u2.lastname) END AS u2name,
 (SELECT COUNT(*) AS count FROM chat_messages WHERE id > 
   COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ? AND status != ? AND status != ?), 0) 
-  AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS myunseencount  
+  AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS myunseencount,
+i1.url AS u1imageurl,
+i2.url AS u2imageurl    
 FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid 
 LEFT JOIN chat_messages ON chat_rooms.id = chat_messages.chatid AND reviewrequired = 0 AND reviewrejected = 0
 LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
 LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
+LEFT JOIN users_images i1 ON i1.userid = u1.id
+LEFT JOIN users_images i2 ON i2.userid = u2.id 
 WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
 
             $entities = $this->dbhm->preQuery($sql, [
@@ -387,10 +391,18 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
         # the icon name format here rather than instatiate the User/Group objects for performance.
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
-                $ret['icon'] = 'https://' . IMAGE_DOMAIN . "/tuimg_" . ($u1id == $myid ? $u2id : $u1id) . ".jpg";
+                if ($u1id == $myid) {
+                    $ret['icon'] = $this->chatroom['u2imageurl'] ? $this->chatroom['u2imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $u2id  . ".jpg");
+                } else {
+                    $ret['icon'] = $this->chatroom['u1imageurl'] ? $this->chatroom['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $u1id . ".jpg");
+                }
                 break;
             case ChatRoom::TYPE_USER2MOD:
-                $ret['icon'] = $u1id == $myid ? ("https://" . IMAGE_DOMAIN . "/gimg_$gid.jpg") : ("https://" . IMAGE_DOMAIN . "/tuimg_$u1id.jpg");
+                if ($u1id == $myid) {
+                    $ret['icon'] =  "https://" . IMAGE_DOMAIN . "/gimg_$gid.jpg";
+                } else{
+                    $ret['icon'] = $this->chatroom['u1imageurl'] ? $this->chatroom['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $u1id . ".jpg");
+                }
                 break;
             case ChatRoom::TYPE_MOD2MOD:
                 $ret['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_$gid.jpg";
@@ -1030,7 +1042,10 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
     {
         $ctxq = $ctx ? (" AND chat_messages.id < " . intval($ctx['id']) . " ") : '';
         $seenfilt = $seenbyall === NULL ? '' : " AND seenbyall = $seenbyall ";
-        $sql = "SELECT id, userid, type FROM chat_messages WHERE chatid = ? $seenfilt $ctxq ORDER BY id DESC LIMIT $limit;";
+
+        # We do a join with the users table so that we can get the minimal information we need in a single query
+        # rather than querying for each user by creating a User object.
+        $sql = "SELECT chat_messages.id, chat_messages.userid, chat_messages.type, users_images.id AS imageid, users_images.url AS imageurl, users.systemrole, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS displayname FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid LEFT JOIN users_images ON users_images.userid = users.id WHERE chatid = ? $seenfilt $ctxq ORDER BY chat_messages.id DESC LIMIT $limit;";
         $msgs = $this->dbhr->preQuery($sql, [$this->id]);
         $msgs = array_reverse($msgs);
         $users = [];
@@ -1085,9 +1100,16 @@ WHERE chat_rooms.id = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                     }
 
                     if (!array_key_exists($msg['userid'], $users)) {
-                        $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
-                        $ctx = NULL;
-                        $users[$msg['userid']] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                        $users[$msg['userid']] = [
+                            'id' => $msg['userid'],
+                            'displayname' => $msg['displayname'],
+                            'systemrole' => $msg['systemrole'],
+                            'profile' => [
+                                'url' => $msg['imageurl'] ? $msg['imageurl'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$msg['imageid']}.jpg"),
+                                'turl' => $msg['imageurl'] ? $msg['imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$msg['imageid']}.jpg"),
+                                'default' => FALSE
+                            ]
+                        ];
                     }
 
                     if ($msg['type'] == ChatMessage::TYPE_INTERESTED) {
