@@ -73,6 +73,8 @@ class ChatRoom extends Entity
         # - gets user names for the users (if present), which we also use in naming the chat
         # - gets the most recent chat message (if any) which we need for getPublic()
         # - gets the count of unread messages for the logged in user.
+        # - gets any profiles for the users
+        # - gets any most recent chat message info
         #
         # We do this because chat rooms are performance critical, especially for people with many chats.
         $idlist = "(" . implode(',', $ids) . ")";
@@ -84,12 +86,14 @@ CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' '
   COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = ? AND status != ? AND status != ?), 0) 
   AND chatid = chat_rooms.id AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS unseen,
 i1.url AS u1imageurl,
-i2.url AS u2imageurl
+i2.url AS u2imageurl,
+chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastdate, chat_messages.type AS chatmsgtype
 FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid 
 LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
 LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
 LEFT JOIN users_images i1 ON i1.userid = u1.id
 LEFT JOIN users_images i2 ON i2.userid = u2.id 
+LEFT JOIN chat_messages ON chat_messages.id = (SELECT id FROM chat_messages WHERE chat_messages.chatid = chat_rooms.id AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1)
 WHERE chat_rooms.id IN $idlist;";
 
         $rooms = $this->dbhm->preQuery($sql, [
@@ -102,21 +106,8 @@ WHERE chat_rooms.id IN $idlist;";
         $ret = [];
 
         foreach ($rooms as &$room) {
-            # Get the latest message.  Possible could combine with previous query if we were cleverer.
-            $latest = $this->dbhr->preQuery("SELECT chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastdate, chat_messages.type AS chatmsgtype FROM chat_messages WHERE chat_messages.chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1;", [
-                $room['id']
-            ], FALSE, FALSE);
-
-            $room['created'] = ISODate($room['created']);
-
-            if (count($latest) > 0) {
-                $room = array_merge($room, $latest[0]);
+            if (pres('lastdate', $room)) {
                 $room['lastdate'] = ISODate($room['lastdate']);
-            } else{
-                $room['lastmsg'] = NULL;
-                $room['chatmsg'] = NULL;
-                $room['lastdate'] = NULL;
-                $room['chatmsgtype'] = NULL;
             }
 
             switch ($room['chattype']) {
