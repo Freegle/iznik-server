@@ -2803,7 +2803,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     }
 
     # Default mailer is to use the standard PHP one, but this can be overridden in UT.
-    private function mailer()
+    public function mailer()
     {
         call_user_func_array('mail', func_get_args());
     }
