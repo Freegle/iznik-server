@@ -29,13 +29,12 @@ function chatrooms() {
                 }
             } else {
                 $ctx = NULL;
-                $mepub = $me ? $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE) : NULL;
                 $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
-                    $rooms = $r->listForUser($myid, $chattypes, $search, TRUE);
+                    $rooms = $r->listForUser($myid, $chattypes, $search, MODTOOLS);
                     $ret['chatrooms'] = [];
 
                     if ($rooms) {
