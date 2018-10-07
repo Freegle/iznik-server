@@ -25,11 +25,19 @@ if (($sso->validatePayload($payload,$signature))) {
     if ($me) {
         $ctx = NULL;
         $atts = $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+        $memberships = $me->getMemberships(TRUE, Group::GROUP_FREEGLE);
+        $grouplist = [];
+
+        foreach ($memberships as $membership) {
+            $grouplist[] = $membership['namedisplay'];
+        }
+
         $extraParameters = array(
             'username' => str_replace($me->getName(), ' ', ''),
             'name'     => $me->getName(),
             'avatar_url' => $atts['profile']['url'],
-            'admin' => $me->isAdmin()
+            'admin' => $me->isAdmin(),
+            'bio' => "They're a mod on " . implode(',', $grouplist)  . ".\n\nTheir email is " . $me->getEmailPreferred() . "."
         );
 
         error_log("Discourse signin " . var_export($extraParameters, TRUE));
