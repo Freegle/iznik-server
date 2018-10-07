@@ -672,7 +672,15 @@ class Message
         return($atts);
     }
 
-    public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL) {
+    private function getLocation($locationid, &$locationlist) {
+        if (!$locationlist || !array_key_exists($locationid, $locationlist)) {
+            $locationlist[$locationid] = new Location($this->dbhr, $this->dbhm, $locationid);
+        }
+
+        return($locationlist[$locationid]);
+    }
+
+    public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = NULL) {
         # userlist is a way to cache users.  This avoids getting the same users repeatedly, e.g. when used from
         # MessageCollection for ALLUSER messages.
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -759,15 +767,15 @@ class Message
         }
 
         # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
-        # we can see the precise location.
+        # we can see the precise location.  Many messages may be posted from the same location, so cache that.
         if ($this->locationid) {
-            $l = new Location($this->dbhr, $this->dbhm, $this->locationid);
+            $l = $this->getLocation($this->locationid, $locationlist);
 
             if ($showarea) {
                 $areaid = $l->getPrivate('areaid');
                 if ($areaid) {
                     # This location is quite specific.  Return the area it's in.
-                    $a = new Location($this->dbhr, $this->dbhm, $areaid);
+                    $a = $this->getLocation($areaid, $locationlist);
                     $ret['area'] = $a->getPublic();
                 } else {
                     # This location isn't in an area; it is one.  Return it.
@@ -778,7 +786,7 @@ class Message
             if ($showpc) {
                 $pcid = $l->getPrivate('postcodeid');
                 if ($pcid) {
-                    $p = new Location($this->dbhr, $this->dbhm, $pcid);
+                    $p = $this->getLocation($pcid, $locationlist);
                     $ret['postcode'] = $p->getPublic();
                 }
             }
@@ -1013,37 +1021,6 @@ class Message
                 $ret['postings'][] = $post;
             }
         }
-
-        # Loves and laughs.
-        $ret['loved'] = FALSE;
-        $ret['laughed'] = FALSE;
-        $love = 0;
-        $laugh = 0;
-
-        if ($myid) {
-            $likes = $this->dbhr->preQuery("SELECT * FROM messages_likes WHERE msgid = ?;", [
-                $this->id
-            ], FALSE, FALSE);
-
-            foreach ($likes as $like) {
-                if ($like['userid'] == $myid) {
-                    if ($like['type'] == Message::LIKE_LOVE) {
-                        $ret['loved'] = TRUE;
-                    } else if ($like['type'] == Message::LIKE_LAUGH) {
-                        $ret['laughed'] = TRUE;
-                    }
-                }
-
-                if ($like['type'] == Message::LIKE_LOVE) {
-                    $love++;
-                } else if ($like['type'] == Message::LIKE_LAUGH) {
-                    $laugh++;
-                }
-            }
-        }
-
-        $ret['loves'] = $love;
-        $ret['laughs'] = $laugh;
 
         return($ret);
     }
@@ -4066,28 +4043,6 @@ class Message
 
     public function isEdited() {
         return($this->editedby !== NULL);
-    }
-
-    public function like($type) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        if ($me) {
-            $this->dbhm->preExec("INSERT IGNORE INTO messages_likes (userid, msgid, `type`) VALUES (?, ?, ?);", [
-                $me->getId(),
-                $this->id,
-                $type
-            ]);
-        }
-    }
-
-    public function unlike($type) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        if ($me) {
-            $this->dbhm->preExec("DELETE FROM messages_likes WHERE msgid = ? AND userid = ? AND `type` = ?;", [
-                $this->id,
-                $me->getId(),
-                $type
-            ]);
-        }
     }
 
     public function quickDelete($schema, $id) {

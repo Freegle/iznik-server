@@ -486,98 +486,6 @@ class messagesTest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testLovesAndLaughs() {
-        error_log(__METHOD__);
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $id);
-        $u->addMembership($group1, User::ROLE_OWNER);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        $ret = $this->call('messages', 'PUT', [
-            'groupid' => $group1,
-            'source' => Message::YAHOO_APPROVED,
-            'from' => 'test@test.com',
-            'message' => $this->unique($msg)
-        ]);
-
-        self::assertEquals(0, $ret['ret']);
-        $id = $ret['id'];
-
-        $ret = $this->call('message', 'GET', [
-            'id' => $id
-        ]);
-
-        self::assertEquals(0, $ret['message']['loves']);
-        self::assertEquals(0, $ret['message']['laughs']);
-        self::assertFalse($ret['message']['loved']);
-        self::assertFalse($ret['message']['laughed']);
-
-        $ret = $this->call('message', 'POST', [
-            'id' => $id,
-            'action' => 'Love'
-        ]);
-
-        $ret = $this->call('message', 'GET', [
-            'id' => $id
-        ]);
-
-        self::assertEquals(1, $ret['message']['loves']);
-        self::assertEquals(0, $ret['message']['laughs']);
-        self::assertTrue($ret['message']['loved']);
-        self::assertFalse($ret['message']['laughed']);
-
-        $ret = $this->call('message', 'POST', [
-            'id' => $id,
-            'action' => 'Laugh'
-        ]);
-
-        $ret = $this->call('message', 'GET', [
-            'id' => $id
-        ]);
-
-        self::assertEquals(1, $ret['message']['loves']);
-        self::assertEquals(1, $ret['message']['laughs']);
-        self::assertTrue($ret['message']['loved']);
-        self::assertTrue($ret['message']['laughed']);
-
-        $ret = $this->call('message', 'POST', [
-            'id' => $id,
-            'action' => 'Unlove'
-        ]);
-
-        $ret = $this->call('message', 'GET', [
-            'id' => $id
-        ]);
-
-        self::assertEquals(0, $ret['message']['loves']);
-        self::assertEquals(1, $ret['message']['laughs']);
-        self::assertFalse($ret['message']['loved']);
-        self::assertTrue($ret['message']['laughed']);
-
-        $ret = $this->call('message', 'POST', [
-            'id' => $id,
-            'action' => 'Unlaugh'
-        ]);
-
-        $ret = $this->call('message', 'GET', [
-            'id' => $id
-        ]);
-
-        self::assertEquals(0, $ret['message']['loves']);
-        self::assertEquals(0, $ret['message']['laughs']);
-        self::assertFalse($ret['message']['loved']);
-        self::assertFalse($ret['message']['laughed']);
-
-        error_log(__METHOD__ . " end");
-    }
-
     public function testPendingWithdraw() {
         error_log(__METHOD__);
 
@@ -613,5 +521,32 @@ class messagesTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+//
+//    public function testEH() {
+//        $u = new User($this->dbhr, $this->dbhm);
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//
+//        $u = new User($this->dbhr, $this->dbhm);
+//
+//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        $u = new User($this->dbhr, $this->dbhm, $uid);
+//        $_SESSION['id'] = $uid;
+//        $ret = $this->call('messages', 'GET', [
+//            'collection' => MessageCollection::ALLUSER,
+//            'modtools' => FALSE,
+//            'types' => [
+//                Message::TYPE_OFFER,
+//                Message::TYPE_WANTED
+//            ],
+//            'grouptype' => Group::GROUP_FREEGLE,
+//            'fromuser' => $uid,
+//            'limit' => 200
+//        ]);
+//
+//        assertEquals(0, $ret['ret']);
+//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//        error_log(var_export($ret, TRUE));
+//    }
 }
 

@@ -28,7 +28,10 @@ class MessageCollection
 
     private $collection;
 
-    private $userlist;
+    private $userlist = [];
+    private $locationlist = [];
+
+    private $allUser = FALSE;
 
     /**
      * @return null
@@ -51,10 +54,12 @@ class MessageCollection
             case MessageCollection::QUEUED_YAHOO_USER:
             case MessageCollection::QUEUED_USER:
             case MessageCollection::REJECTED:
-                $this->collection = [ $collection ];
+                $this->collection = [$collection];
                 break;
             case MessageCollection::ALLUSER:
                 # The ones users should be able to see, e.g. on My Posts.
+                $this->allUser = TRUE;
+
                 $this->collection = [
                     MessageCollection::DRAFT,
                     MessageCollection::APPROVED,
@@ -69,7 +74,8 @@ class MessageCollection
         }
     }
 
-    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL, $hasoutcome = NULL) {
+    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL, $hasoutcome = NULL)
+    {
         do {
             $msgids = [];
 
@@ -80,20 +86,20 @@ class MessageCollection
                 $oldest = " AND timestamp >= '$mysqltime' ";
 
                 $me = whoAmI($this->dbhr, $this->dbhm);
-                $userids = $userids ? $userids : ($me ? [ $me->getId() ] : NULL);
+                $userids = $userids ? $userids : ($me ? [$me->getId()] : NULL);
 
                 $sql = $userids ? ("SELECT msgid FROM messages_drafts WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) $oldest;") : "SELECT msgid FROM messages_drafts WHERE session = ? $oldest;";
                 $msgs = $this->dbhr->preQuery($sql, [
                     session_id()
                 ]);
 
-                    foreach ($msgs as $msg) {
-                        $msgids[] = [
-                            'id' => $msg['msgid'],
-                            'collection' => MessageCollection::DRAFT
-                        ];
-                    }
+                foreach ($msgs as $msg) {
+                    $msgids[] = [
+                        'id' => $msg['msgid'],
+                        'collection' => MessageCollection::DRAFT
+                    ];
                 }
+            }
 
             $collection = array_filter($this->collection, function ($val) {
                 return ($val != MessageCollection::DRAFT);
@@ -124,7 +130,7 @@ class MessageCollection
                 }
 
                 # We might be looking for posts with no outcome.
-                $outcomeq1 = $hasoutcome !== NULL ? " LEFT JOIN messages_outcomes ON messages_outcomes.id = messages.id ": '';
+                $outcomeq1 = $hasoutcome !== NULL ? " LEFT JOIN messages_outcomes ON messages_outcomes.id = messages.id " : '';
                 $outcomeq2 = $hasoutcome !== NULL ? " AND messages_outcomes.msgid IS NULL " : '';
 
                 # We may have some groups to filter by.
@@ -175,10 +181,11 @@ class MessageCollection
             # We might have excluded all the messages we found; if so, keep going.
         } while (count($msgids) > 0 && count($msgs) == 0);
 
-        return([$groups, $msgs]);
+        return ([$groups, $msgs]);
     }
 
-    public function fillIn($msglist, $limit, $messagetype) {
+    public function fillIn($msglist, $limit, $messagetype)
+    {
         $msgs = [];
         $groups = [];
         $roles = [];
@@ -188,7 +195,7 @@ class MessageCollection
         foreach ($msglist as $msg) {
             #error_log("Message {$msg['id']}");
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
-            $public = $m->getPublic(MODTOOLS, TRUE, FALSE, $this->userlist);
+            $public = $m->getPublic(MODTOOLS, TRUE, FALSE, $this->userlist, $this->locationlist);
 
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
@@ -273,13 +280,16 @@ class MessageCollection
                 }
             }
 
-            if ($limit <= 0) { break; }
+            if ($limit <= 0) {
+                break;
+            }
         }
 
-        return([$groups, $msgs]);
+        return ([$groups, $msgs]);
     }
 
-    function findByYahooApprovedId($groupid, $id) {
+    function findByYahooApprovedId($groupid, $id)
+    {
         # We need to include deleted messages, otherwise we could delete something and then recreate it during a
         # sync, before our delete had hit Yahoo.
         $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ?;";
@@ -289,13 +299,14 @@ class MessageCollection
         ]);
 
         if (count($msglist) == 1) {
-            return($msglist[0]['msgid']);
+            return ($msglist[0]['msgid']);
         } else {
             return NULL;
         }
     }
 
-    function findByYahooPendingId($groupid, $id) {
+    function findByYahooPendingId($groupid, $id)
+    {
         # We need to include deleted messages, otherwise we could delete something and then recreate it during a
         # sync, before our delete had hit Yahoo.
         $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahoopendingid = ? AND collection = 'Pending';";
@@ -305,13 +316,14 @@ class MessageCollection
         ]);
 
         if (count($msglist) == 1) {
-            return($msglist[0]['msgid']);
+            return ($msglist[0]['msgid']);
         } else {
             return NULL;
         }
     }
 
-    function getRecentMessages($type = Group::GROUP_FREEGLE) {
+    function getRecentMessages($type = Group::GROUP_FREEGLE)
+    {
         $groupq = $type ? " AND groups.type = '$type' " : "";
         $mysqltime = date("Y-m-d H:i:s", strtotime('30 minutes ago'));
         $messages = $this->dbhr->preQuery("SELECT messages.id, messages_groups.arrival, messages_groups.groupid, messages.subject FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid INNER JOIN groups ON messages_groups.groupid = groups.id INNER JOIN users ON messages.fromuser = users.id WHERE messages_groups.arrival > ? AND collection = ? AND publishconsent = 1 $groupq ORDER BY messages_groups.arrival ASC;", [
@@ -347,10 +359,11 @@ class MessageCollection
             ];
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    function getChanges($since) {
+    function getChanges($since)
+    {
         $mysqltime = date("Y-m-d H:i:s", strtotime($since));
 
         # We want messages which have been deleted, or had an outcome.
@@ -363,6 +376,6 @@ class MessageCollection
             $change['timestamp'] = ISODate($change['timestamp']);
         }
 
-        return($changes);
+        return ($changes);
     }
 }
