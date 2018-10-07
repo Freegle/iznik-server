@@ -1,6 +1,23 @@
 <?php
 $scriptstart = microtime(true);
 
+$entityBody =  file_get_contents('php://input');
+
+if ($entityBody) {
+    # In some environments (e.g. PHP) PUT verb info isn't parsed correctly, probably because we have a rewrite
+    # that adds a parameter to the URL.  This may be a bug or a feature, but it messes us up.  So decode anything
+    # we can find that has not already been decoded by our interpreter (if it did it, it's likely to be better).
+    #
+    # We needed this code when the app didn't contain the use of HTTP_X_HTTP_METHOD_OVERRIDE, and it's useful
+    # anyway in case the client forgets.
+    parse_str($entityBody, $params);
+    foreach ($params as $key => $val) {
+        if (!array_key_exists($key, $_REQUEST)) {
+            $_REQUEST[$key] = $val;
+        }
+    }
+}
+
 if (array_key_exists('REQUEST_METHOD', $_SERVER)) {
     $_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['REQUEST_METHOD']);
     $_REQUEST['type'] = $_SERVER['REQUEST_METHOD'];
