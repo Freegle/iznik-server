@@ -36,7 +36,8 @@
     "patrickschur/language-detection": "^3.2",
     "twilio/sdk": "^5.19",
     "php-ai/php-ml": "^0.6.2",
-    "php-coveralls/php-coveralls": "^2.1"
+    "php-coveralls/php-coveralls": "^2.1",
+    "cviebrock/discourse-php": "^0.9.3"
   },
   "require-dev": {
     "phpunit/phpunit": "^7"

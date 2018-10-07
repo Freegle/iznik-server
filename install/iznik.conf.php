@@ -60,6 +60,9 @@ define('PAYPAL_PASSWORD', 'zzzz');
 define('PAYPAL_SIGNATURE', 'zzzz');
 define('PAYPAL_THANKS_FROM', 'treasurer@ilovefreegle.org');
 
+# Discourse SSO
+define('DISCOURSE_SECRET', 'zzz');
+
 # We verify email addresses.
 define('BRITEVERIFY_PRIVATE_KEY', 'zzzz');
 
@@ -82,6 +85,8 @@ define('MOD_SITE', 'modtools.org');
 
 $host = $_SERVER && array_key_exists('HTTP_HOST', $_SERVER) ? $_SERVER['HTTP_HOST'] : 'iznik.modtools.org';
 define('SITE_HOST', $host);
+define('CHAT_HOST', 'users.ilovefreegle.org');
+define('CHAT_PORT', 555);
 
 # Where we send event tracking.
 define('EVENT_HOST', 'dev.ilovefreegle.org');
@@ -91,7 +96,6 @@ switch($host) {
         define('SITE_NAME', 'Iznik');
         define('SITE_DESC', 'Making moderating easier');
         define('FAVICON_HOME', 'modtools');
-        define('CHAT_HOST', 'iznik.modtools.org');
         define('MANIFEST_STARTURL', 'modtools');
         define('COOKIE_DOMAIN', 'modtools.org');
         define('MODTOOLS', TRUE);
@@ -101,7 +105,6 @@ switch($host) {
         define('SITE_NAME', 'Iznik');
         define('SITE_DESC', 'Making moderating easier');
         define('FAVICON_HOME', 'modtools');
-        define('CHAT_HOST', 'modtools.org');
         define('MANIFEST_STARTURL', 'modtools');
         define('COOKIE_DOMAIN', 'modtools.org');
         define('MODTOOLS', TRUE);
@@ -110,7 +113,6 @@ switch($host) {
         define('SITE_NAME', 'Freegle');
         define('SITE_DESC', 'Online dating for stuff');
         define('FAVICON_HOME', 'user');
-        define('CHAT_HOST', 'chat.ilovefreegle.org');
         define('MANIFEST_STARTURL', '');
         define('COOKIE_DOMAIN', 'ilovefreegle.org');
         define('MODTOOLS', FALSE);

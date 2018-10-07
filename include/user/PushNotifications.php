@@ -416,7 +416,7 @@ class PushNotifications
     }
 
     public function fsockopen($host, $port, &$errno, &$errstr) {
-        $fp = fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
+        $fp = fsockopen('ssl://' . CHAT_HOST, CHAT_PORT, $errno, $errstr);
         return($fp);
     }
 
@@ -426,12 +426,10 @@ class PushNotifications
 
     public function poke($userid, $data, $modtools) {
         # This kicks a user who is online at the moment with an outstanding long poll.
-        #
-        # TODO Handle multiple application servers
         filterResult($data);
 
         # We want to POST to notify.  We can speed this up using a persistent socket.
-        $service_uri = "/publish/$userid";
+        $service_uri = "/publish?id=$userid";
 
         $topdata = array(
             'text' => $data,
@@ -449,7 +447,8 @@ class PushNotifications
         $header .= "Connection: close\r\n\r\n";
 
         try {
-            $fp = $this->fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
+            #error_log("Connect to " . CHAT_HOST . " port " . CHAT_PORT);
+            $fp = $this->fsockopen('ssl://' . CHAT_HOST, CHAT_PORT, $errno, $errstr);
 
             if (!$fp) {
                 error_log("Failed to get socket, $errstr ($errno)");

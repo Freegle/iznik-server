@@ -350,7 +350,7 @@ function session() {
                         $ret = ['ret' => 11, 'status' => 'Confirmation failed'];
                     }
                 }
-                
+
                 if ($password) {
                     $me->addLogin(User::LOGIN_NATIVE, $me->getId(), $password);
                 }
