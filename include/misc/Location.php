@@ -501,6 +501,7 @@ class Location extends Entity
                 $ret[] = $group['id'];
             }
         }
+
         return($ret);
     }
 
