@@ -4,7 +4,7 @@ $scriptstart = microtime(true);
 $entityBody =  file_get_contents('php://input');
 
 if ($entityBody) {
-    # In some environments (e.g. PHP) PUT verb info isn't parsed correctly, probably because we have a rewrite
+    # In some environments (e.g. PHP-FPM 7.2) PUT verb info isn't parsed correctly, probably because we have a rewrite
     # that adds a parameter to the URL.  This may be a bug or a feature, but it messes us up.  So decode anything
     # we can find that has not already been decoded by our interpreter (if it did it, it's likely to be better).
     #
