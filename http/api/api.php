@@ -4,7 +4,7 @@ $scriptstart = microtime(true);
 $entityBody =  file_get_contents('php://input');
 
 if ($entityBody) {
-    # In some environments (e.g. PHP-FPM 7.2) parameters passed as an encoded form for PUT isn't parsed correctly,
+    # In some environments (e.g. PHP-FPM 7.2) parameters passed as an encoded form for PUT aren't parsed correctly,
     # probably because we have a rewrite that adds a parameter to the URL, and PHP-FPM doesn't want to have both
     # URL and form parameters.
     #
