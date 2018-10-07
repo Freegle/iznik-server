@@ -37,7 +37,7 @@ if (($sso->validatePayload($payload,$signature))) {
             'name'     => $me->getName(),
             'avatar_url' => $atts['profile']['url'],
             'admin' => $me->isAdmin(),
-            'bio' => "They're a mod on " . implode(',', $grouplist)  . ".\n\nTheir email is " . $me->getEmailPreferred() . "."
+            'bio' => $me->getEmailPreferred() . "\r\n\r\nis a mod on " . implode(',', $grouplist)
         );
 
         error_log("Discourse signin " . var_export($extraParameters, TRUE));
