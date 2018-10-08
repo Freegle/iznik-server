@@ -59,6 +59,8 @@ class messagesTest extends IznikAPITestCase {
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
 
+        # Should be able to get a summary of the id, subject and any attachments.
+
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
         $sender->setPrivate('publishconsent', 1);
 
@@ -521,32 +523,33 @@ class messagesTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
-//
-//    public function testEH() {
-//        $u = new User($this->dbhr, $this->dbhm);
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
-//
-//        $u = new User($this->dbhr, $this->dbhm);
-//
-//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-//        $u = new User($this->dbhr, $this->dbhm, $uid);
-//        $_SESSION['id'] = $uid;
-//        $ret = $this->call('messages', 'GET', [
-//            'collection' => MessageCollection::ALLUSER,
-//            'modtools' => FALSE,
-//            'types' => [
-//                Message::TYPE_OFFER,
-//                Message::TYPE_WANTED
-//            ],
-//            'grouptype' => Group::GROUP_FREEGLE,
-//            'fromuser' => $uid,
-//            'limit' => 200
-//        ]);
-//
-//        assertEquals(0, $ret['ret']);
-//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-//        error_log(var_export($ret, TRUE));
-//    }
+
+    public function testEH() {
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->dbhr->errorLog = TRUE;
+        $this->dbhm->errorLog = TRUE;
+
+        $u = new User($this->dbhr, $this->dbhm);
+
+        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $_SESSION['id'] = $uid;
+        $ret = $this->call('messages', 'GET', [
+            'collection' => MessageCollection::ALLUSER,
+            'modtools' => FALSE,
+            'types' => [
+                Message::TYPE_OFFER,
+                Message::TYPE_WANTED
+            ],
+            'grouptype' => Group::GROUP_FREEGLE,
+            'fromuser' => $uid,
+            'limit' => 200,
+            'summary' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+        error_log(var_export($ret, TRUE));
+    }
 }
 

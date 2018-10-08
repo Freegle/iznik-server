@@ -74,7 +74,7 @@ class MessageCollection
         }
     }
 
-    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL, $hasoutcome = NULL)
+    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL, $hasoutcome = NULL, $summary = FALSE)
     {
         do {
             $msgids = [];
@@ -88,7 +88,7 @@ class MessageCollection
                 $me = whoAmI($this->dbhr, $this->dbhm);
                 $userids = $userids ? $userids : ($me ? [$me->getId()] : NULL);
 
-                $sql = $userids ? ("SELECT msgid FROM messages_drafts WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) $oldest;") : "SELECT msgid FROM messages_drafts WHERE session = ? $oldest;";
+                $sql = $userids ? ("SELECT msgid, messages.type AS msgtype, fromuser FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) $oldest;") : "SELECT msgid, messages.type AS msgtype, fromuser FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id  WHERE session = ? $oldest;";
                 $msgs = $this->dbhr->preQuery($sql, [
                     session_id()
                 ]);
@@ -96,7 +96,10 @@ class MessageCollection
                 foreach ($msgs as $msg) {
                     $msgids[] = [
                         'id' => $msg['msgid'],
-                        'collection' => MessageCollection::DRAFT
+                        'msgtype' => $msg['msgtype'],
+                        'fromuser' => $msg['fromuser'],
+                        'collection' => MessageCollection::DRAFT,
+                        'groupid' => NULL
                     ];
                 }
             }
@@ -133,6 +136,11 @@ class MessageCollection
                 $outcomeq1 = $hasoutcome !== NULL ? " LEFT JOIN messages_outcomes ON messages_outcomes.id = messages.id " : '';
                 $outcomeq2 = $hasoutcome !== NULL ? " AND messages_outcomes.msgid IS NULL " : '';
 
+                # We might be getting a summary, in which case we want to get an attachment in the same query
+                # for performance reasons.
+                # TODO This doesn't work for messages on multiple groups.
+                $summjoin = $summary ? ", messages.type AS msgtype, messages.fromuser, (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid, (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1)": '';
+
                 # We may have some groups to filter by.
                 $groupq = $groupids ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
 
@@ -145,14 +153,14 @@ class MessageCollection
                     # We only query on a small set of userids, so it's more efficient to get the list of messages from them
                     # first.
                     $seltab = "(SELECT id, arrival, fromuser, deleted, `type` FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
-                    $sql = "SELECT messages_groups.msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 $outcomeq2 ORDER BY messages_groups.arrival DESC LIMIT $limit";
+                    $sql = "SELECT messages_groups.msgid AS id, messages.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 $outcomeq2 ORDER BY messages_groups.arrival DESC LIMIT $limit";
                 } else if (count($groupids) > 0) {
                     # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
                     $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
-                    $sql = "SELECT msgid as id, arrival, messages_groups.collection FROM messages_groups WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC LIMIT $limit;";
+                    $sql = "SELECT msgid as id, arrival, messages_groups.collection $summjoin FROM messages_groups WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC LIMIT $limit;";
                 } else {
                     # We are not searching within a specific group, so we have no choice but to do a larger join.
-                    $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
+                    $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
                 }
 
                 #error_log("Messages get $sql");
@@ -163,7 +171,11 @@ class MessageCollection
                 $ctx = ['Date' => NULL, 'id' => PHP_INT_MAX];
 
                 foreach ($msglist as $msg) {
-                    $msgids[] = ['id' => $msg['id']];
+                    $msgids[] = [
+                        'id' => $msg['id'],
+                        'msgtype' => presdef('msgtype', $msg, NULL),
+                        'fromuser' => presdef('fromuser', $msg, NULL)
+                    ];
 
                     $thisepoch = strtotime($msg['arrival']);
 
@@ -175,7 +187,8 @@ class MessageCollection
                 }
             }
 
-            list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL);
+            error_log("msgids " . var_export($msgids, TRUE));
+            list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL, $summary);
 //            error_log("Filled in " . count($msgs) . " from " . count($msgids));
 
             # We might have excluded all the messages we found; if so, keep going.
@@ -184,7 +197,7 @@ class MessageCollection
         return ([$groups, $msgs]);
     }
 
-    public function fillIn($msglist, $limit, $messagetype)
+    public function fillIn($msglist, $limit, $messagetype, $summary)
     {
         $msgs = [];
         $groups = [];
@@ -193,9 +206,28 @@ class MessageCollection
         # Don't return the message attribute as it will be huge.  They can get that via a call to the
         # message API call.
         foreach ($msglist as $msg) {
-            #error_log("Message {$msg['id']}");
-            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
-            $public = $m->getPublic(MODTOOLS, TRUE, FALSE, $this->userlist, $this->locationlist);
+            if ($summary) {
+                # We have fetched all the info we will need; set up a message object using that.  In the summary
+                # case, this saves any DB ops in filling in this message, while still using the logic within Message
+                # (e.g. for access).  More code complexity, but much better performance.
+                $m = new Message($this->dbhr, $this->dbhm, $msg['id'], [
+                    'msgtype' => $msg['msgtype'],
+                    'fromuser' => $msg['fromuser']
+                ]);
+
+                if (pres('groupid', $msg)) {
+                    # TODO If we support messages on multiple groups then this needs reworking.
+                    $m->setGroups([ $msg['groupid'] ]);
+                }
+
+                # TODO getRoleForMessage still has DB ops.
+                # TODO canSee still has DB ops
+            } else {
+                # We will fetch and later return all the message info, which is slower.
+                $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+            }
+
+            $public = $m->getPublic(MODTOOLS, TRUE, FALSE, $this->userlist, $this->locationlist, $summary);
 
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
@@ -230,8 +262,14 @@ class MessageCollection
 
                     foreach ($thisgroups as $groupid) {
                         $cansee = TRUE;
-                        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-                        $groups[$groupid] = $g->getPublic();
+
+                        if (!$summary) {
+                            # No need to return the groups for summary case.
+                            if (!array_key_exists($groupid, $groups)) {
+                                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+                                $groups[$groupid] = $g->getPublic();
+                            }
+                        }
                     }
                 }
 

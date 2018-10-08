@@ -184,6 +184,10 @@ class Message
         return $this->yahooapprove;
     }
 
+    public function setGroups($groups) {
+        $this->groups = $groups;
+    }
+
     public function setYahooPendingId($groupid, $id) {
         # Don't set for deleted messages, otherwise there's a timing window where we can end up with a deleted
         # message with an id that blocks inserts of subequent messages.
@@ -341,6 +345,8 @@ class Message
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
         $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP, $publishconsent, $isdraft, $itemid, $itemname;
+
+    private $groups = [];
 
     /**
      * @return mixed
@@ -680,7 +686,7 @@ class Message
         return($locationlist[$locationid]);
     }
 
-    public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = NULL) {
+    public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = NULL, $summary = FALSE) {
         # userlist is a way to cache users.  This avoids getting the same users repeatedly, e.g. when used from
         # MessageCollection for ALLUSER messages.
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -716,59 +722,69 @@ class Message
 
         $ret['mine'] = $myid && $this->fromuser == $myid;
 
-        # Add any groups that this message is on.
-        $ret['groups'] = [];
-        $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
-        $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
-        $showarea = TRUE;
-        $showpc = TRUE;
-        $expiretime = 90;
-
-        foreach ($ret['groups'] as &$group) {
-            $group['arrival'] = ISODate($group['arrival']);
-            #error_log("{$this->id} approved by {$group['approvedby']}");
-
-            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
-                if (pres('approvedby', $group)) {
-                    $group['approvedby'] = $this->getUser($group['approvedby'], $messagehistory, $userlist);
-                }
+        if ($summary) {
+            # Add a very basic copy of the groups.
+            $ret['groups'] = [];
+            foreach ($this->groups as $gid) {
+                $ret['groups'][] = [
+                    'id' => $gid
+                ];
             }
+        } else {
+            # Add any groups that this message is on.
+            $ret['groups'] = [];
+            $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
+            $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
+            $showarea = TRUE;
+            $showpc = TRUE;
+            $expiretime = 90;
 
-            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            foreach ($ret['groups'] as &$group) {
+                $group['arrival'] = ISODate($group['arrival']);
+                #error_log("{$this->id} approved by {$group['approvedby']}");
 
-            # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
-            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
-            $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-            $maxreposts = $repost * $reposts['max'];
-            $expiretime = max($expiretime, $maxreposts);
+                if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
+                    if (pres('approvedby', $group)) {
+                        $group['approvedby'] = $this->getUser($group['approvedby'], $messagehistory, $userlist);
+                    }
+                }
 
-            $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
-            $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
+                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
 
-            # Some groups disable the area or postcode.  If so, hide that.
-            $includearea = $g->getSetting('includearea', TRUE);
-            $includepc = $g->getSetting('includepc', TRUE);
-            $showarea = !$includearea ? FALSE : $showarea;
-            $showpc = !$includepc ? FALSE : $showpc;
+                # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
+                $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+                $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                $maxreposts = $repost * $reposts['max'];
+                $expiretime = max($expiretime, $maxreposts);
 
-            if (pres('mine', $ret)) {
-                # Can we repost?
-                $ret['canrepost'] = FALSE;
+                $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
+                $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
 
-                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
-                $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-                $arrival = strtotime($group['arrival']);
-                $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
+                # Some groups disable the area or postcode.  If so, hide that.
+                $includearea = $g->getSetting('includearea', TRUE);
+                $includepc = $g->getSetting('includepc', TRUE);
+                $showarea = !$includearea ? FALSE : $showarea;
+                $showpc = !$includepc ? FALSE : $showpc;
 
-                if ($group['hoursago'] > $interval * 24) {
-                    $ret['canrepost'] = TRUE;
+                if (pres('mine', $ret)) {
+                    # Can we repost?
+                    $ret['canrepost'] = FALSE;
+
+                    $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+                    $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                    $arrival = strtotime($group['arrival']);
+                    $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
+
+                    if ($group['hoursago'] > $interval * 24) {
+                        $ret['canrepost'] = TRUE;
+                    }
                 }
             }
         }
 
         # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
         # we can see the precise location.  Many messages may be posted from the same location, so cache that.
-        if ($this->locationid) {
+        if (!$summary && $this->locationid) {
             $l = $this->getLocation($this->locationid, $locationlist);
 
             if ($showarea) {
@@ -803,148 +819,161 @@ class Message
         # Decode any HTML which is wrongly in there.
         $ret['subject'] = html_entity_decode($ret['subject']);
 
-        # Get the item.  Although it's an extra DB call, we use this in creating structured data for SEO.
-        if ($this->itemid) {
-            $ret['item'] = [
-                'id' => $this->itemid,
-                'name' => $this->itemname
-            ];
-        } else if (preg_match("/(.+)\:(.+)\((.+)\)/", $ret['subject'], $matches)) {
-            # See if we can find it.
-            $item = trim($matches[2]);
-            $itemid = NULL;
-            $items = $this->dbhr->preQuery("SELECT items.id FROM items WHERE name LIKE ?;", [ $item ]);
-            $itemid = count($items) == 0 ? NULL : $items[0]['id'];
-            $ret['item'] = [
-                'id' => $itemid,
-                'name' => $item
-            ];
-        }
-
-        # Can always see the replycount.  The count should include even people who are blocked.
-        $sql = "SELECT DISTINCT t.*FROM (SELECT chat_messages.id, chat_roster.status , chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != ? AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid) t ORDER BY lastdate DESC;";
-        $replies = $this->dbhr->preQuery($sql, [
-            $this->id,
-            $this->fromuser,
-            ChatMessage::TYPE_INTERESTED
-        ]);
-
-        $ret['replies'] = [];
-        $ret['replycount'] = count($replies);
-
-        # Can see replies if:
-        # - we want everything
-        # - we're on ModTools and we're a mod for this message
-        # - it's our message
-        if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
-            # Add replies, as long as they're not awaiting review or rejected, or blocked.
-            foreach ($replies as $reply) {
-                $ctx = NULL;
-                if ($reply['userid'] && $reply['status'] != ChatRoom::STATUS_BLOCKED) {
-                    $thisone = [
-                        'id' => $reply['id'],
-                        'user' => $this->getUser($reply['userid'], $messagehistory, $userlist),
-                        'chatid' => $reply['chatid']
-                    ];
-
-                    # Add the last reply date and a snippet.
-                    $lastreplies = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid = ? AND chatid = ? ORDER BY id DESC LIMIT 1;", [
-                        $reply['userid'],
-                        $reply['chatid']
-                    ]);
-
-                    foreach ($lastreplies as $lastreply) {
-                        $thisone['lastdate'] = ISODate($lastreply['date']);
-                        $thisone['snippet'] = substr($lastreply['message'], 0, 30);
-                    }
-
-                    $ret['replies'][] = $thisone;;
-                }
+        if (!$summary) {
+            # Get the item.  Although it's an extra DB call, we use this in creating structured data for SEO.
+            if ($this->itemid) {
+                $ret['item'] = [
+                    'id' => $this->itemid,
+                    'name' => $this->itemname
+                ];
+            } else if (preg_match("/(.+)\:(.+)\((.+)\)/", $ret['subject'], $matches)) {
+                # See if we can find it.
+                $item = trim($matches[2]);
+                $itemid = NULL;
+                $items = $this->dbhr->preQuery("SELECT items.id FROM items WHERE name LIKE ?;", [ $item ]);
+                $itemid = count($items) == 0 ? NULL : $items[0]['id'];
+                $ret['item'] = [
+                    'id' => $itemid,
+                    'name' => $item
+                ];
             }
-
-            # Whether or not we will auto-repost depends on whether there are replies.
-            $ret['willautorepost'] = count($ret['replies']) == 0;
-
-            $ret['promisecount'] = 0;
-        } else {
-            # Can see a count of replies.
-            $sql = "SELECT COUNT(DISTINCT t.userid) AS count FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t;";
-            $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
-            $ret['replycount'] = $replies[0]['count'];
         }
 
-        if ($this->type == Message::TYPE_OFFER) {
-            # Add any promises, i.e. one or more people we've said can have this.
-            $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
-            $promises = $this->dbhr->preQuery($sql, [$this->id]);
+        if (!$summary) {
+            # Can always see the replycount.  The count should include even people who are blocked.
+            $sql = "SELECT DISTINCT t.*FROM (SELECT chat_messages.id, chat_roster.status , chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != ? AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid) t ORDER BY lastdate DESC;";
+            $replies = $this->dbhr->preQuery($sql, [
+                $this->id,
+                $this->fromuser,
+                ChatMessage::TYPE_INTERESTED
+            ]);
+        }
 
+        if (!$summary) {
+            $ret['replies'] = [];
+            $ret['replycount'] = count($replies);
+
+            # Can see replies if:
+            # - we want everything
+            # - we're on ModTools and we're a mod for this message
+            # - it's our message
             if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
-                $ret['promises'] = $promises;
+                # Add replies, as long as they're not awaiting review or rejected, or blocked.
+                foreach ($replies as $reply) {
+                    $ctx = NULL;
+                    if ($reply['userid'] && $reply['status'] != ChatRoom::STATUS_BLOCKED) {
+                        $thisone = [
+                            'id' => $reply['id'],
+                            'user' => $this->getUser($reply['userid'], $messagehistory, $userlist),
+                            'chatid' => $reply['chatid']
+                        ];
 
-                foreach ($ret['replies'] as &$reply) {
-                    foreach ($ret['promises'] as $promise) {
-                        $reply['promised'] = presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
+                        # Add the last reply date and a snippet.
+                        $lastreplies = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid = ? AND chatid = ? ORDER BY id DESC LIMIT 1;", [
+                            $reply['userid'],
+                            $reply['chatid']
+                        ]);
+
+                        foreach ($lastreplies as $lastreply) {
+                            $thisone['lastdate'] = ISODate($lastreply['date']);
+                            $thisone['snippet'] = substr($lastreply['message'], 0, 30);
+                        }
+
+                        $ret['replies'][] = $thisone;;
                     }
                 }
+
+                # Whether or not we will auto-repost depends on whether there are replies.
+                $ret['willautorepost'] = count($ret['replies']) == 0;
+
+                $ret['promisecount'] = 0;
+            } else {
+                # Can see a count of replies.
+                $sql = "SELECT COUNT(DISTINCT t.userid) AS count FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t;";
+                $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
+                $ret['replycount'] = $replies[0]['count'];
             }
 
-            $ret['promisecount'] = count($promises);
-            $ret['promised'] = count($promises) > 0;
-        }
+            if ($this->type == Message::TYPE_OFFER) {
+                # Add any promises, i.e. one or more people we've said can have this.
+                $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
+                $promises = $this->dbhr->preQuery($sql, [$this->id]);
 
-        # Add derived attributes.
-        $ret['arrival'] = ISODate($ret['arrival']);
-        $ret['date'] = ISODate($ret['date']);
-        $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
-        $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
+                if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
+                    $ret['promises'] = $promises;
 
-        $arrivalago = floor((time() - strtotime($ret['arrival'])) / 86400);
-
-        # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
-        if ($arrivalago > $expiretime) {
-            # Assume anything this old is no longer available.
-            $ret['outcomes'] = [
-                [
-                    'timestamp' => $ret['arrival'],
-                    'outcome' => Message::OUTCOME_EXPIRED
-                ]
-            ];
-        } else {
-            $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
-            $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
-
-            # We can only see the details of the outcome if we have access.
-            foreach ($ret['outcomes'] as &$outcome) {
-                if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
-                    $outcome['userid'] = NULL;
-                    $outcome['happiness'] = NULL;
-                    $outcome['comments'] = NULL;
+                    foreach ($ret['replies'] as &$reply) {
+                        foreach ($ret['promises'] as $promise) {
+                            $reply['promised'] = presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
+                        }
+                    }
                 }
 
-                $outcome['timestamp'] = ISODate($outcome['timestamp']);
+                $ret['promisecount'] = count($promises);
+                $ret['promised'] = count($promises) > 0;
             }
         }
 
-        if ($role == User::ROLE_NONMEMBER) {
-            # For non-members we want to strip out any potential phone numbers or email addresses.
-            $ret['textbody'] = preg_replace('/[0-9]{4,}/', '***', $ret['textbody']);
-            $ret['textbody'] = preg_replace(Message::EMAIL_REGEXP, '***@***.com', $ret['textbody']);
+        if (!$summary) {
+            # Add derived attributes.
+            $ret['arrival'] = ISODate($ret['arrival']);
+            $ret['date'] = ISODate($ret['date']);
+            $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
+            $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
-            # We can't do this in HTML, so just zap it.
-            $ret['htmlbody'] = NULL;
+            $arrivalago = floor((time() - strtotime($ret['arrival'])) / 86400);
         }
 
-        # We have a flag for FOP - but legacy posting methods might put it in the body.
-        $ret['FOP'] = (pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
+        if (!$summary) {
+            # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
+            if ($arrivalago > $expiretime) {
+                # Assume anything this old is no longer available.
+                $ret['outcomes'] = [
+                    [
+                        'timestamp' => $ret['arrival'],
+                        'outcome' => Message::OUTCOME_EXPIRED
+                    ]
+                ];
+            } else {
+                $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
+                $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+
+                # We can only see the details of the outcome if we have access.
+                foreach ($ret['outcomes'] as &$outcome) {
+                    if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
+                        $outcome['userid'] = NULL;
+                        $outcome['happiness'] = NULL;
+                        $outcome['comments'] = NULL;
+                    }
+
+                    $outcome['timestamp'] = ISODate($outcome['timestamp']);
+                }
+            }
+        }
+
+        if (!$summary) {
+            if ($role == User::ROLE_NONMEMBER) {
+                # For non-members we want to strip out any potential phone numbers or email addresses.
+                $ret['textbody'] = preg_replace('/[0-9]{4,}/', '***', $ret['textbody']);
+                $ret['textbody'] = preg_replace(Message::EMAIL_REGEXP, '***@***.com', $ret['textbody']);
+
+                # We can't do this in HTML, so just zap it.
+                $ret['htmlbody'] = NULL;
+            }
+
+            # We have a flag for FOP - but legacy posting methods might put it in the body.
+            $ret['FOP'] = (pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
+        }
 
         if (pres('fromcountry', $ret)) {
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);
         }
 
         # Publish consent was returned in the construct.
+        # TODO Is this still relevant?
         $ret['publishconsent'] = $this->publishconsent ? TRUE : FALSE;
 
-        if ($this->fromuser && pres('fromuser', $ret)) {
+        if (!$summary && $this->fromuser && pres('fromuser', $ret)) {
             # We know who sent this.  We may be able to return this (depending on the role we have for the message
             # and hence the attributes we have already filled in).  We also want to know if we have consent
             # to republish it.
@@ -973,7 +1002,7 @@ class Message
             filterResult($ret['fromuser']);
         }
 
-        if ($related) {
+        if (!$summary && $related) {
             # Add any related messages
             $ret['related'] = [];
             $sql = "SELECT * FROM messages_related WHERE id1 = ? OR id2 = ?;";
@@ -990,29 +1019,32 @@ class Message
             }
         }
 
-        if (pres('heldby', $ret)) {
+        if (!$summary && pres('heldby', $ret)) {
             $ret['heldby'] = $this->getUser($ret['heldby'], $messagehistory, $userlist);
             filterResult($ret['heldby']);
         }
 
-        # Add any attachments - visible to non-members.
-        $ret['attachments'] = [];
-        $atts = $this->getAttachments();
-        $atthash = [];
+        if (!$summary) {
+            # TODO We want one of them in the summary case.
+            # Add any attachments - visible to non-members.
+            $ret['attachments'] = [];
+            $atts = $this->getAttachments();
+            $atthash = [];
 
-        foreach ($atts as $att) {
-            # We suppress return of duplicate attachments by using the image hash.  This helps in the case where
-            # the same photo is (for example) included in the mail both as an inline attachment and as a link
-            # in the text.
-            $hash = $att->getHash();
-            if (!$hash || !pres($hash, $atthash)) {
-                /** @var $att Attachment */
-                $ret['attachments'][] = $att->getPublic();
-                $atthash[$hash] = TRUE;
+            foreach ($atts as $att) {
+                # We suppress return of duplicate attachments by using the image hash.  This helps in the case where
+                # the same photo is (for example) included in the mail both as an inline attachment and as a link
+                # in the text.
+                $hash = $att->getHash();
+                if (!$hash || !pres($hash, $atthash)) {
+                    /** @var $att Attachment */
+                    $ret['attachments'][] = $att->getPublic();
+                    $atthash[$hash] = TRUE;
+                }
             }
         }
 
-        if ($myid && $this->fromuser == $myid) {
+        if (!$summary && $myid && $this->fromuser == $myid) {
             # For our own messages, return the posting history.
             $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid = ? ORDER BY date ASC;", [ $this->id ]);
             $ret['postings'] = [];
@@ -1965,6 +1997,8 @@ class Message
                 if ($this->groupid) {
                     # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
                     # given the perf cost of a transaction.
+                    $this->groups[] = $this->groupid;
+
                     $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby,arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
                         $this->id,
                         $this->groupid,
@@ -2041,12 +2075,21 @@ class Message
     }
 
     public function getGroups($includedeleted = FALSE, $justids = TRUE) {
-        $ret = [];
-        $delq = $includedeleted ? "" : " AND deleted = 0";
-        $sql = "SELECT " . ($justids ? 'groupid' : '*') . " FROM messages_groups WHERE msgid = ? $delq;";
-        $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
-        foreach ($groups as $group) {
-            $ret[] = $justids ? $group['groupid'] : $group;
+        if ($justids === FALSE || count($this->groups) === 0) {
+            $ret = [];
+            $delq = $includedeleted ? "" : " AND deleted = 0";
+            $sql = "SELECT " . ($justids ? 'groupid' : '*') . " FROM messages_groups WHERE msgid = ? $delq;";
+            $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+            foreach ($groups as $group) {
+                $ret[] = $justids ? $group['groupid'] : $group;
+            }
+
+            if ($justids) {
+                # Save ids for next time.
+                $this->groups = $ret;
+            }
+        } else {
+            $ret = $this->groups;
         }
 
         return($ret);
@@ -2479,6 +2522,8 @@ class Message
                 #error_log("Not on group, add to $collection");
 
                 if ($collection) {
+                    $this->groups[] = $this->groupid;
+
                     $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby, arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
                         $msg['id'],
                         $this->groupid,
@@ -3207,6 +3252,8 @@ class Message
         $this->setPrivate('fromuser', $fromuser->getId());
 
         # If this message is already on this group, that's fine.
+        $this->groups[] = $groupid;
+
         $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection, arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
             $this->id,
             $groupid,
