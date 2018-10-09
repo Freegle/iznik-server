@@ -188,6 +188,14 @@ class Message
         $this->groups = $groups;
     }
 
+    public function setOutcomes($outcomes) {
+        $this->outcomes = $outcomes;
+    }
+
+    public function setAttachments($attachments) {
+        $this->attachments = $attachments;
+    }
+
     public function setYahooPendingId($groupid, $id) {
         # Don't set for deleted messages, otherwise there's a timing window where we can end up with a deleted
         # message with an id that blocks inserts of subequent messages.
@@ -346,7 +354,10 @@ class Message
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
         $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP, $publishconsent, $isdraft, $itemid, $itemname;
 
+    # These are used in the summary case only where a minimal message is constructed from MessageCollaction.
+
     private $groups = [];
+    private $outcomes = [];
 
     /**
      * @return mixed
@@ -723,13 +734,8 @@ class Message
         $ret['mine'] = $myid && $this->fromuser == $myid;
 
         if ($summary) {
-            # Add a very basic copy of the groups.
-            $ret['groups'] = [];
-            foreach ($this->groups as $gid) {
-                $ret['groups'][] = [
-                    'id' => $gid
-                ];
-            }
+            # Add a very basic copy of the groups which we set up in MessageCollection.
+            $ret['groups'] = $this->groups;
         } else {
             # Add any groups that this message is on.
             $ret['groups'] = [];
@@ -924,30 +930,31 @@ class Message
             $arrivalago = floor((time() - strtotime($ret['arrival'])) / 86400);
         }
 
-        if (!$summary) {
-            # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
-            if ($arrivalago > $expiretime) {
-                # Assume anything this old is no longer available.
-                $ret['outcomes'] = [
-                    [
-                        'timestamp' => $ret['arrival'],
-                        'outcome' => Message::OUTCOME_EXPIRED
-                    ]
-                ];
-            } else {
-                $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
-                $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+        # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
+        if ($arrivalago > $expiretime) {
+            # Assume anything this old is no longer available.
+            $ret['outcomes'] = [
+                [
+                    'timestamp' => $ret['arrival'],
+                    'outcome' => Message::OUTCOME_EXPIRED
+                ]
+            ];
+        } else if ($summary) {
+            # We set this when constructing.
+            $ret['outcomes'] = $this->outcomes;
+        } else {
+            $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
+            $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
 
-                # We can only see the details of the outcome if we have access.
-                foreach ($ret['outcomes'] as &$outcome) {
-                    if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
-                        $outcome['userid'] = NULL;
-                        $outcome['happiness'] = NULL;
-                        $outcome['comments'] = NULL;
-                    }
-
-                    $outcome['timestamp'] = ISODate($outcome['timestamp']);
+            # We can only see the details of the outcome if we have access.
+            foreach ($ret['outcomes'] as &$outcome) {
+                if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
+                    $outcome['userid'] = NULL;
+                    $outcome['happiness'] = NULL;
+                    $outcome['comments'] = NULL;
                 }
+
+                $outcome['timestamp'] = ISODate($outcome['timestamp']);
             }
         }
 
@@ -1024,7 +1031,10 @@ class Message
             filterResult($ret['heldby']);
         }
 
-        if (!$summary) {
+        if ($summary) {
+            # Construct a minimal attachment list, i.e. just one if we have it.
+            $ret['attachments'] = $this->attachments;
+        } else if (!$summary) {
             # TODO We want one of them in the summary case.
             # Add any attachments - visible to non-members.
             $ret['attachments'] = [];

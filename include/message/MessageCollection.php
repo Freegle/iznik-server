@@ -88,7 +88,9 @@ class MessageCollection
                 $me = whoAmI($this->dbhr, $this->dbhm);
                 $userids = $userids ? $userids : ($me ? [$me->getId()] : NULL);
 
-                $sql = $userids ? ("SELECT msgid, messages.type AS msgtype, fromuser FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) $oldest;") : "SELECT msgid, messages.type AS msgtype, fromuser FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id  WHERE session = ? $oldest;";
+                $summjoin = $summary ? ", (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
+
+                $sql = $userids ? ("SELECT msgid, messages.type AS msgtype, fromuser $summjoin FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) $oldest;") : "SELECT msgid, messages.type AS msgtype, fromuser $summjoin FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id  WHERE session = ? $oldest;";
                 $msgs = $this->dbhr->preQuery($sql, [
                     session_id()
                 ]);
@@ -98,8 +100,11 @@ class MessageCollection
                         'id' => $msg['msgid'],
                         'msgtype' => $msg['msgtype'],
                         'fromuser' => $msg['fromuser'],
+                        'outcomeid' => $msg['outcomeid'],
                         'collection' => MessageCollection::DRAFT,
-                        'groupid' => NULL
+                        'groupid' => NULL,
+                        'arrival' => $msg['arrival'],
+                        'attachmentid' => $msg['attachmentid']
                     ];
                 }
             }
@@ -139,7 +144,7 @@ class MessageCollection
                 # We might be getting a summary, in which case we want to get an attachment in the same query
                 # for performance reasons.
                 # TODO This doesn't work for messages on multiple groups.
-                $summjoin = $summary ? ", messages.type AS msgtype, messages.fromuser, (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid, (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1)": '';
+                $summjoin = $summary ? ", messages_groups.msgtype, messages.fromuser, (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid, (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
 
                 # We may have some groups to filter by.
                 $groupq = $groupids ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
@@ -157,7 +162,7 @@ class MessageCollection
                 } else if (count($groupids) > 0) {
                     # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
                     $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
-                    $sql = "SELECT msgid as id, arrival, messages_groups.collection $summjoin FROM messages_groups WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC LIMIT $limit;";
+                    $sql = "SELECT msgid as id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC LIMIT $limit;";
                 } else {
                     # We are not searching within a specific group, so we have no choice but to do a larger join.
                     $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
@@ -174,7 +179,12 @@ class MessageCollection
                     $msgids[] = [
                         'id' => $msg['id'],
                         'msgtype' => presdef('msgtype', $msg, NULL),
-                        'fromuser' => presdef('fromuser', $msg, NULL)
+                        'fromuser' => presdef('fromuser', $msg, NULL),
+                        'outcomeid' => presdef('outcomeid', $msg, NULL),
+                        'groupid' => $msg['groupid'],
+                        'arrival' => $msg['arrival'],
+                        'collection' => $msg['collection'],
+                        'attachmentid' => $msg['attachmentid']
                     ];
 
                     $thisepoch = strtotime($msg['arrival']);
@@ -187,7 +197,6 @@ class MessageCollection
                 }
             }
 
-            error_log("msgids " . var_export($msgids, TRUE));
             list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL, $summary);
 //            error_log("Filled in " . count($msgs) . " from " . count($msgids));
 
@@ -212,12 +221,36 @@ class MessageCollection
                 # (e.g. for access).  More code complexity, but much better performance.
                 $m = new Message($this->dbhr, $this->dbhm, $msg['id'], [
                     'msgtype' => $msg['msgtype'],
-                    'fromuser' => $msg['fromuser']
+                    'fromuser' => $msg['fromuser'],
                 ]);
 
                 if (pres('groupid', $msg)) {
                     # TODO If we support messages on multiple groups then this needs reworking.
-                    $m->setGroups([ $msg['groupid'] ]);
+                    $m->setGroups([
+                        [
+                            'id' => $msg['groupid'],
+                            'arrival' => ISODate($msg['arrival']),
+                            'collection' => $msg['collection']
+                        ]
+                    ]);
+                }
+
+                if (pres('outcomeid', $msg)) {
+                    $m->setOutcomes([ $msg['outcomeid'] ]);
+                }
+
+                $m->setAttachments([]);
+
+                if (pres('attachmentid', $msg)) {
+                    $a = new Attachment($this->dbhr, $this->dbhm);
+
+                    $m->setAttachments([
+                        [
+                            'id' => $msg['attachmentid'],
+                            'path' => $a->getpath(false, $msg['attachmentid']),
+                            'paththumb' => $a->getpath(true, $msg['attachmentid'])
+                        ]
+                    ]);
                 }
 
                 # TODO getRoleForMessage still has DB ops.
