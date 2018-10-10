@@ -63,7 +63,7 @@ function message() {
                             $m = NULL;
                         } else {
                             $groups = $m->getGroups();
-                            if (count($groups) == 0 || !$groupid || ($me && !$me->isModOrOwner($m->getGroups()[0]))) {
+                            if (count($groups) == 0 || !$groupid || ($me && !$me->isModOrOwner($groups[0]))) {
                                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
                                 $m = NULL;
                             }
