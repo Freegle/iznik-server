@@ -2120,7 +2120,7 @@ class Message
 
             if ($justids) {
                 # Save ids for next time.
-                $this->groups = $ret;
+                $this->groups = $groups;
             }
         } else {
             # We have the groups in hand.

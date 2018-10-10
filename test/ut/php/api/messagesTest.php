@@ -363,6 +363,7 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, count($msgs));
 
         # Promote to mod - should be able to see it.
+        error_log("Check as mod for " . $a->getID());
         $u->setRole(User::ROLE_MODERATOR, $group1);
         assertEquals(User::ROLE_MODERATOR, $u->getRoleForGroup($group1));
         $ret = $this->call('messages', 'GET', [
@@ -524,32 +525,32 @@ class messagesTest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testEH() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->dbhr->errorLog = TRUE;
-        $this->dbhm->errorLog = TRUE;
-
-        $u = new User($this->dbhr, $this->dbhm);
-
-        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
-        $_SESSION['id'] = $uid;
-        $ret = $this->call('messages', 'GET', [
-            'collection' => MessageCollection::ALLUSER,
-            'modtools' => FALSE,
-            'types' => [
-                Message::TYPE_OFFER,
-                Message::TYPE_WANTED
-            ],
-            'grouptype' => Group::GROUP_FREEGLE,
-            'fromuser' => $uid,
-            'limit' => 200,
-            'summary' => TRUE
-        ]);
-
-        assertEquals(0, $ret['ret']);
-        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-        error_log(var_export($ret, TRUE));
-    }
+//    public function testEH() {
+//        $u = new User($this->dbhr, $this->dbhm);
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//
+//        $u = new User($this->dbhr, $this->dbhm);
+//
+//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        $u = new User($this->dbhr, $this->dbhm, $uid);
+//        $_SESSION['id'] = $uid;
+//        $ret = $this->call('messages', 'GET', [
+//            'collection' => MessageCollection::ALLUSER,
+//            'modtools' => FALSE,
+//            'types' => [
+//                Message::TYPE_OFFER,
+//                Message::TYPE_WANTED
+//            ],
+//            'grouptype' => Group::GROUP_FREEGLE,
+//            'fromuser' => $uid,
+//            'limit' => 200,
+//            'summary' => TRUE
+//        ]);
+//
+//        assertEquals(0, $ret['ret']);
+//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//        error_log(var_export($ret, TRUE));
+//    }
 }
 
