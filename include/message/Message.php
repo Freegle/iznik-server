@@ -416,7 +416,7 @@ class Message
         'publishconsent', 'itemid', 'itemname'
     ];
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $atts = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -425,30 +425,37 @@ class Message
         $this->notif = new PushNotifications($this->dbhr, $this->dbhm);
 
         if ($id) {
-            # When constructing we do some LEFT JOINs with other tables where we expect to only have one row at most.
-            # This saves queries later, which is a round trip to the DB server.
-            #
-            # Don't try to cache message info - too many of them.
-            $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id = ?;", [$id], FALSE, FALSE);
-            foreach ($msgs as $msg) {
-                $this->id = $id;
+            if (!$atts) {
+                # We need to fetch.
+                # When constructing we do some LEFT JOINs with other tables where we expect to only have one row at most.
+                # This saves queries later, which is a round trip to the DB server.
+                #
+                # Don't try to cache message info - too many of them.
+                $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id = ?;", [$id], FALSE, FALSE);
+                foreach ($msgs as $msg) {
+                    $this->id = $id;
 
-                # FOP defaults on for our messages.
-                if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && $msg['FOP'] === NULL) {
-                    $msg['FOP'] = 1;
-                }
+                    # FOP defaults on for our messages.
+                    if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && $msg['FOP'] === NULL) {
+                        $msg['FOP'] = 1;
+                    }
 
-                foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts, $this->internalAtts) as $attr) {
-                    if (pres($attr, $msg)) {
-                        $this->$attr = $msg[$attr];
+                    foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts, $this->internalAtts) as $attr) {
+                        if (pres($attr, $msg)) {
+                            $this->$attr = $msg[$attr];
+                        }
                     }
                 }
-            }
 
-            # We parse each time because sometimes we will ask for headers.  Note that if we're not in the initial parse/save of
-            # the message we might be parsing from a modified version of the source.
-            $this->parser = new PhpMimeMailParser\Parser();
-            $this->parser->setText($this->message);
+                # We parse each time because sometimes we will ask for headers.  Note that if we're not in the initial parse/save of
+                # the message we might be parsing from a modified version of the source.
+                $this->parser = new PhpMimeMailParser\Parser();
+                $this->parser->setText($this->message);
+            } else {
+                foreach ($atts as $att => $val) {
+                    $this->$att = $val;
+                }
+            }
         }
 
         $start = strtotime("30 days ago");
@@ -736,6 +743,21 @@ class Message
         if ($summary) {
             # Add a very basic copy of the groups which we set up in MessageCollection.
             $ret['groups'] = $this->groups;
+
+            # And other attributes.
+            $ret['type'] = $this->type;
+            $expiretime = 90;
+
+            foreach ($ret['groups'] as $group) {
+                $group['arrival'] = ISODate($group['arrival']);
+                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+
+                # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
+                $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+                $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                $maxreposts = $repost * $reposts['max'];
+                $expiretime = max($expiretime, $maxreposts);
+            }
         } else {
             # Add any groups that this message is on.
             $ret['groups'] = [];
@@ -845,7 +867,10 @@ class Message
             }
         }
 
-        if (!$summary) {
+        if ($summary) {
+            # We set this when constructing from MessageCollection.
+            $ret['replycount'] = $this->replycount;
+        } else if (!$summary) {
             # Can always see the replycount.  The count should include even people who are blocked.
             $sql = "SELECT DISTINCT t.*FROM (SELECT chat_messages.id, chat_roster.status , chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != ? AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [
@@ -853,9 +878,7 @@ class Message
                 $this->fromuser,
                 ChatMessage::TYPE_INTERESTED
             ]);
-        }
 
-        if (!$summary) {
             $ret['replies'] = [];
             $ret['replycount'] = count($replies);
 
@@ -920,14 +943,14 @@ class Message
             }
         }
 
-        if (!$summary) {
-            # Add derived attributes.
-            $ret['arrival'] = ISODate($ret['arrival']);
-            $ret['date'] = ISODate($ret['date']);
-            $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
-            $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
+        # Add derived attributes.
+        $ret['arrival'] = ISODate($ret['arrival']);
+        $ret['date'] = ISODate($ret['date']);
+        $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
+        $arrivalago = floor((time() - strtotime($ret['arrival'])) / 86400);
 
-            $arrivalago = floor((time() - strtotime($ret['arrival'])) / 86400);
+        if (!$summary) {
+            $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
         }
 
         # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
@@ -2086,6 +2109,7 @@ class Message
 
     public function getGroups($includedeleted = FALSE, $justids = TRUE) {
         if ($justids === FALSE || count($this->groups) === 0) {
+            # Need to query for them.
             $ret = [];
             $delq = $includedeleted ? "" : " AND deleted = 0";
             $sql = "SELECT " . ($justids ? 'groupid' : '*') . " FROM messages_groups WHERE msgid = ? $delq;";
@@ -2099,7 +2123,12 @@ class Message
                 $this->groups = $ret;
             }
         } else {
-            $ret = $this->groups;
+            # We have the groups in hand.
+            if ($justids) {
+                $ret = array_column($this->groups, 'groupid');
+            } else {
+                $ret = $this->groups;
+            }
         }
 
         return($ret);
