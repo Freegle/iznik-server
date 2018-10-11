@@ -139,7 +139,8 @@ class MessageCollection
                 # TODO This doesn't work for messages on multiple groups.
                 $sql = "";
 
-                $summjoin = $summary ? ", messages_groups.msgtype AS type, messages.fromuser, messages.subject, 
+                $summjoin = $summary ? ", messages_groups.msgtype AS type, messages.fromuser, messages.subject,
+                (SELECT publishconsent FROM users WHERE users.id = messages.fromuser) AS publishconsent, 
                 (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid,
                 (SELECT COUNT(DISTINCT userid) FROM chat_messages WHERE refmsgid = messages.id AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != messages.fromuser AND chat_messages.type = '{ChatMessage::TYPE_INTERESTED}') AS replycount,                  
                 (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, 
