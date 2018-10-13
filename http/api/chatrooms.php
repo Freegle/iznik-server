@@ -39,16 +39,7 @@ function chatrooms() {
 
                     if ($rooms) {
                         # Get all the attributes we need in a single query for performance reasons.
-                        $rooms = $r->fetchRooms($rooms, $myid, $summary);
-
-                        foreach ($rooms as $atts) {
-                            if (!$summary) {
-                                $r = new ChatRoom($dbhr, $dbhm, $atts['id']);
-                                $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
-                            }
-
-                            $ret['chatrooms'][] = $atts;
-                        }
+                        $ret['chatrooms'] = $r->fetchRooms($rooms, $myid, $summary);
                     }
                 }
             }

@@ -75,6 +75,7 @@ class ChatRoom extends Entity
         # - gets the count of unread messages for the logged in user.
         # - gets any profiles for the users
         # - gets any most recent chat message info
+        # - gets the last seen for this user.
         #
         # We do this because chat rooms are performance critical, especially for people with many chats.
         $idlist = "(" . implode(',', $ids) . ")";
@@ -87,7 +88,13 @@ CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' '
   AND chatid = chat_rooms.id AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS unseen,
 i1.url AS u1imageurl,
 i2.url AS u2imageurl,
-chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastdate, chat_messages.type AS chatmsgtype
+chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastdate, chat_messages.type AS chatmsgtype" .
+            ($myid ?
+", CASE WHEN chat_rooms.chattype = 'User2Mod' AND chat_rooms.user1 != $myid THEN 
+  (SELECT MAX(chat_roster.lastmsgseen) AS lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = $myid)
+ELSE
+  (SELECT chat_roster.lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = $myid)
+END AS lastmsgseen" : '') . "     
 FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid 
 LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
 LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
