@@ -401,7 +401,7 @@ class Group extends Entity
 
         if ($active) {
             # Use GROUP to reduce number of DB queries.
-            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_groups.collection, messages.heldby IS NOT NULL AS held FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL GROUP BY messages_groups.collection;", [
+            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_groups.collection, messages.heldby IS NOT NULL AS held FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.deleted IS NULL GROUP BY messages_groups.collection, held;", [
                 $this->id,
                 MessageCollection::PENDING,
                 MessageCollection::SPAM
@@ -419,7 +419,7 @@ class Group extends Entity
                 }
             }
 
-            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE groupid = ? AND collection IN (?, ?);", [
+            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE groupid = ? AND collection IN (?, ?) GROUP BY collection, held;", [
                 $this->id,
                 MembershipCollection::PENDING,
                 MembershipCollection::SPAM
