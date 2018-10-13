@@ -365,6 +365,8 @@ class Spam {
         global $urlPattern, $urlBad;
 
         if (preg_match_all($urlPattern, $message, $matches)) {
+            $checked = [];
+
             foreach ($matches as $val) {
                 foreach ($val as $url) {
                     $bad = FALSE;
@@ -378,8 +380,15 @@ class Spam {
 
                     if (!$bad && strlen($url) > 0) {
                         $url = substr($url, strpos($url, '://') + 3);
+
+                        if (array_key_exists($url, $checked)) {
+                            # We do this part for performance and part because we've seen hangs in dns_get_record
+                            # when checking Spamhaus repeatedly in UT.g
+                            $ret = $checked[$url];
+                        }
                         if (checkSpamhaus("http://$url")) {
                             $ret = array(true, Spam::REASON_DBL, "Blacklisted url $url");
+                            $checked[$url] = $ret;
                         }
                     }
                 }

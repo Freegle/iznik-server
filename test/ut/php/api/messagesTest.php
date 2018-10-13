@@ -59,6 +59,8 @@ class messagesTest extends IznikAPITestCase {
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
 
+        # Should be able to get a summary of the id, subject and any attachments.
+
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
         $sender->setPrivate('publishconsent', 1);
 
@@ -361,6 +363,7 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, count($msgs));
 
         # Promote to mod - should be able to see it.
+        error_log("Check as mod for " . $a->getID());
         $u->setRole(User::ROLE_MODERATOR, $group1);
         assertEquals(User::ROLE_MODERATOR, $u->getRoleForGroup($group1));
         $ret = $this->call('messages', 'GET', [
@@ -521,7 +524,7 @@ class messagesTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
-//
+
 //    public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);
 //        $this->dbhr->errorLog = TRUE;
@@ -541,7 +544,8 @@ class messagesTest extends IznikAPITestCase {
 //            ],
 //            'grouptype' => Group::GROUP_FREEGLE,
 //            'fromuser' => $uid,
-//            'limit' => 200
+//            'limit' => 200,
+//            'summary' => TRUE
 //        ]);
 //
 //        assertEquals(0, $ret['ret']);

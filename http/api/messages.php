@@ -21,6 +21,7 @@ function messages() {
     $messages = presdef('messages', $_REQUEST, NULL);
     $subaction = presdef('subaction', $_REQUEST, NULL);
     $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $grouptype = presdef('grouptype', $_REQUEST, NULL);
     $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $facebook_postable = array_key_exists('facebook_postable', $_REQUEST) ? filter_var($_REQUEST['facebook_postable'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -92,7 +93,7 @@ function messages() {
                     switch ($subaction) {
                         case NULL:
                             # Just a normal fetch.
-                            list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $collection == MessageCollection::ALLUSER ? MessageCollection::OWNPOSTS: NULL, $hasoutcome);
+                            list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $collection == MessageCollection::ALLUSER ? MessageCollection::OWNPOSTS: NULL, $hasoutcome, $summary);
                             break;
                         case 'search':
                         case 'searchmess':
@@ -111,7 +112,7 @@ function messages() {
 
                                 if ($m->getID() == $search) {
                                     # Found by message id.
-                                    list($groups, $msgs) = $c->fillIn([ [ 'id' => $search ] ], $limit, NULL);
+                                    list($groups, $msgs) = $c->fillIn([ [ 'id' => $search ] ], $limit, NULL, $summary);
                                 }
                             } else {
                                 # Not an id search
@@ -127,7 +128,7 @@ function messages() {
 
                                 do {
                                     $searched = $m->search($search, $ctx, $limit, NULL, $searchgroups, $nearlocation, $exactonly);
-                                    list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, NULL);
+                                    list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, NULL, FALSE);
                                     # We might have excluded all the messages we found; if so, keep going.
                                 } while (count($searched) > 0 && count($msgs) == 0);
                             }
@@ -166,7 +167,7 @@ function messages() {
                     }
                 }
             } else {
-                # This is handled differently as we are returning the messages outstanding to post.
+                # Drafts as handled differently as we are returning the messages outstanding to post.
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success'
@@ -175,7 +176,7 @@ function messages() {
                 $c = new MessageCollection($dbhr, $dbhm, MessageCollection::APPROVED);
                 $f = new GroupFacebook($dbhr, $dbhm, $uid);
                 $msgs = $f->getPostableMessages($groupid, $ctx);
-                list($groups, $msgs) = $c->fillIn($msgs, PHP_INT_MAX, NULL);
+                list($groups, $msgs) = $c->fillIn($msgs, PHP_INT_MAX, NULL, FALSE);
             }
 
 
