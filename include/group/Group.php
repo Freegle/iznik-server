@@ -457,7 +457,7 @@ class Group extends Entity
         return($ret);
     }
 
-    public function getPublic() {
+    public function getPublic($summary = FALSE) {
         $atts = parent::getPublic();
 
         # Contact mails
@@ -487,6 +487,12 @@ class Group extends Entity
         }
 
         $atts['url'] = $atts['onhere'] ? ('https://' . USER_SITE . '/explore/' . $atts['nameshort']) : ("https://groups.yahoo.com/neo/groups/" . $atts['nameshort'] . "/info");
+
+        if ($summary) {
+            foreach (['settings', 'description', 'welcomemail'] as $att) {
+                unset($atts[$att]);
+            }
+        }
 
         return($atts);
     }
@@ -1371,12 +1377,13 @@ class Group extends Entity
         $suppfields = $support ? ", lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
-        $sql = "SELECT id, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $sql = "SELECT groups.id, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
+
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-            $a = new Attachment($this->dbhr, $this->dbhm, $group['profile'], Attachment::TYPE_GROUP);
-            $group['profile'] = $group['profile'] ? $a->getPath(FALSE) : NULL;
+            $group['profile'] = $group['profile'] ? $a->getPath(FALSE, $group['id']) : NULL;
 
             if ($group['contactmail']) {
                 $group['modsmail'] = $group['contactmail'];
@@ -1384,16 +1391,6 @@ class Group extends Entity
                 $group['modsmail'] = $group['nameshort'] . "-owner@yahoogroups.com";
             } else {
                 $group['modsmail'] = $group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
-            }
-
-            if ($support && pres('authorityid', $group)) {
-                $auths = $this->dbhr->preQuery("SELECT * FROM authorities WHERE id = ?;", [
-                    $group['authorityid']
-                ]);
-
-                foreach ($auths as $auth) {
-                    $group['authority'] = $auth['name'];
-                }
             }
 
             if ($support) {

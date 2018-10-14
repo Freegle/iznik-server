@@ -682,5 +682,30 @@ class newsfeedAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
+//    public function testEH() {
+//        $u = new User($this->dbhr, $this->dbhm);
+//
+//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        $_SESSION['id'] = $uid;
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//        $ret = $this->call('newsfeed', 'GET', [
+//            'types' => [
+//                Newsfeed::TYPE_MESSAGE,
+//                Newsfeed::TYPE_COMMUNITY_EVENT,
+//                Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY,
+//                Newsfeed::TYPE_ALERT,
+//                Newsfeed::TYPE_STORY,
+//                Newsfeed::TYPE_ABOUT_ME
+//            ],
+//            'context' => [
+//                'distance' => 0
+//            ]
+//        ]);
+//
+//        assertEquals(0, $ret['ret']);
+//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//        error_log(var_export($ret, TRUE));
+//    }
 }
 

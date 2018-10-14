@@ -206,7 +206,7 @@ class Location extends Entity
 
                     if (count($nearbyes) > 0) {
                         $areaid = $nearbyes[0]['id'];
-                        error_log("{$loc['name']} choose areaid #$areaid {$nearbyes[0]['name']}");
+                        #error_log("{$loc['name']} choose areaid #$areaid {$nearbyes[0]['name']}");
                     }
                 }
             }

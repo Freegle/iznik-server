@@ -165,7 +165,7 @@ class Volunteering extends Entity
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $atts['groups'][] = $g->getPublic();
+            $atts['groups'][] = $g->getPublic(TRUE);
         }
 
         $atts['dates'] = $this->dbhr->preQuery("SELECT * FROM volunteering_dates WHERE volunteeringid = ? ORDER BY end ASC", [ $this->id ]);

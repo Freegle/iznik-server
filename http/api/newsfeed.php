@@ -110,7 +110,6 @@ function newsfeed() {
                         'status' => 'Success'
                     ];
                 } else if ($action == 'ReferToOffer') {
-                    error_log("Refer to offer");
                     $n->refer(Newsfeed::TYPE_REFER_TO_OFFER);
 
                     $ret = [

@@ -147,7 +147,7 @@ class CommunityEvent extends Entity
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $atts['groups'][] = $g->getPublic();
+            $atts['groups'][] = $g->getPublic(TRUE);
         }
 
         $atts['dates'] = $this->dbhr->preQuery("SELECT * FROM communityevents_dates WHERE eventid = ? ORDER BY end ASC", [ $this->id ]);
