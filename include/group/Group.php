@@ -1377,13 +1377,13 @@ class Group extends Entity
         $suppfields = $support ? ", lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
-        $sql = "SELECT groups.id, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
 
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-            $group['profile'] = $group['profile'] ? $a->getPath(FALSE, $group['id']) : NULL;
+            $group['profile'] = $group['profile'] ? $a->getPath(FALSE, $group['attid']) : NULL;
 
             if ($group['contactmail']) {
                 $group['modsmail'] = $group['contactmail'];
