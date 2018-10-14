@@ -43,6 +43,10 @@ foreach ($groups as $group) {
 
                         foreach ($overlocs as $overloc) {
                             error_log("...hide #{$loc['id']} {$loc['name']}, area {$area['area']} as overlapped by #{$overloc['id']} {$overloc['name']}, area {$overlap['area']}");
+                            $dbhm->preExec("INSERT IGNORE INTO locations_excluded (locationid, groupid) VALUES (?, ?);", [
+                                $loc['id'],
+                                $group['id']
+                            ]);
                         }
                     }
                 }
