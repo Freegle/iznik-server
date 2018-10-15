@@ -4188,7 +4188,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             if (pres('mylocation', $settings)) {
                 $lat = $settings['mylocation']['lat'];
                 $lng = $settings['mylocation']['lng'];
-                $loc = $settings['mylocation']['name'];
+                $loc = presdef('name', $settings['mylocation'], NULL);
             }
         }
 

@@ -55,7 +55,7 @@ class Newsfeed extends Entity
         $hidden = $s->checkReferToSpammer($message) ? 'NOW()' : 'NULL';
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        list($lat, $lng, $loc) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL ];
+        list($lat, $lng, $loc) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL, NULL ];
 
         # If we don't know where the user is, use the group location.
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
