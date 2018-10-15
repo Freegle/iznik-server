@@ -11,7 +11,7 @@ $feeds = $dbhr->preQuery("SELECT id, userid, Y(position) AS lat, X(position) AS 
 
 foreach ($feeds as $feed) {
     $u = new User($dbhr, $dbhm, $feed['userid']);
-    list($lat, $lng) = $u->getLatLng();
+    list($lat, $lng, $loc) = $u->getLatLng();
 
     if($lat != $feed['lat'] || $lng != $feed['lng']) {
         error_log("{$feed['id']} {$feed['lat']}, {$feed['lng']} => $lat, $lng");

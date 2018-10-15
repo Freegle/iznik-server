@@ -12,8 +12,8 @@ foreach ($votes as $vote) {
     $rater = new User($dbhr, $dbhm, $vote['rater']);
     $ratee = new User($dbhr, $dbhm, $vote['ratee']);
 
-    list ($erlat, $erlng) = $rater->getLatLng(FALSE, FALSE);
-    list ($eelat, $eelng) = $ratee->getLatLng(FALSE, FALSE);
+    list ($erlat, $erlng, $erloc) = $rater->getLatLng(FALSE, FALSE);
+    list ($eelat, $eelng, $eeloc) = $ratee->getLatLng(FALSE, FALSE);
 
     if ($erlat && $erlng && $eelat && $eelng) {
         $per = new POI($erlat, $erlng);

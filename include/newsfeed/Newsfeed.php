@@ -55,7 +55,7 @@ class Newsfeed extends Entity
         $hidden = $s->checkReferToSpammer($message) ? 'NOW()' : 'NULL';
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        list($lat, $lng) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL ];
+        list($lat, $lng, $loc) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL ];
 
         # If we don't know where the user is, use the group location.
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
@@ -366,7 +366,7 @@ class Newsfeed extends Entity
 
         # We want to calculate a distance which includes at least some other people who have posted a message.
         # Start at fairly close and keep doubling until we reach that, or get too far away.
-        list ($lat, $lng) = $u->getLatLng();
+        list ($lat, $lng, $loc) = $u->getLatLng();
         $dist = 800;
         $limit = 10;
 
@@ -399,7 +399,7 @@ class Newsfeed extends Entity
         if ($userid) {
             # We want the newsfeed items which are close to us.  Use the location in settings, or failing that the
             # last location they've posted from.
-            list ($lat, $lng) = $u->getLatLng();
+            list ($lat, $lng, $loc) = $u->getLatLng();
 
             # To use the spatial index we need to have a box.
             $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
@@ -550,7 +550,7 @@ class Newsfeed extends Entity
 
             # We want the newsfeed items which are close to us.  Use the location in settings, or failing that the
             # last location they've posted from.
-            list ($lat, $lng) = $u->getLatLng();
+            list ($lat, $lng, $loc) = $u->getLatLng();
 
             # To use the spatial index we need to have a box.
             $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);

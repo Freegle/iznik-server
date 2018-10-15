@@ -73,7 +73,7 @@ class Visualise extends Entity
             $ctx = NULL;
             $atts = $fu->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
             $fu->ensureAvatar($atts);
-            list ($flat, $flng) = $fu->getLatLng(FALSE, FALSE);
+            list ($flat, $flng, $floc) = $fu->getLatLng(FALSE, FALSE);
 
             $tu = new User($this->dbhr, $this->dbhm, $msg['userid']);
             $s = $tu->getPrivate('settings');
@@ -90,7 +90,7 @@ class Visualise extends Entity
                 $ctx = NULL;
                 $atts = $fu->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
                 $tu->ensureAvatar($atts);
-                list ($tlat, $tlng) = $tu->getLatLng(FALSE, FALSE);
+                list ($tlat, $tlng, $tloc) = $tu->getLatLng(FALSE, FALSE);
 
                 # If we know precise locations for these users.
                 if (($flat || $flng) && ($tlat || $tlng)) {

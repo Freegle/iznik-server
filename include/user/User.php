@@ -1616,7 +1616,7 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         if ($me) {
-            list ($mylat, $mylng) = $me->getLatLng();
+            list ($mylat, $mylng, $myloc) = $me->getLatLng();
             $ret['milesaway'] = $this->getDistance($mylat, $mylng);
             $ret['publiclocation'] = $this->getPublicLocation();
         }
@@ -1673,7 +1673,7 @@ class User extends Entity
     {
         $p1 = new POI($mylat, $mylng);
 
-        list ($tlat, $tlng) = $this->getLatLng();
+        list ($tlat, $tlng, $tloc) = $this->getLatLng();
 
         # We need to make sure that we don't reveal the actual location (well, the postcode location) to
         # someone attempting to triangulate.  So first we move the location a bit based on something which
@@ -3887,7 +3887,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $latlng = $u->getLatLng();
             $thisone['privateposition'] = [
                 'lat' => $latlng[0],
-                'lng' => $latlng[1]
+                'lng' => $latlng[1],
+                'name' => $latlng[2]
             ];
 
             $ret[] = $thisone;
@@ -4179,6 +4180,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $s = $this->getPrivate('settings');
         $lat = NULL;
         $lng = NULL;
+        $loc = NULL;
 
         if ($s) {
             $settings = json_decode($s, TRUE);
@@ -4186,6 +4188,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             if (pres('mylocation', $settings)) {
                 $lat = $settings['mylocation']['lat'];
                 $lng = $settings['mylocation']['lng'];
+                $loc = $settings['mylocation']['name'];
             }
         }
 
@@ -4196,6 +4199,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $l = new Location($this->dbhr, $this->dbhm, $lid);
                 $lat = $l->getPrivate('lat');
                 $lng = $l->getPrivate('lng');
+                $loc = $l->getPrivate('name');
             }
         }
 
@@ -4215,7 +4219,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $lng = $lng ? $lng : -2.5209;
         }
 
-        return ([$lat, $lng]);
+        return ([$lat, $lng, $loc]);
     }
 
     public function isFreegleMod()
