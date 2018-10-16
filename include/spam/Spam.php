@@ -386,6 +386,7 @@ class Spam {
                             # when checking Spamhaus repeatedly in UT.g
                             $ret = $checked[$url];
                         }
+
                         if (checkSpamhaus("http://$url")) {
                             $ret = array(true, Spam::REASON_DBL, "Blacklisted url $url");
                             $checked[$url] = $ret;

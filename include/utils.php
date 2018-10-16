@@ -548,6 +548,23 @@ function wordsInCommon($sentence1, $sentence2)
 function checkSpamhaus($url) {
     $ret = FALSE;
 
+    if (strpos($url, 'https://goo.gl') === 0) {
+        # Google's shortening service.  Fetch.
+        try {
+            $exp = file_get_contents('https://www.googleapis.com/urlshortener/v1/url?key=' . GOOGLE_VISION_KEY . '&shortUrl=' . $url);
+
+            if ($exp) {
+                $exp = json_decode($exp, TRUE);
+
+                if ($exp) {
+                    if (pres('longUrl', $exp)) {
+                        $url = $exp['longUrl'];
+                    }
+                }
+            }
+        } catch (Exception $e) {}
+    }
+
     $parsed = parse_url( $url );
 
     if (isset($parsed['host'])) {
@@ -566,7 +583,7 @@ function checkSpamhaus($url) {
                 if ($record != NULL && count($record) > 0) {
                     foreach ($record as $entry) {
                         if (array_key_exists('ip', $entry) && strpos($entry['ip'], '127.0.1') === 0) {
-                            #error_log("Spamhaus blocked $url");
+                            error_log("Spamhaus blocked $url");
                             $ret = TRUE;
                         }
                     }
@@ -577,6 +594,7 @@ function checkSpamhaus($url) {
         }
     }
 
+    error_log("Returning $ret");
     return $ret;
 }
 

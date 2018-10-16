@@ -61,6 +61,11 @@ class PreviewTest extends IznikTestCase {
         $atts = $l->getPublic();
         self::assertEquals(1, $atts['spam']);
 
+        $id = $l->create('https://goo.gl/AqZsSV', TRUE);
+        assertNotNull($id);
+        $atts = $l->getPublic();
+        self::assertEquals(1, $atts['spam']);
+
         error_log(__METHOD__ . " end");
     }
 }
