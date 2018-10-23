@@ -64,6 +64,7 @@ before_install:
   - sudo sed -ie "s/'AZURE_CONNECTION_STRING', 'zzzz'/'AZURE_CONNECTION_STRING', '$AZURE_CONNECTION_STRING'/g" /etc/iznik.conf
   - sudo sed -ie "s/'PLAYGROUND_TOKEN', 'zzzz'/'PLAYGROUND_TOKEN', '$PLAYGROUND_TOKEN'/g" /etc/iznik.conf
   - sudo sed -ie "s/'PLAYGROUND_SECRET', 'zzzz'/'PLAYGROUND_SECRET', '$PLAYGROUND_SECRET'/g" /etc/iznik.conf
+  - sudo sed -ie "s/'CHAT_HOST', 'users.ilovefreegle.org'/'CHAT_HOST', NULL/g" /etc/iznik.conf
 
   # phpunit.xml is set up for running tests on our debug server.
   - sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml

@@ -416,7 +416,7 @@ class PushNotifications
     }
 
     public function fsockopen($host, $port, &$errno, &$errstr) {
-        $fp = fsockopen('ssl://' . CHAT_HOST, CHAT_PORT, $errno, $errstr);
+        $fp = fsockopen('ssl://' . $host, $port, $errno, $errstr);
         return($fp);
     }
 
@@ -446,26 +446,28 @@ class PushNotifications
         $header .= "Content-Length: " . strlen($vars) . "\r\n";
         $header .= "Connection: close\r\n\r\n";
 
-        try {
-            #error_log("Connect to " . CHAT_HOST . " port " . CHAT_PORT);
-            $fp = $this->fsockopen('ssl://' . CHAT_HOST, CHAT_PORT, $errno, $errstr);
+        if (CHAT_HOST) {
+            try {
+                #error_log("Connect to " . CHAT_HOST . " port " . CHAT_PORT);
+                $fp = $this->fsockopen('ssl://' . CHAT_HOST, CHAT_PORT, $errno, $errstr);
 
-            if (!$fp) {
-                error_log("Failed to get socket, $errstr ($errno)");
-            } else {
-                if (!$this->fputs($fp, "POST $service_uri  HTTP/1.1\r\n")) {
-                    # This can happen if the socket is broken.  Just close it ready for next time.
-                    fclose($fp);
-                    error_log("Failed to post");
+                if (!$fp) {
+                    error_log("Failed to get socket, $errstr ($errno)");
                 } else {
-                    fputs($fp, $header . $vars);
-                    $server_response = fread($fp, 512);
-                    fclose($fp);
-                    #error_log("Rsp on $service_uri $server_response");
+                    if (!$this->fputs($fp, "POST $service_uri  HTTP/1.1\r\n")) {
+                        # This can happen if the socket is broken.  Just close it ready for next time.
+                        fclose($fp);
+                        error_log("Failed to post");
+                    } else {
+                        fputs($fp, $header . $vars);
+                        $server_response = fread($fp, 512);
+                        fclose($fp);
+                        #error_log("Rsp on $service_uri $server_response");
+                    }
                 }
+            } catch (Exception $e) {
+                error_log("Failed to notify");
             }
-        } catch (Exception $e) {
-            error_log("Failed to notify");
         }
     }
 }
