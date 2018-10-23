@@ -949,9 +949,7 @@ class Message
         $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
         $arrivalago = floor((time() - strtotime($ret['arrival'])) / 86400);
 
-        if (!$summary) {
-            $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
-        }
+        $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
         # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
         if ($arrivalago > $expiretime) {

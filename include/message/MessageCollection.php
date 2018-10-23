@@ -139,7 +139,7 @@ class MessageCollection
                 # TODO This doesn't work for messages on multiple groups.
                 $sql = "";
 
-                $summjoin = $summary ? ", messages_groups.msgtype AS type, messages.fromuser, messages.subject,
+                $summjoin = $summary ? ", messages_groups.msgtype AS type, messages.fromuser, messages.subject, messages.textbody,
                 (SELECT publishconsent FROM users WHERE users.id = messages.fromuser) AS publishconsent, 
                 (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid,
                 (SELECT COALESCE(namefull, nameshort) FROM groups WHERE groups.id = messages_groups.groupid) AS namedisplay,
