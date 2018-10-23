@@ -416,7 +416,7 @@ class PushNotifications
     }
 
     public function fsockopen($host, $port, &$errno, &$errstr) {
-        $fp = fsockopen('ssl://' . $host, $port, $errno, $errstr);
+        $fp = fsockopen($host, $port, $errno, $errstr);
         return($fp);
     }
 
@@ -449,7 +449,7 @@ class PushNotifications
         if (CHAT_HOST) {
             try {
                 #error_log("Connect to " . CHAT_HOST . " port " . CHAT_PORT);
-                $fp = $this->fsockopen('ssl://' . CHAT_HOST, CHAT_PORT, $errno, $errstr);
+                $fp = $this->fsockopen('ssl://' . CHAT_HOST, CHAT_PORT, $errno, $errstr, 2);
 
                 if (!$fp) {
                     error_log("Failed to get socket, $errstr ($errno)");
