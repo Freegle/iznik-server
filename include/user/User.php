@@ -4308,7 +4308,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 ])[0]['count'] > 0;
 
             # Have they posted using the platform?
-            $platform = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND date >= '$start' AND sourceheader = ?;", [
+            $platform = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND arrival >= '$start' AND sourceheader = ?;", [
                     $id,
                     Message::PLATFORM
                 ])[0]['count'] > 0;
@@ -4370,7 +4370,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         # - have posted with the platform, as we don't want loyal users of TN or Yahoo.
         # - have a Facebook login, as they are more likely to do publicity.
         $start = date('Y-m-d', strtotime("60 days ago"));
-        $kudos = $this->dbhr->preQuery("SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? INNER JOIN groups ON groups.id = memberships.groupid INNER JOIN locations_spatial ON users.lastlocation = locations_spatial.locationid WHERE memberships.role = ? AND users_kudos.platform = 1 AND users_kudos.facebook = 1 AND ST_Contains(GeomFromText(groups.poly), locations_spatial.geometry) AND bouncing = 0 AND lastaccess >= '$start' ORDER BY kudos DESC LIMIT $limit;", [
+        $sql = "SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? INNER JOIN groups ON groups.id = memberships.groupid INNER JOIN locations_spatial ON users.lastlocation = locations_spatial.locationid WHERE memberships.role = ? AND users_kudos.platform = 1 AND users_kudos.facebook = 1 AND ST_Contains(GeomFromText(groups.poly), locations_spatial.geometry) AND bouncing = 0 AND lastaccess >= '$start' ORDER BY kudos DESC LIMIT $limit;";
+        $kudos = $this->dbhr->preQuery($sql, [
             $gid,
             User::ROLE_MEMBER
         ]);
