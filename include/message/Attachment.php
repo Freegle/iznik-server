@@ -156,6 +156,10 @@ class Attachment
         return($ret);
     }
 
+    public function getAzure() {
+        return(ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING));
+    }
+
     public function archive() {
         # We archive out of the DB into Azure.  This reduces load on the servers because we don't have to serve
         # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
@@ -169,7 +173,7 @@ class Attachment
             $rc = FALSE;
 
             try {
-                $blobRestProxy = ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING);
+                $blobRestProxy = $this->getAzure();
                 $options = new CreateBlobOptions();
                 $options->setContentType("image/jpeg");
 
@@ -198,7 +202,6 @@ class Attachment
                         error_log("...failed to create image {$this->id}");
                     }
                 }
-
             } catch (Exception $e) { error_log("Archive failed " . $e->getMessage()); }
         }
 
