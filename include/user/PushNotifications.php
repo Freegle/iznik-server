@@ -45,16 +45,17 @@ class PushNotifications
 
     public function get($userid) {
         # Cache the notification - saves a DB call in GET of session, which is very common.
-        $ret = presdef('notification', $_SESSION, NULL);
+        $ret = presdef('notification', $_SESSION, []);
 
         if (!$ret) {
             $sql = "SELECT * FROM users_push_notifications WHERE userid = ?;";
             $notifs = $this->dbhr->preQuery($sql, [ $userid ]);
             foreach ($notifs as &$notif) {
                 $notif['added'] = ISODate($notif['added']);
-                $ret = $notif;
-                $_SESSION['notification'] = $ret;
+                $ret[] = $notif;
             }
+
+            $_SESSION['notification'] = $ret;
         }
 
         return($ret);
@@ -358,35 +359,8 @@ class PushNotifications
     }
 
     public function notifyGroupMods($groupid) {
-        $ret = TRUE;
-
-        # We background this as it's slow.
-        try {
-            $this->uthook();
-
-            if (!$this->pheanstalk) {
-                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
-            }
-
-            $str = json_encode(array(
-                'type' => 'notifygroupmods',
-                'queued' => time(),
-                'groupid' => $groupid
-            ));
-
-            $id = $this->pheanstalk->put($str);
-        } catch (Exception $e) {
-            error_log("notifyGroupMods Beanstalk exception " . $e->getMessage());
-            $this->pheanstalk = NULL;
-            $ret = FALSE;
-        }
-
-        return($ret);
-    }
-
-    public function executeNotifyGroupGroups($groupid) {
         $count = 0;
-        $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');",
+        $mods = $this->dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');",
             [ $groupid ]);
 
         foreach ($mods as $mod) {
@@ -394,7 +368,7 @@ class PushNotifications
             $settings = $u->getGroupSettings($groupid);
 
             if (!array_key_exists('pushnotify', $settings) || $settings['pushnotify']) {
-                #error_log("Notify {$mod['userid']} for $groupid notify " . presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
+                error_log("Notify {$mod['userid']} for $groupid notify " . presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
                 $count += $this->notify($mod['userid'], TRUE);
             }
         }
@@ -425,6 +399,34 @@ class PushNotifications
     }
 
     public function poke($userid, $data, $modtools) {
+        # We background this as it hits another server, so it may be slow (especially if that server is sick).
+        try {
+            $this->uthook();
+
+            if (!$this->pheanstalk) {
+                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+            }
+
+            $str = json_encode(array(
+                'type' => 'poke',
+                'queued' => time(),
+                'groupid' => $userid,
+                'data' => $data,
+                'modtools' => $modtools
+            ));
+
+            $this->pheanstalk->put($str);
+            $ret = TRUE;
+        } catch (Exception $e) {
+            error_log("poke Beanstalk exception " . $e->getMessage());
+            $this->pheanstalk = NULL;
+            $ret = FALSE;
+        }
+
+        return($ret);
+    }
+
+    public function executePoke($userid, $data, $modtools) {
         # This kicks a user who is online at the moment with an outstanding long poll.
         filterResult($data);
 

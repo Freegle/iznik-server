@@ -58,9 +58,9 @@ try {
                                 break;
                             }
 
-                            case 'notifygroupmods': {
+                            case 'poke': {
                                 $n = new PushNotifications($dbhr, $dbhm);
-                                $n->executeNotifyGroupGroups($data['groupid']);
+                                $n->executePoke($data['groupid'], $data['data'], $data['modtools']);
                                 break;
                             }
 
