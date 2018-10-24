@@ -95,6 +95,7 @@ class GroupFacebook {
 
     public function getPostsToShare($sharefrom, $since = "yesterday") {
         $fb = $this->getFB(TRUE);
+        $count = 0;
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
@@ -112,12 +113,12 @@ class GroupFacebook {
 
                 if ($rc) {
                     $id = $this->dbhm->lastInsertId();
+                    $count++;
 
                     if ($id) {
                         # We only want one copy of this in our newsfeed because it's shown to everyone.
                         $n = new Newsfeed($this->dbhr, $this->dbhm);
                         $fid = $n->create(Newsfeed::TYPE_CENTRAL_PUBLICITY, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $id);
-                        error_log("Created Newsfeed item $fid");
                     }
                 }
             }
@@ -125,6 +126,8 @@ class GroupFacebook {
             $code = $e->getCode();
             error_log("Failed code $code message " . $e->getMessage() . " token " . $this->token);
         }
+
+        return($count);
     }
 
     public function listSocialActions(&$ctx, $mindate = NULL) {

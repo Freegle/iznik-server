@@ -29,19 +29,50 @@ class groupFacebookTest extends IznikTestCase {
         $this->tidy();
     }
 
+    private $getException = FALSE;
+
+    public function get() {
+        if ($this->getException) {
+            throw new Exception ('UT Exception');
+        }
+
+        return($this);
+    }
+
+    public function getDecodedBody() {
+        error_log("getDecoded");
+        return([
+            'data' => [
+                [
+                    'id' => 1
+                ]
+            ]
+        ]);
+    }
+
     public function testBasic() {
         error_log(__METHOD__);
 
         $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
-        $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
-        $t->getPostsToShare('a', "last week");
-        $posts = $t->getPostsToShare($t->getPublic()['sharefrom'], "last week");
-
         $gid = $g->create('testgroup', Group::GROUP_UT);
-        $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
-        $t->add($gid, 'test', 'test', 'test');
-        assertEquals('test', $t->getPublic()['token']);
+        error_log("Created group $gid");
+
+        $t = $this->getMockBuilder('GroupFacebook')
+            ->setConstructorArgs([ $this->dbhr, $this->dbhm, $gid ])
+            ->setMethods(array('getFB'))
+            ->getMock();
+        $t->method('getFB')->willReturn($this);
+
+        $t->add($gid,
+            'test',
+        'Test',
+        'TestID'
+            );
+
+        assertEquals(1, $t->getPostsToShare(1, "last week"));
+
+        $this->getException = TRUE;
+        assertEquals(0, $t->getPostsToShare(1, "last week"));
 
         error_log(__METHOD__ . " end");
     }
@@ -50,59 +81,6 @@ class groupFacebookTest extends IznikTestCase {
         return(TRUE);
     }
 
-    # Superceded by client-side posting.
-    # TODO Remove after 2017-10-22.
-//    public function testMessages() {
-//        error_log(__METHOD__);
-//
-//        $g = Group::get($this->dbhr, $this->dbhm);
-//        $gid = $g->findByShortName('FreeglePlayground');
-//
-//        $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
-//
-//        foreach ($ids as $uid) {
-//            $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-//            $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-//
-//            $m = new Message($this->dbhr, $this->dbhm);
-//            $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-//            list($id, $already) = $m->save();
-//
-//            $r = new MailRouter($this->dbhr, $this->dbhm, $id);
-//            $rc = $r->route();
-//            assertEquals(MailRouter::APPROVED, $rc);
-//            error_log("Approved message id $id");
-//
-//            # Ensure we have consent to see this message
-//            $a = new Message($this->dbhr, $this->dbhm, $id);
-//            error_log("From user " . $a->getFromuser());
-//            $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
-//            $sender->setPrivate('publishconsent', 1);
-//
-//            $mock = $this->getMockBuilder('GroupFacebook')
-//                ->setConstructorArgs([$this->dbhr, $this->dbhm, $uid])
-//                ->setMethods(array('getFB'))
-//                ->getMock();
-//
-//            $mock->method('getFB')->willReturn($this);
-//
-//            # Fake message onto group.
-//            $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
-//                $id,
-//                $id,
-//                $gid
-//            ]);
-//
-//            $count = $mock->postMessages();
-//            assertGreaterThanOrEqual(1, $count);
-//
-//            # Should be none to post now.
-//            $count = $mock->postMessages();
-//            assertGreaterThanOrEqual(0, $count);
-//        }
-//
-//        error_log(__METHOD__ . " end");
-//    }
 
     public function testErrors() {
         error_log(__METHOD__);
@@ -134,17 +112,6 @@ class groupFacebookTest extends IznikTestCase {
             ->getMock();
 
         $mock->method('getFB')->willThrowException(new Exception('Test', 100));
-
-        # TODO Remove aftrer 2017-10-22
-//        # Fake message onto group.
-//        $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
-//            $id,
-//            $id,
-//            $gid
-//        ]);
-//
-//        $count = $mock->postMessages();
-//        assertGreaterThanOrEqual(0, $count);
 
         error_log(__METHOD__ . " end");
     }
