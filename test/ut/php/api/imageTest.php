@@ -119,7 +119,6 @@ class imageAPITest extends IznikAPITestCase
             'identify' => TRUE
         ]);
 
-        var_dump($ret);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $id = $ret['id'];
