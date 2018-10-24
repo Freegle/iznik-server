@@ -71,13 +71,6 @@ RUN	apt-get install -y php-pear \
 # Mailparse
 RUN apt-get install -y php-mbstring php-mailparse 
 
-# HHVM
-RUN apt-get install -y software-properties-common apt-transport-https \
-	&& apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xB4112585D386EB94 \
-	&& add-apt-repository https://dl.hhvm.com/ubuntu \
-	&& apt-get update \
-	&& apt-get install -y hhvm
-	
 #
 #--------------------------------------------------------------------------
 # Iznik
@@ -138,7 +131,6 @@ CMD rm -r /var/lib/mysql \
 	&& mysql -u root -e 'CREATE DATABASE IF NOT EXISTS iznik;' \
 	&& /etc/init.d/redis-server start \
 	&& /etc/init.d/beanstalkd start \
-	&& /etc/init.d/hhvm start \
 	&& /etc/init.d/nginx start \
 	&& /etc/init.d/ssh start \
 	&& /etc/init.d/spamassassin start \
