@@ -793,6 +793,44 @@ class messageTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testQuickDelete() {
+        error_log(__METHOD__ . " end");
+
+        $dbconfig = array (
+            'host' => SQLHOST,
+            'port_read' => SQLPORT_READ,
+            'port_mod' => SQLPORT_MOD,
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $dsn = "mysql:host={$dbconfig['host']};dbname=information_schema;charset=utf8";
+
+        $dbhschema = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_EMULATE_PREPARES => FALSE
+        ));
+
+        $sql = "SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'messages' AND table_schema = '" . SQLDB . "';";
+        $schema = $dbhschema->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($id, $already) = $m->save();
+
+        $m->quickDelete($schema, $id);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNull($m->getID());
+
+        error_log(__METHOD__ . " end");
+    }
+
     // For manual testing
 //    public function testSpecial() {
 //        error_log(__METHOD__);
