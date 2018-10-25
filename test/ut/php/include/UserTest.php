@@ -1089,7 +1089,24 @@ class userTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testExport() {
+    public function exportParams() {
+        return([
+            [ true, 24, 24 ],
+            [ false, 12, 12 ],
+            [ false, 4, 4 ],
+            [ false, 2, 2 ],
+            [ false, 1, 1 ],
+            [ false, 0, 0 ],
+            [ false, -1, -1 ]
+        ]);
+    }
+
+    /**
+     * @param $modnotifs
+     * @param $backupmodnotifs
+     * @dataProvider exportParams
+     */
+    public function testExport($background, $modnotifs, $backupmodnotifs) {
         error_log(__METHOD__);
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -1107,29 +1124,42 @@ class userTest extends IznikTestCase {
             'mylocation' => [
                 'lat' => 8.5,
                 'lng' => 179.1
-            ]
+            ],
+            'modnotifs' => $modnotifs,
+            'backupmodnotifs' => $backupmodnotifs
         ];
+
+        $u->invite('test@test.com');
+        $u->addPhone('1234');
 
         $u->setPrivate('settings', json_encode($settings));
         $nid = $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
 
-        # Export
-        list ($id, $tag) = $u->requestExport();
-        $count = 0;
+        if ($background) {
+            # Export
+            list ($id, $tag) = $u->requestExport(FALSE);
+            $count = 0;
 
-        do {
-            $ret = $u->getExport($uid, $id, $tag);
+            do {
+                $ret = $u->getExport($uid, $id, $tag);
 
-            $count++;
-            error_log("...waiting for export $count");
-            sleep(1);
-        } while (!pres('data', $ret) && $count < 600);
+                $count++;
+                error_log("...waiting for export $count");
+                sleep(1);
+            } while (!pres('data', $ret) && $count < 600);
+
+            $ret = $ret['data'];
+        } else {
+            # Export
+            list ($id, $tag) = $u->requestExport(TRUE);
+            $ret = $u->export($id, $tag);
+        }
+
+        assertEquals($uid, $ret['Our_internal_ID_for_you']);
 
         $n = new Newsfeed($this->dbhr, $this->dbhm, $nid);
         $n->delete();
 
-        $encoded = json_encode($ret);
-        error_log("Export " . var_export($encoded, TRUE));
         #file_put_contents('/tmp/export', $encoded);
 
         error_log(__METHOD__ . " end");
