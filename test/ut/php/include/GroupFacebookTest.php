@@ -78,7 +78,8 @@ class groupFacebookTest extends IznikTestCase {
         assertEquals($id, $t->getPublic()['uid']);
 
         assertEquals($id, GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid)[0]);
-        assertEquals($id, GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ])[0]);
+        $l = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
+        assertEquals($id, $l[$gid][0]['uid']);
 
         $t->remove($id);
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $id);
