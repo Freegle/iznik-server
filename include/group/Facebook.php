@@ -42,11 +42,6 @@ class GroupFacebook {
                     $this->$att = $group[$att];
                 }
             }
-
-            # Generating a new access token reduces chances of the app being flagged as spam.
-//            $longLivedAccessToken = new AccessToken($this->token);
-//            $code = AccessToken::getCodeFromAccessToken($longLivedAccessToken);
-//            $this->token = AccessToken::getAccessTokenFromCode($code);
         }
     }
 
@@ -87,6 +82,7 @@ class GroupFacebook {
             ]);
 
         $this->token = $token;
+        return($this->dbhm->lastInsertId());
     }
 
     public function remove($uid) {
@@ -423,60 +419,6 @@ class GroupFacebook {
             date("Y-m-d H:i:s", $now),
             $this->uid
         ]);
-
-        return($count);
-    }
-
-    public function postLinks() {
-        $fb = $this->getFB(FALSE);
-        $count = 0;
-
-        # Look for chats where we have had replies on the platform but not yet posted a link to Facebook
-        $chats = $this->dbhr->preQuery("SELECT id FROM chat_rooms WHERE synctofacebookgroupid = ? AND synctofacebook = ?;", [
-            $this->uid,
-            ChatRoom::FACEBOOK_SYNC_REPLIED_ON_PLATFORM
-        ]);
-
-        foreach ($chats as $chat) {
-            # Find the ID of the comment on Facebook, which we want to reply to.
-            error_log("Find Facebook ID for {$chat['id']}");
-            $comments = $this->dbhr->preQuery("SELECT facebookid, userid FROM chat_messages WHERE chatid = ? AND facebookid IS NOT NULL ORDER BY id DESC LIMIT 1;", [
-                $chat['id']
-            ]);
-
-            foreach ($comments as $comment) {
-                # We also want the relevant message.
-                $msgid = NULL;
-                $msgs = $this->dbhr->preQuery("SELECT refmsgid FROM chat_messages WHERE chatid = ? AND refmsgid IS NOT NULL ORDER BY id DESC LIMIT 1;", [
-                    $chat['id']
-                ]);
-
-                foreach ($msgs as $msg) {
-                    $msgid = "/{$msg['refmsgid']}";
-                }
-
-                $url = 'https://' . USER_SITE . '/chat/' . $chat['id'] . "/external$msgid?src=fbgroup";
-                $u = new User($this->dbhr, $this->dbhm, $comment['userid']);
-
-                $params = [
-                    'message' => $u->getName() . ", you have a reply.  Click to read it.\n\n" . $url
-                ];
-
-                try {
-                    $result = $fb->post($comment['facebookid'] . '/comments', $params, $this->token);
-                    #error_log("Post returned " . var_export($result, true));
-                    $this->dbhm->preExec("UPDATE chat_rooms SET synctofacebook = ? WHERE id = ?;", [
-                        ChatRoom::FACEBOOK_SYNC_POSTED_LINK,
-                        $chat['id']
-                    ]);
-
-                    $count++;
-                } catch (Exception $e) {
-                    $code = $e->getCode();
-                    error_log("Failed on {$this->uid} code $code message " . $e->getMessage() . " token " . $this->token);
-                }
-            }
-        }
 
         return($count);
     }

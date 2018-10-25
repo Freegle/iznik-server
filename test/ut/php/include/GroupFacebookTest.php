@@ -63,7 +63,7 @@ class groupFacebookTest extends IznikTestCase {
             ->getMock();
         $t->method('getFB')->willReturn($this);
 
-        $t->add($gid,
+        $id = $t->add($gid,
             'test',
         'Test',
         'TestID'
@@ -73,6 +73,16 @@ class groupFacebookTest extends IznikTestCase {
 
         $this->getException = TRUE;
         assertEquals(0, $t->getPostsToShare(1, "last week"));
+
+        $t = new GroupFacebook($this->dbhr, $this->dbhm, $id);
+        assertEquals($id, $t->getPublic()['uid']);
+
+        assertEquals($id, GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid)[0]);
+        assertEquals($id, GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ])[0]);
+
+        $t->remove($id);
+        $t = new GroupFacebook($this->dbhr, $this->dbhm, $id);
+        assertNull($t->getPublic()['id']);
 
         error_log(__METHOD__ . " end");
     }
