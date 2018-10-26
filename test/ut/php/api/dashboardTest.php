@@ -132,5 +132,24 @@ class dashboardTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+//
+//    public function testEH() {
+//        error_log(__METHOD__);
+//
+//        $u = new User($this->dbhr, $this->dbhm);
+//
+//        $uid = $u->findByEmail('sheilasmail.cp@gmail.com');
+//        $_SESSION['id'] = $uid;
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//
+//        $ret = $this->call('dashboard', 'GET', [
+//            'allgroups' => TRUE
+//        ]);
+//        assertEquals(0, $ret['ret']);
+//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 
