@@ -38,9 +38,9 @@ class ChatMessage extends Entity
     /** @var  $log Log */
     private $log;
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $fetched = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
+        $this->fetch($dbhr, $dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts, $fetched);
         $this->log = new Log($dbhr, $dbhm);
     }
 
@@ -293,7 +293,6 @@ class ChatMessage extends Entity
         }
 
         # Strip any remaining quoted text in replies.
-        # TODO But shouldn't this have happened?
         $ret['message'] = trim(preg_replace('/\|.*$/m', "", $ret['message']));
         $ret['message'] = trim(preg_replace('/\>.*$/m', "", $ret['message']));
         $ret['message'] = trim(preg_replace('/\#yiv.*$/m', "", $ret['message']));

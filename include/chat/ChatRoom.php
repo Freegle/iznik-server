@@ -1131,8 +1131,15 @@ WHERE chat_rooms.id IN $idlist;";
         $seenfilt = $seenbyall === NULL ? '' : " AND seenbyall = $seenbyall ";
 
         # We do a join with the users table so that we can get the minimal information we need in a single query
-        # rather than querying for each user by creating a User object.
-        $sql = "SELECT chat_messages.id, chat_messages.userid, chat_messages.type, users_images.id AS imageid, users_images.url AS imageurl, users.systemrole, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS displayname FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid LEFT JOIN users_images ON users_images.userid = users.id WHERE chatid = ? $seenfilt $ctxq ORDER BY chat_messages.id DESC LIMIT $limit;";
+        # rather than querying for each user by creating a User object.  Similarly, we fetched all message attributes
+        # so that we can pass the fetched attributes into the constructor for each ChatMessage below.
+        #
+        # This saves us a lot of DB operations.
+        $sql = "SELECT chat_messages.*, 
+                users_images.id AS userimageid, users_images.url AS userimageurl, users.systemrole, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS userdisplayname 
+                FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid 
+                LEFT JOIN users_images ON users_images.userid = users.id 
+                WHERE chatid = ? $seenfilt $ctxq ORDER BY chat_messages.id DESC LIMIT $limit;";
         $msgs = $this->dbhr->preQuery($sql, [$this->id]);
         $msgs = array_reverse($msgs);
         $users = [];
@@ -1158,7 +1165,7 @@ WHERE chat_rooms.id IN $idlist;";
         $ctx = NULL;
 
         foreach ($msgs as $msg) {
-            $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
+            $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id'], $msg);
             $atts = $m->getPublic();
             $refmsgid = $m->getPrivate('refmsgid');
 
@@ -1189,11 +1196,11 @@ WHERE chat_rooms.id IN $idlist;";
                     if (!array_key_exists($msg['userid'], $users)) {
                         $users[$msg['userid']] = [
                             'id' => $msg['userid'],
-                            'displayname' => $msg['displayname'],
+                            'displayname' => $msg['userdisplayname'],
                             'systemrole' => $msg['systemrole'],
                             'profile' => [
-                                'url' => $msg['imageurl'] ? $msg['imageurl'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$msg['imageid']}.jpg"),
-                                'turl' => $msg['imageurl'] ? $msg['imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$msg['imageid']}.jpg"),
+                                'url' => $msg['userimageurl'] ? $msg['userimageurl'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$msg['userimageid']}.jpg"),
+                                'turl' => $msg['userimageurl'] ? $msg['userimageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$msg['userimageid']}.jpg"),
                                 'default' => FALSE
                             ]
                         ];
@@ -1205,9 +1212,6 @@ WHERE chat_rooms.id IN $idlist;";
                         $users[$msg['userid']]['aboutme'] = $u->getAboutMe();
 
                         # Also any prediction about this user.
-                        # TODO Can't call Predict because this doesn't work from HHVM, which is how we run the
-                        # user-facing code.  Unclear whether this is a PHP 7 incompatibility in HHVM or a bug in
-                        # PHP-ML.
                         $predictions = $this->dbhr->preQuery("SELECT * FROM predictions WHERE userid = ?;", [
                             $msg['userid']
                         ], FALSE, FALSE);
