@@ -30,7 +30,7 @@ $g = new Group($dbhr, $dbhm);
 foreach ($tngroups as $gname => $tngroup) {
     if ($tngroup['listed']) {
         $gid = $g->findByShortName($gname);
-        $dbhm->preExec("UPDATE groups SET ontn = 1 WHERE id = ?;", [ $gid ]);
+        $dbhm->preExec("UPDATE groups SET ontn = 1 WHERE id = ?;", [$gid]);
     }
 }
 
@@ -92,7 +92,7 @@ foreach ($totalact as $total) {
 
         # We decide if they're active on here by whether they've had a Yahoo member sync or approved a message.
         $timeq = $group['lastmodactive'] ? ("timestamp >= '" . date("Y-m-d H:i:s", strtotime($group['lastmodactive'])) . "' AND ") : '';
-        $acts = $dbhr->preQuery("SELECT MAX(timestamp) AS moderated FROM logs WHERE $timeq groupid = ? AND logs.type = 'Message' AND subtype = 'Approved';", [ $group['id'] ]);
+        $acts = $dbhr->preQuery("SELECT MAX(timestamp) AS moderated FROM logs WHERE $timeq groupid = ? AND logs.type = 'Message' AND subtype = 'Approved';", [$group['id']]);
         $lastmodactive = NULL;
 
         foreach ($acts as $act) {
@@ -112,7 +112,7 @@ foreach ($totalact as $total) {
         # Find when the group was last moderated - max of that and when they approved a message (which could be
         # on Yahoo).
         $sql = "SELECT MAX(arrival) AS max FROM messages_groups WHERE groupid = ? AND approvedby IS NOT NULL;";
-        $maxs = $dbhr->preQuery($sql, [ $group['id'] ]);
+        $maxs = $dbhr->preQuery($sql, [$group['id']]);
         $dbhm->preExec("UPDATE groups SET lastmoderated = ? WHERE id = ?;", [
             strtotime($lastmodactive) > strtotime($maxs[0]['max']) ? $lastmodactive : $maxs[0]['max'],
             $group['id']
@@ -171,6 +171,21 @@ foreach ($totalact as $total) {
 }
 
 error_log("\n\nTotal target £$fundingcalc");
+# Update outcomes stats
+$mysqltime = date("Y-m-01", strtotime("13 months ago"));
+$stats = $dbhr->preQuery("SELECT groupid, SUM(count) AS count, CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) AS date FROM stats WHERE type = ? AND date > ? GROUP BY groupid, YEAR(date), MONTH(date);", [
+    Stats::OUTCOMES,
+    $mysqltime
+]);
+
+foreach ($stats as $stat) {
+    error_log($stat['groupid']);
+    $dbhm->preExec("REPLACE INTO stats_outcomes (groupid, count, date) VALUES (?, ?, ?);", [
+        $stat['groupid'],
+        $stat['count'],
+        $stat['date']
+    ]);
+}
 
 # Look for any dashboards which need refreshing.  Any which exist need updating now as we are run by cron
 # at the start of a new day.  Any which don't exist will be created on demand.

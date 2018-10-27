@@ -138,20 +138,28 @@ class Dashboard {
 
         # We also want to get the recent outcomes, where we know them.
         $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
-        foreach ([Message::TYPE_OFFER, Message::TYPE_WANTED] as $type) {
-            $outcomes = $this->dbhr->preQuery("SELECT messages_outcomes.outcome, COUNT(*) AS count FROM messages_groups INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid WHERE messages_groups.arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") AND msgtype = ? GROUP BY outcome;", [
-                $mysqltime,
-                $type
-            ]);
+        $outcomes = $this->dbhr->preQuery("SELECT msgtype, messages_outcomes.outcome, COUNT(*) AS count FROM messages_groups INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid WHERE messages_groups.arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") GROUP BY outcome, msgtype;", [
+            $mysqltime
+        ]);
 
-            $ret['Outcomes'][$type] = $outcomes;
+        foreach ([Message::TYPE_OFFER, Message::TYPE_WANTED] as $type) {
+            $ret['Outcomes'][$type] = [];
+
+            foreach ($outcomes as $outcome) {
+                if ($outcome['msgtype'] == $type) {
+                    $ret['Outcomes'][$type][] = [
+                        'outcome' => $outcome['outcome'],
+                        'count' => $outcome['count']
+                    ];
+                }
+            }
         }
 
         # And the total successful outcomes per month.
         $mysqltime = date("Y-m-01", strtotime("13 months ago"));
-        $ret['OutcomesPerMonth'] = $this->dbhr->preQuery("SELECT SUM(count) AS count, CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) AS date FROM stats WHERE groupid IN (" . implode(',', $groupids) . ") AND stats.date > ? AND stats.type = ? GROUP BY YEAR(date), MONTH(date) ORDER BY date ASC;", [
-            $mysqltime,
-            Stats::OUTCOMES
+        $ret['OutcomesPerMonth'] = $this->dbhr->preQuery("SELECT * FROM stats_outcomes WHERE groupid IN (" . implode(',', $groupids) . ");", [
+            Stats::OUTCOMES,
+            $mysqltime
         ]);
 
         if ($groupid) {
