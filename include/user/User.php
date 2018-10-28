@@ -1149,6 +1149,8 @@ class User extends Entity
         $groupids = array_column($groups, 'groupid');
         $gc = new GroupCollection($this->dbhr, $this->dbhm, $groupids);
         $groupobjs = $gc->get();
+        $getworkids = [];
+        $groupsettings = [];
 
         for ($i = 0; $i < count($groupids); $i++) {
             $group = $groups[$i];
@@ -1172,12 +1174,13 @@ class User extends Entity
             # for performance reasons.
             $one['mysettings']['emailfrequency'] = ($pernickety || $this->sendOurMails($g, FALSE, FALSE)) ? $one['mysettings']['emailfrequency'] : 0;
 
+            $groupsettings[$group['groupid']] = $one['mysettings'];
+
             if ($getwork) {
                 # We need to find out how much work there is whether or not we are an active mod because we need
                 # to be able to see that it is there.  The UI shows it less obviously.
                 if ($amod) {
-                    # Give a summary of outstanding work.
-                    $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
+                    $getworkids[] = $group['groupid'];
                 }
 
                 $one['syncpending'] = 0;
@@ -1190,6 +1193,19 @@ class User extends Entity
             }
 
             $ret[] = $one;
+        }
+
+        if ($getwork) {
+            # Get all the work.  This is across all groups for performance.
+            $work = $g->getWorkCounts($groupsettings, $groupids);
+
+            foreach ($getworkids as $groupid) {
+                foreach ($ret as &$group) {
+                    if ($group['id'] == $groupid) {
+                        $group['work'] = $work[$groupid];
+                    }
+                }
+            }
         }
 
         return ($ret);

@@ -29,9 +29,6 @@ function session() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             # Check if we're logged in
-//            $dbhr->setErrorLog(TRUE);
-//            $dbhm->setErrorLog(TRUE);
-
             if ($me && $me->getId()) {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
 
