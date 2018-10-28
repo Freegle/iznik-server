@@ -1139,7 +1139,7 @@ class User extends Entity
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $publishq = MODTOOLS ? "" : "AND groups.publish = 1";
-        $sql = "SELECT onyahoo, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
+        $sql = "SELECT onyahoo, type, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [$this->id]);
         #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
 
@@ -1151,6 +1151,7 @@ class User extends Entity
         $groupobjs = $gc->get();
         $getworkids = [];
         $groupsettings = [];
+        $syncpendingids = [];
 
         for ($i = 0; $i < count($groupids); $i++) {
             $group = $groups[$i];
@@ -1172,7 +1173,7 @@ class User extends Entity
             # If we don't have our own email on this group we won't be sending mails.  This is what affects what
             # gets shown on the Settings page for the user, and we only want to check this here
             # for performance reasons.
-            $one['mysettings']['emailfrequency'] = ($pernickety || $this->sendOurMails($g, FALSE, FALSE)) ? $one['mysettings']['emailfrequency'] : 0;
+            $one['mysettings']['emailfrequency'] = ($group['type'] === Group::GROUP_FREEGLE && ($pernickety || $this->sendOurMails($g, FALSE, FALSE))) ? $one['mysettings']['emailfrequency'] : 0;
 
             $groupsettings[$group['groupid']] = $one['mysettings'];
 
@@ -1186,9 +1187,7 @@ class User extends Entity
                 $one['syncpending'] = 0;
 
                 if ($group['onyahoo']) {
-                    # See if there is a membersync pending
-                    $syncpendings = $this->dbhr->preQuery("SELECT lastupdated, lastprocessed FROM memberships_yahoo_dump WHERE groupid = ? AND (lastprocessed IS NULL OR lastupdated > lastprocessed);", [$group['groupid']]);
-                    $one['syncpending'] = count($syncpendings) > 0;
+                    $syncpendingids[] = $group['groupid'];
                 }
             }
 
@@ -1197,12 +1196,25 @@ class User extends Entity
 
         if ($getwork) {
             # Get all the work.  This is across all groups for performance.
+            $g = new Group($this->dbhr, $this->dbhm);
             $work = $g->getWorkCounts($groupsettings, $groupids);
 
             foreach ($getworkids as $groupid) {
                 foreach ($ret as &$group) {
                     if ($group['id'] == $groupid) {
                         $group['work'] = $work[$groupid];
+                    }
+                }
+            }
+        }
+
+        if ($syncpendingids) {
+            # See if there is a membersync pending
+            $syncpendings = $this->dbhr->preQuery("SELECT groupid, lastupdated, lastprocessed FROM memberships_yahoo_dump WHERE groupid IN (" . implode(',', $syncpendingids) . ") AND (lastprocessed IS NULL OR lastupdated > lastprocessed);");
+            foreach ($syncpendings as $syncgroup) {
+                foreach ($ret as &$group) {
+                    if ($group['id'] == $syncgroup['groupid']) {
+                        $group['syncpending'] = TRUE;
                     }
                 }
             }

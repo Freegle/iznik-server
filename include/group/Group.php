@@ -384,7 +384,7 @@ class Group extends Entity
             MessageCollection::SPAM
         ], FALSE, FALSE);
 
-        $heldmembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE groupid IN $groupq AND collection IN (?, ?) GROUP BY memberships.groupid, collection, held;", [
+        $heldmembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE collection IN (?, ?) AND groupid IN $groupq GROUP BY memberships.groupid, collection, held;", [
             MembershipCollection::PENDING,
             MembershipCollection::SPAM
         ], FALSE, FALSE);
@@ -407,7 +407,7 @@ class Group extends Entity
             # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
             # to active.
             # TODO Retire showmessages entirely and remove from user configs.
-            $active = array_key_exists('active', $mysettings) ? $mysettings['active'] : (!array_key_exists('showmessages', $mysettings) || $mysettings['showmessages']);
+            $active = array_key_exists('active', $mysettings[$groupid]) ? $mysettings[$groupid]['active'] : (!array_key_exists('showmessages', $mysettings[$groupid]) || $mysettings[$groupid]['showmessages']);
 
             # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
             #
