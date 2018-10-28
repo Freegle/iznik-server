@@ -1207,54 +1207,32 @@ class User extends Entity
         $modships = $me ? $this->getModeratorships() : [];
         $modships = count($modships) > 0 ? $modships : [0];
 
-        $sql = "SELECT DISTINCT * FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND role IN ('Owner', 'Moderator') AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
+        $sql = "SELECT DISTINCT id FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND role IN ('Owner', 'Moderator') AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
         $ids = $this->dbhr->preQuery($sql);
+        $configids = array_column($ids, 'id');
 
-        foreach ($ids as $id) {
-            $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
+        # Get all the info we need for the modconfig object in a single SELECT for performance.  This is particularly
+        # valuable for people on many groups and therefore with access to many modconfigs.
+        $sql = "SELECT DISTINCT mod_configs.*, 
+        CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS createdname 
+        FROM mod_configs LEFT JOIN users ON users.id = mod_configs.createdby
+        WHERE mod_configs.id IN (" . implode(',', $configids) . ");";
+        $configs = $this->dbhr->preQuery($sql);
+
+        # Also get all the bulk ops and standard messages, again for performance.
+        $stdmsgs = $this->dbhr->preQuery("SELECT * FROM mod_stdmsgs WHERE configid IN (" . implode(',', $configids) . ");");
+        $bulkops = $this->dbhr->preQuery("SELECT * FROM mod_bulkops WHERE configid IN (" . implode(',', $configids) . ");");
+
+        foreach ($configs as $config) {
+            $c = new ModConfig($this->dbhr, $this->dbhm, $config['id'], $config, $stdmsgs, $bulkops);
             $thisone = $c->getPublic(FALSE);
 
-            if ($me) {
-                if ($thisone['createdby'] == $me->getId()) {
-                    $thisone['cansee'] = ModConfig::CANSEE_CREATED;
-                } else if ($thisone['default']) {
-                    $thisone['cansee'] = ModConfig::CANSEE_DEFAULT;
-                } else {
-                    # Need to find out who shared it.  Pluck data directly because this is performance-significant
-                    # for people on many groups.
-                    $sql = "SELECT userid, firstname, lastname, fullname, groupid, nameshort, namefull FROM memberships INNER JOIN users ON users.id = memberships.userid INNER JOIN groups ON groups.id = memberships.groupid WHERE groupid IN (" . implode(',', $modships) . ") AND userid != {$this->id} AND role IN ('Moderator', 'Owner') AND configid = {$id['id']};";
-                    $shareds = $this->dbhr->preQuery($sql);
-
-                    foreach ($shareds as $shared) {
-                        $thisone['cansee'] = ModConfig::CANSEE_SHARED;
-                        $thisone['sharedon'] = [
-                            'namedisplay' => $shared['namefull'] ? $shared['namefull'] : $shared['nameshort']
-                        ];
-
-                        $name = 'Unknown';
-                        if ($shared['fullname']) {
-                            $name = $shared['fullname'];
-                        } else if ($shared['firstname'] || $shared['lastname']) {
-                            $name = $shared['firstname'] . ' ' . $shared['lastname'];
-                        }
-
-                        $thisone['sharedby'] = [
-                            'displayname' => $name
-                        ];
-
-                        $ctx = NULL;
-                    }
-                }
-            }
-
-            $u = User::get($this->dbhr, $this->dbhm, $thisone['createdby']);
-
-            if ($u->getId()) {
+            if (pres('createdby', $config)) {
                 $ctx = NULL;
-                $thisone['createdby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
-
-                # Remove their email list - which might be long - to save space.
-                unset($thisone['createdby']['emails']);
+                $thisone['createdby'] = [
+                    'id' => $config['createdby'],
+                    'displayname' => $config['createdname']
+                ];
             }
 
             $ret[] = $thisone;

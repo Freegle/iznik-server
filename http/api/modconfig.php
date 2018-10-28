@@ -16,7 +16,7 @@ function modconfig() {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'config' => $c->getPublic()
+                    'config' => $c->getPublic(TRUE, TRUE)
                 ];
 
                 break;

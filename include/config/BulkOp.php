@@ -13,9 +13,9 @@ class BulkOp extends Entity
     /** @var  $log Log */
     private $log;
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $fetched = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'mod_bulkops', 'bulkop', $this->publicatts);
+        $this->fetch($dbhr, $dbhm, $id, 'mod_bulkops', 'bulkop', $this->publicatts, $fetched);
         $this->log = new Log($dbhr, $dbhm);
     }
 

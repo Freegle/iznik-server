@@ -23,9 +23,11 @@ class ModConfig extends Entity
     const CANSEE_DEFAULT = 'Default';
     const CANSEE_SHARED = 'Shared';
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $fetched = NULL, $stdmsgs = NULL, $bulkops = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'mod_configs', 'modconfig', $this->publicatts);
+        $this->fetch($dbhr, $dbhm, $id, 'mod_configs', 'modconfig', $this->publicatts, $fetched);
+        $this->bulkops = $bulkops;
+        $this->stdmsgs = $stdmsgs;
 
         $this->log = new Log($dbhr, $dbhm);
     }
@@ -124,29 +126,87 @@ class ModConfig extends Entity
         }
     }
 
-    public function getPublic($stdmsgbody = TRUE) {
+    public function getPublic($stdmsgbody = TRUE, $sharedby = FALSE) {
         $ret = parent::getPublic();
+        $me = whoAmI($this->dbhr, $this->dbhm);
 
         # If the creating mod has been deleted, then we need to ensure that the config is no longer protected.
         $ret['protected'] = $ret['createdby'] == NULL ? 0 : $ret['protected'];
 
         $ret['stdmsgs'] = [];
 
-        # It saves a lot of queries to get all the standard messages at once.
-        $sql = "SELECT * FROM mod_stdmsgs WHERE configid = {$this->id};";
-        $stdmsgs = $this->dbhr->query($sql);
+        # Get the standard messages.
+        if ($this->stdmsgs) {
+            # We were passed in the standard messages on the construct.  Saves DB ops.
+            $stdmsgs = [];
+            foreach ($this->stdmsgs as $stdmsg) {
+                if ($stdmsg['configid'] == $this->id) {
+                    $stdmsgs[] = $stdmsg;
+                }
+            }
+        } else {
+            # It saves a lot of queries to get all the standard messages at once.
+            $sql = "SELECT * FROM mod_stdmsgs WHERE configid = {$this->id};";
+            $stdmsgs = $this->dbhr->query($sql);
+        }
 
         foreach ($stdmsgs as $stdmsg) {
             $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsg['id'], $stdmsg);
             $ret['stdmsgs'][] = $s->getPublic($stdmsgbody);
         }
 
-        $sql = "SELECT id FROM mod_bulkops WHERE configid = {$this->id};";
-        $bulkops = $this->dbhr->query($sql);
+        # Get the bulk ops.
+        if ($this->bulkops) {
+            # We were passed in the bulk ops on the construct.  Saves DB ops.
+            $bulkops = [];
+            foreach ($this->bulkops as $bulkop) {
+                if ($bulkop['configid'] == $this->id) {
+                    $bulkops[] = $bulkop;
+                }
+            }
+        } else {
+            # It saves a lot of queries to get all the bulk ops at once.
+            $sql = "SELECT * FROM mod_bulkops WHERE configid = {$this->id};";
+            $bulkops = $this->dbhr->query($sql);
+        }
 
         foreach ($bulkops as $bulkop) {
-            $s = new BulkOp($this->dbhr, $this->dbhm, $bulkop['id']);
+            $s = new BulkOp($this->dbhr, $this->dbhm, $bulkop['id'], $bulkop);
             $ret['bulkops'][] = $s->getPublic();
+        }
+
+        if ($sharedby) {
+            if ($ret['createdby'] == $me->getId()) {
+                $ret['cansee'] = ModConfig::CANSEE_CREATED;
+            } else if ($ret['default']) {
+                $ret['cansee'] = ModConfig::CANSEE_DEFAULT;
+            } else {
+                # Need to find out who shared it.  Pluck data directly because this is performance-significant
+                # for people on many groups.
+                $modships = $me ? $me->getModeratorships() : [0];
+                $sql = "SELECT userid, firstname, lastname, fullname, groupid, nameshort, namefull FROM memberships INNER JOIN users ON users.id = memberships.userid INNER JOIN groups ON groups.id = memberships.groupid WHERE groupid IN (" . implode(',', $modships) . ") AND userid != {$this->id} AND role IN ('Moderator', 'Owner') AND configid = {$this->id};";
+                $shareds = $this->dbhr->preQuery($sql);
+
+                foreach ($shareds as $shared) {
+                    $ret['cansee'] = ModConfig::CANSEE_SHARED;
+                    $ret['sharedon'] = [
+                        'namedisplay' => $shared['namefull'] ? $shared['namefull'] : $shared['nameshort']
+                    ];
+
+                    $name = 'Unknown';
+                    if ($shared['fullname']) {
+                        $name = $shared['fullname'];
+                    } else if ($shared['firstname'] || $shared['lastname']) {
+                        $name = $shared['firstname'] . ' ' . $shared['lastname'];
+                    }
+
+                    $ret['sharedby'] = [
+                        'displayname' => $name
+                    ];
+
+                    $ctx = NULL;
+                }
+            }
         }
 
         return($ret);
