@@ -1211,15 +1211,15 @@ class User extends Entity
         $ids = $this->dbhr->preQuery($sql);
         $configids = array_column($ids, 'id');
 
-        # Get all the info we need for the modconfig object in a single SELECT for performance.  This is particularly
-        # valuable for people on many groups and therefore with access to many modconfigs.
-        $sql = "SELECT DISTINCT mod_configs.*, 
+        if ($configids) {
+            # Get all the info we need for the modconfig object in a single SELECT for performance.  This is particularly
+            # valuable for people on many groups and therefore with access to many modconfigs.
+            $sql = "SELECT DISTINCT mod_configs.*, 
         CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS createdname 
         FROM mod_configs LEFT JOIN users ON users.id = mod_configs.createdby
         WHERE mod_configs.id IN (" . implode(',', $configids) . ");";
-        $configs = $this->dbhr->preQuery($sql);
+            $configs = $this->dbhr->preQuery($sql);
 
-        if ($configids) {
             # Also get all the bulk ops and standard messages, again for performance.
             $stdmsgs = $this->dbhr->preQuery("SELECT * FROM mod_stdmsgs WHERE configid IN (" . implode(',', $configids) . ");");
             $bulkops = $this->dbhr->preQuery("SELECT * FROM mod_bulkops WHERE configid IN (" . implode(',', $configids) . ");");
