@@ -1219,23 +1219,25 @@ class User extends Entity
         WHERE mod_configs.id IN (" . implode(',', $configids) . ");";
         $configs = $this->dbhr->preQuery($sql);
 
-        # Also get all the bulk ops and standard messages, again for performance.
-        $stdmsgs = $this->dbhr->preQuery("SELECT * FROM mod_stdmsgs WHERE configid IN (" . implode(',', $configids) . ");");
-        $bulkops = $this->dbhr->preQuery("SELECT * FROM mod_bulkops WHERE configid IN (" . implode(',', $configids) . ");");
+        if ($configids) {
+            # Also get all the bulk ops and standard messages, again for performance.
+            $stdmsgs = $this->dbhr->preQuery("SELECT * FROM mod_stdmsgs WHERE configid IN (" . implode(',', $configids) . ");");
+            $bulkops = $this->dbhr->preQuery("SELECT * FROM mod_bulkops WHERE configid IN (" . implode(',', $configids) . ");");
 
-        foreach ($configs as $config) {
-            $c = new ModConfig($this->dbhr, $this->dbhm, $config['id'], $config, $stdmsgs, $bulkops);
-            $thisone = $c->getPublic(FALSE);
+            foreach ($configs as $config) {
+                $c = new ModConfig($this->dbhr, $this->dbhm, $config['id'], $config, $stdmsgs, $bulkops);
+                $thisone = $c->getPublic(FALSE);
 
-            if (pres('createdby', $config)) {
-                $ctx = NULL;
-                $thisone['createdby'] = [
-                    'id' => $config['createdby'],
-                    'displayname' => $config['createdname']
-                ];
+                if (pres('createdby', $config)) {
+                    $ctx = NULL;
+                    $thisone['createdby'] = [
+                        'id' => $config['createdby'],
+                        'displayname' => $config['createdname']
+                    ];
+                }
+
+                $ret[] = $thisone;
             }
-
-            $ret[] = $thisone;
         }
 
         # Return in alphabetical order.

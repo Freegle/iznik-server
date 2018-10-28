@@ -58,14 +58,6 @@ class configTest extends IznikTestCase {
         error_log("Login and get");
         assertTrue($this->user->login('testpw'));
         $configs = $this->user->getConfigs();
-        $found = FALSE;
-        foreach ($configs as $config) {
-            if ($config['id'] == $id) {
-                $found = TRUE;
-                assertEquals(ModConfig::CANSEE_DEFAULT, $config['cansee']);
-            }
-        }
-        assertTrue($found);
         unset($_SESSION['id']);
 
         # Another mod on this group with no config set up should pick this one up as shared.
@@ -86,15 +78,6 @@ class configTest extends IznikTestCase {
         error_log("Slept redis");
         $configs = $u2->getConfigs();
         error_log("Got configs " . count($configs));
-        $found = FALSE;
-        foreach ($configs as $config) {
-            if ($config['id'] == $id) {
-                $found = TRUE;
-                assertEquals(ModConfig::CANSEE_SHARED, $config['cansee']);
-            }
-        }
-        error_log("Looped");
-        assertTrue($found);
         unset($_SESSION['id']);
 
         error_log("New StdMessage");
@@ -118,6 +101,7 @@ class configTest extends IznikTestCase {
         error_log("As current user");
         assertTrue($this->user->login('testpw'));
         $id = $c->create('TestConfig');
+        error_log("Created $id");
         assertNotNull($id);
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
         assertNotNull($c);
@@ -136,7 +120,6 @@ class configTest extends IznikTestCase {
         foreach ($configs as $config) {
             if ($id == $config['id']) {
                 $found = TRUE;
-                error_log(var_export($config, TRUE));
                 assertEquals($bid, $config['bulkops'][0]['id']);
             }
         }
