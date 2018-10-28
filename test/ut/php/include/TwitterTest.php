@@ -238,6 +238,8 @@ class twitterTest extends IznikTestCase {
 
         self::assertEquals(1, $mock->tweetStory($sid));
 
+        $s->delete();
+
         error_log(__METHOD__ . " end");
     }
 }

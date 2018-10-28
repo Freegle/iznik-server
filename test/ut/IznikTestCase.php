@@ -123,7 +123,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
             $ready = $stats['current-jobs-ready'];
             $reserved = $stats['current-jobs-reserved'];
 
-            error_log("...waiting for background work, current $ready, try $count");
+            error_log("...waiting for background work, current $ready/$reserved, try $count");
 
             if ($ready + $reserved == 0) {
                 break;
