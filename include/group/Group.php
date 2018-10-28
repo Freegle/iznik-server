@@ -374,106 +374,108 @@ class Group extends Entity
     }
 
     public function getWorkCounts($mysettings, $groupids) {
-        $groupq = "(" . implode(',', $groupids) . ")";
-
-        $earliestmsg = date ("Y-m-d", strtotime("Midnight 31 days ago"));
-        $eventsqltime = date("Y-m-d H:i:s", time());
-
-        $pendingspamcounts = $this->dbhr->preQuery("SELECT messages_groups.groupid, COUNT(*) AS count, messages_groups.collection, messages.heldby IS NOT NULL AS held FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid IN $groupq AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.deleted IS NULL AND messages.arrival >= '$earliestmsg' GROUP BY messages_groups.groupid, messages_groups.collection, held;", [
-            MessageCollection::PENDING,
-            MessageCollection::SPAM
-        ], FALSE, FALSE);
-
-        $heldmembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE collection IN (?, ?) AND groupid IN $groupq GROUP BY memberships.groupid, collection, held;", [
-            MembershipCollection::PENDING,
-            MembershipCollection::SPAM
-        ], FALSE, FALSE);
-
-        $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
-            $eventsqltime
-        ]);
-
-        $pendingvolunteercounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid IN $groupq AND volunteering.pending = 1 AND volunteering.deleted = 0 AND volunteering.expired = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) GROUP BY groupid;", [
-            $eventsqltime,
-            $eventsqltime
-        ]);
-
         $ret = [];
 
-        foreach ($groupids as $groupid) {
-            # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
-            # less prominently in the client.
-            #
-            # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
-            # to active.
-            # TODO Retire showmessages entirely and remove from user configs.
-            $active = array_key_exists('active', $mysettings[$groupid]) ? $mysettings[$groupid]['active'] : (!array_key_exists('showmessages', $mysettings[$groupid]) || $mysettings[$groupid]['showmessages']);
+        if ($groupids) {
+            $groupq = "(" . implode(',', $groupids) . ")";
 
-            # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
-            #
-            # See also MessageCollection.
-            $thisone = [
-                'pending' => 0,
-                'pendingother' => 0,
-                'spam' => 0,
-                'pendingmembers' => 0,
-                'pendingmembersother' => 0,
-                'pendingevents' => 0,
-                'pendingvolunteering' => 0,
-                'spammembers' => 0
-            ];
+            $earliestmsg = date("Y-m-d", strtotime("Midnight 31 days ago"));
+            $eventsqltime = date("Y-m-d H:i:s", time());
 
-            if ($active) {
-                foreach ($pendingspamcounts as $count) {
-                    if ($count['groupid'] == $groupid) {
-                        if ($count['collection'] == MessageCollection::PENDING) {
-                            if ($count['held']) {
-                                $thisone['pendingother'] = $count['count'];
+            $pendingspamcounts = $this->dbhr->preQuery("SELECT messages_groups.groupid, COUNT(*) AS count, messages_groups.collection, messages.heldby IS NOT NULL AS held FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid IN $groupq AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.deleted IS NULL AND messages.arrival >= '$earliestmsg' GROUP BY messages_groups.groupid, messages_groups.collection, held;", [
+                MessageCollection::PENDING,
+                MessageCollection::SPAM
+            ], FALSE, FALSE);
+
+            $heldmembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE collection IN (?, ?) AND groupid IN $groupq GROUP BY memberships.groupid, collection, held;", [
+                MembershipCollection::PENDING,
+                MembershipCollection::SPAM
+            ], FALSE, FALSE);
+
+            $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
+                $eventsqltime
+            ]);
+
+            $pendingvolunteercounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid IN $groupq AND volunteering.pending = 1 AND volunteering.deleted = 0 AND volunteering.expired = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) GROUP BY groupid;", [
+                $eventsqltime,
+                $eventsqltime
+            ]);
+
+            foreach ($groupids as $groupid) {
+                # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
+                # less prominently in the client.
+                #
+                # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
+                # to active.
+                # TODO Retire showmessages entirely and remove from user configs.
+                $active = array_key_exists('active', $mysettings[$groupid]) ? $mysettings[$groupid]['active'] : (!array_key_exists('showmessages', $mysettings[$groupid]) || $mysettings[$groupid]['showmessages']);
+
+                # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
+                #
+                # See also MessageCollection.
+                $thisone = [
+                    'pending' => 0,
+                    'pendingother' => 0,
+                    'spam' => 0,
+                    'pendingmembers' => 0,
+                    'pendingmembersother' => 0,
+                    'pendingevents' => 0,
+                    'pendingvolunteering' => 0,
+                    'spammembers' => 0
+                ];
+
+                if ($active) {
+                    foreach ($pendingspamcounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            if ($count['collection'] == MessageCollection::PENDING) {
+                                if ($count['held']) {
+                                    $thisone['pendingother'] = $count['count'];
+                                } else {
+                                    $thisone['pending'] = $count['count'];
+                                }
                             } else {
-                                $thisone['pending'] = $count['count'];
+                                $thisone['spam'] = $count['count'];
                             }
-                        } else {
-                            $thisone['spam'] = $count['count'];
                         }
                     }
-                }
 
-                foreach ($heldmembercounts as $count) {
-                    if ($count['groupid'] == $groupid) {
-                        if ($count['collection'] == MembershipCollection::PENDING) {
-                            if ($count['held']) {
-                                $thisone['pendingmembersother'] = $count['count'];
+                    foreach ($heldmembercounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            if ($count['collection'] == MembershipCollection::PENDING) {
+                                if ($count['held']) {
+                                    $thisone['pendingmembersother'] = $count['count'];
+                                } else {
+                                    $thisone['pendingmembers'] = $count['count'];
+                                }
                             } else {
-                                $thisone['pendingmembers'] = $count['count'];
+                                $thisone['spam'] = $count['count'];
                             }
-                        } else {
-                            $thisone['spam'] = $count['count'];
+                        }
+                    }
+
+                    foreach ($pendingeventcounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['pendingevents'] = $count['count'];
+                        }
+                    }
+
+                    foreach ($pendingvolunteercounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['pendingvolunteering'] = $count['count'];
+                        }
+                    }
+                } else {
+                    foreach ($pendingspamcounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            if ($count['collection'] == MessageCollection::SPAM) {
+                                $thisone['spamother'] = $count['count'];
+                            }
                         }
                     }
                 }
 
-                foreach ($pendingeventcounts as $count) {
-                    if ($count['groupid'] == $groupid) {
-                        $thisone['pendingevents'] = $count['count'];
-                    }
-                }
-
-                foreach ($pendingvolunteercounts as $count) {
-                    if ($count['groupid'] == $groupid) {
-                        $thisone['pendingvolunteering'] = $count['count'];
-                    }
-                }
-            } else {
-                foreach ($pendingspamcounts as $count) {
-                    if ($count['groupid'] == $groupid) {
-                        if ($count['collection'] == MessageCollection::SPAM) {
-                            $thisone['spamother'] = $count['count'];
-                        }
-                    }
-                }
+                $ret[$groupid] = $thisone;
             }
-
-            $ret[$groupid] = $thisone;
         }
 
         return($ret);
