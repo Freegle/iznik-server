@@ -121,12 +121,11 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         do {
             $stats = $pheanstalk->stats();
             $ready = $stats['current-jobs-ready'];
+            $reserved = $stats['current-jobs-reserved'];
 
             error_log("...waiting for background work, current $ready, try $count");
 
-            if ($ready == 0) {
-                # The background processor might have removed the job, but not quite yet processed the SQL.
-                sleep(2);
+            if ($ready + $reserved == 0) {
                 break;
             }
 
