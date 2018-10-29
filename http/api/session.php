@@ -33,7 +33,7 @@ function session() {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
 
                 $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
-                $allconfigs = array_key_exists('allconfigs', $_REQUEST) ? filter_var($_REQUEST['allconfigs'], FILTER_VALIDATE_BOOLEAN) : TRUE;
+                $allconfigs = array_key_exists('allconfigs', $_REQUEST) ? filter_var($_REQUEST['allconfigs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
                 # Don't need to return this, and it might be large.
                 $ret['me']['messagehistory'] = NULL;
