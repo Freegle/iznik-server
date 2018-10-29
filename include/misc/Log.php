@@ -51,7 +51,7 @@ class Log
     const SUBTYPE_ROLE_CHANGE = 'RoleChange';
     const SUBTYPE_MERGED = 'Merged';
     const SUBTYPE_SPLIT = 'Split';
-    const SUBTYPE_LICENSED = 'License';
+    const SUBTYPE_LICENSED = 'Licensed';
     const SUBTYPE_LICENSE_PURCHASE = 'LicensePurchase';
     const SUBTYPE_YAHOO_APPLIED = 'YahooApplied';
     const SUBTYPE_YAHOO_CONFIRMED = 'YahooConfirmed';
