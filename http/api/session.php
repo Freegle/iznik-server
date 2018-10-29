@@ -33,6 +33,7 @@ function session() {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
 
                 $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
+                $allconfigs = array_key_exists('allconfigs', $_REQUEST) ? filter_var($_REQUEST['allconfigs'], FILTER_VALIDATE_BOOLEAN) : TRUE;
 
                 # Don't need to return this, and it might be large.
                 $ret['me']['messagehistory'] = NULL;
@@ -44,12 +45,12 @@ function session() {
 
                 if (MODTOOLS) {
                     # We cache the configs as they are expensive to get.
-                    if (pres('configs', $_SESSION)) {
+                    if (pres("configs$allconfigs", $_SESSION)) {
                         $ret['configs'] = $_SESSION['configs'];
                         $ret['configscached'] = TRUE;
                     } else {
-                        $ret['configs'] = $me->getConfigs();
-                        $_SESSION['configs'] = $ret['configs'];
+                        $ret['configs'] = $me->getConfigs($allconfigs);
+                        $_SESSION["configs$allconfigs"] = $ret['configs'];
                     }
                 }
 
@@ -92,6 +93,7 @@ function session() {
                         # Remove large attributes we don't need in session.
                         unset($group['welcomemail']);
                         unset($group['description']);
+                        unset($group['tagline']);
                         unset($group['settings']['chaseups']['idle']);
                         unset($group['settings']['branding']);
 

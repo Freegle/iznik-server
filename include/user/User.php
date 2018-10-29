@@ -1223,20 +1223,28 @@ class User extends Entity
         return ($ret);
     }
 
-    public function getConfigs()
+    public function getConfigs($all)
     {
         $ret = [];
         $me = whoAmI($this->dbhr, $this->dbhm);
 
-        # We can see configs which
-        # - we created
-        # - are used by mods on groups on which we are a mod
-        # - defaults
-        $modships = $me ? $this->getModeratorships() : [];
-        $modships = count($modships) > 0 ? $modships : [0];
+        if ($all) {
+            # We can see configs which
+            # - we created
+            # - are used by mods on groups on which we are a mod
+            # - defaults
+            $modships = $me ? $this->getModeratorships() : [];
+            $modships = count($modships) > 0 ? $modships : [0];
 
-        $sql = "SELECT DISTINCT id FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND role IN ('Owner', 'Moderator') AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
-        $ids = $this->dbhr->preQuery($sql);
+            $sql = "SELECT DISTINCT id FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND role IN ('Owner', 'Moderator') AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
+            $ids = $this->dbhr->preQuery($sql);
+        } else {
+            # We only want to see the configs that we are actively using.  This reduces the size of what we return
+            # for people on many groups.
+            $sql = "SELECT DISTINCT configid AS id FROM memberships WHERE userid = ? AND configid IS NOT NULL;";
+            $ids = $this->dbhr->preQuery($sql, [ $me->getId() ]);
+        }
+
         $configids = array_column($ids, 'id');
 
         if ($configids) {

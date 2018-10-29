@@ -325,7 +325,7 @@ function memberships() {
                         if (pres('configid', $settings)) {
                             # We want to change the config that we use to mod this group.  Check that the config id
                             # passed is one to which we have access.
-                            $configs = $me->getConfigs();
+                            $configs = $me->getConfigs(TRUE);
 
                             foreach ($configs as $config) {
                                 if ($config['id'] == $settings['configid']) {

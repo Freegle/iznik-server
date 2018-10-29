@@ -57,7 +57,7 @@ class configTest extends IznikTestCase {
 
         error_log("Login and get");
         assertTrue($this->user->login('testpw'));
-        $configs = $this->user->getConfigs();
+        $configs = $this->user->getConfigs(TRUE);
         unset($_SESSION['id']);
 
         # Another mod on this group with no config set up should pick this one up as shared.
@@ -76,7 +76,7 @@ class configTest extends IznikTestCase {
         error_log("Sleep redis");
         sleep(REDIS_TTL+1);
         error_log("Slept redis");
-        $configs = $u2->getConfigs();
+        $configs = $u2->getConfigs(TRUE);
         error_log("Got configs " . count($configs));
         unset($_SESSION['id']);
 
@@ -113,7 +113,7 @@ class configTest extends IznikTestCase {
         assertNotNull($bid);
 
         error_log("GetConfigs");
-        $configs = $this->user->getConfigs();
+        $configs = $this->user->getConfigs(TRUE);
 
         # Have to scan as there are defaults.
         $found = FALSE;
