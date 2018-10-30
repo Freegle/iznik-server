@@ -106,27 +106,29 @@ function session() {
                             }
                         }
 
-                        if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
-                            # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
-                            # in here - but it's of no interest to members so there's no point delaying them by
-                            # fetching it.
-                            #
-                            # Similar code in group.php.
-                            if (array_key_exists($group['id'], $twitters)) {
-                                $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
-                                $atts = $t->getPublic();
-                                unset($atts['token']);
-                                unset($atts['secret']);
-                                $atts['authdate'] = ISODate($atts['authdate']);
-                                $group['twitter'] = $atts;
-                            }
+                        foreach ($ret['groups'] as &$group) {
+                            if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
+                                # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                                # in here - but it's of no interest to members so there's no point delaying them by
+                                # fetching it.
+                                #
+                                # Similar code in group.php.
+                                if (array_key_exists($group['id'], $twitters)) {
+                                    $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
+                                    $atts = $t->getPublic();
+                                    unset($atts['token']);
+                                    unset($atts['secret']);
+                                    $atts['authdate'] = ISODate($atts['authdate']);
+                                    $group['twitter'] = $atts;
+                                }
 
-                            # Ditto Facebook.
-                            if (array_key_exists($group['id'], $facebooks)) {
-                                $group['facebook'] = [];
+                                # Ditto Facebook.
+                                if (array_key_exists($group['id'], $facebooks)) {
+                                    $group['facebook'] = [];
 
-                                foreach ($facebooks[$group['id']] as $atts) {
-                                    $group['facebook'][] = $atts;
+                                    foreach ($facebooks[$group['id']] as $atts) {
+                                        $group['facebook'][] = $atts;
+                                    }
                                 }
                             }
                         }
