@@ -30,13 +30,17 @@ function session() {
         case 'GET': {
             # Check if we're logged in
             if ($me && $me->getId()) {
-                $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
+                $components = presdef('components', $_REQUEST, NULL);
+                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+
+                if (!$components || in_array('me', $components)) {
+                    $ret['me'] = $me->getPublic();
+
+                    # Don't need to return this, and it might be large.
+                    $ret['me']['messagehistory'] = NULL;
+                }
 
                 $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
-                $components = presdef('components', $_REQUEST, NULL);
-
-                # Don't need to return this, and it might be large.
-                $ret['me']['messagehistory'] = NULL;
 
                 if (!$components || in_array('notifications', $components)) {
                     $n = new PushNotifications($dbhr, $dbhm);
@@ -145,8 +149,9 @@ function session() {
                             }
 
                             $s = new Spam($dbhr, $dbhm);
-                            $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
-                            $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
+                            $spamcounts = $s->collectionCounts();
+                            $ret['work']['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];
+                            $ret['work']['spammerpendingremove'] = $spamcounts[Spam::TYPE_PENDING_REMOVE];
 
                             # Show social actions from last 4 days.
                             $ctx = NULL;

@@ -467,11 +467,23 @@ class Spam {
         }
     }
 
-    public function collectionCount($collection) {
-        $sql = "SELECT COUNT(*) AS count FROM spam_users WHERE collection = ?;";
-        $counts = $this->dbhr->preQuery($sql, [ $collection ]);
-        $count = $counts[0]['count'];
-        return($count);
+    public function collectionCounts() {
+        $sql = "SELECT COUNT(*) AS count FROM spam_users WHERE collection IN (?, ?) GROUP BY collection;";
+        $counts = $this->dbhr->preQuery($sql, [
+            Spam::TYPE_PENDING_ADD,
+            Spam::TYPE_PENDING_REMOVE
+        ]);
+
+        $ret = [
+            Spam::TYPE_PENDING_ADD => 0,
+            Spam::TYPE_PENDING_REMOVE => 0
+        ];
+
+        foreach ($counts as $count) {
+            $ret[$count['collection']] = $count['count'];
+        }
+
+        return($ret);
     }
 
     public function exportSpammers() {
