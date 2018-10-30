@@ -980,14 +980,16 @@ class User extends Entity
         return (count($membs) > 0);
     }
 
-    private function cacheMemberships()
+    public function cacheMemberships($id = NULL)
     {
+        $id = $id ? $id : $this->id;
+
         # We get all the memberships in a single call, because some members are on many groups and this can
         # save hundreds of calls to the DB.
         if (!$this->memberships) {
             $this->memberships = [];
 
-            $membs = $this->dbhr->preQuery("SELECT memberships.*, groups.type FROM memberships INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ?;", [$this->id]);
+            $membs = $this->dbhr->preQuery("SELECT memberships.*, groups.type FROM memberships INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ?;", [ $id ]);
             foreach ($membs as $memb) {
                 $this->memberships[$memb['groupid']] = $memb;
             }
@@ -1133,15 +1135,17 @@ class User extends Entity
         return ($rc);
     }
 
-    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE, $pernickety = FALSE)
+    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE, $pernickety = FALSE, $id = NULL)
     {
+        $id = $id ? $id : $this->id;
+
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $publishq = MODTOOLS ? "" : "AND groups.publish = 1";
         $sql = "SELECT onyahoo, type, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
-        $groups = $this->dbhr->preQuery($sql, [$this->id]);
-        #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
+        $groups = $this->dbhr->preQuery($sql, [$id]);
+        #error_log("getMemberships $sql {$id} " . var_export($groups, TRUE));
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
 
@@ -1165,10 +1169,10 @@ class User extends Entity
 
             if ($amod && !pres('configid', $one)) {
                 # Get a config using defaults.
-                $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
+                $one['configid'] = $c->getForGroup($id, $group['groupid']);
             }
 
-            $one['mysettings'] = $this->getGroupSettings($group['groupid'], presdef('configid', $one, NULL));
+            $one['mysettings'] = $this->getGroupSettings($group['groupid'], presdef('configid', $one, NULL), $id);
 
             # If we don't have our own email on this group we won't be sending mails.  This is what affects what
             # gets shown on the Settings page for the user, and we only want to check this here
@@ -1284,9 +1288,9 @@ class User extends Entity
         return ($ret);
     }
 
-    public function getModeratorships()
+    public function getModeratorships($id = NULL)
     {
-        $this->cacheMemberships();
+        $this->cacheMemberships($id);
 
         $ret = [];
         foreach ($this->memberships AS $membership) {
@@ -1502,10 +1506,12 @@ class User extends Entity
         return ($active);
     }
 
-    public function getGroupSettings($groupid, $configid = NULL)
+    public function getGroupSettings($groupid, $configid = NULL, $id = NULL)
     {
+        $id = $id ? $id : $this->id;
+
         # We have some parameters which may give us some info which saves queries
-        $this->cacheMemberships();
+        $this->cacheMemberships($id);
 
         # Defaults match memberships ones in Group.php.
         $defaults = [

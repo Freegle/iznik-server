@@ -3,6 +3,7 @@ require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 
 function session() {
     global $dbhr, $dbhm;
+    $me = NULL;
 
     $sessionLogout = function($dbhr, $dbhm) {
         $id = pres('id', $_SESSION);
@@ -21,19 +22,19 @@ function session() {
         }
     };
 
-    # Don't want to use cached information when looking at our own session.
-    $me = whoAmI($dbhm, $dbhm);
-
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {
         case 'GET': {
             # Check if we're logged in
-            if ($me && $me->getId()) {
+            if (pres('id', $_SESSION)) {
                 $components = presdef('components', $_REQUEST, NULL);
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                 if (!$components || in_array('me', $components)) {
+                    # Don't want to use cached information when looking at our own session.
+                    $me = whoAmI($dbhm, $dbhm);
+
                     $ret['me'] = $me->getPublic();
 
                     # Don't need to return this, and it might be large.
@@ -52,19 +53,23 @@ function session() {
                 if (MODTOOLS) {
                     if (!$components || in_array('configs', $components)) {
                         $allconfigs = array_key_exists('allconfigs', $_REQUEST) ? filter_var($_REQUEST['allconfigs'], FILTER_VALIDATE_BOOLEAN) : FALSE ;
+                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
                         $ret['configs'] = $me->getConfigs($allconfigs);
                     }
                 }
 
                 if (!$components || in_array('emails', $components)) {
+                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
                     $ret['emails'] = $me->getEmails();
                 }
 
                 if (!$components || in_array('phone', $components)) {
+                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
                     $ret['me']['phone'] = $me->getPhone();
                 }
 
                 if (!$components || in_array('aboutme', $components)) {
+                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
                     $ret['me']['aboutme'] = $me->getAboutMe();
                 }
 
@@ -72,16 +77,19 @@ function session() {
                     # Newsfeed count.  We return this in the session to avoid getting it on each page transition
                     # in the client.
                     $n = new Newsfeed($dbhr, $dbhm);
+                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
                     $ret['newsfeedcount'] = $n->getUnseen($me->getId());
                 }
 
                 if (!$components || in_array('logins', $components)) {
+                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
                     $ret['logins'] = $me->getLogins(FALSE);
                 }
 
                 if (!$components || in_array('groups', $components) || in_array('work', $components)) {
                     # Get groups including work when we're on ModTools; don't need that on the user site.
-                    $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS, TRUE);
+                    $u = new User($dbhr, $dbhm);
+                    $ret['groups'] = $u->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $_SESSION['id']);
 
                     $gids = [];
 
@@ -142,11 +150,30 @@ function session() {
                         if (!$components || in_array('work', $components)) {
                             # Tell them what mod work there is.  Similar code in Notifications.
                             $ret['work'] = [];
+                            $national = FALSE;
 
-                            if ($me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS)) {
+                            if (!$me) {
+                                # When getting work we want to avoid instantiating the full User object.  But
+                                # we need the memberships.  So work around that.  Bit hacky but saves ops in a
+                                # perf critical path.
+                                $me = new User($dbhr, $dbhm);
+                                $me->cacheMemberships($_SESSION['id']);
+                                $perms = $dbhr->preQuery("SELECT permissions FROM users WHERE id = ?;", [
+                                    $_SESSION['id']
+                                ]);
+
+                                foreach ($perms as $perm) {
+                                    $national = stripos($perm['permissions'], User::PERM_NATIONAL_VOLUNTEERS) !== FALSE;
+                                }
+                            } else {
+                                $national = $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS);
+                            }
+
+                            if ($national) {
                                 $v = new Volunteering($dbhr, $dbhm);
                                 $ret['work']['pendingvolunteering'] = $v->systemWideCount();
                             }
+
 
                             $s = new Spam($dbhr, $dbhm);
                             $spamcounts = $s->collectionCounts();
@@ -160,6 +187,7 @@ function session() {
                             $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
 
                             $c = new ChatMessage($dbhr, $dbhm);
+
                             $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
 
                             $s = new Story($dbhr, $dbhm);
@@ -189,6 +217,9 @@ function session() {
         }
 
         case 'POST': {
+            # Don't want to use cached information when looking at our own session.
+            $me = whoAmI($dbhm, $dbhm);
+
             # Login
             $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $fbaccesstoken = presdef('fbaccesstoken', $_REQUEST, NULL);
@@ -298,6 +329,9 @@ function session() {
         }
 
         case 'PATCH': {
+            # Don't want to use cached information when looking at our own session.
+            $me = whoAmI($dbhm, $dbhm);
+
             if (!$me) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
             } else {
