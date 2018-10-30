@@ -33,71 +33,76 @@ function session() {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
 
                 $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
-                $allconfigs = array_key_exists('allconfigs', $_REQUEST) ? filter_var($_REQUEST['allconfigs'], FILTER_VALIDATE_BOOLEAN) : FALSE ;
+                $components = presdef('components', $_SESSION, NULL);
 
                 # Don't need to return this, and it might be large.
                 $ret['me']['messagehistory'] = NULL;
 
-                $n = new PushNotifications($dbhr, $dbhm);
-                $ret['me']['notifications'] = [
-                    'push' => $n->get($ret['me']['id'])
-                ];
-
-                if (MODTOOLS) {
-                    # We cache the configs as they are expensive to get.
-                    $ret['configs'] = $me->getConfigs($allconfigs);
+                if (!$components || in_array('notifications', $components)) {
+                    $n = new PushNotifications($dbhr, $dbhm);
+                    $ret['me']['notifications'] = [
+                        'push' => $n->get($ret['me']['id'])
+                    ];
                 }
 
-                $ret['emails'] = $me->getEmails();
-                $ret['me']['phone'] = $me->getPhone();
-                $ret['me']['aboutme'] = $me->getAboutMe();
-
-                # Get groups including work when we're on ModTools; don't need that on the user site.
-                $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS, TRUE);
-
                 if (MODTOOLS) {
-                    # Tell them what mod work there is.  Similar code in Notifications.
-                    $ret['work'] = [];
-
-                    if ($me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS)) {
-                        $v = new Volunteering($dbhr, $dbhm);
-                        $ret['work']['pendingvolunteering'] = $v->systemWideCount();
+                    if (!$components || in_array('configs', $components)) {
+                        $allconfigs = array_key_exists('allconfigs', $_REQUEST) ? filter_var($_REQUEST['allconfigs'], FILTER_VALIDATE_BOOLEAN) : FALSE ;
+                        $ret['configs'] = $me->getConfigs($allconfigs);
                     }
+                }
 
-                    # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
-                    # Facebook, even though that makes the code hackier.
+                if (!$components || in_array('emails', $components)) {
+                    $ret['emails'] = $me->getEmails();
+                }
+
+                if (!$components || in_array('phone', $components)) {
+                    $ret['me']['phone'] = $me->getPhone();
+                }
+
+                if (!$components || in_array('aboutme', $components)) {
+                    $ret['me']['aboutme'] = $me->getAboutMe();
+                }
+
+                if (!$components || in_array('newsfeed', $components)) {
+                    # Newsfeed count.  We return this in the session to avoid getting it on each page transition
+                    # in the client.
+                    $n = new Newsfeed($dbhr, $dbhm);
+                    $ret['newsfeedcount'] = $n->getUnseen($me->getId());
+                }
+
+                if (!$components || in_array('logins', $components)) {
+                    $ret['logins'] = $me->getLogins(FALSE);
+                }
+
+                if (!$components || in_array('groups', $components) || in_array('work', $components)) {
+                    # Get groups including work when we're on ModTools; don't need that on the user site.
+                    $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS, TRUE);
+
                     $gids = [];
 
-                    foreach ($ret['groups'] as $group) {
-                        $gids[] = $group['id'];
-                    }
-
-                    $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
-                    $twitters = [];
-
-                    if (count($gids) > 0) {
-                        # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
-                        $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
-                        foreach ($tws as $tw) {
-                            $twitters[$tw['groupid']] = $tw;
-                        }
-                    }
-                    
                     foreach ($ret['groups'] as &$group) {
+                        $gids[] = $group['id'];
+
                         # Remove large attributes we don't need in session.
                         unset($group['welcomemail']);
                         unset($group['description']);
                         unset($group['tagline']);
                         unset($group['settings']['chaseups']['idle']);
                         unset($group['settings']['branding']);
+                    }
 
-                        if (pres('work', $group)) {
-                            foreach ($group['work'] as $key => $work) {
-                                if (pres($key, $ret['work'])) {
-                                    $ret['work'][$key] += $work;
-                                } else {
-                                    $ret['work'][$key] = $work;
-                                }
+                    if (!$components || in_array('groups', $components)) {
+                        # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
+                        # Facebook, even though that makes the code hackier.
+                        $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
+                        $twitters = [];
+
+                        if (count($gids) > 0) {
+                            # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
+                            $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
+                            foreach ($tws as $tw) {
+                                $twitters[$tw['groupid']] = $tw;
                             }
                         }
 
@@ -113,7 +118,7 @@ function session() {
                                 unset($atts['token']);
                                 unset($atts['secret']);
                                 $atts['authdate'] = ISODate($atts['authdate']);
-                                $group['twitter'] =  $atts;
+                                $group['twitter'] = $atts;
                             }
 
                             # Ditto Facebook.
@@ -127,31 +132,48 @@ function session() {
                         }
                     }
 
-                    $s = new Spam($dbhr, $dbhm);
-                    $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
-                    $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
+                    if (MODTOOLS) {
+                        if (!$components || in_array('work', $components)) {
+                            # Tell them what mod work there is.  Similar code in Notifications.
+                            $ret['work'] = [];
 
-                    # Show social actions from last 4 days.
-                    $ctx = NULL;
-                    $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
-                    $f = new GroupFacebook($dbhr, $dbhm);
-                    $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
+                            if ($me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS)) {
+                                $v = new Volunteering($dbhr, $dbhm);
+                                $ret['work']['pendingvolunteering'] = $v->systemWideCount();
+                            }
 
-                    $c = new ChatMessage($dbhr, $dbhm);
-                    $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
+                            $s = new Spam($dbhr, $dbhm);
+                            $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
+                            $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
 
-                    $s = new Story($dbhr, $dbhm);
-                    $ret['work']['stories'] = $s->getReviewCount(FALSE);
+                            # Show social actions from last 4 days.
+                            $ctx = NULL;
+                            $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
+                            $f = new GroupFacebook($dbhr, $dbhm);
+                            $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
 
-                    $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
-                } else {
-                    # Newsfeed count.  We return this in the session to avoid getting it on each page transition
-                    # in the client.
-                    $n = new Newsfeed($dbhr, $dbhm);
-                    $ret['newsfeedcount'] = $n->getUnseen($me->getId());
+                            $c = new ChatMessage($dbhr, $dbhm);
+                            $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
+
+                            $s = new Story($dbhr, $dbhm);
+                            $ret['work']['stories'] = $s->getReviewCount(FALSE);
+
+                            $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
+                        }
+
+                        foreach ($ret['groups'] as &$group) {
+                            if (pres('work', $group)) {
+                                foreach ($group['work'] as $key => $work) {
+                                    if (pres($key, $ret['work'])) {
+                                        $ret['work'][$key] += $work;
+                                    } else {
+                                        $ret['work'][$key] = $work;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-
-                $ret['logins'] = $me->getLogins(FALSE);
             } else {
                 $ret = array('ret' => 1, 'status' => 'Not logged in');
             }
