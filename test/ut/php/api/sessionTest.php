@@ -383,7 +383,23 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('session', 'GET', []);
-        error_log(var_export($ret, true));
+        assertEquals(0, $ret['ret']);
+        assertEquals($group1, $ret['groups'][0]['id']);
+        assertEquals($group2, $ret['groups'][1]['id']);
+        assertEquals(1, $ret['groups'][0]['work']['pending']);
+        assertEquals(1, $ret['groups'][1]['work']['pending']);
+        assertEquals(0, $ret['groups'][0]['work']['spam']);
+        assertEquals(0, $ret['groups'][1]['work']['spam']);
+        assertEquals(2, $ret['work']['pending']);
+        assertEquals(0, $ret['work']['spam']);
+
+        # Get again, just for work.
+        $ret = $this->call('session', 'GET', [
+            'components' => [
+                'work'
+            ]
+        ]);
+        assertFalse(array_key_exists('configs', $ret));
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);
         assertEquals($group2, $ret['groups'][1]['id']);

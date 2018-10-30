@@ -33,7 +33,7 @@ function session() {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
 
                 $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
-                $components = presdef('components', $_SESSION, NULL);
+                $components = presdef('components', $_REQUEST, NULL);
 
                 # Don't need to return this, and it might be large.
                 $ret['me']['messagehistory'] = NULL;
