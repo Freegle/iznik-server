@@ -27,6 +27,11 @@ function session() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             # Check if we're logged in
+            if (pres('pushcreds', $_REQUEST)) {
+                # This can log us in.  Don't want to use cached information when looking at our own session.
+                $me = whoAmI($dbhm, $dbhm);
+            }
+
             if (pres('id', $_SESSION)) {
                 $components = presdef('components', $_REQUEST, NULL);
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
