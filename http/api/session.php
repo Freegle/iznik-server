@@ -56,10 +56,12 @@ function session() {
                 }
 
                 if (MODTOOLS) {
-                    if (!$components || in_array('configs', $components)) {
-                        $allconfigs = array_key_exists('allconfigs', $_REQUEST) ? filter_var($_REQUEST['allconfigs'], FILTER_VALIDATE_BOOLEAN) : FALSE ;
+                    if (!$components || in_array('allconfigs', $components)) {
                         $me = $me ? $me : whoAmI($dbhm, $dbhm);
-                        $ret['configs'] = $me->getConfigs($allconfigs);
+                        $ret['configs'] = $me->getConfigs(TRUE);
+                    } else if (in_array('configs', $components)) {
+                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $ret['configs'] = $me->getConfigs(FALSE);
                     }
                 }
 
