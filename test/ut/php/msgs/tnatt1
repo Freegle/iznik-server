@@ -1,77 +1,96 @@
-Return-Path: <edward-g8444@user.trashnothing.com>
-X-Sender: edward-g8444@user.trashnothing.com
-X-Apparently-To: freegleplayground@yahoogroups.com
-X-Received: (qmail 7767 invoked by uid 102); 29 Aug 2016 22:53:17 -0000
-X-Received: from unknown (HELO mtaq4.grp.bf1.yahoo.com) (10.193.84.143)
-  by m7.grp.bf1.yahoo.com with SMTP; 29 Aug 2016 22:53:17 -0000
-X-Received: (qmail 3709 invoked from network); 29 Aug 2016 22:53:17 -0000
-X-Received: from unknown (HELO mta1004.groups.mail.ne1.yahoo.com) (98.138.100.119)
-by mtaq4.grp.bf1.yahoo.com with SMTP; 29 Aug 2016 22:53:17 -0000
-X-Original-Return-Path: <edward-g8444@user.trashnothing.com>
-X-Received-SPF: pass (domain of user.trashnothing.com designates 167.88.123.107 as permitted sender)
-X-YMailISG: l5ox9sUWLDvn_mInMb7uFPIfPua6K.gbmIotRL4iQFN.Bop9
-  pj7akp_iksO5wdgLgF_9UrHsVNcs389Qu.yzis9Zyd9HzhwrfHQWZ12M36L3
-  x_gU3XJzDQhWUMEDsW9vcrAt6rqlTAwABjHxWqndIiAE3BuG3lGEoacGWI46
-  OapP8bwzdhruaySd7M2.Y4617rUL_dmbvPHcr.e4UO_3GRJualwbBN0wYiby
-  jK9_B9a7mDGVCLmii6ptqYaa2RRUro7BM7PJDLFGwwdgQGml7NSE9h9qW0tQ
-  j_wxNC3fQeOW0dA25VNG3CUwQ9qFnJLwIKjRQvlBNpefj7UeBHC.ruwT.yzn
-  GRbYFws.evefHm94ho5RvQuqmkfmU4naZMEUwcrb8wvuq3igeS4fOA1Smri1
-  MKJZVNRZGjTTMA3OULrHP_GLzm_MMZ.IlCarI3g4riFJYThNC4PeW0_qjovO
-  CsYo9Wm3JjYJslf.acnB.t50OjNNpfxrMmaCRRex9gTu6Hnqg_zCtt6OiO3e
-  .Udi.fqZKdLz73BffQELCUckSQoQ16bMwKlLHEv.4LuYQhcXErKyP.9AzUfN
-  KWBeG_CvSjzUAYfnM4UkKAmOEZ6GlATUQKIBenHtNZUGK65XCyngQbmYUXQl
-  BKUB6WpU22s4jg7JIlvPQD3awITg.6fXepA04B_O4WlTtC3hH3ETnoys2mAs
-  BY0ASvcHPLqIM_zya03b5fqgEK6og2ZS60MIOUPw_rST9PlG5uzTinG3HaNj
-  Lg_T42EpePA75OO0dAMhBaDARGAFCGJ1uHmhQjVN2V99ZCGGmSYSd9r4Tq_I
-  ivmmn6ctHdaUVXLfci5.nPADLQhT1K_IyMoS0vQlS1G6Aemfairnl0WGjon0
-  GgQj53AqKKpN0j7xyLlHPVShT4PtXiJzjWUZ6TwU0V.B3Mh6cGHaWe91aukS
-  xdREhjQXNaE4SDZzjE.mmAbLsX2oFwnRHQ6TDy3CvVrH02Da8e7SqxhAnzXA
-  n3yQwZ.d8j3B9kebxQC_uaoND71XAWwnlGzyCzX8CopV75vDSRnvbeQ4i47u
-  qJFCE9pnS.SVV5M5GMlTpk_q8rZI85IldUu0H7DxMUKWma7MxQPrSJlUW6mc
-  gWVu4DxxJ7e8fZjc.qPFMg7..qQi0UTH7aSXMcWgdaU_kVOSgkGFMXeydng2
-  TPSZOex4ofgyv5c-
-Authentication-Results: mta1004.groups.mail.ne1.yahoo.com from=user.trashnothing.com; domainkeys=neutral (no sig); from=user.trashnothing.com; dkim=pass (ok)
-X-Received: from 127.0.0.1 (EHLO w4.trashnothing.com) (167.88.123.107)
-  by mta1004.groups.mail.ne1.yahoo.com with SMTPS; Mon, 29 Aug 2016 22:53:16 +0000
+From sentto-15830890-99095-1541425843-@returns.groups.yahoo.com Mon Nov 05 14:39:55 2018
+Return-path: <sentto-15830890-99095-1541425843-@returns.groups.yahoo.com>
+Envelope-to: modtools@modtools.org
+Received: from sonic326-32.consmr.mail.gq1.yahoo.com ([98.137.71.158])
+        by bulk1.ilovefreegle.org with esmtp (Exim 4.90_1)
+        (envelope-from <sentto-15830890-99095-1541425843-@returns.groups.yahoo.com>)
+        id 1gJg2l-0004Jd-Bk
+        for modtools@modtools.org; Mon, 05 Nov 2018 14:39:55 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoogroups.com; s=echoe; t=1541428780; bh=+etMfKyeetwMnRLdZV71Psfb7223wWo/3mzA90TCbNc=; h=To:From:List-Id:List-Unsubscribe:Date:Subject:Reply-To:From:Subject; b=5HWN6aJ8FTN63qxhArmc+AUZjDr7V3NCE4S0onm5+vEkNWgWnC4+SmSRqvTUoHBHuhz8kwe2Rb4ApPFtR5lKJjR2e+nzyqishR4uLWF9cHVMtrCGIX/8hDuDlVjk2znSVWjtonyjxjMlsnj5LtMC/bJUlWTMPIa1HgpPjZmgzb0=
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic326.consmr.mail.gq1.yahoo.com with HTTP; Mon, 5 Nov 2018 14:39:40 +0000
+X-Yahoo-Newman-Id: 15830890-m99095
+X-Sender: abc.defghin-g390@user.trashnothing.com
+X-Apparently-To: tauntonukupcycle@yahoogroups.com
+X-Received: (qmail 30670 invoked by uid 102); 5 Nov 2018 13:50:42 -0000
+X-Received: from unknown (HELO mtaq5.grp.bf1.yahoo.com) (10.198.29.78)
+  by m10.grp.bf1.yahoo.com with SMTP; 5 Nov 2018 13:50:42 -0000
+X-Received: (qmail 21969 invoked from network); 5 Nov 2018 13:50:42 -0000
+X-Received: from unknown (HELO mta4001.groups.mail.ne1.yahoo.com) (10.221.10.59)
+  by mtaq5.grp.bf1.yahoo.com with SMTP; 5 Nov 2018 13:50:42 -0000
+X-Received-SPF: pass (domain of user.trashnothing.com designates 158.69.102.220 as permitted sender)
+X-YMailISG: qNF3sh8WLDvx4xcWvWYYIrHqCCOWD3r4wLzGMZOaP0VHkC.p
+ KMhsfoLcB7.f6yhl0YE1NsCoNNzbSh.Y7ZxUsCgJ0qS176mWR4NXxuckKWPI
+ aCUX41lRnj9p630AtPVPr4WW4OmCOI4no2u5NcxWs8VQ.D7ntX6.pV8B78Yl
+ W2Y0cokBylro_ouDZDwU2MnC4hHZ1MmpB_c3yTN8jVlNCoNoSJ38DV7klMKc
+ Qn5Jj5VqElgGrVRdu20.jrRo6pQ9OI4lqSFtrwCQt7QN4LtKXLLziIZdPHiT
+ uU3fqyizygBnI1NJYjLGdJxs5ncc.HmDrgdAnph.aOJV0o8l281AIWSE2ka4
+ 6JS0pJJEVURBulpKzDsR2VhYpXfLy4YZ005Rn2ngUKhI9nVLsA_G9416Wf4t
+ DClcA1OrJRyMQKaoquqYdSRdGKNxt2b5T3OFyh3rySg9tYyEkniRmdhsvi6c
+ 6F2wghW8aX0nd1pwyBG3qww3nrYw0U6pj8NS0J.Jxlmkvjqu6hhkteqD1vdN
+ hX9ecIKnkqyQdn4dVdtQiIXQnYdCEp8erN5.b7XR3UHjGmmi7fRJQxCbLfbr
+ UqA_.NAw2Fwl5m5t6tiw8acGBq272egYrT8pCquwuNTxL4WX6ClyfMxGvMKx
+ 4Ds_po5dlmIIF8sWDOhibnSEFOO4vZ.dfXuvqmtJeLluLuztx6ncrp4t9Mu3
+ f734Qaa_Rpl0gZ_NxKWYSSmNcFlLnMGmQXCXpcz_PTBtt9GmW.9ZxGB4ZOCv
+ eoarfTiW6DAFfBaR87_028shrBOYBgliZQLDoS7kzjfzmuDYCfLn4JJgEJpH
+ cRTkv3PYuC8raxmQycYh_6ZILQax_uwhb7o1l8c883WIuJ8GrPm74OSaBx2v
+ Wh6yr4zCbn2JTCFgZnYtqaoHqtLGqRpBuS8YspkT27CIznVaEntxb.ioo8Ff
+ yx83OtOmarIoQiwyDrcAiRLh.ep2PwBlaHYREaCYa5LwoCiDg2PVcKcuABaH
+ ioBpeihsUIs1MzERjASrcxU1r6hZ3oGXasjr6yS8Ig2XcLDeJvl61.uC6axa
+ XBJIH7a22gf3nHkjiaN26lNoRY2ZexmxcD8n3Fk45o.40Eu7KsBk_DuHneso
+ XiLwnVqfYkb3job9i21Fq30n7VeRUU9cSZZ5CJf6JSiIG1o1ooi2ydbZuVPp
+ kjk4xbjM1FCvemxDyw--
+Authentication-Results: mta4001.groups.mail.ne1.yahoo.com  from=user.trashnothing.com; domainkeys=neutral (no sig);  from=user.trashnothing.com; dkim=pass (ok)
+X-Received: from 127.0.0.1  (EHLO w8.trashnothing.com) (158.69.102.220)
+  by mta4001.groups.mail.ne1.yahoo.com with SMTPS; Mon, 05 Nov 2018 13:50:42 +0000
 X-Received: from [127.0.0.1] (localhost [127.0.0.1])
-  by w4.trashnothing.com (Postfix) with ESMTP id C14FC25AA793
-  for <FreeglePlayground@yahoogroups.com>; Mon, 29 Aug 2016 12:17:02 +0000 (UTC)
+        by w8.trashnothing.com (Postfix) with ESMTPSA id 42pYwd5JbnzygQ
+        for <TauntonUKUpcycle@yahoogroups.com>; Mon,  5 Nov 2018 13:50:41 +0000 (UTC)
+To: TauntonUKUpcycle@yahoogroups.com
+X-trash-nothing-User-IP: 86.176.61.8
+X-trash-nothing-User-ID: 2929182
+X-trash-nothing-Meta: w8|w5|w4|w70|localhost|w3|w7
+X-trash-nothing-Log-ID: 04d9d21d-a640-47ef-a303-96dc43c92773
+X-Flickr-Photos: https://trashnothing.com/pics/408045
+X-trash-nothing-Post-Coordinates: 50.942061,-2.633308
+X-trash-nothing-Source: native-app
+X-trash-nothing-Fair-Offer: 1
+Message-Id: <1811051350.df43a89407df4b99aa521da1086189c1@w9.trashnothing.com>
+X-trash-nothing-Post-ID: 27559900
+X-Originating-IP: 10.221.10.59
+X-Original-From: "abc.defghin" <abc.defghin-g390@user.trashnothing.com>
+From: "'abc.defghin' abc.defghin-g390@user.trashnothing.com [TauntonUKUpcycle]" <TauntonUKUpcycle-noreply@yahoogroups.com>
+Sender: TauntonUKUpcycle@yahoogroups.com
+MIME-Version: 1.0
+Mailing-List: list TauntonUKUpcycle@yahoogroups.com; contact TauntonUKUpcycle-owner@yahoogroups.com
+Delivered-To: mailing list TauntonUKUpcycle@yahoogroups.com
+List-Id: <TauntonUKUpcycle.yahoogroups.com>
+Precedence: bulk
+List-Unsubscribe: <mailto:TauntonUKUpcycle-unsubscribe@yahoogroups.com>
+Date: Mon, 05 Nov 2018 13:50:41 -0000
+Subject: [TauntonUKUpcycle] OFFER: Rug pale blue and grey (Nr Yeovil)
+Reply-To: abc.defghin-g390@user.trashnothing.com
+X-Yahoo-Newman-Property: groups-email-ff-m
 Content-Type: multipart/alternative;
-  boundary="===============8922245711726592217=="
-MIME-Version: 1.0
-To: FreeglePlayground@yahoogroups.com
-X-trash-nothing-User-IP: 5.148.138.210
-Date: Mon, 29 Aug 2016 12:17:02 -0000
-X-trash-nothing-User-ID: 277654
-X-trash-nothing-Meta: fpr0-om0-localhost|w3|w5
-X-Flickr-Photos: https://trashnothing.com/pics/133651
-X-trash-nothing-Source: desktop
-Message-Id: <1608291217.72ad464468334345ba0a406709cf0db2@w4.trashnothing.com>
-X-trash-nothing-Post-ID: 22540091
-X-Originating-IP: 98.138.100.119
-From: edward <edward-g8444@user.trashnothing.com>
-X-Original-Reply-To: edward-g8444@user.trashnothing.com
-Subject: OFFER: Test from TN (Test)
-X-Yahoo-Group-Post: member; u=579996430
-X-YGroups-SubInfo: t=0;f=512;g=none;
+ boundary="===============3953592327715602187=="
 
-
---===============8922245711726592217==
+--===============3953592327715602187==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="UTF-8"
 
-VGVzdAoKUGhvdG9zOgpodHRwOi8vZmxpYy5rci9wL0x1SFlaMQ==
+NDfigJ0geCAgNjfigJ0gQXBwcm94IGZpdmUgeWVhcnMgb2xkLCBvbmNlIHdhcyBwcmV0dHkg
+YW5kIGNvdHRhZ2V5IGJ1dCBoYXMgYmVlbgp0aHJvdWdoIHRoZSByaWdvdXJzIG9mIGEgaG91
+c2Ugd2l0aCB5b3VuZyBjaGlsZHJlbiAuLi4gc3RhaW5zIEkgY2Fu4oCZdCBzaGlmdApzaG93
+biBpbiBwaWNzLiBJdCByZWFsbHkgbmVlZHMgYSBQUk9QRVIgY2xlYW4gYnV0IEkgaW1hZ2lu
+ZSBpdCBNVVNUIHN0aWxsCmhhcyBtYW55IHVzZXMuLi4uc2hlZHMsIGdhcmFnZXMsIGFuaW1h
+bCBvciBhbGxvdG1lbnQgdXNlPwoKUGhvdG9zOgpodHRwOi8vZmxpYy5rci9wL05VWnozTQpo
+dHRwOi8vZmxpYy5rci9wL05VWnphawpodHRwOi8vZmxpYy5rci9wL05VWnptMgpodHRwOi8v
+ZmxpYy5rci9wLzJiaHJTcHgKCg==
 
-
---===============8922245711726592217==
-MIME-Version: 1.0
+--===============3953592327715602187==
+Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: base64
-Content-Type: text/html; charset="UTF-8"
 
-VGVzdDxiciAvPjxiciAvPlBob3Rvczo8YnIgLz48YSBocmVmPSJodHRwOi8vZmxpYy5rci9wL0x1
-SFlaMSIgcmVsPSJub2ZvbGxvdyIgc3R5bGU9IiI+aHR0cDovL2ZsaWMua3IvcC9MdUhZWjE8L2E+
+...Content of size 23776 removed...
 
-
-
---===============8922245711726592217==--
+--===============3953592327715602187==--
