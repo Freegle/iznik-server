@@ -33,7 +33,15 @@ function session() {
             }
 
             if (pres('id', $_SESSION)) {
-                $components = presdef('components', $_REQUEST, NULL);
+                $components = presdef('components', $_REQUEST, ['all']);
+                if ($components === ['all']) {
+                    // Get all
+                    $components = NULL;
+                } else if ($components === ['none']) {
+                    // Just checking that we're logged in.
+                    $components = [];
+                }
+
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                 if (!$components || in_array('me', $components)) {
