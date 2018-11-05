@@ -114,48 +114,47 @@ function session() {
                         # Remove large attributes we don't need in session.
                         unset($group['welcomemail']);
                         unset($group['description']);
-                        unset($group['tagline']);
                         unset($group['settings']['chaseups']['idle']);
                         unset($group['settings']['branding']);
                     }
 
-                    if (!$components || in_array('groups', $components)) {
-                        # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
-                        # Facebook, even though that makes the code hackier.
-                        $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
-                        $twitters = [];
+                    # We should always return complete groups objects because they are stored in the client session.
+                    #
+                    # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
+                    # Facebook, even though that makes the code hackier.
+                    $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
+                    $twitters = [];
 
-                        if (count($gids) > 0) {
-                            # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
-                            $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
-                            foreach ($tws as $tw) {
-                                $twitters[$tw['groupid']] = $tw;
-                            }
+                    if (count($gids) > 0) {
+                        # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
+                        $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
+                        foreach ($tws as $tw) {
+                            $twitters[$tw['groupid']] = $tw;
                         }
+                    }
 
-                        foreach ($ret['groups'] as &$group) {
-                            if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
-                                # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
-                                # in here - but it's of no interest to members so there's no point delaying them by
-                                # fetching it.
-                                #
-                                # Similar code in group.php.
-                                if (array_key_exists($group['id'], $twitters)) {
-                                    $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
-                                    $atts = $t->getPublic();
-                                    unset($atts['token']);
-                                    unset($atts['secret']);
-                                    $atts['authdate'] = ISODate($atts['authdate']);
-                                    $group['twitter'] = $atts;
-                                }
+                    foreach ($ret['groups'] as &$group) {
+                        if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
+                            # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                            # in here - but it's of no interest to members so there's no point delaying them by
+                            # fetching it.
+                            #
+                            # Similar code in group.php.
+                            if (array_key_exists($group['id'], $twitters)) {
+                                $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
+                                $atts = $t->getPublic();
+                                unset($atts['token']);
+                                unset($atts['secret']);
+                                $atts['authdate'] = ISODate($atts['authdate']);
+                                $group['twitter'] = $atts;
+                            }
 
-                                # Ditto Facebook.
-                                if (array_key_exists($group['id'], $facebooks)) {
-                                    $group['facebook'] = [];
+                            # Ditto Facebook.
+                            if (array_key_exists($group['id'], $facebooks)) {
+                                $group['facebook'] = [];
 
-                                    foreach ($facebooks[$group['id']] as $atts) {
-                                        $group['facebook'][] = $atts;
-                                    }
+                                foreach ($facebooks[$group['id']] as $atts) {
+                                    $group['facebook'][] = $atts;
                                 }
                             }
                         }
