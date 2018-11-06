@@ -15,14 +15,16 @@ function plugin() {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 $groups = $me->getModeratorships();
-                $work = [];
 
+                $groupids = [];
                 foreach ($groups as $group) {
                     # We only want to include work if we are an active mod on the group.
                     if ($me->activeModForGroup($group)) {
-                        $work = array_merge($work, $p->get($group));
+                        $groupids[] = $group;
                     }
                 }
+
+                $work = $p->get($groupids);
 
                 $b = new BulkOp($dbhr, $dbhm);
                 $opsdue = $b->checkDue();

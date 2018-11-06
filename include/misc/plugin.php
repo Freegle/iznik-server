@@ -32,13 +32,17 @@ class Plugin {
         ]);
     }
 
-    public function get($groupid) {
-        # Put a limit on to avoid swamping a particular user with work.  They'll pick it up again later.
-        $sql = "SELECT * FROM plugin WHERE groupid = ? LIMIT 100;";
-        $plugins = $this->dbhr->preQuery($sql, [ $groupid ]);
+    public function get($groupids) {
+        $plugins = [];
 
-        foreach ($plugins as &$plugin) {
-            $plugin['added'] = ISODate($plugin['added']);
+        if (count($groupids)) {
+            # Put a limit on to avoid swamping a particular user with work.  They'll pick it up again later.
+            $sql = "SELECT * FROM plugin WHERE groupid IN (" . implode(',', $groupids) . ") LIMIT 100;";
+            $plugins = $this->dbhr->preQuery($sql);
+
+            foreach ($plugins as &$plugin) {
+                $plugin['added'] = ISODate($plugin['added']);
+            }
         }
 
         return($plugins);

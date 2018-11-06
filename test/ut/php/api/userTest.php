@@ -121,9 +121,9 @@ class userAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $work = $this->plugin->get($this->groupid);
-        assertEquals(1, count($work));
-        $data = json_decode($work[0]['data'], true);
+        $work = $this->plugin->get([$this->groupid]);
+        assertEquals(1, count($work[$this->groupid]));
+        $data = json_decode($work[$this->groupid][0]['data'], true);
         assertEquals('test@test.com', $data['email']);
         assertEquals('DIGEST', $data['deliveryType']);
 
@@ -162,9 +162,9 @@ class userAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $work = $this->plugin->get($this->groupid);
-        assertEquals(1, count($work));
-        $data = json_decode($work[0]['data'], true);
+        $work = $this->plugin->get([$this->groupid]);
+        assertEquals(1, count($work[$this->groupid]));
+        $data = json_decode($work[$this->groupid][0]['data'], true);
         assertEquals('test@test.com', $data['email']);
         assertEquals('PROHIBITED', $data['postingStatus']);
 
