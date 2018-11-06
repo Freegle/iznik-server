@@ -37,9 +37,6 @@ function session() {
                 if ($components === ['all']) {
                     // Get all
                     $components = NULL;
-                } else if ($components === ['none']) {
-                    // Just checking that we're logged in.
-                    $components = [];
                 }
 
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
