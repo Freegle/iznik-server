@@ -26,18 +26,18 @@ class pluginAPITest extends IznikAPITestCase {
         $this->dbhm = $dbhm;
     }
 
-    public function testSheila() {
-        error_log(__METHOD__);
-
-        $_SESSION['id'] = 25880780;
-        $this->dbhr->errorLog = TRUE;
-        $this->dbhm->errorLog = TRUE;
-        $ret = $this->call('plugin', 'GET', []);
-        error_log("Duration {$ret['duration']} DB {$ret['dbwaittime']}");
-        $this->dbhr->errorLog = FALSE;
-        $this->dbhm->errorLog = FALSE;
-
-        error_log(__METHOD__ . " end");
-    }
+//    public function testSheila() {
+//        error_log(__METHOD__);
+//
+//        $_SESSION['id'] = 25880780;
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//        $ret = $this->call('plugin', 'GET', []);
+//        error_log("Duration {$ret['duration']} DB {$ret['dbwaittime']}");
+//        $this->dbhr->errorLog = FALSE;
+//        $this->dbhm->errorLog = FALSE;
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 
