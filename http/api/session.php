@@ -213,7 +213,7 @@ function session() {
                         foreach ($ret['groups'] as &$group) {
                             if (pres('work', $group)) {
                                 foreach ($group['work'] as $key => $work) {
-                                    if (pres($key, $ret['work'])) {
+                                    if (pres('work', $ret) && pres($key, $ret['work'])) {
                                         $ret['work'][$key] += $work;
                                     } else {
                                         $ret['work'][$key] = $work;
