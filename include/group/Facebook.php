@@ -131,7 +131,7 @@ class GroupFacebook {
         # groups where we are a moderator.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $ret = [];
-        $dateq = $mindate ? " AND groups_facebook_toshare.date >= '$mindate'" : '';
+        $dateq = $mindate ? " groups_facebook_toshare.date >= '$mindate' AND " : '';
 
 
         if ($me) {
@@ -158,7 +158,16 @@ class GroupFacebook {
                 #
                 # We don't want groups = that's for posts, not social actions / publicity.
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.uid, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 LEFT JOIN groups_facebook_shares ON groups_facebook_shares.postid = groups_facebook_toshare.postid AND groups_facebook_shares.uid = groups_facebook.uid WHERE groups_facebook.groupid IN ($groupids) AND groups_facebook_toshare.id > ? $dateq AND groups_facebook_shares.postid IS NULL  AND groups_facebook.type = 'Page' ORDER BY groups_facebook_toshare.id DESC;";
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.uid, 'Facebook' AS actiontype FROM groups_facebook_toshare 
+INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 
+LEFT JOIN groups_facebook_shares ON groups_facebook_shares.postid = groups_facebook_toshare.postid AND groups_facebook_shares.uid = groups_facebook.uid 
+WHERE 
+$dateq 
+groups_facebook_toshare.id > ?
+AND groups_facebook.groupid IN ($groupids) 
+AND groups_facebook_shares.postid IS NULL 
+AND groups_facebook.type = 'Page' 
+ORDER BY groups_facebook_toshare.id DESC;";
                 $posts = $this->dbhr->preQuery($sql, [ $minid ]);
 
                 $remaining = [];

@@ -160,12 +160,13 @@ class Story extends Entity
         if ($newsletter) {
             $sql = "SELECT COUNT(DISTINCT(users_stories.id)) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC";
         } else {
-            $mygroups = $me->getMemberships(TRUE);
+            $mygroups = $me->getMemberships(TRUE, Group::GROUP_FREEGLE);
+
             $groupids = [0];
             foreach ($mygroups as $mygroup) {
-                # This group might have turned stories off.
-                $g = new Group($this->dbhr, $this->dbhm, $mygroup['id']);
-                if ($g->getSetting('stories', 1)) {
+                # This group might have turned stories off.  Bypass the Group object in the interest of performance
+                # for people on many groups.
+                if (presdef('stories', $mygroup['settings'], 1)) {
                     $groupids[] = $mygroup['id'];
                 }
             }

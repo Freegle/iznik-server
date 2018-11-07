@@ -203,7 +203,6 @@ function session() {
 
                             $s = new Story($dbhr, $dbhm);
                             $ret['work']['stories'] = $s->getReviewCount(FALSE);
-
                             $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
                         }
 
