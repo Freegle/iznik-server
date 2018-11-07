@@ -89,7 +89,7 @@ class GroupFacebook {
         $this->dbhm->preExec("DELETE FROM groups_facebook WHERE uid = ?;", [ $uid ]);
     }
 
-    public function getPostsToShare($sharefrom, $since = "yesterday") {
+    public function getPostsToShare($sharefrom, $since = "last week") {
         $fb = $this->getFB(TRUE);
         $count = 0;
 
