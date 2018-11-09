@@ -3168,6 +3168,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         # by groupid than it is to construct a query which includes groupid.
         $sql = "SELECT * FROM users_comments WHERE userid = ? ORDER BY date DESC;";
         $comments = $this->dbhr->preQuery($sql, [$this->id]);
+        $ret = [];
 
         foreach ($comments as &$comment) {
             if (in_array($comment['groupid'], $groupids)) {
@@ -3180,10 +3181,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $ctx = NULL;
                     $comment['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
                 }
+
+                $ret[] = $comment;
             }
         }
 
-        return ($comments);
+        return ($ret);
     }
 
     public function getComment($id)
