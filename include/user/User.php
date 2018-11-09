@@ -1771,7 +1771,7 @@ class User extends Entity
             # Find the group of which we are a member which is closest to our location.  We do this because generally
             # the number of groups we're in is small and therefore this will be quick, whereas the groupsNear call is
             # fairly slow.
-            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND (poly IS NOT NULL OR polyofficial IS NOT NULL) AND onmap = 1 ORDER BY ST_distance(POINT(?, ?), GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END)) ASC LIMIT 1;";
+            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND polyindex IS NOT NULL AND onmap = 1 ORDER BY ST_distance(POINT(?, ?), polyindex) ASC LIMIT 1;";
             $groups = $this->dbhr->preQuery($sql, [
                 $this->id,
                 $lng,
@@ -3164,18 +3164,22 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $groupids = $me ? $me->getModeratorships() : [];
         $groupids = count($groupids) == 0 ? [0] : $groupids;
 
-        $sql = "SELECT * FROM users_comments WHERE userid = ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC;";
+        # Generally there will be no or few comments.  It's quicker (because of indexing) to get them all and filter
+        # by groupid than it is to construct a query which includes groupid.
+        $sql = "SELECT * FROM users_comments WHERE userid = ? ORDER BY date DESC;";
         $comments = $this->dbhr->preQuery($sql, [$this->id]);
 
         foreach ($comments as &$comment) {
-            $comment['date'] = ISODate($comment['date']);
+            if (in_array($comment['groupid'], $groupids)) {
+                $comment['date'] = ISODate($comment['date']);
 
-            if (pres('byuserid', $comment)) {
-                $u = User::get($this->dbhr, $this->dbhm, $comment['byuserid']);
+                if (pres('byuserid', $comment)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $comment['byuserid']);
 
-                # Don't ask for comments to stop stack overflow.
-                $ctx = NULL;
-                $comment['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                    # Don't ask for comments to stop stack overflow.
+                    $ctx = NULL;
+                    $comment['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                }
             }
         }
 
