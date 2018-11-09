@@ -1594,10 +1594,10 @@ class User extends Entity
         $ret = [];
         $start = date('Y-m-d', strtotime("90 days ago"));
 
-        $replies = $this->dbhr->preQuery("SELECT COUNT(DISTINCT refmsgid) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND chattype = ? AND type = ?;", [
+        // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
+        $replies = $this->dbhr->preQuery("SELECT COUNT(DISTINCT refmsgid) AS count FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND type = ?;", [
             $this->id,
             $start,
-            ChatRoom::TYPE_USER2USER,
             ChatMessage::TYPE_INTERESTED
         ], FALSE, FALSE);
 
@@ -5349,7 +5349,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        if ($myid) {
+        if ($myid != $this->id) {
+            # We can't rate ourselves, so don't bother checking.
             $ratings = $this->dbhr->preQuery("SELECT rating FROM ratings WHERE ratee = ? AND rater = ?;", [
                 $this->id,
                 $myid

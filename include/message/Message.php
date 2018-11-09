@@ -679,7 +679,7 @@ class Message
         return($text ? $text : '');
     }
 
-    private function getUser($uid, $messagehistory, &$userlist) {
+    private function getUser($uid, $messagehistory, &$userlist, $info) {
         # Get the user details, relative to the groups this message appears on.
         if ($userlist && array_key_exists($uid, $userlist)) {
             $atts = $userlist[$uid][1];
@@ -687,7 +687,10 @@ class Message
             $u = User::get($this->dbhr, $this->dbhm, $uid);
             $ctx = NULL;
             $atts = $u->getPublic(MODTOOLS ? $this->getGroups() : NULL, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
-            $atts['info'] = $u->getInfo();
+
+            if ($info) {
+                $atts['info'] = $u->getInfo();
+            }
 
             # Save for next time.
             $userlist[$uid] = [ $u, $atts];
@@ -773,7 +776,7 @@ class Message
 
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                     if (pres('approvedby', $group)) {
-                        $group['approvedby'] = $this->getUser($group['approvedby'], $messagehistory, $userlist);
+                        $group['approvedby'] = $this->getUser($group['approvedby'], $messagehistory, $userlist, FALSE);
                     }
                 }
 
@@ -893,7 +896,7 @@ class Message
                     if ($reply['userid'] && $reply['status'] != ChatRoom::STATUS_BLOCKED) {
                         $thisone = [
                             'id' => $reply['id'],
-                            'user' => $this->getUser($reply['userid'], $messagehistory, $userlist),
+                            'user' => $this->getUser($reply['userid'], $messagehistory, $userlist, TRUE),
                             'chatid' => $reply['chatid']
                         ];
 
@@ -1005,7 +1008,7 @@ class Message
             # We know who sent this.  We may be able to return this (depending on the role we have for the message
             # and hence the attributes we have already filled in).  We also want to know if we have consent
             # to republish it.
-            $ret['fromuser'] = $this->getUser($this->fromuser, $messagehistory, $userlist);
+            $ret['fromuser'] = $this->getUser($this->fromuser, $messagehistory, $userlist, TRUE);
 
             if (pres('partner', $_REQUEST) && !pres('partner', $_SESSION)) {
                 $_SESSION['partner'] = partner($this->dbhr, $_REQUEST['partner']);
@@ -1048,7 +1051,7 @@ class Message
         }
 
         if (!$summary && pres('heldby', $ret)) {
-            $ret['heldby'] = $this->getUser($ret['heldby'], $messagehistory, $userlist);
+            $ret['heldby'] = $this->getUser($ret['heldby'], $messagehistory, $userlist, FALSE);
             filterResult($ret['heldby']);
         }
 
