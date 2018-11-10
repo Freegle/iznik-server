@@ -246,13 +246,15 @@ class ChatMessage extends Entity
         }
     }
 
-    public function getPublic() {
+    public function getPublic($refmsgsummary = FALSE) {
         $ret = $this->getAtts($this->publicatts);
 
         if (pres('refmsgid', $ret)) {
             # There is a message (in the sense of an item rather than a chat message) attached to this chat message.
+            $locationlist = NULL;
+            $userlist = NULL;
             $m = new Message($this->dbhr, $this->dbhm , $ret['refmsgid']);
-            $ret['refmsg'] = $m->getPublic(FALSE, FALSE);
+            $ret['refmsg'] = $m->getPublic(FALSE, FALSE, FALSE, $userlist, $locationlist, $refmsgsummary);
             unset($ret['refmsgid']);
             unset($ret['refmsg']['textbody']);
             unset($ret['refmsg']['htmlbody']);

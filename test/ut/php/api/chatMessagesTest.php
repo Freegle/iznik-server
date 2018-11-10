@@ -610,7 +610,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 //        $u = new User($this->dbhr, $this->dbhm, $uid);
 //        $_SESSION['id'] = $uid;
 //
-//        $ret = $this->call('chatmessages', 'GET', [ 'roomid' => 2627128 ]);
+//        $ret = $this->call('chatmessages', 'GET', [ 'roomid' => 5371641 ]);
 //
 //        assertEquals(0, $ret['ret']);
 //        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");

@@ -1125,7 +1125,7 @@ WHERE chat_rooms.id IN $idlist;";
         return ($ret);
     }
 
-    public function getMessages($limit = 100, $seenbyall = NULL, &$ctx = NULL)
+    public function getMessages($limit = 100, $seenbyall = NULL, &$ctx = NULL, $refmsgsummary = FALSE)
     {
         $ctxq = $ctx ? (" AND chat_messages.id < " . intval($ctx['id']) . " ") : '';
         $seenfilt = $seenbyall === NULL ? '' : " AND seenbyall = $seenbyall ";
@@ -1166,7 +1166,7 @@ WHERE chat_rooms.id IN $idlist;";
 
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id'], $msg);
-            $atts = $m->getPublic();
+            $atts = $m->getPublic($refmsgsummary);
             $refmsgid = $m->getPrivate('refmsgid');
 
             # We can get duplicate messages for a variety of reasons; suppress.
