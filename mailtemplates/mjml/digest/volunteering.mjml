@@ -202,7 +202,7 @@
           <mj-column>
             <mj-text font-size="9pt" color="#707070">
               You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive Volunteering Opportunities for&nbsp;{{ groupname }}.<br /> <br /> You can change your settings by clicking <a href="{{ settings }}">here</a>,
-              or turn these mails off for this group by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
+              or turn these volunteering mails off for this group by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
               <br /> <br /> This mail was sent to&nbsp;{{ email }}.
               <br />
               <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.

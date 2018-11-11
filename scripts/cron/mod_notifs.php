@@ -149,7 +149,7 @@ foreach ($mail as $id => $work) {
         }
     }
 
-    $textsumm .= "\r\nThese mails are fairly new.  You can control how often you get them or turn them off entirely from https://" . MOD_SITE . "/modtools/settings\r\n";
+    $textsumm .= "\r\nYou can control how often you get these mails or turn them off entirely from https://" . MOD_SITE . "/modtools/settings\r\n";
 
     # Now see if this is what we have already sent.
     $last = NULL;
