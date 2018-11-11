@@ -1682,6 +1682,7 @@ class Message
                     /* @var DOMNodeList $imgs */
                     foreach ($imgs as $img) {
                         $src = $img->getAttribute('src');
+                        error_log("Check image $src");
                         if (strpos($src, '/img/') !== FALSE || strpos($src, '/tn-photos/')) {
                             $ctx = stream_context_create(array('http' =>
                                 array(
@@ -1692,6 +1693,7 @@ class Message
                             $data = @file_get_contents($src, false, $ctx);
 
                             if ($data) {
+                                error_log("Got it");
                                 # Try to convert to an image.  If it's not an image, this will fail.
                                 $img = new Image($data);
 

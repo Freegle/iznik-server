@@ -1732,9 +1732,9 @@ class MailRouterTest extends IznikTestCase {
         $g->setPrivate('onyahoo', 0);
         $u->addMembership($gid, User::ROLE_MODERATOR);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/yahooapproved'));
+        $msg = str_replace('test@test.com', 'from@yahoogroups.com', $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/yahooapproved')));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $mid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $mid = $r->received(Message::YAHOO_APPROVED, 'from@yahoogroups.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
 
