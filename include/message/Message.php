@@ -2867,6 +2867,7 @@ class Message
         $textbody = preg_replace('/^(\r\n|\r|\n)---(\r\n|\r|\n)This email has been checked for viruses.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from TypeApp.*/ms', '', $textbody);
         $textbody = preg_replace('/^Enviado a partir do meu smartphone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Getting too many emails from.*Free your inbox.*trashnothing.com/ms', '', $textbody);
 
         // Duff text added by Yahoo Mail app.
         $textbody = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $textbody);
