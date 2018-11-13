@@ -1406,6 +1406,15 @@ class Group extends Entity
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
 
+        if ($support) {
+            $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+            $approves = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM logs WHERE timestamp >= ? AND type = ? AND subtype = ? GROUP BY groupid;", [
+                $start,
+                Log::TYPE_MESSAGE,
+                Log::SUBTYPE_AUTO_APPROVED
+            ]);
+        }
+
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
             $group['profile'] = $group['profile'] ? $a->getPath(FALSE, $group['attid']) : NULL;
@@ -1419,15 +1428,11 @@ class Group extends Entity
             }
 
             if ($support) {
-                $start = date('Y-m-d', strtotime("midnight 31 days ago"));
-                $approves = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM logs WHERE timestamp >= ? AND groupid = ? AND type = ? AND subtype = ?;", [
-                    $start,
-                    $group['id'],
-                    Log::TYPE_MESSAGE,
-                    Log::SUBTYPE_AUTO_APPROVED
-                ]);
-
-                $group['recentautoapproves'] = $approves[0]['count'];
+                foreach ($approves as $approve) {
+                    if ($approve['groupid'] === $group['id']) {
+                        $group['recentautoapproves'] = $approve['count'];
+                    }
+                }
             }
         }
 
