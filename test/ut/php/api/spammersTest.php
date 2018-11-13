@@ -152,6 +152,7 @@ class spammersAPITest extends IznikAPITestCase {
         }
 
         assertTrue($found);
+
         $found = FALSE;
 
         foreach ($ret['spammers'] as $spammer) {
@@ -161,6 +162,16 @@ class spammersAPITest extends IznikAPITestCase {
         }
 
         assertTrue($found);
+
+        # Check shows in work.
+        $ret = $this->call('session', 'GET', [
+            'components' => [
+                'work'
+            ]
+        ]);
+        error_log("Work " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertGreaterThanOrEqual(1, $ret['work']['spammerpendingadd']);
 
         $ret = $this-> call('spammers', 'POST', [
             'userid' => $uid,

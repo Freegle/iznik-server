@@ -468,7 +468,7 @@ class Spam {
     }
 
     public function collectionCounts() {
-        $sql = "SELECT COUNT(*) AS count FROM spam_users WHERE collection IN (?, ?) GROUP BY collection;";
+        $sql = "SELECT COUNT(*) AS count, collection FROM spam_users WHERE collection IN (?, ?) GROUP BY collection;";
         $counts = $this->dbhr->preQuery($sql, [
             Spam::TYPE_PENDING_ADD,
             Spam::TYPE_PENDING_REMOVE
