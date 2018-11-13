@@ -107,37 +107,27 @@ class Authority extends Entity
         unset($atts['lng']);
 
         # Find groups which overlap with this area.
-        $sql = "SELECT groups.id, 
-       nameshort, 
-       namefull, 
-       lat, 
-       lng, 
-       Coalesce(poly, polyofficial) AS poly, 
+        $sql = "SELECT groups.id, nameshort, namefull, lat, lng, 
+       CASE WHEN poly IS NOT NULL THEN poly ELSE polyofficial END AS poly, 
        CASE 
-         WHEN Geomfromtext(Coalesce(poly, polyofficial)) = 
+         WHEN polyindex = 
               Coalesce(simplified, polygon) THEN 1 
-         ELSE St_area(St_intersection(St_simplify(Geomfromtext(Coalesce (poly, 
-                                                               polyofficial)), 
-                                             0.01), 
-                                     St_simplify(Coalesce(simplified, polygon), 
-                                     0.01))) 
-              / St_area(Geomfromtext(Coalesce(poly, polyofficial))) 
+         ELSE St_area(St_intersection(St_simplify(polyindex, 0.01), 
+                                     St_simplify(Coalesce(simplified, polygon), 0.01))) 
+              / St_area(polyindex) 
        end                          AS overlap, 
        CASE 
-         WHEN Geomfromtext(Coalesce(poly, polyofficial)) = 
+         WHEN polyindex = 
               Coalesce(simplified, polygon) THEN 1 
-         ELSE St_area(Geomfromtext(Coalesce(poly, polyofficial))) / St_area( 
-                     St_intersection(St_simplify(Geomfromtext(Coalesce(poly, 
-                                                              polyofficial)), 
-                                     0.01), 
+         ELSE St_area(polyindex) / St_area( 
+                     St_intersection(St_simplify(polyindex, 0.01), 
                              St_simplify(Coalesce(simplified, polygon), 0.01))) 
        end                          AS overlap2 
 FROM   groups 
        INNER JOIN authorities 
-               ON ( Geomfromtext(Coalesce(poly, polyofficial)) = 
+               ON ( polyindex = 
                     Coalesce(simplified, polygon) 
-                     OR St_intersects(Geomfromtext(Coalesce(poly, polyofficial)) 
-                        , 
+                     OR St_intersects(polyindex, 
                             Coalesce(simplified, polygon)) ) 
 WHERE  type = ? 
        AND publish = 1 

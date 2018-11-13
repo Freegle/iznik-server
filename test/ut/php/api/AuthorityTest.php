@@ -65,4 +65,21 @@ class authorityAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testEH()
+    {
+        error_log(__METHOD__);
+
+        $this->dbhr->errorLog = TRUE;
+        $this->dbhm->errorLog = TRUE;
+        $a = new Authority($this->dbhr, $this->dbhm);
+
+        $ret = $this->call('authority', 'GET', [
+            'id' => 73214
+        ]);
+
+        error_log("Get returned " . var_export($ret, TRUE));
+
+        error_log(__METHOD__ . " end");
+    }
 }
