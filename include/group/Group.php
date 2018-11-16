@@ -1408,7 +1408,7 @@ class Group extends Entity
 
         if ($support) {
             $start = date('Y-m-d', strtotime("midnight 31 days ago"));
-            $approves = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM logs WHERE timestamp >= ? AND type = ? AND subtype = ? GROUP BY groupid;", [
+            $approves = $this->dbhr->preQuery("SELECT COUNT(*) AS count, groupid FROM logs WHERE timestamp >= ? AND type = ? AND subtype = ? GROUP BY groupid;", [
                 $start,
                 Log::TYPE_MESSAGE,
                 Log::SUBTYPE_AUTO_APPROVED
