@@ -77,20 +77,8 @@ function chatrooms() {
 
             if ($me) {
                 if ($action == 'AllSeen') {
-                    $chatids = $r->listForUser($myid);
-                    $count = 0;
-
-                    if ($chatids) {
-                        foreach ($chatids as $chatid) {
-                            $r = new ChatRoom($dbhr, $dbhm, $chatid);
-
-                            $unseen = $r->unseenCountForUser($myid);
-                            $r->upToDate($myid);
-                            $count += $unseen;
-                        }
-                    }
-
-                    $ret = ['ret' => 0, 'status' => 'Success', 'count' => $count];
+                    $r->upToDateAll($myid);
+                    $ret = ['ret' => 0, 'status' => 'Success'];
                 } else if ($action == 'Nudge') {
                     $id = $r->nudge();
                     $ret = ['ret' => 0, 'status' => 'Success', 'id' => $id];

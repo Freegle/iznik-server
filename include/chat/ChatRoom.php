@@ -862,6 +862,48 @@ WHERE chat_rooms.id IN $idlist;";
         }
     }
 
+    public function upToDateAll($myid) {
+        $chatids = $this->listForUser($myid);
+
+        # Find current values.  This allows us to filter out many updates.
+        $currents = $this->dbhr->preQuery("SELECT chatid, lastmsgseen, (SELECT MAX(id) AS max FROM chat_messages WHERE chatid = chat_roster.chatid) AS maxmsg FROM chat_roster WHERE userid = ? AND chatid IN (" . implode(',', $chatids) . ");", [
+            $myid
+        ]);
+
+        foreach ($chatids as $chatid) {
+            $found = FALSE;
+
+            foreach ($currents as $current) {
+                if ($current['chatid'] == $chatid) {
+                    # We already have a roster entry.
+                    $found = TRUE;
+
+                    if ($current['maxmsg'] > $current['lastmsgseen']) {
+                        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;", [
+                            $current['maxmsg'],
+                            $current['maxmsg'],
+                            $chatid,
+                            $myid
+                        ]);
+                    }
+                }
+            }
+
+            if (!$found) {
+                # We don't currently have one.  Add it; include duplicate processing for timing window.
+                $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
+                    [
+                        $chatid,
+                        $myid,
+                        $current['maxmsg'],
+                        $current['maxmsg'],
+                        $current['maxmsg'],
+                        $current['maxmsg']
+                    ]);
+            }
+        }
+    }
+
     public function updateRoster($userid, $lastmsgseen, $status = ChatRoom::STATUS_ONLINE)
     {
         # We have a unique key, and an update on current timestamp.
