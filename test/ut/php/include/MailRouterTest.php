@@ -796,7 +796,7 @@ class MailRouterTest extends IznikTestCase {
 
         for ($i = 0; $i < Spam::GROUP_THRESHOLD + 2; $i++) {
             error_log("Group $i");
-            $g->create("testgroup$i", Group::GROUP_OTHER);
+            $gid = $g->create("testgroup$i", Group::GROUP_OTHER);
 
             $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
 
@@ -808,11 +808,45 @@ class MailRouterTest extends IznikTestCase {
             error_log("Msg $id");
             $rc = $r->route();
 
+            # The user will get marked as suspect.
+            if ($i < Spam::SEEN_THRESHOLD) {
+                $work = $g->getWorkCounts([
+                    $gid => [
+                        'active' => TRUE
+                    ]
+                ], [ $gid ]);
+
+                assertEquals(0, $work[$gid]['spammembers']);
+                assertEquals(0, $work[$gid]['spammembersother']);
+            } else {
+
+                $work = $g->getWorkCounts([
+                    $gid => [
+                        'active' => TRUE
+                    ]
+                ], [ $gid ]);
+
+                assertEquals(1, $work[$gid]['spammembers']);
+                assertEquals(0, $work[$gid]['spammembersother']);
+
+                $work = $g->getWorkCounts([
+                    $gid => [
+                        'active' => FALSE
+                    ]
+                ], [ $gid ]);
+
+                assertEquals(0, $work[$gid]['spammembers']);
+                assertEquals(1, $work[$gid]['spammembersother']);
+            }
+
+            # The message can get marked as spam.
             if ($i < Spam::GROUP_THRESHOLD - 1) {
                 assertEquals(MailRouter::APPROVED, $rc);
             } else {
                 assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
+
+            # Should also show in work.
         }
 
         error_log(__METHOD__ . " end");

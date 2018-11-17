@@ -388,10 +388,12 @@ class Group extends Entity
                 MessageCollection::SPAM
             ], FALSE, FALSE);
 
-            $heldmembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE collection IN (?, ?) AND groupid IN $groupq GROUP BY memberships.groupid, collection, held;", [
-                MembershipCollection::PENDING,
-                MembershipCollection::SPAM
+            $heldmembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE collection = ? AND groupid IN $groupq GROUP BY memberships.groupid, collection, held;", [
+                MembershipCollection::PENDING
             ], FALSE, FALSE);
+
+            $spammembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships INNER JOIN users ON users.id = memberships.userid AND suspectcount > 0 WHERE groupid IN $groupq GROUP BY memberships.groupid, held;", [], FALSE, FALSE);
+            error_log("Spam counts" . var_export($spammembercounts, TRUE));
 
             $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
                 $eventsqltime
@@ -422,7 +424,8 @@ class Group extends Entity
                     'pendingmembersother' => 0,
                     'pendingevents' => 0,
                     'pendingvolunteering' => 0,
-                    'spammembers' => 0
+                    'spammembers' => 0,
+                    'spammembersother' => 0
                 ];
 
                 if ($active) {
@@ -442,14 +445,20 @@ class Group extends Entity
 
                     foreach ($heldmembercounts as $count) {
                         if ($count['groupid'] == $groupid) {
-                            if ($count['collection'] == MembershipCollection::PENDING) {
-                                if ($count['held']) {
-                                    $thisone['pendingmembersother'] = $count['count'];
-                                } else {
-                                    $thisone['pendingmembers'] = $count['count'];
-                                }
+                            if ($count['held']) {
+                                $thisone['pendingmembersother'] = $count['count'];
                             } else {
-                                $thisone['spam'] = $count['count'];
+                                $thisone['pendingmembers'] = $count['count'];
+                            }
+                        }
+                    }
+
+                    foreach ($spammembercounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            if ($count['held']) {
+                                $thisone['spammembersother'] = $count['count'];
+                            } else {
+                                $thisone['spammembers'] = $count['count'];
                             }
                         }
                     }
@@ -471,6 +480,21 @@ class Group extends Entity
                             if ($count['collection'] == MessageCollection::SPAM) {
                                 $thisone['spamother'] = $count['count'];
                             }
+                        }
+                    }
+
+                    foreach ($heldmembercounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            if ($count['collection'] == MembershipCollection::SPAM) {
+                            } else {
+                                $thisone['spammembersother'] = $count['count'];
+                            }
+                        }
+                    }
+
+                    foreach ($spammembercounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['spammembersother'] = $count['count'];
                         }
                     }
                 }
