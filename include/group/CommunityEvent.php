@@ -186,7 +186,7 @@ class CommunityEvent extends Entity
         # We can modify events which we created, or where we are a mod on any of the groups on which this event
         # appears, or if we're support/admin.
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        $canmodify = $this->event['userid'] == $userid || ($u && $u->isAdminOrSupport());
+        $canmodify = presdef('userid', $this->event, NULL) || ($u && $u->isAdminOrSupport());
         #error_log("Check user {$this->event['userid']}, $userid");
 
         #error_log("Can mod? $canmodify");
