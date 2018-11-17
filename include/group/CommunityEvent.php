@@ -13,9 +13,9 @@ class CommunityEvent extends Entity
     public $settableatts = [ 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description' ];
     var $event;
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $fetched = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'communityevents', 'event', $this->publicatts);
+        $this->fetch($dbhr, $dbhm, $id, 'communityevents', 'event', $this->publicatts, $fetched);
     }
 
     public function create($userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $photo = NULL) {
@@ -81,7 +81,7 @@ class CommunityEvent extends Entity
         $ctxq = $ctx ? " AND end > '{$ctx['end']}' " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT communityevents.id, communityevents.pending, communityevents_dates.end, communityevents_groups.groupid FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
+        $sql = "SELECT communityevents.*, communityevents.pending, communityevents_dates.end, communityevents_groups.groupid FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
         #error_log("$sql, $userid, $mysqltime");
         $events = $this->dbhr->preQuery($sql, [
             $userid,
@@ -93,7 +93,7 @@ class CommunityEvent extends Entity
         foreach ($events as $event) {
             if (!$event['pending'] || $u->activeModForGroup($event['groupid'])) {
                 $ctx['end'] = $event['end'];
-                $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
+                $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id'], $event);
                 $atts = $e->getPublic();
                 $atts['canmodify'] = $e->canModify($userid);
 
@@ -117,7 +117,7 @@ class CommunityEvent extends Entity
         $ctxq = $ctx ? " AND end > '{$ctx['end']}' " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT communityevents.id, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id $groupq $roleq AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
+        $sql = "SELECT communityevents.*, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id $groupq $roleq AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
         # error_log("$sql, $mysqltime");
         $events = $this->dbhr->preQuery($sql, [
             $mysqltime
@@ -128,7 +128,7 @@ class CommunityEvent extends Entity
 
         foreach ($events as $event) {
             $ctx['end'] = $event['end'];
-            $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
+            $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id'], $event);
             $atts = $e->getPublic();
 
             $atts['canmodify'] = $e->canModify($myid);
@@ -185,9 +185,9 @@ class CommunityEvent extends Entity
     public function canModify($userid) {
         # We can modify events which we created, or where we are a mod on any of the groups on which this event
         # appears, or if we're support/admin.
-        $canmodify = $this->event['userid'] == $userid;
-        #error_log("Check user {$this->event['userid']}, $userid");
         $u = User::get($this->dbhr, $this->dbhm, $userid);
+        $canmodify = $this->event['userid'] == $userid || $u->isAdminOrSupport();
+        #error_log("Check user {$this->event['userid']}, $userid");
 
         #error_log("Can mod? $canmodify");
         if (!$canmodify) {

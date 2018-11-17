@@ -14,9 +14,9 @@ class Volunteering extends Entity
     public $settableatts = [ 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'renewed', 'timecommitment' ];
     var $volunteering;
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $fetched = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'volunteering', 'volunteering', $this->publicatts);
+        $this->fetch($dbhr, $dbhm, $id, 'volunteering', 'volunteering', $this->publicatts, $fetched);
     }
 
     public function create($userid, $title, $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment) {
@@ -107,9 +107,9 @@ class Volunteering extends Entity
                 (!pres('end', $volunteering) || time() < strtotime($volunteering['end']))
             ) {
                 $ctx['id'] = $volunteering['id'];
-                $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
-                $atts = $e->getPublic();
-                $atts['canmodify'] = $e->canModify($userid);
+                $v = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id'], $volunteering);
+                $atts = $v->getPublic();
+                $atts['canmodify'] = $v->canModify($userid);
 
                 $ret[] = $atts;
             }
@@ -131,7 +131,7 @@ class Volunteering extends Entity
         $ctxq = $ctx ? " AND volunteering.id < {$ctx['id']} " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT volunteering.id, volunteering_dates.applyby, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
+        $sql = "SELECT volunteering.*, volunteering_dates.applyby, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
         $volunteerings = $this->dbhr->preQuery($sql, [
             $mysqltime,
             $mysqltime
@@ -145,7 +145,7 @@ class Volunteering extends Entity
                 (!pres('end', $volunteering) || time() < strtotime($volunteering['end']))
             ) {
                 $ctx['id'] = $volunteering['id'];
-                $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
+                $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id'], $volunteering);
                 $atts = $e->getPublic();
 
                 $atts['canmodify'] = $e->canModify($myid);
