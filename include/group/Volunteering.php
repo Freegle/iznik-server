@@ -211,7 +211,7 @@ class Volunteering extends Entity
         # appears, or if we're support/admin.
         #error_log("Check user {$this->volunteering['userid']}, $userid");
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        $canmodify = $this->volunteering['userid'] == $userid || $u->isAdminOrSupport();
+        $canmodify = $this->volunteering['userid'] == $userid || ($u && $u->isAdminOrSupport());
 
         #error_log("Can mod? $canmodify");
         if (!$canmodify) {
