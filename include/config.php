@@ -16,7 +16,8 @@ if (!defined('IZNIK_BASE')) {
 
     define('BROWSERTRACKING', TRUE);
     define('INCLUDE_TEMPLATE_NAME', TRUE);
-    define('SQLLOG', TRUE);
+    define('SQLLOG', FALSE);
+    define('SQLCACHE', FALSE);
     define('EVENTLOG', TRUE);
     define('TWIG_CACHE', '/tmp/twig_cache');
 

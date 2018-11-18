@@ -14,8 +14,6 @@ require_once(IZNIK_BASE . '/include/utils.php');
 # this session.  That means that if we make a modification in our session, we'll see the most up to date data, but
 # otherwise we can use cached data which will be no more than a bit out of date. This is very beneficial for
 # performance since it keeps the many queries local to the application server, and reduces the load on the DB servers.
-# TODO We could cache at a user, group, message level, which would enable us to do more intelligent cache
-# invalidation than this.
 #
 # We use aggregation rather than extension because otherwise we hit issues with PHPUnit, which finds
 # it hard to mock PDOs.
@@ -274,6 +272,11 @@ class LoggedPDO {
         $msg = '';
         $worked = false;
         $start = microtime(true);
+
+        # We can enable/disable our cache.  Generally:
+        # - enable it if we have a bunch of DB operations we've made no particular effort to optimise.
+        # - disable it later when we have optimised DB usage, because this then reduces load on app servers.
+        $usecache = $usecache && SQLCACHE;
 
         do {
             $gotcache = FALSE;
