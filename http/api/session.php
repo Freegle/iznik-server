@@ -26,11 +26,9 @@ function session() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            # Check if we're logged in
-            if (pres('pushcreds', $_REQUEST)) {
-                # This can log us in.  Don't want to use cached information when looking at our own session.
-                $me = whoAmI($dbhm, $dbhm);
-            }
+            # Check if we're logged in.  This will handle persistent sessions, pushcreds, as well as login via
+            # the PHP session.
+            $me = whoAmI($dbhm, $dbhm);
 
             if (pres('id', $_SESSION)) {
                 $components = presdef('components', $_REQUEST, ['all']);
@@ -43,8 +41,6 @@ function session() {
 
                 if (!$components || in_array('me', $components)) {
                     # Don't want to use cached information when looking at our own session.
-                    $me = whoAmI($dbhm, $dbhm);
-
                     $ret['me'] = $me->getPublic();
 
                     # Don't need to return this, and it might be large.
