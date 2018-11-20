@@ -251,10 +251,17 @@ class ChatMessage extends Entity
 
         if (pres('refmsgid', $ret)) {
             # There is a message (in the sense of an item rather than a chat message) attached to this chat message.
+            #
+            # Get full message if promised, to pick up promise details.  perf could be improved here.
             $locationlist = NULL;
             $userlist = NULL;
             $m = new Message($this->dbhr, $this->dbhm , $ret['refmsgid']);
-            $ret['refmsg'] = $m->getPublic(FALSE, FALSE, FALSE, $userlist, $locationlist, $refmsgsummary);
+            $ret['refmsg'] = $m->getPublic(FALSE,
+                FALSE,
+                FALSE,
+                $userlist,
+                $locationlist,
+                $refmsgsummary && $ret['type'] !== ChatMessage::TYPE_PROMISED);
             unset($ret['refmsgid']);
             unset($ret['refmsg']['textbody']);
             unset($ret['refmsg']['htmlbody']);
