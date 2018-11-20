@@ -709,6 +709,12 @@ class Message
         return($locationlist[$locationid]);
     }
 
+    public function promiseCount() {
+        $sql = "SELECT COUNT(*) AS count FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
+        $promises = $this->dbhr->preQuery($sql, [$this->id]);
+        return($promises[0]['count']);
+    }
+
     public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = NULL, $summary = FALSE) {
         # userlist is a way to cache users.  This avoids getting the same users repeatedly, e.g. when used from
         # MessageCollection for ALLUSER messages.

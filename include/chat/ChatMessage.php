@@ -261,7 +261,13 @@ class ChatMessage extends Entity
                 FALSE,
                 $userlist,
                 $locationlist,
-                $refmsgsummary && $ret['type'] !== ChatMessage::TYPE_PROMISED);
+                $refmsgsummary);
+
+            if ($refmsgsummary) {
+                # Also need the promise info, which isn't in the summary.
+                $ret['refmsg']['promisecount'] = $m->promiseCount();
+            }
+
             unset($ret['refmsgid']);
             unset($ret['refmsg']['textbody']);
             unset($ret['refmsg']['htmlbody']);
