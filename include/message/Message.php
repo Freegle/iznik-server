@@ -43,6 +43,8 @@ class Message
 
     const EMAIL_REGEXP = '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i';
 
+    private $replycount = 0;
+
     // Bounce checks.
     private $bounce_subjects = [
         "Unable to deliver your message",
