@@ -645,14 +645,9 @@ WHERE chat_rooms.id IN $idlist;";
         $ret = [];
 
         if ($chatids) {
-            foreach ($chatids as $chatid) {
-                $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-                if ($r->unseenCountForUser($userid) > 0) {
-                    $sql = "SELECT * FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
-                    $msgs = $this->dbhr->preQuery($sql, [$chatid, $userid, $chatid, $userid]);
-                    $ret = array_merge($ret, $msgs);
-                }
-            }
+            $idq = implode(',', $chatids);
+            $sql = "SELECT chat_messages.* FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0);";
+            $ret = $this->dbhr->preQuery($sql, [ $userid, $userid]);
         }
 
         return ($ret);
