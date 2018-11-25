@@ -186,11 +186,22 @@ class groupAPITest extends IznikAPITestCase {
         assertEquals(10, $ret['group']['lat']);
 
         # Valid and invalid polygon
+        $polystr = 'POLYGON((59.58984375 9.102096738726456,54.66796875 -5.0909441750333855,65.7421875 -6.839169626342807,76.2890625 -4.740675384778361,74.8828125 6.4899833326706515,59.58984375 9.102096738726456))';
         $ret = $this->call('group', 'PATCH', [
             'id' => $this->groupid,
-            'poly' => 'POLYGON((59.58984375 9.102096738726456,54.66796875 -5.0909441750333855,65.7421875 -6.839169626342807,76.2890625 -4.740675384778361,74.8828125 6.4899833326706515,59.58984375 9.102096738726456))'
+            'poly' => $polystr
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Check we can see it.
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid,
+            'polygon' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($polystr, $ret['group']['polygon']);
+
+        # Invalid polygon
         $ret = $this->call('group', 'PATCH', [
             'id' => $this->groupid,
             'poly' => 'POLYGON((59.58984375 9.102096738726456,54.66796875 -5.0909441750333855,65.7421875 -6.839169626342807,76.2890625 -4.740675384778361,74.8828125 6.4899833326706515,59.58984375 9.102096738726456)))'

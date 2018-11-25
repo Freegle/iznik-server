@@ -23,7 +23,7 @@ class Group extends Entity
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo', 'publish',
         'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
-        'contactmail', 'fundingtarget', 'affiliationconfirmed', 'mentored');
+        'contactmail', 'fundingtarget', 'affiliationconfirmed', 'mentored', 'privategroup', 'defaultlocation');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -517,7 +517,14 @@ class Group extends Entity
         $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];
         $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
         $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
-        $atts['settings'] = array_replace_recursive($this->defaultSettings, json_decode($atts['settings'], true));
+        $settings = json_decode($atts['settings'], true);
+
+        if ($settings) {
+            $atts['settings'] = array_replace_recursive($this->defaultSettings, $settings);
+        } else {
+            $atts['settings'] = $this->defaultSettings;
+        }
+
         $atts['founded'] = ISODate($this->group['founded']);
 
         foreach (['trial', 'licensed', 'licenseduntil', 'affiliationconfirmed'] as $datefield) {
@@ -539,6 +546,11 @@ class Group extends Entity
         if ($summary) {
             foreach (['settings', 'description', 'welcomemail'] as $att) {
                 unset($atts[$att]);
+            }
+        } else {
+            if (pres('defaultlocation', $atts)) {
+                $l = new Location($this->dbhr, $this->dbhm, $atts['defaultlocation']);
+                $atts['defaultlocation'] = $l->getPublic();
             }
         }
 

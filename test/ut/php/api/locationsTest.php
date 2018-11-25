@@ -148,6 +148,10 @@ class locationsAPITest extends IznikAPITestCase
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
 
+        # Set it to have a default location.
+        $this->group->setPrivate('defaultlocation', $fullpcid);
+        assertEquals($fullpcid, $this->group->getPublic()['defaultlocation']['id']);
+
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Basic test', 'OFFER: Test (TV13 1HH)', $msg);
