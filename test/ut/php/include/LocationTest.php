@@ -229,6 +229,12 @@ class locationTest extends IznikTestCase {
         error_log("Found groups near " . var_export($groups, TRUE));
         assertTrue(in_array($gid, $groups));
 
+        # Shouldn't find unlisted groups
+        $g->setPrivate('listable', 0);
+        $groups = $l->groupsNear(50);
+        error_log("Shouldn't find groups near " . var_export($groups, TRUE));
+        assertFalse(in_array($gid, $groups));
+
         error_log(__METHOD__ . " end");
     }
 }

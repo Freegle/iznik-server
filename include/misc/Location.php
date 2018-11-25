@@ -482,7 +482,7 @@ class Location extends Entity
         # reflects which group you are genuinely closest to.
         #
         # Favour groups hosted by us if there's a tie.
-        $sql = "SELECT id, nameshort, ST_distance(POINT({$this->loc['lng']}, {$this->loc['lat']}), polyindex) AS dist, haversine(lat, lng, {$this->loc['lat']}, {$this->loc['lng']}) AS hav FROM groups WHERE MBRIntersects(polyindex, $box) AND publish = 1 HAVING hav < $radius AND hav IS NOT NULL ORDER BY dist ASC, external ASC LIMIT $limit;";
+        $sql = "SELECT id, nameshort, ST_distance(POINT({$this->loc['lng']}, {$this->loc['lat']}), polyindex) AS dist, haversine(lat, lng, {$this->loc['lat']}, {$this->loc['lng']}) AS hav FROM groups WHERE MBRIntersects(polyindex, $box) AND publish = 1 AND listable = 1 HAVING hav < $radius AND hav IS NOT NULL ORDER BY dist ASC, external ASC LIMIT $limit;";
         #error_log("Find near $sql");
         $groups = $this->dbhr->preQuery($sql);
 
