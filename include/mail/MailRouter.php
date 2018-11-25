@@ -968,6 +968,13 @@ class MailRouter
                                             $ret = MailRouter::APPROVED;
                                         }
                                     }
+                                } else {
+                                    # Not a member.  Reply to let them know.  This is particularly useful to
+                                    # Trash Nothing.
+                                    #
+                                    # This isn't a pretty mail, but it's not a very common case at all.
+                                    $this->mail($fromheader[0]['address'], $to, "Message Rejected", "You posted by email to $to, but you're not a member of that group.");
+                                    $ret = MailRouter::DROPPED;
                                 }
                             }
                         }

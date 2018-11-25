@@ -1587,6 +1587,16 @@ class MailRouterTest extends IznikTestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 0);
 
+        # Post by email when not a member.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        error_log("Mail message $id when not a member");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::DROPPED, $rc);
+
+        # Now subscribe.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1609,7 +1619,6 @@ class MailRouterTest extends IznikTestCase {
         assertEquals($gid, $log['group']['id']);
 
         # Mail - first to pending for new member, noderated by default, then to approved for group settings.
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
