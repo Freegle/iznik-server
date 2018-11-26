@@ -967,7 +967,7 @@ class Group extends Entity
                     # Don't flag it as a primary email otherwise we might override the one we have.
                     $memb['emailid'] = $u->addEmail($memb['email'], 0, FALSE);
 
-                    if (pres('yahooUserId', $memb)) {
+                    if (pres('yahooUserId', $memb) && $u->getPrivate('yahooUserId') != $memb['yahooUserId']) {
                         $u->setPrivate('yahooUserId', $memb['yahooUserId']);
                     }
 
