@@ -156,6 +156,9 @@ function message() {
                                 $m = NULL;
                                 foreach ($drafts as $draft) {
                                     $m = new Message($dbhr, $dbhm, $draft['msgid']);
+
+                                    # Update the arrival time so that it doesn't appear to be expired.
+                                    $m->setPrivate('arrival', date("Y-m-d H:i:s", time()));
                                 }
                             }
 
