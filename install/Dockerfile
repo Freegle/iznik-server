@@ -99,7 +99,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml 
 
 # Install composer dependencies
-RUN apt-get install curl \
+RUN apt-get install -y curl \
 	&& curl --silent --show-error https://getcomposer.org/installer | php \
     && cd composer \
     && php ../composer.phar install \
