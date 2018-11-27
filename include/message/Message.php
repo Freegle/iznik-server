@@ -1690,7 +1690,7 @@ class Message
                     /* @var DOMNodeList $imgs */
                     foreach ($imgs as $img) {
                         $src = $img->getAttribute('src');
-                        error_log("Check image $src");
+
                         if (strpos($src, '/img/') !== FALSE || strpos($src, '/tn-photos/')) {
                             $ctx = stream_context_create(array('http' =>
                                 array(
