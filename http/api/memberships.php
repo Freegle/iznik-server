@@ -163,12 +163,12 @@ function memberships() {
 
                 if ($u && $me && $u->getId() && $me->getId() && $groupid) {
                     $g = Group::get($dbhr, $dbhm, $groupid);
+                    $origrole = $role;
+                    $myrole = $me->getRoleForGroup($groupid);
 
                     if ($userid && $userid != $me->getId()) {
                         # If this isn't us, we can add them, but not as someone with higher permissions than us, and
                         # if we're only a user, we can't add someone else at all.
-                        $origrole = $role;
-                        $myrole = $me->getRoleForGroup($groupid);
                         $role = $myrole == User::ROLE_MEMBER ? User::ROLE_NONMEMBER : $u->roleMin($role, $myrole);
 
                         # ...unless there are no mods at all, in which case this lucky person could become the owner.
@@ -186,6 +186,9 @@ function memberships() {
                         } else {
                             $addtocoll = MembershipCollection::APPROVED;
                         }
+
+                        # But joining shouldn't demote us - we can do that via PATCH.
+                        $role = $me->roleMax($role, $myrole);
                     }
 
                     if ($email) {

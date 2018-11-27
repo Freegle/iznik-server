@@ -303,6 +303,24 @@ class membershipsAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testJoinNotDemote() {
+        error_log(__METHOD__);
+
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
+
+        # Join ourselves - should work
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'userid' => $this->uid,
+            'role' => 'Member'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        assertEquals(User::ROLE_MODERATOR, $this->user->getRoleForGroup($this->groupid));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testSettings() {
         error_log(__METHOD__);
 
