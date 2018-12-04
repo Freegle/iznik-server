@@ -1907,7 +1907,7 @@ WHERE chat_rooms.id IN $idlist;";
             $userid
         ], FALSE, FALSE);
 
-        if (!$force && count($times) > 0 || $times[0]['replytime'] > 30*24*60*60) {
+        if (!$force && count($times) > 0 && $times[0]['replytime'] < 30*24*60*60) {
             $ret = $times[0]['replytime'];
         } else {
             # Calculate typical reply time.
