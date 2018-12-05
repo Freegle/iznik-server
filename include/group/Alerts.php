@@ -52,7 +52,7 @@ class Alert extends Entity
     }
 
     public function getList() {
-        $sql = "SELECT id FROM alerts ORDER BY id DESC LIMIT 10;";
+        $sql = "SELECT id FROM alerts ORDER BY id DESC LIMIT 20;";
         $alerts = $this->dbhr->preQuery($sql);
         $ret = [];
         foreach ($alerts as $alert) {
