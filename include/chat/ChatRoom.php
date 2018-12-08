@@ -1914,10 +1914,12 @@ WHERE chat_rooms.id IN $idlist;";
             $delays = [];
 
             $mysqltime = date("Y-m-d", strtotime("90 days ago"));
-            $msgs = $this->dbhr->preQuery("SELECT chat_messages.id, chat_messages.chatid, chat_messages.date FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.userid = ? AND chat_messages.date > ? AND chat_rooms.chattype = ?;", [
+            $msgs = $this->dbhr->preQuery("SELECT chat_messages.id, chat_messages.chatid, chat_messages.date FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.userid = ? AND chat_messages.date > ? AND chat_rooms.chattype = ? AND chat_messages.type IN (?, ?);", [
                 $userid,
                 $mysqltime,
-                ChatRoom::TYPE_USER2USER
+                ChatRoom::TYPE_USER2USER,
+                ChatMessage::TYPE_INTERESTED,
+                ChatMessage::TYPE_DEFAULT
             ], FALSE, FALSE);
 
             foreach ($msgs as $msg) {
@@ -1931,7 +1933,7 @@ WHERE chat_rooms.id IN $idlist;";
 
                 if (count($lasts) > 0 && $lasts[0]['max']) {
                     $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
-                    #error_log("Last {$lasts[0]['max']} delay $thisdelay");
+                    error_log("Last {$lasts[0]['max']} delay $thisdelay");
                     if ($thisdelay < 30 * 24 * 60 * 60) {
                         # Ignore very large delays - probably dating from a previous interaction.
                         $delays[] = $thisdelay;
