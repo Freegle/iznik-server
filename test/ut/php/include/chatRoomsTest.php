@@ -213,6 +213,50 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testNotifyUser2UserOwn() {
+        error_log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u->setSetting('notifications', [
+            User::NOTIFS_EMAIL_MINE => TRUE
+        ]);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->willReturn(TRUE);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+        error_log("Chat room $id for $u1 <-> $u2");
+        assertNotNull($id);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        error_log("Created chat message $cm");
+
+        # Notify - will email both.
+        error_log("Will email both $u1 and $u2");
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testNotifyAddress() {
         error_log(__METHOD__ );
 

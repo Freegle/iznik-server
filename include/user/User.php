@@ -3958,7 +3958,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ret = $this->activeModForGroup($groupid);
         }
 
-        #error_log("Notifs on for type $type ? $ret from " . var_export($notifs, TRUE));
+        #error_log("Notifs on for user #{$this->id} type $type ? $ret from " . var_export($notifs, TRUE));
         return ($ret);
     }
 

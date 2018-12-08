@@ -174,15 +174,18 @@ class ChatMessage extends Entity
 
             $id = $this->dbhm->lastInsertId();
 
-            # We have ourselves seen this message.
-            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
-                [
-                    $id,
-                    $id,
-                    $chatid,
-                    $userid,
-                    $id
-                ]);
+            # We have ourselves seen this message - unless we're configured to email our own messages, in which
+            # case we want to leave it unseen for the chat digest.
+            if (!$u->notifsOn(User::NOTIFS_EMAIL_MINE)) {
+                $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
+                    [
+                        $id,
+                        $id,
+                        $chatid,
+                        $userid,
+                        $id
+                    ]);
+            }
 
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
             $r->updateMessageCounts();
