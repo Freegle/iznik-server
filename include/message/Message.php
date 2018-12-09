@@ -1164,6 +1164,21 @@ class Message
             }
         }
 
+        if (!$summary && MODTOOLS && $me->isModerator()) {
+            # Return any edit history.
+            $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid = ?;", [
+                $this->id
+            ]);
+
+            foreach ($edits as &$edit) {
+                $edit['timestamp'] = ISODate($edit['timestamp']);
+            }
+
+            if (count($edits)) {
+                $ret['edits'] = $edits;
+            }
+        }
+
         return($ret);
     }
 
