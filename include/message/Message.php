@@ -241,8 +241,41 @@ class Message
         ]);
     }
     
-    public function edit($subject, $textbody, $htmlbody, $type, $item, $location) {
+    public function edit($subject, $textbody, $htmlbody, $type, $item, $location, $attachments) {
         $ret = TRUE;
+
+        # Get old values for edit history.  We put NULL if there is no edit.
+        $oldtext = $textbody ? $this->getPrivate('textbody') : NULL;
+        $oldsubject = ($type || $item || $location) ? $this->getPrivate('subject') : NULL;
+        $oldtype = $type ? $this->getPrivate('type') : NULL;
+        $oldlocation = $location ? $this->getPrivate('locationid') : NULL;
+        $olditems = NULL;
+
+        if ($item) {
+            $olditems = [];
+
+            foreach ($this->getItems() as $olditem) {
+                $olditems[] = intval($olditem['id']);
+            }
+
+            $olditems = json_encode($olditems);
+        }
+
+        $oldatts = $this->dbhr->preQuery("SELECT id FROM messages_attachments WHERE msgid = ? AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;", [
+            $this->id
+        ]);
+
+        $oldattachments = NULL;
+
+        if (count($oldatts)) {
+            $oldattachments = [];
+
+            foreach ($oldatts as $oldatt) {
+                $oldattachments[] = intval($oldatt['id']);
+            }
+
+            $oldattachments = json_encode($oldattachments);
+        }
 
         if ($htmlbody && !$textbody) {
             # In the interests of accessibility, let's create a text version of the HTML
@@ -331,6 +364,28 @@ class Message
             $sql = "UPDATE messages_groups SET yahooapprove = NULL, yahooreject = NULL WHERE msgid = ?;";
             $this->dbhm->preExec($sql, [
                 $this->id
+            ]);
+
+            # Record the edit history.
+            $newitems = $item ? json_encode([ intval($iid) ]) : NULL;
+            $newlocation = $location ? $this->getPrivate('locationid') : NULL;
+
+            $this->dbhm->preExec("INSERT INTO messages_edits (msgid, oldtext, newtext, oldsubject, newsubject, 
+              oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", [
+                $this->id,
+                $oldtext,
+                $textbody,
+                $oldsubject,
+                $subject,
+                $oldtype,
+                $type,
+                $olditems,
+                $newitems,
+                $oldattachments,
+                count($attachments) ? json_encode($attachments) : NULL,
+                $oldlocation,
+                $newlocation
             ]);
         }
 
@@ -3274,7 +3329,7 @@ class Message
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
-        $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
+        $items = $this->getItems();
 
         if (pres('location', $atts) && count($items) > 0) {
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
@@ -3329,6 +3384,10 @@ class Message
     public function addItem($itemid) {
         # Ignore duplicate msgid/itemid.
         $this->dbhm->preExec("INSERT IGNORE INTO messages_items (msgid, itemid) VALUES (?, ?);", [ $this->id, $itemid]);
+    }
+
+    public function getItems() {
+        return($this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]));
     }
 
     public function submit(User $fromuser, $fromemail, $groupid) {
