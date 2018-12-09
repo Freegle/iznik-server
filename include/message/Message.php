@@ -385,7 +385,8 @@ class Message
                 $oldattachments != $newattachments ? $oldattachments : NULL,
                 $oldattachments != $newattachments ? $newattachments : NULL,
                 $oldlocation != $newlocation ? $oldlocation : NULL,
-                $oldlocation != $newlocation ? $newlocation : NULL
+                $oldlocation != $newlocation ? $newlocation : NULL,
+                $me->getId()
             ];
 
             $changes = 0;
@@ -395,10 +396,10 @@ class Message
                 }
             }
 
-            if ($changes > 1) {
+            if ($changes > 2) {
                 $this->dbhm->preExec("INSERT INTO messages_edits (msgid, oldtext, newtext, oldsubject, newsubject, 
-              oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", $data);
+              oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation, byuser) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", $data);
             }
         }
 
@@ -1172,6 +1173,12 @@ class Message
 
             foreach ($edits as &$edit) {
                 $edit['timestamp'] = ISODate($edit['timestamp']);
+
+                if (pres('byuser', $edit)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $edit['byuser']);
+                    $ctx = NULL;
+                    $edit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+                }
             }
 
             if (count($edits)) {
