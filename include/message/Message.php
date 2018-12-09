@@ -245,7 +245,7 @@ class Message
         $ret = TRUE;
 
         # Get old values for edit history.  We put NULL if there is no edit.
-        $oldtext = $textbody ? $this->getPrivate('textbody') : NULL;
+        $oldtext = ($textbody || $htmlbody) ? $this->getPrivate('textbody') : NULL;
         $oldsubject = ($type || $item || $location) ? $this->getPrivate('subject') : NULL;
         $oldtype = $type ? $this->getPrivate('type') : NULL;
         $oldlocation = $location ? $this->getPrivate('locationid') : NULL;
@@ -369,24 +369,37 @@ class Message
             # Record the edit history.
             $newitems = $item ? json_encode([ intval($iid) ]) : NULL;
             $newlocation = $location ? $this->getPrivate('locationid') : NULL;
+            $newsubject = $this->getPrivate('subject');
+            $newattachments = count($attachments) ? json_encode($attachments) : NULL;
 
-            $this->dbhm->preExec("INSERT INTO messages_edits (msgid, oldtext, newtext, oldsubject, newsubject, 
-              oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", [
+            $data = [
                 $this->id,
-                $oldtext,
-                $textbody,
-                $oldsubject,
-                $subject,
-                $oldtype,
-                $type,
-                $olditems,
-                $newitems,
-                $oldattachments,
-                count($attachments) ? json_encode($attachments) : NULL,
-                $oldlocation,
-                $newlocation
-            ]);
+                ($oldtext && $oldtext != $textbody) ? $oldtext : NULL,
+                ($oldtext && $oldtext != $textbody) ? $textbody : NULL,
+                ($oldsubject && $oldsubject != $newsubject) ? $oldsubject : NULL,
+                ($oldsubject && $oldsubject != $newsubject) ? $newsubject : NULL,
+                $oldtype != $type ? $oldtype : NULL,
+                $oldtype != $type ? $type : NULL,
+                $olditems != $newitems ? $olditems : NULL,
+                $olditems != $newitems ? $newitems : NULL,
+                $oldattachments != $newattachments ? $oldattachments : NULL,
+                $oldattachments != $newattachments ? $newattachments : NULL,
+                $oldlocation != $newlocation ? $oldlocation : NULL,
+                $oldlocation != $newlocation ? $newlocation : NULL
+            ];
+
+            $changes = 0;
+            foreach ($data as $d) {
+                if ($d !== NULL) {
+                    $changes++;
+                }
+            }
+
+            if ($changes > 1) {
+                $this->dbhm->preExec("INSERT INTO messages_edits (msgid, oldtext, newtext, oldsubject, newsubject, 
+              oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", $data);
+            }
         }
 
         return($ret);
