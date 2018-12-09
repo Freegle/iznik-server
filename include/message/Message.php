@@ -1165,7 +1165,7 @@ class Message
             }
         }
 
-        if (!$summary && MODTOOLS && $me->isModerator()) {
+        if (!$summary && MODTOOLS && $me && $me->isModerator()) {
             # Return any edit history.
             $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid = ?;", [
                 $this->id
