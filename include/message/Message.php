@@ -2802,6 +2802,12 @@ class Message
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
         # Or this:
+        #
+        # ----- Original Message -----
+        $p = strpos($textbody, '----- Original Message -----');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
+        # Or this:
         # _____
         $p = strpos($textbody, '_____');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
