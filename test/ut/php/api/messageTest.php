@@ -1204,12 +1204,12 @@ class messageAPITest extends IznikAPITestCase
         error_log("After text edit " . var_export($ret, TRUE));
 
         # Check edit history
-        assertEquals('Test edit long', $ret['message']['edits'][0]['oldsubject']);
-        assertEquals('OFFER: Test item (TV1)', $ret['message']['edits'][0]['newsubject']);
-        assertEquals(Message::TYPE_OTHER, $ret['message']['edits'][0]['oldtype']);
-        assertEquals(Message::TYPE_OFFER, $ret['message']['edits'][0]['newtype']);
-        assertEquals('Hey.', $ret['message']['edits'][1]['oldtext']);
-        assertEquals('Test edit', $ret['message']['edits'][1]['newtext']);
+        assertEquals('Test edit long', $ret['message']['edits'][1]['oldsubject']);
+        assertEquals('OFFER: Test item (TV1)', $ret['message']['edits'][1]['newsubject']);
+        assertEquals(Message::TYPE_OTHER, $ret['message']['edits'][1]['oldtype']);
+        assertEquals(Message::TYPE_OFFER, $ret['message']['edits'][1]['newtype']);
+        assertEquals('Hey.', $ret['message']['edits'][0]['oldtext']);
+        assertEquals('Test edit', $ret['message']['edits'][0]['newtext']);
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
