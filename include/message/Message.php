@@ -1166,8 +1166,8 @@ class Message
         }
 
         if (!$summary && MODTOOLS && $me && $me->isModerator()) {
-            # Return any edit history.
-            $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid = ?;", [
+            # Return any edit history, most recent first.
+            $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid = ? ORDER BY id DESC;", [
                 $this->id
             ]);
 
