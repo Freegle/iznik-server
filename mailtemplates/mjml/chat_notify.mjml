@@ -35,7 +35,7 @@
                   <em>You wrote:</em>
                 </mj-text>
                 <mj-text align="right" color="black">
-                  <span style="font-weight: bold">{{ message.message }}</span>
+                  <span style="font-weight: bold">{{ message.message|nl2br }}</span>
                 </mj-text>
                 <mj-raw>
                   {% if message.image is defined and message.image %}
