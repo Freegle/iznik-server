@@ -528,6 +528,10 @@ class Spam {
             if ($spammer['byuserid']) {
                 $u = User::get($this->dbhr, $this->dbhm, $spammer['byuserid']);
                 $spammer['byuser'] = $u->getPublic();
+
+                if ($me->isModerator()) {
+                    $spammer['byuser']['email'] = $u->getEmailPreferred();
+                }
             }
 
             $spammer['added'] = ISODate($spammer['added']);
