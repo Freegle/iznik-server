@@ -19,7 +19,7 @@ require_once(IZNIK_BASE . '/lib/phpcoord.php');
 $opts = getopt('n:t:g:');
 
 if (count($opts) != 3) {
-    echo "Usage: hhvm location_add -n <name> -t <lat> -g <lng>\n";
+    echo "Usage: php location_add -n <name> -t <lat> -g <lng>\n";
 } else {
     $name = presdef('n', $opts, NULL);
     $lat = presdef('t', $opts, NULL);

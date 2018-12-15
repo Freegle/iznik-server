@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 $opts = getopt('i:');
 
 if (count($opts) == 0) {
-    echo "Usage: hhvm prerender.php -i ID\n";
+    echo "Usage: php prerender.php -i ID\n";
 } else {
     $id = presdef('i', $opts, NULL);
     $pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE id = ?;", [$id]);

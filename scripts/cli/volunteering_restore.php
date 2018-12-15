@@ -15,7 +15,7 @@ $dbhback = new LoggedPDO($dsn, SQLUSER, SQLPASSWORD, array(
 $opts = getopt('i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm volunteering_restore.php -i <id to restore>\n";
+    echo "Usage: php volunteering_restore.php -i <id to restore>\n";
 } else {
     $id = $opts['i'];
 

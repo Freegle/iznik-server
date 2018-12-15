@@ -40,7 +40,7 @@ function sendOne($dbhr, $dbhm, $uid, $groupname) {
 }
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_try_newsfeed.php (-i <user ID> or -g <group ID>)\n";
+    echo "Usage: php user_try_newsfeed.php (-i <user ID> or -g <group ID>)\n";
 } else {
     $id = presdef('i', $opts, NULL);
     $gid = presdef('g', $opts, NULL);

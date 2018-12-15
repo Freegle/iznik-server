@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('e:a:r:i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_email.php (-e <email to find> or -i <user id>) (-a <email to add> -r <email to remove>\n";
+    echo "Usage: php user_email.php (-e <email to find> or -i <user id>) (-a <email to add> -r <email to remove>\n";
 } else {
     $uid = presdef('i', $opts, NULL);
     $find = presdef('e', $opts, NULL);

@@ -18,7 +18,7 @@ require_once(IZNIK_BASE . '/include/message/Attachment.php');
 $opts = getopt('d:');
 
 if (count($opts) != 1) {
-    echo "Usage: hhvm newsletter_images -d <folder with images>)\n";
+    echo "Usage: php newsletter_images -d <folder with images>)\n";
 } else {
     $fold = presdef('d', $opts, NULL);
 

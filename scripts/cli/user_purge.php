@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_purge.php -i <user id>\n";
+    echo "Usage: php user_purge.php -i <user id>\n";
 } else {
     $uid = $opts['i'];
 

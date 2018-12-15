@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('g:i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_unsubscribe.php -i <user id> -g <group id>\n";
+    echo "Usage: php user_unsubscribe.php -i <user id> -g <group id>\n";
 } else {
     $uid = $opts['i'];
     $gid = $opts['g'];

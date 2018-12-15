@@ -19,7 +19,7 @@ require_once(IZNIK_BASE . '/lib/phpcoord.php');
 $opts = getopt('d:');
 
 if (count($opts) != 1) {
-    echo "Usage: hhvm codepointopen -d <extracted zip folder>)\n";
+    echo "Usage: php codepointopen -d <extracted zip folder>)\n";
 } else {
     $fold = presdef('d', $opts, NULL);
 

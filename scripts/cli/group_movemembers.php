@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('f:t:');
 
 if (count($opts) < 2) {
-    echo "Usage: hhvm group_movemembers.php -f <shortname of source group> -t <short name of destination group>\n";
+    echo "Usage: php group_movemembers.php -f <shortname of source group> -t <short name of destination group>\n";
 } else {
     $from = $opts['f'];
     $to = $opts['t'];

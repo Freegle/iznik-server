@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 $opts = getopt('i:t:u:g:');
 
 if (count($opts) < 2) {
-    echo "Usage: hhvm user_notify.php (-i <user ID> or -g <group ID>) -t <type> (-u url)\n";
+    echo "Usage: php user_notify.php (-i <user ID> or -g <group ID>) -t <type> (-u url)\n";
 } else {
     $id = presdef('i', $opts, NULL);
     $gid = presdef('g', $opts, NULL);

@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 $opts = getopt('f:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm authorities.php -f <KML file>\n";
+    echo "Usage: php authorities.php -f <KML file>\n";
 } else {
     $kml = simplexml_load_file($opts['f']);
     $g = Group::get($dbhr, $dbhm);

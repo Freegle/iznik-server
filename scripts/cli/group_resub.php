@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('n:i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm group_resub.php -n <shortname of group> <-i user id> \n";
+    echo "Usage: php group_resub.php -n <shortname of group> <-i user id> \n";
 } else {
     $name = $opts['n'];
     $uid = presdef('i', $opts, NULL);

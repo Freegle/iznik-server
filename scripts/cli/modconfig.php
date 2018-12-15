@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 $opts = getopt('a:i:f:');
 
 if (count($opts) < 2) {
-    echo "Usage: hhvm modconfig.php -a (export|import) -i <id to export> -f <input or output file>\n";
+    echo "Usage: php modconfig.php -a (export|import) -i <id to export> -f <input or output file>\n";
 } else {
     $a = $opts['a'];
     $i = presdef('i', $opts, NULL);

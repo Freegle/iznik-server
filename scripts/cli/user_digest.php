@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/mail/Digest.php');
 $opts = getopt('e:g:i:');
 
 if (count($opts) < 3) {
-    echo "Usage: hhvm user_digest.php -e <email> -g <groupid> -i <interval>\n";
+    echo "Usage: php user_digest.php -e <email> -g <groupid> -i <interval>\n";
 } else {
     $email = $opts['e'];
     $gid = intval($opts['g']);

@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/mail/EventDigest.php');
 $opts = getopt('m:v:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm event.php (-m mod -v val)\n";
+    echo "Usage: php event.php (-m mod -v val)\n";
 } else {
     $mod = presdef('m', $opts, 1);
     $val = presdef('v', $opts, 0);

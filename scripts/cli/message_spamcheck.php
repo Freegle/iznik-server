@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/spam/Spam.php');
 $opts = getopt('i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm message_spamcheck.php -i <id of message>\n";
+    echo "Usage: php message_spamcheck.php -i <id of message>\n";
 } else {
     $id = $opts['i'];
     $m = new Message($dbhr, $dbhm, $id);

@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('e:n:a');
 
 if (count($opts) < 2) {
-    echo "Usage: hhvm user_split.php -e <email to split out into separate user> -n <name> -a <allowmerge>\n";
+    echo "Usage: php user_split.php -e <email to split out into separate user> -n <name> -a <allowmerge>\n";
 } else {
     $email = $opts['e'];
     $name = $opts['n'];

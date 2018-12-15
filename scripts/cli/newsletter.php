@@ -23,7 +23,7 @@ require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
 $opts = getopt('e:i:');
 
 if (count($opts) == 0) {
-    echo "Usage: hhvm newsletter <-e <email>> -i <newsletter id>)\n";
+    echo "Usage: php newsletter <-e <email>> -i <newsletter id>)\n";
 } else {
     $email = presdef('e', $opts, NULL);
     $id = presdef('i', $opts, NULL);

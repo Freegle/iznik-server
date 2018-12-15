@@ -19,7 +19,7 @@ require_once(IZNIK_BASE . '/lib/phpcoord.php');
 $opts = getopt('f:');
 
 if (count($opts) != 1) {
-    echo "Usage: hhvm doogal.php -f <CSV file>\n";
+    echo "Usage: php doogal.php -f <CSV file>\n";
 } else {
     $fn = presdef('f', $opts, NULL);
 

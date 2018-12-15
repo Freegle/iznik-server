@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 $opts = getopt('e:g:');
 
 if (count($opts) < 2) {
-    echo "Usage: hhvm user_checkdigest.php -e <email of user> -g <name of group>\n";
+    echo "Usage: php user_checkdigest.php -e <email of user> -g <name of group>\n";
 } else {
     $email = $opts['e'];
     $groupname = $opts['g'];

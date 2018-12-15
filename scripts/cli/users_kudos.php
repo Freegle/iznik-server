@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 $opts = getopt('g:u:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_kudos.php -g <gid> -u 0|1\n";
+    echo "Usage: php user_kudos.php -g <gid> -u 0|1\n";
 } else {
     $gid = $opts['g'];
     $update = $opts['u'];

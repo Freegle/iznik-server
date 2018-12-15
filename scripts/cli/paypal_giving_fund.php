@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('f:');
 
 if (count($opts) != 1) {
-    echo "Usage: hhvm paypal_giving_fund.php -f <CSV file>)\n";
+    echo "Usage: php paypal_giving_fund.php -f <CSV file>)\n";
 } else {
     $fn = presdef('f', $opts, NULL);
     $fh = fopen($fn, 'r');

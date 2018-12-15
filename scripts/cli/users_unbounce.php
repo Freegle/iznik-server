@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('d:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm users_unbounce.php -d <domain>\n";
+    echo "Usage: php users_unbounce.php -d <domain>\n";
 } else {
     $domain = $opts['d'];
 

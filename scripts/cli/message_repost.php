@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 $opts = getopt('i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm message_repost.php -i <id of message>\n";
+    echo "Usage: php message_repost.php -i <id of message>\n";
 } else {
     $id = $opts['i'];
     $m = new Message($dbhr, $dbhm, $id);

@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/mail/Relevant.php');
 $opts = getopt('i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_relevant.php -i <user id>\n";
+    echo "Usage: php user_relevant.php -i <user id>\n";
 } else {
     $id = $opts['i'];
     $r = new Relevant($dbhr, $dbhm);

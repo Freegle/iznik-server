@@ -15,7 +15,7 @@ $dbhback = new LoggedPDO($dsn, SQLUSER, SQLPASSWORD, array(
 $opts = getopt('i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm modconfig_restore.php -i <modconfig id>\n";
+    echo "Usage: php modconfig_restore.php -i <modconfig id>\n";
 } else {
     $id = $opts['i'];
 

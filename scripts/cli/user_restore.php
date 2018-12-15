@@ -23,7 +23,7 @@ $useridkeywords = [
 ];
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_restore.php -e <email to restore>\n";
+    echo "Usage: php user_restore.php -e <email to restore>\n";
 } else {
     $email = $opts['e'];
     $ulive = User::get($dbhr, $dbhm);

@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 $opts = getopt('n:');
 
 if (count($opts) > 1) {
-    echo "Usage: hhvm group_hulls.php (-n <groupname>)\n";
+    echo "Usage: php group_hulls.php (-n <groupname>)\n";
 } else {
     $groupname = presdef('n', $opts, NULL);
     $g = Group::get($dbhr, $dbhm);

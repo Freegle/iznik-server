@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('e:g:r:');
 
 if (count($opts) < 3) {
-    echo "Usage: hhvm user_add_membership.php -e <email of user> -g <name of group> -r <Role>\n";
+    echo "Usage: php user_add_membership.php -e <email of user> -g <name of group> -r <Role>\n";
 } else {
     $email = $opts['e'];
     $name = $opts['g'];

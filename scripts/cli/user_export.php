@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('i:f:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_export -i <id of user> -f <file to export to>\n";
+    echo "Usage: php user_export -i <id of user> -f <file to export to>\n";
 } else {
     $f = $opts['f'];
     $id = intval($opts['i']);

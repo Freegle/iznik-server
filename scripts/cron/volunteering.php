@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/mail/VolunteeringDigest.php');
 $opts = getopt('m:v:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm volunteering.php (-m mod -v val)\n";
+    echo "Usage: php volunteering.php (-m mod -v val)\n";
 } else {
     $mod = presdef('m', $opts, 1);
     $val = presdef('v', $opts, 0);

@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/misc/PAF.php');
 $opts = getopt('i:o:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm paf_load.php -i input PAF CSV filename -o output data CSV file prefix\n";
+    echo "Usage: php paf_load.php -i input PAF CSV filename -o output data CSV file prefix\n";
 } else {
     $p = new PAF($dbhr, $dbhm);
     $p->load($opts['i'], $opts['o']);

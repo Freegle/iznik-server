@@ -125,7 +125,7 @@ function canonEvent($event) {
 }
 
 if (count($opts) < 2) {
-    echo "Usage: hhvm web_graph.php -s <start date/time> -e <end date-time> (-r <route filter> -i <ip address> -o <0 = logged out, 1 = logged in>)\n";
+    echo "Usage: php web_graph.php -s <start date/time> -e <end date-time> (-r <route filter> -i <ip address> -o <0 = logged out, 1 = logged in>)\n";
 } else {
     $starttime = date ("Y-m-d H:i:s", strtotime($opts['s']));
     $endtime = date ("Y-m-d H:i:s", strtotime($opts['e']));

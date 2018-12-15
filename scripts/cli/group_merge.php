@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/misc/Stats.php');
 $opts = getopt('f:t:');
 
 if (count($opts) < 2) {
-    echo "Usage: hhvm group_merge -f <shortname of source group> -t <short name of destination group>\n";
+    echo "Usage: php group_merge -f <shortname of source group> -t <short name of destination group>\n";
 } else {
     $from = $opts['f'];
     $to = $opts['t'];

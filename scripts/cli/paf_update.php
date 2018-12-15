@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/misc/PAF.php');
 $opts = getopt('i:o:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm paf_update.php -i input PAF CSV filename\n";
+    echo "Usage: php paf_update.php -i input PAF CSV filename\n";
 } else {
     $p = new PAF($dbhr, $dbhm);
     $p->update($opts['i']);

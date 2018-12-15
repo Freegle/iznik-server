@@ -9,7 +9,7 @@ date_default_timezone_set('Europe/London');
 $opts = getopt('i:m:v:g:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm digest.php -i <interval> (-m mod -v val) (-g groupid)\n";
+    echo "Usage: php digest.php -i <interval> (-m mod -v val) (-g groupid)\n";
 } else {
     $interval = $opts['i'];
     $mod = presdef('m', $opts, 1);
