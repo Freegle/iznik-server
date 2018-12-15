@@ -511,6 +511,7 @@ class Stats
 
         # Get the weights for the fulfilled requests.
         $avg = $this->dbhr->preQuery("SELECT SUM(popularity * weight) / SUM(popularity) AS average FROM items WHERE weight IS NOT NULL AND weight != 0")[0]['average'];
+        $avd = floatval($avg) ? $avg : 0;
         $stats = $this->dbhm->preQuery("SELECT SUBSTRING(locations.name, 1, LENGTH(locations.name) - 2) AS PartialPostcode, 
                   SUM(COALESCE(weight, $avg)) AS weight FROM pc 
                   INNER JOIN messages ON messages.locationid = pc.locationid
