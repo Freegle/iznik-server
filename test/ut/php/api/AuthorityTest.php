@@ -37,7 +37,7 @@ class authorityAPITest extends IznikAPITestCase
 
     protected function tearDown()
     {
-        $this->dbhm->preExec("DELETE FROM authorities WHERE name LIKE 'UTAuth%';");
+//        $this->dbhm->preExec("DELETE FROM authorities WHERE name LIKE 'UTAuth%';");
         parent::tearDown();
     }
 
@@ -74,6 +74,8 @@ class authorityAPITest extends IznikAPITestCase
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('locationid', $fullpcid);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -82,6 +84,8 @@ class authorityAPITest extends IznikAPITestCase
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('locationid', $fullpcid);
 
         # Add a search.
         $m = new Message($this->dbhr, $this->dbhm);
