@@ -15,7 +15,7 @@ function authority() {
                 $atts = $a->getPublic();
                 if ($stats) {
                     $s = new Stats($dbhr, $dbhm);
-                    $atts['stats'] = $s->getByAuthority($id);
+                    $atts['stats'] = $s->getByAuthority([ $id ]);
                 }
 
                 $ret = [

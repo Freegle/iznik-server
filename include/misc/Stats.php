@@ -557,10 +557,8 @@ class Stats
         return($ret);
     }
 
-    public function getByAuthority($authorityid) {
-        $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS pc; CREATE TEMPORARY TABLE pc AS (SELECT locationid FROM authorities INNER JOIN `locations_spatial` on authorities.id = ? AND st_contains(authorities.polygon, locations_spatial.geometry));", [
-            $authorityid
-        ]);
+    public function getByAuthority($authorityids) {
+        $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS pc; CREATE TEMPORARY TABLE pc AS (SELECT locationid FROM authorities INNER JOIN `locations_spatial` on authorities.id IN (" . implode(',', $authorityids) . ") AND st_contains(authorities.polygon, locations_spatial.geometry));");
 
         return($this->getFromPostcodeTable());
     }

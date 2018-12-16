@@ -10,12 +10,12 @@ require_once IZNIK_BASE . '/include/misc/Stats.php';
 $opts = getopt('i:');
 
 if (count($opts) < 1) {
-    echo "Usage: php authority_stats -i <authority ID>\n";
+    echo "Usage: php authority_stats -i <authority IDs in a CSL>\n";
 } else {
-    $id = $opts['i'];
+    $ids = explode(',', $opts['i']);
 
     $s = new Stats($dbhr, $dbhm);
-    $stats = $s->getByAuthority($id);
+    $stats = $s->getByAuthority($ids);
 
     echo "PartialPostcode, Offers, Wanteds, Searches, Total weight of exchanges (kg)\n";
 
