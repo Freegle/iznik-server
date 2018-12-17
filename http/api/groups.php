@@ -13,10 +13,17 @@ function groups() {
             $support = array_key_exists('support', $_REQUEST) ? filter_var($_REQUEST['support'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
             $ret = [
-                'ret' => 0,
-                'status' => 'Success',
-                'groups' => $g->listByType($grouptype, $support, MODTOOLS)
+                'ret' => 1,
+                'status' => 'Forbidden'
             ];
+
+            if ($grouptype === Group::GROUP_FREEGLE) {
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'groups' => $g->listByType($grouptype, $support, MODTOOLS)
+                ];
+            }
         }
     }
 
