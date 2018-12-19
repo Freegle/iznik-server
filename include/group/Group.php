@@ -116,8 +116,8 @@ class Group extends Entity
                 'messages' => 0
             ], 'duplicates' => [
                 'check' => 1,
-                'offer' => 7,
-                'taken' => 7,
+                'offer' => 14,
+                'taken' => 14,
                 'wanted' => 14,
                 'received' => 14
             ], 'spammers' => [
@@ -134,10 +134,10 @@ class Group extends Entity
                 'WANTED' => 'WANTED',
                 'RECEIVED' => 'RECEIVED'
             ], 'reposts' => [
-                'offer' => 2,
-                'wanted' => 14,
-                'max' => 10,
-                'chaseups' => 2
+                'offer' => 3,
+                'wanted' => 7,
+                'max' => 5,
+                'chaseups' => 5
             ],
             'relevant' => 1,
             'newsfeed' => 1,
