@@ -833,7 +833,7 @@ class Message
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
 
                 # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
-                $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+                $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
                 $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $maxreposts = $repost * $reposts['max'];
                 $expiretime = max($expiretime, $maxreposts);
@@ -860,7 +860,7 @@ class Message
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
 
                 # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
-                $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+                $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
                 $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $maxreposts = $repost * $reposts['max'];
                 $expiretime = max($expiretime, $maxreposts);
@@ -878,7 +878,7 @@ class Message
                     # Can we repost?
                     $ret['canrepost'] = FALSE;
 
-                    $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+                    $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
                     $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                     $arrival = strtotime($group['arrival']);
                     $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
@@ -3819,7 +3819,7 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
-            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+            $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
             # We want approved messages which haven't got an outcome, aren't promised, don't have any replies and
             # which we originally sent.
@@ -3940,7 +3940,7 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
-            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+            $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
             # We want approved messages which haven't got an outcome, i.e. aren't TAKEN/RECEIVED, which don't have
             # some other outcome (e.g. withdrawn), aren't promised, have any replies and which we originally sent.
@@ -3971,6 +3971,7 @@ class Message
                         $lastreply = $replies[0]['latest'];
                         $age = ($now - strtotime($lastreply)) / (60 * 60);
                         $interval = array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2;
+                        error_log("Consider chaseup $age vs $interval");
 
                         if ($interval > 0 && $age > $interval * 24) {
                             # We can chase up.
@@ -4084,7 +4085,7 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+            $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
             $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
 
             if ($group['hoursago'] > $interval * 24) {
@@ -4101,7 +4102,7 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+            $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
             $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
             $interval = max($interval, (array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2) * 24);
 

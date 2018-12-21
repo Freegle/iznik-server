@@ -626,7 +626,7 @@ class messageTest extends IznikTestCase {
 
         # Call when repost not due.  First one should cause a warning only.
         error_log("Expect warning for $id2");
-        $mysqltime = date("Y-m-d H:i:s", strtotime('35 hours ago'));
+        $mysqltime = date("Y-m-d H:i:s", strtotime('59 hours ago'));
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
 
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $gid);
@@ -647,7 +647,7 @@ class messageTest extends IznikTestCase {
 
         # Make the message and warning look longer ago.  Then call - should cause a repost.
         error_log("Expect repost");
-        $mysqltime = date("Y-m-d H:i:s", strtotime('49 hours ago'));
+        $mysqltime = date("Y-m-d H:i:s", strtotime('77 hours ago'));
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
         $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id2 ]);
 
@@ -707,7 +707,7 @@ class messageTest extends IznikTestCase {
         assertEquals(0, $count);
 
         # Make it older.
-        $mysqltime = date("Y-m-d H:i:s", strtotime('96 hours ago'));
+        $mysqltime = date("Y-m-d H:i:s", strtotime('121 hours ago'));
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = ? WHERE msgid = ?;", [
             $mysqltime,
             $mid
