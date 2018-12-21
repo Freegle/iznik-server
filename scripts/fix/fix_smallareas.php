@@ -16,6 +16,7 @@ foreach ($groups as $group) {
     error_log("..." . count($locs) . " locations to check");
 
     $count = 0;
+    $ignored = 0;
 
     foreach ($locs as $loc) {
         try {
@@ -48,6 +49,8 @@ foreach ($groups as $group) {
                                     $loc['id'],
                                     $group['id']
                                 ]);
+
+                                $ignored++;
                             }
                         }
                     }
@@ -59,7 +62,7 @@ foreach ($groups as $group) {
 
         $count++;
         if ($count % 1000 === 0) {
-            error_log("...$count / " . count($locs));
+            error_log("...$count / " . count($locs) . " ignored $ignored");
         }
     }
 }
