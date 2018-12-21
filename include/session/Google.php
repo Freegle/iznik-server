@@ -49,6 +49,12 @@ class Google
         return($this->plus);
     }
 
+    public function getUserDetails($url) {
+        $ret = file_get_contents($url);
+        $userData = json_decode($ret);
+        return($userData);
+    }
+
     function login($code = NULL, $token = NULL)
     {
         $uid = NULL;
@@ -58,9 +64,9 @@ class Google
 
         try {
             $client = $this->getClient();
-            $plus = $this->getPlus();
 
             $this->access_token = $token;
+            error_log("Get client");
 
             if ($code) {
                 $client->authenticate($code);
@@ -68,25 +74,23 @@ class Google
             }
 
             $this->tokens_decoded = json_decode($this->access_token);
-            $me = $plus->people->get("me");
-
-            /** @var Google_Service_Plus_Person $emails */
-            $emails = $me->getEmails();
+            $url = 'https://www.googleapis.com/oauth2/v1/userinfo?access_token=' . $this->tokens_decoded->access_token;
+            $userData = $this->getUserDetails($url);
             $googlemail = NULL;
+            $googleuid  = NULL;
+            $firstname  = NULL;
+            $lastname   = NULL;
+            $fullname   = NULL;
 
-            #error_log("Google signin $code gives " . var_export($emails, TRUE));
-
-            foreach ($emails as $anemail) {
-                if ($anemail->getType() == 'account') {
-                    $googlemail = $anemail->getValue();
-                }
+            if ($userData) {
+                $googleuid  = isset($userData->id) ? $userData->id : NULL;
+                $googlemail = isset($userData->email) ? $userData->email : NULL;
+                $fullname   = isset($user->name) ? $userData->name : NULL;
+                $firstname  = isset($user->given_name) ? $userData->given_name : NULL;
+                $lastname   = isset($user->family_name) ? $userData->family_name : NULL;
             }
 
-            $googleuid = presdef('id', $me, NULL);
             #error_log("Google id " . var_export($googleuid, TRUE));
-            $firstname = NULL;
-            $lastname = NULL;
-            $fullname = $me['displayName'];
 
             # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
             $u = User::get($this->dbhr, $this->dbhm);
@@ -193,6 +197,7 @@ class Google
         } catch (Exception $e) {
             $ret = 2;
             $status = "Didn't manage to get a Google session: " . $e->getMessage();
+            error_log("Didn't get a Google session " . $e->getMessage());
         }
 
         return ([$s, [ 'ret' => $ret, 'status' => $status]]);

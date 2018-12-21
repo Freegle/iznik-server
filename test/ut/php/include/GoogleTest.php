@@ -60,19 +60,19 @@ class GoogleTest extends IznikTestCase {
         # Basic successful login
         $mock = $this->getMockBuilder('Google')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, FALSE])
-            ->setMethods(array('getClient', 'getPlus'))
+            ->setMethods(array('getClient', 'getUserDetails'))
             ->getMock();
 
         $mock->method('getClient')->willReturn($this);
-        $mock->method('getPlus')->willReturn($this);
+        $mock->method('getUserDetails')->willReturn($this);
         $this->people = $this;
 
-        $this->accessToken = '1234';
-        $this->googleId = 1;
-        $this->googleFirstName = 'Test';
-        $this->googleLastName = 'User';
-        $this->googleName = 'Test User';
-        $this->googleEmail = 'test@test.com';
+        $this->accessToken = json_encode([ 'access_token' => '1234' ]);
+        $this->id = 1;
+        $this->given_name = 'Test';
+        $this->family_name = 'User';
+        $this->name = 'Test User';
+        $this->email = 'test@test.com';
 
         list($session, $ret) = $mock->login(1);
         error_log("Returned " . var_export($ret, TRUE));
@@ -87,7 +87,7 @@ class GoogleTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, "Test User2");
         $u->addEmail('test2@test.com');
 
-        $this->googleEmail = 'test2@test.com';
+        $this->email = 'test2@test.com';
         list($session, $ret) = $mock->login(1);
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
