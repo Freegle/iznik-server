@@ -1032,15 +1032,7 @@ class Message
         $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
         # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
-        if ($arrivalago > $expiretime) {
-            # Assume anything this old is no longer available.
-            $ret['outcomes'] = [
-                [
-                    'timestamp' => $ret['arrival'],
-                    'outcome' => Message::OUTCOME_EXPIRED
-                ]
-            ];
-        } else if ($summary) {
+        if ($summary) {
             # We set this when constructing.
             $ret['outcomes'] = $this->outcomes;
         } else {
@@ -1056,6 +1048,25 @@ class Message
                 }
 
                 $outcome['timestamp'] = ISODate($outcome['timestamp']);
+            }
+        }
+
+        if (count($ret['outcomes']) === 0) {
+            # No outcomes - but has it expired?  Need to check the groups though - it might be reposted later, in
+            # which case the time on messages_groups is bumped whereas the message arrival time is the same..
+            foreach ($ret['groups'] as $group) {
+                $grouparrival = strtotime($group['arrival']);
+                $grouparrivalago = floor((time() - $grouparrival) / 86400);
+
+                if ($grouparrivalago > $expiretime) {
+                    # Assume anything this old is no longer available.
+                    $ret['outcomes'] = [
+                        [
+                            'timestamp' => $ret['arrival'],
+                            'outcome' => Message::OUTCOME_EXPIRED
+                        ]
+                    ];
+                }
             }
         }
 

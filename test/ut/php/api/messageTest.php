@@ -2351,9 +2351,20 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
-        # Force it to expire.
-        $m->setPrivate('arrival', date("Y-m-d H:i:s", strtotime("midnight 91 days ago")));
+        # Force it to expire.  First ensure that it's not expired just because it's old.
+        $expired = date("Y-m-d H:i:s", strtotime("midnight 91 days ago"));
+        $m->setPrivate('arrival', $expired);
 
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+        ]);
+
+        assertEquals(0, count($ret['message']['outcomes']));
+
+        # Now expire it on the group by.
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$expired' WHERE msgid = $id;");
+
+        # Should now have expired.
         $ret = $this->call('message', 'GET', [
             'id' => $id,
         ]);
