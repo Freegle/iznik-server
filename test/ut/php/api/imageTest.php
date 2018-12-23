@@ -154,6 +154,12 @@ class imageAPITest extends IznikAPITestCase
             'w' => 100
         ], FALSE);
 
+        $ret = $this->call('image', 'DELETE', [
+            'id' => $id
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
         error_log(__METHOD__ . " end");
     }
 

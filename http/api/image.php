@@ -41,6 +41,8 @@ function image() {
         $type = Attachment::TYPE_MESSAGE;
     }
 
+    $_REQUEST['type'] = pres('typeoverride', $_REQUEST) ? $_REQUEST['typeoverride'] : $_REQUEST['type'];
+
     switch ($_REQUEST['type']) {
         case 'GET': {
             $a = new Attachment($dbhr, $dbhm, $id, $type);
@@ -178,8 +180,16 @@ function image() {
 
                         # Return a new thumbnail (which might be a different orientation).
                         $ret['initialPreview'] =  [
-                            '<img src="' . $a->getPath(TRUE) . '" class="file-preview-image" width="130px">',
+                            '<img src="' . $a->getPath(TRUE) . '" class="file-preview-image img-responsive">',
                         ];
+
+                        $ret['initialPreviewConfig'] = [
+                            [
+                                'key' => $id
+                            ]
+                        ];
+
+                        $ret['append'] = TRUE;
 
                         if ($identify) {
                             $a = new Attachment($dbhr, $dbhm, $id);
@@ -196,6 +206,17 @@ function image() {
                 # Uploader code requires this field.
                 $ret['error'] = $ret['ret'] == 0 ? NULL : $ret['status'];
             }
+
+            break;
+        }
+
+        case 'DELETE': {
+            # This is used by the client bootstrap-fileinput to delete images.  But we don't actually delete them,
+            # in case we need them for debug.  The client will later patch the message to remove them.
+            $ret = [
+                'ret' => 0,
+                'status' => 'Success'
+            ];
 
             break;
         }
