@@ -355,9 +355,9 @@ class Message
             $groups = $this->getGroups(FALSE, FALSE);
 
             foreach ($groups as $group) {
-                error_log("Consider group {$group['collection']} and status " . $me->getMembershipAtt($group['groupid'], 'ourPostingStatus'));
                 # Consider the posting status on this group.  The group might have a setting for moderation; failing
                 # that we use the posting status on the group.
+                #error_log("Consider group {$group['collection']} and status " . $me->getMembershipAtt($group['groupid'], 'ourPostingStatus'));
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
                 $postcoll = $g->getSetting('moderated', 0) ? MessageCollection::PENDING : $me->postToCollection($group['groupid']);
 

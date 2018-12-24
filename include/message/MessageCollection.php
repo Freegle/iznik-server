@@ -12,6 +12,7 @@ class MessageCollection
     const INCOMING = 'Incoming';
     const APPROVED = 'Approved';
     const PENDING = 'Pending';
+    const EDITS = 'Edit';
     const SPAM = 'Spam';
     const DRAFT = 'Draft';
     const QUEUED_YAHOO_USER = 'QueuedYahooUser'; # Awaiting a user on the Yahoo group before it can be sent
@@ -49,6 +50,7 @@ class MessageCollection
         switch ($collection) {
             case MessageCollection::APPROVED:
             case MessageCollection::PENDING:
+            case MessageCollection::EDITS:
             case MessageCollection::SPAM:
             case MessageCollection::DRAFT:
             case MessageCollection::QUEUED_YAHOO_USER:
@@ -78,6 +80,7 @@ class MessageCollection
     {
         do {
             $tofill = [];
+            $me = NULL;
 
             if (in_array(MessageCollection::DRAFT, $this->collection)) {
                 # Draft messages are handled differently, as they're not attached to any group.  Only show
@@ -85,7 +88,7 @@ class MessageCollection
                 $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
                 $oldest = " AND timestamp >= '$mysqltime' ";
 
-                $me = whoAmI($this->dbhr, $this->dbhm);
+                $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
                 $userids = $userids ? $userids : ($me ? [$me->getId()] : NULL);
 
                 $summjoin = $summary ? ", messages.subject, (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
@@ -104,6 +107,33 @@ class MessageCollection
 
             $collection = array_filter($this->collection, function ($val) {
                 return ($val != MessageCollection::DRAFT);
+            });
+
+            if (in_array(MessageCollection::EDITS, $this->collection) && count($groupids)) {
+                # Edit messages are also handled differently.  We want to show any edits which are pending review
+                # for messages on groups which you're a mod on.  Only show recent edits - if they're not reviewed
+                # within a reasonable time then just assume they're ok.
+                $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
+
+                if ($me && $me->isModerator()) {
+                    $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
+
+                    $summjoin = $summary ? ", messages.subject, (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
+                    $groupq = "AND messages_groups.groupid IN (" . implode(',', $groupids) . ") ";
+
+                    $sql = "SELECT messages.id AS id, messages.type AS msgtype, fromuser $summjoin FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid INNER JOIN messages ON messages_groups.msgid = messages.id WHERE messages_edits.timestamp > '$mysqltime' AND messages_edits.reviewrequired = 1 $groupq;";
+                    $tofill2 = $this->dbhr->preQuery($sql);
+
+                    foreach ($tofill2 as &$fill) {
+                        $fill['collection'] = MessageCollection::EDITS;
+                    }
+
+                    $tofill = array_merge($tofill, $tofill2);
+                }
+            }
+
+            $collection = array_filter($collection, function ($val) {
+                return ($val != MessageCollection::EDITS);
             });
 
             if (count($collection) > 0) {
@@ -320,6 +350,7 @@ class MessageCollection
                             break;
                         case MessageCollection::PENDING:
                         case MessageCollection::REJECTED:
+                        case MessageCollection::EDITS:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners
                                 $n = $public;

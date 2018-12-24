@@ -1311,6 +1311,22 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Another text body', $ret['message']['edits'][0]['newtext']);
         assertEquals(TRUE, $ret['message']['edits'][0]['reviewrequired']);
 
+        # This message should also show up in edits.
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $gid,
+            'collection' => MessageCollection::EDITS
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['messages']));
+        assertEquals($mid, $ret['messages'][0]['id']);
+        assertEquals($gid, $ret['messages'][0]['groups'][0]['groupid']);
+
+        # Will have a collection of approved, because it is.
+        assertEquals(MessageCollection::APPROVED, $ret['messages'][0]['groups'][0]['collection']);
+
+        # And will show the edit.
+        assertEquals(1, count($ret['messages'][0]['edits']));
+
         error_log(__METHOD__ . " end");
     }
 
