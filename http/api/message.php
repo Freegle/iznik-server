@@ -529,7 +529,7 @@ function message() {
                             }
                         }
                         break;
-                    case 'RevertEdit':
+                    case 'RevertEdits':
                         $editid = intval(presdef('editid', $_REQUEST, 0));
                         $role = $m->getRoleForMessage()[0];
 
@@ -538,7 +538,7 @@ function message() {
                             $ret = ['ret' => 0, 'status' => 'Success' ];
                         }
                         break;
-                    case 'ApproveEdit':
+                    case 'ApproveEdits':
                         $editid = intval(presdef('editid', $_REQUEST, 0));
                         $role = $m->getRoleForMessage()[0];
 

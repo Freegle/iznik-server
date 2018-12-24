@@ -1338,7 +1338,7 @@ class messageAPITest extends IznikAPITestCase
         # Now approve the edit.
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
-            'action' => 'ApproveEdit',
+            'action' => 'ApproveEdits',
             'editid' => $editid
         ]);
         assertEquals(0, $ret['ret']);
@@ -1354,7 +1354,7 @@ class messageAPITest extends IznikAPITestCase
         # Now revert it.
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
-            'action' => 'RevertEdit',
+            'action' => 'RevertEdits',
             'editid' => $editid
         ]);
         assertEquals(0, $ret['ret']);

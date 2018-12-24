@@ -439,8 +439,11 @@ class Message
     }
 
     public function revertEdit($editid) {
-        $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE id = ?;", [
-            $editid
+        # We revert all outstanding or a specific one
+        $idq = $editid ? " AND id = $editid " : " AND reviewrequired = 1 ";
+
+        $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid = ? $idq ORDER BY id DESC;", [
+            $this->id
         ]);
 
         foreach ($edits as $edit) {
@@ -457,14 +460,16 @@ class Message
             );
 
             $this->dbhm->preExec("UPDATE messages_edits SET reviewrequired = 0, revertedat = NOW() WHERE id = ?;", [
-                $editid
+                $edit['id']
             ]);
         }
     }
 
     public function approveEdit($editid) {
-        $this->dbhm->preExec("UPDATE messages_edits SET reviewrequired = 0, approvedat = NOW() WHERE id = ?;", [
-            $editid
+        # We approve either all outstanding or a specific one.
+        $idq = $editid ? " AND id = $editid " : " AND reviewrequired = 1 ";
+        $this->dbhm->preExec("UPDATE messages_edits SET reviewrequired = 0, approvedat = NOW() WHERE msgid = ? $idq;", [
+            $this->id
         ]);
     }
 

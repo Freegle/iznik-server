@@ -82,6 +82,11 @@ class MessageCollection
             $tofill = [];
             $me = NULL;
 
+            # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
+            # message arrived for the very first time, or when it was reposted.
+            $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
+            $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
+
             if (in_array(MessageCollection::DRAFT, $this->collection)) {
                 # Draft messages are handled differently, as they're not attached to any group.  Only show
                 # recent drafts - if they've not completed within a reasonable time they're probably stuck.
@@ -123,11 +128,20 @@ class MessageCollection
                     $summjoin = $summary ? ", messages.subject, (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
                     $groupq = "AND messages_groups.groupid IN (" . implode(',', $groupids) . ") ";
 
-                    $sql = "SELECT messages.id AS id, messages.type AS msgtype, fromuser $summjoin FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid INNER JOIN messages ON messages_groups.msgid = messages.id WHERE messages_edits.timestamp > '$mysqltime' AND messages_edits.reviewrequired = 1 $groupq;";
+                    $sql = "SELECT messages.id AS id, messages_groups.arrival, messages.type AS msgtype, fromuser $summjoin FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid INNER JOIN messages ON messages_groups.msgid = messages.id WHERE messages_edits.timestamp > '$mysqltime' AND messages_edits.reviewrequired = 1 $groupq AND $dateq;";
                     $tofill2 = $this->dbhr->preQuery($sql);
+
+                    $ctx = ['Date' => NULL, 'id' => PHP_INT_MAX];
 
                     foreach ($tofill2 as &$fill) {
                         $fill['collection'] = MessageCollection::EDITS;
+                        $thisepoch = strtotime($fill['arrival']);
+
+                        if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
+                            $ctx['Date'] = $thisepoch;
+                        }
+
+                        $ctx['id'] = min($fill['id'], $ctx['id']);
                     }
 
                     $tofill = array_merge($tofill, $tofill2);
@@ -140,11 +154,6 @@ class MessageCollection
 
             if (count($collection) > 0) {
                 $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
-
-                # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
-                # message arrived for the very first time, or when it was reposted.
-                $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
-                $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
                 $oldest = '';
 
                 if (in_array(MessageCollection::SPAM, $collection)) {
@@ -169,8 +178,6 @@ class MessageCollection
                 # We might be getting a summary, in which case we want to get lots of information in the same query
                 # for performance reasons.
                 # TODO This doesn't work for messages on multiple groups.
-                $sql = "";
-
                 $summjoin = $summary ? ", messages_groups.msgtype AS type, messages.fromuser, messages.subject, messages.textbody,
                 (SELECT publishconsent FROM users WHERE users.id = messages.fromuser) AS publishconsent, 
                 (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid,
