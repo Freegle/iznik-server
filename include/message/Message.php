@@ -241,7 +241,7 @@ class Message
         ]);
     }
     
-    public function edit($subject, $textbody, $htmlbody, $type, $item, $location, $attachments) {
+    public function edit($subject, $textbody, $htmlbody, $type, $item, $location, $attachments, $checkreview = TRUE) {
         $ret = TRUE;
 
         # Get old values for edit history.  We put NULL if there is no edit.
@@ -296,6 +296,10 @@ class Message
 
         if ($type) {
             $this->setPrivate('type', $type);
+            $this->dbhm->preExec("UPDATE messages_groups SET msgtype = ? WHERE msgid = ?;", [
+                $type,
+                $this->id
+            ]);
         }
 
         if ($item) {
@@ -344,13 +348,13 @@ class Message
             $this->setPrivate('htmlbody', $htmlbody);
         }
 
-        if ($attachments) {
+        if ($attachments !== NULL) {
             $this->replaceAttachments($attachments);
         }
 
         $reviewrequired = FALSE;
 
-        if ($me && $me->getId() === $this->getFromuser()) {
+        if ($me && $me->getId() === $this->getFromuser() && $checkreview) {
             # Edited by the person who posted it.
             $groups = $this->getGroups(FALSE, FALSE);
 
@@ -397,7 +401,7 @@ class Message
             $newitems = $item ? json_encode([ intval($iid) ]) : NULL;
             $newlocation = $location ? $this->getPrivate('locationid') : NULL;
             $newsubject = $this->getPrivate('subject');
-            $newattachments = count($attachments) ? json_encode($attachments) : NULL;
+            $newattachments = $attachments && count($attachments) ? json_encode($attachments) : NULL;
 
             $data = [
                 $this->id,
@@ -432,6 +436,36 @@ class Message
         }
 
         return($ret);
+    }
+
+    public function revertEdit($editid) {
+        $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE id = ?;", [
+            $editid
+        ]);
+
+        foreach ($edits as $edit) {
+            # We just edit it back to what it was.
+            $this->edit(
+                presdef('oldsubject', $edit, NULL),
+                presdef('oldtext', $edit, NULL),
+                NULL,
+                presdef('oldtype', $edit, NULL),
+                pres('olditems', $edit) ? json_decode($edit['olditems'], TRUE)[0] : NULL,
+                presdef('oldlocation', $edit, NULL),
+                pres('oldattachments', $edit) ? json_decode($edit['oldattachments'], TRUE) : NULL,
+                FALSE
+            );
+
+            $this->dbhm->preExec("UPDATE messages_edits SET reviewrequired = 0, revertedat = NOW() WHERE id = ?;", [
+                $editid
+            ]);
+        }
+    }
+
+    public function approveEdit($editid) {
+        $this->dbhm->preExec("UPDATE messages_edits SET reviewrequired = 0, approvedat = NOW() WHERE id = ?;", [
+            $editid
+        ]);
     }
 
     /**

@@ -1326,6 +1326,38 @@ class messageAPITest extends IznikAPITestCase
 
         # And will show the edit.
         assertEquals(1, count($ret['messages'][0]['edits']));
+        $editid = $ret['messages'][0]['edits'][0]['id'];
+
+        # Now approve the edit.
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'ApproveEdit',
+            'editid' => $editid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # No longer showing for review.
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $gid,
+            'collection' => MessageCollection::EDITS
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['messages']));
+
+        # Now revert it.
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'RevertEdit',
+            'editid' => $editid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Should be back as it was.
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+
+        assertEquals('Text body', $ret['message']['textbody']);
 
         error_log(__METHOD__ . " end");
     }

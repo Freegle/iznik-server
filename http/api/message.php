@@ -529,6 +529,24 @@ function message() {
                             }
                         }
                         break;
+                    case 'RevertEdit':
+                        $editid = intval(presdef('editid', $_REQUEST, 0));
+                        $role = $m->getRoleForMessage()[0];
+
+                        if ($editid && ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR)) {
+                            $m->revertEdit($editid);
+                            $ret = ['ret' => 0, 'status' => 'Success' ];
+                        }
+                        break;
+                    case 'ApproveEdit':
+                        $editid = intval(presdef('editid', $_REQUEST, 0));
+                        $role = $m->getRoleForMessage()[0];
+
+                        if ($editid && ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR)) {
+                            $m->approveEdit($editid);
+                            $ret = ['ret' => 0, 'status' => 'Success' ];
+                        }
+                        break;
                 }
             }
 
