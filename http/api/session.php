@@ -181,7 +181,6 @@ function session() {
                                 $ret['work']['pendingvolunteering'] = $v->systemWideCount();
                             }
 
-
                             $s = new Spam($dbhr, $dbhm);
                             $spamcounts = $s->collectionCounts();
                             $ret['work']['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];

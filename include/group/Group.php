@@ -383,6 +383,9 @@ class Group extends Entity
             $earliestmsg = date("Y-m-d", strtotime("Midnight 31 days ago"));
             $eventsqltime = date("Y-m-d H:i:s", time());
 
+            # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
+            #
+            # See also MessageCollection.
             $pendingspamcounts = $this->dbhr->preQuery("SELECT messages_groups.groupid, COUNT(*) AS count, messages_groups.collection, messages.heldby IS NOT NULL AS held FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid IN $groupq AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.deleted IS NULL AND messages.arrival >= '$earliestmsg' GROUP BY messages_groups.groupid, messages_groups.collection, held;", [
                 MessageCollection::PENDING,
                 MessageCollection::SPAM
@@ -403,6 +406,12 @@ class Group extends Entity
                 $eventsqltime
             ]);
 
+            # We only want to show edit reviews upto 7 days old - after that assume they're ok.
+            #
+            # See also MessageCollection.
+            $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
+            $editreviewcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT messages_edits.id) AS count FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid WHERE timestamp > '$mysqltime' AND reviewrequired = 1 AND messages_groups.groupid IN $groupq GROUP BY groupid;");
+
             foreach ($groupids as $groupid) {
                 # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
                 # less prominently in the client.
@@ -412,9 +421,6 @@ class Group extends Entity
                 # TODO Retire showmessages entirely and remove from user configs.
                 $active = array_key_exists('active', $mysettings[$groupid]) ? $mysettings[$groupid]['active'] : (!array_key_exists('showmessages', $mysettings[$groupid]) || $mysettings[$groupid]['showmessages']);
 
-                # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
-                #
-                # See also MessageCollection.
                 $thisone = [
                     'pending' => 0,
                     'pendingother' => 0,
@@ -424,7 +430,8 @@ class Group extends Entity
                     'pendingevents' => 0,
                     'pendingvolunteering' => 0,
                     'spammembers' => 0,
-                    'spammembersother' => 0
+                    'spammembersother' => 0,
+                    'editreview' => 0
                 ];
 
                 if ($active) {
@@ -471,6 +478,12 @@ class Group extends Entity
                     foreach ($pendingvolunteercounts as $count) {
                         if ($count['groupid'] == $groupid) {
                             $thisone['pendingvolunteering'] = $count['count'];
+                        }
+                    }
+
+                    foreach ($editreviewcounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['editreview'] = $count['count'];
                         }
                     }
                 } else {

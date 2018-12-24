@@ -113,6 +113,8 @@ class MessageCollection
                 # Edit messages are also handled differently.  We want to show any edits which are pending review
                 # for messages on groups which you're a mod on.  Only show recent edits - if they're not reviewed
                 # within a reasonable time then just assume they're ok.
+                #
+                # See also Group.
                 $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
 
                 if ($me && $me->isModerator()) {

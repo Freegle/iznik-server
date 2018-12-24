@@ -1328,6 +1328,13 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, count($ret['messages'][0]['edits']));
         $editid = $ret['messages'][0]['edits'][0]['id'];
 
+        # And also in the counts.
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals($gid, $ret['groups'][0]['id']);
+        assertEquals(1, $ret['groups'][0]['work']['editreview']);
+        assertEquals(1, $ret['work']['editreview']);
+
         # Now approve the edit.
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
