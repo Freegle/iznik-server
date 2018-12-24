@@ -1074,7 +1074,7 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
-    public function testEdit()
+    public function testEditAsMod()
     {
         error_log(__METHOD__);
 
@@ -1225,6 +1225,91 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals('Test edit', $ret['message']['htmlbody']);
         self::assertEquals(0, $ret['message']['FOP']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testEditAsMember()
+    {
+        error_log(__METHOD__);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onyahoo', 0);
+
+        # Create member and mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+
+        $modid = $u->create('Test','User', 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod->addMembership($gid, User::ROLE_MODERATOR);
+
+        error_log("Created member $memberid and mod $modid");
+
+        # Submit a message from the member, who will be moderated as new members are.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $gid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        # Now log in as the mod and approve the message.
+        assertTrue($mod->login('testpw'));
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'groupid' => $gid,
+            'action' => 'Approve'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Now log in as the member and edit the message.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'groupid' => $gid,
+            'textbody' => 'Another text body'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Now back as the mod and check the edit history.
+        assertTrue($mod->login('testpw'));
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+
+        # Check edit history.  Edit should show as needing approval.
+        assertEquals('Text body', $ret['message']['edits'][0]['oldtext']);
+        assertEquals('Another text body', $ret['message']['edits'][0]['newtext']);
+        assertEquals(TRUE, $ret['message']['edits'][0]['reviewrequired']);
 
         error_log(__METHOD__ . " end");
     }

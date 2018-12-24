@@ -344,6 +344,33 @@ class Message
             $this->setPrivate('htmlbody', $htmlbody);
         }
 
+        if ($attachments) {
+            $this->replaceAttachments($attachments);
+        }
+
+        $reviewrequired = FALSE;
+
+        if ($me && $me->getId() === $this->getFromuser()) {
+            # Edited by the person who posted it.
+            $groups = $this->getGroups(FALSE, FALSE);
+
+            foreach ($groups as $group) {
+                error_log("Consider group {$group['collection']} and status " . $me->getMembershipAtt($group['groupid'], 'ourPostingStatus'));
+                # Consider the posting status on this group.  The group might have a setting for moderation; failing
+                # that we use the posting status on the group.
+                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                $postcoll = $g->getSetting('moderated', 0) ? MessageCollection::PENDING : $me->postToCollection($group['groupid']);
+
+                if ($group['collection'] === MessageCollection::APPROVED &&
+                    $postcoll === MessageCollection::PENDING) {
+                    # This message is approved, but the member is moderated.  That means the message must previously
+                    # have been approved.  So this edit also needs approval.  We can't move the message back to Pending
+                    # because it might already be getting replies from people.
+                    $reviewrequired = TRUE;
+                }
+            }
+        }
+
         if ($ret) {
             $this->log->log([
                 'type' => Log::TYPE_MESSAGE,
@@ -386,7 +413,8 @@ class Message
                 $oldattachments != $newattachments ? $newattachments : NULL,
                 $oldlocation != $newlocation ? $oldlocation : NULL,
                 $oldlocation != $newlocation ? $newlocation : NULL,
-                $me->getId()
+                $me->getId(),
+                $reviewrequired
             ];
 
             $changes = 0;
@@ -398,8 +426,8 @@ class Message
 
             if ($changes > 2) {
                 $this->dbhm->preExec("INSERT INTO messages_edits (msgid, oldtext, newtext, oldsubject, newsubject, 
-              oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation, byuser) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", $data);
+              oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation, byuser, reviewrequired) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", $data);
             }
         }
 

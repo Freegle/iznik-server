@@ -253,10 +253,6 @@ function message() {
                     if ($fop !== NULL) {
                         $m->setFOP($fop);
                     }
-
-                    if ($attachments) {
-                        $m->replaceAttachments($attachments);
-                    }
                 }
             }
         }
