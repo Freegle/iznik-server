@@ -533,7 +533,7 @@ function message() {
                         $editid = intval(presdef('editid', $_REQUEST, 0));
                         $role = $m->getRoleForMessage()[0];
 
-                        if ($editid && ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR)) {
+                        if ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR) {
                             $m->revertEdit($editid);
                             $ret = ['ret' => 0, 'status' => 'Success' ];
                         }
@@ -542,7 +542,7 @@ function message() {
                         $editid = intval(presdef('editid', $_REQUEST, 0));
                         $role = $m->getRoleForMessage()[0];
 
-                        if ($editid && ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR)) {
+                        if ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR) {
                             $m->approveEdit($editid);
                             $ret = ['ret' => 0, 'status' => 'Success' ];
                         }

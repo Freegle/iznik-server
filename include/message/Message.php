@@ -468,7 +468,9 @@ class Message
     public function approveEdit($editid) {
         # We approve either all outstanding or a specific one.
         $idq = $editid ? " AND id = $editid " : " AND reviewrequired = 1 ";
-        $this->dbhm->preExec("UPDATE messages_edits SET reviewrequired = 0, approvedat = NOW() WHERE msgid = ? $idq;", [
+        $sql = "UPDATE messages_edits SET reviewrequired = 0, approvedat = NOW() WHERE msgid = ? $idq;";
+        error_log("Approve $sql {$this->id}");
+        $this->dbhm->preExec($sql, [
             $this->id
         ]);
     }
