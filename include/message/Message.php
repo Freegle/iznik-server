@@ -240,6 +240,10 @@ class Message
             $fop ? 1 : 0
         ]);
     }
+
+    public function deleteItems() {
+        $this->dbhm->preExec("DELETE FROM messages_items WHERE msgid = ?;", [ $this->id ]);
+    }
     
     public function edit($subject, $textbody, $htmlbody, $type, $item, $location, $attachments, $checkreview = TRUE) {
         $ret = TRUE;
@@ -311,7 +315,7 @@ class Message
 
             if ($iid) {
                 $ret = TRUE;
-                $this->dbhm->preExec("DELETE FROM messages_items WHERE msgid = ?;", [ $this->id ]);
+                $this->deleteItems();
                 $this->addItem($iid);
             }
         }

@@ -182,6 +182,7 @@ function message() {
                                 $item = presdef('item', $_REQUEST, NULL);
                                 $i = new Item($dbhm, $dbhm);
                                 $itemid = $i->create($item);
+                                $m->deleteItems();
                                 $m->addItem($itemid);
 
                                 $fromuser = $me ? $me->getId() : NULL;
