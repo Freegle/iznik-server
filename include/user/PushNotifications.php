@@ -19,8 +19,6 @@ class PushNotifications
     const PUSH_GOOGLE = 'Google';
     const PUSH_FIREFOX = 'Firefox';
     const PUSH_TEST = 'Test';
-    const PUSH_ANDROID = 'Android';
-    const PUSH_IOS = 'IOS';
     const PUSH_FCM_ANDROID = 'FCMAndroid';
     const PUSH_FCM_IOS = 'FCMIOS';
     const APPTYPE_MODTOOLS = 'ModTools';
@@ -233,7 +231,6 @@ class PushNotifications
                 }
                 case PushNotifications::PUSH_GOOGLE:
                 case PushNotifications::PUSH_FIREFOX:
-                case PushNotifications::PUSH_ANDROID:
                     $params = $params ? $params : [];
                     $webPush = new WebPush($params);
                     ##error_log("Send params " . var_export($params, TRUE));
@@ -242,41 +239,6 @@ class PushNotifications
                     }
                     else
                       $rc = TRUE;
-                    break;
-                case PushNotifications::PUSH_IOS:
-                    try {
-                        $deviceToken = $endpoint;
-                        $ctx = stream_context_create();
-                        $certfile = $payload['modtools'] ? '/etc/modtools_push.pem' : '/etc/user_push.pem';
-                        stream_context_set_option($ctx, 'ssl', 'local_cert', $certfile);
-                        $fp = stream_socket_client(
-                            'ssl://gateway.push.apple.com:2195', $err,
-                            $errstr, 60, STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT, $ctx);
-
-                        if ($fp) {
-                            $body['aps'] = [
-                                'alert' => [
-                                    'body' => $payload['title'] . ($payload['message'] ? ": {$payload['message']}" : '')
-                                ],
-                                'badge' => $payload['badge'],
-                                'sound' => 'default',
-//                                'content-available' => "1",  Try not sending this as it may be causing notifications to get dropped.
-                                'chatids' => $payload['chatids']
-                            ];
-
-                            $body['notId'] = microtime();
-
-                            $payload = json_encode($body);
-                            $msg = chr(0) . pack('n', 32) . pack('H*', $deviceToken) . pack('n', strlen($payload)) . $payload;
-                            stream_set_blocking($fp, 0);
-                            $result = fwrite($fp, $msg, strlen($msg));
-                            fclose($fp);
-                            #error_log("IOS Notification for $userid result " . var_export($result, TRUE));
-                        }
-                    } catch (Exception $e) { error_log("Exception " . $e->getMessage()); }
-
-                    $rc = TRUE;
-
                     break;
             }
 
@@ -314,7 +276,7 @@ class PushNotifications
             if ($proceedpush && in_array($notif['type'],
                     [ PushNotifications::PUSH_FIREFOX, PushNotifications::PUSH_GOOGLE ]) ||
                ($proceedapp && in_array($notif['type'],
-                       [ PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS, PushNotifications::PUSH_IOS, PushNotifications::PUSH_ANDROID ] ))) {
+                       [ PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS ] ))) {
                 #error_log("Send user $userid {$notif['subscription']} type {$notif['type']}");
                 $payload = NULL;
                 $proceed = TRUE;
@@ -341,7 +303,6 @@ class PushNotifications
 
                 switch ($notif['type']) {
                     case PushNotifications::PUSH_GOOGLE:
-                    case PushNotifications::PUSH_ANDROID:
                         {
                             $params = [
                                 'GCM' => GOOGLE_PUSH_KEY

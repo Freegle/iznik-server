@@ -48,15 +48,12 @@ class pushNotificationsTest extends IznikTestCase {
         assertEquals(2, count($n->get($id)));
         assertEquals(2, $n->notify($id));
         error_log("Send Android");
-        $n->add($id, PushNotifications::PUSH_ANDROID, 'test3');
-        assertEquals(3, count($n->get($id)));
-        assertEquals(3, $n->notify($id));
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
         error_log("Notify group mods");
         $u->addMembership($this->groupid, User::ROLE_MODERATOR);
-        assertEquals(3, $mock->notifyGroupMods($this->groupid));
+        assertEquals(2, $mock->notifyGroupMods($this->groupid));
 
         $n->remove($id);
         assertEquals([], $n->get($id));
