@@ -265,7 +265,7 @@ class PushNotifications
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $proceedpush = $u->notifsOn(User::NOTIFS_PUSH);
         $proceedapp = $u->notifsOn(User::NOTIFS_APP);
-        #error_log("Notify $userid, on $proceed MT $modtools");
+        #error_log("Notify $userid, push on $proceedpush app on $proceedapp MT $modtools");
 
         $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?;", [
             $userid,
@@ -273,6 +273,7 @@ class PushNotifications
         ]);
 
         foreach ($notifs as $notif) {
+            #error_log("Consider notif {$notif['id']} proceed $proceedpush type {$notif['type']}");
             if ($proceedpush && in_array($notif['type'],
                     [ PushNotifications::PUSH_FIREFOX, PushNotifications::PUSH_GOOGLE ]) ||
                ($proceedapp && in_array($notif['type'],
@@ -312,6 +313,7 @@ class PushNotifications
                 }
 
                 $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
+                #error_log("Queued send {$notif['type']} for $userid");
                 $count++;
             }
         }
