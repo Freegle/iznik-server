@@ -3578,13 +3578,11 @@ class Message
 
             if (count($atts) > 0) {
                 # We have attachments.  Include them as image tags.
-                $txtbody .= "\r\n\r\nYou can see photos here:\r\n\r\n";
-                $htmlbody .= "<p>You can see photos here:</p><table><tbody><tr>";
+                $htmlbody .= "<table><tbody><tr>";
                 $count = 0;
 
                 foreach ($atts as $att) {
                     $path = $att->getPath(FALSE);
-                    $txtbody .= "$path\r\n";
                     $htmlbody .= '<td><a href="' . $path . '" target="_blank"><img width="200px" src="' . $path . '" /></a></td>';
 
                     $count++;
