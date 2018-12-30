@@ -4,7 +4,6 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_ask.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
@@ -241,7 +240,15 @@ class Story extends Entity
                     $asked++;
                     $url = $u->loginLink(USER_SITE, $user['fromuser'], '/stories');
 
-                    $html = story_ask($u->getName(), $u->getEmailPreferred(), $url);
+                    $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/stories');
+                    $twig = new Twig_Environment($loader);
+
+                    $html = $twig->render('ask.html', [
+                        'name' => $u->getName(),
+                        'email' => $u->getEmailPreferred(),
+                        'unsubscribe' => $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", NULL)
+                    ]);
+
                     error_log("..." . $u->getEmailPreferred());
 
                     try {

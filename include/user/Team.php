@@ -4,7 +4,6 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_ask.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');

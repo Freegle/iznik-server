@@ -1,0 +1,60 @@
+<mjml>
+  <mj-head>
+      <mj-style>
+        a {
+          color: #288c0a;
+          text-decoration: none;
+          font-weight: bold
+        }
+        ol {
+          margin-top: 0; margin-bottom: 0;
+          /* margin-left: 2.2em; For Outlook */
+          padding-left: 2.4em; /* For the rest */
+        }
+        li {
+          margin: 0.5em 0;
+        }
+      </mj-style>
+      <mj-attributes>
+        <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
+      </mj-attributes>
+    </mj-head>
+  <mj-body>
+    <mj-container>
+      <mj-wrapper padding="0"  full-width="full-width">
+        <!-- header section -->
+        <mj-section background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+          <mj-group>
+          <mj-column vertical-align="middle" width="65%">
+            <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">Tell us your story!</mj-text>
+          </mj-column>
+          <mj-column vertical-align="middle" width="35%">
+            <mj-image css-class="logo" src="https://www.ilovefreegle.org/images/user_logo.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"/>
+          </mj-column>
+          </mj-group>
+        </mj-section>
+        <mj-section background-color="#F7F6EC">
+          <mj-column>
+            <mj-text>Dear&nbsp;{{ name }}</mj-text>
+            <mj-text>We love to hear why people freegle.  It keeps our volunteers volunteering, and it helps show new freeglers what it's all about.</mj-text>
+            <mj-text>
+              Could you take a few minutes to tell us your story?  If you want to attach a photo, that's
+              good too, but you don't have to.
+            </mj-text>
+            <mj-button align="center" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA" font-family="Helvetica" background-color="#61AE24" color="white">
+              Tell us your story!
+            </mj-button>
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#E0E0E0">
+          <mj-column>
+            <mj-text font-size="9pt" color="#707070">This mail was sent to&nbsp;{{ email }}.  You can unsubscribe by clicking <a href="{{ unsubscribe }}">here</a>.
+              <hr style="border: 0; border-top: 1px solid #AAA; "/>
+              Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+            </mj-text>
+            </mj-column>
+        </mj-section>
+      </mj-wrapper>
+    </mj-container>
+  </mj-body>
+</mjml>
