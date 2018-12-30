@@ -33,6 +33,8 @@ $regions = [];
 $groups = $dbhr->preQuery("SELECT id, region, nameshort FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1;");
 foreach ($groups as $group) {
     echo "<url><loc>$prot" . USER_SITE . "/explore/{$group['nameshort']}</loc><changefreq>hourly</changefreq></url>\n";
+    echo "<url><loc>$prot" . USER_SITE . "/communityevents/{$group['nameshort']}</loc><changefreq>daily</changefreq></url>\n";
+    echo "<url><loc>$prot" . USER_SITE . "/volunteering/{$group['nameshort']}</loc><changefreq>daily</changefreq></url>\n";
     $regions[$group['region']] = TRUE;
 }
 
