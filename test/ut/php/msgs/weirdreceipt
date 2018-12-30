@@ -1,0 +1,82 @@
+From xxx@hotmail.com Sun Dec 30 09:58:52 2018
+Return-path: <xxx@hotmail.com>
+Envelope-to: fbuser.1413063261.497644@direct.ilovefreegle.org
+Received: from mail-oln040092071076.outbound.protection.outlook.com ([40.92.71.76] helo=EUR03-DB5-obe.outbound.protection.outlook.com)
+	by bulk1.ilovefreegle.org with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.90_1)
+	(envelope-from <xxx@hotmail.com>)
+	id 1gdXrw-00047A-IG
+	for fbuser.1413063261.497644@direct.ilovefreegle.org; Sun, 30 Dec 2018 09:58:52 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hotmail.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=IE53/Nrpam92kiBJVgEqUhg2gUwsPAtMTtAl34b97Os=;
+ b=I1u0nHa3G5UJuV0LPjYHADpionaqHO9uITOzaLlQrXX6EYMya4LdBZCjNCtiupDdLsbSSfb8K2vSh6rioACp+OQZyHZNWkmYWDkXrBR7vJAMPV1/0htyfenXYjkzDejaaqO9VFzSKr+U1DZoa9b/xih1/UBIToRQ55zSDRkY4XRIM8dqUFEc2GowsRpvc7d78vi0o4W6rTqALREqcaOcWbLiwucSuXOihjlCXU771vbA2XHjKVk4O51vxitqryGmbXz9yDXosYmvKGqChsLczIc/zc94uI0CTuPng7MIBDvPHYRX1snOVjVTc+3+oQjiuaV7yj4tkvCd88pHknKt6Q==
+Received: from DB5EUR03FT007.eop-EUR03.prod.protection.outlook.com
+ (10.152.20.59) by DB5EUR03HT012.eop-EUR03.prod.protection.outlook.com
+ (10.152.20.173) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.1382.18; Sun, 30 Dec
+ 2018 09:58:51 +0000
+Received: from HE1PR0902MB2073.eurprd09.prod.outlook.com (10.152.20.57) by
+ DB5EUR03FT007.mail.protection.outlook.com (10.152.20.148) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.1382.18 via Frontend Transport; Sun, 30 Dec 2018 09:58:51 +0000
+Received: from HE1PR0902MB2073.eurprd09.prod.outlook.com
+ ([fe80::4842:d683:f23e:eb5f]) by HE1PR0902MB2073.eurprd09.prod.outlook.com
+ ([fe80::4842:d683:f23e:eb5f%2]) with mapi id 15.20.1471.019; Sun, 30 Dec 2018
+ 09:58:51 +0000
+From: bex hayman <xxx@hotmail.com>
+To: Donna Wood <fbuser.1413063261.497644@direct.ilovefreegle.org>
+Subject: Re: Re: [Havant Freegle] OFFERED: Microwave oven (Emsworth)
+Thread-Topic: Re: [Havant Freegle] OFFERED: Microwave oven (Emsworth)
+Thread-Index: AQHUoCZEExclGl6aHU+fgtQt4QKnVw==
+Date: Sun, 30 Dec 2018 09:58:51 +0000
+Message-ID: <HE1PR0902MB20730B1BDD68C7402A4378F8A1B10@HE1PR0902MB2073.eurprd09.prod.outlook.com>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-clientproxiedby: CWLP265CA0379.GBRP265.PROD.OUTLOOK.COM
+ (2603:10a6:401:5e::31) To HE1PR0902MB2073.eurprd09.prod.outlook.com
+ (2603:10a6:7:1e::15)
+x-incomingtopheadermarker: OriginalChecksum:E26083FDA7D45C65951742D5639B4900CFD04F722FE4F1C12CE9FFB3C343E7C5;UpperCasedChecksum:10435A204645B6B078036DE72EA1A6D0E819193ACF33CB69FF374277B1BACD77;SizeAsReceived:7512;Count:49
+x-ms-exchange-messagesentrepresentingtype: 1
+x-tmn: [f7sTkm9hOOtzusoNqg99yHfVVVApPSUg]
+x-ms-publictraffictype: Email
+x-microsoft-exchange-diagnostics: 1;DB5EUR03HT012;6:mS1MTkG99Qj7vS8Vzj7Din3lLfsbj5aVMo/umGSAycZzvqDmI75T4KDHfmocN8sadSm3OrHOqkUQxdA9jIO41Az97r5PTTKwO97nh8DhEI9HjeVhHNuzbhcXkgVxXieDaqhlvNJojC98OPaEW6sB4f9NC9IUZg8rjF1IzsjYGAkyLCKE71er1J4A+LrOxAM2UkM0E6VZQUxpkUFJ5IOioSTdJ54S2M7L4TZO9TrtNe7UETtNbcpk7rzCj+CeO0boRuaa7WYO6Ht2sFK8msocGuIOOEFk/HKEITo2/7yJ0cxbNRrSuegacaX6W/FvvOJF/GRX6BY7eNYRgP4VBol2PM949JZIGT+ZLqu8FjojJsjPP78ArRdsboJKK3fljTn+pKu4z6LL0tUmFcDl1reLRLo2Fey/cN46H7IAQPN+HTQMMHILaF3QNS4TJ2PCpvK9iR3IzGGBL9zaGOz1/mRW9Q==;5:WTZ+2OteoTrYLkJsJJNGtlAIcYP2GfMkCGCe/PtZFT7N3c5SxIc0UcN/7a0KoFqqPY2nx2t4KgR7snn3vzsty1nrdL3DY3GfZvUUNZ9fZ4NPlD1syl9t7cbVI0Ltt2tflnuRKUylsSKKMx8tLi0aB+FCb1MwXsqhQfjOIF/S6eQ=;7:wrmun+Ovhjr3jCRgQqJWRkgu0J24N3OXNf9TsU4XQ/weQGT1prioSwJhjoW6/Xrqg3lgoZKqVSRmyt3XzTmNkHcaMMABUtzJ+LTj2ePVfjq7hYyDEU40lXS4E6QZoAQPfaoY/1RfyvKXoXZqMR+exw==
+x-incomingheadercount: 49
+x-eopattributedmessage: 0
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(20181119063)(201702061078)(5061506573)(5061507331)(1603103135)(2017031320274)(2017031323274)(2017031324274)(2017031322404)(1601125500)(1603101475)(1701031045);SRVR:DB5EUR03HT012;
+x-ms-traffictypediagnostic: DB5EUR03HT012:
+x-exchange-antispam-report-cfa-test: BCL:0;PCL:0;RULEID:(4566010)(82015058);SRVR:DB5EUR03HT012;BCL:0;PCL:0;RULEID:;SRVR:DB5EUR03HT012;
+x-microsoft-antispam-message-info: 3dFeUisWM97rsUbCmdO44RzUH316ZUvSkbLpzTvzDzUVWeiVY39/UMjJW167747Z
+Content-Type: multipart/alternative;
+	boundary="_000_HE1PR0902MB20730B1BDD68C7402A4378F8A1B10HE1PR0902MB2073_"
+MIME-Version: 1.0
+X-OriginatorOrg: hotmail.com
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: b6587b75-6f1a-4db7-b0b6-5cad10ef59a7
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9cdde85a-b3ea-4893-ed65-08d66e3d66a2
+X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: b6587b75-6f1a-4db7-b0b6-5cad10ef59a7
+X-MS-Exchange-CrossTenant-originalarrivaltime: 30 Dec 2018 09:58:51.8362
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Internet
+X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB5EUR03HT012
+
+--_000_HE1PR0902MB20730B1BDD68C7402A4378F8A1B10HE1PR0902MB2073_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+
+RGlzcGxheSBtZXNzYWdlPGh0dHA6Ly9sb2dpbi5zZWN1cmVtYWlsLWxvYWRub3cuaG9zdC81YzI4
+MzBiMDcyMDVhMjJkZmYxZDg4Nzg/M05hSENxMD0mMF9kcmlRLU09X21na25FNDdmTmsmM05hSENx
+MD0jUkFORE9NDV83Iz4NCg0KMTg6NDI6NTYgMjktRGVjZW1iZXItMjAxOCAoRGlyZWN0KQ0K
+
+--_000_HE1PR0902MB20730B1BDD68C7402A4378F8A1B10HE1PR0902MB2073_
+Content-Type: text/html; charset="utf-8"
+Content-ID: <64F9D2CF757D41498BD24CA1C83DAE2E@eurprd09.prod.outlook.com>
+Content-Transfer-Encoding: base64
+
+...Content of size 1532 removed...
+
+--_000_HE1PR0902MB20730B1BDD68C7402A4378F8A1B10HE1PR0902MB2073_--
+

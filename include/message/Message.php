@@ -134,6 +134,10 @@ class Message
         "We respond to emails as quickly as we can",
         "this email address is no longer in use"
     ];
+
+    private $autoreply_text_start = [
+        'Display message'
+    ];
     
     static public function checkType($type) {
         switch($type) {
@@ -4294,6 +4298,14 @@ class Message
         if (!$autoreply) {
             foreach ($this->autoreply_bodies as $body) {
                 if (stripos($this->message, $body) !== FALSE) {
+                    $autoreply = TRUE;
+                }
+            }
+        }
+
+        if (!$autoreply) {
+            foreach ($this->autoreply_text_start as $body) {
+                if (stripos($this->textbody, $body) === 0) {
                     $autoreply = TRUE;
                 }
             }
