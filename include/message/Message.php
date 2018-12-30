@@ -1079,8 +1079,12 @@ class Message
                 $ret['promisecount'] = 0;
             } else {
                 # Can see a count of replies.
-                $sql = "SELECT COUNT(DISTINCT t.userid) AS count FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t;";
-                $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
+                $sql = "SELECT COUNT(DISTINCT t.userid) AS count FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t;";
+                $replies = $this->dbhr->preQuery($sql, [
+                    $this->id,
+                    ChatMessage::TYPE_INTERESTED,
+                    $this->fromuser
+                ]);
                 $ret['replycount'] = $replies[0]['count'];
             }
 
