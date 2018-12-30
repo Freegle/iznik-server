@@ -139,7 +139,9 @@ function message() {
                         $ret = [ 'ret' => 3, 'status' => 'Missing location - client error' ];
 
                         if ($locationid) {
-                            if (!$id) {
+                            # We check the ID on the message object to handle the case where the client passes
+                            # an ID which is not valid on the server.
+                            if (!$m->getID()) {
                                 $id = $m->createDraft();
 
                                 # Use the master to avoid any replication windows.
