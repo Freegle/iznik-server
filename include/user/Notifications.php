@@ -226,6 +226,10 @@ class Notifications
                 $str = '';
                 $twignotifs = [];
 
+                # We try to make the subject more enticing if we can.  End-user content from other users is the
+                # most tantalising.
+                $singletitle = NULL;
+
                 foreach ($notifs as &$notif) {
                     if ((!$unseen || !$notif['seen']) && $notif['type'] != Notifications::TYPE_TRY_FEED) {
                         #error_log("Message is {$notif['newsfeed']['message']} len " . strlen($notif['newsfeed']['message']));
@@ -237,10 +241,12 @@ class Notifications
                         switch ($notif['type']) {
                             case Notifications::TYPE_COMMENT_ON_COMMENT:
                                 $str .= $fromname . " replied to your comment: {$notif['newsfeed']['message']}\n";
+                                $singletitle = $fromname . " replied to " . substr($notif['newsfeed']['message'], 0, 30) . "...";
                                 $count++;
                                 break;
                             case Notifications::TYPE_COMMENT_ON_YOUR_POST:
                                 $str .= $fromname . " commented on your post: {$notif['newsfeed']['message']}\n";
+                                $singletitle = $fromname . " commented on " . substr($notif['newsfeed']['message'], 0, 30) . "...";
                                 $count++;
                                 break;
                             case Notifications::TYPE_LOVED_POST:
@@ -286,8 +292,12 @@ class Notifications
                     error_log("Message prepare failed with " . $e->getMessage());
                 }
 
+                $subj = ($count > 1 || !$singletitle) ?
+                    ("You have " . ($count ? $count : '') . " new notification" . ($count != 1 ? 's' : '')) :
+                    $singletitle;
+
                 $message = Swift_Message::newInstance()
-                    ->setSubject("You have " . ($count ? $count : '') . " new notification" . ($count != 1 ? 's' : ''))
+                    ->setSubject($subj)
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath($u->getBounce())
                     ->setTo([ $u->getEmailPreferred() => $u->getName() ])
