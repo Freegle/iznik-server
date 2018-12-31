@@ -4022,7 +4022,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 # Add in the notifications you see primarily from the newsfeed.
                 if ($notifcount) {
                     $total += $notifcount;
-                    $title = "You have $notifcount notification" . ($notifcount == 1 ? '' : 's');
+                    $ctx = NULL;
+                    $notifs = $n->get($this->id, $ctx);
+                    $title = $n->getNotifTitle($notifs);
                     $route = '/';
                 }
             }

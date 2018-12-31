@@ -1933,7 +1933,7 @@ WHERE chat_rooms.id IN $idlist;";
 
                 if (count($lasts) > 0 && $lasts[0]['max']) {
                     $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
-                    error_log("Last {$lasts[0]['max']} delay $thisdelay");
+                    #error_log("Last {$lasts[0]['max']} delay $thisdelay");
                     if ($thisdelay < 30 * 24 * 60 * 60) {
                         # Ignore very large delays - probably dating from a previous interaction.
                         $delays[] = $thisdelay;

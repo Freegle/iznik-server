@@ -458,11 +458,12 @@ class chatMessagesTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $replyid);
         $atts = $m->getAttachments();
 
-        # Notification payload for recipient.
+        # Notification payload - just usual intro
         $u = new User($this->dbhr, $this->dbhm, $fromuid);
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
+        error_log("Payload $title for $total");
         assertEquals(1, $total);
-        assertEquals("You have 1 notification", $title);
+        assertEquals("Why not introduce yourself to other freeglers?  You'll get a better response.", $title);
 
         # Expect one of these to have been stripped as too small
         self::assertEquals(1, count($atts));

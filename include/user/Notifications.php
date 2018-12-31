@@ -215,20 +215,18 @@ class Notifications
         $total = 0;
 
         foreach ($users as $user) {
-            $count = 0;
             $u = new User($this->dbhr, $this->dbhm, $user['touser']);
             error_log("Consider {$user['touser']} email " . $u->getEmailPreferred());
+
             if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
                 error_log("...send");
                 $ctx = NULL;
                 $notifs = $this->get($user['touser'], $ctx);
 
-                $str = '';
-                $twignotifs = [];
+                $subj = $this->getNotifTitle($notifs, $unseen);
 
-                # We try to make the subject more enticing if we can.  End-user content from other users is the
-                # most tantalising.
-                $singletitle = NULL;
+                # Collect the info we need for the twig template.
+                $twignotifs = [];
 
                 foreach ($notifs as &$notif) {
                     if ((!$unseen || !$notif['seen']) && $notif['type'] != Notifications::TYPE_TRY_FEED) {
@@ -237,43 +235,6 @@ class Notifications
                         $notif['fromname'] = $fromname;
                         $notif['timestamp'] = date("D, jS F g:ia", strtotime($notif['timestamp']));
                         $twignotifs[] = $notif;
-
-                        switch ($notif['type']) {
-                            case Notifications::TYPE_COMMENT_ON_COMMENT:
-                                $str .= $fromname . " replied to your comment: {$notif['newsfeed']['message']}\n";
-                                $singletitle = $fromname . " replied to " . substr($notif['newsfeed']['message'], 0, 30) . "...";
-                                $count++;
-                                break;
-                            case Notifications::TYPE_COMMENT_ON_YOUR_POST:
-                                $str .= $fromname . " commented on your post: {$notif['newsfeed']['message']}\n";
-                                $singletitle = $fromname . " commented on " . substr($notif['newsfeed']['message'], 0, 30) . "...";
-                                $count++;
-                                break;
-                            case Notifications::TYPE_LOVED_POST:
-                                $str .= $fromname . " loved your post '{$notif['newsfeed']['message']}'\n";
-                                $count++;
-                                break;
-                            case Notifications::TYPE_LOVED_COMMENT:
-                                $str .= $fromname . " loved your comment '{$notif['newsfeed']['message']}'\n";
-                                $count++;
-                                break;
-                            case Notifications::TYPE_MEMBERSHIP_PENDING:
-                                $str .= $fromname . " your application to {$notif['url']} requires approval; we'll let you know soon.\n";
-                                $count++;
-                                break;
-                            case Notifications::TYPE_MEMBERSHIP_APPROVED:
-                                $str .= $fromname . " your application to {$notif['url']} was approved; you can now use the community.\n";
-                                $count++;
-                                break;
-                            case Notifications::TYPE_MEMBERSHIP_REJECTED:
-                                $str .= $fromname . " your application to {$notif['url']} was denied.\n";
-                                $count++;
-                                break;
-                            case Notifications::TYPE_ABOUT_ME:
-                                $str .= "Why not introduce yourself to other freeglers by telling us a bit about you?  You'll get a better response and it makes freegling more fun.\n";
-                                $count++;
-                                break;
-                        }
                     }
                 }
 
@@ -291,10 +252,6 @@ class Notifications
                 } catch (Exception $e) {
                     error_log("Message prepare failed with " . $e->getMessage());
                 }
-
-                $subj = ($count > 1 || !$singletitle) ?
-                    ("You have " . ($count ? $count : '') . " new notification" . ($count != 1 ? 's' : '')) :
-                    $singletitle;
 
                 $message = Swift_Message::newInstance()
                     ->setSubject($subj)
@@ -315,10 +272,86 @@ class Notifications
                 list ($transport, $mailer) = getMailer();
                 $this->sendIt($mailer, $message);
 
-                $total += $count;
+                $total += count($twignotifs);
             }
         }
 
         return($total);
+    }
+
+    public function getNotifTitle(&$notifs, $unseen = TRUE) {
+        # We try to make the subject more enticing if we can.  End-user content from other users is the
+        # most tantalising.
+        $title = '';
+        $count = 0;
+
+        foreach ($notifs as &$notif) {
+            if ((!$unseen || !$notif['seen']) && $notif['type'] != Notifications::TYPE_TRY_FEED) {
+                #error_log("Message is {$notif['newsfeed']['message']} len " . strlen($notif['newsfeed']['message']));
+                $fromname = ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone");
+                $notif['fromname'] = $fromname;
+                $notif['timestamp'] = date("D, jS F g:ia", strtotime($notif['timestamp']));
+                $twignotifs[] = $notif;
+                
+                $shortmsg = NULL;
+                
+                if (pres('newsfeed', $notif) && pres('message', $notif['newsfeed'])) {
+                    $notifmsg = $notif['newsfeed']['message'];
+                    $shortmsg = strlen($notifmsg > 30) ? (substr($notifmsg, 0, 30) . "...") : $notifmsg;
+                }
+
+                # We prioritise end-user content because that's more engaging.
+                switch ($notif['type']) {
+                    case Notifications::TYPE_COMMENT_ON_COMMENT:
+                        $title = $fromname . " replied to your comment: $shortmsg";
+                        $count++;
+                        break;
+                    case Notifications::TYPE_COMMENT_ON_YOUR_POST:
+                        $title = $fromname . " commented on your post: $shortmsg";
+                        $count++;
+                        break;
+                    case Notifications::TYPE_LOVED_POST:
+                        if (!$title) {
+                            $title = $fromname . " loved your post '$shortmsg'";
+                        }
+                        $count++;
+                        break;
+                     case Notifications::TYPE_LOVED_COMMENT:
+                         if (!$title) {
+                             $title = $fromname . " loved your comment '$shortmsg'";
+                         }
+                         $count++;
+                         break;
+                    case Notifications::TYPE_MEMBERSHIP_PENDING:
+                        if (!$title) {
+                            $title = $fromname . " your application to {$notif['url']} requires approval; we'll let you know soon.";
+                        }
+                        $count++;
+                        break;
+                    case Notifications::TYPE_MEMBERSHIP_APPROVED:
+                        if (!$title) {
+                            $title = $fromname . " your application to {$notif['url']} was approved; you can now use the community.";
+                        }
+                        $count++;
+                        break;
+                    case Notifications::TYPE_MEMBERSHIP_REJECTED:
+                        if (!$title) {
+                            $title = $fromname . " your application to {$notif['url']} was denied.";
+                        }
+                        $count++;
+                        break;
+                    case Notifications::TYPE_ABOUT_ME:
+                        if (!$title) {
+                            $title = "Why not introduce yourself to other freeglers?  You'll get a better response.";
+                        }
+                        $count++;
+                        break;
+                }
+            }
+        }
+
+        $title = ($count === 1) ? $title : ("$title +" . ($count - 1) . " more...");
+
+        return($title);
     }
 }

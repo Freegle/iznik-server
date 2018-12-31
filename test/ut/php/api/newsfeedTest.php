@@ -193,6 +193,13 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals(2, $ret['count']);
 
+        # Notification payload
+        $u = new User($this->dbhr, $this->dbhm, $this->user->getId());
+        list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
+        error_log("Payload $title for $total");
+        assertEquals(2, $total);
+        assertEquals("Test User loved your post 'Test2 with url https://google.co.uk' +1 more...", $title);
+
         $ret = $this->call('notification', 'GET', []);
         error_log("Notifications " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
@@ -233,7 +240,6 @@ class newsfeedAPITest extends IznikAPITestCase {
                 Newsfeed::TYPE_MESSAGE
             ]
         ]);
-        error_log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(0, count($ret['newsfeed']));
 
@@ -263,7 +269,6 @@ class newsfeedAPITest extends IznikAPITestCase {
                 Newsfeed::TYPE_MESSAGE
             ]
         ]);
-        error_log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
         assertEquals(1, count($ret['newsfeed'][0]['replies']));
