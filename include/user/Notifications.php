@@ -303,11 +303,11 @@ class Notifications
                 # We prioritise end-user content because that's more engaging.
                 switch ($notif['type']) {
                     case Notifications::TYPE_COMMENT_ON_COMMENT:
-                        $title = $fromname . " replied to your comment: $shortmsg";
+                        $title = $fromname . " replied: $shortmsg";
                         $count++;
                         break;
                     case Notifications::TYPE_COMMENT_ON_YOUR_POST:
-                        $title = $fromname . " commented on your post: $shortmsg";
+                        $title = $fromname . " commented: $shortmsg";
                         $count++;
                         break;
                     case Notifications::TYPE_LOVED_POST:
