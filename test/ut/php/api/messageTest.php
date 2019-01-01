@@ -1281,8 +1281,35 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
 
-        # Now log in as the mod and approve the message.
+        # Test the canedit flag
+        assertTrue($member->login('testpw'));
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+        assertEquals(TRUE, $ret['message']['canedit']);
+
+        # Disable edits for moderated members.
+        $settings = json_decode($g->getPrivate('settings'), TRUE);
+        $settings['allowedits'] = [
+            'moderated' => FALSE,
+            'group' => TRUE
+        ] ;
+        $g->setPrivate('settings', json_encode($settings));
+
+        # Shouldn't be allowed to edit now.
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+        assertEquals(FALSE, $ret['message']['canedit']);
+
+        # Should be allowed to edit as mod
         assertTrue($mod->login('testpw'));
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+        assertEquals(TRUE, $ret['message']['canedit']);
+
+        # Now approve
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'groupid' => $gid,

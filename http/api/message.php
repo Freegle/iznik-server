@@ -227,11 +227,10 @@ function message() {
             $ret = ['ret' => 3, 'status' => 'Message does not exist'];
 
             if ($m->getID()) {
-                $role = $m->getRoleForMessage()[0];
+                $atts = $m->getPublic();
 
-                # We might not be logged in - but might still have permissions to modify this message if
-                # we created it.
-                if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR && $id != presdef('lastmessage', $_SESSION, NULL)) {
+                # We might still have permissions to modify this message if we created it in this session..
+                if (!$atts['canedit'] && $id != presdef('lastmessage', $_SESSION, NULL)) {
                     $ret = ['ret' => 2, 'status' => 'Permission denied'];
                 } else {
                     $subject = presdef('subject', $_REQUEST, NULL);

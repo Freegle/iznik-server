@@ -901,6 +901,11 @@ class Message
 
         $ret['mine'] = $myid && $this->fromuser == $myid;
 
+        # If we are a mod with sufficient rights on this message, we can edit it.
+        #
+        # In the non-summary case we may be able to for our own messages, lower down.
+        $ret['canedit'] = $myid && $me->isModerator() && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER);
+
         if ($summary) {
             # Add a very basic copy of the groups which we set up in MessageCollection.
             $ret['groups'] = $this->groups;
@@ -945,6 +950,18 @@ class Message
                 $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $maxreposts = $repost * $reposts['max'];
                 $expiretime = max($expiretime, $maxreposts);
+
+                if (!$ret['canedit'] && $myid === $this->getFromuser()) {
+                    # This is our own message, which we may be able to edit if the group allows it.
+                    $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
+                    $ourPS = $me->getMembershipAtt($group['groupid'], 'ourPostingStatus');
+
+                    if (((!$ourPS || $ourPS === Group::POSTING_MODERATED) && $allowedits['moderated']) ||
+                        ($ourPS === Group::POSTING_DEFAULT && $allowedits['group'])) {
+                        # Yes, we can edit.
+                        $ret['canedit'] = TRUE;
+                    }
+                }
 
                 $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
                 $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);

@@ -111,7 +111,10 @@ class Group extends Entity
             'includearea' => 1,
             'includepc' => 1,
             'moderated' => 0,
-            'allowedits' => 1,
+            'allowedits' => [
+                'moderated' => 1,
+                'group' => 1
+            ],
             'autoapprove' => [
                 'members' => 0,
                 'messages' => 0
