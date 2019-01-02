@@ -330,10 +330,9 @@ class Attachment
         return($items);
     }
 
-    public function ocr() {
+    public function ocr($data = NULL) {
         # Identify text in an attachment using Google Vision API.
-        $data = $this->getData();
-        $base64 = base64_encode($data);
+        $base64 = $data ? $data : base64_encode($this->getData());
 
         $r_json ='{
             "requests": [
@@ -363,14 +362,13 @@ class Attachment
 
         if ($status) {
             $rsp = json_decode($json_response, TRUE);
-            #error_log("Decoded " . var_export($rsp, TRUE));
 
             if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
                 $rsps = $rsp['responses'][0]['textAnnotations'];
 
                 foreach ($rsps as $rsp) {
-                    #error_log($rsp['description']);
                     $text .= $rsp['description'] . "\n";
+                    break;
                 }
             }
         }
