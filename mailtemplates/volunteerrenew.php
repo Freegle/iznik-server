@@ -53,7 +53,7 @@ EOT;
                                                         </td>
                                                         <td class="mobile" align="left" valign="top">
                                                             <h1>Your Volunteer Opportunity on $groupname: $title</h1>
-                                                            <p>Please can you let us know whether this volunteer opportunity is still active?  If we don't hear from you, we'll stop showing it soon.</p>
+                                                            <p>Please can you let us know whether this volunteer opportunity is still active?  If we don't hear from you, we'll stop showing it soon.  Don't forget to log in!</p>
                                                             <table>
                                                                 <tbody>
                                                                     <tr>
