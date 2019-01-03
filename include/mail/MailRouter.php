@@ -1223,7 +1223,9 @@ class MailRouter
             try {
                 $aid2 = $a->create($aid, $ct, $data);
 
-                if ($a->getHash() == '61e4d4a2e4bb8a5d') {
+                $hash = $a->getHash();
+
+                if ($hash == '61e4d4a2e4bb8a5d' || $hash == '61e4d4a2e4bb8a59') {
                     # Images to suppress, e.g. our logo.
                     $a->delete();
                 } else {
