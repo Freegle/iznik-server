@@ -1070,7 +1070,11 @@ class MailRouter
                             # Just drop these.
                             if ($log) { error_log("Misdirected read receipt drop"); }
                             $ret = MailRouter::DROPPED;
-                        } else if (!$this->msg->isBounce()) {
+                        } else if (!$this->msg->isBounce() && !$this->msg->isAutoreply()) {
+                            # Bounces shouldn't get through - might reveal info.
+                            #
+                            # Auto-replies shouldn't get through.  They're used by spammers, and generally the
+                            # content isn't very relevant in our case, e.g. if you're not in the office.
                             $chatid = intval($matches[1]);
                             $userid = intval($matches[2]);
                             $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $userid;");
