@@ -39,6 +39,11 @@ function messages() {
                 } else if ($groupid) {
                     # A group was specified
                     $groups[] = $groupid;
+                } else if ($fromuser) {
+                    # We're searching for messages from a specific user, so skip the group filter.  This
+                    # handles the case where someone joins, posts, leaves, and then can't see their posts
+                    # in My Posts.
+                    $groups = NULL;
                 } else if ($me) {
                     # No group was specified - use the current memberships, if we have any, excluding those that our
                     # preferences say shouldn't be in.
@@ -53,15 +58,8 @@ function messages() {
                     }
 
                     if (count($groups) == 0) {
-                        if ($fromuser) {
-                            # We're searching for messages from a specific user, so skip the group filter.  This
-                            # handles the case where someone joins, posts, leaves, and then can't see their posts
-                            # in My Posts.
-                            $groups = NULL;
-                        } else {
-                            # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
-                            $groups[] = 0;
-                        }
+                        # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
+                        $groups[] = 0;
                     }
                 }
             }
@@ -93,7 +91,13 @@ function messages() {
                     switch ($subaction) {
                         case NULL:
                             # Just a normal fetch.
-                            list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $collection == MessageCollection::ALLUSER ? MessageCollection::OWNPOSTS: NULL, $hasoutcome, $summary);
+                            if ($collection === MessageCollection::ALLUSER) {
+                                $age = MessageCollection::OWNPOSTS;
+                            } else {
+                                $age = pres('age', $_REQUEST) ? intval(presdef('age', $_REQUEST, 0)) : NULL;
+                            }
+
+                            list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $age, $hasoutcome, $summary);
                             break;
                         case 'search':
                         case 'searchmess':

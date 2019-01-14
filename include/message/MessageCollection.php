@@ -194,6 +194,7 @@ class MessageCollection
                 # - access as few tables as we need to
                 # - use multicolumn indexes
                 $collectionq = " AND collection IN ('" . implode("','", $collection) . "') ";
+
                 if ($userids) {
                     # We only query on a small set of userids, so it's more efficient to get the list of messages from them
                     # first.

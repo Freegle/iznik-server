@@ -1592,7 +1592,8 @@ class User extends Entity
     {
         # Extra user info.
         $ret = [];
-        $start = date('Y-m-d', strtotime("90 days ago"));
+        $ret['openage'] = 90;
+        $start = date('Y-m-d', strtotime("{$ret['openage']} days ago"));
 
         // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
         $replies = $this->dbhr->preQuery("SELECT COUNT(DISTINCT refmsgid) AS count FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND type = ?;", [
@@ -1603,19 +1604,29 @@ class User extends Entity
 
         $ret['replies'] = $replies[0]['count'];
 
-        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, type FROM messages WHERE fromuser = ? AND arrival > ? GROUP BY type;", [
+        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE fromuser = ? AND arrival > ? GROUP BY messages.type, messages_outcomes.outcome;", [
             $this->id,
             $start
         ], FALSE, FALSE);
 
         $ret['offers'] = 0;
         $ret['wanteds'] = 0;
+        $ret['openoffers'] = 0;
+        $ret['openwanteds'] = 0;
 
         foreach ($counts as $count) {
             if ($count['type'] == Message::TYPE_OFFER) {
-                $ret['offers'] = $count['count'];
+                $ret['offers'] += $count['count'];
+
+                if (!pres('outcome', $count)) {
+                    $ret['openoffers'] += $count['count'];
+                }
             } else if ($count['type'] == Message::TYPE_WANTED) {
-                $ret['wanteds'] = $count['count'];
+                $ret['wanteds'] += $count['count'];
+
+                if (!pres('outcome', $count)) {
+                    $ret['openwanteds'] += $count['count'];
+                }
             }
         }
 
