@@ -312,13 +312,13 @@ class Notifications
                         break;
                     case Notifications::TYPE_LOVED_POST:
                         if (!$title) {
-                            $title = $fromname . " loved your post '$shortmsg'";
+                            $title = $fromname . " loved your post " . ($shortmsg ? "'$shortmsg'" : '');
                         }
                         $count++;
                         break;
                      case Notifications::TYPE_LOVED_COMMENT:
                          if (!$title) {
-                             $title = $fromname . " loved your comment '$shortmsg'";
+                             $title = $fromname . " loved your comment " . ($shortmsg ? "'$shortmsg'" : '');
                          }
                          $count++;
                          break;
