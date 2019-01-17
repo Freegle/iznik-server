@@ -36,7 +36,7 @@ if (count($opts) < 1) {
         error_log($group['nameshort']);
         $g = Group::get($dbhr, $dbhm, $group['id']);
         $settings = $g->getPublic()['settings'];
-        if ($settings['communityevents']) {
+        if ($settings['volunteering']) {
             $total += $e->send($group['id']);
         }
     }
