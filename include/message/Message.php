@@ -136,7 +136,8 @@ class Message
     ];
 
     private $autoreply_text_start = [
-        'Display message'
+        'Display message',
+        'Display trusted message'
     ];
     
     static public function checkType($type) {
