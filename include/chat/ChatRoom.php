@@ -708,7 +708,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $userid
             ]);
 
-            $mysqltime = date("Y-m-d", strtotime("31 days ago"));
+            $activesince = date("Y-m-d", strtotime("31 days ago"));
 
             # We don't want to see non-empty chats where all the messages are held for review, because they are likely to
             # be spam.
@@ -731,7 +731,7 @@ WHERE chat_rooms.id IN $idlist;";
                 # If we're on ModTools then we want User2Mod chats for our group.
                 #
                 # If we're on the user site then we only want User2Mod chats where we are a user.
-                $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" :
+                $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$activesince' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" :
                     "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
                 #error_log("List for user, $sql modtools $modtools");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
@@ -742,7 +742,7 @@ WHERE chat_rooms.id IN $idlist;";
                 # We want chats where we are one of the users.  If the chat is closed or blocked we don't want to see
                 # it unless we're on MT.
                 $statusq = $modtools ? '' : "AND (status IS NULL OR status NOT IN ('Closed', 'Blocked'))";
-                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' $statusq $countq;";
+                $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (latestmessage >= '$activesince' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' $statusq $countq;";
                 #error_log("User chats $sql, $userid");
                 $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid, $userid]));
                 #error_log("Add " . count($rooms) . " user to user chats using $sql");
@@ -798,7 +798,6 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function filterCanSee($userid, $chatids)
     {
-        $ret = [];
         $rooms = $this->listForUser($userid, [
             ChatRoom::TYPE_GROUP,
             ChatRoom::TYPE_MOD2MOD,
