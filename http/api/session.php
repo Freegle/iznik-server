@@ -39,7 +39,7 @@ function session() {
 
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'myid' => presdef('id', $_SESSION, NULL) ];
 
-                if (!$components || in_array('me', $components)) {
+                if (!$components || (gettype($components) == 'array' && in_array('me', $components))) {
                     # Don't want to use cached information when looking at our own session.
                     $ret['me'] = $me->getPublic();
 
