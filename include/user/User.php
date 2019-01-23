@@ -5402,4 +5402,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         return($rateds);
     }
+
+    public function getActiveSince($since) {
+        $mysqltime = date("Y-m-d H:i:s", strtotime($since));
+        $ids = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ?;", [
+            $mysqltime
+        ], FALSE, FALSE);
+
+        return(count($ids) ? array_column($ids, 'id') : []);
+    }
 }

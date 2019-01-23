@@ -362,4 +362,16 @@ class Notifications
 
         return($title);
     }
+
+    public function haveSent($uid, $type, $since) {
+        $mysqltime = date("Y-m-d H:i:s", strtotime($since));
+        $notifs = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_notifications WHERE touser = ? AND type = ? AND timestamp >= ?;", [
+            $uid,
+            $type,
+            $mysqltime
+        ], FALSE, FALSE);
+
+        $count = $notifs[0]['count'];
+        return($count > 0);
+    }
 }

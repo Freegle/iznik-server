@@ -1298,5 +1298,22 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testActiveSince() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $this->dbhm->preExec("UPDATE users SET lastaccess = NOW() WHERE id = ?;", [
+            $uid
+        ]);
+
+        $ids = $u->getActiveSince('5 minutes ago');
+        error_log("Got " . count($ids) . " active, look for $uid");
+        assertTrue(in_array($uid, $ids));
+
+        error_log(__METHOD__ . " end");
+    }
+
 }
 

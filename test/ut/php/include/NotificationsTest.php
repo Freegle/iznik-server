@@ -106,6 +106,8 @@ class notificationsTest extends IznikTestCase {
         error_log("Reply $rid2");
 
         $n->add($uid1, $uid2, Notifications::TYPE_LOVED_COMMENT, $rid);
+        assertTrue($n->haveSent($uid2, Notifications::TYPE_LOVED_COMMENT, '24 hours ago'));
+
 //        $n->add($uid2, $uid1, Notifications::TYPE_COMMENT_ON_YOUR_POST, $nid);
 //        $n->add($uid1, $uid2, Notifications::TYPE_COMMENT_ON_COMMENT, $rid);
 
