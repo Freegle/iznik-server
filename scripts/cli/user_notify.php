@@ -7,19 +7,23 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 
-$opts = getopt('i:t:u:g:');
+$opts = getopt('i:t:u:g:l:x:');
 
 if (count($opts) < 2) {
-    echo "Usage: php user_notify.php (-i <user ID> or -g <group ID>) -t <type> (-u url)\n";
+    echo "Usage: php user_notify.php (-i <user ID> or -g <group ID>) -t <type> (-u url) (-l title -x text)\n";
 } else {
     $id = presdef('i', $opts, NULL);
     $gid = presdef('g', $opts, NULL);
     $type = $opts['t'];
     $url = presdef('u', $opts, NULL);
+    $title = presdef('l', $opts, NULL);
+    $text = presdef('x', $opts, NULL);
+
     $n = new Notifications($dbhr, $dbhm);
 
     if ($id) {
-        $n->add(NULL, $id, $type, NULL, NULL, $url);
+        $added = $n->add(NULL, $id, $type, NULL, NULL, $url, $title, $text);
+        error_log("Added #$added");
     } else if ($gid) {
         if ($gid == -1) {
             $membs = $dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid IN (SELECT id FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1) AND collection = ?;", [
@@ -64,7 +68,7 @@ if (count($opts) < 2) {
 
             if ($send) {
                 error_log($u->getEmailPreferred() . "...send");
-                $n->add(NULL, $memb['userid'], $type, NULL, NULL, $url);
+                $n->add(NULL, $memb['userid'], $type, NULL, NULL, $url, $title, $title);
                 $sendcount++;
             } else {
                 error_log($u->getEmailPreferred() . "..skip");

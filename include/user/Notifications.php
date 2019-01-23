@@ -18,6 +18,7 @@ class Notifications
     const TYPE_MEMBERSHIP_APPROVED = 'MembershipApproved';
     const TYPE_MEMBERSHIP_REJECTED = 'MembershipRejected';
     const TYPE_ABOUT_ME = 'AboutMe';
+    const TYPE_EXHORT = 'Exhort';
 
     private $dbhr, $dbhm, $log;
 
@@ -121,7 +122,7 @@ class Notifications
         return($ret);
     }
 
-    public function add($from, $to, $type, $newsfeedid, $newsfeedthreadid = NULL, $url = NULL) {
+    public function add($from, $to, $type, $newsfeedid, $newsfeedthreadid = NULL, $url = NULL, $title = NULL, $text = NULL) {
         $id = NULL;
 
         if ($from != $to) {
@@ -129,8 +130,8 @@ class Notifications
 
             # For newsfeed items, ensure we don't notify if we've unfollowed.
             if (!$newsfeedthreadid || !$n->unfollowed($to, $newsfeedthreadid)){
-                $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`, `url`) VALUES (?, ?, ?, ?, ?);";
-                $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid, $url ]);
+                $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`, `url`, `title`, `text`) VALUES (?, ?, ?, ?, ?, ?, ?);";
+                $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid, $url, $title, $text ]);
                 $id = $this->dbhm->lastInsertId();
 
                 $p = new PushNotifications($this->dbhr, $this->dbhm);
@@ -207,9 +208,10 @@ class Notifications
         $mysqltime = date("Y-m-d H:i:s", strtotime($before));
         $mysqltime2 = date("Y-m-d H:i:s", strtotime($since));
         $seenq = $unseen ? " AND seen = 0 ": '';
-        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq AND `type` != ? $userq;";
+        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq AND `type` NOT IN (?, ?) $userq;";
         $users = $this->dbhr->preQuery($sql, [
-            Notifications::TYPE_TRY_FEED
+            Notifications::TYPE_TRY_FEED,
+            Notifications::TYPE_EXHORT
         ]);
 
         $total = 0;
@@ -343,6 +345,12 @@ class Notifications
                     case Notifications::TYPE_ABOUT_ME:
                         if (!$title) {
                             $title = "Why not introduce yourself to other freeglers?  You'll get a better response.";
+                        }
+                        $count++;
+                        break;
+                    case Notifications::TYPE_EXHORT:
+                        if (!$title) {
+                            $title = $notif['title'];
                         }
                         $count++;
                         break;
