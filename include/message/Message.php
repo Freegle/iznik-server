@@ -566,7 +566,7 @@ class Message
     ];
 
     public $internalAtts = [
-        'publishconsent', 'itemid', 'itemname'
+        'publishconsent', 'itemid', 'itemname', 'lat', 'lng'
     ];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $atts = NULL)
@@ -924,6 +924,18 @@ class Message
                 $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $maxreposts = $repost * $reposts['max'];
                 $expiretime = max($expiretime, $maxreposts);
+
+                if (!$ret['canedit'] && $myid && $myid === $this->getFromuser()) {
+                    # This is our own message, which we may be able to edit if the group allows it.
+                    $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
+                    $ourPS = $me->getMembershipAtt($group['groupid'], 'ourPostingStatus');
+
+                    if (((!$ourPS || $ourPS === Group::POSTING_MODERATED) && $allowedits['moderated']) ||
+                        ($ourPS === Group::POSTING_DEFAULT && $allowedits['group'])) {
+                        # Yes, we can edit.
+                        $ret['canedit'] = TRUE;
+                    }
+                }
             }
         } else {
             # Add any groups that this message is on.
