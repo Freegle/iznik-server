@@ -164,7 +164,7 @@ function memberships() {
                 if ($u && $me && $u->getId() && $me->getId() && $groupid) {
                     $g = Group::get($dbhr, $dbhm, $groupid);
                     $origrole = $role;
-                    $myrole = $me->getRoleForGroup($groupid);
+                    $myrole = $me->getRoleForGroup($groupid, FALSE);
 
                     if ($userid && $userid != $me->getId()) {
                         # If this isn't us, we can add them, but not as someone with higher permissions than us, and
