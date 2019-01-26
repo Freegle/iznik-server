@@ -1198,6 +1198,9 @@ WHERE chat_rooms.id IN $idlist;";
 
         $lastmsg = NULL;
         $lastref = NULL;
+
+        /** @var ChatMessage $lastm */
+        $lastm   = NULL;
         $ctx = NULL;
 
         foreach ($msgs as $msg) {
@@ -1205,8 +1208,19 @@ WHERE chat_rooms.id IN $idlist;";
             $atts = $m->getPublic($refmsgsummary);
             $refmsgid = $m->getPrivate('refmsgid');
 
-            # We can get duplicate messages for a variety of reasons; suppress.
+            if ($lastm &&
+                ($lastm->getPrivate('type') == ChatMessage::TYPE_SCHEDULE_UPDATED ||
+                    $lastm->getPrivate('type') == ChatMessage::TYPE_SCHEDULE) &&
+                ($m->getPrivate('type') == ChatMessage::TYPE_SCHEDULE_UPDATED ||
+                    $m->getPrivate('type') == ChatMessage::TYPE_SCHEDULE)) {
+                # Duplicate schedule updates are common as people tweak them; remove the previous one, so that
+                # we retain the latest dated one.  The contents will be the same as it will point to the same
+                # schedule, but we want the date.
+                array_pop($ret);
+            }
+
             if (!$lastmsg || $atts['message'] != $lastmsg || $lastref != $refmsgid) {
+                # We can get duplicate messages for a variety of reasons; suppress.
                 $lastmsg = $atts['message'];
                 $lastref = $refmsgid;
 
@@ -1262,6 +1276,8 @@ WHERE chat_rooms.id IN $idlist;";
                     $ctx['id'] = pres('id', $ctx) ? min($ctx['id'], $msg['id']) : $msg['id'];
                 }
             }
+
+            $lastm = $m;
         }
 
         return ([$ret, $users]);
