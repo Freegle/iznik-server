@@ -925,7 +925,7 @@ class Message
                 $maxreposts = $repost * $reposts['max'];
                 $expiretime = max($expiretime, $maxreposts);
 
-                if (!$ret['canedit'] && $myid && $myid === $this->getFromuser()) {
+                if (!$ret['canedit'] && $myid && $myid === $this->getFromuser() && $this->getSource() == Message::PLATFORM) {
                     # This is our own message, which we may be able to edit if the group allows it.
                     $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
                     $ourPS = $me->getMembershipAtt($group['groupid'], 'ourPostingStatus');
@@ -964,7 +964,7 @@ class Message
                 $maxreposts = $repost * $reposts['max'];
                 $expiretime = max($expiretime, $maxreposts);
 
-                if (!$ret['canedit'] && $myid && $myid === $this->getFromuser()) {
+                if (!$ret['canedit'] && $myid && $myid === $this->getFromuser() && $this->getSource() == Message::PLATFORM) {
                     # This is our own message, which we may be able to edit if the group allows it.
                     $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
                     $ourPS = $me->getMembershipAtt($group['groupid'], 'ourPostingStatus');
