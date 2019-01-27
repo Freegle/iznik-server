@@ -2257,8 +2257,6 @@ class Message
                 if ($this->groupid) {
                     # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
                     # given the perf cost of a transaction.
-                    $this->groups[] = $this->groupid;
-
                     $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby,arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
                         $this->id,
                         $this->groupid,
@@ -2345,8 +2343,8 @@ class Message
                 $ret[] = $justids ? $group['groupid'] : $group;
             }
 
-            if ($justids) {
-                # Save ids for next time.
+            if (!$justids) {
+                # Save groups for next time
                 $this->groups = $groups;
             }
         } else {
@@ -2788,8 +2786,6 @@ class Message
                 #error_log("Not on group, add to $collection");
 
                 if ($collection) {
-                    $this->groups[] = $this->groupid;
-
                     $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby, arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
                         $msg['id'],
                         $this->groupid,
@@ -3527,8 +3523,6 @@ class Message
         $this->setPrivate('fromuser', $fromuser->getId());
 
         # If this message is already on this group, that's fine.
-        $this->groups[] = $groupid;
-
         $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection, arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
             $this->id,
             $groupid,
