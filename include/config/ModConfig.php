@@ -433,4 +433,15 @@ class ModConfig extends Entity
 
         return($rc);
     }
+
+    public function getUsing() {
+        $usings = $this->dbhr->preQuery("SELECT userid, firstname, lastname, fullname FROM users INNER JOIN memberships m on users.id = m.userid WHERE m.configid = ? AND m.role IN (?, ?) LIMIT 10;", [
+            $this->id,
+            User::ROLE_OWNER,
+            User::ROLE_MODERATOR
+        ]);
+
+        error_log("Found using " . count($usings));
+        return($usings);
+    }
 }
