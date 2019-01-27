@@ -1,0 +1,800 @@
+# We use genre expansion.  This means that if you search for sofa, you're likely to see other results for furniture.
+
+"cat    => cat,pet",
+"kitten => kitten,cat,pet",
+"dog    => dog,pet"
+"puppy  => puppy,dog,pet"
+
+"sofa => sofa, couch, settee, furniture"
+"bike => bike, bicycle, cycle"
+"tv" => "television"
+bike
+tv
+bed
+wardrobe
+table
+desk
+chest of drawers
+washing machine
+double bed
+chair
+fridge
+fridge freezer
+wood
+sofa bed
+garden
+garden furniture
+freezer
+carpet
+furniture
+single bed
+coffee table
+dining table
+shed
+microwave
+laptop
+cooker
+computer
+rug
+garden shed
+drawers
+mirror
+paving slabs
+curtains
+boxes
+table and chairs
+paint
+shelves
+hoover
+bookcase
+electric cooker
+plants
+tumble dryer
+flat screen tv
+corner sofa
+bedroom furniture
+chairs
+moving boxes
+greenhouse
+baby items
+piano
+tv stand
+sewing machine
+baby
+ladies bike
+toys
+exercise bike
+lamp
+fish tank
+printer
+kitchen units
+computer desk
+car
+book case
+cupboard
+kitchen
+mattress
+storage
+lawn mower
+dressing table
+mountain bike
+double mattress
+office chair
+2 seater sofa
+tent
+tools
+vacuum cleaner
+clothes
+double bed and mattress
+sideboard
+garden tools
+3 seater sofa
+television
+bicycle
+door
+bunk beds
+bricks
+tv unit
+mobile phone
+double bed frame
+cardboard boxes
+slabs
+plant pots
+chest freezer
+guitar
+cabinet
+ikea
+pc
+books
+double wardrobe
+king size bed frame
+dishwasher
+armchair
+gas cooker
+shelf
+dining chairs
+stair gate
+single mattress
+filing cabinet
+car seat
+cot
+garden bench
+beds
+dog
+water butt
+plant
+fabric
+dining table and 4 chairs
+bedside cabinet
+pallets
+tiles
+clothes rail
+bedside table
+computer monitor
+oven
+phone
+speakers
+trampoline
+wooden pallets
+kitchen items
+packing boxes
+pram
+dvd player
+weights
+monitor
+chest of draws
+camera
+wheelchair
+box
+shelving unit
+buggy
+wool
+keyboard
+lego
+lawnmower
+cat
+shelving
+bench
+rabbit hutch
+camping
+microwave oven
+flooring
+book shelf
+kitchen worktop
+bikes
+pushchair
+christmas tree
+kettle
+sofas
+paving
+fridge/freezer
+free
+office desk
+top soil
+laminate flooring
+stool
+caravan
+gazebo
+settee
+storage boxes
+suitcase
+wardrobes
+timber
+camping equipment
+exercise equipment
+doors
+bunk bed
+pine chest of drawers
+dog cage
+garden table
+shoe rack
+fish
+arm chair
+fence panels
+book shelves
+light
+undercounter fridge
+rugs
+high chair
+ladder
+household items
+soil
+cardboard packing boxes
+unit
+wallpaper
+treadmill
+bed frame
+floor lamp
+cd player
+display cabinet
+fish tank/aquarium
+bathroom cabinet
+toaster
+fence
+radio
+sink
+curtain pole
+bath
+pallet
+chest
+dryer
+sewing
+compost bin
+single bed frame
+sofabed
+dog bed
+draws
+wheelbarrow
+scooter
+computer chair
+stereo
+couch
+king size mattress
+plastic storage boxes
+dvd
+bubble wrap
+book
+single wardrobe
+shoes
+king size bed
+blinds
+dog crate
+lino
+bbq
+games
+large rug
+vacuum
+dresser
+desktop computer
+concrete paving slabs
+logs
+futon
+glass
+washer
+insulation
+iron
+side table
+gravel
+fire surround
+vinyl records
+worktop
+baby car seat
+freeview box
+knitting wool
+leather sofa
+patio slabs
+bread maker
+duvet
+window
+bedding
+mobility scooter
+exercise
+slow cooker
+cat scratching post
+baby clothes
+strimmer
+cushions
+jars
+objets d'art
+craft
+internal door
+fire
+dish washer
+slide
+xbox
+jam jars
+trailer
+electric fire
+exercise weights
+garden decking
+baby gate
+full length mirror
+gate
+children's toys
+pots
+bean bag
+craft items
+drill
+material
+christmas
+condenser tumble dryer
+garden chairs
+desktop pc
+record player
+plywood
+decking
+ironing board
+wood burner
+pond
+cage
+child car seat
+bathroom
+rocking chair
+coffee machine
+scaffold boards
+baby stair gate
+chicken coop
+compost
+kids
+greenhouse glass
+radiator
+drawer
+wooden pallet
+bedside
+curtain
+sand
+electric oven
+shelf unit
+carpets
+clothes airer
+tablet
+push chair
+fire wood
+internal doors
+roofing felt
+upright piano
+hamster cage
+house plants
+single bed and mattress
+boxes for moving
+travel cot
+bin
+baby monitor
+xbox 360
+speaker
+dyson
+electric sewing machine
+concrete slabs
+cot bed
+sky box
+stone
+toy
+heater
+coat hangers
+garden table & chairs
+windows
+boys clothes
+ladies bicycle
+music
+rabbit
+hutch
+christmas decorations
+plates
+pine
+railway sleepers
+tree
+wall unit
+small fridge
+bar stool
+floor tiles
+food processor
+kids toys
+3 piece suite
+smart phone
+swing
+manure
+bar stools
+carpet offcuts
+lights
+vinyl
+emulsion paint
+rowing machine
+nest of tables
+picture frames
+chicken wire
+fishing tackle
+toilet
+wooden sideboard
+bird cage
+double bed base
+hifi
+work bench
+baby bath
+car boot items
+ikea malm chest of drawers
+small chest freezer
+bedside tables
+chicken
+carpet cleaner
+free view box
+vintage
+glass jars
+blender
+cat carrier
+bookshelf
+desk chair
+tables
+fishing
+dolls house
+garden shredder
+upright hoover
+wooden
+baby walker
+records
+garden plant pots
+mower
+coffee
+tumble drier
+pine wardrobe
+toddler bed
+coat stand
+cross trainer
+stones
+pc monitor
+wheel barrow
+gym
+shower
+cd
+folding table
+saw
+art
+lamps
+petrol lawnmower
+bag
+standard lamp
+wii
+baby high chair
+blind
+fire guard
+large mirror
+boots
+breeze blocks
+double bed with mattress
+ps3
+rockery stones
+wooden garden furniture
+bike rack
+matress
+office swivel chair
+wooden coffee table
+gym equipment
+boat
+pictures
+welsh dresser
+woodworking tools
+ikea billy bookcase
+fishing gear
+bedroom
+external door and frame
+pram / pushchair
+step ladder
+dressing table mirror
+bosch washing machine
+dvds
+fan
+headboard
+hedge trimmer
+tool
+board games
+food
+pressure washer
+ps4
+cabin bed
+foot stool
+frame
+magazines
+kitchen sink
+large garden shed
+work top
+kitchen utensils
+ladies clothes
+double sofa bed
+iphone
+metal
+floor
+garden plants
+moses basket
+paving flags
+kayak
+mens bike
+stroller
+thing
+electric heater
+router
+aquarium
+dyson hoover
+gents mountain bike
+playstation
+basket
+oak
+small chest of drawers
+wall tiles
+boxes for moving house
+digital camera
+kids bike
+turf
+camping stove
+girls clothes
+carpet/rugs
+tandem bike
+electronic keyboard
+stereo amplifier
+clock
+fabric scraps
+tv cabinet
+roof box
+trolley
+acoustic guitar
+camping gear
+game
+recliner chair
+kids slide
+rabbit run
+green house
+horse manure
+vhs
+freestanding electric cooker
+garden hose
+rabbit hutch and runs
+amp
+electric guitar
+pans
+paper shredder
+scrap metal
+table lamp
+cars
+children's books
+firewood
+old wood
+portable tv
+tank
+wheel chair
+office
+roof felt
+futon sofa bed
+golf clubs
+garage
+paving slab
+2 drawer filing cabinet
+dinner plates
+piano stool
+shredder
+baby toys
+pond plants
+anything
+cardboard
+dyson vacuum cleaner
+games consoles and games
+kitchen table
+lamp shade
+photo frames
+pot
+drum kit
+hardcore
+roof tiles
+parasol
+patio
+petrol mower
+sleeping bag
+small computer desk
+three piece suite
+amplifier
+dehumidifier
+double buggy
+projector
+house
+mini fridge
+mirrors
+pair of curtains
+picture
+scanner
+planter
+radiator cover
+bureau
+gardening tools
+gas bottle
+hangers
+leather sofas
+carpet underlay
+ceiling light
+leather
+play pen
+small table
+apples
+boys bike
+excercise bike
+foam
+guinea pig hutch
+large fish tank
+loft insulation
+single beds
+washing
+fence post
+men's mountain bike
+rubble
+canoe
+girls bike
+steam iron
+telephone
+wicker basket
+concrete blocks
+wooden bunk beds
+external door
+laminate
+wedding
+weights and barbell
+double duvet
+double headboard
+golf
+house bricks
+indoor rabbit cage
+ladies shoes
+metal detector
+net curtains
+roof bars
+coat
+crockery
+mountain bikes
+nintendo wii
+pet
+slimline dishwasher
+console
+crate
+garden storage
+mannequin
+rocks
+slab
+blanket box
+condenser dryer
+cutlery
+house plant
+bedside cabinets
+car battery
+chainsaw
+children's garden toys
+fencing
+fitness equipment
+gents bicycle
+knitting
+sky
+xbox 360 games
+barbecue
+child safety gate
+christmas lights
+cycle
+plastic plant pots
+pressure cooker
+storage unit
+brick
+day bed
+garden compost bin
+hi-fi separates
+flag stones
+flat screen computer monitor
+footstool
+a washing machine
+calor gas heater
+computer/office chair
+small fish tank
+stair carpet
+drum
+freeview
+paddling pool
+screen
+electric kettle
+grass
+hi fi
+hose
+musical instruments
+ps2
+suite
+underlay
+garden table and chairs
+pets
+phones
+sky+ hd box
+cordless phone
+electric treadmill
+paper
+petrol strimmer
+video
+juicer
+play house
+computer keyboard
+flower pots
+dinner set
+wine rack
+car trailer
+cds
+dinning table
+double matress
+garden toys
+plastic storage drawers
+towels
+gas
+kitchen base units
+saucepans
+single bed base
+tool box
+blanket
+coffee maker
+curtain rail
+offers
+ottoman
+shed roof felt
+shoe
+apple
+cushion
+stairgate
+summer house
+board
+cd rack
+children
+electric drill
+garden chair
+ladies mountain bike
+living room furniture
+vase
+wedding dress
+weight
+baby girl clothes
+canvas
+garden ornaments
+jam jars with lids
+kitchen cupboard
+playhouse
+puppy
+sex
+wedding decorations
+dining table and chairs
+drop leaf dining table
+glass jars with lids
+high sleeper bed
+jewellery
+mobile
+concrete
+metal shelving
+pet carrier
+pool
+roof
+vhs player
+climbing frame
+cups
+freeview set top box
+kitchen units and worktops
+pipe
+punch bag
+retro
+shower screen
+slate
+filing
+fireplace
+hand held vacuum cleaner
+motorbike
+pool table
+rucksack
+seat
+guitar amplifier
+video player
+wheel
+bird
+candles
+electric
+gas bbq
+guttering
+ladders
+large suitcase
+side board
+home brew equipment
+music stand
+soft toys
+surround sound system
+under counter feeezer
+various items
+womens clothes
+booster seat
+carpet tiles
+glass tv stand
+glasses
+three seater sofa
+building materials
+clay plant pots
+double bedding
+kids scooter
+water
+2 & 3 seater sofas
+belfast sink
+plaster board
+rack
+recliner
+small shed
