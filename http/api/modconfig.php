@@ -19,6 +19,8 @@ function modconfig() {
                     'config' => $c->getPublic(TRUE, TRUE)
                 ];
 
+                $ret['config']['using'] = $c->getUsing();
+
                 break;
             }
 
