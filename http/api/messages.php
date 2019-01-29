@@ -93,6 +93,9 @@ function messages() {
                             # Just a normal fetch.
                             if ($collection === MessageCollection::ALLUSER) {
                                 $age = MessageCollection::OWNPOSTS;
+
+                                # Always want all data for own posts no matter what the client says.
+                                $summary = FALSE;
                             } else {
                                 $age = pres('age', $_REQUEST) ? intval(presdef('age', $_REQUEST, 0)) : NULL;
                             }
