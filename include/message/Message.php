@@ -137,6 +137,7 @@ class Message
 
     private $autoreply_text_start = [
         'Display message',
+        'Display this message',
         'Display trusted message'
     ];
     
