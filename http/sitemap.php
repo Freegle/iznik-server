@@ -18,7 +18,8 @@ $tops = [
     'privacy' => 0.1,
     'donate' => 0.3,
     'contact' => 0.5,
-    'why' => 0.5
+    'why' => 0.5,
+    'councils' => 0.7
 ];
 
 $prot = pres('HTTPS', $_SERVER) ? 'https://' : 'http://';
