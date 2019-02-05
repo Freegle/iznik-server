@@ -76,7 +76,9 @@ function group() {
                 }
 
                 if (presdef('polygon', $_REQUEST, FALSE)) {
-                    $ret['group']['polygon'] =  $g->getPrivate('poly') ? $g->getPrivate('poly') : $g->getPrivate('polyofficial');
+                    $ret['group']['cga'] = $g->getPrivate('polyofficial');
+                    $ret['group']['dpa'] = $g->getPrivate('poly');
+                    $ret['group']['polygon'] = $ret['group']['dpa'] ? $ret['group']['dpa'] : $ret['group']['cga'];
                 }
 
                 if ($showmods) {
