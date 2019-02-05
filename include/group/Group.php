@@ -1454,7 +1454,7 @@ class Group extends Entity
         $suppfields = $support ? ", lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
-        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, mentored, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, mentored, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
 
@@ -1467,28 +1467,37 @@ class Group extends Entity
             ]);
         }
 
-        foreach ($groups as &$group) {
-            $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-            $group['profile'] = $group['profile'] ? $a->getPath(FALSE, $group['attid']) : NULL;
+        $lastid = NULL;
+        $ret = [];
 
-            if ($group['contactmail']) {
-                $group['modsmail'] = $group['contactmail'];
-            } else if ($group['onyahoo']) {
-                $group['modsmail'] = $group['nameshort'] . "-owner@yahoogroups.com";
-            } else {
-                $group['modsmail'] = $group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
-            }
+        foreach ($groups as $group) {
+            if (!$lastid || $lastid != $group['id']) {
+                $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+                $group['profile'] = $group['profile'] ? $a->getPath(FALSE, $group['attid']) : NULL;
 
-            if ($support) {
-                foreach ($approves as $approve) {
-                    if ($approve['groupid'] === $group['id']) {
-                        $group['recentautoapproves'] = $approve['count'];
+                if ($group['contactmail']) {
+                    $group['modsmail'] = $group['contactmail'];
+                } else if ($group['onyahoo']) {
+                    $group['modsmail'] = $group['nameshort'] . "-owner@yahoogroups.com";
+                } else {
+                    $group['modsmail'] = $group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
+                }
+
+                if ($support) {
+                    foreach ($approves as $approve) {
+                        if ($approve['groupid'] === $group['id']) {
+                            $group['recentautoapproves'] = $approve['count'];
+                        }
                     }
                 }
+
+                $ret[] = $group;
             }
+
+            $lastid = $group['id'];
         }
 
-        return($groups);
+        return($ret);
     }
 
     public function moveToNative() {
