@@ -80,7 +80,9 @@ class Bounce
                             if (preg_match('/^Original-Recipient:.*;(.*)$/im', $bounce['msg'], $matches)) {
                                 $email = trim($matches[1]);
 
-                                list ($eid, $ueid) = $u->getIdForEmail($email);
+                                $r = $u->getIdForEmail($email);
+                                $eid = $r ? $r['id'] : NULL;
+                                $ueid = $r ? $r['userid'] : NULL;
 
                                 if ($uid === $ueid) {
                                     # This email belongs to the claimed user.
