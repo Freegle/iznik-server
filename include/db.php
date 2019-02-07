@@ -184,7 +184,10 @@ class LoggedPDO {
 
         do {
             try {
-                $this->_db = new PDO($dsn, $username, $password, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"));
+                $this->_db = new PDO($dsn, $username, $password, [
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                ]);
                 $gotit = TRUE;
             } catch (Exception $e) {
                 error_log("DB connect exception " . $e->getMessage());

@@ -50,15 +50,7 @@ function presdef($key, $arr, $def) {
 }
 
 function filterResult(&$array, $skip = NULL) {
-    # PDO can return numeric indices, which we don't want to pass out.  We also want to ensure that we have the
-    # correct data types - for example PDO returns floats as strings.
-    $allnumeric = true;
-    foreach ($array as $key=>$var) {
-        if (!is_int($key) && !is_numeric($key)) {
-            $allnumeric = false;
-        }
-    }
-
+    # We want to ensure that we have the correct data types - for example PDO returns floats as strings.
     foreach($array as $key => $val){
         #error_log("$key type ". gettype($val) . " null? " . is_null($val) . " is_numeric ");
 
@@ -67,8 +59,6 @@ function filterResult(&$array, $skip = NULL) {
         } else if (is_int($val)) {
             # We don't want to filter out ints, even if they are 0 i.e. null.
         } else if (is_null($val)) {
-            unset($array[$key]);
-        } else if ((is_int($key) || is_numeric($key)) && (!$allnumeric)) {
             unset($array[$key]);
         } else if (is_array($val)) {
             #error_log("Recurse $key");
