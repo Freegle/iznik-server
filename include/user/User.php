@@ -545,7 +545,7 @@ class User extends Entity
         ]);
 
         foreach ($ids as $id) {
-            return ($id);
+            return ([ $id['id'], $id['userid'] ]);
         }
 
         return (NULL);
