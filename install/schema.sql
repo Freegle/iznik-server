@@ -2594,6 +2594,27 @@ CREATE TABLE `shortlinks` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `shortlink_clicks`
+--
+
+CREATE TABLE `shortlink_clicks` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `shortlinkid` bigint(20) UNSIGNED NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `shortlink_clicks`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `shortlinkid` (`shortlinkid`),
+  ADD KEY `shortlinkid_2` (`shortlinkid`,`timestamp`);
+
+ALTER TABLE `shortlink_clicks`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `shortlink_clicks`
+  ADD CONSTRAINT `shortlink_clicks_ibfk_1` FOREIGN KEY (`shortlinkid`) REFERENCES `shortlinks` (`id`) ON DELETE CASCADE;
+
+--
 -- Table structure for table `spam_countries`
 --
 
