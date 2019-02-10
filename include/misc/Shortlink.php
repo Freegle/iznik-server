@@ -94,7 +94,9 @@ class Shortlink extends Entity
             $ret['url'] = $g->getPrivate('onhere') ? ('https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort')) : ('https://groups.yahoo.com/neo/groups' . $g->getPrivate('nameshort'));
         }
 
-        $clickhistory = $this->dbhr->preQuery("SELECT DATE(timestamp) AS date, COUNT(*) AS count FROM `shortlink_clicks` GROUP BY date ORDER BY date ASC", NULL, FALSE, FALSE);
+        $clickhistory = $this->dbhr->preQuery("SELECT DATE(timestamp) AS date, COUNT(*) AS count FROM `shortlink_clicks` WHERE shortlinkid = ? GROUP BY date ORDER BY date ASC", [
+            $this->id
+        ], FALSE, FALSE);
         foreach ($clickhistory as &$c) {
             $c['date'] = ISODate($c['date']);
         }
