@@ -10,7 +10,16 @@ function shortlink() {
         case 'GET': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            if ($me && $me->isModerator()) {
+            $id = intval(presdef('id', $_REQUEST, 0));
+
+            if ($id) {
+                $s = new Shortlink($dbhr, $dbhm, $id);
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'shortlink' => $s->getPublic()
+                ];
+            } else if ($me && $me->isModerator()) {
                 $s = new Shortlink($dbhr, $dbhm);
 
                 $ret = [

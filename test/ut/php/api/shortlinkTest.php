@@ -80,7 +80,8 @@ class shortlinkAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid
         ]);
         assertEquals(0, $ret['ret']);
-        assertNotNull($ret['id']);
+        $id = $ret['id'];
+        assertNotNull($id);
 
         # Already exists.
         $ret = $this->call('shortlink', 'POST', [
@@ -89,6 +90,12 @@ class shortlinkAPITest extends IznikAPITestCase {
             'dup' => TRUE
         ]);
         assertEquals(3, $ret['ret']);
+
+        $ret = $this->call('shortlink', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['shortlink']['id']);
 
         error_log(__METHOD__ . " end");
     }
