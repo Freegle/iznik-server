@@ -71,17 +71,20 @@ class Story extends Entity
 
         $membs = $u->getMemberships();
         $groupname = NULL;
+        $groupid = NULL;
 
         if (count($membs) > 0) {
             shuffle($membs);
             foreach ($membs as $memb) {
                 if ($memb['type'] == Group::GROUP_FREEGLE && $memb['onmap']) {
                     $groupname = $memb['namedisplay'];
+                    $groupid = $memb['groupid'];
                 }
             }
         }
 
         $ret['groupname'] = $groupname;
+        $ret['groupid'] = $groupid;
 
         $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_stories_likes WHERE storyid = ?;", [
             $this->id

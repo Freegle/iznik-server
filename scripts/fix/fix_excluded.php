@@ -7,6 +7,8 @@ require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 $locs = $dbhr->preQuery("SELECT locations.* FROM locations INNER JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE gridid IS NOT NULL;");
 
+error_log("Found " . count($locs));
+
 $l = new Location($dbhr, $dbhm);
 
 foreach ($locs as $loc) {
