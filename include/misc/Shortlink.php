@@ -85,6 +85,15 @@ class Shortlink extends Entity
     public function getPublic() {
         $ret = $this->getAtts($this->publicatts);
         $ret['created'] = ISODate($ret['created']);
+
+        if ($ret['type'] == Shortlink::TYPE_GROUP) {
+            $g = new Group($this->dbhr, $this->dbhm, $ret['groupid']);
+            $ret['nameshort'] = $g->getPrivate('nameshort');
+
+            # Where we redirect to depends on the group settings.
+            $ret['url'] = $g->getPrivate('onhere') ? ('https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort')) : ('https://groups.yahoo.com/neo/groups' . $g->getPrivate('nameshort'));
+        }
+
         $clickhistory = $this->dbhr->preQuery("SELECT DATE(timestamp) AS date, COUNT(*) AS count FROM `shortlink_clicks` GROUP BY date ORDER BY date ASC", NULL, FALSE, FALSE);
         foreach ($clickhistory as &$c) {
             $c['date'] = ISODate($c['date']);
