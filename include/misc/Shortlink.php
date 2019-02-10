@@ -38,7 +38,7 @@ class Shortlink extends Entity
         return($ret);
     }
 
-    public function resolve($name) {
+    public function resolve($name, $countclicks = TRUE) {
         $url = NULL;
         $id = NULL;
         $links = $this->dbhr->preQuery("SELECT * FROM shortlinks WHERE name LIKE ?;", [ $name ]);
@@ -57,8 +57,10 @@ class Shortlink extends Entity
                 }
             }
 
-            $this->dbhm->background("UPDATE shortlinks SET clicks = clicks + 1 WHERE id = {$link['id']};");
-            $this->dbhm->background("INSERT INTO shortlink_clicks (shortlinkid) VALUES ({$link['id']});");
+            if ($countclicks) {
+                $this->dbhm->background("UPDATE shortlinks SET clicks = clicks + 1 WHERE id = {$link['id']};");
+                $this->dbhm->background("INSERT INTO shortlink_clicks (shortlinkid) VALUES ({$link['id']});");
+            }
         }
 
         return([$id, $url]);

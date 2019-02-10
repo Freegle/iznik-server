@@ -14,6 +14,17 @@ require_once IZNIK_BASE . '/include/misc/Shortlink.php';
 class shortlinkAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
+    protected function setUp() {
+        parent::setUp ();
+
+        global $dbhr, $dbhm;
+        $this->dbhr = $dbhr;
+        $this->dbhm = $dbhm;
+
+        $dbhm->preExec("DELETE FROM shortlinks WHERE name LIKE 'test%';");
+        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+    }
+
     public function testBasic() {
         error_log(__METHOD__);
 
@@ -50,6 +61,34 @@ class shortlinkAPITest extends IznikAPITestCase {
         }
 
         assertTrue($found);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testCreate() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onhere', 1);
+
+        $ret = $this->call('shortlink', 'POST', []);
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('shortlink', 'POST', [
+            'name' => 'testalink',
+            'groupid' => $this->groupid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+
+        # Already exists.
+        $ret = $this->call('shortlink', 'POST', [
+            'name' => 'testalink',
+            'groupid' => $this->groupid,
+            'dup' => TRUE
+        ]);
+        assertEquals(3, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }
