@@ -58,6 +58,7 @@ class Shortlink extends Entity
             }
 
             $this->dbhm->background("UPDATE shortlinks SET clicks = clicks + 1 WHERE id = {$link['id']};");
+            $this->dbhm->background("INSERT INTO shortlink_clicks (shortlinkid) VALUES ({$link['id']});");
         }
 
         return([$id, $url]);
@@ -82,6 +83,11 @@ class Shortlink extends Entity
     public function getPublic() {
         $ret = $this->getAtts($this->publicatts);
         $ret['created'] = ISODate($ret['created']);
+        $clickhistory = $this->dbhr->preQuery("SELECT DATE(timestamp) AS date, COUNT(*) AS count FROM `shortlink_clicks` GROUP BY date ORDER BY date ASC", NULL, FALSE, FALSE);
+        foreach ($clickhistory as &$c) {
+            $c['date'] = ISODate($c['date']);
+        }
+        $ret['clickhistory'] = $clickhistory;
         return($ret);
     }
 

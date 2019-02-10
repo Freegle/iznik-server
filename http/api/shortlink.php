@@ -22,6 +22,10 @@ function shortlink() {
 
             break;
         }
+
+        case 'POST': {
+
+        }
     }
 
     return($ret);

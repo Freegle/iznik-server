@@ -21,6 +21,7 @@ class shortlinkTest extends IznikTestCase {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM shortlinks WHERE name LIKE 'test%';");
+        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
     }
 
     public function testGroup() {
@@ -36,10 +37,15 @@ class shortlinkTest extends IznikTestCase {
         $g->setPrivate('onhere', 0);
         list($id, $url) = $s->resolve('testgroup');
         self::assertEquals('https://groups.yahoo.com/testgroup', $url);
+        $this->waitBackground();
+        sleep(1);
 
         $s = new Shortlink($this->dbhr, $this->dbhm, $id);
         $atts = $s->getPublic();
         self::assertEquals('testgroup', $atts['name']);
+        assertEquals(2, $atts['clicks']);
+        assertEquals(2, $atts['clickhistory'][0]['count']);
+        assertEquals(substr(date('c'), 0, 10), substr($atts['clickhistory'][0]['date'], 0, 10));
 
         $list = $s->listAll();
         $found = FALSE;
