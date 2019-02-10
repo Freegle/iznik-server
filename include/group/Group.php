@@ -1467,11 +1467,11 @@ class Group extends Entity
             ]);
         }
 
-        $lastid = NULL;
+        $lastname = NULL;
         $ret = [];
 
         foreach ($groups as $group) {
-            if (!$lastid || $lastid != $group['id']) {
+            if (!$lastname || $lastname != $group['nameshort']) {
                 $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
                 $group['profile'] = $group['profile'] ? $a->getPath(FALSE, $group['attid']) : NULL;
 
@@ -1494,7 +1494,7 @@ class Group extends Entity
                 $ret[] = $group;
             }
 
-            $lastid = $group['id'];
+            $lastname = $group['nameshort'];
         }
 
         return($ret);
