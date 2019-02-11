@@ -32,11 +32,11 @@ class shortlinkAPITest extends IznikAPITestCase {
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
-        # Get logged out - should fail
+        # Get logged out - should work
         $ret = $this->call('shortlink', 'GET', []);
-        assertEquals(2, $ret['ret']);
+        assertEquals(0, $ret['ret']);
 
-        # Get logged in as member - should fail
+        # Get logged in as member - should work
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -44,7 +44,7 @@ class shortlinkAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('shortlink', 'GET', []);
-        assertEquals(2, $ret['ret']);
+        assertEquals(0, $ret['ret']);
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $ret = $this->call('shortlink', 'GET', []);

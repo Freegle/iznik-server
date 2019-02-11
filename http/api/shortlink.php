@@ -19,7 +19,7 @@ function shortlink() {
                     'status' => 'Success',
                     'shortlink' => $s->getPublic()
                 ];
-            } else if ($me && $me->isModerator()) {
+            } else {
                 $s = new Shortlink($dbhr, $dbhm);
 
                 $ret = [
