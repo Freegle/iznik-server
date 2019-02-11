@@ -721,9 +721,12 @@ WHERE chat_rooms.id IN $idlist;";
 
             $sql = '';
 
+            # We only need a few attributes, and this speeds it up.  No really, I've measured it.
+            $atts = 'chat_rooms.id, chat_rooms.chattype, chat_rooms.groupid';
+
             if (!$chattypes || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
                 # We want chats marked by groupid for which we are an active mod.
-                $thissql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE $chatq t1.role IN ('Moderator', 'Owner') $activeq AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq";
+                $thissql = "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE $chatq t1.role IN ('Moderator', 'Owner') $activeq AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq";
                 $sql = $sql == '' ? $thissql : "$sql UNION $thissql";
                 #error_log("Mod2Mod chats $sql, $userid");
             }
@@ -732,8 +735,8 @@ WHERE chat_rooms.id IN $idlist;";
                 # If we're on ModTools then we want User2Mod chats for our group.
                 #
                 # If we're on the user site then we only want User2Mod chats where we are a user.
-                $thissql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$activesince' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed')" :
-                    "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = $userid AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq";
+                $thissql = $modtools ? "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$activesince' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed')" :
+                    "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = $userid AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq";
                 $sql = $sql == '' ? $thissql : "$sql UNION $thissql";
                 #error_log("List for user, $sql modtools $modtools");
             }
@@ -742,14 +745,14 @@ WHERE chat_rooms.id IN $idlist;";
                 # We want chats where we are one of the users.  If the chat is closed or blocked we don't want to see
                 # it unless we're on MT.
                 $statusq = $modtools ? '' : "AND (status IS NULL OR status NOT IN ('Closed', 'Blocked'))";
-                $thissql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (latestmessage >= '$activesince' OR latestmessage IS NULL) AND (user1 = $userid OR user2 = $userid) AND chattype = 'User2User' $statusq $countq";
+                $thissql = "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (latestmessage >= '$activesince' OR latestmessage IS NULL) AND (user1 = $userid OR user2 = $userid) AND chattype = 'User2User' $statusq $countq";
                 $sql = $sql == '' ? $thissql : "$sql UNION $thissql";
                 #error_log("User chats $sql, $userid");
             }
 
             if (MODTOOLS && (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes))) {
                 # We want chats marked by groupid for which we are a member.  This is mod-only function.
-                $thissql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN $t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (status IS NULL OR status != 'Closed') $countq";
+                $thissql = "SELECT $atts FROM chat_rooms INNER JOIN $t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (status IS NULL OR status != 'Closed') $countq";
                 #error_log("Group chats $sql, $userid");
                 $sql = $sql == '' ? $thissql : "$sql UNION $thissql";
                 #error_log("Add " . count($rooms) . " group chats using $sql");
