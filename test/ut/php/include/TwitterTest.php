@@ -229,6 +229,7 @@ class twitterTest extends IznikTestCase {
         $s = new Story($this->dbhr, $this->dbhm);
         $sid = $s->create(NULL, 1, 'Test Story', 'Test Story');
         $s->setPrivate('reviewed', 1);
+        $s->setPrivate('newsletterreviewed', 1);
 
         $mock = $this->getMockBuilder('Twitter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, NULL))
