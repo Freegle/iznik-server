@@ -471,36 +471,48 @@ class Location extends Entity
     }
 
     public function groupsNear($radius = Location::NEARBY, $expand = FALSE, $limit = 10) {
-        # To make this efficient we want to use the spatial index on polyindex.  So first get a bounding box
-        # that covers the point and radius.
-        $ne = GreatCircle::getPositionByDistance(sqrt($radius*$radius*2)*1609.34, 45, $this->loc['lat'], $this->loc['lng']);
-        $sw = GreatCircle::getPositionByDistance(sqrt($radius*$radius*2)*1609.34, 225, $this->loc['lat'], $this->loc['lng']);
-
-        $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
-
-        # We order by the distance to the group polygon (dist), rather than to the centre (hav), because that
-        # reflects which group you are genuinely closest to.
+        # To make this efficient we want to use the spatial index on polyindex.  But our groups are not evenly
+        # distributed, so if we search immediately upto $radius, then we will find more than we need, and this
+        # may be slow even with a spatial index.
         #
-        # Favour groups hosted by us if there's a tie.
-        $sql = "SELECT id, nameshort, ST_distance(POINT({$this->loc['lng']}, {$this->loc['lat']}), polyindex) AS dist, haversine(lat, lng, {$this->loc['lat']}, {$this->loc['lng']}) AS hav FROM groups WHERE MBRIntersects(polyindex, $box) AND publish = 1 AND listable = 1 HAVING hav < $radius AND hav IS NOT NULL ORDER BY dist ASC, hav ASC, external ASC LIMIT $limit;";
-        #error_log("Find near $sql");
-        $groups = $this->dbhr->preQuery($sql);
+        # For example, searching in London will find ~120 groups within 50 miles, of which we are only interested
+        # in 10, and the query will take ~0.03s.  If we search witbin 5 minutes, that will typically find what we
+        # need and the query takes ~0.00s.  So we step up, using a bounding box that covers the point and radius.
+        
+        $currradius = round($radius / 16 + 0.5, 0);
+        
+        do {
+            $ne = GreatCircle::getPositionByDistance(sqrt($currradius*$currradius*2)*1609.34, 45, $this->loc['lat'], $this->loc['lng']);
+            $sw = GreatCircle::getPositionByDistance(sqrt($currradius*$currradius*2)*1609.34, 225, $this->loc['lat'], $this->loc['lng']);
 
-        $ret = [];
+            $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
-        foreach ($groups as $group) {
-            if ($expand) {
-                $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
-                $thisone = $g->getPublic();
+            # We order by the distance to the group polygon (dist), rather than to the centre (hav), because that
+            # reflects which group you are genuinely closest to.
+            #
+            # Favour groups hosted by us if there's a tie.
+            $sql = "SELECT id, nameshort, ST_distance(POINT({$this->loc['lng']}, {$this->loc['lat']}), polyindex) AS dist, haversine(lat, lng, {$this->loc['lat']}, {$this->loc['lng']}) AS hav FROM groups WHERE MBRIntersects(polyindex, $box) AND publish = 1 AND listable = 1 HAVING hav < $currradius AND hav IS NOT NULL ORDER BY dist ASC, hav ASC, external ASC LIMIT $limit;";
+            #error_log("Find near $sql");
+            $groups = $this->dbhr->preQuery($sql);
 
-                $thisone['distance'] = $group['hav'];
-                $thisone['polydist'] = $group['dist'];
+            $ret = [];
 
-                $ret[] = $thisone;
-            } else {
-                $ret[] = $group['id'];
+            foreach ($groups as $group) {
+                if ($expand) {
+                    $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
+                    $thisone = $g->getPublic();
+
+                    $thisone['distance'] = $group['hav'];
+                    $thisone['polydist'] = $group['dist'];
+
+                    $ret[] = $thisone;
+                } else {
+                    $ret[] = $group['id'];
+                }
             }
-        }
+            
+            $currradius *= 2;
+        } while (count($ret) < $limit && $currradius <= $radius);
 
         return($ret);
     }
