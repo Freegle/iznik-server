@@ -472,13 +472,13 @@ class Location extends Entity
 
     public function groupsNear($radius = Location::NEARBY, $expand = FALSE, $limit = 10) {
         # To make this efficient we want to use the spatial index on polyindex.  But our groups are not evenly
-        # distributed, so if we search immediately upto $radius, then we will find more than we need, and this
-        # may be slow even with a spatial index.
+        # distributed, so if we search immediately upto $radius, which is the maximum we need to cover, then we
+        # will often have to scan many more groups than we need in order to determine the closest groups
+        # (via the LIMIT clause), and this may be slow even with a spatial index.
         #
         # For example, searching in London will find ~120 groups within 50 miles, of which we are only interested
-        # in 10, and the query will take ~0.03s.  If we search witbin 5 minutes, that will typically find what we
+        # in 10, and the query will take ~0.03s.  If we search within 4 miles, that will typically find what we
         # need and the query takes ~0.00s.  So we step up, using a bounding box that covers the point and radius.
-        
         $currradius = round($radius / 16 + 0.5, 0);
         
         do {
