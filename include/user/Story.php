@@ -78,7 +78,7 @@ class Story extends Entity
             foreach ($membs as $memb) {
                 if ($memb['type'] == Group::GROUP_FREEGLE && $memb['onmap']) {
                     $groupname = $memb['namedisplay'];
-                    $groupid = $memb['groupid'];
+                    $groupid = $memb['id'];
                 }
             }
         }
