@@ -735,17 +735,18 @@ WHERE chat_rooms.id IN $idlist;";
                 # If we're on ModTools then we want User2Mod chats for our group.
                 #
                 # If we're on the user site then we only want User2Mod chats where we are a user.
-                $thissql = $modtools ? "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$activesince' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed')" :
-                    "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = $userid AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq";
+                $thissql = $modtools ?
+                    "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$activesince' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed')" :
+                    "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = $userid AND chattype = 'User2Mod' AND (latestmessage >= '$activesince' OR latestmessage IS NULL) AND (status IS NULL OR status != 'Closed') $countq";
                 $sql = $sql == '' ? $thissql : "$sql UNION $thissql";
-                #error_log("List for user, $sql modtools $modtools");
             }
 
             if (!$chattypes || in_array(ChatRoom::TYPE_USER2USER, $chattypes)) {
                 # We want chats where we are one of the users.  If the chat is closed or blocked we don't want to see
                 # it unless we're on MT.
                 $statusq = $modtools ? '' : "AND (status IS NULL OR status NOT IN ('Closed', 'Blocked'))";
-                $thissql = "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (latestmessage >= '$activesince' OR latestmessage IS NULL) AND (user1 = $userid OR user2 = $userid) AND chattype = 'User2User' $statusq $countq";
+                $thissql = "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = $userid AND chattype = 'User2User' AND (latestmessage >= '$activesince' OR latestmessage IS NULL) $statusq $countq";
+                $thissql .= " UNION SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user2 = $userid AND chattype = 'User2User' AND (latestmessage >= '$activesince' OR latestmessage IS NULL) $statusq $countq";
                 $sql = $sql == '' ? $thissql : "$sql UNION $thissql";
                 #error_log("User chats $sql, $userid");
             }
@@ -758,6 +759,7 @@ WHERE chat_rooms.id IN $idlist;";
                 #error_log("Add " . count($rooms) . " group chats using $sql");
             }
 
+            #error_log("Chat rooms $sql");
             $rooms = $this->dbhr->preQuery($sql);
 
             if (count($rooms) > 0) {
