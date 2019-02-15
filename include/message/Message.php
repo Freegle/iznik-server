@@ -3440,10 +3440,12 @@ class Message
         }
 
         foreach ($atts as $attid) {
-            $this->dbhm->preExec("UPDATE messages_attachments SET msgid = ? WHERE id = ?;", [ $this->id, $attid ]);
-            $key = array_search($attid, $oldids);
-            if ($key !== FALSE) {
-                unset($oldids[$key]);
+            if ($attid) {
+                $this->dbhm->preExec("UPDATE messages_attachments SET msgid = ? WHERE id = ?;", [ $this->id, $attid ]);
+                $key = array_search($attid, $oldids);
+                if ($key !== FALSE) {
+                    unset($oldids[$key]);
+                }
             }
         }
 
