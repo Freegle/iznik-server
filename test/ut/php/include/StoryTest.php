@@ -61,6 +61,13 @@ class StoryTest extends IznikTestCase {
 
         $sid = $s->create($uid, 1, "Freecycle", "Test");
         $sid = $s->create($uid, 1, "Test", "Test");
+        $s->setAttributes([
+            'newsletterreviewed' => 1,
+            'newsletter' => 1,
+            'reviewed' => 1,
+            'public' => 1
+        ]);
+
         $this->dbhm->preExec("UPDATE users_stories SET newsletterreviewed = 1, newsletter = 1 WHERE id = ?;", [ $sid ]);
 
         $nid = $s->generateNewsletter(1, 10, $sid);

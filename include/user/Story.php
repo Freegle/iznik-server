@@ -25,6 +25,25 @@ class Story extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'users_stories', 'story', $this->publicatts);
     }
 
+    public function setAttributes($settings) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        foreach ($this->settableatts as $att) {
+            if (array_key_exists($att, $settings)) {
+                $this->setPrivate($att, $settings[$att]);
+
+                if ($myid) {
+                    if ($att == 'reviewed') {
+                        $this->setPrivate('reviewedby', $myid);
+                    } else if ($att == 'reviewednewsletter') {
+                        $this->setPrivate('newsletterreviewedby', $myid);
+                    }
+                }
+            }
+        }
+    }
+
     public function create($userid, $public, $headline, $story, $photo = NULL) {
         $id = NULL;
 
