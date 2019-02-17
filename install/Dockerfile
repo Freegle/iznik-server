@@ -13,14 +13,14 @@ ENV MYSQL_USER=mysql \
 
 # 3rd party components
 RUN apt-get update \
-	&& apt-get install -y mysql-server \
+	&& apt-get install -y --allow-unauthenticated mysql-server \
 	&& rm -rf /var/lib/mysql \
 	&& echo [server] >> /etc/mysql/my.cnf \
 	&& echo max_allowed_packet=32MB >> /etc/mysql/my.cnf \
 	&& echo "sql_mode = \"NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION\"" >> /etc/mysql/my.cnf \
 	&& mkdir /var/lib/mysql \	
-	&& apt-get install -y redis-server \
-	&& apt-get install -y beanstalkd 
+	&& apt-get install -y --allow-unauthenticated redis-server \
+	&& apt-get install -y --allow-unauthenticated beanstalkd 
 
 # SSHD
 RUN apt-get -y install openssh-server \
@@ -31,7 +31,7 @@ RUN apt-get -y install openssh-server \
 	&& echo "export VISIBLE=now" >> /etc/profile
 		
 # SpamAssassin
-RUN apt-get install -y spamassassin spamc psmisc \
+RUN apt-get install -y --allow-unauthenticated spamassassin spamc psmisc \
 	&& groupadd spamd \
     && useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd \
     && mkdir /var/log/spamassassin \
@@ -39,7 +39,7 @@ RUN apt-get install -y spamassassin spamc psmisc \
     && sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin 
 
 # More packages
-RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libssl-dev libbz2-dev libcurl4-openssl-dev \
+RUN apt-get install -y --allow-unauthenticated autoconf automake libtool re2c flex make libxml2-dev libssl-dev libbz2-dev libcurl4-openssl-dev \
 	libdb5.3-dev libjpeg-dev libpng-dev libxpm4 libfreetype6-dev libgmp3-dev libc-client2007e-dev libldap2-dev libmcrypt-dev \
 	libmhash-dev freetds-dev zlib1g-dev libmysqlclient-dev libncurses5-dev libpcre3-dev unixodbc-dev libsqlite0-dev libaspell-dev \
 	libreadline6-dev librecode-dev libsnmp-dev libtidy-dev libxslt1-dev libssl-dev libxml2 libxml2-dev libpspell-dev libicu-dev \
@@ -50,14 +50,14 @@ RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libs
 	&& apt-get remove -y apache2* sendmail* mlocate
 
 # GeoIP	
-RUN	apt-get install -y php-pear \
+RUN	apt-get install -y --allow-unauthenticated php-pear \
 	&& wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz \
     && gzip -d GeoLite2-Country.mmdb.gz \
     && mv GeoLite2-Country.mmdb /usr/share/GeoIP \
-    && apt-get install -y php-dev libgeoip-dev libcurl4-openssl-dev wget \
+    && apt-get install -y --allow-unauthenticated php-dev libgeoip-dev libcurl4-openssl-dev wget \
     && pecl install geoip-1.1.1 \
 #    && docker-php-ext-enable geoip \
-    && apt-get install -y automake autoconf libtool \
+    && apt-get install -y --allow-unauthenticated automake autoconf libtool \
     && cd /tmp \
     && wget https://github.com/maxmind/geoipupdate/archive/master.tar.gz \
     && tar -xzf master.tar.gz \
@@ -69,7 +69,7 @@ RUN	apt-get install -y php-pear \
     && apt-get purge --auto-remove -y automake autoconf libtool
 	
 # Mailparse
-RUN apt-get install -y php-mbstring php-mailparse 
+RUN apt-get install -y --allow-unauthenticated php-mbstring php-mailparse 
 
 #
 #--------------------------------------------------------------------------
@@ -79,7 +79,7 @@ RUN apt-get install -y php-mbstring php-mailparse
 RUN mkdir -p /var/www \
 	&& cd /var/www \
 	&& apt-get update \
-	&& apt-get install -y git \
+	&& apt-get install -y --allow-unauthenticated git \
 	&& git clone https://github.com/Freegle/iznik-server.git iznik \
 	&& cp iznik/install/mysqldamlevlim.so /usr/lib/mysql/plugin/ \
 	&& touch iznik/standalone
@@ -99,7 +99,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml 
 
 # Install composer dependencies
-RUN apt-get install -y curl \
+RUN apt-get install -y --allow-unauthenticated curl \
 	&& curl --silent --show-error https://getcomposer.org/installer | php \
     && cd composer \
     && php ../composer.phar install \
