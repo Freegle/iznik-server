@@ -7,12 +7,10 @@ ENV MYSQL_USER=mysql \
     MYSQL_DATA_DIR=/var/lib/mysql \
     MYSQL_RUN_DIR=/run/mysqld \
     MYSQL_LOG_DIR=/var/log/mysql \
-	DEBIAN_FRONTEND=noninteractive \
-	TZ='UTZ' \
-	NOTVISIBLE="in users profile"
-
-# Skip key checks because they have now expired.
-RUN echo "APT::Get::AllowUnauthenticated \"true\"\;" > /etc/apt/apt.conf.d/99myown
+	  DEBIAN_FRONTEND=noninteractive \
+	  TZ='UTZ' \
+	  NOTVISIBLE="in users profile" \
+	  travis_apt_get_options="--allow-ununauthenticated"
 
 # 3rd party components
 RUN apt-get update \
