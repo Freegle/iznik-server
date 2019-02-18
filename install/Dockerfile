@@ -10,7 +10,7 @@ ENV MYSQL_USER=mysql \
 	  DEBIAN_FRONTEND=noninteractive \
 	  TZ='UTZ' \
 	  NOTVISIBLE="in users profile" \
-	  APT_GET_OPTIONS="--allow-ununauthenticated"
+	  APT_GET_OPTIONS="--allow-unauthenticated"
 
 # 3rd party components
 RUN apt-get update \
