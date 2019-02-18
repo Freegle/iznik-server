@@ -10,7 +10,7 @@ ENV MYSQL_USER=mysql \
 	  DEBIAN_FRONTEND=noninteractive \
 	  TZ='UTZ' \
 	  NOTVISIBLE="in users profile" \
-	  travis_apt_get_options="--allow-ununauthenticated"
+	  APT_GET_OPTIONS="--allow-ununauthenticated"
 
 # 3rd party components
 RUN apt-get update \
