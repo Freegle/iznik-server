@@ -3919,7 +3919,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             # Also return the chats for this user.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
-            $rooms = $r->listForUser($user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER]);
+            $rooms = $r->listForUser($user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER], NULL, MODTOOLS, NULL, '01-09-2009');
             $thisone['chatrooms'] = [];
 
             if ($rooms) {

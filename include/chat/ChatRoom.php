@@ -267,7 +267,7 @@ WHERE chat_rooms.id IN $idlist;";
         $this->dbhm->beginTransaction();
 
         # Find any existing chat.  Who is user1 and who is user2 doesn't really matter - it's a two way chat.
-        $sql = "SELECT id FROM chat_rooms WHERE (user1 = ? AND user2 = ?) OR (user2 = ? AND user1 = ?) AND chattype = ? FOR UPDATE;";
+        $sql = "SELECT id, created FROM chat_rooms WHERE (user1 = ? AND user2 = ?) OR (user2 = ? AND user1 = ?) AND chattype = ? FOR UPDATE;";
         $chats = $this->dbhm->preQuery($sql, [
             $user1,
             $user2,
@@ -281,6 +281,11 @@ WHERE chat_rooms.id IN $idlist;";
         if (count($chats) > 0) {
             # We have an existing chat.  That'll do nicely.
             $id = $chats[0]['id'];
+
+            # Update latestmessage.  This makes sure that the chat will appear in listForUser.
+            $this->dbhm->preExec("UPDATE chat_rooms SET latestmessage = NOW() WHERE id = ?;", [
+                $id
+            ]);
         } else if (!$checkonly) {
             # We don't.  Create one.
             $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2, chattype) VALUES (?,?,?)", [
@@ -687,7 +692,7 @@ WHERE chat_rooms.id IN $idlist;";
         return($key);
     }
 
-    public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS, $chatid = NULL)
+    public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS, $chatid = NULL, $activelim = "31 days ago")
     {
         $ret = [];
         $chatq = $chatid ? "chat_rooms.id = $chatid AND " : '';
@@ -710,7 +715,7 @@ WHERE chat_rooms.id IN $idlist;";
             # but for mods we might have marked ourselves as a backup on the group.
             $t1 = "(SELECT groupid, role, role = 'Member' OR ((role IN ('Owner', 'Moderator') AND (settings IS NULL OR LOCATE('\"active\"', settings) = 0 OR LOCATE('\"active\":1', settings) > 0))) AS active FROM memberships WHERE userid = $userid) t1 ";
 
-            $activesince = date("Y-m-d", strtotime("31 days ago"));
+            $activesince = date("Y-m-d", strtotime($activelim));
 
             # We don't want to see non-empty chats where all the messages are held for review, because they are likely to
             # be spam.
