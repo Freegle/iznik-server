@@ -6,12 +6,12 @@ env:
   global:
     - STANDALONE=TRUE
 addons:
-  apt:
-    sources:
-      - mysql-5.7-trusty
-    packages:
-      - mysql-server
-      - mysql-client
+#  apt:
+#    sources:
+#      - mysql-5.7-trusty
+#    packages:
+#      - mysql-server
+#      - mysql-client
 services:
   - mysql
   - redis-server
@@ -19,6 +19,12 @@ branches:
   only:
     master
 before_install:
+  # Replacement for addons.apt which is broken.
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5072E1F5
+  - echo 'deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7' | tee -a /etc/apt/sources.list.d/mysql.list
+  - sudo apt-get update
+  - sudo -E apt-get -yq install mysql-server mysql-client
+
   # We need beanstalkd for backgrounding
   - travis_retry sudo apt-get update
   - travis_retry sudo apt-get install beanstalkd
