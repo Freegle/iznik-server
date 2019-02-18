@@ -46,7 +46,7 @@ RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libs
 	sysstat libwww-perl nasm php-zip unzip mysql-client php-mysql php-xdebug pflogsumm mailutils nginx psmisc \
 	build-essential chrpath libssl-dev libxft-dev libfreetype6-dev libfreetype6 libfontconfig1-dev libfontconfig1  \
 	monit iotop openssh-client php-dev php-gd gsutil php-redis php-gmp xfsprogs php-soap php-mbstring php-curl \
-	php-xml php-mailparse php-mysql php-zip vim net-tools telnet \
+	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git \
 	&& apt-get remove -y apache2* sendmail* mlocate
 
 # GeoIP	
@@ -54,20 +54,10 @@ RUN	apt-get install -y php-pear \
 	&& wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz \
     && gzip -d GeoLite2-Country.mmdb.gz \
     && mv GeoLite2-Country.mmdb /usr/share/GeoIP \
-    && apt-get install -y php-dev libgeoip-dev libcurl4-openssl-dev wget \
+    && apt-get install -y php-dev libgeoip-dev libcurl4-openssl-dev wget golang-go \
     && pecl install geoip-1.1.1 \
-#    && docker-php-ext-enable geoip \
-    && apt-get install -y automake autoconf libtool \
-    && cd /tmp \
-    && wget https://github.com/maxmind/geoipupdate/archive/master.tar.gz \
-    && tar -xzf master.tar.gz \
-    && cd geoipupdate-master \
-    && ./bootstrap \
-    && ./configure \
-    && make \
-    && make install \
-    && apt-get purge --auto-remove -y automake autoconf libtool
-	
+    && go get -u github.com/maxmind/geoipupdate/cmd/geoipupdate
+
 # Mailparse
 RUN apt-get install -y php-mbstring php-mailparse 
 
@@ -79,7 +69,6 @@ RUN apt-get install -y php-mbstring php-mailparse
 RUN mkdir -p /var/www \
 	&& cd /var/www \
 	&& apt-get update \
-	&& apt-get install -y git \
 	&& git clone https://github.com/Freegle/iznik-server.git iznik \
 	&& cp iznik/install/mysqldamlevlim.so /usr/lib/mysql/plugin/ \
 	&& touch iznik/standalone
