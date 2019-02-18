@@ -9,8 +9,7 @@ ENV MYSQL_USER=mysql \
     MYSQL_LOG_DIR=/var/log/mysql \
 	  DEBIAN_FRONTEND=noninteractive \
 	  TZ='UTZ' \
-	  NOTVISIBLE="in users profile" \
-	  APT_GET_OPTIONS="--allow-unauthenticated"
+	  NOTVISIBLE="in users profile"
 
 # 3rd party components
 RUN apt-get update \
