@@ -11,6 +11,9 @@ ENV MYSQL_USER=mysql \
 	TZ='UTZ' \
 	NOTVISIBLE="in users profile"
 
+# Skip key checks because they have now expired.
+RUN echo "APT::Get::AllowUnauthenticated \"true\"\;" > /etc/apt/apt.conf.d/99myown
+
 # 3rd party components
 RUN apt-get update \
 	&& apt-get install -y mysql-server \
