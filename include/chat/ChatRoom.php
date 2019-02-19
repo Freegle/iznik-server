@@ -259,6 +259,13 @@ WHERE chat_rooms.id IN $idlist;";
         }
     }
 
+    public function ensureAppearInList($id) {
+        # Update latestmessage.  This makes sure that the chat will appear in listForUser.
+        $this->dbhm->preExec("UPDATE chat_rooms SET latestmessage = NOW() WHERE id = ?;", [
+            $id
+        ]);
+    }
+
     public function createConversation($user1, $user2, $checkonly = FALSE)
     {
         $id = NULL;
@@ -282,10 +289,7 @@ WHERE chat_rooms.id IN $idlist;";
             # We have an existing chat.  That'll do nicely.
             $id = $chats[0]['id'];
 
-            # Update latestmessage.  This makes sure that the chat will appear in listForUser.
-            $this->dbhm->preExec("UPDATE chat_rooms SET latestmessage = NOW() WHERE id = ?;", [
-                $id
-            ]);
+            $this->ensureAppearInList($id);
         } else if (!$checkonly) {
             # We don't.  Create one.
             $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2, chattype) VALUES (?,?,?)", [
