@@ -247,7 +247,7 @@ function message() {
                         'status' => 'Success'
                     ];
 
-                    if ($subject || $textbody || $htmlbody || $msgtype || $item || $location) {
+                    if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments) {
                         $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments);
                         $ret = $rc ? $ret : [ 'ret' => 2, 'status' => 'Edit failed' ];
                     }
