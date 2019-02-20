@@ -652,6 +652,7 @@ class Newsfeed extends Entity
                     $short = $feed['message'];
                     $this->snip($short, 40);
                     $subj = '"' . $short . '" ' . " ($count conversations " . ($count != 1 ? 's' : '') . " from your neighbours)";
+                    $subj = str_replace('""', '"', $subj);
 
                     $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
                     $fromname = $u->getName();
