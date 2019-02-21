@@ -1604,9 +1604,10 @@ class User extends Entity
 
         $ret['replies'] = $replies[0]['count'];
 
-        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE fromuser = ? AND arrival > ? GROUP BY messages.type, messages_outcomes.outcome;", [
+        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 GROUP BY messages.type, messages_outcomes.outcome;", [
             $this->id,
-            $start
+            $start,
+            MessageCollection::APPROVED
         ], FALSE, FALSE);
 
         $ret['offers'] = 0;
