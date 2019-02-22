@@ -5404,10 +5404,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return($rateds);
     }
 
-    public function getActiveSince($since) {
-        $mysqltime = date("Y-m-d H:i:s", strtotime($since));
-        $ids = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ?;", [
-            $mysqltime
+    public function getActiveSince($since, $createdbefore) {
+        $sincetime = date("Y-m-d H:i:s", strtotime($since));
+        $beforetime = date("Y-m-d H:i:s", strtotime($createdbefore));
+        $ids = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ? AND added <= ?;", [
+            $sincetime,
+            $beforetime
         ], FALSE, FALSE);
 
         return(count($ids) ? array_column($ids, 'id') : []);
