@@ -34,6 +34,9 @@ class Spam {
     CONST REASON_KNOWN_KEYWORD = 'Known spam keyword';
     CONST REASON_DBL = 'URL on DBL';
 
+    const ACTION_SPAM = 'Spam';
+    const ACTION_REVIEW = 'Review';
+
     # A common type of spam involves two lines with greetings.
     private $greetings = [
         'hello', 'salutations', 'hey', 'good morning', 'sup', 'hi', 'good evening', 'good afternoon', 'greetings'
@@ -203,7 +206,8 @@ class Spam {
             return (array(true, Spam::REASON_REFERRED_TO_SPAMMER, "Refers to known spammer $spammail"));
         }
 
-        $r = $this->checkSpam($text);
+        # For messages we want to spot any dubious items.
+        $r = $this->checkSpam($text, [ Spam::ACTION_REVIEW, Spam::ACTION_SPAM ]);
         if ($r) {
             return ($r);
         }
@@ -345,7 +349,7 @@ class Spam {
         return($check);
     }
 
-    public function checkSpam($message) {
+    public function checkSpam($message, $actions) {
         $ret = NULL;
 
         # Check keywords which are known as spam.
@@ -353,7 +357,7 @@ class Spam {
         foreach ($this->spamwords as $word) {
             if (strlen(trim($word['word'])) > 0) {
                 $exp = '/\b' . preg_quote($word['word']) . '\b/i';
-                if ($word['action'] == 'Spam' &&
+                if (in_array($word['action'], $actions) &&
                     preg_match($exp, $message) &&
                     (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                     $ret = array(true, Spam::REASON_KNOWN_KEYWORD, "Refers to keyword {$word['word']}");

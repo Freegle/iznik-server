@@ -94,7 +94,7 @@ class ChatMessage extends Entity
 
     public function checkSpam($message) {
         $s = new Spam($this->dbhr, $this->dbhm);
-        return($s->checkSpam($message) !== NULL);
+        return($s->checkSpam($message, [ Spam::ACTION_SPAM ]) !== NULL);
     }
 
     public function chatByEmail($chatmsgid, $msgid) {

@@ -584,7 +584,6 @@ function checkSpamhaus($url) {
         }
     }
 
-    error_log("Returning $ret");
     return $ret;
 }
 
