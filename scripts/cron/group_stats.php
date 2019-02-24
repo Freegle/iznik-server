@@ -27,7 +27,7 @@ $tngroups = str_replace("'", '"', $tngroups);
 $tngroups = json_decode($tngroups, TRUE);
 
 # Ensure the polyindex is set correctly.  It can get out of step if someone updates the DB manually.
-$dbh->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) where type = 'Freegle' AND polyindex != GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'));");
+$dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) where type = 'Freegle' AND polyindex != GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'));");
 
 $g = new Group($dbhr, $dbhm);
 foreach ($tngroups as $gname => $tngroup) {
