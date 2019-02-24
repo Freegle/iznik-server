@@ -17,12 +17,13 @@ if (count($opts) < 4) {
     $title = presdef('l', $opts, NULL);
     $text = presdef('x', $opts, NULL);
     $since = presdef('s', $opts, NULL);
+    $until = presdef('t', $opts, NULL);
 
     $n = new Notifications($dbhr, $dbhm);
     $u = new User($dbhr, $dbhm);
 
-    error_log("Get active since $since");
-    $ids = $u->getActiveSince($since);
+    error_log("Get active since $since -> $until");
+    $ids = $u->getActiveSince($since, $until);
     $total = count($ids);
     $sent = 0;
     $at = 0;

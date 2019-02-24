@@ -1308,8 +1308,7 @@ class userTest extends IznikTestCase {
             $uid
         ]);
 
-        $ids = $u->getActiveSince('5 minutes ago');
-        error_log("Got " . count($ids) . " active, look for $uid");
+        $ids = $u->getActiveSince('5 minutes ago', 'tomorrow');
         assertTrue(in_array($uid, $ids));
 
         error_log(__METHOD__ . " end");

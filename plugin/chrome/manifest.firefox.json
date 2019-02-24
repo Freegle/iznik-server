@@ -15,8 +15,8 @@
   ],
 
   "icons": { "16": "ModToolsLogo16.png",
-             "48": "ModToolsLogo48.png",
-            "128": "ModToolsLogo128.png" },
+    "48": "ModToolsLogo48.png",
+    "128": "ModToolsLogo128.png" },
 
 
   "background": {
@@ -37,5 +37,11 @@
     }
   ],
 
-  "web_accessible_resources": ["manifest.json"]
+  "web_accessible_resources": ["manifest.json"],
+
+  "applications": {
+    "gecko": {
+      "update_url": "https://modtools.org/plugin/update.json"
+    }
+  }
 }

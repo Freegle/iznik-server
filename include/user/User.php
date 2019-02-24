@@ -1604,9 +1604,10 @@ class User extends Entity
 
         $ret['replies'] = $replies[0]['count'];
 
-        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE fromuser = ? AND arrival > ? GROUP BY messages.type, messages_outcomes.outcome;", [
+        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 GROUP BY messages.type, messages_outcomes.outcome;", [
             $this->id,
-            $start
+            $start,
+            MessageCollection::APPROVED
         ], FALSE, FALSE);
 
         $ret['offers'] = 0;
@@ -5403,10 +5404,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return($rateds);
     }
 
-    public function getActiveSince($since) {
-        $mysqltime = date("Y-m-d H:i:s", strtotime($since));
-        $ids = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ?;", [
-            $mysqltime
+    public function getActiveSince($since, $createdbefore) {
+        $sincetime = date("Y-m-d H:i:s", strtotime($since));
+        $beforetime = date("Y-m-d H:i:s", strtotime($createdbefore));
+        $ids = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ? AND added <= ?;", [
+            $sincetime,
+            $beforetime
         ], FALSE, FALSE);
 
         return(count($ids) ? array_column($ids, 'id') : []);

@@ -1689,7 +1689,6 @@ WHERE chat_rooms.id IN $idlist;";
                             # Parameters for LiveIntent ads
                             $lihash = hash('sha1', $to);
 
-
                             try {
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
@@ -1782,8 +1781,8 @@ WHERE chat_rooms.id IN $idlist;";
                                         $chat['chatid']
                                     ]);
 
-                                    if ($chattype == ChatRoom::TYPE_USER2USER) {
-                                        # Send any SMS.
+                                    if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
+                                        # Send any SMS, but not if we're only mailing our own messages
                                         $thisu->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid'] . '?src=sms');
                                     }
 
