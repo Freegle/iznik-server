@@ -11,7 +11,7 @@ foreach ($groups as $group) {
     error_log("...{$group['nameshort']}");
     $epoch = strtotime("today");
 
-    for ($i = 0; $i < 20; $i++) {
+    for ($i = 0; $i < 25; $i++) {
         $date = date('Y-m-d', $epoch);
         $s = new Stats($dbhr, $dbhm, $group['id']);
         $s->generate($date);
