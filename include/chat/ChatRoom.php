@@ -4,6 +4,7 @@ use Pheanstalk\Pheanstalk;
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/misc/ReturnPath.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/session/Facebook.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
@@ -1468,6 +1469,23 @@ WHERE chat_rooms.id IN $idlist;";
 
             #error_log("Notmailed " . count($notmailed) . " with last message {$chatatts['lastmsg']}");
 
+            if (RETURN_PATH && ReturnPath::shouldSend(ReturnPath::CHAT) && count($notmailed) > 0) {
+                # Also send this to the Return Path seed list so that we can measure inbox placement.
+                $seeds = $this->dbhr->preQuery("SELECT userid FROM returnpath_seedlist");
+                $copy = array_rand($notmailed);
+
+                foreach ($seeds as $seed) {
+                    $notmailed[] = [
+                        'userid' => $seed['userid'],
+                        'lastmsgseen' => $copy['lastmsgseen'],
+                        'lastmsgemailed' => $copy['lastmsgemailed'],
+                        'lastmsgseenormailed' => $copy['lastmsgseenormailed'],
+                        'role' => User::ROLE_MEMBER,
+                        'returnpath' => TRUE
+                    ];
+                }
+            }
+
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed the messages in this chat.
                 #error_log("{$chat['chatid']} Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
@@ -1773,20 +1791,27 @@ WHERE chat_rooms.id IN $idlist;";
                                         $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
                                     }
 
-                                    $this->mailer($message);
-
-                                    $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
-                                        $lastmsgemailed,
-                                        $member['userid'],
-                                        $chat['chatid']
-                                    ]);
-
-                                    if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
-                                        # Send any SMS, but not if we're only mailing our own messages
-                                        $thisu->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid'] . '?src=sms');
+                                    if (RETURN_PATH) {
+                                        $headers = $message->getHeaders();
+                                        $headers->addTextHeader('X-rpcampaign', ReturnPath::matchingId(ReturnPath::CHAT, 0));
                                     }
 
-                                    $notified++;
+                                    $this->mailer($message);
+
+                                    if (RETURN_PATH && !pres('returnpath', $member)) {
+                                        $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
+                                            $lastmsgemailed,
+                                            $member['userid'],
+                                            $chat['chatid']
+                                        ]);
+
+                                        if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
+                                            # Send any SMS, but not if we're only mailing our own messages
+                                            $thisu->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid'] . '?src=sms');
+                                        }
+
+                                        $notified++;
+                                    }
                                 } catch (Exception $e) {
                                     error_log("Send to {$member['userid']} failed with " . $e->getMessage());
                                 }
