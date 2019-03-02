@@ -122,13 +122,11 @@
         <mj-section background-color="#F7F6EC">
           <mj-column>
             <mj-text align="center">
-              Ads help keep Freegle running and free to use. Donating helps too!
+              We've removed ads from this type of mail.  Help us keep it that way by donating!
             </mj-text>
             <mj-button align="center" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA" font-family="Helvetica" background-color="darkblue" color="white">
               Donate
             </mj-button>
-            <mj-raw>
-                <table align="center" border="0" cellpadding="0" cellspacing="0" ><tr><td colspan="2"><a href="http://li.ilovefreegle.org/click?s=673507&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=673507&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0" style="max-width:320px;"/></a></td></tr><tr><td align="left"><a style="display: block; max-width: 116px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=673508&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=673508&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td><td align="right"><a style="display: block; max-width: 19px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=673510&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=673510&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td></tr></table>            </mj-raw>
           </mj-column>
         </mj-section>
         <mj-section background-color="#E0E0E0">

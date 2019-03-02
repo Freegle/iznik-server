@@ -201,3 +201,8 @@ foreach ($todos as $todo) {
     error_log("Update dashboard user {$todo['userid']}, group {$todo['groupid']}, type {$todo['type']}, start {$todo['start']}");
     $d->get($todo['systemwide'], $todo['groupid'] == NULL, $todo['groupid'], NULL, $todo['type'], $todo['start'], TRUE, $todo['key']);
 }
+
+if (RETURN_PATH) {
+    # Ensure that our seedlist is current and will be mailed.
+    $dbhm->preExec("UPDATE users SET lastaccess = NOW() WHERE id IN (SELECT userid FROM returnpath_seedlist) AND DATE(lastaccess) < CURDATE();");
+}

@@ -41,3 +41,9 @@ if (!defined('IZNIK_BASE')) {
         define('MODTOOLS', TRUE);
     }
 }
+
+if (!defined('RETURN_PATH')) {
+    # Using Return Path function.
+    define('RETURN_PATH', TRUE);
+}
+

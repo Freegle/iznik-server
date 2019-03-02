@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/misc/ReturnPath.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/off.php');
 
@@ -333,14 +334,17 @@ class Digest
             }
 
             if (count($tosend) > 0) {
-                # Now find the users we want to send to on this group for this frequency.  We build up an array of
-                # the substitutions we need.
-                # TODO This isn't that well indexed in the table.
-                $replacements = [];
-
+                # Now find the users we want to send to on this group for this frequency.
                 $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailfrequency = ? ORDER BY userid ASC;";
                 $users = $this->dbhr->preQuery($sql,
                     [ $groupid, $frequency ]);
+
+                if (RETURN_PATH && ReturnPath::shouldSend(ReturnPath::DIGEST)) {
+                    # Also send this to the Return Path seed list so that we can measure inbox placement.
+                    $users = array_merge($users, $this->dbhr->preQuery("SELECT userid FROM returnpath_seedlist"));
+                }
+
+                $replacements = [];
 
                 foreach ($users as $user) {
                     $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
@@ -360,6 +364,7 @@ class Digest
                         # not everyone in a single run gets the same ad.
                         $placementid = "msgdigest-$groupid-$frequency-" . microtime(true);
 
+                        # We build up an array of the substitutions we need.
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{bounce}}' => $u->getBounce(),
@@ -428,6 +433,11 @@ class Digest
                                 $headers = $message->getHeaders();
                                 $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
                                 $message->setTo([ $email => $rep['{{toname}}'] ]);
+
+                                if (RETURN_PATH) {
+                                    $headers->addTextHeader('X-rpcampaign', ReturnPath::matchingId(ReturnPath::DIGEST, $frequency));
+                                }
+
                                 #error_log("Send to $email");
                                 $this->sendOne($mailer, $message);
                                 $sent++;
