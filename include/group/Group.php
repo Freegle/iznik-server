@@ -23,7 +23,7 @@ class Group extends Entity
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo', 'publish',
         'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
-        'contactmail', 'fundingtarget', 'affiliationconfirmed', 'mentored', 'privategroup', 'defaultlocation');
+        'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -1451,7 +1451,7 @@ class Group extends Entity
     public function listByType($type, $support, $polys = FALSE) {
         $typeq = $type ? "type = ?" : '1=1';
         $showq = $support ? '' : 'AND publish = 1 AND listable = 1';
-        $suppfields = $support ? ", lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed": '';
+        $suppfields = $support ? ", lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
         $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, mentored, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";

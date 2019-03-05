@@ -32,7 +32,7 @@ class groupAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
 
-        # Create a moderator and log in as them
+        # Create a moderator
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->group = $g;
 
@@ -332,6 +332,31 @@ class groupAPITest extends IznikAPITestCase {
         assertEquals($this->uid, $ret['group']['showmods'][0]['id']);
 
         error_log(__METHOD__ . " end");
+    }
+
+    public function testAffiliation() {
+        assertTrue($this->user->login('testpw'));
+
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        $confdate = ISODate('@' . time());
+
+        $ret = $this->call('group', 'PATCH', [
+            'id' => $this->groupid,
+            'affiliationconfirmed' => $confdate
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid,
+            'affiliationconfirmedby' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        assertEquals($this->uid, $ret['group']['affiliationconfirmedby']['id']);
+        assertEquals($confdate, $ret['group']['affiliationconfirmed']);
     }
 }
 

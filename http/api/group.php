@@ -81,6 +81,18 @@ function group() {
                     $ret['group']['polygon'] = $ret['group']['dpa'] ? $ret['group']['dpa'] : $ret['group']['cga'];
                 }
 
+                if (presdef('affiliationconfirmedby', $_REQUEST, FALSE)) {
+                    $by = $g->getPrivate('affiliationconfirmedby');
+
+                    if ($by) {
+                        $byu = User::get($dbhr, $dbhm, $by);
+                        $ret['group']['affiliationconfirmedby'] = [
+                            'id' => $by,
+                            'displayname' => $byu->getName()
+                        ];
+                    }
+                }
+
                 if ($showmods) {
                     # We want the list of visible mods.
                     $ctx = NULL;
@@ -158,6 +170,10 @@ function group() {
                             $val = presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);
+
+                                if ($att === 'affiliationconfirmed') {
+                                    $g->setPrivate('affiliationconfirmedby', $me->getId());
+                                }
                             }
                         }
 
