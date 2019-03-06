@@ -66,8 +66,9 @@ class Shortlink extends Entity
         return([$id, $url]);
     }
 
-    public function listAll() {
-        $links = $this->dbhr->preQuery("SELECT * FROM shortlinks ORDER BY LOWER(name) ASC;");
+    public function listAll($groupid) {
+        $groupq = $groupid ? " WHERE groupid = $groupid " : "";
+        $links = $this->dbhr->preQuery("SELECT * FROM shortlinks $groupq ORDER BY LOWER(name) ASC;");
         foreach ($links as &$link) {
             $id = $link['id'];
             if ($link['type'] == Shortlink::TYPE_GROUP) {

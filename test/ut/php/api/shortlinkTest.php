@@ -72,6 +72,13 @@ class shortlinkAPITest extends IznikAPITestCase {
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
+        # Should create a shortlink automatically
+        $ret = $this->call('shortlink', 'GET', [
+            'groupid' => $this->groupid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['shortlinks']));
+
         $ret = $this->call('shortlink', 'POST', []);
         assertEquals(2, $ret['ret']);
 

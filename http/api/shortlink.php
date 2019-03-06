@@ -11,6 +11,7 @@ function shortlink() {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
             $id = intval(presdef('id', $_REQUEST, 0));
+            $gid = intval(presdef('groupid', $_REQUEST, 0));
 
             if ($id) {
                 $s = new Shortlink($dbhr, $dbhm, $id);
@@ -25,7 +26,7 @@ function shortlink() {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'shortlinks' => $s->listAll()
+                    'shortlinks' => $s->listAll($gid)
                 ];
             }
 
