@@ -219,7 +219,7 @@ class Newsletter extends Entity
                     $headers->addTextHeader('List-Unsubscribe', '<mailto:' . $rep['{{noemail}}'] . '>, <' . $rep['{{unsubscribe}}'] . '>');
                     $headers->addTextHeader('X-Iznik-Newsletter', $this->id);
 
-                    Mail::addHeaders($message, Mail::NEWSLETTER, $rep['id']);
+                    Mail::addHeaders($message, Mail::NEWSLETTER, $rep['{{id}}']);
 
                     try {
                         $message->addTo($email);

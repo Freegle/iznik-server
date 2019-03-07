@@ -441,7 +441,7 @@ class Digest
                                 $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
                                 $message->setTo([ $email => $rep['{{toname}}'] ]);
 
-                                Mail::addHeaders($msg,Mail::DIGEST, $rep['{{uid}}'], $frequency);
+                                Mail::addHeaders($message,Mail::DIGEST, $rep['{{uid}}'], $frequency);
 
                                 #error_log("Send to $email");
                                 $this->sendOne($mailer, $message);

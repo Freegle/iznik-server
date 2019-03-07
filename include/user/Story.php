@@ -293,7 +293,7 @@ class Story extends Entity
                         $htmlPart->setBody($html);
                         $message->attach($htmlPart);
 
-                        Mail::addHeaders($message, Mail::STORY_ASK, $u->get());
+                        Mail::addHeaders($message, Mail::STORY_ASK, $u->getId());
 
                         list ($transport, $mailer) = getMailer();
                         $mailer->send($message);
