@@ -1376,7 +1376,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
 
-                error_log("User in User2Mod max $maxmailed vs $lastmessage");
+                #error_log("User in User2Mod max $maxmailed vs $lastmessage");
 
                 if ($maxmailed < $lastmessage) {
                     # We've not been mailed any messages, or some but not this one.
@@ -1472,7 +1472,17 @@ WHERE chat_rooms.id IN $idlist;";
             if (RETURN_PATH && Mail::shouldSend(Mail::CHAT) && count($notmailed) > 0) {
                 # Also send this to the Return Path seed list so that we can measure inbox placement.
                 $seeds = $this->dbhr->preQuery("SELECT userid FROM returnpath_seedlist");
-                $copy = array_rand($notmailed);
+                $seenmax = 0;
+                $copy = NULL;
+
+                # We want to mail the seeds.  Choose the chat member who's seen most messages otherwise
+                # we might mail them the whole chat.
+                foreach ($notmailed as $not) {
+                    if (pres('lastmsgemailed', $not) > $seenmax) {
+                        $copy = $not;
+                        $seenmax = $not['lastmsgemailed'];
+                    }
+                }
 
                 foreach ($seeds as $seed) {
                     $notmailed[] = [
