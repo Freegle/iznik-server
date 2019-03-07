@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/Volunteering.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/volunteeringoff.php');
@@ -66,6 +67,8 @@ class VolunteeringDigest
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
+
+                    Mail::addHeaders($message, Mail::VOLUNTEERING_OFF, $u->getId());
 
                     $this->sendOne($mailer, $message);
                 }
@@ -174,6 +177,7 @@ class VolunteeringDigest
                         $placementid = "voldigest-$groupid-" . microtime(true);
 
                         $replacements[$email] = [
+                            '{{uid}}' => $u->getId(),
                             '{{toname}}' => $u->getName(),
                             '{{settings}}' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_DIGEST),
                             '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_VOLUNTEERING_DIGEST),
@@ -224,6 +228,8 @@ class VolunteeringDigest
 
                         $headers = $message->getHeaders();
                         $headers->addTextHeader('List-Unsubscribe', '<mailto:{{volunteeringoff}}>, <{{unsubscribe}}>');
+
+                        Mail::addHeaders($message, Mail::VOLUNTEERING, $rep['{{uid}}']);
 
                         try {
                             $message->setTo([ $email => $rep['{{toname}}'] ]);

@@ -114,6 +114,8 @@ class Admin extends Entity
             if ($preferred && ($ouremail || !$onyahoo)) {
                 try {
                     $msg = $this->constructMessage($groupname, $preferred, $u->getName(), $g->getAutoEmail(), $this->admin['subject'], $this->admin['text']);
+
+                    Mail::addHeaders($msg, Mail::ADMIN, $u->getId());
                     $mailer->send($msg);
                     $done++;
                 } catch (Exception $e) {

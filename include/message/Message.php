@@ -625,6 +625,7 @@ class Message
     }
 
     public function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
+        # These mails don't need tracking, so we don't call addHeaders.
         try {
             #error_log(session_id() . " mail " . microtime(true));
 
@@ -2437,7 +2438,7 @@ class Message
                         FALSE,
                         NULL);
 
-                    $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle Direct user #" . $this->getFromuser() . " $to)\n\n" . $body);
+                    $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->getFromuser() . " $to)\n\n" . $body);
 
                     # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
                     # appearing as unread to us and other mods.

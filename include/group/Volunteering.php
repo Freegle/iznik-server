@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/mailtemplates/volunteerrenew.php');
@@ -318,6 +319,8 @@ class Volunteering extends Entity
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
+
+                Mail::addHeaders($message, Mail::VOLUNTEERING, $u->getId());
 
                 $this->sendMail($mailer, $message);
                 error_log($v->getId() . " " . $v->getPrivate('title'));

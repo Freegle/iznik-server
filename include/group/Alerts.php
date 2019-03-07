@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
@@ -301,6 +302,7 @@ class Alert extends Entity
                                 }
 
                                 $msg = $this->constructMessage($email['email'], $u->getName(), $u->getId(), $from, $this->alert['subject'], $text, $html);
+                                Mail::addHeaders($msg, Mail::ALERT, $u->getId());
                                 $mailer->send($msg);
                                 $done++;
                             }
@@ -344,6 +346,7 @@ class Alert extends Entity
 
                 error_log("Mail " . $g->getModsEmail());
                 $msg = $this->constructMessage($g->getModsEmail(), $toname, NULL, $from, $this->alert['subject'], $text, $html);
+                Mail::addHeaders($msg, Mail::ALERT);
                 $mailer->send($msg);
                 $done++;
             } catch (Exception $e) {
@@ -366,6 +369,7 @@ class Alert extends Entity
 
             $text = $this->alert['text'];
             $msg = $this->constructMessage($from, $g->getPrivate('nameshort'), NULL, $from, $this->alert['subject'], $text, $html);
+            Mail::addHeaders($msg, Mail::ALERT);
             $mailer->send($msg);
         }
 

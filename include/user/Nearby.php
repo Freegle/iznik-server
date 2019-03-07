@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/nearby.php');
 
 class Nearby
@@ -98,6 +99,8 @@ class Nearby
                                             $htmlPart->setContentType('text/html');
                                             $htmlPart->setBody($html);
                                             $message->attach($htmlPart);
+
+                                            Mail::addHeaders($message, Mail::NEARBY, $u2->getId());
 
                                             $this->sendOne($mailer, $message);
                                             error_log("...user {$user['id']} dist $miles");

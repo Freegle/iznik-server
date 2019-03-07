@@ -3,8 +3,9 @@
 use Pheanstalk\Pheanstalk;
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/misc/ReturnPath.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/session/Facebook.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
@@ -1468,7 +1469,7 @@ WHERE chat_rooms.id IN $idlist;";
 
             #error_log("Notmailed " . count($notmailed) . " with last message {$chatatts['lastmsg']}");
 
-            if (RETURN_PATH && ReturnPath::shouldSend(ReturnPath::CHAT) && count($notmailed) > 0) {
+            if (RETURN_PATH && Mail::shouldSend(Mail::CHAT) && count($notmailed) > 0) {
                 # Also send this to the Return Path seed list so that we can measure inbox placement.
                 $seeds = $this->dbhr->preQuery("SELECT userid FROM returnpath_seedlist");
                 $copy = array_rand($notmailed);
@@ -1480,7 +1481,7 @@ WHERE chat_rooms.id IN $idlist;";
                         'lastmsgemailed' => $copy['lastmsgemailed'],
                         'lastmsgseenormailed' => $copy['lastmsgseenormailed'],
                         'role' => User::ROLE_MEMBER,
-                        'returnpath' => TRUE
+                        'Mail' => TRUE
                     ];
                 }
             }
@@ -1819,14 +1820,11 @@ WHERE chat_rooms.id IN $idlist;";
                                         $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
                                     }
 
-                                    if (RETURN_PATH) {
-                                        $headers = $message->getHeaders();
-                                        $headers->addTextHeader('X-rpcampaign', ReturnPath::matchingId(ReturnPath::CHAT, 0));
-                                    }
+                                    Mail::addHeaders($message, Mail::CHAT, $thisu->getId());
 
                                     $this->mailer($message);
 
-                                    if (RETURN_PATH && !pres('returnpath', $member)) {
+                                    if (RETURN_PATH && !pres('Mail', $member)) {
                                         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                             $lastmsgemailed,
                                             $member['userid'],
@@ -1972,6 +1970,7 @@ WHERE chat_rooms.id IN $idlist;";
                                     $htmlPart->setBody($html);
                                     $message->attach($htmlPart);
 
+                                    Mail::addHeaders($message, Mail::CHAT_CHASEUP_MODS, $thisu->getId());
                                     $this->mailer($message);
                                 }
                             }

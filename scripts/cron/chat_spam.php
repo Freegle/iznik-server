@@ -6,6 +6,7 @@ $_SERVER['HTTP_HOST'] = "www.ilovefreegle.org";
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
@@ -88,6 +89,8 @@ foreach ($chats as $chat) {
     $htmlPart->setContentType('text/html');
     $htmlPart->setBody($html);
     $message->attach($htmlPart);
+
+    Mail::addHeaders($message, Mail::SPAM_WARNING, $innocent->getId());
 
     list ($transport, $mailer) = getMailer();
     $mailer->send($message);

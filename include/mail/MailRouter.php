@@ -1263,6 +1263,7 @@ class MailRouter
     }
 
     public function mail($to, $from, $subject, $body) {
+        # None of these mails need tracking, so we don't call AddHeaders.
         list ($transport, $mailer) = getMailer();
 
         $message = Swift_Message::newInstance()

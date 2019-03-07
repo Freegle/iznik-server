@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
@@ -879,8 +880,8 @@ class User extends Entity
                 ->setTo($byemail)
                 ->setDate(time())
                 ->setBody("Pleased to meet you.");
-            $headers = $message->getHeaders();
-            $headers->addTextHeader('X-Freegle-Mail-Type', 'Added');
+
+            Mail::addHeaders($message, Mail::WELCOME);
             $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreEnd
@@ -913,6 +914,8 @@ class User extends Entity
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
+
+                    Mail::addHeaders($message, Mail::WELCOME, $this->getId());
 
                     $this->sendIt($mailer, $message);
                 }
@@ -1060,8 +1063,9 @@ class User extends Entity
                 ->setTo($byemail)
                 ->setDate(time())
                 ->setBody("Parting is such sweet sorrow.");
-            $headers = $message->getHeaders();
-            $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
+
+            Mail::addHeaders($message, Mail::REMOVED);
+
             $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreEnd
@@ -3407,6 +3411,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
 
+        Mail::addHeaders($message, Mail::WELCOME, $this->getId());
+
         list ($transport, $mailer) = getMailer();
         $this->sendIt($mailer, $message);
     }
@@ -3430,6 +3436,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $htmlPart->setContentType('text/html');
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
+
+        Mail::addHeaders($message, Mail::FORGOT_PASSWORD, $this->getId());
 
         list ($transport, $mailer) = getMailer();
         $this->sendIt($mailer, $message);
@@ -3484,6 +3492,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $htmlPart->setContentType('text/html');
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
+
+            Mail::addHeaders($message, Mail::VERIFY_EMAIL, $this->getId());
 
             $this->sendIt($mailer, $message);
         }
@@ -4097,8 +4107,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             ->setReplyTo(PAYPAL_THANKS_FROM)
             ->setTo($this->getEmailPreferred())
             ->setBody("Thank you for donating to freegle");
-        $headers = $message->getHeaders();
-        $headers->addTextHeader('X-Freegle-Mail-Type', 'ThankDonation');
+        Mail::addHeaders($message, Mail::THANK_DONATION);
 
         $html = donation_thank($this->getName(), $this->getEmailPreferred(), $this->loginLink(USER_SITE, $this->id, '/?src=thankdonation'), $this->loginLink(USER_SITE, $this->id, '/settings?src=thankdonation'));
 
@@ -4110,6 +4119,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $htmlPart->setContentType('text/html');
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
+
+        Mail::addHeaders($message, Mail::THANK_DONATION, $this->getId());
 
         $this->sendIt($mailer, $message);
     }
@@ -4150,8 +4161,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                             ->setReplyTo($frommail)
                             ->setTo($email)
                             ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
-                        $headers = $message->getHeaders();
-                        $headers->addTextHeader('X-Freegle-Mail-Type', 'Invitation');
+
+                        Mail::addHeaders($message, Mail::INVITATION);
 
                         $html = invite($fromname, $frommail, $url);
 
@@ -5413,5 +5424,20 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ], FALSE, FALSE);
 
         return(count($ids) ? array_column($ids, 'id') : []);
+    }
+
+    public static function encodeId($id) {
+        $bin = base_convert($id, 10, 2);
+        $bin = str_replace('0', '-', $bin);
+        $bin = str_replace('1', '~', $bin);
+        return($bin);
+    }
+
+    public static function decodeId($enc) {
+        $enc = trim($enc);
+        $enc = str_replace('-', '0', $enc);
+        $enc = str_replace('~', '1', $enc);
+        $id  = base_convert($enc, 2, 10);
+        return($id);
     }
 }

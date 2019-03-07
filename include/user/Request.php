@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards.php');
@@ -147,6 +148,8 @@ class Request extends Entity
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
+                    Mail::addHeaders($message, Mail::REQUEST_COMPLETED, $u->getId());
+
                     list ($transport, $mailer) = getMailer();
                     $this->sendIt($mailer, $message);
 
@@ -185,6 +188,8 @@ class Request extends Entity
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
+
+                    Mail::addHeaders($message, Mail::REQUEST, $u->getId());
 
                     list ($transport, $mailer) = getMailer();
                     $this->sendIt($mailer, $message);

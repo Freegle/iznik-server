@@ -5,6 +5,7 @@ $_SERVER['HTTP_HOST'] = "ilovefreegle.org";
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 global $dbhr, $dbhm;
@@ -44,6 +45,8 @@ foreach ($bads as $bad) {
     $htmlPart->setContentType('text/html');
     $htmlPart->setBody($html);
     $message->attach($htmlPart);
+
+    Mail::addHeaders($message, Mail::BAD_SMS, $u->getId());
 
     $headers = $message->getHeaders();
 

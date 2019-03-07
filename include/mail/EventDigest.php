@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/eventsoff.php');
@@ -66,6 +67,8 @@ class EventDigest
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
+
+                    Mail::addHeaders($message, Mail::EVENTS_OFF, $u->getId());
 
                     $this->sendOne($mailer, $message);
                 }
@@ -245,6 +248,8 @@ class EventDigest
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($tosend['html']);
                     $message->attach($htmlPart);
+
+                    Mail::addHeaders($message, Mail::EVENTS, $u->getId());
 
                     $headers = $message->getHeaders();
                     $headers->addTextHeader('List-Unsubscribe', '<mailto:{{eventsoff}}>, <{{unsubscribe}}>');

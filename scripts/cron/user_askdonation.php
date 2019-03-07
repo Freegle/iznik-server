@@ -8,6 +8,7 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/misc/Donations.php');
 
@@ -58,8 +59,8 @@ foreach ($users as $user) {
                     ->setBody($ours ? "Did you just get this from Freegle?\r\n\r\n{$message['subject']}\r\n\r\n(If we're wrong, just delete this message.)\r\n\r\n If you've not already, why not send a thanks to the person who gave it?  Just to be nice.\r\n\r\nFreegle is free to use, but it's not free to run.  This month we're trying to raise " . DONATION_TARGET . " to keep us going.\r\n\r\nIf you can, please donate &pound;1 through PayPal:\r\n\r\nhttp://freegle.in/paypal\r\n\r\nWe realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!\r\n" :
                         "Thank you for using your local Freegle group.\r\n\r\nFreegle is free to use, but it's not free to run.  This month we're trying to raise " . DONATION_TARGET . " to keep us going.\r\n\r\nIf you can, please donate &pound;1 through PayPal:\r\n\r\nhttp://freegle.in/paypal\r\n\r\nWe realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!\r\n"
                     );
-                $headers = $m->getHeaders();
-                $headers->addTextHeader('X-Freegle-Mail-Type', 'AskDonation');
+
+                Mail::addHeaders($m, Mail::ASK_DONATION);
 
                 $html = $twig->render('collected.html', [
                     'name' => $u->getName(),

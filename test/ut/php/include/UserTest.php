@@ -1212,8 +1212,10 @@ class userTest extends IznikTestCase {
 
         $ids = $u->getActiveSince('5 minutes ago', 'tomorrow');
         assertTrue(in_array($uid, $ids));
+    }
 
-        }
-
+    public function testEncodeId() {
+        assertEquals(123, User::decodeId(User::encodeId(123)));
+    }
 }
 

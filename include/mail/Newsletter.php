@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/newsletter.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/newsletterarticle.php');
@@ -92,6 +93,8 @@ class Newsletter extends Entity
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
+
+                Mail::addHeaders($message, Mail::NEWSLETTER_OFF, $u->getId());
 
                 $this->sendOne($mailer, $message);
             }
@@ -216,6 +219,7 @@ class Newsletter extends Entity
                     $headers->addTextHeader('List-Unsubscribe', '<mailto:' . $rep['{{noemail}}'] . '>, <' . $rep['{{unsubscribe}}'] . '>');
                     $headers->addTextHeader('X-Iznik-Newsletter', $this->id);
 
+                    Mail::addHeaders($message, Mail::NEWSLETTER, $rep['id']);
 
                     try {
                         $message->addTo($email);

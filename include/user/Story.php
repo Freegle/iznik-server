@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
@@ -292,6 +293,8 @@ class Story extends Entity
                         $htmlPart->setBody($html);
                         $message->attach($htmlPart);
 
+                        Mail::addHeaders($message, Mail::STORY_ASK, $u->get());
+
                         list ($transport, $mailer) = getMailer();
                         $mailer->send($message);
                     } catch (Exception $e) {}
@@ -349,6 +352,7 @@ class Story extends Entity
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
 
+            # No need to track for mailing Central.
             list ($transport, $mailer) = getMailer();
             $this->sendIt($mailer, $message);
         }

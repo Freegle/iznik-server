@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 require_once(IZNIK_BASE . '/mailtemplates/notifications/notificationsoff.php');
@@ -190,6 +191,8 @@ class Notifications
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
 
+                Mail::addHeaders($message, Mail::NOTIFICATIONS_OFF, $u->getId());
+
                 $this->sendIt($mailer, $message);
             }
         }
@@ -270,6 +273,8 @@ class Notifications
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
+
+                Mail::addHeaders($message, Mail::NOTIFICATIONS, $u->getId());
 
                 list ($transport, $mailer) = getMailer();
                 $this->sendIt($mailer, $message);

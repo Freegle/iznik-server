@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
@@ -724,6 +725,8 @@ class Newsfeed extends Entity
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
+                    Mail::addHeaders($message, Mail::NEWSFEED, $u->getId());
+
                     error_log("..." . $u->getEmailPreferred() . " send $count");
                     list ($transport, $mailer) = getMailer();
                     $this->sendIt($mailer, $message);
@@ -836,6 +839,8 @@ class Newsfeed extends Entity
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
+
+                Mail::addHeaders($message, Mail::NEWSFEED_MODNOTIF, $mod->getId());
 
                 error_log("..." . $mod->getEmailPreferred() . " send $count");
                 list ($transport, $mailer) = getMailer();

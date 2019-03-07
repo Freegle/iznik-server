@@ -1,6 +1,7 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
@@ -51,6 +52,8 @@ class Relevant {
             $htmlPart->setContentType('text/html');
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
+
+            Mail::addHeaders($message, Mail::RELEVANT_OFF, $u->getId());
 
             $this->sendOne($mailer, $message);
         }
@@ -278,6 +281,8 @@ class Relevant {
                             $htmlPart->setContentType('text/html');
                             $htmlPart->setBody($html);
                             $message->attach($htmlPart);
+
+                            Mail::addHeaders($message, Mail::RELEVANT, $u->getId());
 
                             $this->sendOne($mailer, $message);
                             #error_log("Sent to $email");

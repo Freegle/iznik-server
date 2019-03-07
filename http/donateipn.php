@@ -7,6 +7,7 @@
 require_once dirname(__FILE__) . '/../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 $u = new User($dbhr, $dbhm);
@@ -58,6 +59,8 @@ if ($transaction['mc_gross'] > 0) {
             ->setBody($text);
 
         list ($transport, $mailer) = getMailer();
+        Mail::addHeaders($message, Mail::DONATE_IPN);
+
         $mailer->send($message);
     }
 }
