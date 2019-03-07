@@ -105,6 +105,17 @@
             <mj-button align="left" href="{{ reply }}" font-family="Helvetica" background-color="darkgreen" color="white">
               Reply
             </mj-button>
+            <mj-raw>
+              {% if prevmsg is defined and prevmsg %}
+            </mj-raw>
+            <mj-text color="black">
+              <hr style="border: 0; border-top: 1px solid #AAA; " />
+                <span style="font-weight: bold">{{ prevmsg|nl2br }}</span>
+              <hr style="border: 0; border-top: 1px solid #AAA; " />
+            </mj-text>
+            <mj-raw>
+              {% endif %}
+            </mj-raw>
             <mj-text color="grey">
               You can respond by just replying to this email - but it works better if you reply on the site using the button.
             </mj-text>

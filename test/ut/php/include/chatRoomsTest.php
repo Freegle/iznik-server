@@ -586,8 +586,16 @@ class chatRoomsTest extends IznikTestCase {
 
         # Should have updated the last message seen.
         self::assertEquals($r->lastSeenForUser($u2), $cm);
+    }
 
-        }
+    public function testSplitQuote() {
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+
+        assertEquals("> Testing", $r->splitAndQuote("Testing"));
+        assertEquals("> Testing", $r->splitAndQuote("Testing\r\n"));
+        assertEquals("> Testing Testing Testing Testing Testing Testing Testing\r\n> Testing Testing Testing Testing Testing Testing Testing\r\n> Testing Testing Testing Testing", $r->splitAndQuote("Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing"));
+        assertEquals("> TestingTestingTestingTestingTestingTestingTestingTestingTest\r\n> ingTestingTestingTestingTestingTestingTestingTestingTestingT\r\n> esting", $r->splitAndQuote("TestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTesting"));
+    }
 }
 
 

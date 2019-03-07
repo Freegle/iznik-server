@@ -1327,7 +1327,6 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function getMembersStatus($lastmessage, $delay = 10)
     {
-        # TODO We should chase for group chats too.
         # There are some general restrictions on when we email:
         # - When we have a new message since our last email, we don't email more often than every 10 minutes, so that if
         #   someone keeps hammering away in chat we don't flood the recipient with emails.
@@ -1339,7 +1338,7 @@ WHERE chat_rooms.id IN $idlist;";
             # seen message was and decide who to chase.  If they've blocked this chat we don't want to see it.
             #
             # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
-            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != 'Blocked') HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
+            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != 'Blocked') HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > $delay);";
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
             foreach ($users as $user) {
@@ -1518,6 +1517,7 @@ WHERE chat_rooms.id IN $idlist;";
                     $lastmsg = NULL;
                     $justmine = TRUE;
                     $fromuid = NULL;
+                    $firstid = NULL;
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
                         $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
@@ -1529,6 +1529,12 @@ WHERE chat_rooms.id IN $idlist;";
                         $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
 
                         if ($mailson) {
+                            if (!$firstid) {
+                                # We're going to want to include the previous message as reply context, so we need
+                                # to know the id of the first message we're sending.
+                                $firstid = $unmailedmsg['id'];
+                            }
+
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
                             switch ($unmailedmsg['type']) {
                                 case ChatMessage::TYPE_COMPLETED: {
@@ -1698,6 +1704,24 @@ WHERE chat_rooms.id IN $idlist;";
                             #   it's less likely that they will interleave their response inside it - they will probably reply at
                             #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
                             #   added.
+                            #
+                            # In both cases we include the previous message quoted to look like an old-school email reply.  This
+                            # provides some context, and may also help with spam filters by avoiding really short messages.
+                            $prevmsg = "";
+
+                            if ($firstid) {
+                                # Get the last substantive message in the chat before this one, if any.
+                                $prevmsgs = $this->dbhr->preQuery("SELECT chat_messages.* FROM chat_messages WHERE chatid = ? AND id < ? AND message IS NOT NULL ORDER BY id DESC LIMIT 1;", [
+                                    $chat['chatid'],
+                                    $firstid
+                                ]);
+
+                                foreach ($prevmsgs as $p) {
+                                    $prevmsg = $this->splitAndQuote($p['message']);
+                                    $textsummary .= "\r\n\r\n$prevmsg";
+                                }
+                            }
+
                             $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
                             $to = $thisu->getEmailPreferred();
 
@@ -1720,7 +1744,8 @@ WHERE chat_rooms.id IN $idlist;";
                                             'email' => $to,
                                             'aboutme' => $aboutu ? $aboutu->getAboutMe()['text'] : NULL,
                                             'LI_HASH' => $lihash,
-                                            'LI_PLACEMENT_ID' => $placement
+                                            'LI_PLACEMENT_ID' => $placement,
+                                            'prevmsg' => $prevmsg
                                         ]);
 
                                         $sendname = $fromname;
@@ -1736,8 +1761,10 @@ WHERE chat_rooms.id IN $idlist;";
                                                 'backcolour' => '#FFF8DC',
                                                 'email' => $to,
                                                 'LI_HASH' => $lihash,
-                                                'LI_PLACEMENT_ID' => $placement
+                                                'LI_PLACEMENT_ID' => $placement,
+                                                'prevmsg' => $prevmsg
                                             ]);
+
                                             $sendname = $fromname;
                                         } else {
                                             $url = $thisu->loginLink($site, $member['userid'], '/modtools/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
@@ -1752,7 +1779,8 @@ WHERE chat_rooms.id IN $idlist;";
                                                 'backcolour' => '#E8FEFB',
                                                 'email' => $to,
                                                 'LI_HASH' => $lihash,
-                                                'LI_PLACEMENT_ID' => $placement
+                                                'LI_PLACEMENT_ID' => $placement,
+                                                'prevmsg' => $prevmsg
                                             ]);
 
                                             $sendname = 'Reply All';
@@ -1835,6 +1863,35 @@ WHERE chat_rooms.id IN $idlist;";
         }
 
         return ($notified);
+    }
+
+    public function splitAndQuote($str) {
+        # We want to split the text into lines, without breaking words, and quote them.
+        $inlines = preg_split("/(\r\n|\n|\r)/", trim($str));
+        $outlines = [];
+
+        foreach ($inlines as $inline) {
+            do {
+                $inline = trim($inline);
+
+                if (strlen($inline) <= 60) {
+                    # Easy.
+                    $outlines[] = '> ' . $inline;
+                } else {
+                    # See if we can find a word break.
+                    $p = strrpos(substr($inline, 0, 60), ' ');
+                    $splitat = ($p !== FALSE && $p < 60) ? $p : 60;
+                    $outlines[] = '> ' . trim(substr($inline, 0, $splitat));
+                    $inline = trim(substr($inline, $splitat));
+
+                    if (strlen($inline) && strlen($inline) <= 60) {
+                        $outlines[] = '> ' . trim($inline);
+                    }
+                }
+            } while (strlen($inline) > 60);
+        }
+
+        return(implode("\r\n", $outlines));
     }
 
     public function chaseupMods($id = NULL, $age = 566400)
