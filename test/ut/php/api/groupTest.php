@@ -58,8 +58,6 @@ class groupAPITest extends IznikAPITestCase {
 
     public function testCreate()
     {
-        error_log(__METHOD__);
-
         # Not logged in - should fail
         $ret = $this->call('group', 'POST', [
             'action' => 'Create',
@@ -78,12 +76,9 @@ class groupAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testGet() {
-        error_log(__METHOD__);
-
         # Not logged in - shouldn't see members list
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid,
@@ -116,7 +111,7 @@ class groupAPITest extends IznikAPITestCase {
             'id' => $this->groupid,
             'members' => TRUE
         ]);
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertFalse(pres('members', $ret['group']));
 
@@ -126,18 +121,15 @@ class groupAPITest extends IznikAPITestCase {
             'id' => $this->groupid,
             'members' => TRUE
         ]);
-        error_log("Members " . var_export($ret, true));
+        $this->log("Members " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
 
         assertEquals(1, count($ret['group']['members']));
         assertEquals('test@test.com', $ret['group']['members'][0]['email']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPatch() {
-        error_log(__METHOD__);
-
         # Not logged in - shouldn't be able to set
         $ret = $this->call('group', 'PATCH', [
             'id' => $this->groupid,
@@ -228,17 +220,14 @@ class groupAPITest extends IznikAPITestCase {
         assertNotFalse(strpos($ret['group']['profile'], $attid));
         assertEquals('Test slogan', $ret['group']['tagline']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testConfirmMod() {
-        error_log(__METHOD__);
-
         $ret = $this->call('group', 'POST', [
             'action' => 'ConfirmKey',
             'id' => $this->groupid
         ]);
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         $key = $ret['key'];
 
@@ -251,15 +240,12 @@ class groupAPITest extends IznikAPITestCase {
             'dup' => TRUE,
             'id' => $this->groupid
         ]);
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
         assertEquals(100, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAddLicense() {
-        error_log(__METHOD__);
-
         # Not logged in
         $ret = $this->call('group', 'POST', [
             'action' => 'AddLicense',
@@ -285,30 +271,24 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testList() {
-        error_log(__METHOD__);
-
         $ret = $this->call('groups', 'GET', [
             'grouptype' => 'Freegle'
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testShowmods() {
-        error_log(__METHOD__);
-
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
 
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid,
             'showmods' => TRUE
         ]);
-        error_log("Returned " . var_export($ret, TRUE));
+        $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertFalse(pres('showmods', $ret['group']));
 
@@ -319,20 +299,19 @@ class groupAPITest extends IznikAPITestCase {
             ]
         ]);
         assertEquals(0, $ret['ret']);
-        error_log("Settings after patch for {$this->uid} " . $this->user->getPrivate('settings'));
+        $this->log("Settings after patch for {$this->uid} " . $this->user->getPrivate('settings'));
 
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid,
             'showmods' => TRUE
         ]);
-        error_log("Returned " . var_export($ret, TRUE));
+        $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertTrue(array_key_exists('showmods', $ret['group']));
         assertEquals(1, count($ret['group']['showmods']));
         assertEquals($this->uid, $ret['group']['showmods'][0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAffiliation() {
         assertTrue($this->user->login('testpw'));

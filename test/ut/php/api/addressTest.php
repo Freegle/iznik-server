@@ -33,11 +33,9 @@ class addressAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        error_log("Created user {$this->uid}");
+        $this->log("Created user {$this->uid}");
         assertNotNull($this->uid);
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -69,7 +67,7 @@ class addressAPITest extends IznikAPITestCase
 
         # Get with id - should work
         $ret = $this->call('address', 'GET', ['id' => $id]);
-        error_log("Got address " . var_export($ret, TRUE));
+        $this->log("Got address " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['address']['id']);
 
@@ -99,13 +97,10 @@ class addressAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPAF()
     {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -114,22 +109,21 @@ class addressAPITest extends IznikAPITestCase
 
         $postcode = $this->dbhr->preQuery("SELECT id, postcodeid FROM paf_addresses WHERE postcodeid IS NOT NULL LIMIT 1;");
 
-        error_log("Get for postcode {$postcode[0]['postcodeid']}");
+        $this->log("Get for postcode {$postcode[0]['postcodeid']}");
 
         $ret = $this->call('address', 'GET', [
             'postcodeid' => $postcode[0]['postcodeid']
         ]);
-        error_log("Got " . var_export($ret, TRUE));
+        $this->log("Got " . var_export($ret, TRUE));
         $found = FALSE;
         foreach ($ret['addresses'] as $address) {
             if ($address['id'] == $postcode[0]['id']) {
                 $found = TRUE;
-                error_log($address['singleline']);
+                $this->log($address['singleline']);
             }
         }
 
         assertTrue($found);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

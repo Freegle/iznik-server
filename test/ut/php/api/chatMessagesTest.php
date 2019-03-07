@@ -61,8 +61,6 @@ class chatMessagesAPITest extends IznikAPITestCase
 
     public function testGroupGet()
     {
-        error_log(__METHOD__);
-
         # Logged out - no rooms
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
         assertEquals(1, $ret['ret']);
@@ -70,7 +68,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);;
         $mid = $m->create($this->cid, $this->uid, 'Test');
-        error_log("Created chat message $mid");
+        $this->log("Created chat message $mid");
 
         # Just because it exists, doesn't mean we should be able to see it.
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
@@ -88,7 +86,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         # Now we're talking.
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
-        error_log("Now we're talking " . var_export($ret, TRUE));
+        $this->log("Now we're talking " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatmessages']));
         assertEquals($mid, $ret['chatmessages'][0]['id']);
@@ -102,15 +100,12 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($mid, $ret['chatmessage']['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testGroupPut()
     {
-        error_log(__METHOD__);
-
         # Logged out - no rooms
-        error_log("Logged out");
+        $this->log("Logged out");
         $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test' ]);
         assertEquals(1, $ret['ret']);
         assertFalse(pres('chatmessages', $ret));
@@ -119,13 +114,13 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertTrue($this->user->login('testpw'));
 
         # Now we're talking.  Make sure we're on the roster.
-        error_log("Logged in");
+        $this->log("Logged in");
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $this->cid,
             'lastmsgseen' => 1
         ]);
 
-        error_log("Post test");
+        $this->log("Post test");
         $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test2' ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
@@ -156,12 +151,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(2, count($ret['chatrooms']));
         assertTrue($this->cid == $ret['chatrooms'][0]['id'] || $this->cid == $ret['chatrooms'][1]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testConversation() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
 
         # We want to use a referenced message which is promised, to test suppressing of email notifications.
@@ -191,7 +183,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertNotNull($this->cid);
 
         $ret = $this->call('chatrooms', 'GET', []);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatrooms']));
         assertEquals($this->cid, $ret['chatrooms'][0]['id']);
@@ -201,7 +193,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'message' => 'Test',
             'refmsgid' => $refmsgid
         ]);
-        error_log("Create message " . var_export($ret, TRUE));
+        $this->log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid1 = $ret['id'];
@@ -213,18 +205,18 @@ class chatMessagesAPITest extends IznikAPITestCase
             'refmsgid' => $refmsgid,
             'dup' => TRUE
         ]);
-        error_log("Dup create message " . var_export($ret, TRUE));
+        $this->log("Dup create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         assertEquals($mid1, $ret['id']);
 
         # Check that the email was suppressed.
-        error_log("Check for suppress of $mid1 to {$this->uid2}");
+        $this->log("Check for suppress of $mid1 to {$this->uid2}");
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $this->cid
         ]);
 
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         foreach ($ret['roster'] as $rost) {
             if ($rost['user']['id'] == $this->uid2) {
                 self::assertEquals($mid1, $rost['lastmsgemailed']);
@@ -253,7 +245,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'roomid' => $this->cid,
             'id' => $mid1
         ]);
-        error_log("Get message" . var_export($ret, TRUE));
+        $this->log("Get message" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($mid1, $ret['chatmessage']['id']);
 
@@ -281,12 +273,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         ]);
         assertEquals(2, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testImage() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('chatrooms', 'PUT', [
@@ -318,7 +307,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'roomid' => $this->cid,
             'imageid' => $iid
         ]);
-        error_log("Create image " . var_export($ret, TRUE));
+        $this->log("Create image " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid1 = $ret['id'];
@@ -331,27 +320,21 @@ class chatMessagesAPITest extends IznikAPITestCase
             'roomid' => $this->cid,
             'id' => $mid1
         ]);
-        error_log("Get message " . var_export($ret, TRUE));
+        $this->log("Get message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($mid1, $ret['chatmessage']['id']);
         assertEquals($iid, $ret['chatmessage']['image']['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testLink() {
-        error_log(__METHOD__);
-
         $m = new ChatMessage($this->dbhr, $this->dbhm);;
 
         assertTrue($m->checkReview("Hi ↵↵repetitionbowie.com/sportscapping.php?meant=mus2x216xkrn0mpb↵↵↵↵↵Thank you!"));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testReview() {
-        error_log(__METHOD__);
-
         $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
         assertTrue($this->user->login('testpw'));
 
@@ -369,7 +352,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'message' => 'Test with link http://spam.wherever ',
             'refchatid' => $this->cid
         ]);
-        error_log("Create message " . var_export($ret, TRUE));
+        $this->log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid1 = $ret['id'];
@@ -378,7 +361,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'roomid' => $this->cid,
             'message' => 'Test with link http://ham.wherever '
         ]);
-        error_log("Create message " . var_export($ret, TRUE));
+        $this->log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid2 = $ret['id'];
@@ -391,7 +374,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         # Shouldn't see chat as no messages not held for review.
         $ret = $this->call('chatrooms', 'GET', []);
-        error_log("Shouldn't see rooms " . var_export($ret, TRUE));
+        $this->log("Shouldn't see rooms " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(0, count($ret['chatrooms']));
 
@@ -399,7 +382,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $ret = $this->call('chatmessages', 'GET', [
             'roomid' => $this->cid
         ]);
-        error_log("Get message" . var_export($ret, TRUE));
+        $this->log("Get message" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['chatmessages']));
 
@@ -425,7 +408,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
 
         # Should see this now.
-        error_log("Check can see for mod on {$this->groupid}");
+        $this->log("Check can see for mod on {$this->groupid}");
         $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertEquals(2, $ret['work']['chatreview']);
@@ -439,14 +422,14 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Get the messages for review.
         $ret = $this->call('chatmessages', 'GET', []);
         assertEquals(0, $ret['ret']);
-        error_log("Messages for review " . var_export($ret, TRUE));
+        $this->log("Messages for review " . var_export($ret, TRUE));
         assertEquals(2, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
         assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
         assertEquals($mid2, $ret['chatmessages'][1]['id']);
 
         # Test hold/unhold.
-        error_log("Hold");
+        $this->log("Hold");
         assertFalse(pres('held', $ret['chatmessages'][0]));
         $ret = $this->call('chatmessages', 'POST', [
             'id' => $mid1,
@@ -454,7 +437,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         $ret = $this->call('chatmessages', 'GET', []);
-        #error_log("After hold " . var_export($ret, TRUE));
+        #$this->log("After hold " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals($this->user3->getId(), $ret['chatmessages'][0]['held']['id']);
 
@@ -500,12 +483,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(1, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testReviewUnmod() {
-        error_log(__METHOD__);
-
         $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
         $this->user->setPrivate('chatmodstatus', User::CHAT_MODSTATUS_UNMODERATED);
         assertTrue($this->user->login('testpw'));
@@ -524,7 +504,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'message' => 'Test with link http://spam.wherever ',
             'refchatid' => $this->cid
         ]);
-        error_log("Create message " . var_export($ret, TRUE));
+        $this->log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid1 = $ret['id'];
@@ -533,7 +513,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'roomid' => $this->cid,
             'message' => 'Test with link http://ham.wherever '
         ]);
-        error_log("Create message " . var_export($ret, TRUE));
+        $this->log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid2 = $ret['id'];
@@ -541,12 +521,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
         self::assertEquals(0, $cm->getPrivate('reviewrequired'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testContext() {
-        error_log(__METHOD__);
-
         # Set up a conversation with lots of messages.
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $rid = $r->createConversation($this->uid, $this->uid2);
@@ -554,7 +531,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         for ($i = 0; $i < 10; $i++) {
             $cm = new ChatMessage($this->dbhr, $this->dbhm);
             $cid = $cm->create($rid, $this->uid, "Test message $i");
-            error_log("Created chat message $cid in $rid");
+            $this->log("Created chat message $cid in $rid");
         }
 
         assertTrue($this->user->login('testpw'));
@@ -589,7 +566,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'context' => $ctx
         ]);
 
-        error_log("Got second " . var_export($ret, TRUE));
+        $this->log("Got second " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(5, count($ret['chatmessages']));
 
@@ -597,8 +574,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             assertEquals("Test message $i", $ret['chatmessages'][$i]['message']);
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 //
 //    public function testEH()
 //    {
@@ -613,7 +589,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 //        $ret = $this->call('chatmessages', 'GET', [ 'roomid' => 5371641 ]);
 //
 //        assertEquals(0, $ret['ret']);
-//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
 //    }
 }
 

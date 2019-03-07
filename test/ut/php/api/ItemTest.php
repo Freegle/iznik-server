@@ -37,8 +37,6 @@ class itemAPITest extends IznikAPITestCase {
     }
 
     public function testCreate() {
-        error_log(__METHOD__);
-
         # Get invalid id
         $ret = $this->call('item', 'GET', [
             'id' => -1
@@ -69,23 +67,20 @@ class itemAPITest extends IznikAPITestCase {
             'name' => 'UTTest',
             'dup' => 2
         ]);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
         $ret = $this->call('item', 'GET', [
             'id' => $id
         ]);
-        error_log("Returned " . var_export($ret, true));
+        $this->log("Returned " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['item']['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPatch() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('item', 'POST', [
@@ -93,7 +88,7 @@ class itemAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
-        error_log("Created $id");
+        $this->log("Created $id");
 
         # Log out
         unset($_SESSION['id']);
@@ -108,7 +103,7 @@ class itemAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         # As a non-mod
-        error_log("Demote");
+        $this->log("Demote");
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
         $ret = $this->call('item', 'PATCH', [
             'id' => $id,
@@ -130,12 +125,9 @@ class itemAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals('UTTest2', $ret['item']['name']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testDelete() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('item', 'POST', [
@@ -158,7 +150,7 @@ class itemAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         # As a non-mod
-        error_log("Demote");
+        $this->log("Demote");
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
         $ret = $this->call('item', 'DELETE', [
             'id' => $id
@@ -178,20 +170,16 @@ class itemAPITest extends IznikAPITestCase {
         ]);
         assertEquals(2, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testTypeahead() {
-        error_log(__METHOD__);
-
         # Get invalid id
         $ret = $this->call('item', 'GET', [
             'typeahead' => 'sof'
         ]);
         assertEquals(0, $ret['ret']);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

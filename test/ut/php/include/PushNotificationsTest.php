@@ -26,11 +26,9 @@ class pushNotificationsTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        error_log("Created $id");
+        $this->log("Created $id");
 
         $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
@@ -39,34 +37,31 @@ class pushNotificationsTest extends IznikTestCase {
         $mock->method('uthook')->willThrowException(new Exception());
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
-        error_log("Send Google");
+        $this->log("Send Google");
         $n->add($id, PushNotifications::PUSH_GOOGLE, 'test');
         assertEquals(1, count($n->get($id)));
         assertEquals(1, $mock->notify($id));
-        error_log("Send Firefox");
+        $this->log("Send Firefox");
         $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2');
         assertEquals(2, count($n->get($id)));
         assertEquals(2, $n->notify($id));
-        error_log("Send Android");
+        $this->log("Send Android");
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-        error_log("Notify group mods");
+        $this->log("Notify group mods");
         $u->addMembership($this->groupid, User::ROLE_MODERATOR);
         assertEquals(2, $mock->notifyGroupMods($this->groupid));
 
         $n->remove($id);
         assertEquals([], $n->get($id));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testExecute() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        error_log("Created $id");
+        $this->log("Created $id");
 
         $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
@@ -84,12 +79,9 @@ class pushNotificationsTest extends IznikTestCase {
 
         assertTrue(TRUE);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPoke() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
 
@@ -107,15 +99,12 @@ class pushNotificationsTest extends IznikTestCase {
         $mock->method('uthook')->willThrowException(new Exception());
         assertEquals(FALSE, $mock->poke($id, [ 'ut' => 1 ], FALSE));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testErrors() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        error_log("Created $id");
+        $this->log("Created $id");
 
         $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
@@ -147,7 +136,6 @@ class pushNotificationsTest extends IznikTestCase {
 
         assertTrue(TRUE);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

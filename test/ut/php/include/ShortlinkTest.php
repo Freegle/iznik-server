@@ -25,8 +25,6 @@ class shortlinkTest extends IznikTestCase {
     }
 
     public function testGroup() {
-        error_log(__METHOD__);
-
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
@@ -59,12 +57,9 @@ class shortlinkTest extends IznikTestCase {
 
         $s->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testOther() {
-        error_log(__METHOD__);
-
         $s = new Shortlink($this->dbhr, $this->dbhm);
         $sid = $s->create('testurl', Shortlink::TYPE_OTHER, NULL, 'https://test.com');
         $atts = $s->getPublic();
@@ -73,8 +68,7 @@ class shortlinkTest extends IznikTestCase {
         self::assertEquals('https://test.com', $s->resolve('testurl')[1]);
         $s->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 
 

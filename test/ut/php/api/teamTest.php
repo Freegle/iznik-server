@@ -35,8 +35,6 @@ class teamAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         # Can't create logged out.
         $ret = $this->call('team', 'POST', [
             'name' => 'UTTest'
@@ -88,7 +86,7 @@ class teamAPITest extends IznikAPITestCase {
         $ret = $this->call('team', 'GET', [
             'id' => $id
         ]);
-        error_log("Get " . var_export($ret, TRUE));
+        $this->log("Get " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['team']['members']));
         assertEquals($this->user->getId(), $ret['team']['members'][0]['id']);
@@ -103,7 +101,7 @@ class teamAPITest extends IznikAPITestCase {
         $ret = $this->call('team', 'GET', [
             'id' => $id
         ]);
-        error_log("Get " . var_export($ret, TRUE));
+        $this->log("Get " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['team']['members']));
 
@@ -111,7 +109,6 @@ class teamAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

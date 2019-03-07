@@ -39,8 +39,6 @@ class exportAPITest extends IznikAPITestCase {
     }
 
     public function testExport() {
-        error_log(__METHOD__);
-
         # Add some settings for coverage.
         $this->user->setPrivate('settings', json_encode([
             'email' => TRUE,
@@ -83,7 +81,7 @@ class exportAPITest extends IznikAPITestCase {
             ]);
 
             $count++;
-            error_log("...waiting for export $count");
+            $this->log("...waiting for export $count");
             sleep(1);
         } while ((!pres('export', $ret) || !pres('data', $ret['export'])) && $count < 600);
 
@@ -102,7 +100,6 @@ class exportAPITest extends IznikAPITestCase {
         assertNotNull($ret['tag']);
         assertEquals($this->user->getId(), $ret['export']['data']['Our_internal_ID_for_you']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

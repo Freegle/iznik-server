@@ -39,8 +39,6 @@ class searchTest extends IznikTestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -54,7 +52,7 @@ class searchTest extends IznikTestCase
         $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->setSearch($this->s);
-        error_log("Created message id $id1");
+        $this->log("Created message id $id1");
 
         # Search for various terms
         $ctx = NULL;
@@ -71,7 +69,7 @@ class searchTest extends IznikTestCase
 
         # Test restricting by filter.
         $ctx = NULL;
-        error_log("Restrict to $gid");
+        $this->log("Restrict to $gid");
         $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $gid ]);
         assertEquals($id1, $ret[0]['id']);
 
@@ -81,16 +79,16 @@ class searchTest extends IznikTestCase
 
         # Test fuzzy
         $ctx = NULL;
-        error_log("Test fuzzy");
+        $this->log("Test fuzzy");
         $ret = $m->search("tuesday", $ctx);
-        error_log("Fuzzy " . var_export($ctx, true));
+        $this->log("Fuzzy " . var_export($ctx, true));
         assertEquals($id1, $ret[0]['id']);
         assertNotNull($ctx['SoundsLike']);
 
         # Test typo
         $ctx = NULL;
         $ret = $m->search("Tets", $ctx);
-        error_log("Typo " . var_export($ctx, true));
+        $this->log("Typo " . var_export($ctx, true));
         assertEquals($id1, $ret[0]['id']);
         assertNotNull($ctx['Typo']);
 
@@ -109,7 +107,7 @@ class searchTest extends IznikTestCase
         assertEquals($id1, $ret[0]['id']);
 
         # Search again using the same context - will find starts with
-        error_log("CTX " . var_export($ctx, true));
+        $this->log("CTX " . var_export($ctx, true));
         $ret = $m->search("zzzutzzz", $ctx);
         assertEquals($id1, $ret[0]['id']);
 
@@ -131,13 +129,10 @@ class searchTest extends IznikTestCase
         $ret = $m->search("Test", $ctx);
         assertEquals(0, count($ret));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMultiple()
     {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
@@ -147,7 +142,7 @@ class searchTest extends IznikTestCase
         $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->setSearch($this->s);
-        error_log("Created message id $id1");
+        $this->log("Created message id $id1");
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test yyyutyyy', $msg);
@@ -158,7 +153,7 @@ class searchTest extends IznikTestCase
         $m->index();
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         $m2->setSearch($this->s);
-        error_log("Created message id $id2");
+        $this->log("Created message id $id2");
 
         # Search for various terms
         $ctx = NULL;
@@ -203,8 +198,7 @@ class searchTest extends IznikTestCase
         $m1->delete();
         $m2->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
 //    public function testSpecial() {
 //        $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
@@ -213,7 +207,7 @@ class searchTest extends IznikTestCase
 //        $ress = $s->search("basket", $ctx, 100, NULL, [ 21467 ]);
 //        foreach ($ress as $res) {
 //            $m = new Message($this->dbhr, $this->dbhm, $res['id']);
-//            error_log("#{$res['id']} " . $m->getSubject());
+//            $this->log("#{$res['id']} " . $m->getSubject());
 //        }
 //    }
 }

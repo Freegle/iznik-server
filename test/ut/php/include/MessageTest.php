@@ -70,19 +70,13 @@ class messageTest extends IznikTestCase {
     }
 
     public function testSetFromIP() {
-        error_log(__METHOD__);
-
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setFromIP('8.8.8.8');
         assertEquals('google-public-dns-a.google.com', $m->getFromhost());
 
-        error_log(__METHOD__ . " end");
-
-    }
+        }
 
     public function testRelated() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
@@ -118,12 +112,9 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testRelated2() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
@@ -156,12 +147,9 @@ class messageTest extends IznikTestCase {
         $atts1 = $m1->getPublic();
         self::assertEquals('Taken', $atts1['outcomes'][0]['outcome']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testRelated3() {
-        error_log(__METHOD__);
-
         # Post a message to two groups, mark it as taken on both, make sure that is handled correctly.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid1 = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -211,12 +199,9 @@ class messageTest extends IznikTestCase {
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         assertEquals(Message::OUTCOME_TAKEN, $m2->hasOutcome());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testNoSender() {
-        error_log(__METHOD__);
-
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nosender');
         $msg = str_replace('Basic test', 'OFFER: Test item', $msg);
 
@@ -224,12 +209,9 @@ class messageTest extends IznikTestCase {
         $rc = $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertFalse($rc);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSuggest() {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
@@ -250,7 +232,7 @@ class messageTest extends IznikTestCase {
         list($mid, $already) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $atts = $m->getPublic();
-        error_log("Public " . var_export($atts, true));
+        $this->log("Public " . var_export($atts, true));
 
         # Shouldn't be able to see actual location
         assertFalse(array_key_exists('locationid', $atts));
@@ -264,9 +246,9 @@ class messageTest extends IznikTestCase {
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFER:Test (High Street)"));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test (High Street)"));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR - Test  - (High Street)"));
-        error_log("--1");
+        $this->log("--1");
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu High Street"));
-        error_log("--2");
+        $this->log("--2");
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu HIGH STREET"));
         assertEquals("OFFER: test (Tuvalu High Street)", $m->suggestSubject($gid, "OFFR TEST Tuvalu HIGH STREET"));
 
@@ -277,18 +259,15 @@ class messageTest extends IznikTestCase {
             ]
         ]);
         $keywords = $g->getSetting('keywords', []);
-        error_log("After set " . var_export($keywords, TRUE));
+        $this->log("After set " . var_export($keywords, TRUE));
 
         assertEquals("Offered: Test (Tuvalu High Street)", $m->suggestSubject($gid,$goodsubj));
 
         assertEquals("OFFER: Thing need (Tuvalu High Street)", "OFFER: Thing need (Tuvalu High Street)");
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMerge() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
@@ -319,12 +298,9 @@ class messageTest extends IznikTestCase {
         $logs = $this->dbhr->preQuery($sql, [ $fromuser ]);
         assertEquals(0, count($logs));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testHebrew() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '=?windows-1255?B?UkU6IE1hdGFub3MgTGFFdnlvbmltIFB1cmltIDIwMTYg7sf6yMzw5Q==?=
 =?windows-1255?B?yfog7MjgxuHA6cnwxOnt?=', $msg);
@@ -334,12 +310,9 @@ class messageTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
     
     public function testPrune() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -354,15 +327,12 @@ class messageTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        error_log("Pruned to " . $m->getMessage());
+        $this->log("Pruned to " . $m->getMessage());
         assertLessThan(20000, strlen($m->getMessage()));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testReverseSubject() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
@@ -402,12 +372,9 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: Windows 95 & 98 on DVD (Criccieth LL52)', $m->reverseSubject());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testStripQuoted() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -493,35 +460,26 @@ class messageTest extends IznikTestCase {
         $stripped = $m->stripQuoted();
         assertEquals("Please may I be considered", $stripped);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
     
     public function testCensor() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/phonemail'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $atts = $m->getPublic();
         assertEquals('Hey. *** *** and ***@***.com.', $atts['textbody']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testModmail() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/modmail'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->getPrivate('modmail'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAutoReply() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -557,12 +515,9 @@ class messageTest extends IznikTestCase {
         $m->setPrivate('fromaddr', 'notify@yahoogroups.com');
         assertTrue($m->isAutoreply());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testBounce() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -580,12 +535,9 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isBounce());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAutoRepost() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onyahoo', 1);
@@ -615,7 +567,7 @@ class messageTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id2 = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
-        error_log("Due message $id2");
+        $this->log("Due message $id2");
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $m->setPrivate('sourceheader', 'Platform');
         $rc = $r->route();
@@ -624,13 +576,13 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
 
         # Should get nothing - first message is not due and too old to generate a warning.
-        error_log("Expect nothing");
+        $this->log("Expect nothing");
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-03-01', $gid);
         assertEquals(0, $count);
         assertEquals(0, $warncount);
 
         # Call when repost not due.  First one should cause a warning only.
-        error_log("Expect warning for $id2");
+        $this->log("Expect warning for $id2");
         $mysqltime = date("Y-m-d H:i:s", strtotime('59 hours ago'));
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
 
@@ -639,7 +591,7 @@ class messageTest extends IznikTestCase {
         assertEquals(1, $warncount);
 
         # Again - no action.
-        error_log("Expect nothing");
+        $this->log("Expect nothing");
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $gid);
         assertEquals(0, $count);
         assertEquals(0, $warncount);
@@ -651,14 +603,14 @@ class messageTest extends IznikTestCase {
         self::assertEquals(TRUE, $atts['willautorepost']);
 
         # Make the message and warning look longer ago.  Then call - should cause a repost.
-        error_log("Expect repost");
+        $this->log("Expect repost");
         $mysqltime = date("Y-m-d H:i:s", strtotime('77 hours ago'));
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
         $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id2 ]);
 
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         $atts = $m2->getPublic();
-        error_log("Can repost {$atts['canrepost']} {$atts['canrepostat']}");
+        $this->log("Can repost {$atts['canrepost']} {$atts['canrepostat']}");
         self::assertEquals(TRUE, $atts['canrepost']);
 
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $gid);
@@ -672,12 +624,9 @@ class messageTest extends IznikTestCase {
         $log = $this->findLog('Message', 'Autoreposted', $atts['logs']);
         self::assertNotNull($log);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testChaseup() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onyahoo', 1);
@@ -728,12 +677,9 @@ class messageTest extends IznikTestCase {
         $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $gid);
         assertEquals(0, $count);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testTN() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tnatt2'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -742,12 +688,9 @@ class messageTest extends IznikTestCase {
         assertEquals(2, count($atts));
         $m->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testIncludeArea() {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
         assertNotNull($areaid);
@@ -778,12 +721,9 @@ class messageTest extends IznikTestCase {
         $m->constructSubject($gid);
         self::assertEquals(strtolower('OFFER: test item (Tuvalu Central)'), strtolower($m->getSubject()));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testTNShow() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('test@test.com', 'test@user.trashnothing.com', $msg);
 
@@ -794,12 +734,9 @@ class messageTest extends IznikTestCase {
         assertTrue($m->canSee($atts));
         $m->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testQuickDelete() {
-        error_log(__METHOD__ . " end");
-
         $dbconfig = array (
             'host' => SQLHOST,
             'port_read' => SQLPORT_READ,
@@ -831,13 +768,11 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNull($m->getID());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     // For manual testing
 //    public function testSpecial() {
-//        error_log(__METHOD__);
-//
+//        //
 //        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special');
 //
 //        $m = new Message($this->dbhr, $this->dbhm);
@@ -845,17 +780,16 @@ class messageTest extends IznikTestCase {
 //        assertTrue($rc);
 //        list($id, $already) = $m->save();
 //        $m = new Message($this->dbhr, $this->dbhm, $id);
-//        error_log("IP " . $m->getFromIP());
+//        $this->log("IP " . $m->getFromIP());
 //        $s = new Spam($this->dbhr, $this->dbhm);
 //        $s->check($m);
 //
 //
-//        error_log(__METHOD__ . " end");
-//    }
+//        //    }
 
 //    public function testType() {
 //        $m = new Message($this->dbhr, $this->dbhm, 8153598);
-//        error_log(Message::determineType($m->getSubject()));
+//        $this->log(Message::determineType($m->getSubject()));
 //    }
 
 }

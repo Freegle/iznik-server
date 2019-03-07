@@ -34,8 +34,6 @@ class pollAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $c = new Polls($this->dbhr, $this->dbhm);
         $id = $c->create('UTTest', 1, 'Test');
 
@@ -83,7 +81,7 @@ class pollAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         # Get - shouldn't return this one.
-        error_log("Shouldn't return this one");
+        $this->log("Shouldn't return this one");
         $ret = $this->call('poll', 'GET', []);
 
         assertEquals(0, $ret['ret']);
@@ -91,12 +89,9 @@ class pollAPITest extends IznikAPITestCase {
             self::assertNotEquals($id, $ret['poll']['id']);
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testLogin() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -105,7 +100,7 @@ class pollAPITest extends IznikAPITestCase {
         # Fake FB login.
         assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, NULL, 'testpw'));
         $logins = $u->getLogins();
-        error_log("Got logins " . var_export($logins, TRUE));
+        $this->log("Got logins " . var_export($logins, TRUE));
 
         # Create a poll requiring FB.
         $c = new Polls($this->dbhr, $this->dbhm);
@@ -124,7 +119,7 @@ class pollAPITest extends IznikAPITestCase {
             }
 
             # Shown
-            error_log("Mark $id as shown");
+            $this->log("Mark $id as shown");
             $ret = $this->call('poll', 'POST', [
                 'id' => $id,
                 'response' => [
@@ -136,7 +131,6 @@ class pollAPITest extends IznikAPITestCase {
 
         assertTrue($found);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

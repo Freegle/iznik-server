@@ -14,10 +14,17 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
 abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     const LOG_SLEEP = 600;
     const YAHOO_PATIENCE = 600;
+    const DEBUG = FALSE;
 
     private $dbhr, $dbhm;
 
     public static $unique = 1;
+
+    public function log($str) {
+        if (IznikTestCase::DEBUG) {
+            $this->log($str);
+        }
+    }
 
     public function tidy() {
         $this->dbhm->preExec("DELETE FROM messages WHERE fromaddr = ?;", ['test@test.com' ]);
@@ -52,6 +59,8 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
     protected function setUp() {
         parent::setUp ();
+
+        $this->log(__METHOD__);
 
         error_reporting(E_ALL);
 
@@ -96,9 +105,10 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
             @session_destroy();
             unset($_SESSION);
         } catch (Exception $e) {
-            error_log("Session exception " . $e->getMessage());
+            $this->log("Session exception " . $e->getMessage());
         }
-    }
+
+        }
 
     public function unique($msg) {
 
@@ -107,7 +117,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         #assertNotEquals($msg, $newmsg1, "Newman-ID");
         $newmsg2 = preg_replace('/Message-Id:.*\<.*\>/i', 'Message-Id: <' . $unique . "@test>", $newmsg1);
         #assertNotEquals($newmsg2, $newmsg1, "Message-Id");
-        #error_log("Unique $newmsg2");
+        #$this->log("Unique $newmsg2");
         return($newmsg2);
     }
 
@@ -123,7 +133,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
             $ready = $stats['current-jobs-ready'];
             $reserved = $stats['current-jobs-reserved'];
 
-            error_log("...waiting for background work, current $ready/$reserved, try $count");
+            $this->log("...waiting for background work, current $ready/$reserved, try $count");
 
             if ($ready + $reserved == 0) {
                 break;
@@ -152,12 +162,12 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     public function findLog($type, $subtype, $logs) {
         foreach ($logs as $log) {
             if ($log['type'] == $type && $log['subtype'] == $subtype) {
-                error_log("Found log " . var_export($log, true));
+                $this->log("Found log " . var_export($log, true));
                 return($log);
             }
         }
 
-        error_log("Failed to find log $type $subtype in " . var_export($logs, TRUE));
+        $this->log("Failed to find log $type $subtype in " . var_export($logs, TRUE));
         return(NULL);
     }
 }

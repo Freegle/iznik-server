@@ -61,8 +61,6 @@ class nearbyTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         # Create a location for the message
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
@@ -93,12 +91,12 @@ class nearbyTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $mid);
-        error_log("Created message $mid");
+        $this->log("Created message $mid");
 
         # Create a nearby user
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, "Test User2");
-        error_log("Nearby user $uid");
+        $this->log("Nearby user $uid");
         $u->addMembership($gid);
         $u->setPrivate('lastlocation', $lid2);
         $u->addEmail('test@test.com');
@@ -106,8 +104,7 @@ class nearbyTest extends IznikTestCase {
         $n = new Nearby($this->dbhm, $this->dbhm);
         assertEquals(1, $n->messages($gid));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 
 

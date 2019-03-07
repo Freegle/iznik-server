@@ -43,8 +43,6 @@ class authorityAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         # Create a group with an OFFER, WANTED and a search on it.
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
@@ -53,7 +51,7 @@ class authorityAPITest extends IznikAPITestCase
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
 
-        error_log("Postcode $pcid full $fullpcid Area $areaid Location $locid");
+        $this->log("Postcode $pcid full $fullpcid Area $areaid Location $locid");
 
         # Create a group there
         $this->group = Group::get($this->dbhr, $this->dbhm);
@@ -101,7 +99,7 @@ class authorityAPITest extends IznikAPITestCase
             'stats' => TRUE
         ]);
 
-        error_log("Get returned " . var_export($ret, TRUE));
+        $this->log("Get returned " . var_export($ret, TRUE));
 
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['authority']['id']);
@@ -118,19 +116,17 @@ class authorityAPITest extends IznikAPITestCase
             'search' => 'utau'
         ]);
 
-        error_log("Search returned " . var_export($ret, TRUE));
+        $this->log("Search returned " . var_export($ret, TRUE));
 
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['authorities']));
         assertEquals($id, $ret['authorities'][0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 //
 //    public function testEH()
 //    {
-//        error_log(__METHOD__);
-//
+//        //
 //        $this->dbhr->errorLog = TRUE;
 //        $this->dbhm->errorLog = TRUE;
 //        $a = new Authority($this->dbhr, $this->dbhm);
@@ -139,8 +135,7 @@ class authorityAPITest extends IznikAPITestCase
 //            'id' => 73214
 //        ]);
 //
-//        error_log("Get returned " . var_export($ret, TRUE));
+//        $this->log("Get returned " . var_export($ret, TRUE));
 //
-//        error_log(__METHOD__ . " end");
-//    }
+//        //    }
 }

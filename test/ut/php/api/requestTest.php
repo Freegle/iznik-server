@@ -30,8 +30,6 @@ class requestAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         // This assumes some addresses are loaded, even if they're fake.
         $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses LIMIT 1;");
         self::assertEquals(1, count($pafadds));
@@ -83,7 +81,7 @@ class requestAPITest extends IznikAPITestCase {
 
         # List
         $ret = $this->call('request', 'GET', []);
-        error_log("List " . var_export($ret, TRUE));
+        $this->log("List " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(1, count($ret['requests']));
 
@@ -96,7 +94,7 @@ class requestAPITest extends IznikAPITestCase {
 
         # List outstanding - with permission
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        error_log("Created {$this->uid}");
+        $this->log("Created {$this->uid}");
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->user->setPrivate('permissions', User::PERM_BUSINESS_CARDS);
@@ -137,7 +135,6 @@ class requestAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

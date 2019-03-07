@@ -39,8 +39,6 @@ class newsletterTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
@@ -70,7 +68,7 @@ class newsletterTest extends IznikTestCase {
         # Now test.
         assertEquals(1, $n->send($gid));
 
-        error_log("Mail sent" . var_export($this->newslettersSent, TRUE));
+        $this->log("Mail sent" . var_export($this->newslettersSent, TRUE));
 
         # Turn off
         $n->off($uid2, $gid);
@@ -83,7 +81,6 @@ class newsletterTest extends IznikTestCase {
         $u->addMembership($gid);
         assertEquals(0, $n->send($gid));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

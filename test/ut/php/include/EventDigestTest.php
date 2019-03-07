@@ -37,8 +37,6 @@ class eventDigestTest extends IznikTestCase {
     }
 
     public function testEvents() {
-        error_log(__METHOD__);
-
         # Create a group with two events on it.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -91,7 +89,7 @@ class eventDigestTest extends IznikTestCase {
         assertEquals(1, $mock->send($gid));
         assertEquals(1, count($this->eventsSent));
 
-        error_log("Mail sent" . var_export($this->eventsSent, TRUE));
+        $this->log("Mail sent" . var_export($this->eventsSent, TRUE));
 
         # Actual send for coverage.
         $d = new EventDigest($this->dbhr, $this->dbhm);
@@ -108,7 +106,7 @@ class eventDigestTest extends IznikTestCase {
         $u->addMembership($gid);
         assertEquals(0, $mock->send($gid));
 
-        error_log("For coverage");
+        $this->log("For coverage");
         $e = new EventDigest($this->dbhr, $this->dbhm);
         $mock = $this->getMockBuilder('SwiftMailer')
             ->setMethods(array('send'))
@@ -119,12 +117,10 @@ class eventDigestTest extends IznikTestCase {
             assertTrue(FALSE);
         } catch (Exception $e){}
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 //
 //    public function testNewEvents() {
-//        error_log(__METHOD__);
-//
+//        //
 //        # Create a group with two events on it.
 //        $g = Group::get($this->dbhr, $this->dbhm);
 //        $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -148,12 +144,12 @@ class eventDigestTest extends IznikTestCase {
 //
 //        foreach ($emails as $email) {
 //            $eid = $email['id'];
-//            error_log("Found eid $eid");
+//            $this->log("Found eid $eid");
 //            $u->addMembership($gid, User::ROLE_MEMBER, $eid);
 //
 //            $e = new CommunityEvent($this->dbhr, $this->dbhm);
 //            $eid = $e->create($uid, 'Test Event 1', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event');
-//            error_log("Created event $eid");
+//            $this->log("Created event $eid");
 //            $e->addGroup($gid);
 //            $e->addDate(ISODate('@' . strtotime('next monday 10am')), ISODate('@' . strtotime('next monday 11am')));
 //            $e->addDate(ISODate('@' . strtotime('next tuesday 10am')), ISODate('@' . strtotime('next tuesday 11am')));
@@ -161,23 +157,22 @@ class eventDigestTest extends IznikTestCase {
 //
 //            $i = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_COMMUNITY_EVENT);
 //            $photoid = $i->create($eid, 'image/jpg', file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg'));
-//            error_log("Set photo $photoid");
+//            $this->log("Set photo $photoid");
 //            $e->setPhoto($photoid);
 //
 //            $eid = $e->create($uid, 'Test Event 2', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event');
-//            error_log("Created event $eid");
+//            $this->log("Created event $eid");
 //            $e->addGroup($gid);
 //            $e->addDate(ISODate('@' . strtotime('next wednesday 2pm')), ISODate('@' . strtotime('next wednesday 3pm')));
 //            $e->setPrivate('pending', 0);
 //
 //            # Now test.
-//            error_log("Now send");
+//            $this->log("Now send");
 //
 //            $d = new EventDigest($this->dbhr, $this->dbhm);
 //            assertEquals(1, $d->send($gid));
 //        }
 //
-//        error_log(__METHOD__ . " end");
-//    }
+//        //    }
 }
 

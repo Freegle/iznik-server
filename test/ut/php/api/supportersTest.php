@@ -21,8 +21,6 @@ class supportersTest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $ret = $this->call('supporters', 'GET', [
         ]);
         assertEquals(0, $ret['ret']);
@@ -31,7 +29,6 @@ class supportersTest extends IznikAPITestCase {
         assertTrue(array_key_exists('Front Page', $ret['supporters']));
         assertTrue(array_key_exists('Supporter', $ret['supporters']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

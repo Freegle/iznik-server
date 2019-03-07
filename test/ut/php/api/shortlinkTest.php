@@ -26,8 +26,6 @@ class shortlinkAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $g = new Group($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
@@ -52,7 +50,7 @@ class shortlinkAPITest extends IznikAPITestCase {
 
         $found = FALSE;
 
-        error_log("Found " . count($ret['shortlinks']));
+        $this->log("Found " . count($ret['shortlinks']));
 
         foreach ($ret['shortlinks'] as $l) {
             if (pres('groupid', $l) == $this->groupid) {
@@ -62,12 +60,9 @@ class shortlinkAPITest extends IznikAPITestCase {
 
         assertTrue($found);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testCreate() {
-        error_log(__METHOD__);
-
         $g = new Group($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
@@ -104,7 +99,6 @@ class shortlinkAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['shortlink']['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

@@ -30,8 +30,6 @@ class correlateTest extends IznikAPITestCase {
     }
 
     public function testPending() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -79,7 +77,7 @@ class correlateTest extends IznikAPITestCase {
             ],
             'wibble' => 'bypass dup check'
         ]);
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
 
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['missingonserver']));
@@ -108,12 +106,9 @@ class correlateTest extends IznikAPITestCase {
         $u->delete();
         $g->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testApproved() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -162,7 +157,7 @@ class correlateTest extends IznikAPITestCase {
             ],
             'wibble' => 'bypass dup check'
         ]);
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
 
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['missingonserver']));
@@ -206,14 +201,14 @@ class correlateTest extends IznikAPITestCase {
         assertEquals(isodate('Sat, 22 Aug 2015 10:45:58 +0000'), $ret['missingonclient'][0]['date']);
 
         # Now test with multiple messages.
-        error_log("Test multiple");
+        $this->log("Test multiple");
         $msg = str_ireplace('freegleplayground', 'testgroup', $origmsg);
         $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: Sat, 20 Aug 2015 10:45:58 +0000', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msg = $this->unique($msg);
         $msg = preg_replace('/X-Yahoo-Newman-ID: (.*)/i', 'X-Yahoo-Newman-ID: 19440136-m2', $msg);
         $msg = str_replace('Subject: [Test Group] Basic test', 'Subject: [Test Group] Basic test 2', $msg);
-        error_log("First $msg");
+        $this->log("First $msg");
         $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -224,7 +219,7 @@ class correlateTest extends IznikAPITestCase {
         $msg = preg_replace('/X-Yahoo-Newman-ID: (.*)/i', 'X-Yahoo-Newman-ID: 19440136-m3', $msg);
         $msg = str_replace('Subject: [Test Group] Basic test', 'Subject: [Test Group] Basic test 3', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        error_log("Second $msg");
+        $this->log("Second $msg");
         $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -251,7 +246,7 @@ class correlateTest extends IznikAPITestCase {
                 ]
             ]
         ]);
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
 
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['missingonserver']));
@@ -281,7 +276,7 @@ class correlateTest extends IznikAPITestCase {
             ],
             'wibble' => "Defeat dup"
         ]);
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
 
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['missingonserver']));
@@ -311,7 +306,7 @@ class correlateTest extends IznikAPITestCase {
             ],
             'wibble' => "Defeat dup2"
         ]);
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
 
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['missingonserver']));
@@ -331,7 +326,7 @@ class correlateTest extends IznikAPITestCase {
             'messages' => [
             ]
         ]);
-        error_log("Spam and pending " . var_export($ret, true));
+        $this->log("Spam and pending " . var_export($ret, true));
 
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['missingonserver']));
@@ -340,7 +335,6 @@ class correlateTest extends IznikAPITestCase {
         $u->delete();
         $g->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

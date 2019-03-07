@@ -27,8 +27,6 @@ class sessionClassTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         # Logged out
         $me = whoAmI($this->dbhm, $this->dbhm);
         assertNull($me);
@@ -55,23 +53,17 @@ class sessionClassTest extends IznikTestCase {
         $me = whoAmI($this->dbhm, $this->dbhm);
         assertEquals($id, $me->getPrivate('id'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMisc() {
-        error_log(__METHOD__);
-
         # Can call this twice
         prepareSession($this->dbhm, $this->dbhm);
         prepareSession($this->dbhm, $this->dbhm);
         assertTrue(TRUE);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testCookie() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
 
@@ -102,6 +94,5 @@ class sessionClassTest extends IznikTestCase {
         prepareSession($this->dbhm, $this->dbhm);
         assertFalse($_SESSION['logged_in']);
 
-        error_log(__METHOD__ . " end");
-    }}
+        }}
 

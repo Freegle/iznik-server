@@ -28,8 +28,6 @@ class scheduleAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, 'Test User');
         $uid2 = $u->create(NULL, NULL, 'Test User');
@@ -84,7 +82,7 @@ class scheduleAPITest extends IznikAPITestCase {
         assertNotNull($id);
 
         $ret = $this->call('schedule', 'GET', []);
-        error_log("Returned " . var_export($ret, TRUE));
+        $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['schedule']['id']);
         self::assertEquals($schedule, $ret['schedule']['schedule']);
@@ -110,7 +108,7 @@ class scheduleAPITest extends IznikAPITestCase {
 
         foreach ($msgs as $msg) {
             if ($msg['type'] == ChatMessage::TYPE_SCHEDULE_UPDATED || $msg['type'] == ChatMessage::TYPE_SCHEDULE) {
-                error_log("Schedule message " . var_export($msg, TRUE));
+                $this->log("Schedule message " . var_export($msg, TRUE));
                 self::assertEquals(0, count($msg['matches']));
             }
         }
@@ -126,11 +124,10 @@ class scheduleAPITest extends IznikAPITestCase {
 
         foreach ($msgs as $msg) {
             if ($msg['type'] == ChatMessage::TYPE_SCHEDULE_UPDATED || $msg['type'] == ChatMessage::TYPE_SCHEDULE) {
-                error_log("Schedule message " . var_export($msg, TRUE));
+                $this->log("Schedule message " . var_export($msg, TRUE));
                 self::assertEquals(1, count($msg['matches']));
             }
         }
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

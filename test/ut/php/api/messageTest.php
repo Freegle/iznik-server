@@ -33,8 +33,6 @@ class messageAPITest extends IznikAPITestCase
     }
 
     public function testLoggedOut() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
@@ -56,18 +54,15 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'collection' => 'Approved'
         ]);
-        error_log("Message returned when logged out " . var_export($ret, TRUE));
+        $this->log("Message returned when logged out " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
         assertFalse(array_key_exists('fromuser', $ret['message']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testApproved()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', TRUE);
@@ -126,13 +121,10 @@ class messageAPITest extends IznikAPITestCase
         $a->delete();
         $g->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testBadColl()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -151,13 +143,10 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(101, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPending()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -207,13 +196,10 @@ class messageAPITest extends IznikAPITestCase
 
         $a->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSpam()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -222,7 +208,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
-        error_log("Created spam message $id");
+        $this->log("Created spam message $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -290,13 +276,10 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(3, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSpamToApproved()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -305,7 +288,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
-        error_log("Created spam message $id");
+        $this->log("Created spam message $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -340,13 +323,13 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id
         ]);
-        error_log("Should be in approved " . var_export($ret['message']['groups'], TRUE));
+        $this->log("Should be in approved " . var_export($ret['message']['groups'], TRUE));
         assertEquals('Approved', $ret['message']['groups'][0]['collection']);
 
         # Now send it again - should stay in approved.
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id2 = $r->received(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
-        error_log("Created spam message $id");
+        $this->log("Created spam message $id");
         $rc = $r->route();
         #assertEquals(MailRouter::INCOMING_SPAM, $rc);
         self::assertEquals($id, $id2);
@@ -354,16 +337,13 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id
         ]);
-        error_log("Should still be in approved " . var_export($ret['message']['groups'], TRUE));
+        $this->log("Should still be in approved " . var_export($ret['message']['groups'], TRUE));
         assertEquals('Approved', $ret['message']['groups'][0]['collection']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSpamNoLongerMember()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -372,7 +352,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
-        error_log("Created spam message $id");
+        $this->log("Created spam message $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -415,13 +395,10 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(3, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testApprove()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -519,7 +496,7 @@ class messageAPITest extends IznikAPITestCase
         $groups = $m->getGroups();
         assertEquals($group1, $groups[0]);
         $p = $m->getPublic();
-        error_log("After approval " . var_export($p, TRUE));
+        $this->log("After approval " . var_export($p, TRUE));
         assertEquals('Approved', $p['groups'][0]['collection']);
         assertEquals($uid, $p['groups'][0]['approvedby']['id']);
 
@@ -547,13 +524,10 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(3, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testReject()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
@@ -640,7 +614,7 @@ class messageAPITest extends IznikAPITestCase
         $pid = $ret['plugin'][0]['id'];
 
         # The message should exist as rejected.  Shouldn't be able to see logged out
-        error_log("Can't see logged out");
+        $this->log("Can't see logged out");
         $_SESSION['id'] = NULL;
         $ret = $this->call('message', 'GET', [
             'id' => $m->getId()
@@ -649,12 +623,12 @@ class messageAPITest extends IznikAPITestCase
 
         # Now log in as the sender.
         $uid = $m->getFromuser();
-        error_log("Found sender as $uid");
+        $this->log("Found sender as $uid");
         $u = User::get($this->dbhm, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        error_log("Message $id should now be rejected");
+        $this->log("Message $id should now be rejected");
         $ret = $this->call('messages', 'GET', [
             'collection' => MessageCollection::REJECTED,
             'groupid' => $group1
@@ -662,10 +636,10 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['messages']));
         assertEquals($id, $ret['messages'][0]['id']);
-        error_log("Indeed it is");
+        $this->log("Indeed it is");
 
         # Try to convert it back to a draft.
-        error_log("Back to draft");
+        $this->log("Back to draft");
 //        $this->dbhm->errorLog = TRUE;
 //        $this->dbhr->errorLog = TRUE;
         $ret = $this->call('message', 'POST', [
@@ -675,7 +649,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # Check it's a draft.  Have to be logged in to see that.
-        error_log("Check draft");
+        $this->log("Check draft");
         $ret = $this->call('messages', 'GET', [
             'collection' => MessageCollection::DRAFT
         ]);
@@ -684,12 +658,12 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['messages'][0]['id']);
 
         # Coverage of rollback case.
-        error_log("Rollback");
+        $this->log("Rollback");
         $m2 = new Message($this->dbhr, $this->dbhm);
         assertFalse($m2->backToDraft());
 
         # Now delete it.
-        error_log("Delete");
+        $this->log("Delete");
         $ret = $this->call('plugin', 'DELETE', [
             'id' => $pid
         ]);
@@ -706,13 +680,10 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(3, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testReply()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_OTHER);
 
@@ -789,13 +760,10 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['plugin']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testDelete()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -846,7 +814,7 @@ class messageAPITest extends IznikAPITestCase
         # Plugin work should exist
         $ret = $this->call('plugin', 'GET', []);
         assertEquals(0, $ret['ret']);
-        error_log("Plugin work after delete " . var_export($ret['plugin'], TRUE));
+        $this->log("Plugin work after delete " . var_export($ret['plugin'], TRUE));
         assertEquals(1, count($ret['plugin']));
         assertEquals($group1, $ret['plugin'][0]['groupid']);
         assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
@@ -869,7 +837,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(3, $ret['ret']);
 
         # Route and delete approved.
-        error_log("Route and delete approved");
+        $this->log("Route and delete approved");
         $msg = $this->unique($msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -884,13 +852,10 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testNotSpam()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -997,13 +962,10 @@ class messageAPITest extends IznikAPITestCase
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testHold()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -1071,13 +1033,10 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertFalse(pres('heldby', $ret['message']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testEditAsMod()
     {
-        error_log(__METHOD__);
-
         # Create an attachment
         $cwd = getcwd();
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
@@ -1125,7 +1084,7 @@ class messageAPITest extends IznikAPITestCase
             'attachments' => []
         ]);
 
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
         assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to edit as a member
@@ -1201,7 +1160,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id
         ]);
         assertEquals('Test edit', $ret['message']['textbody']);
-        error_log("After text edit " . var_export($ret, TRUE));
+        $this->log("After text edit " . var_export($ret, TRUE));
 
         # Check edit history
         assertEquals('Test edit long', $ret['message']['edits'][1]['oldsubject']);
@@ -1218,7 +1177,7 @@ class messageAPITest extends IznikAPITestCase
             'FOP' => 0
         ]);
         assertEquals(0, $ret['ret']);
-        error_log("After HTML edit " . var_export($ret, TRUE));
+        $this->log("After HTML edit " . var_export($ret, TRUE));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id
@@ -1226,13 +1185,10 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Test edit', $ret['message']['htmlbody']);
         self::assertEquals(0, $ret['message']['FOP']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testEditAsMember()
     {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
@@ -1255,7 +1211,7 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $mod->addMembership($gid, User::ROLE_MODERATOR);
 
-        error_log("Created member $memberid and mod $modid");
+        $this->log("Created member $memberid and mod $modid");
 
         # Submit a message from the member, who will be moderated as new members are.
         assertTrue($member->login('testpw'));
@@ -1393,13 +1349,10 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals('Text body', $ret['message']['textbody']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testDraft()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -1429,7 +1382,7 @@ class messageAPITest extends IznikAPITestCase
             'locationid' => $locid,
             'attachments' => [ $attid ]
         ]);
-        error_log("Draft PUT " . var_export($ret, TRUE));
+        $this->log("Draft PUT " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
@@ -1444,7 +1397,7 @@ class messageAPITest extends IznikAPITestCase
             'groupid' => $group1,
             'attachments' => [ $attid ]
         ]);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
@@ -1493,14 +1446,14 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Text body2', $msg['textbody']);
         assertEquals($attid2, $msg['attachments'][0]['id']);
 
-        error_log("Get back in draft");
+        $this->log("Get back in draft");
         $ret = $this->call('messages', 'GET', [
             'collection' => 'Draft'
         ]);
-        error_log("Messages " . var_export($ret, TRUE));
+        $this->log("Messages " . var_export($ret, TRUE));
         $found = FALSE;
         foreach ($ret['messages'] as $message) {
-            error_log("Compare {$message['id']} to $id");
+            $this->log("Compare {$message['id']} to $id");
             if ($message['id'] == $id) {
                 $found = TRUE;
             }
@@ -1523,17 +1476,14 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('messages', 'GET', [
             'collection' => 'Draft'
         ]);
-        error_log("Messages " . var_export($ret, TRUE));
+        $this->log("Messages " . var_export($ret, TRUE));
         assertEquals($id, $ret['messages'][0]['id']);
         assertEquals(0, count($ret['messages'][0]['attachments']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSubmit()
     {
-        error_log(__METHOD__);
-
         assertTrue(TRUE);
 
         if (!getenv('STANDALONE')) {
@@ -1570,7 +1520,7 @@ class messageAPITest extends IznikAPITestCase
                 'identify' => TRUE
             ]);
 
-            #error_log("Create attachment " . var_export($ret, TRUE));
+            #$this->log("Create attachment " . var_export($ret, TRUE));
             assertEquals(0, $ret['ret']);
             assertNotNull($ret['id']);
             $attid = $ret['id'];
@@ -1590,7 +1540,7 @@ class messageAPITest extends IznikAPITestCase
             ]);
             assertEquals(0, $ret['ret']);
             $id = $ret['id'];
-            error_log("Created draft $id");
+            $this->log("Created draft $id");
 
             # This will get sent; will get queued, as we don't have a membership for the group
             $ret = $this->call('message', 'POST', [
@@ -1600,7 +1550,7 @@ class messageAPITest extends IznikAPITestCase
                 'ignoregroupoverride' => true
             ]);
 
-            error_log("Message #$id should be queued " . var_export($ret, TRUE));
+            $this->log("Message #$id should be queued " . var_export($ret, TRUE));
             assertEquals(0, $ret['ret']);
             assertEquals('Queued for group membership', $ret['status']);
             $applied = $ret['appliedemail'];
@@ -1616,12 +1566,12 @@ class messageAPITest extends IznikAPITestCase
             $found = FALSE;
 
             do {
-                error_log("...waiting for pending message from $applied #$uid, try $count");
+                $this->log("...waiting for pending message from $applied #$uid, try $count");
                 sleep(1);
                 $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
                     [ $gid, MessageCollection::PENDING, $uid ]);
                 foreach ($msgs as $msg) {
-                    error_log("Reached pending " . var_export($msg, TRUE));
+                    $this->log("Reached pending " . var_export($msg, TRUE));
                     $found = TRUE;
                 }
                 $count++;
@@ -1647,7 +1597,7 @@ class messageAPITest extends IznikAPITestCase
             ]);
             assertEquals(0, $ret['ret']);
             $id = $ret['id'];
-            error_log("Created draft $id");
+            $this->log("Created draft $id");
 
             # This will get queued, as we don't have a membership for the group
             $ret = $this->call('message', 'POST', [
@@ -1657,7 +1607,7 @@ class messageAPITest extends IznikAPITestCase
                 'ignoregroupoverride' => true
             ]);
 
-            error_log("Message #$id should be queued 2 " . var_export($ret, TRUE));
+            $this->log("Message #$id should be queued 2 " . var_export($ret, TRUE));
             assertEquals(0, $ret['ret']);
             assertEquals('Queued for group membership', $ret['status']);
 
@@ -1665,12 +1615,12 @@ class messageAPITest extends IznikAPITestCase
             $found = FALSE;
 
             do {
-                error_log("...waiting for pending message from $applied #$uid, try $count");
+                $this->log("...waiting for pending message from $applied #$uid, try $count");
                 sleep(1);
                 $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
                     [ $gid, MessageCollection::PENDING, $uid ]);
                 foreach ($msgs as $msg) {
-                    error_log("Reached pending " . var_export($msg, TRUE));
+                    $this->log("Reached pending " . var_export($msg, TRUE));
                     $found = TRUE;
                     $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
                     $m->delete('UT');
@@ -1695,7 +1645,7 @@ class messageAPITest extends IznikAPITestCase
             ]);
             assertEquals(0, $ret['ret']);
             $id = $ret['id'];
-            error_log("Created draft $id");
+            $this->log("Created draft $id");
 
             $ret = $this->call('message', 'POST', [
                 'id' => $id,
@@ -1711,12 +1661,12 @@ class messageAPITest extends IznikAPITestCase
             $found = FALSE;
 
             do {
-                error_log("...waiting for pending message from $applied #$uid, try $count");
+                $this->log("...waiting for pending message from $applied #$uid, try $count");
                 sleep(1);
                 $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
                     [ $gid, MessageCollection::PENDING, $uid ]);
                 foreach ($msgs as $msg) {
-                    error_log("Reached pending " . var_export($msg, TRUE));
+                    $this->log("Reached pending " . var_export($msg, TRUE));
                     $found = TRUE;
                     $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
                     $m->delete('UT');
@@ -1731,12 +1681,12 @@ class messageAPITest extends IznikAPITestCase
             $m->approve($gid, NULL, NULL, NULL);
 
             do {
-                error_log("...waiting for approved message from $applied #$uid, try $count");
+                $this->log("...waiting for approved message from $applied #$uid, try $count");
                 sleep(1);
                 $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ? AND yahooapprovedid IS NOT NULL;",
                     [ $gid, MessageCollection::APPROVED, $uid ]);
                 foreach ($msgs as $msg) {
-                    error_log("Reached approved" . var_export($msg, TRUE));
+                    $this->log("Reached approved" . var_export($msg, TRUE));
                     $found = TRUE;
                     $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
 
@@ -1752,13 +1702,10 @@ class messageAPITest extends IznikAPITestCase
             assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSubmit2()
     {
-        error_log(__METHOD__);
-
         assertTrue(TRUE);
 
         if (!getenv('STANDALONE')) {
@@ -1790,7 +1737,7 @@ class messageAPITest extends IznikAPITestCase
                 'identify' => TRUE
             ]);
 
-            #error_log("Create attachment " . var_export($ret, TRUE));
+            #$this->log("Create attachment " . var_export($ret, TRUE));
             assertEquals(0, $ret['ret']);
             assertNotNull($ret['id']);
             $attid = $ret['id'];
@@ -1810,7 +1757,7 @@ class messageAPITest extends IznikAPITestCase
             ]);
             assertEquals(0, $ret['ret']);
             $id = $ret['id'];
-            error_log("Created draft $id");
+            $this->log("Created draft $id");
 
             # This will get sent; will get queued, as we don't have a membership for the group
             $ret = $this->call('message', 'POST', [
@@ -1820,7 +1767,7 @@ class messageAPITest extends IznikAPITestCase
                 'ignoregroupoverride' => true
             ]);
 
-            error_log("Message #$id should be queued " . var_export($ret, TRUE));
+            $this->log("Message #$id should be queued " . var_export($ret, TRUE));
             assertEquals(0, $ret['ret']);
             assertEquals('Queued for group membership', $ret['status']);
             $applied = $ret['appliedemail'];
@@ -1830,11 +1777,11 @@ class messageAPITest extends IznikAPITestCase
             $u = User::get($this->dbhr, $this->dbhm);
             $uid = $u->findByEmail($email);
             $u = User::get($this->dbhr, $this->dbhm, $uid);
-            error_log("User id $uid");
+            $this->log("User id $uid");
 //        $eid = $u->addEmail($applied);
-//        error_log("Added email $eid");
+//        $this->log("Added email $eid");
             $emails = $u->getEmails();
-            error_log("Email " . var_export($emails, TRUE));
+            $this->log("Email " . var_export($emails, TRUE));
             $gemail = NULL;
             foreach ($emails as $anemail) {
                 if ($anemail['email'] != $email) {
@@ -1847,13 +1794,10 @@ class messageAPITest extends IznikAPITestCase
             assertEquals(1, $rc);
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSubmitNative()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         # This is similar to the actions on the client
@@ -1867,7 +1811,7 @@ class messageAPITest extends IznikAPITestCase
 
         $this->group->setPrivate('onyahoo', 0);
 
-        error_log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -1891,7 +1835,7 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
-        error_log("Created draft $id");
+        $this->log("Created draft $id");
 
         # This will get sent as for native groups we can do so immediate.
         $ret = $this->call('message', 'POST', [
@@ -1901,14 +1845,14 @@ class messageAPITest extends IznikAPITestCase
             'ignoregroupoverride' => true
         ]);
 
-        error_log("Message #$id should be pending " . var_export($ret, TRUE));
+        $this->log("Message #$id should be pending " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals('Success', $ret['status']);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
         list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
-        error_log("Got pending messages " . var_export($msgs, TRUE));
+        $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
 
@@ -1927,13 +1871,10 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSubmitNativeApprove()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         # This is similar to the actions on the client
@@ -1952,7 +1893,7 @@ class messageAPITest extends IznikAPITestCase
             'approvemembers' => TRUE
         ]);
 
-        error_log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -1976,7 +1917,7 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
-        error_log("Created draft $id");
+        $this->log("Created draft $id");
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -1985,14 +1926,14 @@ class messageAPITest extends IznikAPITestCase
             'ignoregroupoverride' => true
         ]);
 
-        error_log("Message #$id should be held for membership" . var_export($ret, TRUE));
+        $this->log("Message #$id should be held for membership" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals('Success', $ret['status']);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::QUEUED_USER);
         $ctx = NULL;
         list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
-        error_log("Got pending messages " . var_export($msgs, TRUE));
+        $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
 
@@ -2005,17 +1946,14 @@ class messageAPITest extends IznikAPITestCase
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
         list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
-        error_log("Got pending messages " . var_export($msgs, TRUE));
+        $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSubmitNativeApproveReject()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         # This is similar to the actions on the client
@@ -2034,7 +1972,7 @@ class messageAPITest extends IznikAPITestCase
             'approvemembers' => TRUE
         ]);
 
-        error_log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -2058,7 +1996,7 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
-        error_log("Created draft $id");
+        $this->log("Created draft $id");
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2067,14 +2005,14 @@ class messageAPITest extends IznikAPITestCase
             'ignoregroupoverride' => true
         ]);
 
-        error_log("Message #$id should be held for membership" . var_export($ret, TRUE));
+        $this->log("Message #$id should be held for membership" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals('Success', $ret['status']);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::QUEUED_USER);
         $ctx = NULL;
         list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
-        error_log("Got pending messages " . var_export($msgs, TRUE));
+        $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
 
@@ -2086,18 +2024,15 @@ class messageAPITest extends IznikAPITestCase
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $gs = $m->getGroups(TRUE, FALSE);
-        error_log("Groups " . var_export($gs, TRUE));
+        $this->log("Groups " . var_export($gs, TRUE));
         self::assertEquals(1, count($gs));
         self::assertEquals($this->groupid, $gs[0]['groupid']);
         self::assertEquals(MessageCollection::REJECTED, $gs[0]['collection']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSubmitBanned()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         # This is similar to the actions on the client
@@ -2111,7 +2046,7 @@ class messageAPITest extends IznikAPITestCase
 
         $this->group->setPrivate('onyahoo', 0);
 
-        error_log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -2134,7 +2069,7 @@ class messageAPITest extends IznikAPITestCase
         }
 
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        error_log("Ban $uid from {$this->groupid}");
+        $this->log("Ban $uid from {$this->groupid}");
         $u->removeMembership($this->groupid, TRUE);
         assertFalse($u->addMembership($this->groupid));
 
@@ -2149,7 +2084,7 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
-        error_log("Created draft $id");
+        $this->log("Created draft $id");
 
         # This will get sent as for native groups we can do so immediate.
         $ret = $this->call('message', 'POST', [
@@ -2159,22 +2094,19 @@ class messageAPITest extends IznikAPITestCase
             'ignoregroupoverride' => true
         ]);
 
-        error_log("Message #$id should not be pending " . var_export($ret, TRUE));
+        $this->log("Message #$id should not be pending " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals('Success', $ret['status']);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
         list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
-        error_log("Got pending messages " . var_export($msgs, TRUE));
+        $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testDoubleModeration() {
-        error_log(__METHOD__);
-
         assertTrue(TRUE);
 
         if (!getenv('STANDALONE')) {
@@ -2193,7 +2125,7 @@ class messageAPITest extends IznikAPITestCase
             $gid = $g->findByShortName('FreeglePlayground');
 
             $locationid = $this->dbhr->preQuery("SELECT id FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 LIMIT 1;")[0]['id'];
-            error_log("Use location $locationid");
+            $this->log("Use location $locationid");
 
             $ret = $this->call('message', 'PUT', [
                 'collection' => 'Draft',
@@ -2205,7 +2137,7 @@ class messageAPITest extends IznikAPITestCase
             ]);
             assertEquals(0, $ret['ret']);
             $id = $ret['id'];
-            error_log("Created draft $id");
+            $this->log("Created draft $id");
 
             # This will get sent; will get queued, as we don't have a membership for the group
             $ret = $this->call('message', 'POST', [
@@ -2215,20 +2147,20 @@ class messageAPITest extends IznikAPITestCase
                 'ignoregroupoverride' => true
             ]);
 
-            error_log("Message #$id should be queued " . var_export($ret, TRUE));
+            $this->log("Message #$id should be queued " . var_export($ret, TRUE));
             assertEquals(0, $ret['ret']);
             assertEquals('Queued for group membership', $ret['status']);
 
             # Now we will apply for a membership, get it, and then call submitYahooQueued.  At that point the message
             # will become pending.
             $m = new Message($this->dbhr, $this->dbhm, $id);
-            error_log("Wait for submit");
+            $this->log("Wait for submit");
             $count = 0;
             do {
                 $stop = FALSE;
                 $groups = $m->getGroups(FALSE, FALSE);
-                error_log(var_export($groups, TRUE));
-                error_log("Check $count pending...");
+                $this->log(var_export($groups, TRUE));
+                $this->log("Check $count pending...");
                 if (MessageCollection::PENDING == $groups[0]['collection']) {
                     $stop = TRUE;
                 } else {
@@ -2240,19 +2172,19 @@ class messageAPITest extends IznikAPITestCase
             assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count);
 
             # Now it's pending - approve it on the platform, before Yahoo has seen it.
-            error_log("Approve");
+            $this->log("Approve");
             $m->approve($gid, NULL, NULL, NULL);
 
             # We will then get notified of the message being pending on Yahoo, which will trigger an approval, and then
             # we will get the approved message back. At that point the message will acquire a yahooapprovedid - so that's
             # what we wait for to show this whole process works.
-            error_log("Wait for Yahoo approved");
+            $this->log("Wait for Yahoo approved");
             $count = 0;
             do {
                 $stop = FALSE;
                 $groups = $m->getGroups(FALSE, FALSE);
-                error_log(var_export($groups, TRUE));
-                error_log("Check $count approved id {$groups[0]['yahooapprovedid']}...");
+                $this->log(var_export($groups, TRUE));
+                $this->log("Check $count approved id {$groups[0]['yahooapprovedid']}...");
                 #assertEquals(MessageCollection::APPROVED, $groups[0]['collection']);
                 if ($groups[0]['yahooapprovedid']) {
                     $stop = TRUE;
@@ -2265,12 +2197,9 @@ class messageAPITest extends IznikAPITestCase
             assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count, "Yahoo slow?");
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testCrosspost() {
-        error_log(__METHOD__);
-
         # At the moment a crosspost results in two separate messages - see comment in Message::save().
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -2294,12 +2223,9 @@ class messageAPITest extends IznikAPITestCase
         $m1->delete("UT delete");
         $m2->delete("UT delete");
 
-        error_log(__METHOD__ . " end");
-    }
+        }
     
     public function testPromise() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
 
@@ -2343,7 +2269,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id
         ]);
         assertEquals(0, $ret['ret']);
-        error_log("Got message " . var_export($ret, TRUE));
+        $this->log("Got message " . var_export($ret, TRUE));
         assertEquals(1, count($ret['message']['promises']));
         assertEquals($uid2, $ret['message']['promises'][0]['userid']);
 
@@ -2401,13 +2327,10 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(2, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMark()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -2483,19 +2406,16 @@ class messageAPITest extends IznikAPITestCase
             'collection' => 'Happiness',
             'groupid' => $group1
         ]);
-        error_log("Happiness " . var_export($ret, TRUE));
+        $this->log("Happiness " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(2, count($ret['members']));
 
         $m->delete("UT delete");
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testExpired()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -2538,13 +2458,10 @@ class messageAPITest extends IznikAPITestCase
 
         self::assertEquals(Message::OUTCOME_EXPIRED, $ret['message']['outcomes'][0]['outcome']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testIntendedTaken()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -2585,13 +2502,10 @@ class messageAPITest extends IznikAPITestCase
 
         $m->delete("UT delete");
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testIntendedReceived()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -2632,13 +2546,10 @@ class messageAPITest extends IznikAPITestCase
 
         $m->delete("UT delete");
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testIntendedWithdrawn()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -2679,13 +2590,10 @@ class messageAPITest extends IznikAPITestCase
 
         $m->delete("UT delete");
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testIntendedRepost()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -2751,13 +2659,10 @@ class messageAPITest extends IznikAPITestCase
 
         $m->delete("UT delete");
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testChatSource()
     {
-        error_log(__METHOD__);
-
         # Create a group we're on
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
@@ -2784,7 +2689,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MailRouter::TO_USER, $rc);
 
         # Try logged out
-        error_log("Logged out");
+        $this->log("Logged out");
         $ret = $this->call('message', 'GET', [
             'id' => $replyid,
             'collection' => 'Chat'
@@ -2792,7 +2697,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(2, $ret['ret']);
 
         # Try to get not as a mod.
-        error_log("Logged in");
+        $this->log("Logged in");
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'GET', [
@@ -2802,7 +2707,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(2, $ret['ret']);
 
         # Try as mod
-        error_log("As mod");
+        $this->log("As mod");
         $u->addMembership($group1, User::ROLE_MODERATOR);
         $ret = $this->call('message', 'GET', [
             'id' => $replyid,
@@ -2811,6 +2716,5 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($replyid, $ret['message']['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

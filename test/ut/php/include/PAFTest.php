@@ -26,21 +26,19 @@ class PAFTest extends IznikTestCase {
     }
 
     public function testLoad() {
-        error_log(__METHOD__);
-
         assertTrue(TRUE);
 
         if (!getenv('STANDALONE')) {
             # TODO This should be possible to get working on standalone but I've tried for a bit and my head hurts.
             $l = new Location($this->dbhm, $this->dbhm);
             $pcid = $l->create(NULL, 'TV10 1AA', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-            error_log("TV10 1AA => $pcid");
+            $this->log("TV10 1AA => $pcid");
             $pcid = $l->create(NULL, 'TV10 1AB', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-            error_log("TV10 1AB => $pcid");
+            $this->log("TV10 1AB => $pcid");
             $pcid = $l->create(NULL, 'TV10 1AF', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-            error_log("TV10 1AF => $pcid");
+            $this->log("TV10 1AF => $pcid");
             $pcid = $l->create(NULL, 'ZZZZ ZZZ', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-            error_log("ZZZZ ZZZ => $pcid");
+            $this->log("ZZZZ ZZZ => $pcid");
 
             if (!$l->findByName('AB10')) {
                 $pcid = $l->create(NULL, 'AB10', 'Postcode', 'POINT(2.126500 57.131300)');
@@ -73,13 +71,13 @@ class PAFTest extends IznikTestCase {
             $mock->method('preExec')->willReturn(TRUE);
 
             $p = new PAF($this->dbhm, $mock);
-            error_log("First load - just generates csv.");
+            $this->log("First load - just generates csv.");
             $p->load(UT_DIR . '/php/misc/pc.csv', '/tmp/ut_paf');
 
             $csv = file_get_contents('/tmp/ut_paf0000000000.csv');
-            error_log("CSV is $csv");
+            $this->log("CSV is $csv");
 
-            error_log("Update - postcodes 4 diffs (2 in same UDPRN)");
+            $this->log("Update - postcodes 4 diffs (2 in same UDPRN)");
             self::assertEquals(4, $p->update(UT_DIR . '/php/misc/pc.csv'));
 
             # Load a version where fields have changed and there's a new one.
@@ -88,17 +86,16 @@ class PAFTest extends IznikTestCase {
             $udprn = intval($max[0]['max']) + 1;
             $t = str_replace('zzz', $udprn, $t);
             file_put_contents('/tmp/ut.csv', $t);
-            error_log("Update with changes");
+            $this->log("Update with changes");
             self::assertEquals(5, $p->update('/tmp/ut.csv'));
 
             $ids = $p->listForPostcode('SA65 9ET');
             assertGreaterThan(0, count($ids));
             $line = $p->getSingleLine($ids[0]);
-            error_log($line);
+            $this->log($line);
             self::assertEquals("FISHGUARD SA65 9ET", $line);
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

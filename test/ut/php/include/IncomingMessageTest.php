@@ -25,8 +25,6 @@ class IncomingMessageTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $t = "TestUser" . microtime(true) . "@test.com";
         $msg = str_replace('From: "Test User" <test@test.com>', 'From: "' . $t . '" <test@test.com>', $msg);
@@ -76,12 +74,9 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 <BODY>Hey.</BODY></HTML>", $m->getHtmlbody());
         $m->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAttachment() {
-        error_log(__METHOD__);
-
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -110,12 +105,9 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         $m->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAttachmentDup() {
-        error_log(__METHOD__);
-
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachmentdup');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -129,12 +121,9 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         $m->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testEmbedded() {
-        error_log(__METHOD__);
-
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/inlinephoto');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -166,12 +155,9 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $atts = $a->getById($id);        
         assertEquals(0, count($atts));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPending() {
-        error_log(__METHOD__);
-
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approve');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -188,12 +174,9 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         $m->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testTN() {
-        error_log(__METHOD__);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -205,16 +188,12 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         $m->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testType() {
-        error_log(__METHOD__);
-
         assertEquals(Message::TYPE_OFFER, Message::determineType('OFFER: item (location)'));
         assertEquals(Message::TYPE_WANTED, Message::determineType('[Group]WANTED: item'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

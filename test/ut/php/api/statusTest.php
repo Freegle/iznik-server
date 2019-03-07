@@ -26,8 +26,6 @@ class statusTest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         if (!file_exists('/tmp/iznik.status')) {
             file_put_contents('/tmp/iznik.status', json_encode([ 'ret' => 0 ]));
         }
@@ -35,7 +33,6 @@ class statusTest extends IznikAPITestCase {
         $ret = $this->call('status', 'GET', []);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

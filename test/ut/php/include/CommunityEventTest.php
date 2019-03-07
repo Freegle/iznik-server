@@ -29,8 +29,6 @@ class communityEventTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         # Create an event and check we can read it back.
         $c = new CommunityEvent($this->dbhm, $this->dbhm);
         $id = $c->create(NULL, 'Test event', 'Test location', NULL, NULL, NULL, NULL, NULL);
@@ -88,8 +86,7 @@ class communityEventTest extends IznikTestCase {
         $events = $c->listForUser($uid, TRUE, $ctx);
         assertEquals(0, count($events));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 
 

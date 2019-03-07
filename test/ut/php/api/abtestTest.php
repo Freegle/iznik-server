@@ -33,8 +33,6 @@ class abtestAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         $ret = $this->call('abtest', 'POST', [
             'uid' => 'UT',
             'variant' => 'a',
@@ -57,22 +55,22 @@ class abtestAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # Wait for cache.
-        error_log("Sleep " . (LoggedPDO::CACHE_EXPIRY + 1));
+        $this->log("Sleep " . (LoggedPDO::CACHE_EXPIRY + 1));
         sleep(LoggedPDO::CACHE_EXPIRY + 1);
-        error_log("Slept");
+        $this->log("Slept");
 
         # Now get until we've seen both.
         $seena = FALSE;
         $seenb = FALSE;
 
         do {
-            error_log("Try get");
+            $this->log("Try get");
             $ret = $this->call('abtest', 'GET', [
                 'uid' => 'UT'
             ]);
             assertEquals(0, $ret['ret']);
 
-            error_log("Returned " . var_export($ret, TRUE));
+            $this->log("Returned " . var_export($ret, TRUE));
 
             if ($ret['variant']['variant'] == 'a') {
                 $seena = TRUE;
@@ -83,6 +81,5 @@ class abtestAPITest extends IznikAPITestCase
             }
         } while (!$seena || !$seenb);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

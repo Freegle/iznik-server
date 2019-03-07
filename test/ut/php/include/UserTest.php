@@ -33,19 +33,17 @@ class userTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        error_log("Created $id");
+        $this->log("Created $id");
 
-        error_log("Get - not cached");
+        $this->log("Get - not cached");
         $u = User::get($this->dbhr, $this->dbhm, $id);
 
-        error_log("Get - cached");
+        $this->log("Get - cached");
         $u = User::get($this->dbhr, $this->dbhm, $id);
 
-        error_log("Get - deleted");
+        $this->log("Get - deleted");
         User::clearCache($id);
         $u = User::get($this->dbhr, $this->dbhm, $id);
 
@@ -75,32 +73,26 @@ class userTest extends IznikTestCase {
         assertEquals($id, $u->getPrivate('id'));
         assertGreaterThan(0, $u->delete());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testLinkLogin() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
 
         $url1 = $u->loginLink(USER_SITE, $id, '/', NULL, TRUE);
-        error_log("Login url $url1");
+        $this->log("Login url $url1");
         $url = $u->loginLink(USER_SITE, $id, '/', NULL, TRUE);
-        error_log("Login url $url1");
+        $this->log("Login url $url1");
         self::assertEquals($url1, $url);
         $p = strpos($url, 'k=');
         $key = substr($url, $p + 2);
-        error_log("Key $key");
+        $this->log("Key $key");
         $u->linkLogin($key);
         self::assertEquals($id, $_SESSION['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testEmails() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertEquals(0, count($u->getEmails()));
@@ -143,7 +135,7 @@ class userTest extends IznikTestCase {
         # Change to non-preferred.
         assertGreaterThan(0, $u->addEmail('test3@test.com', 0));
         $emails = $u->getEmails();
-        error_log("Non-preferred " . var_export($emails, TRUE));
+        $this->log("Non-preferred " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
         assertEquals(0, $emails[0]['preferred']);
         assertEquals(0, $emails[1]['preferred']);
@@ -163,7 +155,7 @@ class userTest extends IznikTestCase {
         $g->setPrivate('onyahoo', 1);
         $emailid1 = $u->getIdForEmail('test@test.com')['id'];
         $emailid3 = $u->getIdForEmail('test3@test.com')['id'];
-        error_log("emailid1 $emailid1 emailid3 $emailid3");
+        $this->log("emailid1 $emailid1 emailid3 $emailid3");
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid1);
         assertEquals($emailid1, $u->getEmailForYahooGroup($group1, FALSE, TRUE)[0]);
         $u->removeMembership($group1);
@@ -173,12 +165,9 @@ class userTest extends IznikTestCase {
         assertNull($u->getIdForEmail('wibble@test.com'))['id'];
         assertNull($u->getEmailForYahooGroup(-1)[0]);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testLogins() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertEquals(0, count($u->getEmails()));
@@ -212,12 +201,9 @@ class userTest extends IznikTestCase {
         assertTrue($u->login('testpw'));
         assertFalse($u->login('testpwbad'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testErrors() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         assertEquals(0, $u->addEmail('test-owner@yahoogroups.com'));
 
@@ -230,12 +216,9 @@ class userTest extends IznikTestCase {
         $id = $u->create(NULL, NULL, 'Test User');
         assertNull($id);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMemberships() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
@@ -264,13 +247,13 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic();
         assertFalse(array_key_exists('applied', $atts));
 
-        error_log("Set owner");
+        $this->log("Set owner");
         $u->setRole(User::ROLE_OWNER, $group1);
         assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
         assertTrue($u->isModOrOwner($group1));
         assertTrue(array_key_exists('work', $u->getMemberships(FALSE, NULL, TRUE)[0]));
         $settings = $u->getGroupSettings($group1);
-        error_log("Settings " . var_export($settings, TRUE));
+        $this->log("Settings " . var_export($settings, TRUE));
         assertEquals('test', $settings['testsetting']);
         assertTrue(array_key_exists('configid', $settings));
         $modships = $u->getModeratorships();
@@ -280,7 +263,7 @@ class userTest extends IznikTestCase {
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         $atts = $u->getPublic();
-        error_log("Applied " . var_export($atts['applied'], TRUE));
+        $this->log("Applied " . var_export($atts['applied'], TRUE));
         assertEquals(1, count($atts['applied']));
 
         $u->setRole(User::ROLE_MODERATOR, $group1);
@@ -327,19 +310,19 @@ class userTest extends IznikTestCase {
         assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
         assertEquals(User::ROLE_MODERATOR, $m->getRoleForMessage()[0]);
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
-        error_log("Check role for group");
+        $this->log("Check role for group");
         assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
-        error_log("Check role for message");
+        $this->log("Check role for message");
         $me = whoAmI($this->dbhr, $this->dbhm);
         $me->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         assertEquals(User::SYSTEMROLE_ADMIN, $me->getPrivate('systemrole'));
         assertEquals(User::ROLE_OWNER, $m->getRoleForMessage()[0]);
 
         # Ban ourselves; can't rejoin
-        error_log("Ban " . $u->getId() . " from $group2");
+        $this->log("Ban " . $u->getId() . " from $group2");
         $u->removeMembership($group2, TRUE);
         $membs = $u->getMemberships();
-        error_log("Memberships after ban " . var_export($membs, TRUE));
+        $this->log("Memberships after ban " . var_export($membs, TRUE));
 
         # Should have the membership of group1, implicitly added because we sent a message from that group.
         assertEquals(1, count($membs));
@@ -353,12 +336,9 @@ class userTest extends IznikTestCase {
         $membs = $u->getMemberships();
         assertEquals(0, count($membs));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMerge() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
@@ -389,14 +369,14 @@ class userTest extends IznikTestCase {
         $cid1 = $c->createConversation($id1, $id3);
         $cid2 = $c->createConversation($id2, $id3);
         $cid3 = $c->createUser2Mod($id2, $group1);
-        error_log("Created to mods $cid3");
+        $this->log("Created to mods $cid3");
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         $str = "Test from $id1 to $id3 in $cid1";
         $mid1 = $cm->create($cid1, $id1, $str);
-        error_log("Created $mid1 $str");
+        $this->log("Created $mid1 $str");
         $str = "Test from $id2 to $id3 in $cid2";
         $mid2 = $cm->create($cid2, $id2, $str);
-        error_log("Created $mid2 $str");
+        $this->log("Created $mid2 $str");
 
         # Ensure we have a default config.
         $mc = new ModConfig($this->dbhr, $this->dbhm);
@@ -404,7 +384,7 @@ class userTest extends IznikTestCase {
         $mc->setPrivate('default', 1);
 
         # We should get the group back and a default config.
-        error_log("Check settings for $id2 on $group2");
+        $this->log("Check settings for $id2 on $group2");
         assertEquals(1, $u2->getGroupSettings($group2)['test'] );
         assertNotNull($u2->getGroupSettings($group2)['configid']);
 
@@ -415,7 +395,7 @@ class userTest extends IznikTestCase {
         $u1 = new User($this->dbhm, $this->dbhm, $id1, FALSE);
         $u2 = new User($this->dbhm, $this->dbhm, $id2, FALSE);
 
-        error_log("Check post merge $id1 on $group2");
+        $this->log("Check post merge $id1 on $group2");
         assertEquals(1, $u1->getGroupSettings($group2)['test'] );
         assertNotNull($u1->getGroupSettings($group2)['configid']);
 
@@ -435,7 +415,7 @@ class userTest extends IznikTestCase {
         assertEquals(User::ROLE_MODERATOR, $membs[2]['role']);
 
         $emails = $u1->getEmails();
-        error_log("Emails " . var_export($emails, true));
+        $this->log("Emails " . var_export($emails, true));
         assertEquals(2, count($emails));
         assertEquals('test1@test.com', $emails[0]['email']);
         assertEquals(1, $emails[0]['preferred']);
@@ -447,7 +427,7 @@ class userTest extends IznikTestCase {
         self::assertEquals($cid1a, $cid1);
         $c = new ChatRoom($this->dbhr, $this->dbhm, $cid1);
         list ($msgs, $users) = $c->getMessages();
-        error_log("Messages " . var_export($msgs, TRUE));
+        $this->log("Messages " . var_export($msgs, TRUE));
         assertEquals(2, count($msgs));
 
         $cid3a = $c->createUser2Mod($id1, $group1);
@@ -455,12 +435,9 @@ class userTest extends IznikTestCase {
 
         $mc->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMergeReal() {
-        error_log(__METHOD__);
-
         # Simulates processing from real emails migration script.
         $g = Group::get($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup', Group::GROUP_REUSE);
@@ -485,21 +462,18 @@ class userTest extends IznikTestCase {
         $u1 = User::get($this->dbhm, $this->dbhm, $id1);
 
         $membershipid = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ?;", [ $id1 ])[0]['id'];
-        error_log("Membershipid $membershipid");
+        $this->log("Membershipid $membershipid");
 
         # Should have both Yahoo memberships.
         $yahoomembers = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo WHERE membershipid = ? ORDER BY emailid;", [ $membershipid ]);
-        error_log("Yahoo memberships " . var_export($yahoomembers, TRUE));
+        $this->log("Yahoo memberships " . var_export($yahoomembers, TRUE));
         assertEquals($eid1, $yahoomembers[0]['emailid']);
         assertEquals($eid2, $yahoomembers[1]['emailid']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
 
     public function testDoubleAdd() {
-        error_log(__METHOD__);
-
         # Simulates processing from real emails migration script.
         $g = Group::get($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup', Group::GROUP_REUSE);
@@ -515,21 +489,18 @@ class userTest extends IznikTestCase {
         $u->addMembership($group, User::ROLE_MEMBER, $eid2);
 
         $membershipid = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ?;", [ $id1 ])[0]['id'];
-        error_log("Membershipid $membershipid");
+        $this->log("Membershipid $membershipid");
 
         # Should have both Yahoo memberships.
         $yahoomembers = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo WHERE membershipid = ? ORDER BY emailid;", [ $membershipid ]);
-        error_log("Yahoo memberships " . var_export($yahoomembers, TRUE));
+        $this->log("Yahoo memberships " . var_export($yahoomembers, TRUE));
         self::assertEquals(2, count($yahoomembers));
         assertEquals($eid1, $yahoomembers[0]['emailid']);
         assertEquals($eid2, $yahoomembers[1]['emailid']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMergeError() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
@@ -581,13 +552,10 @@ class userTest extends IznikTestCase {
         assertNotNull($u1->getId());
         assertNotNull($u2->getId());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMergeForbidden()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -607,8 +575,6 @@ class userTest extends IznikTestCase {
 
     public function testSystemRoleMax() {
 
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
 
         assertEquals(User::SYSTEMROLE_ADMIN, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_ADMIN));
@@ -622,12 +588,9 @@ class userTest extends IznikTestCase {
 
         assertEquals(User::SYSTEMROLE_USER, $u->systemRoleMax(User::SYSTEMROLE_USER, User::SYSTEMROLE_USER));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testRoleMax() {
-
-        error_log(__METHOD__);
 
         $u = User::get($this->dbhr, $this->dbhm);
 
@@ -642,12 +605,9 @@ class userTest extends IznikTestCase {
 
         assertEquals(User::ROLE_NONMEMBER, $u->roleMax(User::ROLE_NONMEMBER, User::ROLE_NONMEMBER));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testRoleMin() {
-
-        error_log(__METHOD__);
 
         $u = User::get($this->dbhr, $this->dbhm);
 
@@ -662,11 +622,10 @@ class userTest extends IznikTestCase {
 
         assertEquals(User::ROLE_NONMEMBER, $u->roleMax(User::ROLE_NONMEMBER, User::ROLE_NONMEMBER));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMail() {
-        error_log(__METHOD__ );
+        $this->log(__METHOD__ );
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
@@ -700,18 +659,15 @@ class userTest extends IznikTestCase {
         $sid = $s->create('Test', $cid);
         $s->setPrivate('action', 'Leave Approved Member');
 
-        error_log("Mail them");
+        $this->log("Mail them");
         $u->mail($group, "test", "test", $sid, 'Leave Approved Member');
 
         $s->delete();
         $c->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testComments() {
-        error_log(__METHOD__);
-
         $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
         $u2 = User::get($this->dbhr, $this->dbhm);
@@ -730,7 +686,7 @@ class userTest extends IznikTestCase {
         assertNull($u2->addComment($gid, "Test comment"));
         $u1->addMembership($gid);
         assertNull($u2->addComment($gid, "Test comment"));
-        error_log("Set role mod");
+        $this->log("Set role mod");
         $u1->setRole(User::ROLE_MODERATOR, $gid);
         $cid = $u2->addComment($gid, "Test comment");
         assertNotNull($cid);
@@ -777,12 +733,9 @@ class userTest extends IznikTestCase {
         $atts = $u2->getPublic();
         assertEquals(0, count($atts['comments']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testCheck(){
-        error_log(__METHOD__);
-
         $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -803,7 +756,7 @@ class userTest extends IznikTestCase {
             $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
             $atts = $u2->getPublic();
 
-            error_log("$i");
+            $this->log("$i");
             if ($i < Spam::SEEN_THRESHOLD) {
                 assertFalse(pres('suspectcount', $atts));
             } else {
@@ -813,12 +766,9 @@ class userTest extends IznikTestCase {
             }
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testVerifyMail() {
-        error_log(__METHOD__);
-
         $_SERVER['HTTP_HOST'] = 'localhost';
 
         # Test add when it's not in use anywhere
@@ -853,12 +803,9 @@ class userTest extends IznikTestCase {
         assertNotNull($u2->addEmail('test@test.com'));
         assertTrue($u2->verifyEmail('test@test.com'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testCanon() {
-        error_log(__METHOD__);
-
         assertEquals('test@testcom', User::canonMail('test@test.com'));
         assertEquals('test@testcom', User::canonMail('test+fake@test.com'));
         assertEquals('firstlast@gmailcom', User::canonMail('first.last@gmail.com', TRUE));
@@ -870,51 +817,45 @@ class userTest extends IznikTestCase {
         assertEquals('test-x1@usertrashnothingcom', User::canonMail('test-x1-x2@user.trashnothing.com'));
         assertEquals('app+test@proxymailfacebookcom', User::canonMail('app+test@proxymail.facebook.com'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testInvent() {
-        error_log(__METHOD__);
-
         # No emails - should invent something.
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $email = $u->inventEmail();
-        error_log("No emails, invented $email");
+        $this->log("No emails, invented $email");
         assertFalse(strpos($email, 'test'));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
         $email = $u->inventEmail();
-        error_log("Unusable email, invented $email");
+        $this->log("Unusable email, invented $email");
         assertFalse(strpos($email, 'test'));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->setPrivate('yahooid', '-wibble');
         $email = $u->inventEmail();
-        error_log("Yahoo ID, invented $email");
+        $this->log("Yahoo ID, invented $email");
         assertNotFalse(strpos($email, 'wibble'));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addEmail('wobble@wobble.com');
         $email = $u->inventEmail();
-        error_log("Other email, invented $email");
+        $this->log("Other email, invented $email");
         assertNotFalse(strpos($email, 'wobble'));
 
         # Call again now we have one.
         $email2 = $u->inventEmail();
-        error_log("Other email again, invented $email2");
+        $this->log("Other email again, invented $email2");
         assertEquals($email, $email2);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testThank() {
-        error_log(__METHOD__);
-
         $s = $this->getMockBuilder('User')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
             ->setMethods(array('sendIt'))
@@ -927,12 +868,9 @@ class userTest extends IznikTestCase {
         $u->addEmail('test@test.com');
         $u->thankDonation();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testInvite() {
-        error_log(__METHOD__);
-
         $s = $this->getMockBuilder('User')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
             ->setMethods(array('sendIt'))
@@ -951,67 +889,55 @@ class userTest extends IznikTestCase {
         $invited = $u->invite('test2@test.com');
         assertFalse($invited);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testProfile() {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail('norfolkmod@gmail.com');
         $this->dbhm->preExec("DELETE FROM users_images WHERE userid = ?;", [ $uid ]);
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
-        error_log("Profile " . var_export($atts['profile'], TRUE));
+        $this->log("Profile " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['gravatar']);
-        error_log("norfolkmod@gmail.com URL {$atts['profile']['url']}");
+        $this->log("norfolkmod@gmail.com URL {$atts['profile']['url']}");
 
         $uid = $u->create("Test", "User", "Test User");
-        error_log("Created user $uid");
+        $this->log("Created user $uid");
         $eid = $u->addEmail('gravatar@ehibbert.org.uk');
-        error_log("Email $eid");
+        $this->log("Email $eid");
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
-        error_log("gravatar@ehibbert.org.uk " . var_export($atts['profile'], TRUE));
+        $this->log("gravatar@ehibbert.org.uk " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['gravatar']);
 
         $uid = $u->create("Test", "User", "Test User");
         $u->addEmail('atrusty-gxxxx@user.trashnothing.com');
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
-        error_log("atrusty " . var_export($atts['profile'], TRUE));
+        $this->log("atrusty " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['TN']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testBadYahooId() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $u->create('Test', 'User', '42decfdc9afca38d682324e2e5a02123');
         $u->setPrivate('yahooid', '42decfdc9afca38d682324e2e5a02123');
         $atts = $u->getPublic();
         self::assertLessThan(32, $atts['fullname']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAFreegler() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $u->create('Test', 'User', 'A freegler');
         $atts = $u->getPublic();
         self::assertNotEquals('A freegler', $atts['fullname']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSetting() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $u->create('Test', 'User', 'A freegler');
         assertTrue($u->getSetting('notificationmails', TRUE));
@@ -1021,12 +947,9 @@ class userTest extends IznikTestCase {
         $u->setPrivate('settings', json_encode($settings));
         assertFalse($u->getSetting('notificationmails', TRUE));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testFreegleMembership() {
-        error_log(__METHOD__);
-
         $u1 = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u1->create('Test', 'User', 'A freegler');
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -1054,12 +977,9 @@ class userTest extends IznikTestCase {
         self::assertEquals(1, count($atts['memberof']));
         self::assertEquals($gid2, $atts['memberof'][0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testNonFreegleMembership() {
-        error_log(__METHOD__);
-
         $u1 = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u1->create('Test', 'User', 'A freegler');
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -1086,8 +1006,7 @@ class userTest extends IznikTestCase {
         $atts = $u2->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, TRUE);
         self::assertEquals(0, count($atts['memberof']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function exportParams() {
         return([
@@ -1107,8 +1026,6 @@ class userTest extends IznikTestCase {
      * @dataProvider exportParams
      */
     public function testExport($background, $modnotifs, $backupmodnotifs) {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
         $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
@@ -1144,7 +1061,7 @@ class userTest extends IznikTestCase {
                 $ret = $u->getExport($uid, $id, $tag);
 
                 $count++;
-                error_log("...waiting for export $count");
+                $this->log("...waiting for export $count");
                 sleep(1);
             } while (!pres('data', $ret) && $count < 600);
 
@@ -1162,12 +1079,9 @@ class userTest extends IznikTestCase {
 
         #file_put_contents('/tmp/export', $encoded);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testForget() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create('Test', 'User', 'Test User');
         $uid = $u->create('Test', 'User', 'Test User');
@@ -1211,12 +1125,9 @@ class userTest extends IznikTestCase {
         self::assertEquals(0, count($u->getLogins()));
         self::assertEquals(0, count($u->getMemberships()));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testRetention() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $uid1 = $u->create('Test', 'User', 'Test User');
         $uid2 = $u->create('Test', 'User', 'Test User');
@@ -1225,12 +1136,9 @@ class userTest extends IznikTestCase {
         $u->setPrivate('lastaccess', '2000-01-01');
         self::assertEquals(1, $u->userRetention($uid2));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPhone() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
 
@@ -1245,12 +1153,9 @@ class userTest extends IznikTestCase {
         assertNotNull($u->addPhone('+15005550001'));
         $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testKudos() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
         $g->setPrivate('lat', 8.5);
@@ -1268,7 +1173,7 @@ class userTest extends IznikTestCase {
         $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail('test@test.com');
-        error_log("Created $uid, add membership of $gid");
+        $this->log("Created $uid, add membership of $gid");
         $rc = $u->addMembership($gid);
         assertNotNull($u->isApprovedMember($gid));
         assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, $uid, 'testpw'));
@@ -1296,12 +1201,9 @@ class userTest extends IznikTestCase {
         assertEquals(1, count($mods));
         assertEquals($uid, $mods[0]['user']['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testActiveSince() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
         $this->dbhm->preExec("UPDATE users SET lastaccess = NOW() WHERE id = ?;", [
@@ -1311,8 +1213,7 @@ class userTest extends IznikTestCase {
         $ids = $u->getActiveSince('5 minutes ago', 'tomorrow');
         assertTrue(in_array($uid, $ids));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
 }
 

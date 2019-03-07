@@ -56,8 +56,6 @@ class stdMessageAPITest extends IznikAPITestCase {
     }
 
     public function testCreate() {
-        error_log(__METHOD__);
-
         # Get invalid id
         $ret = $this->call('stdmsg', 'GET', [
             'id' => -1
@@ -102,27 +100,24 @@ class stdMessageAPITest extends IznikAPITestCase {
         $ret = $this->call('stdmsg', 'GET', [
             'id' => $id
         ]);
-        error_log("Returned " . var_export($ret, true));
+        $this->log("Returned " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['stdmsg']['id']);
         assertEquals('Reject Member', $ret['stdmsg']['action']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPatch() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
-        error_log("Create stdmsg for {$this->cid}");
+        $this->log("Create stdmsg for {$this->cid}");
         $ret = $this->call('stdmsg', 'POST', [
             'configid' => $this->cid,
             'title' => 'UTTest'
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
-        error_log("Created $id");
+        $this->log("Created $id");
 
         # Log out
         unset($_SESSION['id']);
@@ -137,7 +132,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         # As a non-mod
-        error_log("Demote");
+        $this->log("Demote");
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
         $ret = $this->call('stdmsg', 'PATCH', [
             'id' => $id,
@@ -176,12 +171,9 @@ class stdMessageAPITest extends IznikAPITestCase {
         ]);
         assertEquals(4, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testDelete() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('stdmsg', 'POST', [
@@ -205,7 +197,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         # As a non-mod
-        error_log("Demote");
+        $this->log("Demote");
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
         $ret = $this->call('stdmsg', 'DELETE', [
             'id' => $id
@@ -241,7 +233,6 @@ class stdMessageAPITest extends IznikAPITestCase {
         ]);
         assertEquals(2, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

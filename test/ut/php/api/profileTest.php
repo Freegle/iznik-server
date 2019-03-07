@@ -26,8 +26,6 @@ class profileTest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
 
         $uid = $u->findByEmail('edwardhibbert59@gmail.com');
@@ -45,7 +43,6 @@ class profileTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertTrue(array_key_exists('url', $ret));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

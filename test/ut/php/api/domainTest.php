@@ -27,23 +27,20 @@ class domainAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $ret = $this->call('domains', 'GET', [
             'domain' => 'test.com'
         ]);
-        error_log("Should be no suggestions " . var_export($ret, TRUE));
+        $this->log("Should be no suggestions " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertFalse(array_key_exists('suggestions', $ret));
 
         $ret = $this->call('domains', 'GET', [
             'domain' => 'tset.com'
         ]);
-        error_log("Should be suggestions " . var_export($ret, TRUE));
+        $this->log("Should be suggestions " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertTrue(array_key_exists('suggestions', $ret));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

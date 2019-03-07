@@ -28,8 +28,6 @@ class BounceTest extends IznikTestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@test.com');
@@ -51,6 +49,5 @@ class BounceTest extends IznikTestCase
         $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_SUSPEND_MAIL, $logs);
         assertEquals($this->uid, $log['user']['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

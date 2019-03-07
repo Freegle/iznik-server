@@ -24,8 +24,6 @@ class RequestTest extends IznikTestCase {
     }
 
     public function testCentral() {
-        error_log(__METHOD__);
-
         $r = $this->getMockBuilder('Request')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
             ->setMethods(array('sendIt'))
@@ -39,7 +37,6 @@ class RequestTest extends IznikTestCase {
         assertNotNull($rid);
         $r->completed($uid);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

@@ -44,8 +44,6 @@ class adminAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         $admindata = [
             'groupid' => $this->groupid,
             'subject' => 'UT Admin',
@@ -103,6 +101,5 @@ class adminAPITest extends IznikAPITestCase
         $this->dbhm->preExec("UPDATE admins SET complete = NULL WHERE id = $id");
         assertEquals(0, $a->process($id));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

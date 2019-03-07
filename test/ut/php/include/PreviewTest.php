@@ -24,13 +24,11 @@ class PreviewTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $l = new Preview($this->dbhr, $this->dbhm);
         $id = $l->create('https://google.co.uk');
         assertNotNull($id);
         $atts = $l->getPublic();
-        error_log("Atts " . var_export($atts, TRUE));
+        $this->log("Atts " . var_export($atts, TRUE));
         self::assertEquals('Google', $atts['title']);
 
         $id2 = $l->get('https://google.co.uk');
@@ -39,12 +37,9 @@ class PreviewTest extends IznikTestCase {
         $id3 = $l->get('https://google.ca');
         assertNotNull($id3);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testInvalid() {
-        error_log(__METHOD__);
-
         $l = new Preview($this->dbhr, $this->dbhm);
         $id = $l->create('https://googfsdfasdfdsafsdafsdafsdafsd.com');
         assertNotNull($id);
@@ -66,7 +61,6 @@ class PreviewTest extends IznikTestCase {
         $atts = $l->getPublic();
         self::assertEquals(1, $atts['spam']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

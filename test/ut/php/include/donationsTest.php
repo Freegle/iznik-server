@@ -26,17 +26,14 @@ class donationsTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        error_log("Created $id");
+        $this->log("Created $id");
 
         $d = new Donations($this->dbhr, $this->dbhm);
         $d->recordAsk($id);
         self::assertNotNull($d->lastAsk($id));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

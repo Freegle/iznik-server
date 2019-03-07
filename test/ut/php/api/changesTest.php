@@ -31,8 +31,6 @@ class changesAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -68,6 +66,5 @@ class changesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['changes']['messages'][0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

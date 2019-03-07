@@ -30,8 +30,6 @@ class statsTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         # Create a group with one message and one member.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
@@ -39,7 +37,7 @@ class statsTest extends IznikTestCase {
         # Test set members.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        error_log("Created user $uid");
+        $this->log("Created user $uid");
         $u->addEmail('test@test.com');
         $u->addMembership($g->getId(), User::ROLE_MEMBER);
         $rc = $g->setMembers([
@@ -62,7 +60,7 @@ class statsTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals($gid, $m->getGroups()[0]);
-        error_log("Created message $id on $gid");
+        $this->log("Created message $id on $gid");
 
         # Now send the same message again; this should replace the first, but shouldn't appear in the counts as a
         # separate message.
@@ -71,7 +69,7 @@ class statsTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals($gid, $m->getGroups()[0]);
-        error_log("Created message $id on $gid");
+        $this->log("Created message $id on $gid");
 
         # Need to be a mod to see all.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -84,7 +82,7 @@ class statsTest extends IznikTestCase {
         # Now generate stats for today
         $s = new Stats($this->dbhr, $this->dbhm, $gid);
         $date = date ("Y-m-d", strtotime("today"));
-        error_log("Generate for $date");
+        $this->log("Generate for $date");
         $s->generate($date);
 
         $stats = $s->get($date);
@@ -132,12 +130,9 @@ class statsTest extends IznikTestCase {
         assertEquals([], $stats['PostMethodBreakdown']);
         assertEquals([], $stats['MessageBreakdown']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testHeatmap() {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
         assertNotNull($areaid);
@@ -166,10 +161,9 @@ class statsTest extends IznikTestCase {
 
         $s = new Stats($this->dbhr, $this->dbhm);
         $map = $s->getHeatmap(Stats::HEATMAP_MESSAGES, 'TV13 1HH');
-        error_log("Heatmap " . var_export($map, TRUE));
+        $this->log("Heatmap " . var_export($map, TRUE));
         assertGreaterThan(0, count($map));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

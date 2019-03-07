@@ -36,8 +36,6 @@ class digestTest extends IznikTestCase {
     }
 
     public function testImmediate() {
-        error_log(__METHOD__);
-
         # Mock the actual send
         $mock = $this->getMockBuilder('Digest')
             ->setConstructorArgs([$this->dbhm, $this->dbhm])
@@ -59,7 +57,7 @@ class digestTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -69,7 +67,7 @@ class digestTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
-        error_log("Created user $uid email $eid");
+        $this->log("Created user $uid email $eid");
         assertGreaterThan(0, $eid);
         $u->addMembership($gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
@@ -77,14 +75,11 @@ class digestTest extends IznikTestCase {
         # Now test.
         assertEquals(1, $mock->send($gid, Digest::IMMEDIATE));
         assertEquals(1, count($this->msgsSent));
-        error_log("Immediate message " . $this->msgsSent[0]);
+        $this->log("Immediate message " . $this->msgsSent[0]);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSend() {
-        error_log(__METHOD__);
-
         # Actual send for coverage.
         $d = new Digest($this->dbhm, $this->dbhm, NULL, TRUE);
 
@@ -100,7 +95,7 @@ class digestTest extends IznikTestCase {
         $r = new MailRouter($this->dbhm, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -110,7 +105,7 @@ class digestTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
-        error_log("Created user $uid email $eid");
+        $this->log("Created user $uid email $eid");
         assertGreaterThan(0, $eid);
         $u->addMembership($gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
@@ -119,7 +114,7 @@ class digestTest extends IznikTestCase {
         $u2 = User::get($this->dbhm, $this->dbhm);
         $uid2 = $u2->create(NULL, NULL, 'Test User');
         $u2->addEmail('test2@blackhole.io');
-        error_log("Created user $uid2");
+        $this->log("Created user $uid2");
         $u2->addMembership($gid, User::ROLE_MEMBER);
         $u2->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
@@ -131,9 +126,9 @@ class digestTest extends IznikTestCase {
 
         # Now add one of our emails to the second user.  Because we've not sync'd this group, we will decide to send
         # an email.
-        error_log("Now with our email");
+        $this->log("Now with our email");
         $eid2 = $u2->addEmail('test2@' . USER_DOMAIN);
-        error_log("Added eid $eid2");
+        $this->log("Added eid $eid2");
         assertGreaterThan(0, $eid2);
         $this->dbhm->preExec("DELETE FROM groups_digests WHERE groupid = ?;", [ $gid ]);
 
@@ -141,12 +136,9 @@ class digestTest extends IznikTestCase {
         User::$cache = [];
         assertEquals(2, $d->send($gid, Digest::IMMEDIATE));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testTN() {
-        error_log(__METHOD__);
-
         # Actual send for coverage.
         $d = new Digest($this->dbhm, $this->dbhm);
 
@@ -163,7 +155,7 @@ class digestTest extends IznikTestCase {
         $r = new MailRouter($this->dbhm, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -172,7 +164,7 @@ class digestTest extends IznikTestCase {
         $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $eid = $u->addEmail('test@user.trashnothing.com');
-        error_log("Created user $uid email $eid");
+        $this->log("Created user $uid email $eid");
         assertGreaterThan(0, $eid);
         $u->addMembership($gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
@@ -180,12 +172,9 @@ class digestTest extends IznikTestCase {
         # Now test.
         assertEquals(0, $d->send($gid, Digest::IMMEDIATE));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testError() {
-        error_log(__METHOD__);
-
         # Create a group with a message on it.
         $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -198,7 +187,7 @@ class digestTest extends IznikTestCase {
         $r = new MailRouter($this->dbhm, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -208,7 +197,7 @@ class digestTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
-        error_log("Created user $uid email $eid");
+        $this->log("Created user $uid email $eid");
         assertGreaterThan(0, $eid);
         $u->addMembership($gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
@@ -217,7 +206,7 @@ class digestTest extends IznikTestCase {
         $u2 = User::get($this->dbhm, $this->dbhm);
         $uid2 = $u2->create(NULL, NULL, 'Test User');
         $u2->addEmail('test2@blackhole.io');
-        error_log("Created user $uid2");
+        $this->log("Created user $uid2");
         $u2->addMembership($gid, User::ROLE_MEMBER);
         $u2->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
@@ -229,12 +218,9 @@ class digestTest extends IznikTestCase {
         $mock->method('sendOne')->willThrowException(new Exception());
         $mock->send($gid, Digest::IMMEDIATE);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMultipleMails() {
-        error_log(__METHOD__);
-
         # Mock the actual send
         $mock = $this->getMockBuilder('Digest')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
@@ -255,7 +241,7 @@ class digestTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -265,7 +251,7 @@ class digestTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -275,7 +261,7 @@ class digestTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -285,7 +271,7 @@ class digestTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
-        error_log("Created user $uid email $eid");
+        $this->log("Created user $uid email $eid");
         assertGreaterThan(0, $eid);
         $u->addMembership($gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::HOUR1);
@@ -297,12 +283,10 @@ class digestTest extends IznikTestCase {
         # Again - nothing to send.
         assertEquals(0, $mock->send($gid, Digest::HOUR1));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 //
 //    public function testNewDigestSingle() {
-//        error_log(__METHOD__);
-//
+//        //
 //        # Actual send for coverage.
 //        $d = new Digest($this->dbhm, $this->dbhm);
 //
@@ -318,7 +302,7 @@ class digestTest extends IznikTestCase {
 //        $r = new MailRouter($this->dbhm, $this->dbhm);
 //        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
 //        assertNotNull($id);
-//        error_log("Created message $id");
+//        $this->log("Created message $id");
 //        $rc = $r->route();
 //        assertEquals(MailRouter::APPROVED, $rc);
 //
@@ -333,7 +317,7 @@ class digestTest extends IznikTestCase {
 //            $uid = $u->findByEmail($tosend);
 //
 //            if (!$uid) {
-//                error_log("Add user for $tosend");
+//                $this->log("Add user for $tosend");
 //                $uid = $u->create("Test", "User", "Test User");
 //                $u->addEmail($tosend);
 //            }
@@ -345,7 +329,7 @@ class digestTest extends IznikTestCase {
 //
 //            foreach ($emails as $email) {
 //                $eid = $email['id'];
-//                error_log("Found eid $eid");
+//                $this->log("Found eid $eid");
 //                $u->addMembership($gid, User::ROLE_MEMBER, $eid);
 //                $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 //            }
@@ -354,12 +338,10 @@ class digestTest extends IznikTestCase {
 //        # Now test.
 //        assertGreaterThan(0, $d->send($gid, Digest::IMMEDIATE));
 //
-//        error_log(__METHOD__ . " end");
-//    }
+//        //    }
 //
 //    public function testNewDigestMultiple() {
-//        error_log(__METHOD__);
-//
+//        //
 //        # Create a group with two messages on it.
 //        $g = Group::get($this->dbhm, $this->dbhm);
 //        $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -372,7 +354,7 @@ class digestTest extends IznikTestCase {
 //        $r = new MailRouter($this->dbhm, $this->dbhm);
 //        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
 //        assertNotNull($id);
-//        error_log("Created message $id");
+//        $this->log("Created message $id");
 //        $rc = $r->route();
 //        assertEquals(MailRouter::APPROVED, $rc);
 //
@@ -383,7 +365,7 @@ class digestTest extends IznikTestCase {
 //        $r = new MailRouter($this->dbhm, $this->dbhm);
 //        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
 //        assertNotNull($id);
-//        error_log("Created message $id");
+//        $this->log("Created message $id");
 //        $rc = $r->route();
 //        assertEquals(MailRouter::APPROVED, $rc);
 //
@@ -394,7 +376,7 @@ class digestTest extends IznikTestCase {
 //        $r = new MailRouter($this->dbhm, $this->dbhm);
 //        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
 //        assertNotNull($id);
-//        error_log("Created message $id");
+//        $this->log("Created message $id");
 //        $rc = $r->route();
 //        assertEquals(MailRouter::APPROVED, $rc);
 //        $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -411,12 +393,12 @@ class digestTest extends IznikTestCase {
 //
 //        foreach ($sendtos as $sendto) {
 //            $sendto = trim($sendto);
-//            error_log("Send to $sendto");
+//            $this->log("Send to $sendto");
 //            $u = User::get($this->dbhm, $this->dbhm);
 //            $uid = $u->findByEmail($sendto);
 //
 //            if (!$uid) {
-//                error_log("Add user for $sendto");
+//                $this->log("Add user for $sendto");
 //                $uid = $u->create("Test", "User", "Test User");
 //                $u->addEmail($sendto);
 //            }
@@ -428,17 +410,16 @@ class digestTest extends IznikTestCase {
 //
 //            foreach ($emails as $email) {
 //                $eid = $email['id'];
-//                error_log("Found eid $eid for {$email['email']}");
+//                $this->log("Found eid $eid for {$email['email']}");
 //                $u->addMembership($gid, User::ROLE_MEMBER, $eid);
 //                $u->setMembershipAtt($gid, 'emailfrequency', Digest::HOUR1);
 //            }
 //        }
 //
 //        # Now test.
-//        error_log("Now send");
+//        $this->log("Now send");
 //        assertGreaterThan(0, $d->send($gid, Digest::HOUR1));
 //
-//        error_log(__METHOD__ . " end");
-//    }
+//        //    }
 }
 

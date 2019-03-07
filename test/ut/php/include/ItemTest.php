@@ -29,8 +29,6 @@ class itemTest extends IznikTestCase {
     }
 
     public function testErrors() {
-        error_log(__METHOD__);
-
         $mock = $this->getMockBuilder('LoggedPDO')
             ->disableOriginalConstructor()
             ->setMethods(array('preExec', 'preQuery'))
@@ -42,17 +40,14 @@ class itemTest extends IznikTestCase {
         $id = $i->create('UTTest');
         assertNull($id);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testWeights() {
-        error_log(__METHOD__);
-
         $i = new Item($this->dbhr, $this->dbhm);
         $iid = $i->findByName('sofa');
 
         if (!$iid) {
-            error_log("Create sofa");
+            $this->log("Create sofa");
             $i->create('sofa');
             $i->setWeight(37);
         }
@@ -61,7 +56,6 @@ class itemTest extends IznikTestCase {
         $i = new Item($this->dbhr, $this->dbhm, $id);
         self::assertEquals(37, $i->estimateWeight());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

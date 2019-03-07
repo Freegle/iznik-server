@@ -11,24 +11,19 @@ require_once UT_DIR . '/IznikAPITestCase.php';
  */
 class dashboardTest extends IznikAPITestCase {
     public function testLoggedOut() {
-        error_log(__METHOD__);
-
         $ret = $this->call('session', 'GET', []);
         assertEquals(1, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAdmin() {
-        error_log(__METHOD__);
-
         # Now log in
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u = User::get($this->dbhr, $this->dbhm, $id);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
-        error_log("After login {$_SESSION['id']}");
+        $this->log("After login {$_SESSION['id']}");
 
         # Shouldn't get anything as a user
         $ret = $this->call('dashboard', 'GET', []);
@@ -44,15 +39,12 @@ class dashboardTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        #error_log("Got dashboard " . var_export($ret, TRUE));
+        #$this->log("Got dashboard " . var_export($ret, TRUE));
         assertGreaterThan(0, $dash['ApprovedMessageCount']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testGroups() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create('Test', 'User', NULL);
         $id2 = $u->create('Test', 'User', NULL);
@@ -109,15 +101,12 @@ class dashboardTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        error_log(var_export($dash, TRUE));
+        $this->log(var_export($dash, TRUE));
         assertEquals(0, count($dash['ApprovedMessageCount']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testRegion() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_OTHER);
         $g->setPrivate('region', 'Scotland');
@@ -125,17 +114,15 @@ class dashboardTest extends IznikAPITestCase {
         $ret = $this->call('dashboard', 'GET', [
             'region' => 'Scotland'
         ]);
-        error_log("Returned " . var_export($ret, TRUE));
+        $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
         assertTrue(in_array($group1, $ret['dashboard']['groupids']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 //
 //    public function testEH() {
-//        error_log(__METHOD__);
-//
+//        //
 //        $u = new User($this->dbhr, $this->dbhm);
 //
 //        $uid = $u->findByEmail('sheilasmail.cp@gmail.com');
@@ -147,9 +134,8 @@ class dashboardTest extends IznikAPITestCase {
 //            'allgroups' => TRUE
 //        ]);
 //        assertEquals(0, $ret['ret']);
-//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
 //
-//        error_log(__METHOD__ . " end");
-//    }
+//        //    }
 }
 

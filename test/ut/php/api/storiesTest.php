@@ -30,8 +30,6 @@ class storiesAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -97,7 +95,7 @@ class storiesAPITest extends IznikAPITestCase {
         $ret = $this->call('stories', 'GET', [
             'reviewed' => 0
         ]);
-        error_log("Get as mod " . var_export($ret, TRUE));
+        $this->log("Get as mod " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['stories']));
         self::assertEquals($id, $ret['stories'][0]['id']);
@@ -179,16 +177,13 @@ class storiesAPITest extends IznikAPITestCase {
         ]);
         assertEquals(2, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     function testAsk() {
-        error_log(__METHOD__);
-
         # Create the sending user
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        error_log("Created user $uid");
+        $this->log("Created user $uid");
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
@@ -206,7 +201,7 @@ class storiesAPITest extends IznikAPITestCase {
         self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, 2, NULL));
 
         # Now mark the message as complete
-        error_log("Mark $origid as TAKEN");
+        $this->log("Mark $origid as TAKEN");
         $m = new Message($this->dbhr, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, $uid);
 
@@ -216,7 +211,6 @@ class storiesAPITest extends IznikAPITestCase {
         # But not a second time
         self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, 0, NULL));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

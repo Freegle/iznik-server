@@ -52,8 +52,6 @@ class userAPITest extends IznikAPITestCase {
     }
 
     public function testRegister() {
-        error_log(__METHOD__);
-        
         $email = 'test3@test.com';
 
         # Invalid
@@ -63,12 +61,12 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(1, $ret['ret']);
         
         # Register successfully
-        error_log("Register expect success");
+        $this->log("Register expect success");
         $ret = $this->call('user', 'PUT', [
             'email' => $email,
             'password' => 'wibble'
         ]);
-        error_log("Expect success returned " . var_export($ret, TRUE));
+        $this->log("Expect success returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
         assertNotNull($id);
@@ -77,7 +75,7 @@ class userAPITest extends IznikAPITestCase {
             'id' => $id,
             'info' => TRUE
         ]);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals($email, $ret['user']['emails'][0]['email']);
         assertTrue(array_key_exists('replies', $ret['user']['info']));
 
@@ -96,12 +94,9 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
     
     public function testDeliveryType() {
-        error_log(__METHOD__);
-
         # Shouldn't be able to do this as a member
         $ret = $this->call('user', 'PATCH', [
             'groupid' => $this->groupid,
@@ -127,12 +122,9 @@ class userAPITest extends IznikAPITestCase {
         assertEquals('test@test.com', $data['email']);
         assertEquals('DIGEST', $data['deliveryType']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPostingStatus() {
-        error_log(__METHOD__);
-
         $ret = $this->call('user', 'PATCH', [
             'yahooUserId' => 1,
             'groupid' => $this->groupid,
@@ -168,12 +160,9 @@ class userAPITest extends IznikAPITestCase {
         assertEquals('test@test.com', $data['email']);
         assertEquals('PROHIBITED', $data['postingStatus']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testHoliday() {
-        error_log(__METHOD__);
-
         $ret = $this->call('user', 'PATCH', [
             'id' => $this->uid2,
             'groupid' => $this->groupid,
@@ -228,12 +217,9 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertFalse(pres('onholidaytill', $ret['user']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPassword() {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create("Test", "User", "Test User");
         $u->addEmail('test2@test.com');
@@ -255,12 +241,9 @@ class userAPITest extends IznikAPITestCase {
         assertFalse($u->login('testbad'));
         assertFalse($u->login('testtest'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMail() {
-        error_log(__METHOD__);
-
         # Mails won't go through as there's no email address, but we're just testing the API.
         #
         # Shouldn't be able to do this as a non-member.
@@ -291,12 +274,9 @@ class userAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testLog() {
-        error_log(__METHOD__);
-
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
             'password' => 'testpw'
@@ -312,7 +292,7 @@ class userAPITest extends IznikAPITestCase {
         ]);
 
         # Can't see logs when another user who is not not a mod on the group
-        error_log("Check can't see {$this->uid} as other member {$this->uid2}");
+        $this->log("Check can't see {$this->uid} as other member {$this->uid2}");
         $ret = $this->call('session', 'POST', [
             'email' => 'test2@test.com',
             'password' => 'testpw'
@@ -359,12 +339,9 @@ class userAPITest extends IznikAPITestCase {
         $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
         assertEquals($this->groupid, $log['group']['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testDelete() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
 
@@ -380,12 +357,9 @@ class userAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSupportSearch() {
-        error_log(__METHOD__);
-
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MEMBER));
 
@@ -393,7 +367,7 @@ class userAPITest extends IznikAPITestCase {
         $ret = $this->call('user', 'GET', [
             'search' => 'test@test'
         ]);
-        error_log("Search returned " . var_export($ret, TRUE));
+        $this->log("Search returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['users']));
         assertEquals($this->uid, $ret['users'][0]['id']);
@@ -406,15 +380,12 @@ class userAPITest extends IznikAPITestCase {
         $ret = $this->call('user', 'GET', [
             'search' => 'tes2t@test.com'
         ]);
-        error_log("Should fail " . var_export($ret, TRUE));
+        $this->log("Should fail " . var_export($ret, TRUE));
         assertEquals(2, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMerge() {
-        error_log(__METHOD__);
-
         $u1 = User::get($this->dbhm, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
         $u1->addMembership($this->groupid);
@@ -486,12 +457,9 @@ class userAPITest extends IznikAPITestCase {
         $u = new User($this->dbhr, $this->dbhm, $id);
         self::assertTrue($u->isModOrOwner($this->groupid));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testUnbounce() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test3@test.com');
@@ -531,12 +499,9 @@ class userAPITest extends IznikAPITestCase {
         $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_UNBOUNCE, $ret['user']['logs']);
         assertNotNull($log);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testRating() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
 
@@ -582,12 +547,9 @@ class userAPITest extends IznikAPITestCase {
         self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
         self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testActive() {
-        error_log(__METHOD__);
-
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
@@ -617,19 +579,15 @@ class userAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid
         ]);
 
-        error_log("Get most active " . var_export($ret, TRUE));
+        $this->log("Get most active " . var_export($ret, TRUE));
         self::assertEquals($this->user->getId(), $ret['members'][0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function  testGravatar() {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         self::assertNotNull($u->gravatar('edward@ehibbert.org.uk'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

@@ -48,8 +48,6 @@ class membershipsAPITest extends IznikAPITestCase {
     }
 
     public function testAdd() {
-        error_log(__METHOD__);
-
         # Should be able to add (i.e. join) as a non-member or a member.
         $_SESSION['id'] = $this->uid2;
 
@@ -80,12 +78,9 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testJoinApprove() {
-        error_log(__METHOD__);
-
         $this->group->setSettings([
             'approvemembers' => TRUE
         ]);
@@ -104,18 +99,15 @@ class membershipsAPITest extends IznikAPITestCase {
 
         # Should have two notifications.
         $ret = $this->call('notification', 'GET', []);
-        error_log("Notifications after join " . var_export($ret, TRUE));
+        $this->log("Notifications after join " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(2, count($ret['notifications']));
         self::assertEquals(Notifications::TYPE_MEMBERSHIP_PENDING, $ret['notifications'][0]['type']);
         self::assertEquals(Notifications::TYPE_ABOUT_ME, $ret['notifications'][1]['type']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testJoinAndSee() {
-        error_log(__METHOD__);
-
         # Check that if we join a group we can see messages on it immediately.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -127,7 +119,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        error_log("Approved id $id");
+        $this->log("Approved id $id");
 
         # We have moderator role on our own message.
         $ret = $this->call('message', 'GET', [
@@ -156,12 +148,9 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testRemove() {
-        error_log(__METHOD__);
-
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         $ret = $this->call('memberships', 'PUT', [
             'groupid' => $this->groupid,
@@ -194,17 +183,14 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testGet() {
-        error_log(__METHOD__);
-
         # Shouldn't be able to get as non-member or member
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid
         ]);
-        error_log("Got memberships " . var_export($ret, TRUE));
+        $this->log("Got memberships " . var_export($ret, TRUE));
         assertEquals(2, $ret['ret']);
 
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MEMBER));
@@ -267,16 +253,13 @@ class membershipsAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid,
             'search' => 'wibble'
         ]);
-        error_log("wibble search " . var_export($ret, true));
+        $this->log("wibble search " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['members']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testDemote() {
-        error_log(__METHOD__);
-
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         assertEquals(1, $this->user2->addMembership($this->groupid, User::ROLE_MEMBER));
 
@@ -300,12 +283,9 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(2, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testJoinNotDemote() {
-        error_log(__METHOD__);
-
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
 
         # Join ourselves - should work
@@ -318,12 +298,9 @@ class membershipsAPITest extends IznikAPITestCase {
 
         assertEquals(User::ROLE_MODERATOR, $this->user->getRoleForGroup($this->groupid));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSettings() {
-        error_log(__METHOD__);
-
         # Shouldn't be able to set as a different member.
         $settings = [ 'test' => true ];
 
@@ -364,7 +341,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid,
             'userid' => $this->uid
         ]);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(8, $ret['member']['emailfrequency']);
         assertEquals(0, $ret['member']['eventsallowed']);
@@ -406,12 +383,9 @@ class membershipsAPITest extends IznikAPITestCase {
 
         assertEquals($cid, $ret['member']['settings']['configid']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMembers() {
-        error_log(__METHOD__);
-
         # Not logged in - shouldn't see members list
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
@@ -421,7 +395,7 @@ class membershipsAPITest extends IznikAPITestCase {
         assertFalse(pres('members', $ret));
 
         # Member - shouldn't see members list
-        error_log("Login as " . $this->user->getId());
+        $this->log("Login as " . $this->user->getId());
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
@@ -481,7 +455,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $ctx = NULL;
         $users = $u->search('test@test.com', $ctx);
-        error_log("Search returned " . var_export($users, TRUE));
+        $this->log("Search returned " . var_export($users, TRUE));
         self::assertEquals(1, count($users));
         assertEquals('ANNOUNCEMENT', $users[0]['memberof'][0]['yahooDeliveryType']);
 
@@ -497,7 +471,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $savemembs = $ret['members'];
 
         # Check filters
-        error_log("Check filters");
+        $this->log("Check filters");
         $ret = $this->call('memberships', 'GET', [ 'yahooPostingStatus' => 'PROHIBITED' ]);
         assertEquals(1, count($ret['members']));
         $ret = $this->call('memberships', 'GET', [ 'yahooDeliveryType' => 'DIGEST' ]);
@@ -511,7 +485,7 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         # Test merge by yahooid and yahooUserId
-        error_log("Test merge");
+        $this->log("Test merge");
         $this->group = Group::get($this->dbhr, $this->dbhm, $this->groupid);
         $this->group->setPrivate('lastyahoomembersync', NULL);
 
@@ -552,28 +526,25 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('memberships', 'GET', []);
-        error_log("Saved " .var_export( $savemembs, TRUE));
-        error_log("Returned " . var_export($ret, TRUE));
+        $this->log("Saved " .var_export( $savemembs, TRUE));
+        $this->log("Returned " . var_export($ret, TRUE));
 
         assertEquals(3, count($ret['members']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPendingMembers() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::APPROVED
         ]);
-        error_log("Returned " . var_export($ret, TRUE));
+        $this->log("Returned " . var_export($ret, TRUE));
 
         assertEquals(1, count($ret['members']));
 
-        error_log("Pending members on {$this->groupid}");
+        $this->log("Pending members on {$this->groupid}");
 
         $members = [
             [
@@ -594,16 +565,13 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::PENDING
         ]);
-        error_log("Returned " . var_export($ret, TRUE));
+        $this->log("Returned " . var_export($ret, TRUE));
 
         assertEquals(2, count($ret['members']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testReject() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($uid);
@@ -710,12 +678,9 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('plugin', 'GET', []);
         assertEquals(0, count($ret['plugin']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testDelete() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($uid);
@@ -753,12 +718,9 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testUnsubscribe() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED));
 
         # For invalid user
@@ -791,12 +753,9 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testApprove() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $eid = $u->addEmail('test2@test.com');
@@ -885,12 +844,9 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('plugin', 'GET', []);
         assertEquals(0, count($ret['plugin']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testHold() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($uid);
@@ -960,12 +916,9 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertFalse(pres('heldby', $ret['member']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testLarge() {
-        error_log(__METHOD__);
-
         $size = 1000;
 
         assertTrue($this->user->login('testpw'));
@@ -985,7 +938,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         for ($i = 0; $i < $size; $i++) {
             if ($i % 1000 == 0) {
-                error_log("...$i");
+                $this->log("...$i");
             }
             $members[] = [
                 'email' => "test$i@test.com",
@@ -998,13 +951,13 @@ class membershipsAPITest extends IznikAPITestCase {
             ];
         };
 
-        error_log("Do PATCH");
+        $this->log("Do PATCH");
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
             'members' => $members
         ]);
         assertEquals(0, $ret['ret']);
-        error_log("Done PATCH");
+        $this->log("Done PATCH");
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $g->processSetMembers($this->groupid);
@@ -1014,12 +967,9 @@ class membershipsAPITest extends IznikAPITestCase {
         $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);
         assertEquals($size + 1, $counts[0]['count']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testExportYahoo() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
@@ -1068,12 +1018,9 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(11, count($ret['members']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testFilter() {
-        error_log(__METHOD__);
-
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('memberships', 'GET', [
@@ -1127,12 +1074,9 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['members']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testYahooThenFD() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addMembership($this->groupid);
@@ -1154,7 +1098,6 @@ class membershipsAPITest extends IznikAPITestCase {
 
         assertTrue($u->sendOurMails($this->group));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

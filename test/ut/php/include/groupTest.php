@@ -36,8 +36,6 @@ class groupTest extends IznikTestCase {
     }
 
     public function testDefaults() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
         $this->dbhm->preExec("UPDATE groups SET settings = NULL WHERE id = ?;", [ $gid ]);
@@ -50,12 +48,9 @@ class groupTest extends IznikTestCase {
 
         assertGreaterThan(0, strpos($g->getGroupUnsubscribe(), 'unsub'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
@@ -108,19 +103,16 @@ class groupTest extends IznikTestCase {
         assertEquals(User::ROLE_OWNER, $membs[0]['role']);
 
         $membs = $this->user->getMemberships();
-        error_log("Got members" . var_export($membs, true));
+        $this->log("Got members" . var_export($membs, true));
         assertEquals(1, count($membs));
         assertEquals($cid, $membs[0]['configid']);
 
         assertGreaterThan(0 ,$g->delete());
         $c->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMerge() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
         assertNotNull($gid);
@@ -130,7 +122,7 @@ class groupTest extends IznikTestCase {
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $eid = $u->addEmail('test@test.com');
-        error_log("Create owner $id with email $eid");
+        $this->log("Create owner $id with email $eid");
         $u->addMembership($gid, User::ROLE_OWNER, $eid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -151,7 +143,7 @@ class groupTest extends IznikTestCase {
         ], MembershipCollection::APPROVED);
         assertEquals(0, $rc['ret']);
 
-        error_log("Before merge " . var_export($g->getMembers(), TRUE));
+        $this->log("Before merge " . var_export($g->getMembers(), TRUE));
 
         $this->dbhm->preExec("UPDATE users_emails SET preferred = 1 WHERE email IN ('test1@test.com', 'test2@test.com')");
 
@@ -168,13 +160,13 @@ class groupTest extends IznikTestCase {
         assertEquals(0, $rc['ret']);
 
         $membs = $g->getMembers();
-        error_log("Got " . count($membs) . " now");
-        error_log(var_export($membs, TRUE));
+        $this->log("Got " . count($membs) . " now");
+        $this->log(var_export($membs, TRUE));
         assertEquals('-testid1', $membs[0]['yahooid']);
         assertEquals('test1@test.com', $membs[0]['otheremails'][0]['email']);
 
         # Test merging by Yahoo User ID.
-        error_log("Test merge by Yahoo User ID");
+        $this->log("Test merge by Yahoo User ID");
         $rc = $g->setMembers([
             [
                 'yahooModeratorStatus' => 'OWNER',
@@ -203,27 +195,24 @@ class groupTest extends IznikTestCase {
         assertEquals(0, $rc['ret']);
 
         $membs = $g->getMembers();
-        error_log(var_export($membs, TRUE));
+        $this->log(var_export($membs, TRUE));
         assertEquals('-testid1', $membs[0]['yahooUserId']);
         assertEquals('test11@test.com', $membs[0]['email']);
         assertEquals('test12@test.com', $membs[0]['otheremails'][1]['email']);
 
         # Test that the merge history is there.
         $this->waitBackground();
-        error_log("Check merge history for {$membs[0]['userid']}");
+        $this->log("Check merge history for {$membs[0]['userid']}");
         $u = User::get($this->dbhm, $this->dbhm, $membs[0]['userid']);
         $ctx = NULL;
         $atts = $u->getPublic(NULL, FALSE, TRUE, $ctx);
-        error_log("Merge history " . var_export($atts, TRUE));
+        $this->log("Merge history " . var_export($atts, TRUE));
         assertEquals(1, count($atts['merges']));
         assertTrue($membs[0]['userid'] == $atts['merges'][0]['from'] || $membs[0]['userid'] == $atts['merges'][0]['to']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSplit() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->setPrivate('yahooid', '-testyahooid');
@@ -234,12 +223,9 @@ class groupTest extends IznikTestCase {
         assertNull($u->findByYahooId('-testyahooid'));
         assertNull($u->findByYahooUserId('-testyahoouserid'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testErrors() {
-        error_log(__METHOD__);
-
         $dbconfig = array (
             'host' => SQLHOST,
             'port_read' => SQLPORT_READ,
@@ -274,7 +260,7 @@ class groupTest extends IznikTestCase {
         assertNull($id2);
 
         # Test errors in set members
-        error_log("Set Members errors");
+        $this->log("Set Members errors");
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -304,7 +290,7 @@ class groupTest extends IznikTestCase {
         # Error in exec
         $members = $g->getMembers();
         assertEquals(1, count($members));
-        error_log("Members " . var_export($members, true));
+        $this->log("Members " . var_export($members, true));
         assertEquals(1, count($members[0]['otheremails']));
 
         $mock = $this->getMockBuilder('LoggedPDO')
@@ -330,11 +316,10 @@ class groupTest extends IznikTestCase {
         assertEquals(1, count($members));
         assertEquals(1, count($members[0]['otheremails']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testVoucher() {
-        error_log(__METHOD__ );
+        $this->log(__METHOD__ );
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $id = $g->create('testgroup', Group::GROUP_REUSE);
@@ -350,31 +335,27 @@ class groupTest extends IznikTestCase {
         assertNotNull($g->getPrivate('licensed'));
         assertNotNull($g->getPrivate('licenseduntil'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testLegacy() {
-        error_log(__METHOD__ );
+        $this->log(__METHOD__ );
 
         $sql = "SELECT id, legacyid FROM groups WHERE legacyid IS NOT NULL AND legacyid NOT IN (SELECT id FROM groups);";
         $groups = $this->dbhr->preQuery($sql);
         foreach ($groups as $group) {
-            error_log("Get legacy {$group['legacyid']}");
+            $this->log("Get legacy {$group['legacyid']}");
             $g = Group::get($this->dbhr, $this->dbhm, $group['legacyid']);
-            error_log("Returned id " . $g->getId());
+            $this->log("Returned id " . $g->getId());
             assertEquals($group['id'], $g->getId());
         }
 
         # Might not be any legacy groups in the DB.
         assertTrue(TRUE);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testNativeRoles()
     {
-        error_log(__METHOD__);
-
         # Create a group with a mod and a member.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
@@ -383,11 +364,11 @@ class groupTest extends IznikTestCase {
         $modid = $u->create(NULL, NULL, 'Test User');
         $mod = User::get($this->dbhr, $this->dbhm, $modid);
         $mod->addEmail('test1@test.com');
-        error_log("Created mod $modid");
+        $this->log("Created mod $modid");
         $ownid = $u->create(NULL, NULL, 'Test User');
         $own = User::get($this->dbhr, $this->dbhm, $ownid);
         $own->addEmail('test2@test.com');
-        error_log("Created owner $ownid");
+        $this->log("Created owner $ownid");
 
         $rc = $g->setMembers([
             [
@@ -410,11 +391,10 @@ class groupTest extends IznikTestCase {
         self::assertEquals(User::ROLE_MODERATOR, $mod->getMembershipAtt($gid, 'role'));
         self::assertEquals(User::ROLE_OWNER, $own->getMembershipAtt($gid, 'role'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testOurPS() {
-        error_log(__METHOD__ );
+        $this->log(__METHOD__ );
 
         $g = new Group($this->dbhr, $this->dbhm);
 
@@ -424,7 +404,6 @@ class groupTest extends IznikTestCase {
         self::assertEquals(Group::POSTING_MODERATED, $g->ourPS(Group::POSTING_PROHIBITED));
         self::assertEquals(Group::POSTING_MODERATED, $g->ourPS(Group::POSTING_MODERATED));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

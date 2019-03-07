@@ -33,8 +33,6 @@ class logoTest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $today = date("m-d", time());
 
         # There might be a logo in the DB for today; if not, add one.
@@ -54,7 +52,6 @@ class logoTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertTrue(array_key_exists('logo', $ret));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

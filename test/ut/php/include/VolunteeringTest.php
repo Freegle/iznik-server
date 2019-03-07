@@ -38,8 +38,6 @@ class volunteeringTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         # Create an opportunity and check we can read it back.
         $c = new Volunteering($this->dbhm, $this->dbhm);
         $id = $c->create(NULL, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
@@ -78,7 +76,7 @@ class volunteeringTest extends IznikTestCase {
         $c->setPrivate('pending', 0);
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
-        error_log("Got when not pending " . var_export($volunteerings, TRUE));
+        $this->log("Got when not pending " . var_export($volunteerings, TRUE));
         assertEquals(1, count($volunteerings));
         assertEquals($id, $volunteerings[0]['id']);
 
@@ -98,12 +96,9 @@ class volunteeringTest extends IznikTestCase {
         $volunteerings = $c->listForUser($uid, TRUE, FALSE, $ctx);
         assertEquals(0, count($volunteerings));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testExpire() {
-        error_log(__METHOD__);
-
         # Test one with a date.
         $c = new Volunteering($this->dbhr, $this->dbhm);
 
@@ -167,12 +162,9 @@ class volunteeringTest extends IznikTestCase {
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
         assertEquals(0, count($volunteerings));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSystemWide() {
-        error_log(__METHOD__);
-
         $c = new Volunteering($this->dbhr, $this->dbhm);
 
         $u = new User($this->dbhr, $this->dbhm);
@@ -195,8 +187,7 @@ class volunteeringTest extends IznikTestCase {
         assertEquals(1, count($volunteerings));
         self::assertEquals($id, $volunteerings[0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 
 

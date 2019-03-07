@@ -30,8 +30,6 @@ class StoryTest extends IznikTestCase {
     }
 
     public function testCentral() {
-        error_log(__METHOD__);
-
         $s = $this->getMockBuilder('Story')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
             ->setMethods(array('sendIt'))
@@ -48,12 +46,9 @@ class StoryTest extends IznikTestCase {
         $count = $s->sendToCentral($sid);
         self::assertEquals(1, $count);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testNewsletter() {
-        error_log(__METHOD__);
-
         $s = new Story($this->dbhr, $this->dbhm);
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -74,7 +69,6 @@ class StoryTest extends IznikTestCase {
         assertNotNull($nid);
         $this->dbhm->preExec("DELETE FROM newsletters WHERE id = ?;", [ $nid ]);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

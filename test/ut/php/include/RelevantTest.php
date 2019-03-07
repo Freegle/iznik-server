@@ -60,8 +60,6 @@ class RelevantTest extends IznikTestCase
 
     public function testInterested()
     {
-        error_log(__METHOD__);
-
         $earliest = date('Y-m-d H:i:s');
 
         # Create two locations
@@ -72,13 +70,13 @@ class RelevantTest extends IznikTestCase
         # Create a user
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        error_log("Created user $uid");
+        $this->log("Created user $uid");
         $email = 'ut-' . rand() . '@test.com';
         $u->addEmail($email, 0, FALSE);
         $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0, FALSE);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
-        error_log("Emails before first " . var_export($u->getEmails(), TRUE));
+        $this->log("Emails before first " . var_export($u->getEmails(), TRUE));
 
         # Post a WANTED, an OFFER and a search.
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -95,12 +93,12 @@ class RelevantTest extends IznikTestCase
         $msg = str_replace('test@test.com', $email, $msg);
         $id = $r->received(Message::YAHOO_APPROVED, $email, 'testgroup@yahoogroups.com', $msg, $gid);
         assertNotNull($id);
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        error_log("User $uid $email message $id");
-        error_log("Emails after first " . var_export($u->getEmails(), TRUE));
+        $this->log("User $uid $email message $id");
+        $this->log("Emails after first " . var_export($u->getEmails(), TRUE));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
@@ -108,35 +106,35 @@ class RelevantTest extends IznikTestCase
         $msg = str_replace('test@test.com', $email, $msg);
         $id = $r->received(Message::YAHOO_APPROVED, $email, 'testgroup@yahoogroups.com', $msg, $gid);
         assertNotNull($id);
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        error_log("User $uid $email message $id");
+        $this->log("User $uid $email message $id");
 
-        error_log("Emails after second " . var_export($u->getEmails(), TRUE));
+        $this->log("Emails after second " . var_export($u->getEmails(), TRUE));
 
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->findByName('TV13 1HH');
         $s = new UserSearch($this->dbhr, $this->dbhm);
         $sid = $s->create($uid, NULL, "objets d'art", $lid);
-        error_log("Got search entry $sid for loc $lid");
+        $this->log("Got search entry $sid for loc $lid");
 
         $rl = new Relevant($this->dbhr, $this->dbhm);
         $ints = $rl->interestedIn($uid, Group::GROUP_FREEGLE);
-//        error_log("Found interested 1 " . var_export($ints, TRUE));
+//        $this->log("Found interested 1 " . var_export($ints, TRUE));
 //        assertEquals(1, count($ints));
 //        $ints = $rl->interestedIn($uid2, Group::GROUP_FREEGLE);
-//        error_log("Found interested 2 " . var_export($ints, TRUE));
+//        $this->log("Found interested 2 " . var_export($ints, TRUE));
 //        assertEquals(2, count($ints));
 
         # Now search - no relevant messages at the moment.
         $msgs = $rl->getMessages($uid, $ints, $earliest);
-        error_log("Should be none " . var_export($msgs, TRUE));
+        $this->log("Should be none " . var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
 
         # Add two relevant messages.
-        error_log("Add two relevant");
+        $this->log("Add two relevant");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: thing (location)', $msg);
@@ -145,9 +143,9 @@ class RelevantTest extends IznikTestCase
         $msg = str_replace('edwhuk', 'edwhuk1', $msg);
         $id1 = $r->received(Message::YAHOO_APPROVED, 'from2@test.com', 'to2@test.com', $msg, $gid);
         $m = new Message($this->dbhr, $this->dbhm, $id1);
-        error_log("Relevant $id1 from " . $m->getFromuser());
+        $this->log("Relevant $id1 from " . $m->getFromuser());
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-        error_log("From user emails " . var_export($u->getEmails(), TRUE));
+        $this->log("From user emails " . var_export($u->getEmails(), TRUE));
         assertNotNull($id);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -159,12 +157,12 @@ class RelevantTest extends IznikTestCase
         $msg = str_replace('edwhuk', 'edwhuk2', $msg);
         $id2 = $r->received(Message::YAHOO_APPROVED, 'from2@test.com', 'to2@test.com', $msg, $gid);
         $m = new Message($this->dbhr, $this->dbhm, $id2);
-        error_log("Relevant $id2 from " . $m->getFromuser());
+        $this->log("Relevant $id2 from " . $m->getFromuser());
         assertNotNull($id2);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        error_log("Relevant messages $id1 and $id2");
+        $this->log("Relevant messages $id1 and $id2");
 
         # Now send messages - should find these.
         $u->setPrivate('lastrelevantcheck', NULL);
@@ -181,12 +179,12 @@ class RelevantTest extends IznikTestCase
         self::assertEquals(1, $mock->sendMessages($uid));
 
         $msgs = $this->msgsSent;
-        error_log("Should return $id1 and $id2 ");
+        $this->log("Should return $id1 and $id2 ");
         assertEquals(1, count($msgs));
 
         # Long line might split id - hack out QP encoding.
         $msgs = preg_replace("/\=\r\n/", "", $msgs[0]);
-        error_log($msgs);
+        $this->log($msgs);
         self::assertNotFalse(strpos($msgs, $id1));
         self::assertNotFalse(strpos($msgs, $id2));
 
@@ -199,7 +197,7 @@ class RelevantTest extends IznikTestCase
 
         # Now shouldn't find any.
         $msgs = $rl->getMessages($uid, $ints, $earliest);
-        error_log("Should be none " . var_export($msgs, TRUE));
+        $this->log("Should be none " . var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
 
         # Exception
@@ -213,7 +211,6 @@ class RelevantTest extends IznikTestCase
         $u->setPrivate('lastrelevantcheck', NULL);
         self::assertEquals(0, $mock->sendMessages($uid));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

@@ -40,8 +40,6 @@ class chatMessagesTest extends IznikTestCase {
     }
 
     public function testGroup() {
-        error_log(__METHOD__);
-
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $id = $r->createGroupChat('test', $this->groupid);
         assertNotNull($id);
@@ -59,21 +57,18 @@ class chatMessagesTest extends IznikTestCase {
         assertNotNull($mid2);
         list($msgs, $users) = $r->getMessages();
         assertEquals(2, count($msgs));
-        error_log("Msgs " . var_export($msgs, TRUE));
+        $this->log("Msgs " . var_export($msgs, TRUE));
         assertTrue($msgs[0]['sameasnext']);
         assertTrue($msgs[1]['sameaslast']);
 
         assertEquals(1, $m->delete());
         assertEquals(1, $r->delete());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSpamReply() {
-        error_log(__METHOD__);
-
         # Put a valid message on a group.
-        error_log("Put valid message on");
+        $this->log("Put valid message on");
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -85,7 +80,7 @@ class chatMessagesTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
 
         # Now reply to it with spam.
-        error_log("Reply with spam");
+        $this->log("Reply with spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
@@ -96,14 +91,11 @@ class chatMessagesTest extends IznikTestCase {
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
         assertEquals(1, $msgs[0]['reviewrequired']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSpamReply2() {
-        error_log(__METHOD__);
-
         # Put a valid message on a group.
-        error_log("Put valid message on");
+        $this->log("Put valid message on");
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -115,7 +107,7 @@ class chatMessagesTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
 
         # Now reply to it with spam.
-        error_log("Reply with spam");
+        $this->log("Reply with spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
@@ -126,14 +118,11 @@ class chatMessagesTest extends IznikTestCase {
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
         assertEquals(1, $msgs[0]['reviewrequired']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testReplyFromSpammer() {
-        error_log(__METHOD__);
-
         # Put a valid message on a group.
-        error_log("Put valid message on");
+        $this->log("Put valid message on");
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -172,14 +161,11 @@ class chatMessagesTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testStripOurFooter() {
-        error_log(__METHOD__);
-
         # Put a valid message on a group.
-        error_log("Put valid message on");
+        $this->log("Put valid message on");
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -213,14 +199,11 @@ class chatMessagesTest extends IznikTestCase {
         $msgs = $r->getMessages();
         self::assertEquals('I\'d like to have these, then I can return them to Greece where they rightfully belong.', $msgs[0][0]['message']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSpamReply4() {
-        error_log(__METHOD__);
-
         # Put a valid message on a group.
-        error_log("Put valid message on");
+        $this->log("Put valid message on");
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -237,21 +220,18 @@ class chatMessagesTest extends IznikTestCase {
         $email = $u->inventEmail();
         $u->addEmail($email, FALSE, FALSE);
 
-        error_log("Reply with to self $email");
+        $this->log("Reply with to self $email");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, $email, $email, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSpamReply3() {
-        error_log(__METHOD__);
-
         # Put a valid message on a group.
-        error_log("Put valid message on");
+        $this->log("Put valid message on");
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -263,19 +243,16 @@ class chatMessagesTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
 
         # Now reply to it with spam that is marked as to be junked (weight loss in spam_keywords).
-        error_log("Reply with spam");
+        $this->log("Reply with spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply3'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPairing() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -304,18 +281,15 @@ class chatMessagesTest extends IznikTestCase {
 
         $m = new Message($this->dbhm, $this->dbhm, $refmsgid1);
         $atts = $m->getPublic(FALSE, TRUE, TRUE);
-        error_log("Message 1 " . var_export($atts, TRUE));
+        $this->log("Message 1 " . var_export($atts, TRUE));
         assertEquals(1, count($atts['replies']));
         $m = new Message($this->dbhm, $this->dbhm, $refmsgid2);
         $atts = $m->getPublic(FALSE, TRUE, TRUE);
         assertEquals(0, count($atts['replies']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testError() {
-        error_log(__METHOD__);
-
         $dbconfig = array (
             'host' => SQLHOST,
             'port_read' => SQLPORT_READ,
@@ -339,12 +313,9 @@ class chatMessagesTest extends IznikTestCase {
         $mid = $m->create(NULL, $this->uid, 'Test');
         assertNull($mid);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testCheckReview() {
-        error_log(__METHOD__);
-
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
         assertTrue($m->checkReview(''));
@@ -390,12 +361,9 @@ class chatMessagesTest extends IznikTestCase {
         assertFalse($m->checkReview("Innocent water butt"));
         assertFalse($m->checkReview("something in butt rd"));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testCheckSpam() {
-        error_log(__METHOD__);
-
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
         # Keywords
@@ -409,12 +377,9 @@ class chatMessagesTest extends IznikTestCase {
             assertTrue($m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testReferToSpammer() {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create("Test", "User", "Test User");
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
@@ -431,14 +396,11 @@ class chatMessagesTest extends IznikTestCase {
         # Keywords
         assertTrue($m->checkReview("Please reply to $email"));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testReplyWithAttachment() {
-        error_log(__METHOD__);
-
         # Put a valid message on a group.
-        error_log("Put valid message on");
+        $this->log("Put valid message on");
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -461,7 +423,7 @@ class chatMessagesTest extends IznikTestCase {
         # Notification payload - just usual intro
         $u = new User($this->dbhr, $this->dbhm, $fromuid);
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
-        error_log("Payload $title for $total");
+        $this->log("Payload $title for $total");
         assertEquals(1, $total);
         assertEquals("Why not introduce yourself to other freeglers?  You'll get a better response.", $title);
 
@@ -481,19 +443,17 @@ class chatMessagesTest extends IznikTestCase {
         $r = new ChatRoom($this->dbhr, $this->dbhm, $rid);
         $msgs = $r->getMessages();
         self::assertEquals(2, count($msgs));
-        error_log("Chat messages " . var_export($msgs, TRUE));
+        $this->log("Chat messages " . var_export($msgs, TRUE));
         self::assertEquals('', $msgs[0][0]['message']);
 
         # Should be an image in the second one.
         assertTrue(array_key_exists('image', $msgs[0][0]));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testUser2ModSpam() {
-        error_log(__METHOD__);
         $gid = $this->groupid;
-        error_log("Created group $gid");
+        $this->log("Created group $gid");
         $u = new User($this->dbhr, $this->dbhm);
         $uid1 = $u->create("Test", "User", "Test User");
         $u->addMembership($gid, User::ROLE_MODERATOR);
@@ -511,8 +471,7 @@ class chatMessagesTest extends IznikTestCase {
         # Should be unseen by mod even though spam.
         self::assertEquals(1, $r->unseenCountForUser($uid1));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 
 

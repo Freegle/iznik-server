@@ -29,8 +29,6 @@ class messagesTest extends IznikAPITestCase {
     }
 
     public function testApproved() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
@@ -44,7 +42,7 @@ class messagesTest extends IznikAPITestCase {
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        error_log("Approved id $id");
+        $this->log("Approved id $id");
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::APPROVED);
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -54,7 +52,7 @@ class messagesTest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1
         ]);
-        error_log("Get when logged out but no permission" . var_export($ret, true));
+        $this->log("Get when logged out but no permission" . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
@@ -67,7 +65,7 @@ class messagesTest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1
         ]);
-        error_log("Get when logged out with permission" . var_export($ret, true));
+        $this->log("Get when logged out with permission" . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
@@ -87,7 +85,7 @@ class messagesTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        #error_log(var_export($msgs, TRUE));
+        #$this->log(var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
 
         # Test search by word
@@ -104,7 +102,7 @@ class messagesTest extends IznikAPITestCase {
         assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Test search by id
-        error_log("Test by id");
+        $this->log("Test by id");
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'searchmess',
             'groupid' => $group1,
@@ -193,24 +191,24 @@ class messagesTest extends IznikAPITestCase {
         # Sleep for background logging
         $this->waitBackground();
 
-        error_log("Fromuser is " . $a->getFromuser());
+        $this->log("Fromuser is " . $a->getFromuser());
         $ret = $this->call('user', 'GET', [
             'id' => $a->getFromuser(),
             'logs' => TRUE
         ]);
-        error_log("Logs".  var_export($ret, true));
+        $this->log("Logs".  var_export($ret, true));
         $log = $this->findLog('Message', 'Received', $ret['user']['logs']);
-        error_log("Got log " . var_export($log, TRUE));
+        $this->log("Got log " . var_export($log, TRUE));
         assertEquals($group1, $log['group']['id']);
         assertEquals($a->getFromuser(), $log['user']['id']);
         assertEquals($a->getID(), $log['message']['id']);
 
         $id = $a->getID();
-        error_log("Delete it");
+        $this->log("Delete it");
         $a->delete();
 
         # Actually delete the message to force a codepath.
-        error_log("Delete msg $id");
+        $this->log("Delete msg $id");
         $rc = $this->dbhm->preExec("DELETE FROM messages WHERE id = ?;", [ $id ]);
         assertEquals(1, $rc);
         $this->waitBackground();
@@ -225,12 +223,9 @@ class messagesTest extends IznikAPITestCase {
         assertEquals($a->getFromuser(), $log['user']['id']);
         assertEquals(1, $log['message']['deleted']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSpam() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -239,7 +234,7 @@ class messagesTest extends IznikAPITestCase {
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
-        error_log("Spam msgid $id");
+        $this->log("Spam msgid $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -284,17 +279,14 @@ class messagesTest extends IznikAPITestCase {
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
         assertEquals($a->getID(), $msgs[0]['id']);
-        error_log(var_export($msgs, true));
+        $this->log(var_export($msgs, true));
         assertTrue(array_key_exists('source', $msgs[0])); # An owner, should see mod att
 
         $a->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testError() {
-        error_log(__METHOD__);
-
         $ret = $this->call('messages', 'GET', [
             'groupid' => 0,
             'collection' => 'wibble'
@@ -302,12 +294,9 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['messages']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPending() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
@@ -341,7 +330,7 @@ class messagesTest extends IznikAPITestCase {
             'collection' => 'Pending'
         ]);
 
-        error_log("Shouldn't see pending " . var_export($ret, TRUE));
+        $this->log("Shouldn't see pending " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
@@ -363,7 +352,7 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, count($msgs));
 
         # Promote to mod - should be able to see it.
-        error_log("Check as mod for " . $a->getID());
+        $this->log("Check as mod for " . $a->getID());
         $u->setRole(User::ROLE_MODERATOR, $group1);
         assertEquals(User::ROLE_MODERATOR, $u->getRoleForGroup($group1));
         $ret = $this->call('messages', 'GET', [
@@ -379,11 +368,10 @@ class messagesTest extends IznikAPITestCase {
 
         $a->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPut() {
-        error_log(__METHOD__ . " start");
+        $this->log(__METHOD__ . " start");
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
@@ -442,12 +430,9 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(MailRouter::APPROVED, $ret['routed']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testNear() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
 
@@ -465,7 +450,7 @@ class messagesTest extends IznikAPITestCase {
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        error_log("Approved id $id");
+        $this->log("Approved id $id");
 
         # Ensure we have consent to see this message
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -480,18 +465,15 @@ class messagesTest extends IznikAPITestCase {
             'subaction' => 'searchmess',
             'nearlocation' => $lid
         ]);
-        error_log("Get near " . var_export($ret, true));
+        $this->log("Get near " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
         assertEquals($id, $msgs[0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPendingWithdraw() {
-        error_log(__METHOD__);
-
         # Set up a pending message on a native group.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
@@ -509,7 +491,7 @@ class messagesTest extends IznikAPITestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $mid = $r->received(Message::EMAIL, 'from@test.com', 'testgroup@groups.ilovefreegle.org', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $mid);
-        error_log("From " . $m->getFromuser() . "," . $m->getFromaddr());
+        $this->log("From " . $m->getFromuser() . "," . $m->getFromaddr());
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -522,8 +504,7 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals(TRUE, $ret['deleted']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
 //    public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);
@@ -549,8 +530,8 @@ class messagesTest extends IznikAPITestCase {
 //        ]);
 //
 //        assertEquals(0, $ret['ret']);
-//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-//        error_log(var_export($ret, TRUE));
+//        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//        $this->log(var_export($ret, TRUE));
 //    }
 }
 

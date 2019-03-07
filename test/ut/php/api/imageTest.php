@@ -31,8 +31,6 @@ class imageAPITest extends IznikAPITestCase
 
     public function testApproved()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
@@ -87,7 +85,7 @@ class imageAPITest extends IznikAPITestCase
             'group' => 1
         ], TRUE);
 
-        error_log("Expect 1 " . var_export($ret, TRUE));
+        $this->log("Expect 1 " . var_export($ret, TRUE));
         assertEquals(1, $ret['ret']);
 
         $ret = $this->call('image', 'GET', [
@@ -101,13 +99,10 @@ class imageAPITest extends IznikAPITestCase
         $a->delete();
         $g->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPost()
     {
-        error_log(__METHOD__);
-
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/pan.jpg');
         file_put_contents("/tmp/pan.jpg", $data);
 
@@ -141,7 +136,7 @@ class imageAPITest extends IznikAPITestCase
             'w' => 100
         ], FALSE);
 
-        error_log("Lengths " . strlen($origdata) . " vs " . strlen($newdata));
+        $this->log("Lengths " . strlen($origdata) . " vs " . strlen($newdata));
         assertNotEquals($origdata, $newdata);
 
         $ret = $this->call('image', 'POST', [
@@ -160,12 +155,9 @@ class imageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testOCR() {
-        error_log(__METHOD__);
-
         if (!getenv('STANDALONE')) {
             $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/giveandtake.jpg');
             file_put_contents("/tmp/giveandtake.jpg", $data);
@@ -185,6 +177,5 @@ class imageAPITest extends IznikAPITestCase
 
         assertTrue(TRUE);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

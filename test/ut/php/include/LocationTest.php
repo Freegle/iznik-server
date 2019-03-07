@@ -59,58 +59,50 @@ class locationTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         assertNotNull($id);
         assertEquals($id, $l->findByName('Tuvalu High Street'));
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
-        error_log("Created loc " . var_export($atts, true));
+        $this->log("Created loc " . var_export($atts, true));
         $gridid = $atts['gridid'];
         $grid = $l->getGrid();
-        error_log("Grid " . var_export($grid, true));
+        $this->log("Grid " . var_export($grid, true));
         assertEquals($gridid, $grid['id']);
         assertEquals(8.5, $grid['swlat']);
         assertEquals(179.2, $grid['swlng']);
 
         assertEquals(1, $l->delete());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testParents() {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-        error_log("Postcode id $pcid");
+        $this->log("Postcode id $pcid");
         assertNotNull($pcid);
 
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
-        error_log("Area id $areaid");
+        $this->log("Area id $areaid");
         assertNotNull($areaid);
 
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
-        error_log("Loc id $id");
+        $this->log("Loc id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
         assertEquals($areaid, $atts['areaid']);
 
         $id2 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
-        error_log("Full postcode id $id");
+        $this->log("Full postcode id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id2);
         $atts = $l->getPublic();
         assertEquals($areaid, $atts['areaid']);
         assertEquals($pcid, $atts['postcodeid']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testError() {
-        error_log(__METHOD__);
-
         $dbconfig = array (
             'host' => SQLHOST,
             'port_read' => SQLPORT_READ,
@@ -134,15 +126,12 @@ class locationTest extends IznikTestCase {
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         assertNull($id);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testSearch() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        error_log("Created group $gid");
+        $this->log("Created group $gid");
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
@@ -154,7 +143,7 @@ class locationTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm, $id);
 
         $res = $l->search("Tuvalu", $gid);
-        error_log(var_export($res, true));
+        $this->log(var_export($res, true));
         assertEquals(1, count($res));
         assertEquals($id, $res[0]['id']);
 
@@ -185,12 +174,9 @@ class locationTest extends IznikTestCase {
 
         assertEquals(1, $l->delete());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testClosestPostcode() {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
 
         if (!$l->findByName('PR3 2NE')) {
@@ -207,15 +193,12 @@ class locationTest extends IznikTestCase {
         $loc = $l->closestPostcode(51.530687199999996, 0.146932);
         assertEquals("RM9 6SR", $loc['name']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testGroupsNear() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        error_log("Created group $gid");
+        $this->log("Created group $gid");
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
@@ -226,17 +209,16 @@ class locationTest extends IznikTestCase {
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $groups = $l->groupsNear(50);
-        error_log("Found groups near " . var_export($groups, TRUE));
+        $this->log("Found groups near " . var_export($groups, TRUE));
         assertTrue(in_array($gid, $groups));
 
         # Shouldn't find unlisted groups
         $g->setPrivate('listable', 0);
         $groups = $l->groupsNear(50);
-        error_log("Shouldn't find groups near " . var_export($groups, TRUE));
+        $this->log("Shouldn't find groups near " . var_export($groups, TRUE));
         assertFalse(in_array($gid, $groups));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 
 

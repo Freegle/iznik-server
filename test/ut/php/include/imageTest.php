@@ -23,8 +23,6 @@ class imageTest extends IznikTestCase {
     }
 
     public function testNullParams() {
-        error_log(__METHOD__);
-
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/Tile.jpg');
         $i = new Image($data);
 
@@ -46,7 +44,6 @@ class imageTest extends IznikTestCase {
         assertEquals($w + 2, $i->width());
         assertEquals($h + 1, $i->height());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

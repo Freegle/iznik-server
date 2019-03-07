@@ -24,8 +24,6 @@ class AttachmentTest extends IznikTestCase {
     }
 
     public function testIdentify() {
-        error_log(__METHOD__);
-
         if (!getenv('STANDALONE')) {
             $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
             $a = new Attachment($this->dbhr, $this->dbhm);
@@ -35,14 +33,13 @@ class AttachmentTest extends IznikTestCase {
             $a = new Attachment($this->dbhr, $this->dbhm, $attid);
 
             $idents = $a->identify();
-            error_log("Identify returned " . var_export($idents, TRUE));
+            $this->log("Identify returned " . var_export($idents, TRUE));
             assertEquals('chair', trim(strtolower($idents[0]['name'])));
         }
 
         assertTrue(TRUE);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     private $blobCount = 0;
 
@@ -69,8 +66,6 @@ class AttachmentTest extends IznikTestCase {
      * @dataProvider attTypes
      */
     public function testArchive($attType, $blobCount) {
-        error_log(__METHOD__);
-
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
 
         $a = $this->getMockBuilder('Attachment')
@@ -93,12 +88,9 @@ class AttachmentTest extends IznikTestCase {
 
         $a->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testHash() {
-        error_log(__METHOD__);
-
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
         $attid1 = $a->create(NULL, 'image/jpeg', $data);
@@ -113,7 +105,6 @@ class AttachmentTest extends IznikTestCase {
         $a2 = new Attachment($this->dbhr, $this->dbhm, $attid2, Attachment::TYPE_GROUP);
         assertEquals($a1->getHash(), $a2->getHash());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

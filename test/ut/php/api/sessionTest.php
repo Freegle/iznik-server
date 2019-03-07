@@ -32,19 +32,14 @@ class sessionTest extends IznikAPITestCase
 
     public function testLoggedOut()
     {
-        error_log(__METHOD__);
-
         $ret = $this->call('session', 'GET', []);
         assertEquals(1, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
 
     public function testLargeRequest()
     {
-        error_log(__METHOD__);
-
         $str = '';
         while (strlen($str) < 200000) {
             $str .= '1234123412';
@@ -56,13 +51,10 @@ class sessionTest extends IznikAPITestCase
 
         assertEquals(1, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testYahoo()
     {
-        error_log(__METHOD__);
-
         # Logged out should cause redirect
         $ret = $this->call('session', 'POST', [
             'yahoologin' => 1
@@ -108,13 +100,10 @@ class sessionTest extends IznikAPITestCase
         $ret = $this->call('session', 'GET', []);
         assertEquals(1, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testFacebook()
     {
-        error_log(__METHOD__);
-
         # With no token should fail.
         $ret = $this->call('session', 'POST', [
             'fblogin' => 1
@@ -123,13 +112,10 @@ class sessionTest extends IznikAPITestCase
 
         # Rest of testing done in include test.
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testGoogle()
     {
-        error_log(__METHOD__);
-
         # With no token should fail.
         $ret = $this->call('session', 'POST', [
             'googlelogin' => 1
@@ -138,13 +124,10 @@ class sessionTest extends IznikAPITestCase
 
         # Rest of testing done in include test.
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testNative()
     {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test@test.com'));
@@ -162,13 +145,13 @@ class sessionTest extends IznikAPITestCase
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $group1);
         $g->setPrivate('welcomemail', 'Test - please ignore');
-        error_log("Add first time");
+        $this->log("Add first time");
         $u->addMembership($group1);
 
         self::assertEquals(1, count($this->msgsSent));
 
         # Add membership again and check the welcome is not sent.
-        error_log("Add second time");
+        $this->log("Add second time");
         $u->addMembership($group1);
         self::assertEquals(1, count($this->msgsSent));
 
@@ -179,13 +162,13 @@ class sessionTest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log("Session get");
+        $this->log("Session get");
         $this->dbhr->setErrorLog(TRUE);
         $this->dbhm->setErrorLog(TRUE);
         $ret = $this->call('session', 'GET', []);
         $this->dbhr->setErrorLog(FALSE);
         $this->dbhm->setErrorLog(FALSE);
-        error_log("Session got");
+        $this->log("Session got");
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);
         assertEquals('test@test.com', $ret['emails'][0]['email']);
@@ -206,7 +189,7 @@ class sessionTest extends IznikAPITestCase
         ]);
         assertEquals(10, $ret['ret']);
         $ret = $this->call('session', 'GET', []);
-        error_log(var_export($ret, true));
+        $this->log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals([
             "test" => 1,
@@ -235,7 +218,7 @@ class sessionTest extends IznikAPITestCase
 
         $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
-        error_log("Confirmed " . var_export($ret, TRUE));
+        $this->log("Confirmed " . var_export($ret, TRUE));
         assertEquals('test2@test.com', $ret['me']['email']);
 
         $ret = $this->call('session', 'PATCH', [
@@ -268,13 +251,10 @@ class sessionTest extends IznikAPITestCase
 
         $g->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPatch()
     {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test@test.com'));
@@ -333,16 +313,13 @@ class sessionTest extends IznikAPITestCase
 
         $u->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testWork()
     {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        error_log("Created user $id");
+        $this->log("Created user $id");
         assertNotNull($u->addEmail('test@test.com'));
         $u = User::get($this->dbhm, $this->dbhm, $id);
 
@@ -413,13 +390,10 @@ class sessionTest extends IznikAPITestCase
         $g1->delete();
         $g2->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPartner()
     {
-        error_log(__METHOD__);
-
         $key = randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
         assertNotNull($id);
@@ -428,16 +402,13 @@ class sessionTest extends IznikAPITestCase
 
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPushCreds()
     {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        error_log("Created user $id");
+        $this->log("Created user $id");
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         assertTrue($n->add($id, PushNotifications::PUSH_TEST, 'test'));
@@ -458,13 +429,10 @@ class sessionTest extends IznikAPITestCase
 
         assertEquals(1, $n->remove($id));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testLostPassword()
     {
-        error_log(__METHOD__);
-
         $email = 'test-' . rand() . '@blackhole.io';
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -484,13 +452,10 @@ class sessionTest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testForget()
     {
-        error_log(__METHOD__);
-
         # Try logged out - should fail.
         $ret = $this->call('session', 'POST', [
             'action' => 'Forget'
@@ -520,15 +485,15 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # Now forget ourselves - should fail as a mod.
-        error_log("Forget myself - should fail as mod");
+        $this->log("Forget myself - should fail as mod");
         $ret = $this->call('session', 'POST', [
             'action' => 'Forget'
         ]);
-        error_log("Returned " . var_export($ret,TRUE));
+        $this->log("Returned " . var_export($ret,TRUE));
         assertEquals(2, $ret['ret']);
 
         $u->setPrivate('systemrole', User::SYSTEMROLE_USER);
-        error_log("Forget myself - should work");
+        $this->log("Forget myself - should work");
         $ret = $this->call('session', 'POST', [
             'action' => 'Forget'
         ]);
@@ -544,8 +509,6 @@ class sessionTest extends IznikAPITestCase
 
     public function testAboutMe()
     {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test@test.com'));
@@ -555,7 +518,7 @@ class sessionTest extends IznikAPITestCase
             'email' => 'test@test.com',
             'password' => 'testpw'
         ]);
-        error_log("Got info" . var_export($ret, TRUE));
+        $this->log("Got info" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('session', 'PATCH', [
@@ -570,8 +533,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         self::assertEquals('Something about me', $ret['user']['info']['aboutme']['text']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 //
 //    public function testSheila() {
 //        $_SESSION['id'] = 25880780;
@@ -582,7 +544,7 @@ class sessionTest extends IznikAPITestCase
 //                'work'
 //            ]
 //        ]);
-//        error_log("Duration {$ret['duration']} DB {$ret['dbwaittime']}");
+//        $this->log("Duration {$ret['duration']} DB {$ret['dbwaittime']}");
 //        $this->dbhr->errorLog = FALSE;
 //        $this->dbhm->errorLog = FALSE;
 //    }

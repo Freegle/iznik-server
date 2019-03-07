@@ -45,8 +45,6 @@ class alertAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         $alertdata = [
             'groupid' => $this->groupid,
             'to' => 'Mods',
@@ -68,7 +66,7 @@ class alertAPITest extends IznikAPITestCase
         # Can create as support.
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         $ret = $this->call('alert', 'PUT', $alertdata);
-        error_log("Got result " . var_export($ret, TRUE));
+        $this->log("Got result " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('alert', 'PUT', $alertdata);
@@ -97,7 +95,7 @@ class alertAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         $stats = $ret['alert']['stats'];
         unset($stats['responses']['groups'][0]['group']);
-        error_log("Stats " . var_export($stats, TRUE));
+        $this->log("Stats " . var_export($stats, TRUE));
         assertEquals(array (
                       'sent' =>
                           array (
@@ -159,7 +157,7 @@ class alertAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         $stats = $ret['alert']['stats'];
         unset($stats['responses']['groups'][0]['group']);
-        error_log("Stats 2 " . var_export($stats, TRUE));
+        $this->log("Stats 2 " . var_export($stats, TRUE));
         assertEquals(array (
             'sent' =>
                 array (
@@ -197,6 +195,5 @@ class alertAPITest extends IznikAPITestCase
                 )
         ), $stats);        
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

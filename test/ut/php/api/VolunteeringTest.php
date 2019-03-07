@@ -44,8 +44,6 @@ class volunteeringAPITest extends IznikAPITestCase {
     }
 
     public function testCreate() {
-        error_log(__METHOD__);
-
         # Get invalid id
         $ret = $this->call('volunteering', 'GET', [
             'id' => -1
@@ -74,7 +72,7 @@ class volunteeringAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
         assertNotNull($id);
-        error_log("Created event $id");
+        $this->log("Created event $id");
 
         # Remove and Add group
         $ret = $this->call('volunteering', 'PATCH', [
@@ -103,7 +101,7 @@ class volunteeringAPITest extends IznikAPITestCase {
         $ret = $this->call('volunteering', 'GET', [
             'pending' => true
         ]);
-        error_log("Result of get all " . var_export($ret, TRUE));
+        $this->log("Result of get all " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['volunteerings']));
 
@@ -111,7 +109,7 @@ class volunteeringAPITest extends IznikAPITestCase {
             'pending' => TRUE,
             'groupid' => $this->groupid
         ]);
-        error_log("Result of get for group " . var_export($ret, TRUE));
+        $this->log("Result of get for group " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['volunteerings']));
 
@@ -212,10 +210,9 @@ class volunteeringAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
 
-        error_log("Get after delete " . var_export($ret, TRUE));
+        $this->log("Get after delete " . var_export($ret, TRUE));
         self::assertEquals(3, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

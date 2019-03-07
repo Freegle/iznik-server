@@ -63,26 +63,24 @@ class notificationsTest extends IznikTestCase {
     }
 
     public function testEmail() {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         assertNotNull($lid);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, 'Test Original Poster');
-        error_log("Created user $uid1");
+        $this->log("Created user $uid1");
         $u = User::get($this->dbhr, $this->dbhm, $uid1);
         $u->setPrivate('lastlocation', $lid);
         $email = 'test1@test.com';
-        error_log("Added email " . $u->addEmail($email) . " vs " . $u->getEmailPreferred());
+        $this->log("Added email " . $u->addEmail($email) . " vs " . $u->getEmailPreferred());
 
         $uid2 = $u->create(NULL, NULL, 'Test Commenter');
-        error_log("Created user $uid2");
+        $this->log("Created user $uid2");
         $u = User::get($this->dbhr, $this->dbhm, $uid2);
         $u->setPrivate('lastlocation', $lid);
         $email = 'test2@test.com';
-        error_log("Added email " . $u->addEmail($email));
+        $this->log("Added email " . $u->addEmail($email));
 
         $n = $this->getMockBuilder('Notifications')
             ->setConstructorArgs(array($this->dbhm, $this->dbhm))
@@ -95,15 +93,15 @@ class notificationsTest extends IznikTestCase {
 
         $f = new Newsfeed($this->dbhm, $this->dbhm);
         $nid = $f->create(Newsfeed::TYPE_MESSAGE, $uid1, 'Test message');
-        error_log("Original post $nid");
+        $this->log("Original post $nid");
         $rid = $f->create(Newsfeed::TYPE_MESSAGE, $uid2, 'Test reply', NULL, NULL, $nid);
-        error_log("Reply $rid");
+        $this->log("Reply $rid");
         $n->add($uid2, $uid1, Notifications::TYPE_LOVED_POST, $nid);
 
         # We have the "about me" notification as well as the expected 2.
         self::assertEquals(3, $n->sendEmails($uid1, '0 seconds ago', '7 days ago'));
         $rid2 = $f->create(Newsfeed::TYPE_MESSAGE, $uid1, 'Test reply to reply', NULL, NULL, $nid);
-        error_log("Reply $rid2");
+        $this->log("Reply $rid2");
 
         $n->add($uid1, $uid2, Notifications::TYPE_LOVED_COMMENT, $rid);
         assertTrue($n->haveSent($uid2, Notifications::TYPE_LOVED_COMMENT, '24 hours ago'));
@@ -113,7 +111,6 @@ class notificationsTest extends IznikTestCase {
 
         self::assertEquals(3, $n->sendEmails($uid2, '0 seconds ago', '7 days ago'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

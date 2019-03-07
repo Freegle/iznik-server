@@ -54,7 +54,7 @@ class FacebookTest extends IznikTestCase {
     private $getLongLivedAccessTokenException, $getLongLivedAccessFacebookException, $getCanvasHelperException;
 
     public function getLongLivedAccessToken() {
-        error_log("getLongLivedAccessToken {$this->getLongLivedAccessTokenException} {$this->getLongLivedAccessFacebookException}");
+        $this->log("getLongLivedAccessToken {$this->getLongLivedAccessTokenException} {$this->getLongLivedAccessFacebookException}");
         if ($this->getLongLivedAccessTokenException) {
             throw new Exception();
         }
@@ -67,7 +67,7 @@ class FacebookTest extends IznikTestCase {
     }
 
     public function getCanvasHelper() {
-        error_log("getCanvasHelper {$this->getCanvasHelperException}");
+        $this->log("getCanvasHelper {$this->getCanvasHelperException}");
         if ($this->getCanvasHelperException) {
             throw new Exception();
         }
@@ -97,8 +97,6 @@ class FacebookTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         # Basic successful login
         $mock = $this->getMockBuilder('Facebook')
             ->setConstructorArgs([$this->dbhr, $this->dbhm])
@@ -122,7 +120,7 @@ class FacebookTest extends IznikTestCase {
         $me = whoAmI($this->dbhr, $this->dbhm);
         assertEquals('Test User', $me->getPrivate('fullname'));
         $logins = $me->getLogins();
-        error_log("Logins " . var_export($logins, TRUE));
+        $this->log("Logins " . var_export($logins, TRUE));
         assertEquals(1, $logins[0]['uid']);
 
         # Log in again with a different email, triggering a merge.
@@ -135,7 +133,7 @@ class FacebookTest extends IznikTestCase {
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
-        error_log("Emails " . var_export($emails, TRUE));
+        $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
 
         # Now delete an email, and log in again - should trigger an add of the email
@@ -144,7 +142,7 @@ class FacebookTest extends IznikTestCase {
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
-        error_log("Emails " . var_export($emails, TRUE));
+        $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
 
         # Now delete the Facebook login, and log in again - should trigger an add of the facebook id.
@@ -153,17 +151,17 @@ class FacebookTest extends IznikTestCase {
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
-        error_log("Emails " . var_export($emails, TRUE));
+        $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
         $logins = $me->getLogins();
-        error_log("Logins " . var_export($logins, TRUE));
+        $this->log("Logins " . var_export($logins, TRUE));
         assertEquals(1, count($logins));
         assertEquals(1, $logins[0]['uid']);
 
         # Now a couple of exception cases
         #
         # Getting long-lived access token can fail with a Facebook exception without blocking the login.
-        error_log("getLongLivedAccessToken exception");
+        $this->log("getLongLivedAccessToken exception");
         $this->getLongLivedAccessFacebookException = TRUE;
         list($session, $ret) = $mock->login();
         assertEquals(0, $ret['ret']);
@@ -181,13 +179,10 @@ class FacebookTest extends IznikTestCase {
         assertEquals(1, $ret['ret']);
         $this->asArrayException = FALSE;
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testCanvas()
     {
-        error_log(__METHOD__);
-
         $this->accessToken = '1234';
         $this->facebookId = 1;
         $this->facebookFirstName = 'Test';
@@ -209,11 +204,11 @@ class FacebookTest extends IznikTestCase {
         self::assertEquals(0, $ret['ret']);
 
         # Fail login
-        error_log("Fail canvas login");
+        $this->log("Fail canvas login");
         $_SESSION['id'] = 0;
         $this->getCanvasHelperException = TRUE;
         list($session, $ret) = $mock->loadCanvas();
-        error_log("loaded canvas");
+        $this->log("loaded canvas");
         assertEquals(2, $ret['ret']);
         $this->asArrayException = FALSE;
     }

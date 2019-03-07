@@ -69,8 +69,6 @@ class locationsAPITest extends IznikAPITestCase
 
     public function testPost()
     {
-        error_log(__METHOD__);
-
         # Create two locations
         $l = new Location($this->dbhr, $this->dbhm);
         $lid1 = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
@@ -125,12 +123,9 @@ class locationsAPITest extends IznikAPITestCase
         $atts = $m->getPublic(FALSE, FALSE);
         assertEquals('OFFER: Test (Tuvalu Hugh Street)', $atts['suggestedsubject']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAreaAndPostcode() {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
 
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
@@ -140,9 +135,9 @@ class locationsAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
 
         $locs = $l->withinBox(8.4, 179, 8.6, 180);
-        error_log("Locs in box " . var_export($locs, TRUE));
+        $this->log("Locs in box " . var_export($locs, TRUE));
 
-        error_log("Postcode $pcid full $fullpcid Area $areaid Location $locid");
+        $this->log("Postcode $pcid full $fullpcid Area $areaid Location $locid");
 
         # Create a group there
         $this->group->setPrivate('lat', 8.5);
@@ -166,17 +161,14 @@ class locationsAPITest extends IznikAPITestCase
         # Suggest a subject to trigger mapping.
         $sugg = $m->suggestSubject($this->groupid, $m->getSubject());
         $atts = $m->getPublic();
-        error_log(var_export($atts, TRUE));
+        $this->log(var_export($atts, TRUE));
         assertEquals($areaid, $atts['area']['id']);
         assertEquals($pcid, $atts['postcode']['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPostcode()
     {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
         assertNotNull($areaid);
@@ -187,7 +179,7 @@ class locationsAPITest extends IznikAPITestCase
             'lng' => 179.226,
             'lat' => 8.526
         ]);
-        error_log("testPostcode " . var_export($ret, TRUE));
+        $this->log("testPostcode " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals('TV13 1HH', $ret['location']['name']);
 
@@ -197,13 +189,10 @@ class locationsAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals('TV13 1HH', $ret['locations'][0]['name']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testWithinBox()
     {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
         assertNotNull($areaid);
@@ -223,12 +212,12 @@ class locationsAPITest extends IznikAPITestCase
             'nelng' => $nelng
         ]);
         assertEquals(0, $ret['ret']);
-        error_log("locations " . var_export($ret, TRUE));
+        $this->log("locations " . var_export($ret, TRUE));
         assertGreaterThan(0, count($ret['locations']));
 
-        #error_log(var_export($ret, TRUE));
+        #$this->log(var_export($ret, TRUE));
         # Again as we'll have created a geometry.
-        error_log("And again");
+        $this->log("And again");
         $ret = $this->call('locations', 'GET', [
             'swlat' => $swlat,
             'swlng' => $swlng,
@@ -238,17 +227,14 @@ class locationsAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertGreaterThan(0, count($ret['locations']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPatch()
     {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $lid2 = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.22 8.53, 179.22 8.54, 179.21 8.54, 179.21 8.53))');
         $lid1 = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)',0);
-        error_log("Created location $lid1");
+        $this->log("Created location $lid1");
 
         $ret = $this->call('locations', 'GET', [
             'swlng' => 179.2,
@@ -256,7 +242,7 @@ class locationsAPITest extends IznikAPITestCase
             'nelng' => 179.3,
             'nelat' => 8.6
         ]);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(179.215, $ret['locations'][0]['lng']);
         assertEquals(8.535, $ret['locations'][0]['lat']);
@@ -292,24 +278,21 @@ class locationsAPITest extends IznikAPITestCase
             'nelng' => 179.3,
             'nelat' => 8.6
         ]);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
 
         # The centre cannot hold, but things should not fall apart.
         assertEquals(179.2125, $ret['locations'][0]['lng']);
         assertEquals(8.535, $ret['locations'][0]['lat']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPut()
     {
-        error_log(__METHOD__);
-
         # Create a fake postcode which should end up being mapped to our area.
         $l = new Location($this->dbhr, $this->dbhm);
         $lid1 = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
-        error_log("Postcode id $lid1");
+        $this->log("Postcode id $lid1");
 
         # Not logged in
         $ret = $this->call('locations', 'PUT', [
@@ -342,13 +325,10 @@ class locationsAPITest extends IznikAPITestCase
         $l = new Location($this->dbhr, $this->dbhm, $lid1);
         assertEquals($areaid, $l->getPrivate('areaid'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function findMyStreet()
     {
-        error_log(__METHOD__);
-
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->findByName('W12 7DP');
 
@@ -359,6 +339,5 @@ class locationsAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertGreaterThan(0, count($ret['streets']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

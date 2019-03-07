@@ -44,8 +44,6 @@ class communityEventAPITest extends IznikAPITestCase {
     }
 
     public function testCreate() {
-        error_log(__METHOD__);
-
         # Get invalid id
         $ret = $this->call('communityevent', 'GET', [
             'id' => -1
@@ -73,7 +71,7 @@ class communityEventAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
         assertNotNull($id);
-        error_log("Created event $id");
+        $this->log("Created event $id");
 
         # Add group
         $ret = $this->call('communityevent', 'PATCH', [
@@ -96,7 +94,7 @@ class communityEventAPITest extends IznikAPITestCase {
         $ret = $this->call('communityevent', 'GET', [
             'pending' => true
         ]);
-        error_log("Result of get all " . var_export($ret, TRUE));
+        $this->log("Result of get all " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['communityevents']));
 
@@ -104,7 +102,7 @@ class communityEventAPITest extends IznikAPITestCase {
             'pending' => TRUE,
             'groupid' => $this->groupid
         ]);
-        error_log("Result of get for group " . var_export($ret, TRUE));
+        $this->log("Result of get for group " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['communityevents']));
 
@@ -176,7 +174,6 @@ class communityEventAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

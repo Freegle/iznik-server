@@ -37,12 +37,10 @@ class userSearchAPITest extends IznikAPITestCase {
             'search' => 'hellsauntie@uwclub.net'
         ]);
 
-        error_log("Got " . var_export($ret, TRUE));
+        $this->log("Got " . var_export($ret, TRUE));
     }
 
     public function testCreateDelete() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -57,7 +55,7 @@ class userSearchAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('usersearch', 'GET', []);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['usersearches']));
         assertEquals($id, $ret['usersearches'][0]['id']);
@@ -79,7 +77,6 @@ class userSearchAPITest extends IznikAPITestCase {
 
         $s->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

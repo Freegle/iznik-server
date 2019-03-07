@@ -44,8 +44,6 @@ class volunteeringDigestTest extends IznikTestCase {
     }
 
     public function testEvents() {
-        error_log(__METHOD__);
-
         # Create a group with two opportunities on it.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -93,7 +91,7 @@ class volunteeringDigestTest extends IznikTestCase {
         assertEquals(1, $mock->send($gid));
         assertEquals(1, count($this->volunteeringSent));
 
-        error_log("Mail sent" . var_export($this->volunteeringSent, TRUE));
+        $this->log("Mail sent" . var_export($this->volunteeringSent, TRUE));
 
         # Actual send for coverage.
         $d = new VolunteeringDigest($this->dbhr, $this->dbhm);
@@ -110,7 +108,7 @@ class volunteeringDigestTest extends IznikTestCase {
         $u->addMembership($gid);
         assertEquals(0, $mock->send($gid));
 
-        error_log("For coverage");
+        $this->log("For coverage");
         $e = new VolunteeringDigest($this->dbhr, $this->dbhm);
         $mock = $this->getMockBuilder('SwiftMailer')
             ->setMethods(array('send'))
@@ -121,12 +119,10 @@ class volunteeringDigestTest extends IznikTestCase {
             assertTrue(FALSE);
         } catch (Exception $e){}
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
 //    public function testNewVols() {
-//        error_log(__METHOD__);
-//
+//        //
 //        # Create a group with two volunteer op on it.
 //        $g = Group::get($this->dbhr, $this->dbhm);
 //        $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -141,7 +137,7 @@ class volunteeringDigestTest extends IznikTestCase {
 //            $u->addEmail('activate@liveintent.com');
 //        }
 //
-//        error_log("Found uid $uid");
+//        $this->log("Found uid $uid");
 //        $u = User::get($this->dbhm, $this->dbhm, $uid);
 //        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
 //            $u->getEmailPreferred()
@@ -149,28 +145,27 @@ class volunteeringDigestTest extends IznikTestCase {
 //
 //        foreach ($emails as $email) {
 //            $eid = $email['id'];
-//            error_log("Found eid $eid");
+//            $this->log("Found eid $eid");
 //            $u->addMembership($gid, User::ROLE_MEMBER, $eid);
 //
 //            $e = new Volunteering($this->dbhr, $this->dbhm);
 //            $eid = $e->create($uid, 'Test Op 1', FALSE, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'A few hours');
-//            error_log("Created op $eid");
+//            $this->log("Created op $eid");
 //            $e->addGroup($gid);
 //            $e->setPrivate('pending', 0);
 //
 //            $eid = $e->create($uid, 'Test Op 2', FALSE, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'A few hours');
-//            error_log("Created event $eid");
+//            $this->log("Created event $eid");
 //            $e->addGroup($gid);
 //            $e->setPrivate('pending', 0);
 //
 //            # Now test.
-//            error_log("Now send");
+//            $this->log("Now send");
 //
 //            $d = new VolunteeringDigest($this->dbhr, $this->dbhm, TRUE);
 //            assertEquals(1, $d->send($gid));
 //        }
 //
-//        error_log(__METHOD__ . " end");
-//    }
+//        //    }
 }
 

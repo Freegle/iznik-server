@@ -26,14 +26,11 @@ class errorAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         $ret = $this->call('error', 'PUT', [
             'errortype' => 'Exception',
             'errortext' => 'Test Exception'
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

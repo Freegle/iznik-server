@@ -39,8 +39,6 @@ class dbTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $tables = $this->dbhm->retryQuery('SHOW COLUMNS FROM test;')->fetchAll();
         assertEquals('id', $tables[0]['Field']);
         assertGreaterThan(0, $this->dbhm->getWaitTime());
@@ -52,12 +50,9 @@ class dbTest extends IznikTestCase {
             2 => null
         ], $this->dbhm->getErrorInfo($sth));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testInsert() {
-        error_log(__METHOD__);
-
         $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
         assertEquals(1, $rc);
         $id1 = $this->dbhm->lastInsertId();
@@ -66,12 +61,9 @@ class dbTest extends IznikTestCase {
         $id2 = $this->dbhm->lastInsertId();
         assertGreaterThan($id1, $id2);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testTransaction() {
-        error_log(__METHOD__);
-
         $rc = $this->dbhm->beginTransaction();
         assertTrue($this->dbhm->inTransaction());
 
@@ -106,12 +98,9 @@ class dbTest extends IznikTestCase {
         $counts = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM test;");
         assertEquals(1, $counts[0]['count']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testBackground() {
-        error_log(__METHOD__);
-
         # Test creation of the Pheanstalk.
         $this->dbhm->background('INSERT INTO test VALUES ();');
 
@@ -133,25 +122,24 @@ class dbTest extends IznikTestCase {
         $mock->method('put')->will($this->throwException(new Exception()));
         $this->dbhm->background('INSERT INTO test VALUES ();');
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function exceptionUntil() {
-        error_log("exceptionUntil count " . $this->count);
+        $this->log("exceptionUntil count " . $this->count);
         $this->count--;
         if ($this->count > 0) {
-            error_log("Exception");
+            $this->log("Exception");
             throw new Exception('Faked deadlock exception');
         } else {
-            error_log("No exception");
+            $this->log("No exception");
             return TRUE;
         }
     }
 
     public function falseAfter() {
-        error_log("falseAfter count " . $this->count);
+        $this->log("falseAfter count " . $this->count);
         if ($this->count == 0) {
-            error_log("false");
+            $this->log("false");
             return(false);
         } else {
             $this->count--;
@@ -160,9 +148,9 @@ class dbTest extends IznikTestCase {
     }
 
     public function falseUntil() {
-        error_log("falseUntil count " . $this->count);
+        $this->log("falseUntil count " . $this->count);
         if ($this->count == 0) {
-            error_log("false");
+            $this->log("false");
             return(true);
         } else {
             $this->count--;
@@ -171,8 +159,6 @@ class dbTest extends IznikTestCase {
     }
 
     public function testQueryRetries() {
-        error_log(__METHOD__);
-
         # We mock up the query to throw an exception, to test retries.
         #
         # First a non-deadlock exception
@@ -222,7 +208,7 @@ class dbTest extends IznikTestCase {
         $mock->retryQuery('SHOW COLUMNS FROM test;');
 
         # Now a deadlock within a transaction.
-        error_log("Deadlock in transaction");
+        $this->log("Deadlock in transaction");
         $dbconfig = array (
             'host' => SQLHOST,
             'port_read' => SQLPORT_READ,
@@ -247,9 +233,9 @@ class dbTest extends IznikTestCase {
         try {
             $mock->beginTransaction();
             $mock->retryQuery('SHOW COLUMNS FROM test;');
-            error_log("Didn't get exception");
+            $this->log("Didn't get exception");
         } catch (Exception $e) {
-            error_log("Got exception as planned");
+            $this->log("Got exception as planned");
             $worked = TRUE;
         }
 
@@ -257,7 +243,7 @@ class dbTest extends IznikTestCase {
 
         # Now a failure in the return code
 
-        error_log("query returns false");
+        $this->log("query returns false");
         $dbconfig = array (
             'host' => SQLHOST,
             'port_read' => SQLPORT_READ,
@@ -285,12 +271,9 @@ class dbTest extends IznikTestCase {
 
         $mock->retryQuery('SHOW COLUMNS FROM test;');
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testExecRetries() {
-        error_log(__METHOD__);
-
         # We mock up the query to throw an exception, to test retries.
         #
         # First a non-deadlock exception
@@ -339,7 +322,7 @@ class dbTest extends IznikTestCase {
         $mock->retryExec('INSERT INTO test VALUES ();');
 
         # Now a failure in the return code
-        error_log("query returns false");
+        $this->log("query returns false");
         $dbconfig = array (
             'host' => SQLHOST,
             'port_read' => SQLPORT_READ,
@@ -375,16 +358,13 @@ class dbTest extends IznikTestCase {
         $mock->method('executeStatement')->will($this->returnCallback(function() {
             return($this->falseUntil());
         }));
-        error_log("Test gone away");
+        $this->log("Test gone away");
         $mock->method('getErrorInfo')->willReturn('Test server has gone away');
         $mock->preExec('INSERT INTO test VALUES ();');
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testTransactionFailed() {
-        error_log(__METHOD__);
-
         # We get partway through a transaction, then kill it off to provoke a commit failure.  This tests that
         # we notice if the server dies during a transaction; PDO is suspect in this area.
 
@@ -414,18 +394,18 @@ class dbTest extends IznikTestCase {
 
         $ps = $dbhm->query("SELECT CONNECTION_ID() AS connid;")->fetchAll();
         $connid = $ps[0]['connid'];
-        error_log("ConnID is $connid");
+        $this->log("ConnID is $connid");
 
         # Kill thread from a different connection, under the feet of the other one.
         $this->dbhr->exec("KILL $connid;");
 
         try {
-            error_log("Commit first");
+            $this->log("Commit first");
             $rc = $dbhm->commit();
             assertTrue(FALSE);
         } catch (Exception $e) {
             # We expect an exception
-            error_log("Got exception " . $e->getMessage());
+            $this->log("Got exception " . $e->getMessage());
         }
 
         $ids = $this->dbhr->query("SELECT * FROM test WHERE id = $id;");
@@ -434,13 +414,10 @@ class dbTest extends IznikTestCase {
             assertFalse(TRUE);
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     # Oddly, the constructor doesn't get covered, so call it again.
     public function testConstruct() {
-        error_log(__METHOD__);
-
         $dbconfig = array (
             'host' => SQLHOST,
             'port_read' => SQLPORT_READ,
@@ -458,16 +435,13 @@ class dbTest extends IznikTestCase {
 
         assertEquals(3, count($this->dbhm->errorInfo()));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPrex() {
-        error_log(__METHOD__);
-
         $rc = $this->dbhm->preExec('INSERT INTO test VALUES ();');
         assertEquals(1, $rc);
 
-        error_log("Select with read");
+        $this->log("Select with read");
         $ids = $this->dbhr->preQuery('SELECT * FROM test WHERE id > ?;', array(0));
         assertEquals(1, count($ids));
 
@@ -475,24 +449,21 @@ class dbTest extends IznikTestCase {
         $ids = $this->dbhr->preQuery('SELECT * FROM test WHERE id > ?;', array(0));
         assertEquals(1, count($ids));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function prepareUntil() {
-        error_log("prepareUntil count " . $this->count);
+        $this->log("prepareUntil count " . $this->count);
         $this->count--;
         if ($this->count > 0) {
-            error_log("Exception");
+            $this->log("Exception");
             throw new Exception('Faked deadlock exception');
         } else {
-            error_log("No exception");
+            $this->log("No exception");
             return $this->dbhm->parentPrepare($this->sql);
         }
     }
 
     public function testPrexRetries() {
-        error_log(__METHOD__);
-
         $dbconfig = array (
             'host' => SQLHOST,
             'port_read' => SQLPORT_READ,
@@ -561,7 +532,6 @@ class dbTest extends IznikTestCase {
 
         $mock->preQuery($this->sql);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

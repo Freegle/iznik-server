@@ -46,8 +46,6 @@ class twitterTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
@@ -69,12 +67,9 @@ class twitterTest extends IznikTestCase {
         assertEquals('test', $atts['token']);
         assertEquals('test', $atts['secret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMessages() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
@@ -88,7 +83,7 @@ class twitterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        error_log("Approved message id $id");
+        $this->log("Approved message id $id");
 
         # Ensure we have consent to see this message
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -122,12 +117,9 @@ class twitterTest extends IznikTestCase {
         $count = $t->tweetMessages();
         assertGreaterThanOrEqual(0, $count);
         
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testErrors() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -152,7 +144,7 @@ class twitterTest extends IznikTestCase {
 
         assertFalse($t->tweet('test', NULL));
         $atts = $t->getPublic();
-        error_log("After fail " . var_export($atts, TRUE));
+        $this->log("After fail " . var_export($atts, TRUE));
         assertFalse($atts['valid']);
 
         # Now fake a lock
@@ -173,10 +165,10 @@ class twitterTest extends IznikTestCase {
 
         assertFalse($t->tweet('test', NULL));
         $atts = $t->getPublic();
-        error_log("After lock " . var_export($atts, TRUE));
+        $this->log("After lock " . var_export($atts, TRUE));
         assertTrue($atts['locked']);
 
-        error_log("Now tweet successfully and reset");
+        $this->log("Now tweet successfully and reset");
         $mock = $this->getMockBuilder('TwitterOAuth')
             ->setMethods(['post', 'get', 'setTimeouts'])
             ->getMock();
@@ -193,12 +185,9 @@ class twitterTest extends IznikTestCase {
         assertTrue($atts['valid']);
         assertFalse($atts['locked']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testEvents() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
@@ -218,12 +207,9 @@ class twitterTest extends IznikTestCase {
         $count = $mock->tweetEvents();
         assertGreaterThanOrEqual(1, $count);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testStories() {
-        error_log(__METHOD__);
-
         $this->dbhm->preExec("DELETE FROM users_stories WHERE headline LIKE 'Test%';");
 
         $s = new Story($this->dbhr, $this->dbhm);
@@ -241,7 +227,6 @@ class twitterTest extends IznikTestCase {
 
         $s->delete();
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

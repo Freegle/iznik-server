@@ -40,8 +40,6 @@ class commentAPITest extends IznikAPITestCase {
     }
 
     public function testBase() {
-        error_log(__METHOD__);
-
         $ret = $this->call('comment', 'POST', [
             'userid' => $this->uid2,
             'groupid' => $this->groupid,
@@ -81,8 +79,7 @@ class commentAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
 }
 

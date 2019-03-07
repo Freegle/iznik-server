@@ -29,8 +29,6 @@ class socialactionsAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         # Log in as a mod of the Playground group, which has a Facebook page.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
@@ -82,7 +80,7 @@ class socialactionsAPITest extends IznikAPITestCase
 
             # Shouldn't show in list of groups now.
             $ret = $this->call('socialactions', 'GET', []);
-            error_log("Shouldn't show in " . var_export($ret, TRUE));
+            $this->log("Shouldn't show in " . var_export($ret, TRUE));
             assertEquals(0, $ret['ret']);
 
             assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
@@ -106,13 +104,10 @@ class socialactionsAPITest extends IznikAPITestCase
             assertEquals(0, $ret['ret']);
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testHide()
     {
-        error_log(__METHOD__);
-
         # Log in as a mod of the Playground group, which has a Facebook page.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
@@ -152,6 +147,5 @@ class socialactionsAPITest extends IznikAPITestCase
             assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
         }
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

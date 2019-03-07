@@ -40,7 +40,7 @@ class groupFacebookTest extends IznikTestCase {
     }
 
     public function getDecodedBody() {
-        error_log("getDecoded");
+        $this->log("getDecoded");
         return([
             'data' => [
                 [
@@ -51,11 +51,9 @@ class groupFacebookTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
-        error_log("Created group $gid");
+        $this->log("Created group $gid");
 
         $t = $this->getMockBuilder('GroupFacebook')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm, $gid ])
@@ -85,8 +83,7 @@ class groupFacebookTest extends IznikTestCase {
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $id);
         assertNull($t->getPublic()['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function post() {
         return(TRUE);
@@ -94,8 +91,6 @@ class groupFacebookTest extends IznikTestCase {
 
 
     public function testErrors() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
@@ -109,11 +104,11 @@ class groupFacebookTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        error_log("Approved message id $id");
+        $this->log("Approved message id $id");
 
         # Ensure we have consent to see this message
         $a = new Message($this->dbhr, $this->dbhm, $id);
-        error_log("From user " . $a->getFromuser());
+        $this->log("From user " . $a->getFromuser());
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
         $sender->setPrivate('publishconsent', 1);
 
@@ -124,7 +119,6 @@ class groupFacebookTest extends IznikTestCase {
 
         $mock->method('getFB')->willThrowException(new Exception('Test', 100));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

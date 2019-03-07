@@ -49,8 +49,6 @@ class spammersAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $u->addEmail('test3@test.com'));
@@ -64,7 +62,7 @@ class spammersAPITest extends IznikAPITestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
-        error_log("Created message $id");
+        $this->log("Created message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -169,7 +167,7 @@ class spammersAPITest extends IznikAPITestCase {
                 'work'
             ]
         ]);
-        error_log("Work " . var_export($ret, TRUE));
+        $this->log("Work " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertGreaterThanOrEqual(1, $ret['work']['spammerpendingadd']);
 
@@ -196,7 +194,7 @@ class spammersAPITest extends IznikAPITestCase {
             'collection' => Spam::TYPE_SPAMMER,
             'search' => 'Test User'
         ]);
-        error_log("Should be on list ". var_export($ret, TRUE));
+        $this->log("Should be on list ". var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['spammers']));
 
@@ -227,7 +225,7 @@ class spammersAPITest extends IznikAPITestCase {
 
         # Trigger removal
         $membs = $u->getMemberships();
-        error_log("Memberships " . var_export($membs, TRUE));
+        $this->log("Memberships " . var_export($membs, TRUE));
         assertEquals(User::ROLE_MEMBER, $membs[0]['role']);
         $s = new Spam($this->dbhr, $this->dbhm);
         assertEquals(2, $s->removeSpamMembers($this->groupid));
@@ -389,12 +387,9 @@ class spammersAPITest extends IznikAPITestCase {
 
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testExport() {
-        error_log(__METHOD__);
-
         $key = randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
         assertNotNull($id);
@@ -419,7 +414,6 @@ class spammersAPITest extends IznikAPITestCase {
 
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

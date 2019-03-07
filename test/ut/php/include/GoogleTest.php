@@ -51,8 +51,6 @@ class GoogleTest extends IznikTestCase {
     }
     
     public function testBasic() {
-        error_log(__METHOD__);
-
         $g = new Google($this->dbhr, $this->dbhm, TRUE);
         list($session, $ret) = $g->login(1);
         assertEquals(2, $ret['ret']);
@@ -75,11 +73,11 @@ class GoogleTest extends IznikTestCase {
         $this->email = 'test@test.com';
 
         list($session, $ret) = $mock->login(1);
-        error_log("Returned " . var_export($ret, TRUE));
+        $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $logins = $me->getLogins();
-        error_log("Logins " . var_export($logins, TRUE));
+        $this->log("Logins " . var_export($logins, TRUE));
         assertEquals(1, $logins[0]['uid']);
 
         # Log in again with a different email, triggering a merge.
@@ -92,7 +90,7 @@ class GoogleTest extends IznikTestCase {
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
-        error_log("Emails " . var_export($emails, TRUE));
+        $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
 
         # Now delete an email, and log in again - should trigger an add of the email
@@ -101,7 +99,7 @@ class GoogleTest extends IznikTestCase {
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
-        error_log("Emails " . var_export($emails, TRUE));
+        $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
 
         # Now delete the google login, and log in again - should trigger an add of the google id.
@@ -110,14 +108,13 @@ class GoogleTest extends IznikTestCase {
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
-        error_log("Emails " . var_export($emails, TRUE));
+        $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
         $logins = $me->getLogins();
-        error_log("Logins " . var_export($logins, TRUE));
+        $this->log("Logins " . var_export($logins, TRUE));
         assertEquals(1, count($logins));
         assertEquals(1, $logins[0]['uid']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

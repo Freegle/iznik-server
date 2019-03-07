@@ -29,8 +29,6 @@ class activityAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        error_log(__METHOD__);
-
         # Ensure there is a message.
         $email = 'test-' . rand() . '@blackhole.io';
 
@@ -55,7 +53,7 @@ class activityAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
 
         $ret = $this->call('activity', 'GET', [ 'grouptype' => Group::GROUP_REUSE ]);
-        error_log("Activity " . var_export($ret, TRUE));
+        $this->log("Activity " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
 
         $found = FALSE;
@@ -68,6 +66,5 @@ class activityAPITest extends IznikAPITestCase
 
         assertTrue($found);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

@@ -24,8 +24,6 @@ class yahooTest extends IznikTestCase {
     }
 
     public function testException() {
-        error_log(__METHOD__);
-
         $_SERVER['HTTP_HOST'] = 'localhost';
         $_SERVER['REQUEST_URI'] = '/';
         $y = Yahoo::getInstance($this->dbhr, $this->dbhm);
@@ -46,12 +44,9 @@ class yahooTest extends IznikTestCase {
         list($session, $ret) = $y->login();
         assertNull($session);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $_SERVER['HTTP_HOST'] = 'localhost';
         $_SERVER['REQUEST_URI'] = '/';
 
@@ -91,14 +86,13 @@ class yahooTest extends IznikTestCase {
         # Create another user and move the email over to simulate a duplicate
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        error_log("Users $id and $uid");
+        $this->log("Users $id and $uid");
         $rc = $this->dbhm->preExec("UPDATE users_emails SET userid = $uid WHERE userid = $id;");
         assertEquals(1, $rc);
         list($session, $ret) = $y->login();
         assertNotNull($session);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

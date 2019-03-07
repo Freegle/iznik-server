@@ -40,8 +40,6 @@ class configAPITest extends IznikAPITestCase {
     }
 
     public function testCreate() {
-        error_log(__METHOD__);
-
         # Get invalid id
         $ret = $this->call('modconfig', 'GET', [
             'id' => -1
@@ -77,17 +75,14 @@ class configAPITest extends IznikAPITestCase {
         $ret = $this->call('modconfig', 'GET', [
             'id' => $id
         ]);
-        error_log("Returned " . var_export($ret, true));
+        $this->log("Returned " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['config']['id']);
         assertEquals($this->uid, $ret['config']['createdby']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPatch() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('modconfig', 'POST', [
@@ -109,7 +104,7 @@ class configAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         # As a non-mod
-        error_log("Demote");
+        $this->log("Demote");
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
         $ret = $this->call('modconfig', 'PATCH', [
             'id' => $id,
@@ -148,12 +143,9 @@ class configAPITest extends IznikAPITestCase {
         ]);
         assertEquals(4, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testDelete() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('modconfig', 'POST', [
@@ -175,7 +167,7 @@ class configAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         # As a non-mod
-        error_log("Demote");
+        $this->log("Demote");
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
         $ret = $this->call('modconfig', 'DELETE', [
             'id' => $id
@@ -211,7 +203,6 @@ class configAPITest extends IznikAPITestCase {
         ]);
         assertEquals(2, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

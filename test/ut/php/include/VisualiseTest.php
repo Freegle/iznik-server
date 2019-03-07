@@ -28,15 +28,13 @@ class visualiseTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
 
         # Create the sending user
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        error_log("Created user $uid");
+        $this->log("Created user $uid");
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
         $u->setPrivate('settings', json_encode([
@@ -53,7 +51,7 @@ class visualiseTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        error_log("Message id #$origid");
+        $this->log("Message id #$origid");
 
         assertNotNull($origid);
         $rc = $r->route();
@@ -70,7 +68,7 @@ class visualiseTest extends IznikTestCase {
         ]));
 
         # Now mark the message as TAKEN.
-        error_log("Mark $origid as TAKEN");
+        $this->log("Mark $origid as TAKEN");
         $m = new Message($this->dbhm, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, $uid2);
 
@@ -87,14 +85,13 @@ class visualiseTest extends IznikTestCase {
         foreach ($viss as $vis) {
             if ($vis['msgid'] == $origid) {
                 $found = TRUE;
-                error_log("Found " . var_export($vis, TRUE));
+                $this->log("Found " . var_export($vis, TRUE));
                 self::assertEquals(15638, $vis['distance']);
             }
         }
 
         assertTrue($found);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }
 

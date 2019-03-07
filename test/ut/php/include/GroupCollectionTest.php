@@ -29,31 +29,29 @@ class groupCollectionTest extends IznikTestCase
     }
 
     public function testDefaults() {
-        error_log(__METHOD__);
-
         $g = new Group($this->dbhr, $this->dbhm);
         $g1 = $g->create("testgroup1", Group::GROUP_REUSE);
         $g2 = $g->create("testgroup2", Group::GROUP_REUSE);
         $g3 = $g->create("testgroup3", Group::GROUP_REUSE);
 
         # Collection with no groups.
-        error_log("No groups");
+        $this->log("No groups");
         $c = new GroupCollection($this->dbhr, $this->dbhm, []);
 
-        error_log("1 group");
+        $this->log("1 group");
         $c = new GroupCollection($this->dbhr, $this->dbhm, [ $g1 ] );
         $gs = $c->get();
         assertEquals(1, count($gs));
         assertEquals($g1, $gs[0]->getId());
 
-        error_log("2 groups");
+        $this->log("2 groups");
         $c = new GroupCollection($this->dbhr, $this->dbhm, [ $g1, $g2 ] );
         $gs = $c->get();
         assertEquals(2, count($gs));
         assertEquals($g1, $gs[0]->getId());
         assertEquals($g2, $gs[1]->getId());
 
-        error_log("3 groups");
+        $this->log("3 groups");
         $c = new GroupCollection($this->dbhr, $this->dbhm, [ $g2, $g3, $g1 ] );
         $gs = $c->get();
         assertEquals(3, count($gs));
@@ -61,7 +59,6 @@ class groupCollectionTest extends IznikTestCase
         assertEquals($g3, $gs[1]->getId());
         assertEquals($g1, $gs[2]->getId());
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
 }

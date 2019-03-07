@@ -33,8 +33,6 @@ class invitationAPITest extends IznikAPITestCase
 
     public function testAccept()
     {
-        error_log(__METHOD__);
-
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -71,6 +69,5 @@ class invitationAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         self::assertEquals('Accepted', $ret['invitations'][0]['outcome']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 }

@@ -31,8 +31,6 @@ class AlertTest extends IznikTestCase {
     }
 
     public function testMultiple() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -50,13 +48,9 @@ class AlertTest extends IznikTestCase {
 
         $a = new Alert($this->dbhr, $this->dbhm, $id);
         assertNotNull($a->getPrivate('complete'));
-
-        error_log(__METHOD__ . " end");
     }
 
     public function testErrors() {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
@@ -95,8 +89,6 @@ class AlertTest extends IznikTestCase {
 
         $g->setPrivate('onyahoo', 1);
         self::assertEquals(0, $a->mailMods($id, $gid, FALSE));
-
-        error_log(__METHOD__ . " end");
     }
 }
 

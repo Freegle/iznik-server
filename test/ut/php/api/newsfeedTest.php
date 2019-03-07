@@ -70,30 +70,28 @@ class newsfeedAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        error_log(__METHOD__);
-
         # Logged out.
-        error_log("Logged out");
+        $this->log("Logged out");
         $ret = $this->call('newsfeed', 'GET', []);
         assertEquals(1, $ret['ret']);
 
         # Logged in - empty
-        error_log("Logged in - empty");
+        $this->log("Logged in - empty");
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'GET', []);
-        error_log("Returned " . gettype($ret['newsfeed']));
+        $this->log("Returned " . gettype($ret['newsfeed']));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count((array)$ret['ret']['newsfeed']));
         assertEquals(0, count((array)$ret['ret']['users']));
 
         # Post something.
-        error_log("Post something as {$this->uid}");
+        $this->log("Post something as {$this->uid}");
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test with url https://google.co.uk'
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
-        error_log("Created feed {$ret['id']}");
+        $this->log("Created feed {$ret['id']}");
         $nid = $ret['id'];
 
         # Get this individual one
@@ -156,13 +154,13 @@ class newsfeedAPITest extends IznikAPITestCase {
             $nid
         ]);
 
-        error_log("Logged in - one item");
+        $this->log("Logged in - one item");
         $ret = $this->call('newsfeed', 'GET', [
             'types' => [
                 Newsfeed::TYPE_MESSAGE
             ]
         ]);
-        error_log("Returned " . var_export($ret, TRUE));
+        $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
         self::assertEquals('Test2 with url https://google.co.uk', $ret['newsfeed'][0]['message']);
@@ -180,7 +178,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
         ]);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(1, $ret['newsfeed']['loves']);
         self::assertTrue($ret['newsfeed']['loved']);
@@ -196,12 +194,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         # Notification payload
         $u = new User($this->dbhr, $this->dbhm, $this->user->getId());
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
-        error_log("Payload $title for $total");
+        $this->log("Payload $title for $total");
         assertEquals(2, $total);
         assertEquals("Test User loved your post 'Test2 with url https://google.co.uk' +1 more...", $title);
 
         $ret = $this->call('notification', 'GET', []);
-        error_log("Notifications " . var_export($ret, TRUE));
+        $this->log("Notifications " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(2, count($ret['notifications']));
         self::assertEquals($this->uid2, $ret['notifications'][0]['fromuser']['id']);
@@ -274,7 +272,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['newsfeed'][0]['replies']));
 
         # Refer it to WANTED - generates another reply.
-        error_log("Refer to WANTED");
+        $this->log("Refer to WANTED");
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'ReferToWanted'
@@ -288,7 +286,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(2, count($ret['newsfeed']['replies']));
 
         # Refer it to OFFER - generates another reply.
-        error_log("Refer to OFFER");
+        $this->log("Refer to OFFER");
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'ReferToOffer'
@@ -302,7 +300,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(3, count($ret['newsfeed']['replies']));
 
         # Refer it to TAKEN - generates another reply.
-        error_log("Refer to TAKEN");
+        $this->log("Refer to TAKEN");
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'ReferToTaken'
@@ -316,7 +314,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(4, count($ret['newsfeed']['replies']));
 
         # Refer it to RECEIVED - generates another reply.
-        error_log("Refer to RECEIVED");
+        $this->log("Refer to RECEIVED");
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'ReferToReceived'
@@ -345,12 +343,9 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testCommunityEvent() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
 
         # Create an event - should result in a newsfeed item
@@ -372,17 +367,14 @@ class newsfeedAPITest extends IznikAPITestCase {
             ]
         ]);
 
-        error_log("Feed " . var_export($ret, TRUE));
+        $this->log("Feed " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
         self::assertEquals('Test event', $ret['newsfeed'][0]['communityevent']['title']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testVolunteering() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -394,7 +386,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $e = new Volunteering($this->dbhr, $this->dbhm);
         $eid = $e->create($this->uid, 'Test opp', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
-        error_log("Created $eid");
+        $this->log("Created $eid");
         $e->addGroup($gid);
         $e->setPrivate('pending', 0);
 
@@ -404,17 +396,14 @@ class newsfeedAPITest extends IznikAPITestCase {
             ]
         ]);
 
-        error_log("Feed " . var_export($ret, TRUE));
+        $this->log("Feed " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
         self::assertEquals('Test opp', $ret['newsfeed'][0]['volunteering']['title']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testPublicity() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
 
         # Create a publicity post so that we can issue the API call from that point.  Use a real example with
@@ -441,7 +430,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $time = strtotime($posts[0]['timestamp']);
         $time++;
         $newtime = ISODate('@' . $time);
-        error_log("{$posts[0]['timestamp']} => $newtime");
+        $this->log("{$posts[0]['timestamp']} => $newtime");
 
         $ctx = [
             'distance' => 0,
@@ -455,18 +444,15 @@ class newsfeedAPITest extends IznikAPITestCase {
             ]
         ]);
 
-        error_log("Feed " . var_export($ret, TRUE));
+        $this->log("Feed " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertGreaterThan(0, count($ret['newsfeed']));
         self::assertEquals(Newsfeed::TYPE_CENTRAL_PUBLICITY, $ret['newsfeed'][0]['type']);
         assertNotFalse(pres('postid', $ret['newsfeed'][0]['publicity']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function checkSpammer() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('newsfeed', 'POST', [
@@ -474,7 +460,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
-        error_log("Created feed {$ret['id']}");
+        $this->log("Created feed {$ret['id']}");
         $nid = $ret['id'];
 
         # Get this individual one
@@ -487,31 +473,28 @@ class newsfeedAPITest extends IznikAPITestCase {
         $n = new Newsfeed($this->dbhr, $this->dbhm, $nid);
         assertNotNull($n->getPrivate('hidden'));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testMention() {
-        error_log(__METHOD__);
-
-        error_log("Log in as {$this->uid}");
+        $this->log("Log in as {$this->uid}");
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test for mention'
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
-        error_log("Created feed {$ret['id']}");
+        $this->log("Created feed {$ret['id']}");
         $nid = $ret['id'];
 
         # Get mentions - should show first user
-        error_log("Log in as {$this->uid2}");
+        $this->log("Log in as {$this->uid2}");
         assertTrue($this->user2->login('testpw'));
 
         $ret = $this->call('mentions', 'GET', [
             'id' => $nid,
             'query' => 'T'
         ]);
-        error_log("Mentions " . var_export($ret, TRUE));
+        $this->log("Mentions " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['mentions']));
         self::assertEquals($this->uid, $ret['mentions'][0]['id']);
@@ -541,20 +524,17 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['mentions']));
         self::assertEquals($this->uid2, $ret['mentions'][0]['id']);
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testFollow() {
-        error_log(__METHOD__);
-
-        error_log("Log in as {$this->uid}");
+        $this->log("Log in as {$this->uid}");
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test for mention'
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
-        error_log("Created feed {$ret['id']}");
+        $this->log("Created feed {$ret['id']}");
         $nid = $ret['id'];
 
         $ret = $this->call('newsfeed', 'GET', [
@@ -590,18 +570,15 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertFalse(pres('unfollowed', $ret['newsfeed']));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
     public function testAttach()
     {
-        error_log(__METHOD__);
-
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
         $this->user->addMembership($gid, User::ROLE_MODERATOR);
         
-        error_log("Log in as {$this->uid}");
+        $this->log("Log in as {$this->uid}");
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test for attach'
@@ -629,14 +606,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $attachee
         ]);
-        error_log(var_export($ret, TRUE));
+        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($attachto, $ret['newsfeed']['replyto']);
     }
 
     public function testModNotif() {
-        error_log(__METHOD__);
-
         assertTrue($this->user->login('testpw'));
 
         $this->user->setSetting('mylocation', [
@@ -644,13 +619,13 @@ class newsfeedAPITest extends IznikAPITestCase {
             'lat' => 8.5
         ]);
 
-        error_log("Post something as {$this->uid}");
+        $this->log("Post something as {$this->uid}");
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test with url https://google.co.uk'
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
-        error_log("Created feed {$ret['id']}");
+        $this->log("Created feed {$ret['id']}");
         $nid = $ret['id'];
 
         $n = $this->getMockBuilder('Newsfeed')
@@ -667,7 +642,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        error_log("Created group $gid");
+        $this->log("Created group $gid");
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
@@ -684,8 +659,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->user2->setSetting('modnotifnewsfeed', TRUE);
         assertEquals(1, $n->modnotif($this->uid2));
 
-        error_log(__METHOD__ . " end");
-    }
+        }
 
 //    public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);
@@ -709,8 +683,8 @@ class newsfeedAPITest extends IznikAPITestCase {
 //        ]);
 //
 //        assertEquals(0, $ret['ret']);
-//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-//        error_log(var_export($ret, TRUE));
+//        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//        $this->log(var_export($ret, TRUE));
 //    }
 }
 
