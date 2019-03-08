@@ -148,6 +148,6 @@ class Mail {
 
         # Google feedback loop uses Feedback-ID as per
         # https://support.google.com/mail/answer/6254652?hl=en&ref_topic=7279058
-        $headers->addTextHeader('Feedback-ID', "$qualifier:$userid" . Mail::getDescription($type) . ':freegle');
+        $headers->addTextHeader('Feedback-ID', "$qualifier:$userid:" . Mail::getDescription($type) . ':freegle');
     }
 }
