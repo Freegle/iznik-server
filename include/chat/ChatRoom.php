@@ -1484,6 +1484,7 @@ WHERE chat_rooms.id IN $idlist;";
                     }
                 }
 
+
                 foreach ($seeds as $seed) {
                     $notmailed[] = [
                         'userid' => $seed['userid'],
@@ -1491,7 +1492,7 @@ WHERE chat_rooms.id IN $idlist;";
                         'lastmsgemailed' => $copy['lastmsgemailed'],
                         'lastmsgseenormailed' => $copy['lastmsgseenormailed'],
                         'role' => User::ROLE_MEMBER,
-                        'Mail' => TRUE
+                        'seed' => User::get($this->dbhr, $this->dbhm, $copy['userid'])
                     ];
                 }
             }
@@ -1807,10 +1808,20 @@ WHERE chat_rooms.id IN $idlist;";
                             if ($to && strpos($to, MOD_SITE) === FALSE) {
                                 error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
                                 try {
-                                    # We only include the HTML part if this is a user on our platform; otherwise
-                                    # we just send a text bodypart containing the replies.  This means that our
-                                    # messages to users who aren't on here look less confusing.
                                     #error_log("Our email " . $thisu->getOurEmail() . " for " . $thisu->getEmailPreferred());
+                                    if (pres('seed', $member)) {
+                                        # If this is a seed, we want to include the HTML if we would do so for the
+                                        # recipient that it is a copy of.  That way we will analyse a representative
+                                        # sample, rather than always send a plain text only email to the seeds.
+                                        $includehtml = $member['seed']->getOurEmail();
+                                        error_log("Seed {$member['userid']} copy of " . $member['seed']->getId() . " use html? $includehtml html len " . strlen($html));
+                                    } else {
+                                        # We only include the HTML part if this is a user on our platform; otherwise
+                                        # we just send a text bodypart containing the replies.  This means that our
+                                        # messages to users who aren't on here look less confusing.
+                                        $includehtml = $thisu->getOurEmail();
+                                    }
+
                                     $message = $this->constructMessage($thisu,
                                         $member['userid'],
                                         $thisu->getName(),
@@ -1819,7 +1830,7 @@ WHERE chat_rooms.id IN $idlist;";
                                         $replyto,
                                         $subject,
                                         $textsummary,
-                                        $thisu->getOurEmail() ? $html : NULL,
+                                        $includehtml ? $html : NULL,
                                         $fromuid);
 
                                     if ($chattype == ChatRoom::TYPE_USER2USER) {
@@ -1834,7 +1845,7 @@ WHERE chat_rooms.id IN $idlist;";
 
                                     $this->mailer($message);
 
-                                    if (RETURN_PATH && !pres('Mail', $member)) {
+                                    if (RETURN_PATH && !pres('seed', $member)) {
                                         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                             $lastmsgemailed,
                                             $member['userid'],
