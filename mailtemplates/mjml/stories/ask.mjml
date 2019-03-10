@@ -41,7 +41,7 @@
               Could you take a few minutes to tell us your story?  If you want to attach a photo, that's
               good too, but you don't have to.
             </mj-text>
-            <mj-button align="center" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA" font-family="Helvetica" background-color="#61AE24" color="white">
+            <mj-button align="center" href="https://www.ilovefreegle.org/stories" font-family="Helvetica" background-color="#61AE24" color="white">
               Tell us your story!
             </mj-button>
           </mj-column>
