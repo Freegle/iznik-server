@@ -1399,6 +1399,24 @@ class messageAPITest extends IznikAPITestCase
         ]);
         $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['id']);
+
+        # Delete the draft to test the case where the draft is completed from another session.
+        $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $id ]);
+
+        $ret = $this->call('message', 'PUT', [
+            'id' => $id,
+            'collection' => 'Draft',
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'textbody' => 'Text body',
+            'locationid' => $locid,
+            'groupid' => $group1,
+            'attachments' => [ $attid ]
+        ]);
+        $this->log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotEquals($id, $ret['id']);
         $id = $ret['id'];
 
         $ret = $this->call('message', 'GET', [

@@ -162,6 +162,17 @@ function message() {
                                     # Update the arrival time so that it doesn't appear to be expired.
                                     $m->setPrivate('arrival', date("Y-m-d H:i:s", time()));
                                 }
+
+                                # The message is not in drafts.  This can happen if someone creates a draft on one
+                                # device, then completes it on another, then goes back to the first and edits the
+                                # draft into a new post.  In this case create a new draft message, which will
+                                # override the one on the client.
+                                if (!$m) {
+                                    $m = new Message($dbhr, $dbhm);
+                                    $id = $m->createDraft();
+                                    $m = new Message($dbhm, $dbhm, $id);
+                                    $_SESSION['lastmessage'] = $id;
+                                }
                             }
 
                             if ($m) {
