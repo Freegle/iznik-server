@@ -1471,7 +1471,7 @@ WHERE chat_rooms.id IN $idlist;";
 
             if (RETURN_PATH && Mail::shouldSend(Mail::CHAT) && count($notmailed) > 0) {
                 # Also send this to the Return Path seed list so that we can measure inbox placement.
-                $seeds = $this->dbhr->preQuery("SELECT userid FROM returnpath_seedlist");
+                $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
                 $seenmax = 0;
                 $copy = NULL;
 
@@ -1814,7 +1814,7 @@ WHERE chat_rooms.id IN $idlist;";
                                         # recipient that it is a copy of.  That way we will analyse a representative
                                         # sample, rather than always send a plain text only email to the seeds.
                                         $includehtml = $member['seed']->getOurEmail();
-                                        error_log("Seed {$member['userid']} copy of " . $member['seed']->getId() . " use html? $includehtml html len " . strlen($html));
+                                        #error_log("Seed {$member['userid']} copy of " . $member['seed']->getId() . " use html? $includehtml html len " . strlen($html));
                                     } else {
                                         # We only include the HTML part if this is a user on our platform; otherwise
                                         # we just send a text bodypart containing the replies.  This means that our
@@ -1822,6 +1822,9 @@ WHERE chat_rooms.id IN $idlist;";
                                         $includehtml = $thisu->getOurEmail();
                                     }
 
+                                    # Make the text summary longer, because this helps with spam detection according
+                                    # to Litmus.
+                                    $textsummary .= "\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n";
                                     $message = $this->constructMessage($thisu,
                                         $member['userid'],
                                         $thisu->getName(),

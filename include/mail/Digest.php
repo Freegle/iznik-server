@@ -343,7 +343,7 @@ class Digest
 
                 if (RETURN_PATH && Mail::shouldSend(Mail::DIGEST)) {
                     # Also send this to the Return Path seed list so that we can measure inbox placement.
-                    $users = array_merge($users, $this->dbhr->preQuery("SELECT userid FROM returnpath_seedlist"));
+                    $users = array_merge($users, Mail::getSeeds($this->dbhr, $this->dbhm));
                 }
 
                 $replacements = [];

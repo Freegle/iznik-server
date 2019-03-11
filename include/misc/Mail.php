@@ -150,4 +150,20 @@ class Mail {
         # https://support.google.com/mail/answer/6254652?hl=en&ref_topic=7279058
         $headers->addTextHeader('Feedback-ID', "$qualifier:$userid:" . Mail::getDescription($type) . ':freegle');
     }
+
+    public static function getSeeds($dbhr, $dbhm) {
+        $users = $dbhr->preQuery("SELECT * FROM returnpath_seedlist WHERE active = 1 AND userid IS NOT NULL;");
+
+        foreach ($users as $user) {
+            $ret[] = $user['userid'];
+
+            if ($user['oneshot']) {
+                $dbhm->preExec("UPDATE returnpath_seedlist SET active = 0 WHERE id = ?;", [
+                    $user['id']
+                ]);
+            }
+        }
+
+        return($users);
+    }
 }
