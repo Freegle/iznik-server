@@ -346,7 +346,7 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
 
         $this->log("Mailed " . var_export($this->msgsSent, TRUE));
-        self::assertEquals("Test User 1 has updated when they may be available: Wednesday morning\r\n", $this->msgsSent[0]['body']);
+        self::assertEquals("Test User 1 has updated when they may be available: Wednesday morning\r\n\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n", $this->msgsSent[0]['body']);
 
         }
 
