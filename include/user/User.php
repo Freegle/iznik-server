@@ -2015,7 +2015,7 @@ class User extends Entity
 
         if ($me && ($me->isModerator() || $this->id == $me->getId())) {
             # Mods can see email settings, no matter which group.
-            $atts['onholidaytill'] = $this->user['onholidaytill'] ? ISODate($this->user['onholidaytill']) : NULL;
+            $atts['onholidaytill'] = ($this->user['onholidaytill'] && (time() < strtotime($this->user['onholidaytill']))) ? ISODate($this->user['onholidaytill']) : NULL;
         } else {
             # Don't show some attributes unless they're a mod or ourselves.
             $showmod = $this->isModerator() && presdef('showmod', $atts['settings'], FALSE);
