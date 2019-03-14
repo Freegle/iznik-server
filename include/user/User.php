@@ -3873,6 +3873,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function search($search, $ctx)
     {
+        if (preg_replace('/\-|\~/', '', $search) === '') {
+            # Most likely an encoded id.
+            $search = User::decodeId($search);
+        }
+
         $me = whoAmI($this->dbhr, $this->dbhm);
         $id = presdef('id', $ctx, 0);
         $ctx = $ctx ? $ctx : [];
@@ -3910,11 +3915,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             #error_log("$sql {$user['userid']}");
             $membs = $this->dbhr->preQuery($sql, [$user['userid']]);
 
-            foreach ($thisone['memberof'] as &$member) {
-                foreach ($membs as $memb) {
-                    if ($memb['membershipid'] == $member['membershipid']) {
-                        foreach (['yahooAlias', 'yahooPostingStatus', 'yahooDeliveryType'] as $att) {
-                            $member[$att] = $memb[$att];
+            if (pres('memberof', $thisone)) {
+                foreach ($thisone['memberof'] as &$member) {
+                    foreach ($membs as $memb) {
+                        if ($memb['membershipid'] == $member['membershipid']) {
+                            foreach (['yahooAlias', 'yahooPostingStatus', 'yahooDeliveryType'] as $att) {
+                                $member[$att] = $memb[$att];
+                            }
                         }
                     }
                 }
@@ -3923,10 +3930,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $thisone['membershiphistory'] = $u->getMembershipHistory();
 
             # Make sure there's a link login as admin/support can use that to impersonate.
-            if ($me->isAdmin() || ($me->isAdminOrSupport() && !$u->isModerator())) {
+            if ($me && ($me->isAdmin() || ($me->isAdminOrSupport() && !$u->isModerator()))) {
                 $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/', NULL, TRUE);
             }
-            $thisone['logins'] = $u->getLogins($me->isAdmin());
+
+            $thisone['logins'] = $u->getLogins($me && $me->isAdmin());
 
             # Also return the chats for this user.
             $r = new ChatRoom($this->dbhr, $this->dbhm);

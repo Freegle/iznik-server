@@ -1216,6 +1216,16 @@ class userTest extends IznikTestCase {
 
     public function testEncodeId() {
         assertEquals(123, User::decodeId(User::encodeId(123)));
+
+        # Test we can search on UID.
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $enc = User::encodeId($uid);
+        assertEquals($uid, User::decodeId($enc));
+        $ctx = NULL;
+        $search = $u->search($enc, $ctx);
+        assertEquals(1, count($search));
+        assertEquals($uid, $search[0]['id']);
     }
 }
 
