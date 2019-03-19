@@ -3091,6 +3091,7 @@ class Message
         $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from Mail.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my BlackBerry.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Huawei Mobile.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from myMail for iOS.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from Samsung Mobile.*/ms', '', $textbody);
         $textbody = preg_replace('/^(\r\n|\r|\n)---(\r\n|\r|\n)This email has been checked for viruses.*/ms', '', $textbody);
