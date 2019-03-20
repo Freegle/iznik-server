@@ -399,7 +399,7 @@ class Group extends Entity
                 MembershipCollection::PENDING
             ], FALSE, FALSE);
 
-            $spammembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships INNER JOIN users ON users.id = memberships.userid AND suspectcount > 0 WHERE groupid IN $groupq GROUP BY memberships.groupid, held;", [], FALSE, FALSE);
+            $spammembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships INNER JOIN users ON users.id = memberships.userid AND (suspectcount > 0 OR memberships.userid IN (SELECT userid FROM spam_users WHERE spam_users.collection = '" . Spam::TYPE_SPAMMER . "')) WHERE groupid IN $groupq GROUP BY memberships.groupid, held;", [], FALSE, FALSE);
 
             $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
                 $eventsqltime
@@ -630,7 +630,7 @@ class Group extends Entity
                 #
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
-                $collectionq = ' AND suspectcount > 0 ';
+                $collectionq = " AND (suspectcount > 0 OR memberships.userid IN (SELECT userid FROM spam_users WHERE spam_users.collection = '" . Spam::TYPE_SPAMMER . "')) ";
             } else if ($collection) {
                 $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
             }
@@ -671,7 +671,7 @@ class Group extends Entity
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
 
         $members = $this->dbhr->preQuery($sql);
-        #error_log($sql);
+        error_log($sql);
 
         $ctx = [ 'Added' => NULL ];
 
