@@ -27,10 +27,14 @@ foreach ($emails as $email) {
     } else {
         # We already know this one; reset it so that we send.
         error_log("...found $email as $uid");
-        $dbhm->preExec("UPDATE returnpath_seedlist SET type = 'Litmus', active = 1, oneshot = 1 WHERE email LIKE ?;", [
-            $email
+        $dbhm->preExec("REPLACE INTO returnpath_seedlist (type, active, oneshot, email, userid) VALUES ('Litmus', 1, 1, ?, ?);", [
+            $email,
+            $uid
         ]);
     }
 
     error_log($email);
 }
+
+$count = $dbhm->preQuery("SELECT COUNT(*) AS count FROM returnpath_seedlist WHERE type = 'Litmus' AND active = 1;");
+error_log("Active seeds: " . $count[0]['count']);

@@ -1532,7 +1532,12 @@ WHERE chat_rooms.id IN $idlist;";
                     $firstid = NULL;
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
+                        # Message might be empty.
                         $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
+
+                        # Exclamation marks make emails look spammy, in conjunction with 'free' (which we use because,
+                        # y'know, freegle) according to Litmus.  Remove them.
+                        $unmailedmsg['message'] = str_replace('!', '.', $unmailedmsg['message']);
 
                         # Convert all emojis to smilies.  Obviously that's not right, but most of them are, and we want
                         # to get rid of the unicode.
