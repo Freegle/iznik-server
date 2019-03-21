@@ -199,10 +199,11 @@ class userAPITest extends IznikAPITestCase {
 
         $ret = $this->call('user', 'GET', [
             'id' => $this->uid2,
-            'onholidaytill' => '2017-12-25'
         ]);
         assertEquals(0, $ret['ret']);
-        self::assertEquals('2017-12-25T00:00:00Z', $ret['user']['onholidaytill']);
+
+        # Dates in the past are not returned.
+        assertFalse(array_key_exists('onholidaytill', $ret['user']));
 
         $ret = $this->call('user', 'PATCH', [
             'id' => $this->uid2,

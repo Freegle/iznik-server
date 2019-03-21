@@ -36,5 +36,8 @@ foreach ($emails as $email) {
     error_log($email);
 }
 
-$count = $dbhm->preQuery("SELECT COUNT(*) AS count FROM returnpath_seedlist WHERE type = 'Litmus' AND active = 1;");
-error_log("Active seeds: " . $count[0]['count']);
+do {
+    $count = $dbhm->preQuery("SELECT COUNT(*) AS count FROM returnpath_seedlist WHERE type = 'Litmus' AND active = 1;");
+    error_log("Active seeds: " . $count[0]['count']);
+    sleep(1);
+} while ($count[0]['count'] > 0);
