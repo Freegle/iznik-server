@@ -200,7 +200,7 @@ class Newsletter extends Entity
                 foreach ($replacements as $email => $rep) {
                     $bounce = "bounce-{$rep['{{id}}']}-" . time() . "@" . USER_DOMAIN;
                     $message = Swift_Message::newInstance()
-                        ->setSubject($tosend['subject'])
+                        ->setSubject($tosend['subject'] . ' ' . User::encodeId($rep['{{id}}']))
                         ->setFrom([$tosend['from'] => $tosend['fromname']])
                         ->setReplyTo($tosend['replyto'], $tosend['fromname'])
                         ->setReturnPath($bounce)
