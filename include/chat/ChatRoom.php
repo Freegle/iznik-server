@@ -224,6 +224,23 @@ WHERE chat_rooms.id IN $idlist;";
     public function mailer($message)
     {
         list ($transport, $mailer) = getMailer();
+
+        if (RETURN_PATH && Mail::shouldSend(Mail::CHAT)) {
+            # Also send this to the Return Path seed list so that we can measure inbox placement.
+            #
+            # We send this as a BCC because this plays nicer with Litmus
+            $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
+
+            $bcc = [];
+
+            foreach ($seeds as $seed) {
+                $u = User::get($this->dbhr, $this->dbhm, $seed['userid']);
+                $bcc[] = $u->getEmailPreferred();
+            }
+
+            $message->setBcc($bcc);
+        }
+
         $mailer->send($message);
     }
 
@@ -1468,34 +1485,6 @@ WHERE chat_rooms.id IN $idlist;";
             $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $delay);
 
             #error_log("Notmailed " . count($notmailed) . " with last message {$chatatts['lastmsg']}");
-
-            if (RETURN_PATH && Mail::shouldSend(Mail::CHAT) && count($notmailed) > 0) {
-                # Also send this to the Return Path seed list so that we can measure inbox placement.
-                $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
-                $seenmax = 0;
-                $copy = NULL;
-
-                # We want to mail the seeds.  Choose the chat member who's seen most messages otherwise
-                # we might mail them the whole chat.
-                foreach ($notmailed as $not) {
-                    if (pres('lastmsgemailed', $not) > $seenmax) {
-                        $copy = $not;
-                        $seenmax = $not['lastmsgemailed'];
-                    }
-                }
-
-
-                foreach ($seeds as $seed) {
-                    $notmailed[] = [
-                        'userid' => $seed['userid'],
-                        'lastmsgseen' => $copy['lastmsgseen'],
-                        'lastmsgemailed' => $copy['lastmsgemailed'],
-                        'lastmsgseenormailed' => $copy['lastmsgseenormailed'],
-                        'role' => User::ROLE_MEMBER,
-                        'seed' => User::get($this->dbhr, $this->dbhm, $copy['userid'])
-                    ];
-                }
-            }
 
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed the messages in this chat.

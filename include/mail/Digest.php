@@ -44,6 +44,22 @@ class Digest
 
     # Split out for UT to override
     public function sendOne($mailer, $message) {
+        if (RETURN_PATH && Mail::shouldSend(Mail::DIGEST)) {
+            # Also send this to the Return Path seed list so that we can measure inbox placement.
+            #
+            # We send this as a BCC because this plays nicer with Litmus
+            $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
+
+            $bcc = [];
+
+            foreach ($seeds as $seed) {
+                $u = User::get($this->dbhr, $this->dbhm, $seed['userid']);
+                $bcc[] = $u->getEmailPreferred();
+            }
+
+            $message->setBcc($bcc);
+        }
+
         $mailer->send($message);
     }
 
@@ -340,11 +356,6 @@ class Digest
                 $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailfrequency = ? ORDER BY userid ASC;";
                 $users = $this->dbhr->preQuery($sql,
                     [ $groupid, $frequency ]);
-
-                if (RETURN_PATH && Mail::shouldSend(Mail::DIGEST)) {
-                    # Also send this to the Return Path seed list so that we can measure inbox placement.
-                    $users = array_merge($users, Mail::getSeeds($this->dbhr, $this->dbhm));
-                }
 
                 $replacements = [];
                 $emailToId = [];
