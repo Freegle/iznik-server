@@ -8,6 +8,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 $opts = getopt('u:l:x:s:t:');
 
 if (count($opts) < 4) {
@@ -47,3 +49,5 @@ if (count($opts) < 4) {
 
     error_log("\n\nSent $sent");
 }
+
+unlockScript($lockh);
