@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 
-$opts = getopt('u:l:x:s:');
+$opts = getopt('u:l:x:s:t:');
 
 if (count($opts) < 4) {
     echo "Usage: php user_exhort.php -u url -l title -x text -s since\n";
