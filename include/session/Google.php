@@ -66,7 +66,6 @@ class Google
             $client = $this->getClient();
 
             $this->access_token = $token;
-            error_log("Get client");
 
             if ($code) {
                 $client->authenticate($code);
