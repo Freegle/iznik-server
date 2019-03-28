@@ -201,6 +201,7 @@ class EventDigest
                     $placementid = "eventdigest-$groupid-" . microtime(true);
 
                     $replacements[$email] = [
+                        '{{id}}' => $u->getId(),
                         '{{toname}}' => $u->getName(),
                         '{{settings}}' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_DIGEST),
                         '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_EVENT_DIGEST),
@@ -234,7 +235,7 @@ class EventDigest
 
                 foreach ($replacements as $email => $rep) {
                     $message = Swift_Message::newInstance()
-                        ->setSubject($tosend['subject'])
+                        ->setSubject($tosend['subject'] . ' ' . User::encodeId($rep['{{id}}']))
                         ->setFrom([$tosend['from'] => $tosend['fromname']])
                         ->setReturnPath($u->getBounce())
                         ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
