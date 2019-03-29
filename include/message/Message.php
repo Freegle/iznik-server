@@ -3041,6 +3041,14 @@ class Message
         $p = strpos($textbody, '~*~*~*~*~*~*');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Or maybe just the headers with no preceding line.
+        if (preg_match('/(.*)^From\:.*?ilovefreegle.org$(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1] . $matches[2];
+        }
+        if (preg_match('/(.*)^From\:.*?trashnothing.com$(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1] . $matches[2];
+        }
+
         # A reply from us.
         $p = strpos($textbody, "You can respond by just replying to this email");
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;

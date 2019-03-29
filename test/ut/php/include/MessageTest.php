@@ -72,7 +72,7 @@ class messageTest extends IznikTestCase {
     public function testSetFromIP() {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setFromIP('8.8.8.8');
-        assertEquals('dns.google', $m->getFromhost());
+        assertTrue($m->getFromhost() === 'google-public-dns-a.google.com' || $m->getFromhost() === 'dns.google');
 
         }
 
@@ -460,7 +460,19 @@ class messageTest extends IznikTestCase {
         $stripped = $m->stripQuoted();
         assertEquals("Please may I be considered", $stripped);
 
-        }
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text15'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals("Please may I be considered", $stripped);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text16'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals("Please may I be considered", $stripped);
+
+    }
     
     public function testCensor() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/phonemail'));

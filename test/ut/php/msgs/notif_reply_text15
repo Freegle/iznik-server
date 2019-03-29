@@ -1,0 +1,48 @@
+From xxxx-g2040@user.trashnothing.com Mon Nov 12 04:49:30 2018
+Return-path: <xxxx-g2040@user.trashnothing.com>
+Envelope-to: xxxx-2362659@users.ilovefreegle.org
+Received: from w3.trashnothing.com ([162.243.63.183])
+	by bulk1.ilovefreegle.org with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.90_1)
+	(envelope-from <xxxx-g2040@user.trashnothing.com>)
+	id 1gM4AE-0003Zz-Gk
+	for xxxx-2362659@users.ilovefreegle.org; Mon, 12 Nov 2018 04:49:30 +0000
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by w3.trashnothing.com (Postfix) with ESMTPSA id 42tdZx59ZTz2xhG
+	for <xxxx-2362659@users.ilovefreegle.org>; Mon, 12 Nov 2018 04:49:29 +0000 (UTC)
+X-trash-nothing-Log-ID: c49d5432-4055-432b-810b-9495fc6d2561
+Content-Type: multipart/alternative;
+ boundary="===============5094956705664049740=="
+MIME-Version: 1.0
+Date: Mon, 12 Nov 2018 04:49:25 -0000
+Errors-To: undelivered-mail+20181112-member.forward-35c691f73f6bbb1cdd2ad9cbbb258154887ce74fab826169079750bb2995516043070d132d8a05110adabe60ef3a1a39@trashnothing.com
+From: "xxxx" <xxxx-g2040@user.trashnothing.com>
+Subject: Re: Steam Cleaner (CT9)
+To: xxxx-2362659@users.ilovefreegle.org
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=user.trashnothing.com; s=global; t=1541998169;
+	bh=DmmlNeKaR/Dz1Jxk9wCMpBV9Dk4xlIljL8QH4wGWpeY=;
+	h=Date:From:Subject:To;
+	b=WvkJH/XDs1cmDUrGmBRetmuC5WxmAwwSf4oc50Dn+A7TnsPoA4imU/4e160zSEMrv
+	 bduR1YzFzCkYIFeHjp4pdVySJMGKDWYxmfAiI1N3eogAGR8SNkjvL4FizGjoQya6ST
+	 TZwCjqYizdhDuXW8uoY3snxwTk771uM+zEkekPGQ=
+
+--===============5094956705664049740==
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+Please may I be considered
+
+From: something@ilovefreegle.org
+Subject: Test
+
+--===============5094956705664049740==
+MIME-Version: 1.0
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+...Content of size 271 removed...
+
+--===============5094956705664049740==--
+
