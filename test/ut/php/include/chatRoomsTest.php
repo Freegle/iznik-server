@@ -237,7 +237,7 @@ class chatRoomsTest extends IznikTestCase {
         assertNotNull($id);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("Created chat message $cm");
 
         # Notify - will email both.
