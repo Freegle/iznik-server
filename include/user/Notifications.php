@@ -211,10 +211,11 @@ class Notifications
         $mysqltime = date("Y-m-d H:i:s", strtotime($before));
         $mysqltime2 = date("Y-m-d H:i:s", strtotime($since));
         $seenq = $unseen ? " AND seen = 0 ": '';
-        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq AND `type` NOT IN (?, ?) $userq;";
+        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq AND `type` NOT IN (?, ?, ?) $userq;";
         $users = $this->dbhr->preQuery($sql, [
             Notifications::TYPE_TRY_FEED,
-            Notifications::TYPE_EXHORT
+            Notifications::TYPE_EXHORT,
+            Notifications::TYPE_ABOUT_ME
         ]);
 
         $total = 0;
