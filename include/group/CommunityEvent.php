@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 class CommunityEvent extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added'];
+    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'heldby'];
     public $settableatts = [ 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description' ];
     var $event;
 
@@ -175,6 +175,12 @@ class CommunityEvent extends Entity
         }
 
         unset($atts['userid']);
+
+        if ($atts['heldby']) {
+            $u = User::get($this->dbhr, $this->dbhm, $atts['heldby']);
+            $ctx = NULL;
+            $atts['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        }
 
         # Ensure leading 0 not stripped.
         $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;

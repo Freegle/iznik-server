@@ -122,6 +122,16 @@ function volunteering() {
                         case 'Expire':
                             $c->setPrivate('expired', 1);
                             break;
+                        case 'Hold':
+                            if ($me->isModerator()) {
+                                $c->setPrivate('heldby', $me->getId());
+                            }
+                            break;
+                        case 'Release':
+                            if ($me->isModerator()) {
+                                $c->setPrivate('heldby', NULL);
+                            }
+                            break;
                     }
 
                     $ret = [

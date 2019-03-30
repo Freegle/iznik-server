@@ -107,6 +107,16 @@ function communityevent() {
                         case 'AddDate': $c->addDate(presdef('start', $_REQUEST, NULL), presdef('end', $_REQUEST, NULL)); break;
                         case 'RemoveDate': $c->removeDate(intval(presdef('dateid', $_REQUEST, NULL))); break;
                         case 'SetPhoto': $c->setPhoto(intval(presdef('photoid', $_REQUEST, NULL))); break;
+                        case 'Hold':
+                            if ($me->isModerator()) {
+                                $c->setPrivate('heldby', $me->getId());
+                            }
+                            break;
+                        case 'Release':
+                            if ($me->isModerator()) {
+                                $c->setPrivate('heldby', NULL);
+                            }
+                            break;
                     }
 
                     $ret = [

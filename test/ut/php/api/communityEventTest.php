@@ -174,6 +174,54 @@ class communityEventAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
 
-        }
+    }
+    
+    public function testHold() {
+        assertTrue($this->user->login('testpw'));
+        $this->user->setPrivate('systemrole', User::ROLE_MODERATOR);
+
+        $ret = $this->call('communityevent', 'POST', [
+            'title' => 'UTTest',
+            'location' => 'UTTest',
+            'description' => 'UTTest',
+            'groupid' => $this->groupid
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        assertNotNull($id);
+        $this->log("Created event $id");
+
+        $ret = $this->call('communityevent', 'GET', [
+            'id' => $id
+        ]);
+
+        assertFalse(array_key_exists('heldby', $ret['communityevent']));
+
+        $ret = $this->call('communityevent', 'PATCH', [
+            'id' => $id,
+            'groupid' => $this->groupid,
+            'action' => 'Hold'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('communityevent', 'GET', [
+            'id' => $id
+        ]);
+
+        assertEquals($this->user->getId(), $ret['communityevent']['heldby']['id']);
+
+        $ret = $this->call('communityevent', 'PATCH', [
+            'id' => $id,
+            'groupid' => $this->groupid,
+            'action' => 'Release'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('communityevent', 'GET', [
+            'id' => $id
+        ]);
+
+        assertFalse(array_key_exists('heldby', $ret['communityevent']));
+    }
 }
 

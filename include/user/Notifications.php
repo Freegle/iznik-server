@@ -254,32 +254,32 @@ class Notifications
                         'email' => $u->getEmailPreferred(),
                         'noemail' => $noemail
                     ]);
+
+                    $message = Swift_Message::newInstance()
+                        ->setSubject($subj)
+                        ->setFrom([NOREPLY_ADDR => 'Freegle'])
+                        ->setReturnPath($u->getBounce())
+                        ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                        ->setBody("\r\n\r\nPlease click here to read them: $url");
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
+
+                    Mail::addHeaders($message, Mail::NOTIFICATIONS, $u->getId());
+
+                    list ($transport, $mailer) = getMailer();
+                    $this->sendIt($mailer, $message);
+
+                    $total += count($twignotifs);
                 } catch (Exception $e) {
-                    error_log("Message prepare failed with " . $e->getMessage());
+                    error_log("Message failed with " . $e->getMessage());
                 }
-
-                $message = Swift_Message::newInstance()
-                    ->setSubject($subj)
-                    ->setFrom([NOREPLY_ADDR => 'Freegle'])
-                    ->setReturnPath($u->getBounce())
-                    ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                    ->setBody("\r\n\r\nPlease click here to read them: $url");
-
-                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                # Outlook.
-                $htmlPart = Swift_MimePart::newInstance();
-                $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                $htmlPart->setContentType('text/html');
-                $htmlPart->setBody($html);
-                $message->attach($htmlPart);
-
-                Mail::addHeaders($message, Mail::NOTIFICATIONS, $u->getId());
-
-                list ($transport, $mailer) = getMailer();
-                $this->sendIt($mailer, $message);
-
-                $total += count($twignotifs);
             }
         }
 

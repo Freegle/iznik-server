@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 class Volunteering extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'askedtorenew', 'renewed', 'timecommitment', 'expired' ];
+    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'askedtorenew', 'renewed', 'timecommitment', 'expired', 'heldby' ];
     public $settableatts = [ 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'renewed', 'timecommitment' ];
     var $volunteering;
 
@@ -182,6 +182,14 @@ class Volunteering extends Entity
             $atts['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
         }
 
+        unset($atts['userid']);
+
+        if ($atts['heldby']) {
+            $u = User::get($this->dbhr, $this->dbhm, $atts['heldby']);
+            $ctx = NULL;
+            $atts['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        }
+
         $atts['renewed'] = pres('renewed', $atts) ? ISODate($atts['renewed']) : NULL;
 
         $photos = $this->dbhr->preQuery("SELECT id FROM volunteering_images WHERE opportunityid = ?;", [ $this->id ]);
@@ -194,8 +202,6 @@ class Volunteering extends Entity
                 'paththumb' => $a->getPath(TRUE)
             ];
         }
-
-        unset($atts['userid']);
 
         # Ensure leading 0 not stripped.
         $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;

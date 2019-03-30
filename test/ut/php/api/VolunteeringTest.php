@@ -213,6 +213,54 @@ class volunteeringAPITest extends IznikAPITestCase {
         $this->log("Get after delete " . var_export($ret, TRUE));
         self::assertEquals(3, $ret['ret']);
 
-        }
+    }
+
+    public function testHold() {
+        assertTrue($this->user->login('testpw'));
+        $this->user->setPrivate('systemrole', User::ROLE_MODERATOR);
+
+        $ret = $this->call('volunteering', 'POST', [
+            'title' => 'UTTest',
+            'location' => 'UTTest',
+            'description' => 'UTTest',
+            'groupid' => $this->groupid
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        assertNotNull($id);
+        $this->log("Created event $id");
+
+        $ret = $this->call('volunteering', 'GET', [
+            'id' => $id
+        ]);
+
+        assertFalse(array_key_exists('heldby', $ret['volunteering']));
+
+        $ret = $this->call('volunteering', 'PATCH', [
+            'id' => $id,
+            'groupid' => $this->groupid,
+            'action' => 'Hold'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('volunteering', 'GET', [
+            'id' => $id
+        ]);
+
+        assertEquals($this->user->getId(), $ret['volunteering']['heldby']['id']);
+
+        $ret = $this->call('volunteering', 'PATCH', [
+            'id' => $id,
+            'groupid' => $this->groupid,
+            'action' => 'Release'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('volunteering', 'GET', [
+            'id' => $id
+        ]);
+
+        assertFalse(array_key_exists('heldby', $ret['volunteering']));
+    }
 }
 
