@@ -1458,7 +1458,7 @@ ORDER BY t.timestamp DESC LIMIT 10
     public function listByType($type, $support, $polys = FALSE) {
         $typeq = $type ? "type = ?" : '1=1';
         $showq = $support ? '' : 'AND publish = 1 AND listable = 1';
-        $suppfields = $support ? ", lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
+        $suppfields = $support ? ", founded, lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
         $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, mentored, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
