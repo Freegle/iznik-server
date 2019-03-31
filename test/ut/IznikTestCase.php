@@ -14,7 +14,7 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
 abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     const LOG_SLEEP = 600;
     const YAHOO_PATIENCE = 600;
-    const DEBUG = FALSE;
+    const DEBUG = TRUE;
 
     private $dbhr, $dbhm;
 
@@ -22,7 +22,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
     public function log($str) {
         if (IznikTestCase::DEBUG) {
-            $this->log($str);
+            error_log($str);
         }
     }
 
@@ -39,6 +39,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';", []);
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'test@test.com';", []);
         $this->dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'moctset%';");
+        $this->dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email LIKE 'test1@" . USER_DOMAIN . "';");
         $this->dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email LIKE 'test2@" . USER_DOMAIN . "';");
         $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1' ]);
         $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'em01169273-046c-46be-b8f7-69ad036067d0@edward-x1' ]);

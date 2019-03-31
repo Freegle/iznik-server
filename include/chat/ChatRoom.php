@@ -1343,7 +1343,7 @@ WHERE chat_rooms.id IN $idlist;";
         return ($ret);
     }
 
-    public function getMembersStatus($lastmessage, $delay = 10)
+    public function getMembersStatus($lastmessage, $delay = 600)
     {
         # There are some general restrictions on when we email:
         # - When we have a new message since our last email, we don't email more often than every 10 minutes, so that if
@@ -1356,7 +1356,7 @@ WHERE chat_rooms.id IN $idlist;";
             # seen message was and decide who to chase.  If they've blocked this chat we don't want to see it.
             #
             # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
-            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != 'Blocked') HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > $delay);";
+            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != 'Blocked') HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) > $delay);";
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
             foreach ($users as $user) {
@@ -1454,7 +1454,7 @@ WHERE chat_rooms.id IN $idlist;";
         return ($ret);
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 10)
+    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 600)
     {
         # We want to find chatrooms with messages which haven't been mailed to people.  We always email messages,
         # even if they are seen online.
@@ -1481,7 +1481,8 @@ WHERE chat_rooms.id IN $idlist;";
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
             $lastmaxmailed = $r->lastMailedToAll();
-            $maxmailednow = 0;
+            $maxbugspot = 0;
+            $sentsome = FALSE;
             $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $delay);
 
             #error_log("Notmailed " . count($notmailed) . " with last message {$chatatts['lastmsg']}");
@@ -1532,7 +1533,7 @@ WHERE chat_rooms.id IN $idlist;";
                         # to get rid of the unicode.
                         $unmailedmsg['message'] = preg_replace('/\\\\u.*?\\\\u/', ':-)', $unmailedmsg['message']);
 
-                        $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
+                        $maxbugspot = max($maxbugspot, $unmailedmsg['id']);
 
                         if ($mailson) {
                             if (!$firstid) {
@@ -1842,6 +1843,8 @@ WHERE chat_rooms.id IN $idlist;";
 
                                     $this->mailer($message);
 
+                                    $sentsome = TRUE;
+
                                     if (RETURN_PATH && !pres('seed', $member)) {
                                         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                             $lastmsgemailed,
@@ -1865,14 +1868,29 @@ WHERE chat_rooms.id IN $idlist;";
                 }
             }
 
-            if ($maxmailednow) {
+            if ($sentsome) {
                 # We have now mailed some more.  Note that this is resilient to new messages arriving while we were
-                # looping above, and we will mail those next time.
+                # looping above, because of lastmaxmailed, and we will mail those next time.
+                #
+                # Find the max message we have mailed to all members of the chat.  Note that this might be less than
+                # the max message we just sent.  We might have mailed a message to one user in the chat but not another
+                # because we might have thought it was too soon to mail again.  So we need to get it from the roster.
+                $mailedtoall = PHP_INT_MAX;
+                $maxes = $this->dbhm->preQuery("SELECT lastmsgemailed, userid FROM chat_roster WHERE chatid = ? GROUP BY userid", [
+                    $chat['chatid']
+                ]);
+                foreach ($maxes as $max) {
+                    $mailedtoall = min($mailedtoall, $max['lastmsgemailed']);
+                }
+
+                # Delete after 30/04/2019.
+                if ($mailedtoall < $maxbugspot) { error_log("Aha! chat bug $mailedtoall vs $maxbugspot"); }
+
                 $lastmaxmailed = $lastmaxmailed ? $lastmaxmailed : 0;
                 #error_log("Set mailedto all for $lastmaxmailed to $maxmailednow for {$chat['chatid']}");
                 $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id > ? AND id <= ? AND chatid = ?;", [
                     $lastmaxmailed,
-                    $maxmailednow,
+                    $mailedtoall,
                     $chat['chatid']
                 ]);
             }

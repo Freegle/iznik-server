@@ -201,7 +201,7 @@ class chatRoomsTest extends IznikTestCase {
         assertNull($r->replyTime($u1));
         assertNotNull($r->replyTime($u2));
 
-        }
+    }
 
     public function testNotifyUser2UserOwn() {
         $this->log(__METHOD__ );
@@ -212,14 +212,14 @@ class chatRoomsTest extends IznikTestCase {
         $u->addMembership($this->groupid);
         $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);
-        $u->setSetting('notifications', [
-            User::NOTIFS_EMAIL_MINE => TRUE
-        ]);
 
         $u2 = $u->create(NULL, NULL, "Test User 2");
         $u->addMembership($this->groupid);
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
+        $u->setSetting('notifications', [
+            User::NOTIFS_EMAIL_MINE => TRUE
+        ]);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $id = $r->createConversation($u1, $u2);
@@ -237,14 +237,105 @@ class chatRoomsTest extends IznikTestCase {
         assertNotNull($id);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # Send a message from 1 -> 2
+        # Notify - should be 1 (notification to u2, no copy required)
         $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
-        $this->log("Created chat message $cm");
+        $this->log("$cm: Will email just $u2");
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
-        # Notify - will email both.
-        $this->log("Will email both $u1 and $u2");
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        # Reply from 2 -> 1
+        # Notify - should be 1 (copy to u2 too soon, notification to u1 OK)
+        $cm = $m->create($id, $u2, "Testing 1", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("$cm: Will email just $u1");
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
-        }
+        sleep(31);
+
+        # Notify again - will send copy to u2.  There was a bug here where the previous notify was marking all as
+        # sent and therefore this didn't happen.
+        $this->log("$cm: Will email just $u2");
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+
+        # Reply back from 1 -> 2
+        # Notify - none (too soon)
+        $cm = $m->create($id, $u1, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("$cm: Will email none");
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+
+        # Reply back from 2 -> 1
+        # Notify - just 1 (notification to u1 OK, too soon for copy to u2)
+        $cm = $m->create($id, $u2, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("$cm: Will email just $u1");
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+
+        # Wait
+        sleep(31);
+
+        # Notify - should be 1 (delayed copy)
+        $this->log("$cm: Will email just $u2");
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+    }
+
+    public function testNotifyUser2UserOwn2() {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+        $u->setSetting('notifications', [
+            User::NOTIFS_EMAIL_MINE => TRUE
+        ]);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->willReturn(TRUE);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+        $this->log("Chat room $id for $u1 <-> $u2");
+        assertNotNull($id);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # Send a message from 2 -> 1
+        # Notify - should be 2 (notification to u1, copy required)
+        $cm = $m->create($id, $u2, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("$cm: Will email both $u1 and $u2");
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+
+        # Reply from 1 -> 2
+        # Notify - should be 0 (copy to u2 too soon, notification to u1 too soon)
+        $cm = $m->create($id, $u1, "Testing 1", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("$cm: Will email none");
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+
+        # Reply back from 2 -> 1
+        # Notify - none (still too soon)
+        $cm = $m->create($id, $u2, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("$cm: Will email none");
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+
+        sleep(31);
+
+        # Notify again - should be the delayed 2 now.
+        $this->log("$cm: Will email both $u1 and $u2");
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+    }
 
     public function testNotifyAddress() {
         $this->log(__METHOD__ );
