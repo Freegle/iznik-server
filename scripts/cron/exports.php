@@ -8,7 +8,7 @@ $lockh = lockScript(basename(__FILE__));
 
 error_log("Start exports script");
 
-do {
+for ($i = 0; $i < 10; $i++) {
     try {
         $exports = $dbhr->preQuery("SELECT * FROM users_exports WHERE completed IS NULL ORDER BY id ASC;");
 
@@ -24,10 +24,14 @@ do {
         $dbhm->preExec("UPDATE users_exports SET data = NULL WHERE completed IS NOT NULL AND completed < '$mysqltime';");
     } catch (Exception $e) {
         error_log("Top-level exception " . $e->getMessage() . "\n");
+
+        if (strpos($e->getMessage(), 'Call to a member function prepare() on a non-object (null)') !== FALSE) {
+            break;
+        }
     }
 
     sleep(30);
-} while (true);
+}
 
 error_log("End export script");
 
