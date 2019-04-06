@@ -8,7 +8,8 @@ $lockh = lockScript(basename(__FILE__));
 
 error_log("Start exports script");
 
-for ($i = 0; $i < 10; $i++) {
+# When standalone for Travis want this to run forver
+for ($i = 0; $i < getenv('STANDALONE') ? 10000 : 10; $i++) {
     try {
         $exports = $dbhr->preQuery("SELECT * FROM users_exports WHERE completed IS NULL ORDER BY id ASC;");
 
