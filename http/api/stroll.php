@@ -20,6 +20,16 @@ function stroll() {
 
             break;
         }
+
+        case 'POST': {
+            $sponsorname = presdef('sponsorname', $_REQUEST);
+
+            if ($sponsorname) {
+                $dbhm->preExec("INSERT INTO stroll_sponsors (name) VALUES (?)", [
+                    $sponsorname
+                ]);
+            }
+        }
     }
 
     return($ret);
