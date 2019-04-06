@@ -25,7 +25,7 @@ $config = array(
     "acct1.UserName" => PAYPAL_USERNAME,
     "acct1.Password" => PAYPAL_PASSWORD,
     "acct1.Signature" => PAYPAL_SIGNATURE
-);
+); //
 
 $ipnMessage = new PPIPNMessage(null, $config);
 $transaction = $ipnMessage->getRawData();
