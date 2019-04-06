@@ -57,7 +57,7 @@ EOT;
                                                                 <p>It's very kind of you to donate to us.  We realise that there are a lot of charities asking for your help.</p>
                                                                 <p>Your donation will go further if you complete a Gift Aid declaration - please click <a href="https://www.paypal.com/donate/giftaid">here</a> to do that.</p>
                                                                 <p>If you'd like to support us more without it costing you a penny, you can use <b>Give As You Live</b> - when you shop online, they donate.  Click <a href="https://www.giveasyoulive.com/join/freegle">here</a> to learn more.</p>
-                                                                <p>And if you ever want to set up a regular donation of &pound&pound;1 each month, you can do so from PayPal <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA">here</a>.</p>
+                                                                <p>And if you ever want to set up a regular donation of &pound;1 each month, you can do so from PayPal <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA">here</a>.</p>
                                                                 <p>Freegle is run by volunteers - if you'd like to volunteer with us then drop us a line at <a href="mailto:$vols">$vols</a> with a bit about yourself.</a>
                                                                 <p>But most importantly, <a href="$visiturl">keep freegling</a>!  The planet and your neighbours will be grateful.</p>
                                                             </td>
