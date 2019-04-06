@@ -10,6 +10,10 @@ function stroll() {
             $sponsors = $dbhr->preQuery("SELECT * FROM stroll_sponsors ORDER BY id ASC");
             $nights = $dbhr->preQuery("SELECT * FROM stroll_nights ORDER BY id ASC");
 
+            foreach ($sponsors as &$sponsor) {
+                $sponsor['timestamp'] = ISODate($sponsor['timestamp']);
+            }
+
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',
@@ -22,12 +26,19 @@ function stroll() {
         }
 
         case 'POST': {
-            $sponsorname = presdef('sponsorname', $_REQUEST);
+            $sponsorname = presdef('sponsorname', $_REQUEST, NULL);
+            error_log("Sponsor $sponsorname");
 
             if ($sponsorname) {
                 $dbhm->preExec("INSERT INTO stroll_sponsors (name) VALUES (?)", [
                     $sponsorname
                 ]);
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'id' => $dbhm->lastInsertId()
+                ];
             }
         }
     }
