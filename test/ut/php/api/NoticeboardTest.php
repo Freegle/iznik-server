@@ -34,10 +34,6 @@ class noticeboardAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        # Create logged out - error
-        $ret = $this->call('noticeboard', 'POST', []);
-        assertEquals(1, $ret['ret']);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));

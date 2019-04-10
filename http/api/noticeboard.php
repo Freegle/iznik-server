@@ -31,43 +31,18 @@ function noticeboard() {
         }
 
         case 'POST': {
+            $name = presdef('name', $_REQUEST, NULL);
+            $lat = pres('lat', $_REQUEST) ? floatval($_REQUEST['lat']) : NULL;
+            $lng = pres('lng', $_REQUEST) ? floatval($_REQUEST['lng']) : NULL;
+            $description = presdef('description', $_REQUEST, NULL);
+
             $ret = [
-                'ret' => 1,
-                'status' => 'Not logged in'
-                ];
-
-            if ($me) {
-                $name = presdef('name', $_REQUEST, NULL);
-                $lat = pres('lat', $_REQUEST) ? floatval($_REQUEST['lat']) : NULL;
-                $lng = pres('lng', $_REQUEST) ? floatval($_REQUEST['lng']) : NULL;
-                $description = presdef('description', $_REQUEST, NULL);
-
-                $ret = [
-                    'ret' => 2,
-                    'status' => 'Create failed'
-                ];
-
-                if ($lat || $lng) {
-                    $id = $n->create($name, $lat, $lng, $me->getId(), $description);
-
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'id' => $id
-                    ];
-                }
-            }
-            break;
-        }
-
-        case 'PATCH': {
-            $ret = [
-                'ret' => 1,
-                'status' => 'Not logged in'
+                'ret' => 2,
+                'status' => 'Create failed'
             ];
 
-            if ($me) {
-                $id = $n->setAttributes($_REQUEST);
+            if ($lat || $lng) {
+                $id = $n->create($name, $lat, $lng, $me ? $me->getId() : NULL, $description);
 
                 $ret = [
                     'ret' => 0,
@@ -75,6 +50,17 @@ function noticeboard() {
                     'id' => $id
                 ];
             }
+            break;
+        }
+
+        case 'PATCH': {
+            $id = $n->setAttributes($_REQUEST);
+
+            $ret = [
+                'ret' => 0,
+                'status' => 'Success',
+                'id' => $id
+            ];
             break;
         }
     }
