@@ -72,6 +72,26 @@ class noticeboardAPITest extends IznikAPITestCase {
         assertEquals('Test description', $ret['noticeboard']['description']);
         assertEquals(8.5333, $ret['noticeboard']['lat']);
         assertEquals(179.2167, $ret['noticeboard']['lng']);
+
+        $ret = $this->call('noticeboard', 'PATCH', [
+            'id' => $id,
+            'name' => 'UTTest2',
+            'lat' => 9.53333,
+            'lng' => 180.2167,
+            'description' => 'Test description2'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('noticeboard', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['noticeboard']['id']);
+        assertEquals('UTTest2', $ret['noticeboard']['name']);
+        assertEquals('Test description2', $ret['noticeboard']['description']);
+        assertEquals(9.5333, $ret['noticeboard']['lat']);
+        assertEquals(180.2167, $ret['noticeboard']['lng']);
     }
 }
 

@@ -59,6 +59,24 @@ function noticeboard() {
             }
             break;
         }
+
+        case 'PATCH': {
+            $ret = [
+                'ret' => 1,
+                'status' => 'Not logged in'
+            ];
+
+            if ($me) {
+                $id = $n->setAttributes($_REQUEST);
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'id' => $id
+                ];
+            }
+            break;
+        }
     }
 
     return($ret);
