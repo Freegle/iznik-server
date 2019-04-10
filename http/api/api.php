@@ -115,6 +115,7 @@ require_once(IZNIK_BASE . '/http/api/export.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
 require_once(IZNIK_BASE . '/http/api/newsfeed.php');
+require_once(IZNIK_BASE . '/http/api/noticeboard.php');
 require_once(IZNIK_BASE . '/http/api/invitation.php');
 require_once(IZNIK_BASE . '/http/api/item.php');
 require_once(IZNIK_BASE . '/http/api/usersearch.php');
@@ -412,6 +413,9 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     break;
                 case 'newsfeed':
                     $ret = newsfeed();
+                    break;
+                case 'noticeboard':
+                    $ret = noticeboard();
                     break;
                 case 'notification':
                     $ret = notification();
