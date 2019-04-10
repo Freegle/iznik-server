@@ -249,6 +249,10 @@ EOF;
 
             $title = "Click to read your reply";
             $desc = "We passed on your message and got a reply - click here to read it.";
+        } else if (preg_match('/\/invite/', $_SERVER["REQUEST_URI"]) || preg_match('/\/spread/', $_SERVER["REQUEST_URI"])) {
+            # External link to a chat reply.
+            $title = "Spread the word about Freegle";
+            $desc = "Help us to spread the word and get more people freegling.";
         } else if (preg_match('/\/newsfeed\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
             # External link to a newsfeed thread.
             require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
