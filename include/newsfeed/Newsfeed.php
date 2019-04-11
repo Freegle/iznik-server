@@ -589,7 +589,7 @@ class Newsfeed extends Entity
     private function snip(&$msg, $len = 117) {
         if ($msg) {
             $msg = str_replace("\n", ' ', $msg);
-            if (strlen($msg) > $len) {
+            if (strlen($msg) > $len && strpos($msg, "\n") !== FALSE) {
                 $msg = substr($msg, 0, strpos(wordwrap($msg, $len + 3), "\n")) . '...';
             }
         }
@@ -650,36 +650,39 @@ class Newsfeed extends Entity
                     $this->snip($str);
                     $feed['message'] = $str;
 
-                    $short = $feed['message'];
-                    $this->snip($short, 40);
-                    $subj = '"' . $short . '" ' . " ($count conversations " . ($count != 1 ? 's' : '') . " from your neighbours)";
-                    $subj = str_replace('""', '"', $subj);
+                    # Don't include short and dull ones.
+                    if (strlen($str) > 40) {
+                        $short = $feed['message'];
+                        $this->snip($short, 40);
+                        $subj = '"' . $short . '" ' . " ($count conversation" . ($count != 1 ? 's' : '') . " from your neighbours)";
+                        $subj = str_replace('""', '"', $subj);
 
-                    $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
-                    $fromname = $u->getName();
-                    $feed['fromname'] = $fromname;
-                    $feed['timestamp'] = date("D, jS F g:ia", strtotime($feed['timestamp']));
+                        $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
+                        $fromname = $u->getName();
+                        $feed['fromname'] = $fromname;
+                        $feed['timestamp'] = date("D, jS F g:ia", strtotime($feed['timestamp']));
 
-                    $textsumm .= $fromname . " posted '$str'\n";
+                        $textsumm .= $fromname . " posted '$str'\n";
 
-                    if (pres('replies', $feed)) {
-                        # Just keep the last five replies.
-                        $feed['replies'] = array_slice($feed['replies'], -5);
-                        #error_log("Got " . count($feed['replies']));
+                        if (pres('replies', $feed)) {
+                            # Just keep the last five replies.
+                            $feed['replies'] = array_slice($feed['replies'], -5);
+                            #error_log("Got " . count($feed['replies']));
 
-                        foreach ($feed['replies'] as &$reply) {
-                            $u2 = User::get($this->dbhr, $this->dbhm, $reply['userid']);
-                            $reply['fromname'] = $u2->getName();
-                            $reply['timestamp'] = date("D, jS F g:ia", strtotime($reply['timestamp']));
-                            $short2 = $reply['message'];
-                            $this->snip($short2, 40);
-                            $textsumm .= "  {$reply['fromname']}: $short2\n";
+                            foreach ($feed['replies'] as &$reply) {
+                                $u2 = User::get($this->dbhr, $this->dbhm, $reply['userid']);
+                                $reply['fromname'] = $u2->getName();
+                                $reply['timestamp'] = date("D, jS F g:ia", strtotime($reply['timestamp']));
+                                $short2 = $reply['message'];
+                                $this->snip($short2, 40);
+                                $textsumm .= "  {$reply['fromname']}: $short2\n";
+                            }
                         }
+
+                        $textsumm .= "\n";
+
+                        $twigitems[] = $feed;
                     }
-
-                    $textsumm .= "\n";
-
-                    $twigitems[] = $feed;
 
                     #error_log("Consider max $max, {$feed['id']}, " . max($max, $feed['id']) );
                     $max = max($max, $feed['id']);
