@@ -149,7 +149,7 @@ class Admin extends Entity
 
         foreach ($membs as $memb) {
             if ($memb['work']['pendingadmins']) {
-                $admins = array_merge($admins, $this->dbhr->preQuery("SELECT id FROM admins WHERE groupid = ? ORDER BY created DESC;", [ $memb['id']]));
+                $admins = array_merge($admins, $this->dbhr->preQuery("SELECT id FROM admins WHERE groupid = ? AND pending = 1 AND complete IS NULL ORDER BY created DESC;", [ $memb['id']]));
             }
         }
 

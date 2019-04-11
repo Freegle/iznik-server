@@ -103,6 +103,15 @@ class adminAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['admins'][0]['id']);
 
+        # And in work.
+        $ret = $this->call('session', 'GET', [
+            'components' => [
+                'work'
+            ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['work']['pendingadmins']);
+
         # Now approve it and send
         $ret = $this->call('admin', 'PATCH', [ 'id' => $id, 'pending' => 0 ]);
         assertEquals(0, $ret['ret']);
