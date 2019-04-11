@@ -19,12 +19,19 @@ function admin() {
                     'status' => 'Success',
                     'admin' => $a->getPublic()
                 ];
-            } else if ($groupid) {
+            } else if ($me && $groupid) {
                 # We want to list the admins for this group.
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
                     'admins' => $a->listForGroup($groupid)
+                ];
+            } else if ($me) {
+                # Get all pending for this user.
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'admins' => $a->listPending($me->getId())
                 ];
             }
             break;

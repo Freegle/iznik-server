@@ -98,6 +98,11 @@ class adminAPITest extends IznikAPITestCase
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR, $eid);
         assertEquals(0, $a->process($id));
 
+        # Check it shows as pending.
+        $ret = $this->call('admin', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['admins'][0]['id']);
+
         # Now approve it and send
         $ret = $this->call('admin', 'PATCH', [ 'id' => $id, 'pending' => 0 ]);
         assertEquals(0, $ret['ret']);

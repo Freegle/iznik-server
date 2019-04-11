@@ -141,6 +141,26 @@ class Admin extends Entity
         return($ret);
     }
 
+    public function listPending($userid) {
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+        $membs = $u->getMemberships(TRUE, NULL, TRUE);
+        $ret = [];
+        $admins = [];
+
+        foreach ($membs as $memb) {
+            if ($memb['work']['pendingadmins']) {
+                $admins = array_merge($admins, $this->dbhr->preQuery("SELECT id FROM admins WHERE groupid = ? ORDER BY created DESC;", [ $memb['id']]));
+            }
+        }
+
+        foreach ($admins as $admin) {
+            $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
+            $ret[] = $a->getPublic();
+        }
+
+        return($ret);
+    }
+
     public function delete() {
         $this->dbhm->preExec("DELETE FROM admins WHERE id = ?;", [
             $this->id
