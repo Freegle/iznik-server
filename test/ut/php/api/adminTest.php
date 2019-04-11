@@ -108,5 +108,7 @@ class adminAPITest extends IznikAPITestCase
         $this->dbhm->preExec("UPDATE admins SET complete = NULL WHERE id = $id");
         assertEquals(0, $a->process($id));
 
-        }
+        $ret = $this->call('admin', 'DELETE', [ 'id' => $id ]);
+        assertEquals(0, $ret['ret']);
+    }
 }

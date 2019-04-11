@@ -140,5 +140,11 @@ class Admin extends Entity
 
         return($ret);
     }
+
+    public function delete() {
+        $this->dbhm->preExec("DELETE FROM admins WHERE id = ?;", [
+            $this->id
+        ]);
+    }
 }
 
