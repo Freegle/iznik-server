@@ -104,15 +104,16 @@ class newsfeedAPITest extends IznikAPITestCase {
         self::assertEquals('Test with url https://google.co.uk', $ret['newsfeed']['message']);
 
         # Edit it.
+        $newsfeedtext = 'Test2 with url https://google.co.uk with some extra length to make sure it gets digested';
         $ret = $this->call('newsfeed', 'PATCH', [
             'id' => $nid,
-            'message' => 'Test2 with url https://google.co.uk'
+            'message' => $newsfeedtext
         ]);
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
         ]);
         assertEquals(0, $ret['ret']);
-        self::assertEquals('Test2 with url https://google.co.uk', $ret['newsfeed']['message']);
+        self::assertEquals($newsfeedtext, $ret['newsfeed']['message']);
 
         # Should mail out to the other user.
         $n = $this->getMockBuilder('Newsfeed')
@@ -163,7 +164,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
-        self::assertEquals('Test2 with url https://google.co.uk', $ret['newsfeed'][0]['message']);
+        self::assertEquals($newsfeedtext, $ret['newsfeed'][0]['message']);
         assertEquals(1, count($ret['users']));
         self::assertEquals($this->uid, array_pop($ret['users'])['id']);
         self::assertEquals($mid, $ret['newsfeed'][0]['refmsg']['id']);
@@ -196,7 +197,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
         $this->log("Payload $title for $total");
         assertEquals(2, $total);
-        assertEquals("Test User loved your post 'Test2 with url https://google.co.uk' +1 more...", $title);
+        assertEquals("Test User loved your post 'Test2 with url https://google.co.uk with some extra length...' +1 more...", $title);
 
         $ret = $this->call('notification', 'GET', []);
         $this->log("Notifications " . var_export($ret, TRUE));
