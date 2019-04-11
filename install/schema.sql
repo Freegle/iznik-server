@@ -140,6 +140,7 @@ CREATE TABLE `admins` (
   `complete` timestamp NULL DEFAULT NULL,
   `subject` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `text` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pending` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   KEY `createdby` (`createdby`)
