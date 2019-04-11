@@ -40,7 +40,7 @@
                 {% if notification.type == 'CommentOnCommented' %}
               </mj-raw>
               <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
-                  <b>{{ notification.fromname }}</b> <font color="grey"> replied to your comment:</font>
+                  <b>{{ notification.fromname }}</b> <font color="grey"> commented on "{{ notification.newsfeed.replyto.message }} ":</font>
                   <br /><br /><em>{{ notification.newsfeed.message }}</em>
               </mj-text>
               <mj-raw>
@@ -65,6 +65,13 @@
                   <br /><br /><em>{{ notification.newsfeed.message }}</em>
               </mj-text>
               <mj-raw>
+                {% elseif notification.type == 'Exhort' %}
+              </mj-raw>
+              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+                  <b>{{ notification.title }}</b> <font color="grey"></font>
+                  <br /><br /><em>{{ notification.text }}</em>
+              </mj-text>
+              <mj-raw>
                 {% endif %}
               </mj-raw>
               <br />
@@ -74,7 +81,17 @@
           </mj-column>
           <mj-column>
             <mj-button align="right" href="https://www.ilovefreegle.org/newsfeed/{{ notification.newsfeed.id }}" background-color="darkgreen">
+              <mj-raw>
+                {% if notification.type == 'Exhort' %}
+              </mj-raw>
+              Click here!
+              <mj-raw>
+                {% else %}
+              </mj-raw>
               View thread
+              <mj-raw>
+                {% endif %}
+              </mj-raw>
             </mj-button>
           </mj-column>
         </mj-section>

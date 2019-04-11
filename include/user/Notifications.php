@@ -222,10 +222,10 @@ class Notifications
 
         foreach ($users as $user) {
             $u = new User($this->dbhr, $this->dbhm, $user['touser']);
-            error_log("Consider {$user['touser']} email " . $u->getEmailPreferred());
+            #error_log("Consider {$user['touser']} email " . $u->getEmailPreferred());
 
             if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
-                error_log("...send");
+                #error_log("...send");
                 $ctx = NULL;
                 $notifs = $this->get($user['touser'], $ctx);
 
@@ -239,8 +239,11 @@ class Notifications
                         #error_log("Message is {$notif['newsfeed']['message']} len " . strlen($notif['newsfeed']['message']));
                         $fromname = ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone");
                         $notif['fromname'] = $fromname;
-                        $notif['timestamp'] = date("D, jS F g:ia", strtotime($notif['timestamp']));
                         $twignotifs[] = $notif;
+                    }
+
+                    if (pres('newsfeed', $notif) && pres('replyto', $notif['newsfeed'])) {
+                        $this->snip($notif['newsfeed']['replyto']['message']);
                     }
                 }
 

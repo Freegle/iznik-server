@@ -13,7 +13,7 @@ $lockh = lockScript(basename(__FILE__));
 
 $n = new Notifications($dbhr, $dbhm);
 
-$count = $n->sendEmails();
+$count = $n->sendEmails(NULL, 'half an hour ago', '24 hours ago');
 error_log("Send $count notification chaseups");
 
 unlockScript($lockh);
