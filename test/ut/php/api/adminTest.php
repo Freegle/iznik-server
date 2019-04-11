@@ -79,6 +79,8 @@ class adminAPITest extends IznikAPITestCase
             }
         }
 
+        assertEquals(1, $ret['admin']['pending']);
+
         # And also get it via list.
         $ret = $this->call('admin', 'GET', [ 'groupid' => $this->groupid ]);
         assertEquals(0, $ret['ret']);
@@ -89,11 +91,16 @@ class adminAPITest extends IznikAPITestCase
         assertEquals(0, $a->process($id));
         $this->dbhm->preExec("UPDATE admins SET complete = NULL WHERE id = $id");
 
-        # Send again with an email present.
+        # Send again with an email present - still none as pending.
         $this->user->addEmail('test@blackhole.io', 1, TRUE);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $eid = $this->user->addEmail($email, 0, FALSE);
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR, $eid);
+        assertEquals(0, $a->process($id));
+
+        # Now approve it and send
+        $ret = $this->call('admin', 'PATCH', [ 'id' => $id, 'pending' => 0 ]);
+        assertEquals(0, $ret['ret']);
         assertEquals(1, $a->process($id));
 
         # Fake error for coverage

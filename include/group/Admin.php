@@ -11,7 +11,8 @@ require_once(IZNIK_BASE . '/mailtemplates/admin.php');
 class Admin extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby');
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby', 'pending');
+    var $settableatts = [ 'subject', 'text', 'pending' ];
 
     /** @var  $log Log */
     private $log;
@@ -79,7 +80,7 @@ class Admin extends Entity
     public function process($id = NULL) {
         $done = 0;
         $idq = $id ? " id = $id AND " : '';
-        $sql = "SELECT * FROM admins WHERE $idq complete IS NULL;";
+        $sql = "SELECT * FROM admins WHERE $idq complete IS NULL AND pending = 0;";
         $admins = $this->dbhr->preQuery($sql);
 
         foreach ($admins as $admin) {

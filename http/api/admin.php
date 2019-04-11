@@ -51,6 +51,26 @@ function admin() {
                     }
                 }
             }
+            break;
+        }
+
+        case 'PATCH': {
+            $ret = ['ret' => 1, 'status' => 'Not logged in'];
+
+            if ($me) {
+                $ret = ['ret' => 2, 'status' => "Can't create an admin on that group" ];
+
+                #error_log("Check mod for admin $id , group " . $a->getPrivate('groupid'));
+                if ($me->isModOrOwner($a->getPrivate('groupid'))) {
+                    $a->setAttributes($_REQUEST);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                    ];
+                }
+            }
+            break;
         }
     }
 

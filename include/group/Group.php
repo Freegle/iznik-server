@@ -410,6 +410,8 @@ class Group extends Entity
                 $eventsqltime
             ]);
 
+            $pendingadmins = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid IN $groupq AND admin.completed IS NULL AND admin.pending = 1 GROUP BY groupid;");
+
             # We only want to show edit reviews upto 7 days old - after that assume they're ok.
             #
             # See also MessageCollection.
@@ -435,7 +437,8 @@ class Group extends Entity
                     'pendingvolunteering' => 0,
                     'spammembers' => 0,
                     'spammembersother' => 0,
-                    'editreview' => 0
+                    'editreview' => 0,
+                    'pendingadmins' => 0
                 ];
 
                 if ($active) {
@@ -488,6 +491,12 @@ class Group extends Entity
                     foreach ($editreviewcounts as $count) {
                         if ($count['groupid'] == $groupid) {
                             $thisone['editreview'] = $count['count'];
+                        }
+                    }
+
+                    foreach ($pendingadmins as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['pendingadmins'] = $count['count'];
                         }
                     }
                 } else {
