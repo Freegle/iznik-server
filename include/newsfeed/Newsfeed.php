@@ -633,8 +633,6 @@ class Newsfeed extends Entity
             foreach ($feeds as &$feed) {
                 #error_log("Compare {$feed['userid']} vs $userid, unseen $unseen, feed {$feed['id']} vs $lastseen, timestamp {$feed['timestamp']} vs $oldest");
                 if ($feed['userid'] != $userid && (!$unseen || $feed['id'] > $lastseen) && $feed['timestamp'] > $oldest && pres('message', $feed) && !$feed['deleted']) {
-                    $count++;
-
                     $str = $feed['message'];
 
                     switch ($feed['type']) {
@@ -652,6 +650,8 @@ class Newsfeed extends Entity
 
                     # Don't include short and dull ones.
                     if (strlen($str) > 40) {
+                        $count++;
+
                         $short = $feed['message'];
                         $this->snip($short, 40);
                         $subj = '"' . $short . '" ' . " ($count conversation" . ($count != 1 ? 's' : '') . " from your neighbours)";
