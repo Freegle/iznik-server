@@ -39,6 +39,7 @@ class Newsfeed extends Entity
     const TYPE_REFER_TO_RECEIVED = 'ReferToReceived';
     const TYPE_ATTACH_TO_THREAD = 'AttachToThread';
     const TYPE_ABOUT_ME = 'AboutMe';
+    const TYPE_NOTICEBOARD = 'Noticeboard';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -49,19 +50,23 @@ class Newsfeed extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
     }
 
-    public function create($type, $userid = NULL, $message = NULL, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL) {
+    public function create($type, $userid = NULL, $message = NULL, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL, $lat = NULL, $lng = NULL) {
         $id = NULL;
 
         $s = new Spam($this->dbhr, $this->dbhm);
         $hidden = $s->checkReferToSpammer($message) ? 'NOW()' : 'NULL';
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        list($lat, $lng, $loc) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL, NULL ];
-
-        # If we don't know where the user is, use the group location.
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-        $lat = ($groupid && $lat === NULL) ? $g->getPrivate('lat') : $lat;
-        $lng = ($groupid && $lng === NULL) ? $g->getPrivate('lng') : $lng;
+
+        if ($lat === NULL) {
+            # We might have been given a lat/lng separate from the user, e.g. for noticeboards.
+            list($lat, $lng, $loc) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL, NULL ];
+
+            # If we don't know where the user is, use the group location.
+            $lat = ($groupid && $lat === NULL) ? $g->getPrivate('lat') : $lat;
+            $lng = ($groupid && $lng === NULL) ? $g->getPrivate('lng') : $lng;
+        }
 
 #        error_log("Create at $lat, $lng");
 
@@ -623,7 +628,7 @@ class Newsfeed extends Entity
 
             # Get the first few user-posted messages within 10 miles.
             $ctx = NULL;
-            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY, Newsfeed::TYPE_ABOUT_ME ], $ctx, TRUE);
+            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY, Newsfeed::TYPE_ABOUT_ME, Newsfeed::TYPE_NOTICEBOARD ], $ctx, TRUE);
             $textsumm = '';
             $twigitems = [];
             $max = 0;
@@ -638,6 +643,10 @@ class Newsfeed extends Entity
                     switch ($feed['type']) {
                         case Newsfeed::TYPE_ABOUT_ME: {
                             $str = '"' . $str . '"';
+                            break;
+                        }
+                        case Newsfeed::TYPE_NOTICEBOARD: {
+                            $str = 'put up a poster for Freegle';
                             break;
                         }
                     }
@@ -797,6 +806,10 @@ class Newsfeed extends Entity
                 switch ($feed['type']) {
                     case Newsfeed::TYPE_ABOUT_ME: {
                         $str = '"' . $str . '"';
+                        break;
+                    }
+                    case Newsfeed::TYPE_NOTICEBOARD: {
+                        $str = 'put up a poster for Freegle';
                         break;
                     }
                 }

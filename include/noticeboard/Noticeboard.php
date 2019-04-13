@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 
 class Noticeboard extends Entity
 {
@@ -28,6 +29,7 @@ class Noticeboard extends Entity
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
             $this->fetch($this->dbhm, $this->dbhm, $id, 'noticeboards', 'noticeboard', $this->publicatts);
+            $this->addNews();
         }
 
         return($id);
@@ -47,6 +49,14 @@ class Noticeboard extends Entity
         $atts['lastcheckedat'] = ISODate($atts['lastcheckedat']);
 
         return($atts);
+    }
+
+    public function addNews()
+    {
+        $n = new Newsfeed($this->dbhr, $this->dbhm);
+        $toenc = $this->noticeboard;
+        unset($toenc['position']);
+        $n->create(Newsfeed::TYPE_NOTICEBOARD, $this->noticeboard['addedby'], json_encode($toenc), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $this->noticeboard['lat'], $this->noticeboard['lng']);
     }
 }
 
