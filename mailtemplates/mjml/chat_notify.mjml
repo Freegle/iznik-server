@@ -133,10 +133,16 @@
         <mj-section background-color="#F7F6EC">
           <mj-column>
             <mj-text align="center">
-              We've removed ads from this type of mail.  Help us keep it that way by donating.
+              We've removed ads from this type of mail.  Please help us keep it that way by donating &pound;1.
             </mj-text>
-            <mj-button align="center" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA" font-family="Helvetica" background-color="darkblue" color="white">
+            <mj-button align="center" href="https://freegle.in/paypalfundraiser" font-family="Helvetica" background-color="darkblue" color="white">
               Donate
+            </mj-button>
+            <mj-text align="center">
+              We need your help to get more people freegling.  Could you put up a poster on a noticeboard?
+            </mj-text>
+            <mj-button align="center" href="https://www.ilovefreegle.org/spread" font-family="Helvetica" background-color="darkgreen" color="white">
+              Put up a poster
             </mj-button>
           </mj-column>
         </mj-section>
