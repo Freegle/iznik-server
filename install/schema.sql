@@ -3523,6 +3523,7 @@ CREATE TABLE `users_notifications` (
   `newsfeedid` bigint(20) unsigned DEFAULT NULL,
   `url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `seen` tinyint(1) NOT NULL DEFAULT '0',
+  `mailed` tinyint(1) NOT NULL DEFAULT '0',
   `title` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `text` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`),
