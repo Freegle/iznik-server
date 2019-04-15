@@ -5,9 +5,12 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/noticeboard/Noticeboard.php');
 
-$noticeboards = $dbhr->preQuery("SELECT * FROM noticeboards;");
+$noticeboards = $dbhr->preQuery("SELECT * FROM noticeboards WHERE name IS NOT NULL OR description IS NOT NULL;");
 
 foreach ($noticeboards as $noticeboard) {
     $n = new Noticeboard($dbhr, $dbhm, $noticeboard['id']);
-    $n->addNews();
+    $news = $n->addNews();
+
+    # Preserve the added time.
+    $news->setPrivate('added', $noticeboard['added']);
 }

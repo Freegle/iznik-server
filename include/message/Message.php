@@ -3217,7 +3217,7 @@ class Message
             $groupq = $this->groupid ? (" INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.groupid = " . $this->dbhr->quote($this->groupid) . " ") : '';
             $sql = "SELECT messages.id, subject, date FROM messages LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid $groupq WHERE fromuser = ? AND type = ? AND DATEDIFF(NOW(), messages.arrival) <= 31 AND messages_outcomes.id IS NULL;";
             $messages = $this->dbhr->preQuery($sql, [ $this->fromuser, $type ], FALSE);
-            error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
+            #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
             $thistime = strtotime($this->date);
 
             $mindist = PHP_INT_MAX;
