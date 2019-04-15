@@ -29,7 +29,6 @@ class Noticeboard extends Entity
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
             $this->fetch($this->dbhm, $this->dbhm, $id, 'noticeboards', 'noticeboard', $this->publicatts);
-            $this->addNews();
         }
 
         return($id);
@@ -57,6 +56,14 @@ class Noticeboard extends Entity
         $toenc = $this->noticeboard;
         unset($toenc['position']);
         $n->create(Newsfeed::TYPE_NOTICEBOARD, $this->noticeboard['addedby'], json_encode($toenc), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $this->noticeboard['lat'], $this->noticeboard['lng']);
+    }
+
+    public function setAttributes($settings)
+    {
+        parent::setAttributes($settings);
+
+        // Now that we have some info, generate a newsfeed item.
+        $this->addNews();
     }
 }
 
