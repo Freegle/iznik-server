@@ -191,7 +191,9 @@ class Notifications
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
 
+                $headers = $message->getHeaders();
                 Mail::addHeaders($message, Mail::NOTIFICATIONS_OFF, $u->getId());
+                $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $u->getId(), User::SRC_NOTIFICATIONS_EMAIL));
 
                 $this->sendIt($mailer, $message);
             }
@@ -211,7 +213,7 @@ class Notifications
         $mysqltime = date("Y-m-d H:i:s", strtotime($before));
         $mysqltime2 = date("Y-m-d H:i:s", strtotime($since));
         $seenq = $unseen ? " AND seen = 0 ": '';
-        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq AND `type` NOT IN (?, ?, ?) $userq;";
+        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq AND mailed = 0 AND `type` NOT IN (?, ?, ?) $userq;";
         $users = $this->dbhr->preQuery($sql, [
             Notifications::TYPE_TRY_FEED,
             Notifications::TYPE_EXHORT,
@@ -225,7 +227,6 @@ class Notifications
             #error_log("Consider {$user['touser']} email " . $u->getEmailPreferred());
 
             if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
-                #error_log("...send");
                 $ctx = NULL;
                 $notifs = $this->get($user['touser'], $ctx);
 
@@ -235,6 +236,10 @@ class Notifications
                 $twignotifs = [];
 
                 foreach ($notifs as &$notif) {
+                    $this->dbhm->preExec("UPDATE users_notifications SET mailed = 1 WHERE id = ?;", [
+                        $notif['id']
+                    ]);
+
                     if ((!$unseen || !$notif['seen']) && $notif['type'] != Notifications::TYPE_TRY_FEED) {
                         #error_log("Message is {$notif['newsfeed']['message']} len " . strlen($notif['newsfeed']['message']));
                         $fromname = ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone");
@@ -274,6 +279,22 @@ class Notifications
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
+
+                    if (RETURN_PATH && Mail::shouldSend(Mail::NOTIFICATIONS)) {
+                        # Also send this to the seed list so that we can measure inbox placement.
+                        #
+                        # We send this as a BCC because this plays nicer with Litmus
+                        $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
+
+                        $bcc = [];
+
+                        foreach ($seeds as $seed) {
+                            $u = User::get($this->dbhr, $this->dbhm, $seed['userid']);
+                            $bcc[] = $u->getEmailPreferred();
+                        }
+
+                        $message->setBcc($bcc);
+                    }
 
                     Mail::addHeaders($message, Mail::NOTIFICATIONS, $u->getId());
 

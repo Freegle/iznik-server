@@ -11,9 +11,13 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
+error_log("Start at " . date("Y-m-d H:i:s"));
+
 $n = new Notifications($dbhr, $dbhm);
 
-$count = $n->sendEmails(NULL, 'half an hour ago', '24 hours ago');
+$count = $n->sendEmails(NULL, '30 minutes ago', '24 hours ago');
 error_log("Send $count notification chaseups");
+
+error_log("Finish at " . date("Y-m-d H:i:s"));
 
 unlockScript($lockh);

@@ -81,7 +81,7 @@ class Mail {
     # This is the key control over how frequency we add Return Path seed lists to our mails.  0 will disable.
     const RETURNPATH_THRESHOLDS = [
         Mail::DIGEST => 0,
-        Mail::CHAT => 1000,
+        Mail::CHAT => 0,
         Mail::REMOVED => 0,
         Mail::THANK_DONATION => 0,
         Mail::INVITATION => 0,
@@ -104,7 +104,7 @@ class Mail {
         Mail::NEWSFEED_OFF => 0,
         Mail::NEWSFEED_MODNOTIF => 0,
         Mail::NEARBY => 0,
-        Mail::NOTIFICATIONS => 0,
+        Mail::NOTIFICATIONS => 1000,
         Mail::NOTIFICATIONS_OFF => 0,
         Mail::REQUEST => 0,
         Mail::REQUEST_COMPLETED => 0,

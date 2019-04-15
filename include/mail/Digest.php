@@ -45,7 +45,7 @@ class Digest
     # Split out for UT to override
     public function sendOne($mailer, $message) {
         if (RETURN_PATH && Mail::shouldSend(Mail::DIGEST)) {
-            # Also send this to the Return Path seed list so that we can measure inbox placement.
+            # Also send this to the seed list so that we can measure inbox placement.
             #
             # We send this as a BCC because this plays nicer with Litmus
             $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
