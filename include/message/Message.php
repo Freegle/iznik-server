@@ -3094,6 +3094,7 @@ class Message
         $textbody = preg_replace('/^Sent from my Samsung device.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my Windows Phone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from the trash nothing! Mobile App.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my account on trashnothing.com.*/ms', '', $textbody);
         $textbody = preg_replace('/^Save time browsing & posting to.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent on the go from.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
