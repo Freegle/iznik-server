@@ -147,6 +147,7 @@ class Group extends Entity
             'newsfeed' => 1,
             'newsletter' => 1,
             'businesscards' => 1,
+            'autoadmins' => 1,
             'approvemembers' => 0,
             'mentored' => 0
         ];
