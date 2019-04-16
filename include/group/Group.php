@@ -774,20 +774,20 @@ class Group extends Entity
     }
 
     public function getHappinessMembers($groupids, &$ctx) {
+        $start = microtime(TRUE);
         $ret = [];
         $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);
-        $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $groupq2 = $groupids ? " messages_groups.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
 
-        $ctxq = $ctx == NULL ? "" : " WHERE messages_outcomes.timestamp < '{$ctx['timestamp']}'";
+        $ctxq = $ctx == NULL ? "" : " WHERE (messages_outcomes.timestamp < '{$ctx['timestamp']}' OR (messages_outcomes.timestamp = '{$ctx['timestamp']}' AND messages_outcomes.id < {$ctx['id']}))";
 
-        $sql = "SELECT t.*, messages.fromuser, messages_groups.groupid FROM 
+        $sql = "SELECT t.*, messages.fromuser, messages_groups.groupid, messages.subject FROM 
 (SELECT * FROM messages_outcomes $ctxq) t
 INNER JOIN messages_groups ON messages_groups.msgid = t.msgid AND $groupq2
 INNER JOIN messages ON messages.id = t.msgid
-ORDER BY t.timestamp DESC LIMIT 10
+ORDER BY t.timestamp DESC, t.id DESC LIMIT 10
 ";
-        $members = $this->dbhr->preQuery($sql);
+        $members = $this->dbhr->preQuery($sql, [], FALSE, FALSE);
         $last = NULL;
 
         foreach ($members as $member) {
@@ -799,17 +799,24 @@ ORDER BY t.timestamp DESC LIMIT 10
             $last = $member['msgid'];
 
             $ctx = [
+                'id' => $member['id'],
                 'timestamp' => $member['timestamp']
             ];
 
             $u = User::get($this->dbhr, $this->dbhm, $member['fromuser']);
-            $member['user'] = $u->getPublic();
+            $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+
+            $member['user']  = $atts;
             $member['user']['email'] = $u->getEmailPreferred();
             #unset($member['userid']);
 
             $m = new Message($this->dbhr, $this->dbhm, $member['msgid']);
-            $member['message'] = $m->getPublic(FALSE, FALSE);
+            $member['message'] = [
+                'id' => $member['msgid'],
+                'subject' => $member['subject'],
+            ];
             unset($member['msgid']);
+            unset($member['subject']);
 
             $member['timestamp'] = ISODate($member['timestamp']);
             $ret[] = $member;
