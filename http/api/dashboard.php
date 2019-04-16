@@ -11,6 +11,7 @@ function dashboard() {
     $groupid = $groupid ? intval($groupid) : NULL;
     $type = presdef('grouptype', $_REQUEST, NULL);
     $start = presdef('start', $_REQUEST, '30 days ago');
+    $end = presdef('end', $_REQUEST, 'today');
     $region = presdef('region', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -20,7 +21,7 @@ function dashboard() {
             # Check if we're logged in
             $ret = array('ret' => 0, 'status' => 'Success');
             $d = new Dashboard($dbhr, $dbhm, $me);
-            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $region, $type, $start, $force);
+            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $region, $type, $start, $end, $force);
             $s = new Stats($dbhr, $dbhm);
             $ret['heatmap'] = $heatmap ? $s->getHeatmap() : NULL;
 
@@ -28,6 +29,9 @@ function dashboard() {
             foreach ($ret['emailproblems'] as &$domain) {
                 $domain['timestamp'] = ISODate($domain['timestamp']);
             }
+
+            $ret['start'] = $start;
+            $ret['end'] = $end;
 
             break;
         }

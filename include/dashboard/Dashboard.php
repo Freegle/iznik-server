@@ -18,7 +18,7 @@ class Dashboard {
         $this->stats = new Stats($dbhr, $dbhm);
     }
 
-    public function get($systemwide, $allgroups, $groupid, $region, $type, $start = '30 days ago', $force = FALSE, $key = NULL) {
+    public function get($systemwide, $allgroups, $groupid, $region, $type, $start = '30 days ago', $end = 'today', $force = FALSE, $key = NULL) {
         $groupids = [];
         $overlaps = [];
         $usecache = NULL;
@@ -64,7 +64,7 @@ class Dashboard {
 
         $ret = NULL;
 
-        if ($usecache && !$force) {
+        if ($usecache && !$force && $end === 'today') {
             $cached = $this->dbhr->preQuery($usecache);
 
             if (count($cached) > 0) {
@@ -79,10 +79,10 @@ class Dashboard {
 
         if (!$ret) {
             $new = TRUE;
-            $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids, $start, "today", $systemwide);
+            $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids, $start, $end, $systemwide);
         }
 
-        if (($new && !$region) || $force) {
+        if ((($new && !$region) || $force) && ($end === 'today')) {
             # Save for next time.  Don't save regions.
             #
             # This will be updated via dashboard.php cron script once a day.
