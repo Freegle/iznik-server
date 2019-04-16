@@ -135,33 +135,42 @@ class Stats
 
         if ($type === NULL || in_array(Stats::FEEDBACK_HAPPY, $type)) {
             $this->setCount($date, Stats::FEEDBACK_HAPPY,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
+                $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes 
+INNER JOIN messages ON messages_outcomes.msgid = messages.id 
+INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.groupid = ? 
+WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND happiness = ?;",
                     [
-                        $date,
-                        $date,
                         $this->groupid,
+                        $date,
+                        $date,
                         Stats::FEEDBACK_HAPPY
                     ])[0]['count']);
         }
 
         if ($type === NULL || in_array(Stats::FEEDBACK_FINE, $type)) {
             $this->setCount($date, Stats::FEEDBACK_FINE,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
+                $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes 
+INNER JOIN messages ON messages_outcomes.msgid = messages.id 
+INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.groupid = ? 
+WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND happiness = ?;",
                     [
-                        $date,
-                        $date,
                         $this->groupid,
+                        $date,
+                        $date,
                         Stats::FEEDBACK_FINE
                     ])[0]['count']);
         }
 
         if ($type === NULL || in_array(Stats::FEEDBACK_UNHAPPY, $type)) {
             $this->setCount($date, Stats::FEEDBACK_UNHAPPY,
-                $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
+                $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes 
+INNER JOIN messages ON messages_outcomes.msgid = messages.id 
+INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.groupid = ? 
+WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND happiness = ?;",
                     [
-                        $date,
-                        $date,
                         $this->groupid,
+                        $date,
+                        $date,
                         Stats::FEEDBACK_UNHAPPY
                     ])[0]['count']);
         }

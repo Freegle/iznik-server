@@ -779,16 +779,14 @@ class Group extends Entity
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $groupq2 = $groupids ? " messages_groups.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
 
-        $ctxq = $ctx == NULL ? "" : " WHERE messages_outcomes.id < {$ctx['id']}";
+        $ctxq = $ctx == NULL ? "" : " WHERE messages_outcomes.timestamp < '{$ctx['timestamp']}'";
 
         $sql = "SELECT t.*, messages.fromuser, messages_groups.groupid FROM 
 (SELECT * FROM messages_outcomes $ctxq) t
 INNER JOIN messages_groups ON messages_groups.msgid = t.msgid AND $groupq2
 INNER JOIN messages ON messages.id = t.msgid
-INNER JOIN memberships ON messages.fromuser = memberships.userid AND $groupq  
 ORDER BY t.timestamp DESC LIMIT 10
 ";
-        error_log("Get happiness $sql");
         $members = $this->dbhr->preQuery($sql);
         $last = NULL;
 
@@ -801,7 +799,7 @@ ORDER BY t.timestamp DESC LIMIT 10
             $last = $member['msgid'];
 
             $ctx = [
-                'id' => $member['id']
+                'timestamp' => $member['timestamp']
             ];
 
             $u = User::get($this->dbhr, $this->dbhm, $member['fromuser']);
