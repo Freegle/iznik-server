@@ -1279,6 +1279,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
             'groupid' => $gid,
+            'item' => 'Edited',
             'textbody' => 'Another text body'
         ]);
         assertEquals(0, $ret['ret']);
@@ -1293,6 +1294,8 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Text body', $ret['message']['edits'][0]['oldtext']);
         assertEquals('Another text body', $ret['message']['edits'][0]['newtext']);
         assertEquals(TRUE, $ret['message']['edits'][0]['reviewrequired']);
+        assertEquals('OFFER: a thing (TV1)', $ret['message']['edits'][0]['oldsubject']);
+        assertEquals('OFFER: Edited (TV1)', $ret['message']['edits'][0]['newsubject']);
 
         # This message should also show up in edits.
         $ret = $this->call('messages', 'GET', [
@@ -1347,9 +1350,9 @@ class messageAPITest extends IznikAPITestCase
             'id' => $mid
         ]);
 
+        assertEquals('OFFER: a thing (TV1)', $ret['message']['subject']);
         assertEquals('Text body', $ret['message']['textbody']);
-
-        }
+    }
 
     public function testDraft()
     {

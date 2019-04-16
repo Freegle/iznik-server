@@ -462,12 +462,20 @@ class Message
 
         foreach ($edits as $edit) {
             # We just edit it back to what it was.
+            $item = NULL;
+
+            if (pres('olditems', $edit)) {
+                $itemid = json_decode($edit['olditems'], TRUE)[0];
+                $i = new Item($this->dbhr, $this->dbhm, $itemid);
+                $item = $i->getPrivate('name');
+            }
+
             $this->edit(
                 presdef('oldsubject', $edit, NULL),
                 presdef('oldtext', $edit, NULL),
                 NULL,
                 presdef('oldtype', $edit, NULL),
-                pres('olditems', $edit) ? json_decode($edit['olditems'], TRUE)[0] : NULL,
+                $item,
                 presdef('oldlocation', $edit, NULL),
                 pres('oldattachments', $edit) ? json_decode($edit['oldattachments'], TRUE) : NULL,
                 FALSE
