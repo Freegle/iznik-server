@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/mailtemplates/admin.php');
 class Admin extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby', 'pending');
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby', 'pending', 'parentid');
     var $settableatts = [ 'subject', 'text', 'pending' ];
 
     /** @var  $log Log */
@@ -108,6 +108,25 @@ class Admin extends Entity
 
         foreach ($members as $member) {
             $u = User::get($this->dbhr, $this->dbhm, $member['userid']);
+
+            #error_log("Consider {$member['userid']} parent {$this->admin['parentid']}");
+            if ($this->admin['parentid']) {
+                # This is a suggested admin, where we create copies for each group for them to edit/approve/reject
+                # as they see fit.  We don't want to send many copies to the same user if they happen to be on
+                # multiple groups, so check whether we've sent this kind of admin to them.
+                #error_log("Check sent {$this->admin['parentid']} to {$member['userid']}");
+                $sent = $this->dbhr->preQuery("SELECT * FROM admins_users WHERE adminid = ? AND userid = ?;", [
+                    $this->admin['parentid'],
+                    $member['userid']
+                ], FALSE, FALSE);
+
+                if (count($sent) > 0) {
+                    # We have - skip
+                    #error_log("Already sent");
+                    continue;
+                }
+            }
+
             $preferred = $u->getEmailPreferred();
 
             # We send to members who have joined via our platform, or to all users if we host the group.
@@ -119,6 +138,16 @@ class Admin extends Entity
 
                     Mail::addHeaders($msg, Mail::ADMIN, $u->getId());
                     $mailer->send($msg);
+
+                    if ($this->admin['parentid']) {
+                        # Record that we've sent this kind of admin.
+                        $this->dbhm->preExec("INSERT INTO admins_users (userid, adminid) VALUES (?, ?);", [
+                            $member['userid'],
+                            $this->admin['parentid']
+                        ]);
+                        #error_log("Record sent {$this->admin['parentid']} to {$member['userid']}");
+                    }
+
                     $done++;
                 } catch (Exception $e) {
                     error_log("Failed with " . $e->getMessage());
@@ -127,6 +156,26 @@ class Admin extends Entity
         }
 
         return($done);
+    }
+
+    public function updateEdit() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $this->dbhm->preExec("UPDATE admins SET editedat = NOW(), editedby = ?;", [
+            $me->getId()
+        ]);
+    }
+
+    public function copyForGroup($groupid) {
+        # We have a suggested admin, and we want to create a per-group copy.  This allows local groups to
+        # edit/approve/reject as they see fit.
+        $a = new Admin($this->dbhr, $this->dbhm);
+        $id = $a->create($groupid, NULL, $this->admin['subject'], $this->admin['text']);
+
+        if ($id) {
+            $a->setPrivate('parentid', $this->id);
+        }
+
+        return($id);
     }
 
     public function listForGroup($groupid) {

@@ -45,7 +45,8 @@ function admin() {
                 $subject = presdef('subject', $_REQUEST, NULL);
                 $text = presdef('text', $_REQUEST, NULL);
 
-                if ($me->isModOrOwner($groupid)) {
+                # Admin and Support can create suggested admins, which aren't attached to a group.
+                if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
                     $ret = ['ret' => 3, 'status' => "Create failed" ];
                     $aid = $a->create($groupid, $me->getId(), $subject, $text);
 
@@ -70,6 +71,7 @@ function admin() {
                 #error_log("Check mod for admin $id , group " . $a->getPrivate('groupid'));
                 if ($me->isModOrOwner($a->getPrivate('groupid'))) {
                     $a->setAttributes($_REQUEST);
+                    $a->updateEdit();
 
                     $ret = [
                         'ret' => 0,
