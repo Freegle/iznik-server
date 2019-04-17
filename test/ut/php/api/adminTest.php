@@ -45,6 +45,12 @@ class adminAPITest extends IznikAPITestCase
         $g->setPrivate('onyahoo', 0);
     }
 
+    protected function tearDown()
+    {
+        parent::tearDown();
+        $this->dbhm->preExec("DELETE FROM admins WHERE subject LIKE 'UT %';");
+    }
+
     public function testBasic()
     {
         $admindata = [
