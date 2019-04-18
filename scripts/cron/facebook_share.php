@@ -16,15 +16,11 @@ error_log("Start at " . date("Y-m-d H:i:s"));
 $sharefroms = $dbhr->preQuery("SELECT DISTINCT sharefrom FROM groups_facebook;");
 
 foreach ($sharefroms as $sharefrom) {
-    # Find a token we can use to access this page.  Get them all, as some may be invalid.
-    $tokens = $dbhr->preQuery("SELECT uid, token FROM groups_facebook WHERE sharefrom = ? AND valid = 1 AND token IS NOT NULL;", [
-        $sharefrom['sharefrom']
-    ]);
-
-    foreach ($tokens as $token) {
-        $f = new GroupFacebook($dbhr, $dbhm, $token['uid']);
-        $f->getPostsToShare($sharefrom['sharefrom']);
-    }
+    # We can create the app access token from app_id|app_secret.
+    $token = FBGRAFFITIAPP_ID . '|' . FBGRAFFITIAPP_SECRET;
+    error_log("Access token $token");
+    $f = new GroupFacebook($dbhr, $dbhm);
+    $f->getPostsToShare($sharefrom['sharefrom']);
 }
 
 error_log("Finish at " . date("Y-m-d H:i:s"));
