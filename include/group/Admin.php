@@ -48,6 +48,8 @@ class Admin extends Entity
                 $ctx = NULL;
                 $atts['createdby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
             }
+
+            $atts['created'] = ISODate($atts['created']);
         }
 
         return($atts);
@@ -57,6 +59,8 @@ class Admin extends Entity
         $post = "https://" . USER_SITE;
         $unsubscribe = "https://" . USER_SITE . "/unsubscribe";
         $visit = "https://" .  USER_SITE . "/mygroups";
+
+        $text = str_replace('$groupname', $groupname, $text);
 
         $html = admin_tpl($groupname, $toname, $to, 'https://' . USER_SITE, USERLOGO, $subject, nl2br($text), $post, $unsubscribe, $visit);
         $message = Swift_Message::newInstance()
