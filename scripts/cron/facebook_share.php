@@ -18,7 +18,6 @@ $sharefroms = $dbhr->preQuery("SELECT DISTINCT sharefrom FROM groups_facebook;")
 foreach ($sharefroms as $sharefrom) {
     # We can create the app access token from app_id|app_secret.
     $token = FBGRAFFITIAPP_ID . '|' . FBGRAFFITIAPP_SECRET;
-    error_log("Access token $token");
     $f = new GroupFacebook($dbhr, $dbhm);
     $f->getPostsToShare($sharefrom['sharefrom']);
 }

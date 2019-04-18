@@ -57,14 +57,14 @@ class GroupFacebook {
         return($ret);
     }
 
-    public function getFB($graffiti) {
+    public function getFB($graffiti, $apptoken = FALSE) {
         #error_log("Get FB $graffiti");
         $fb = new Facebook\Facebook([
             'app_id' => $graffiti ? FBGRAFFITIAPP_ID : FBAPP_ID,
             'app_secret' => $graffiti ? FBGRAFFITIAPP_SECRET : FBAPP_SECRET
         ]);
 
-        if ($graffiti) {
+        if ($apptoken) {
             # Use an app access token
             $this->token = $fb->getApp()->getAccessToken();
         }
@@ -95,7 +95,7 @@ class GroupFacebook {
     }
 
     public function getPostsToShare($sharefrom, $since = "last week") {
-        $fb = $this->getFB(TRUE);
+        $fb = $this->getFB(TRUE, TRUE);
         $count = 0;
 
         # Get posts we might want to share.  This returns only posts by the page itself.
@@ -103,7 +103,6 @@ class GroupFacebook {
             $ret = $fb->get($sharefrom . "/feed?since=$since&limit=100&&fields=id,link,message,type,caption,icon,name,full_picture", $this->token);
 
             $posts = $ret->getDecodedBody();
-            error_log("Posts to share token {$this->token}: " . var_export($posts, TRUE));
 
             foreach ($posts['data'] as $wallpost) {
                 $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [
@@ -224,42 +223,73 @@ ORDER BY groups_facebook_toshare.id DESC;";
                 $actions = $this->dbhr->preQuery($sql, [ $this->uid, $id ]);
 
                 foreach ($actions as $action) {
-                    try {
-                        # Whether or not this worked, remember that we've tried, so that we don't try again.
-                        #error_log("Record INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES ({$action['uid']},{$action['groupid']},{$action['postid']});");
-                        $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES (?,?,?);", [
-                            $action['uid'],
-                            $action['groupid'],
-                            $action['postid']
-                        ]);
+                    # Whether or not this worked, remember that we've tried, so that we don't try again.
+                    #error_log("Record INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES ({$action['uid']},{$action['groupid']},{$action['postid']});");
+                    $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES (?,?,?);", [
+                        $action['uid'],
+                        $action['groupid'],
+                        $action['postid']
+                    ]);
 
-                        $page = $action['facebooktype'] == GroupFacebook::TYPE_PAGE;
-                        $fb = $this->getFB($page);
+                    $page = $action['facebooktype'] == GroupFacebook::TYPE_PAGE;
+                    $fb = $this->getFB($page);
 
-                        if ($page) {
-                            # Like the original post.
+                    if ($page) {
+                        # Like the original post.
+                        try {
                             $res = $fb->post($action['postid'] . '/likes', [], $this->token);
-                            #error_log("Like returned " . var_export($res, true));
+                        } catch (Exception $e) {
+                            # Some likes can fail when using the user access token because some posts are
+                            # strangely not visible.  Unclear why.  But don't mark the token as invalid just for
+                            # these.
+                            error_log("Like failed with " . $e->getMessage());
                         }
+                        #error_log("Like returned " . var_export($res, true));
+                    }
 
+                    try {
                         # We want to share the post out with the existing details - but we need to remove the id, otherwise
                         # it's an invalid op.
                         $params = json_decode($action['data'], TRUE);
                         unset($params['id']);
 
-                        #error_log("Post to {$this->name} {$this->id} with {$this->token} action " . var_export($params, TRUE));
+                        error_log("Post to {$this->name} {$this->id} with {$this->token} action " . var_export($params, TRUE));
                         $result = $fb->post($this->id . '/feed', $params, $this->token);
-                        #error_log("Post returned " . var_export($result, true));
+                        error_log("Post returned " . var_export($result, true));
                     } catch (Exception $e) {
+                        # Sometimes we get problems sharing, but we would be able to post ourselves.
                         $code = $e->getCode();
-                        error_log("Failed perform on {$this->id} code $code message " . $e->getMessage() . " token " . $this->token);
 
-                        # These numbers come from FacebookResponseException.
-                        if ($code == 100 || $code == 102 || $code == 190) {
-                            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE uid = ?;", [
-                                $e->getMessage(),
-                                $this->uid
-                            ]);
+                        # Try a straight post.
+                        error_log("Share failed, try post");
+                        unset($params['link']);
+                        try {
+                            if (pres('full_picture', $params)) {
+                                # There is a photo, so the process is more complex.
+                                error_log("Get picture");
+
+                                # Now post it to this page.
+                                $result = $fb->post($this->id . '/photos', [
+                                    'url' => $params['full_picture'],
+                                    'message' => $params['message']
+                                ], $this->token);
+                                error_log("Photo post returned " . var_export($result, TRUE));
+                            } else {
+                                $result = $fb->post($this->id . '/feed', $params, $this->token);
+                                error_log("Simple post returned " . var_export($result, TRUE));
+                            }
+                        } catch (Exception $e) {
+                            $code = $e->getCode();
+                            error_log("Simple post failed with " . $e->getMessage());
+                            # These numbers come from FacebookResponseException.
+                            #
+                            # Code 100 can be returned for some posts which are not visible.
+//                            if ($code == 100 || $code == 102 || $code == 190) {
+//                                $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE uid = ?;", [
+//                                    $e->getMessage(),
+//                                    $this->uid
+//                                ]);
+//                            }
                         }
                     }
                 }
