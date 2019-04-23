@@ -21,7 +21,7 @@ try {
 
     error_log("Got business cards " . var_export($_POST, TRUE));
     # Post back to PayPal to validate.
-    $header .= "POST /cgi-bin/webscr HTTP/1.0\r\n";
+    $header = "POST /cgi-bin/webscr HTTP/1.0\r\n";
     $header .= "Content-Type: application/x-www-form-urlencoded\r\n";
     $header .= "Content-Length: " . strlen($req) . "\r\n\r\n";
     $fp = fsockopen('ssl://www.paypal.com', 443, $errno, $errstr, 30);
@@ -65,7 +65,9 @@ try {
                 } else {
                     mail("log@ehibbert.org.uk", "Payment failed", var_export($_POST, TRUE), NULL, '-fnoreply@modtools.org');
                 }
-            } else if (strcmp($res, "INVALID") == 0) {
+            } else {
+//                if (strcmp($res, "INVALID") == 0)
+
                 // log for manual investigation
                 mail("log@ehibbert.org.uk", "Error: Payment failed validation", var_export($_REQUEST, true), NULL, '-fnoreply@modtools.org');
             }
