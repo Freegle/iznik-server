@@ -596,6 +596,8 @@ class Newsfeed extends Entity
             $msg = str_replace("\n", ' ', $msg);
             if (strlen($msg) > $len && strpos($msg, "\n") !== FALSE) {
                 $msg = substr($msg, 0, strpos(wordwrap($msg, $len + 3), "\n")) . '...';
+            } else {
+                $msg = substr($msg, 0, $len) . '...';
             }
         }
     }
