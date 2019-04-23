@@ -1964,7 +1964,7 @@ WHERE chat_rooms.id IN $idlist;";
                                 $notreplied[$groupid] = [];
 
                                 # Construct a message.
-                                $url = 'https://' . MOD_SITE . '/chat/' . $chat['id'];
+                                $url = 'https://' . MOD_SITE . '/modtools/chat/' . $chat['id'];
                                 $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $u->getName() . " (" . $u->getEmailPreferred() . ")";
                                 $fromname = $u->getName();
 
