@@ -51,7 +51,7 @@ class Notifications
     public function get($userid, &$ctx) {
         $ret = [];
         $idq = $ctx && pres('id', $ctx) ? (" AND id < " . intval($ctx['id'])) : '';
-        $sql = "SELECT * FROM users_notifications WHERE touser = ? $idq ORDER BY id DESC LIMIT 10;";
+        $sql = "SELECT users_notifications.* FROM users_notifications LEFT OUTER JOIN newsfeed_unfollow ON newsfeed_unfollow.newsfeedid = users_notifications.newsfeedid WHERE touser = ? AND newsfeed_unfollow.id IS NULL $idq ORDER BY users_notifications.id DESC LIMIT 10;";
         $notifs = $this->dbhr->preQuery($sql, [ $userid ]);
 
         foreach ($notifs as &$notif) {
