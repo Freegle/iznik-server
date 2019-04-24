@@ -31,7 +31,7 @@ class Notifications
     }
 
     public function countUnseen($userid) {
-        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_notifications WHERE touser = ? AND seen = 0;", [
+        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_notifications LEFT OUTER JOIN newsfeed_unfollow ON newsfeed_unfollow.newsfeedid = users_notifications.newsfeedid WHERE touser = ? AND seen = 0 AND newsfeed_unfollow.id IS NULL;", [
             $userid
         ]);
         return($counts[0]['count']);
