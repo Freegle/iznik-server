@@ -8,6 +8,7 @@ require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
 require_once IZNIK_BASE . '/include/newsfeed/Newsfeed.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
@@ -1226,6 +1227,58 @@ class userTest extends IznikTestCase {
         $search = $u->search($enc, $ctx);
         assertEquals(1, count($search));
         assertEquals($uid, $search[0]['id']);
+    }
+
+    public function testActiveCounts() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item 1 (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
+        list($mid, $already) = $m->save();
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->route($m);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item 2 (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
+        list($mid, $already) = $m->save();
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->route($m);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'WANTED: Test item 1 (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
+        list($mid, $already) = $m->save();
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->route($m);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('test@test.com');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $info = $u->getInfo();
+        assertEquals(2, $info['offers']);
+        assertEquals(1, $info['wanteds']);
+        assertEquals(2, $info['openoffers']);
+        assertEquals(1, $info['openwanteds']);
+
+        assertEquals([
+            'offers' => 2,
+            'wanteds' => 1
+        ], $u->getActiveCounts());
     }
 }
 

@@ -33,6 +33,8 @@ class User extends Entity
     static $cacheDeleted = [];
     const CACHE_SIZE = 100;
 
+    const OPEN_AGE = 90;
+
     const KUDOS_NEWBIE = 'Newbie';
     const KUDOS_OCCASIONAL = 'Occasional';
     const KUDOS_FREQUENT = 'Frequent';
@@ -1592,11 +1594,34 @@ class User extends Entity
         return ($rc);
     }
 
+    public function getActiveCounts() {
+        $start = date('Y-m-d', strtotime(User::OPEN_AGE . " days ago"));
+
+        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.type, messages_outcomes.outcome;", [
+            $this->id,
+            $start,
+            MessageCollection::APPROVED
+        ], FALSE, FALSE);
+
+        $ret['offers'] = 0;
+        $ret['wanteds'] = 0;
+
+        foreach ($counts as $count) {
+            if ($count['type'] == Message::TYPE_OFFER) {
+                $ret['offers'] += $count['count'];
+            } else if ($count['type'] == Message::TYPE_WANTED) {
+                $ret['wanteds'] += $count['count'];
+            }
+        }
+
+        return($ret);
+    }
+
     public function getInfo()
     {
         # Extra user info.
         $ret = [];
-        $ret['openage'] = 90;
+        $ret['openage'] = User::OPEN_AGE;
         $start = date('Y-m-d', strtotime("{$ret['openage']} days ago"));
 
         // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
@@ -1613,6 +1638,7 @@ class User extends Entity
             $start,
             MessageCollection::APPROVED
         ], FALSE, FALSE);
+        error_log("Counts " . var_export($counts, TRUE));
 
         $ret['offers'] = 0;
         $ret['wanteds'] = 0;

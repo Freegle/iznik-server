@@ -229,6 +229,8 @@ class Newsfeed extends Entity
                     # a flood of updates since the newsfeed is fetched gradually.
                     $u->ensureAvatar($users[$entry['userid']]);
                 }
+
+                $users[$entry['userid']]['activecounts'] = $u->getActiveCounts();
             }
 
             if (pres('msgid', $entry)) {
