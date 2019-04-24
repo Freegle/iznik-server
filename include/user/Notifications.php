@@ -31,7 +31,8 @@ class Notifications
     }
 
     public function countUnseen($userid) {
-        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_notifications LEFT OUTER JOIN newsfeed_unfollow ON newsfeed_unfollow.newsfeedid = users_notifications.newsfeedid WHERE touser = ? AND seen = 0 AND newsfeed_unfollow.id IS NULL;", [
+        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_notifications LEFT OUTER JOIN newsfeed_unfollow ON newsfeed_unfollow.newsfeedid = users_notifications.newsfeedid AND newsfeed_unfollow.userid = ? WHERE touser = ? AND seen = 0 AND newsfeed_unfollow.id IS NULL;", [
+            $userid,
             $userid
         ]);
         return($counts[0]['count']);
@@ -51,8 +52,8 @@ class Notifications
     public function get($userid, &$ctx) {
         $ret = [];
         $idq = $ctx && pres('id', $ctx) ? (" AND id < " . intval($ctx['id'])) : '';
-        $sql = "SELECT users_notifications.* FROM users_notifications LEFT OUTER JOIN newsfeed_unfollow ON newsfeed_unfollow.newsfeedid = users_notifications.newsfeedid WHERE touser = ? AND newsfeed_unfollow.id IS NULL $idq ORDER BY users_notifications.id DESC LIMIT 10;";
-        $notifs = $this->dbhr->preQuery($sql, [ $userid ]);
+        $sql = "SELECT users_notifications.* FROM users_notifications LEFT OUTER JOIN newsfeed_unfollow ON newsfeed_unfollow.newsfeedid = users_notifications.newsfeedid AND newsfeed_unfollow.userid = ? WHERE touser = ? AND newsfeed_unfollow.id IS NULL $idq ORDER BY users_notifications.id DESC LIMIT 10;";
+        $notifs = $this->dbhr->preQuery($sql, [ $userid, $userid ]);
 
         foreach ($notifs as &$notif) {
             $notif['timestamp'] = ISODate($notif['timestamp']);
