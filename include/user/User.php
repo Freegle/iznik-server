@@ -1638,7 +1638,6 @@ class User extends Entity
             $start,
             MessageCollection::APPROVED
         ], FALSE, FALSE);
-        error_log("Counts " . var_export($counts, TRUE));
 
         $ret['offers'] = 0;
         $ret['wanteds'] = 0;
