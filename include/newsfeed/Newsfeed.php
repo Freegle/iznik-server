@@ -430,7 +430,7 @@ class Newsfeed extends Entity
             $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert')) AND $tq" : $tq;
             $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
-            $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
+            $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL $typeq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
             #error_log($sql);
             $entries = $this->dbhr->preQuery($sql);
             $last = NULL;
