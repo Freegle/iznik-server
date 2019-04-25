@@ -161,9 +161,15 @@ class Newsfeed extends Entity
 
         if ($anyreplies && pres('replies', $atts)) {
             foreach ($atts['replies'] as &$reply) {
-                $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
-                $ctx = NULL;
-                $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                if (!pres($reply['userid'], $users)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
+                    $ctx = NULL;
+                    $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                    $reply['user']['activecounts'] = $u->getActiveCounts();
+                    $users[$reply['userid']] = $reply['user'];
+                } else {
+                    $reply['user'] = $users[$reply['userid']];
+                }
             }
         }
 
@@ -174,11 +180,15 @@ class Newsfeed extends Entity
             ]);
 
             foreach ($loves as $love) {
-                $u = User::get($this->dbhr, $this->dbhm, $love['userid']);
-                $ctx = NULL;
-                $uatts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-                $uatts['publiclocation'] = $u->getPublicLocation();
-                $atts['lovelist'][] = $uatts;
+                if (!pres($love['userid'], $users)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $love['userid']);
+                    $ctx = NULL;
+                    $uatts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                    $uatts['publiclocation'] = $u->getPublicLocation();
+                    $atts['lovelist'][] = $uatts;
+                } else {
+                    $atts['lovelist'][] = $user[$love['userid']];
+                }
             }
         }
 
