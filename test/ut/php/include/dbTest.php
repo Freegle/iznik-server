@@ -16,7 +16,7 @@ class dbTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() {
-        parent::setUp ();
+        parent::setUp();
 
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
@@ -24,6 +24,9 @@ class dbTest extends IznikTestCase {
 
         assertNotNull($this->dbhr);
         assertNotNull($this->dbhm);
+
+        $this->dbhr->clearCache();
+        $this->dbhm->clearCache();
 
         $this->dbhm->exec('DROP TABLE IF EXISTS test;');
         $rc = $this->dbhm->exec('CREATE TABLE `test` (`id` int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=latin1;');
@@ -448,8 +451,7 @@ class dbTest extends IznikTestCase {
         # Select again to exercise cache.
         $ids = $this->dbhr->preQuery('SELECT * FROM test WHERE id > ?;', array(0));
         assertEquals(1, count($ids));
-
-        }
+    }
 
     public function prepareUntil() {
         $this->log("prepareUntil count " . $this->count);
