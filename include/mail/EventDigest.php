@@ -198,7 +198,7 @@ class EventDigest
 
                     # The placement ID for ads needs to be unique.  We want to generated it here so that
                     # not everyone in a single run gets the same ad.
-                    $placementid = "eventdigest-$groupid-" . microtime(true);
+                    $placementid = "eventdigest-$groupid-" . str_replace(',', '-', microtime(true));
 
                     $replacements[$email] = [
                         '{{id}}' => $u->getId(),

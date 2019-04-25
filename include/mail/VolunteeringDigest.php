@@ -174,7 +174,7 @@ class VolunteeringDigest
 
                         # The placement ID for ads needs to be unique.  We want to generated it here so that
                         # not everyone in a single run gets the same ad.
-                        $placementid = "voldigest-$groupid-" . microtime(true);
+                        $placementid = "voldigest-$groupid-" . str_replace(',', '-', microtime(true));
 
                         $replacements[$email] = [
                             '{{uid}}' => $u->getId(),

@@ -376,7 +376,7 @@ class Digest
 
                         # The placement ID for ads needs to be unique.  We want to generated it here so that
                         # not everyone in a single run gets the same ad.
-                        $placementid = "msgdigest-$groupid-$frequency-" . microtime(true);
+                        $placementid = "msgdigest-$groupid-$frequency-" . str_replace(',', '-', microtime(true));
 
                         # We build up an array of the substitutions we need.
                         $replacements[$email] = [
