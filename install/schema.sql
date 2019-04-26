@@ -2274,6 +2274,7 @@ CREATE TABLE `noticeboards` (
   `description` text COLLATE utf8mb4_unicode_ci,
   `active` tinyint(1) NOT NULL DEFAULT '1',
   `lastcheckedat` timestamp NULL DEFAULT NULL,
+  `thanked` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `added` (`added`),
   SPATIAL KEY `position` (`position`),
