@@ -72,7 +72,7 @@ class Noticeboard extends Entity
         $twig = new Twig_Environment($loader);
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        $subj = "Thanks for putting up a poster";
+        $subj = "Thanks for putting up a poster!";
 
         $html = $twig->render('noticeboard.html', [
             'settings' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_NOTICEBOARD),
@@ -100,9 +100,11 @@ class Noticeboard extends Entity
 
         list ($transport, $mailer) = getMailer();
         $this->sendIt($mailer, $message);
-        $this->dbhm->preExec("UPDATE noticeboards SET thanked = NOW() WHERE id = ?;", [
-            $noticeboardid
+        $this->dbhm->preExec("UPDATE noticeboards SET thanked = NOW() WHERE addedby = ?;", [
+            $userid
         ]);
+
+        error_log($u->getEmailPreferred());
     }
 
     public function sendIt($mailer, $message) {
