@@ -108,7 +108,7 @@ class noticeboardAPITest extends IznikAPITestCase {
 
         $n->thank($this->uid, $id);
         assertEquals(1, count($this->msgsSent));
-        assertEquals('Thanks for putting up a poster', $this->msgsSent[0]);
+        assertEquals('Thanks for putting up a poster!', $this->msgsSent[0]);
     }
 }
 
