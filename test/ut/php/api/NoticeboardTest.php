@@ -16,6 +16,13 @@ class noticeboardAPITest extends IznikAPITestCase {
 
     private $count = 0;
 
+    private $msgsSent = [];
+
+    public function sendMock($mailer, $message)
+    {
+        $this->msgsSent[] = $message->getSubject();
+    }
+
     protected function setUp() {
         parent::setUp ();
 
@@ -88,6 +95,19 @@ class noticeboardAPITest extends IznikAPITestCase {
         assertEquals('Test description2', $ret['noticeboard']['description']);
         assertEquals(9.5333, $ret['noticeboard']['lat']);
         assertEquals(180.2167, $ret['noticeboard']['lng']);
+
+        $n = $this->getMockBuilder('Noticeboard')
+            ->setConstructorArgs(array($this->dbhm, $this->dbhm))
+            ->setMethods(array('sendIt'))
+            ->getMock();
+
+        $n->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        $n->thank($this->uid, $id);
+        assertEquals(1, count($this->msgsSent));
+        assertEquals('Thanks for putting up a poster', $this->msgsSent[0]);
     }
 }
 

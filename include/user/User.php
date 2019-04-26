@@ -102,6 +102,7 @@ class User extends Entity
     const SRC_NEWSLETTER = 'newsletter';
     const SRC_NOTIFICATIONS_EMAIL = 'notifemail';
     const SRC_NEWSFEED_DIGEST = 'newsfeeddigest';
+    const SRC_NOTICEBOARD = 'noticeboard';
 
     # Chat mod status
     const CHAT_MODSTATUS_MODERATED = 'Moderated';
