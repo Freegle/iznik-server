@@ -61,10 +61,15 @@ class Noticeboard extends Entity
 
     public function setAttributes($settings)
     {
+        # Create news on the first real change.
+        $addnews = !$this->noticeboard['name'] && $settings['name'];
+
         parent::setAttributes($settings);
 
-        // Now that we have some info, generate a newsfeed item.
-        $this->addNews();
+        if ($addnews) {
+            // Now that we have some info, generate a newsfeed item.
+            $this->addNews();
+        }
     }
 
     public function thank($userid, $noticeboardid) {
@@ -109,6 +114,10 @@ class Noticeboard extends Entity
 
     public function sendIt($mailer, $message) {
         $mailer->send($message);
+    }
+
+    public function listAll() {
+        return($this->dbhr->preQuery("SELECT id, name, lat, lng FROM noticeboards WHERE name IS NOT NULL AND active = 1"));
     }
 }
 

@@ -26,6 +26,12 @@ function noticeboard() {
 
                     unset($ret['noticeboard']['position']);
                 }
+            } else {
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'noticeboards' => $n->listAll()
+                ];
             }
             break;
         }

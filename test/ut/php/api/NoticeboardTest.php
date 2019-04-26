@@ -58,7 +58,6 @@ class noticeboardAPITest extends IznikAPITestCase {
 
         # Valid create
         $ret = $this->call('noticeboard', 'POST', [
-            'name' => 'UTTest',
             'lat' => 8.53333,
             'lng' => 179.2167,
             'description' => 'Test description'
@@ -72,7 +71,6 @@ class noticeboardAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['noticeboard']['id']);
-        assertEquals('UTTest', $ret['noticeboard']['name']);
         assertEquals('Test description', $ret['noticeboard']['description']);
         assertEquals(8.5333, $ret['noticeboard']['lat']);
         assertEquals(179.2167, $ret['noticeboard']['lng']);
