@@ -19,7 +19,7 @@ require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 class Newsfeed extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted', 'closed', 'html');
+    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted', 'closed', 'html', 'pinned');
 
     /** @var  $log Log */
     private $log;
@@ -412,7 +412,8 @@ class Newsfeed extends Entity
     public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx, $fillin = TRUE) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $users = [];
-        $items = [];
+        $topitems = [];
+        $bottomitems = [];
 
         if ($userid) {
             # We want the newsfeed items which are close to us.  Use the location in settings, or failing that the
@@ -459,7 +460,13 @@ class Newsfeed extends Entity
                         }
                     }
 
-                    $items[] = $entry;
+                    if (count($topitems) < 2 && ($entry['pinned'] || $entry['type'] !=  Newsfeed::TYPE_ALERT)) {
+                        # We want to return pinned items at the top, and also the first non-alert one, so that
+                        # we have interesting user-content at the top.
+                        $topitems[] = $entry;
+                    } else {
+                        $bottomitems[] = $entry;
+                    }
                 }
 
                 $ctx = [
@@ -471,7 +478,7 @@ class Newsfeed extends Entity
             }
         }
 
-        return([$users, $items]);
+        return([$users, array_merge($topitems, $bottomitems)]);
     }
 
     public function threadId() {
