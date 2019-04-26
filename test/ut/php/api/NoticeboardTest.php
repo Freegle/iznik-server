@@ -43,6 +43,7 @@ class noticeboardAPITest extends IznikAPITestCase {
     public function testBasic() {
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@test.com');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
