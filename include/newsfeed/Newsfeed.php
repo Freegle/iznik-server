@@ -921,6 +921,13 @@ class Newsfeed extends Entity
             $userid,
             $newsfeedid
         ]);
+
+        # Delete any notifications which refer to this newsfeed item or the thread
+        $this->dbhm->preExec("DELETE FROM users_notifications WHERE touser = ? AND (newsfeedid = ? OR newsfeedid IN (SELECT id FROM newsfeed WHERE replyto = ?));", [
+            $userid,
+            $newsfeedid,
+            $newsfeedid
+        ]);
     }
 
     public function follow($userid, $newsfeedid) {
