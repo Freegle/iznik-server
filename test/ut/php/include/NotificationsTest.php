@@ -109,8 +109,8 @@ class notificationsTest extends IznikTestCase {
 //        $n->add($uid2, $uid1, Notifications::TYPE_COMMENT_ON_YOUR_POST, $nid);
 //        $n->add($uid1, $uid2, Notifications::TYPE_COMMENT_ON_COMMENT, $rid);
 
+        sleep(1);
         self::assertEquals(3, $n->sendEmails($uid2, '0 seconds ago', '7 days ago'));
-
-        }
+    }
 }
 
