@@ -5130,7 +5130,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
 
         foreach ($msgs as $msg) {
-            $this->dbhm->preExec("UPDATE messages SET fromip = NULL, message = NULL, envelopefrom = NULL, fromname = NULL, fromaddr = NULL, messageid = NULL, textbody = NULL, htmlbody = NULL WHERE id = ?;", [
+            $this->dbhm->preExec("UPDATE messages SET fromip = NULL, message = NULL, envelopefrom = NULL, fromname = NULL, fromaddr = NULL, messageid = NULL, textbody = NULL, htmlbody = NULL, deleted = NOW() WHERE id = ?;", [
+                $msg['id']
+            ]);
+
+            $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid = ?;", [
                 $msg['id']
             ]);
 
@@ -5182,7 +5186,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $membs = $this->getMemberships();
 
         foreach ($membs as $memb) {
-            error_log(var_export($memb, TRUE));
             $this->removeMembership($memb['id']);
         }
 
