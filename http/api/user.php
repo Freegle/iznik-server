@@ -328,7 +328,7 @@ function user() {
                     $ratee = intval(presdef('ratee', $_REQUEST, 0));
                     $rating = presdef('rating', $_REQUEST, NULL);
 
-                    if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN)) {
+                    if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN || $rating === NULL)) {
                         $me->rate($me->getId(), $ratee, $rating);
                         $ret = [ 'ret' => 0, 'status' => 'Success' ];
                     }

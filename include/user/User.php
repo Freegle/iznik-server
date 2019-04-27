@@ -5392,13 +5392,22 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         if ($rater != $ratee) {
             # Can't rate yourself.
-            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating) VALUES (?, ?, ?);", [
-                $rater,
-                $ratee,
-                $rating
-            ]);
+            if ($rating !== NULL) {
+                $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating) VALUES (?, ?, ?);", [
+                    $rater,
+                    $ratee,
+                    $rating
+                ]);
 
-            $ret = $this->dbhm->lastInsertId();
+                $ret = $this->dbhm->lastInsertId();
+            } else {
+                $this->dbhm->preExec("DELETE FROM ratings WHERE rater = ? AND ratee = ?;", [
+                    $rater,
+                    $ratee
+                ]);
+
+                $ret = NULL;
+            }
         }
 
         return($ret);

@@ -548,7 +548,20 @@ class userAPITest extends IznikAPITestCase {
         self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
         self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
 
-        }
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Rate',
+            'ratee' => $uid,
+            'rating' => NULL
+        ]);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+    }
 
     public function testActive() {
         assertEquals(1, $this->user->addMembership($this->groupid));
