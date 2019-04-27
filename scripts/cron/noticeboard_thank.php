@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/noticeboard/Noticeboard.php');
 
 $lockh = lockScript(basename(__FILE__));
 
-$boards = $dbhr->preQuery("SELECT * FROM noticeboards WHERE thanked IS NULL AND addedby IS NOT NULL AND active = 1;");
+$boards = $dbhr->preQuery("SELECT * FROM noticeboards WHERE thanked IS NULL AND addedby IS NOT NULL AND active = 1 AND name IS NOT NULL;");
 $users = [];
 
 foreach ($boards as $board) {
