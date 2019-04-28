@@ -179,7 +179,6 @@ class itemAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $this->log(var_export($ret, TRUE));
-
-        }
+    }
 }
 
