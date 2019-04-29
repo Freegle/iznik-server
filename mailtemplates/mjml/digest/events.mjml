@@ -197,7 +197,7 @@
             <mj-text align="center">
               Ads help keep Freegle running and free to use. Donating helps too!
             </mj-text>
-            <mj-button align="center" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA" font-family="Helvetica" background-color="darkblue" color="white">
+            <mj-button align="center" href="https://freegle.in/paypalfundraiser" font-family="Helvetica" background-color="darkblue" color="white">
               Donate
             </mj-button>
             <mj-raw>
