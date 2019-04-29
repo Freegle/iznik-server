@@ -199,7 +199,7 @@ foreach ($todos as $todo) {
     $_SESSION['id'] = $me ? $me->getId() : NULL;
     $d = new Dashboard($dbhr, $dbhm, $me);
     error_log("Update dashboard user {$todo['userid']}, group {$todo['groupid']}, type {$todo['type']}, start {$todo['start']}");
-    $d->get($todo['systemwide'], $todo['groupid'] == NULL, $todo['groupid'], NULL, $todo['type'], $todo['start'], $todo['start'], TRUE, $todo['key']);
+    $d->get($todo['systemwide'], $todo['groupid'] == NULL, $todo['groupid'], NULL, $todo['type'], $todo['start'], 'today', TRUE, $todo['key']);
 }
 
 if (RETURN_PATH) {
