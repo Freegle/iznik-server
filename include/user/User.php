@@ -2504,7 +2504,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($role);
     }
 
-    public function merge($id1, $id2, $reason)
+    public function merge($id1, $id2, $reason, $forcemerge = FALSE)
     {
         error_log("Merge $id1, $id2, $reason");
 
@@ -2513,7 +2513,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         $ret = FALSE;
 
-        if ($id1 != $id2 && $u1->canMerge() && $u2->canMerge()) {
+        if ($id1 != $id2 && (($u1->canMerge() && $u2->canMerge()) || ($forcemerge))) {
             #
             # We want to merge two users.  At present we just merge the memberships, comments, emails and logs; we don't try to
             # merge any conflicting settings.

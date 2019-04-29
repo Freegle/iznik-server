@@ -14,5 +14,5 @@ if (count($opts) < 1) {
     $to = $opts['t'];
     $reason = $opts['r'];
     $u = User::get($dbhr, $dbhm);
-    $u->merge($to, $from, $reason);
+    $u->merge($to, $from, $reason, TRUE);
 }
