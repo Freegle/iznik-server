@@ -132,7 +132,8 @@ class Message
         "don't check this very often",
         "below to complete the verification process",
         "We respond to emails as quickly as we can",
-        "this email address is no longer in use"
+        "this email address is no longer in use",
+        "away from the office"
     ];
 
     private $autoreply_text_start = [
