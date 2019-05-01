@@ -7,7 +7,7 @@ function stroll() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $route = $dbhr->preQuery("SELECT * FROM stroll_route ORDER BY id ASC");
-            $sponsors = $dbhr->preQuery("SELECT * FROM stroll_sponsors ORDER BY id ASC");
+            $sponsors = $dbhr->preQuery("SELECT * FROM stroll_sponsors ORDER BY timestamp ASC");
             $nights = $dbhr->preQuery("SELECT * FROM stroll_nights ORDER BY id ASC");
 
             foreach ($sponsors as &$sponsor) {

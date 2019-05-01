@@ -31,3 +31,20 @@ foreach ($users as $user) {
         error_log("...$count / $total");
     }
 }
+
+$msgs = $dbhr->preQuery("SELECT fromuser, locationid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = 'Freegle';");
+$total = count($msgs);
+$count = 0;
+
+foreach ($msgs as $msg) {
+    $dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ? AND lastlocation IS NULL;", [
+        $msg['locationid'],
+        $msg['fromuser']
+    ]);
+
+    $count ++;
+
+    if ($count % 1000 == 0) {
+        error_log("...$count / $total");
+    }
+}
