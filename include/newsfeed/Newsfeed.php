@@ -204,7 +204,10 @@ class Newsfeed extends Entity
     private function fillIn(&$entry, &$users, $checkreplies = TRUE, $allreplies = FALSE) {
         unset($entry['position']);
 
-        $entry['message'] = trim($entry['message']);
+        if ($entry['type'] != Newsfeed::TYPE_NOTICEBOARD) {
+            # Noticeboards hackily have JSON data in message.
+            $entry['message'] = trim($entry['message']);
+        }
 
         $use = !presdef('reviewrequired', $entry, FALSE) && !presdef('deleted', $entry, FALSE);
 
