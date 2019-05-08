@@ -830,6 +830,13 @@ class userTest extends IznikTestCase {
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
+        $u->addEmail('tes2t');
+        $email = $u->inventEmail();
+        $this->log("Invalid, invented $email");
+        assertFalse(strpos($email, 'test'));
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
         $email = $u->inventEmail();
         $this->log("Unusable email, invented $email");

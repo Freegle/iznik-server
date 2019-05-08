@@ -3596,7 +3596,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 if ($email) {
                     # We have an email which is fairly anonymous.  Use the LHS.
                     $p = strpos($email, '@');
-                    $email = substr($email, 0, $p) . '-' . $this->id . '@' . USER_DOMAIN;
+                    $email = ($p > 0 ? substr($email, 0, $p) : $email) . '-' . $this->id . '@' . USER_DOMAIN;
                 } else {
                     # We can't make up something similar to their existing email address so invent from scratch.
                     $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
