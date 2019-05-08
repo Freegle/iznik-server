@@ -69,7 +69,10 @@ class Notifications
 
                 foreach ($nots as $not) {
                     unset($not['position']);
-                    $this->snip($not['message']);
+
+                    if ($not['type'] != Newsfeed::TYPE_NOTICEBOARD) {
+                        $this->snip($not['message']);
+                    }
 
                     if (pres('deleted', $not)) {
                         # This item has been deleted - don't show the corresponding notification.
