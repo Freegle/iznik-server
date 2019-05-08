@@ -164,8 +164,9 @@ class Admin extends Entity
 
     public function updateEdit() {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $this->dbhm->preExec("UPDATE admins SET editedat = NOW(), editedby = ?;", [
-            $me->getId()
+        $this->dbhm->preExec("UPDATE admins SET editedat = NOW(), editedby = ? WHERE id = ?;", [
+            $me->getId(),
+            $this->id
         ]);
     }
 
