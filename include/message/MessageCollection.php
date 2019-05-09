@@ -87,9 +87,10 @@ class MessageCollection
             $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
             $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR (messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ")) ");
 
-            if (in_array(MessageCollection::DRAFT, $this->collection)) {
+            if ($ctx === NULL && in_array(MessageCollection::DRAFT, $this->collection)) {
                 # Draft messages are handled differently, as they're not attached to any group.  Only show
                 # recent drafts - if they've not completed within a reasonable time they're probably stuck.
+                # Only return these on the first fetch of a sequence.  No point returning them multiple times.
                 $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
                 $oldest = " AND timestamp >= '$mysqltime' ";
 
