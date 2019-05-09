@@ -17,6 +17,10 @@ function stroll() {
 
             foreach ($sponsors as &$sponsor) {
                 $sponsor['timestamp'] = ISODate($sponsor['timestamp']);
+
+                # We can't get the amount.  There's no way to couple the PPGF donation with this, because PPGF
+                # doesn't give us a timestamp or a reference.  We use PPGF because it gives gift aid and is
+                # frictionless, so while this is a pain for tracking, we still get more donations.
             }
 
             $facebooks = $dbhr->preQuery("SELECT * FROM users_donations WHERE source = 'Facebook';");
