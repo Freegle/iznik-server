@@ -32,6 +32,7 @@ if (count($opts) != 1) {
             $name = $fields[1];
             $email = $fields[2];
             $amount = $fields[7];
+            $program = $fields[3];
 
             # Invent a unique transaction ID because we might rerun on the same data.
             $txid = $date . $email . count($donations);
@@ -49,7 +50,8 @@ if (count($opts) != 1) {
                 'name' => $name,
                 'date' => $date,
                 'txid' => $txid,
-                'amount' => $amount
+                'amount' => $amount,
+                'program' => $program
             ];
             
             $epoch = strtotime($date);
@@ -73,16 +75,24 @@ if (count($opts) != 1) {
         error_log("Deleted " . $dbhm->rowsAffected());
         
         foreach ($donations as $donation) {
-            error_log("Record {$donation['date']} {$donation['email']} {$donation['amount']}");
-            $rc = $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, source) VALUES (?,?,?,?,?,?,'PayPalGivingFund') ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?, source = 'PayPalGivingFund';", [
+            error_log("Record {$donation['date']} {$donation['email']} {$donation['amount']} source {$donation['program']}");
+            switch ($donation['program']) {
+                case 'eBay for Charity Seller Donations': $source = 'eBay'; break;
+                case 'Facebook donations with PPGF': $source = 'Facebook'; break;
+                default: $source = 'PayPalGivingFund'; break;
+            }
+
+            $rc = $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, source) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?, source = ?;", [
                 $donation['eid'],
                 $donation['email'],
                 $donation['name'],
                 $donation['date'],
                 $donation['txid'],
                 $donation['amount'],
+                $source,
                 $donation['eid'],
-                $donation['date']
+                $donation['date'],
+                $source
             ]);
 
 //            if ($dbhm->rowsAffected() > 0 && $amount >= 20) {
