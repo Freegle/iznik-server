@@ -1180,7 +1180,41 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Chat messages " . var_export($msgs, TRUE));
         self::assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
 
-        }
+    }
+
+    public function testTNHeader() {
+        # Create a user for a reply.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+
+        # Create the sending user
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->log("Created user $uid");
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        # Send a message.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($origid);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Send a purported reply.  This should result in the replying user being created.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytnheader'));
+        $msg = str_replace('zzzz', $origid, $msg);
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNotNull($m->getFromuser());
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+    }
 
     public function testTwoTexts() {
         # Create a user for a reply.

@@ -2919,6 +2919,18 @@ class Message
     }
 
     public function findFromReply($userid) {
+        # TN puts a useful header in.
+        $msgid = $this->getHeader('x-fd-msgid');
+
+        if ($msgid) {
+            # Check the message exists.
+            $m = new Message($this->dbhr, $this->dbhm, $msgid);
+
+            if ($m->getID() === $msgid) {
+                return($msgid);
+            }
+        }
+
         # Unfortunately, it's fairly common for people replying by email to compose completely new
         # emails with subjects of their choice, or reply from Yahoo Groups which doesn't add
         # In-Reply-To headers.  So we just have to do the best we can using the email subject.  The Damerau–Levenshtein
