@@ -1839,6 +1839,8 @@ class Message
             }
         }
 
+        $this->textbody = $this->stripSigs($this->textbody);
+
         # Trash Nothing sends attachments too, but just as links - get those.
         #
         # - links to flic.kr, for groups which for some reason don't like images hosted on TN
@@ -3103,33 +3105,7 @@ class Message
         $textbody = preg_replace('/[\r\n](\s*)Subject:.*?$/is', '', $textbody);
 
         # Get rid of sigs
-        $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my Xperia.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my BlueMail/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent using the mail.com mail app.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my phone.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my .*smartphone./ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my Samsung device.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my Windows Phone.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from the trash nothing! Mobile App.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my account on trashnothing.com.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Save time browsing & posting to.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent on the go from.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from Mail.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my BlackBerry.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from my Huawei Mobile.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from myMail for iOS.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from Samsung Mobile.*/ms', '', $textbody);
-        $textbody = preg_replace('/^(\r\n|\r|\n)---(\r\n|\r|\n)This email has been checked for viruses.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Sent from TypeApp.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Enviado a partir do meu smartphone.*/ms', '', $textbody);
-        $textbody = preg_replace('/^Getting too many emails from.*Free your inbox.*trashnothing.com/ms', '', $textbody);
-        $textbody = preg_replace('/^Try trashnothing.com for quicker and easier access.*!/ms', '', $textbody);
-        $textbody = preg_replace('/^Discover a better way to browse.*trashnothing.com/ms', '', $textbody);
+        $textbody = $this->stripSigs($textbody);
 
         // Duff text added by Yahoo Mail app.
         $textbody = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $textbody);
@@ -3159,6 +3135,38 @@ class Message
         if (substr($textbody, -1) == '|') {
             $textbody = substr($textbody, 0, strlen($textbody) - 1);
         }
+
+        return(trim($textbody));
+    }
+
+    public function stripSigs($textbody) {
+        $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Xperia.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my BlueMail/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent using the mail.com mail app.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my phone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my .*smartphone./ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Samsung device.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Windows Phone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from the trash nothing! Mobile App.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my account on trashnothing.com.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Save time browsing & posting to.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent on the go from.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from Mail.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my BlackBerry.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Huawei Mobile.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from myMail for iOS.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from Samsung Mobile.*/ms', '', $textbody);
+        $textbody = preg_replace('/^(\r\n|\r|\n)---(\r\n|\r|\n)This email has been checked for viruses.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from TypeApp.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Enviado a partir do meu smartphone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Getting too many emails from.*Free your inbox.*trashnothing.com/ms', '', $textbody);
+        $textbody = preg_replace('/^Try trashnothing.com for quicker and easier access.*!/ms', '', $textbody);
+        $textbody = preg_replace('/^Discover a better way to browse.*trashnothing.com/ms', '', $textbody);
 
         return(trim($textbody));
     }
