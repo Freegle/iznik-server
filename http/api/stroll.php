@@ -28,7 +28,6 @@ function stroll() {
             foreach ($facebooks as $facebook) {
                 $sponsors[] = [
                     'name' => 'Anonymous Facebook donation',
-                    'amount' => $facebook['GrossAmount'],
                     'timestamp' => ISODate($facebook['timestamp'])
                 ];
             }
@@ -39,12 +38,14 @@ function stroll() {
 
             $nights = $dbhr->preQuery("SELECT * FROM stroll_nights ORDER BY id ASC");
 
+            $total = $dbhr->preQuery("SELECT SUM(GrossAmount) AS total FROM users_donations WHERE timestamp >= '2019-05-07';");
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',
                 'route' => $route,
                 'sponsors' => $sponsors,
-                'nights' => $nights
+                'nights' => $nights,
+                'total' => $total[0]['total']
             ];
 
             break;
