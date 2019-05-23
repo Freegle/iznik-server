@@ -132,18 +132,20 @@
         </mj-section>
         <mj-section background-color="#F7F6EC">
           <mj-column>
-            <mj-text align="center">
-              We've removed ads from this type of mail.  Please help us keep it that way by donating &pound;1.
+            <mj-image src="https://ilovefreegle.org/images/edward.jpg" width="150px" border-radius="150px" align="left"/>
+          </mj-column>
+          <mj-column>
+            <mj-text font-size="20" align="left">
+              Edward is doing an 830 mile sponsored walk for Freegle, from Penzance to Norfolk.  Please support him!
             </mj-text>
-            <mj-button align="center" href="https://freegle.in/paypalfundraiser" font-family="Helvetica" background-color="darkblue" color="white">
+            <mj-button align="center" href="https://freegle.in/paypalfundraiser" font-family="Helvetica" background-color="darkblue" color="white" height="50px" width="200px" font-size="20">
               Donate
             </mj-button>
-            <mj-text align="center">
-              We need your help to get more people freegling.  Could you put up a poster on a noticeboard?
-            </mj-text>
-            <mj-button align="center" href="https://www.ilovefreegle.org/spread" font-family="Helvetica" background-color="darkgreen" color="white">
-              Put up a poster
-            </mj-button>
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#F7F6EC">
+          <mj-column>
+	          <mj-image src="https://ilovefreegle.org/images/strollmap.png" align="vcenter" />
           </mj-column>
         </mj-section>
         <mj-section background-color="#E0E0E0">
