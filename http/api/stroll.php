@@ -38,7 +38,7 @@ function stroll() {
 
             $nights = $dbhr->preQuery("SELECT * FROM stroll_nights ORDER BY id ASC");
 
-            $total = $dbhr->preQuery("SELECT SUM(GrossAmount) AS total FROM users_donations WHERE timestamp >= '2019-05-07';");
+            $total = $dbhr->preQuery("SELECT SUM(GrossAmount) AS total FROM users_donations WHERE timestamp >= '2019-05-07' AND Payer NOT LIKE 'ppgfukpay@paypalgivingfund.org';");
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',
