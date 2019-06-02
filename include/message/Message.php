@@ -119,6 +119,7 @@ class Message
 
     private $autoreply_bodies = [
         "I aim to respond within",
+        "Our team aims to respond",
         "reply as soon as possible",
         'with clients right now',
         "Automated response",
