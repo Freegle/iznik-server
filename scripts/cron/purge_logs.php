@@ -17,6 +17,35 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
+# Delete logs for old bounces.  We get a huge number of logs over time.  This doesn't affect bounce processing
+# because we do that from bounces_emails.
+try {
+    error_log("Logs for old bounces:");
+    $start = date('Y-m-d', strtotime("midnight 90 days ago"));
+    $total = 0;
+    do {
+        $sql = "SELECT id FROM logs WHERE `type` = '" . Log::TYPE_USER . "' AND `subtype` = '" . Log::SUBTYPE_BOUNCE . "' AND `timestamp` < '$start' LIMIT 1000;";
+        $logs = $dbhm->query($sql);
+        $count = 0;
+
+        $sql = "DELETE FROM logs WHERE id IN (0 ";
+
+        foreach ($logs as $log) {
+            $sql .= ", " . $log['id'];
+            $count++;
+            $total++;
+        }
+
+        $dbhm->exec($sql . ");");
+
+        error_log("...$total");
+        set_time_limit(600);
+        usleep(200000);
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete non-Freegle logs " . $e->getMessage());
+}
+
 # Delete logs for messages which no longer exist.  Typically spam.
 try {
     error_log("Logs for messages no longer around:");
