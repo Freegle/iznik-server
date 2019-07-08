@@ -473,6 +473,8 @@ class sessionTest extends IznikAPITestCase
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test@test.com'));
         $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
+        $u->setPrivate('yahooid', -1);
+        $u->setPrivate('yahooUserId', -2);
 
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
@@ -505,6 +507,8 @@ class sessionTest extends IznikAPITestCase
 
         $u = new User($this->dbhr, $this->dbhm, $id);
         self::assertEquals(strpos($u->getName(), 'Deleted User'), 0);
+        assertNull($u->getPrivate('yahooid'));
+        assertNull($u->getPrivate('yahooUserId'));
     }
 
     public function testAboutMe()

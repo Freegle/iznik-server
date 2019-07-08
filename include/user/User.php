@@ -5109,6 +5109,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->setPrivate('fullname', "Deleted User #" . $this->id);
         $this->setPrivate('settings', NULL);
         $this->setPrivate('yahooid', NULL);
+        $this->setPrivate('yahooUserId', NULL);
 
         # Delete emails which aren't ours.
         $emails = $this->getEmails();

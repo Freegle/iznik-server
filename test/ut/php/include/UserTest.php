@@ -1143,12 +1143,15 @@ class userTest extends IznikTestCase {
         $u = User::get($this->dbhm, $this->dbhm);
         $uid1 = $u->create('Test', 'User', 'Test User');
         $uid2 = $u->create('Test', 'User', 'Test User');
+        $u->setPrivate('yahooid', -1);
 
         self::assertEquals(0, $u->userRetention($uid1));
         $u->setPrivate('lastaccess', '2000-01-01');
         self::assertEquals(1, $u->userRetention($uid2));
 
-        }
+        $u = User::get($this->dbhm, $this->dbhm, $uid2);
+        assertNull($u->getPrivate('yahooid'));
+    }
 
     public function testPhone() {
         $u = User::get($this->dbhr, $this->dbhm);
