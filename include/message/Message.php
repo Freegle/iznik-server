@@ -134,7 +134,8 @@ class Message
         "below to complete the verification process",
         "We respond to emails as quickly as we can",
         "this email address is no longer in use",
-        "away from the office"
+        "away from the office",
+        "I won't be able to check any emails until after"
     ];
 
     private $autoreply_text_start = [
