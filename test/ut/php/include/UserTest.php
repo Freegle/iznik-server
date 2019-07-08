@@ -861,7 +861,11 @@ class userTest extends IznikTestCase {
         $this->log("Other email again, invented $email2");
         assertEquals($email, $email2);
 
-        }
+        $id = $u->create(NULL, NULL, "Test - User");
+        $email = $u->inventEmail();
+        $this->log("No emails, invented $email");
+        error_log("Invented $email");
+    }
 
     public function testThank() {
         $s = $this->getMockBuilder('User')

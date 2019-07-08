@@ -3613,10 +3613,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         foreach (['firstname', 'lastname', 'fullname'] as $att) {
                             $words = explode(' ', $this->user[$att]);
                             foreach ($words as $word) {
-                                $p = stripos($email, $word);
-                                $q = strpos($email, '@');
+                                $word = trim($word);
+                                if (strlen($word)) {
+                                    $p = stripos($email, $word);
+                                    $q = strpos($email, '@');
 
-                                $email = ($p !== FALSE && $p < $q) ? NULL : $email;
+                                    if ($word !== '-') {
+                                        # Dash is always present, which is fine.
+                                        $email = ($p !== FALSE && $p < $q) ? NULL : $email;
+                                    }
+                                }
                             }
                         }
                     } while (!$email);
