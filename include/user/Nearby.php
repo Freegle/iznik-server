@@ -44,7 +44,7 @@ class Nearby
                 $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                 $name = $u->getName();
 
-                if ($lid && !$m->hasOutcome()) {
+                if ($lid && !$m->hasOutcome() && !$u->getPrivate('deleted')) {
                     $l = new Location($this->dbhr, $this->dbhm, $lid);
                     $lat = $l->getPrivate('lat');
                     $lng = $l->getPrivate('lng');

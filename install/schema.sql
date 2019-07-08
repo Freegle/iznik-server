@@ -3058,6 +3058,7 @@ CREATE TABLE `users` (
   `invitesleft` int(10) unsigned DEFAULT '10',
   `source` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `chatmodstatus` enum('Moderated','Unmoderated') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Moderated',
+  `deleted` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `yahooUserId` (`yahooUserId`),

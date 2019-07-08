@@ -5198,6 +5198,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->dbhm->preExec("DELETE FROM users_images WHERE userid = ?;", [
             $this->id
         ]);
+
+        $this->dbhm->preExec("UPDATE users SET deleted = NOW() WHERE userid = ?;", [
+            $this->id
+        ]);
     }
 
     public function userRetention($userid = NULL)
