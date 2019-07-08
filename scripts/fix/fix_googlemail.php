@@ -8,11 +8,12 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $u = new User($dbhr, $dbhm);
 $count = 0;
 
-$users = $dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE '%@googlemail.com' OR email LIKE '%googlemail.co.uk';");
+$users = $dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE '%@googlemail.com' OR email LIKE '%googlemail.co.uk' OR email LIKE '%gmail.com';");
 
 foreach ($users as $user) {
     $gmail = str_replace('@googlemail.com', '@gmail.com', $user['email']);
     $uid = $u->findByEmail($gmail);
+    #error_log("UID $uid vs {$user['userid']} for {$user['email']}");
 
     if ($uid && $uid != $user['userid']) {
         $count++;
