@@ -656,36 +656,47 @@ class MailRouter
                             if ($uid) {
                                 if ($this->log) { error_log("From user $uid to group $gid"); }
                                 $u = User::get($this->dbhr, $this->dbhm, $uid);
+                                $s = new Spam($this->dbhr, $this->dbhm);
 
-                                $ret = MailRouter::DROPPED;
+                                # Filter out mail to volunteers from known spammers.
+                                $ret = MailRouter::INCOMING_SPAM;
+                                $spammers = $s->getSpammerByUserid($uid);
 
-                                # Don't want to pass on OOF etc.
-                                if (!$this->msg->isAutoreply()) {
-                                    # Create/get a change between the sender and the group mods.
-                                    $r = new ChatRoom($this->dbhr, $this->dbhm);
-                                    $chatid = $r->createUser2Mod($uid, $gid);
-                                    if ($this->log) { error_log("Chatid is $chatid"); }
+                                if (!$spammers) {
+                                    $ret = MailRouter::DROPPED;
 
-                                    # Now add this message into the chat.  Don't strip quoted as it might be useful -
-                                    # one example is twitter email confirmations, where the URL is quoted (weirdly).
-                                    $textbody = $this->msg->getTextbody();
+                                    # Don't want to pass on OOF etc.
+                                    if (!$this->msg->isAutoreply()) {
+                                        # Create/get a change between the sender and the group mods.
+                                        $r = new ChatRoom($this->dbhr, $this->dbhm);
+                                        $chatid = $r->createUser2Mod($uid, $gid);
+                                        if ($this->log) {
+                                            error_log("Chatid is $chatid");
+                                        }
 
-                                    if (strlen($textbody)) {
-                                        $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                        $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
-                                        if ($this->log) { error_log("Created message $mid"); }
+                                        # Now add this message into the chat.  Don't strip quoted as it might be useful -
+                                        # one example is twitter email confirmations, where the URL is quoted (weirdly).
+                                        $textbody = $this->msg->getTextbody();
 
-                                        $m->chatByEmail($mid, $this->msg->getID());
+                                        if (strlen($textbody)) {
+                                            $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                            $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+                                            if ($this->log) {
+                                                error_log("Created message $mid");
+                                            }
+
+                                            $m->chatByEmail($mid, $this->msg->getID());
+                                        }
+
+                                        # Add any photos.
+                                        $this->addPhotosToChat($chatid);
+
+                                        # The user sending this is up to date with this conversation.  This prevents us
+                                        # notifying her about other messages
+                                        $r->mailedLastForUser($uid);
+
+                                        $ret = MailRouter::TO_VOLUNTEERS;
                                     }
-
-                                    # Add any photos.
-                                    $this->addPhotosToChat($chatid);
-
-                                    # The user sending this is up to date with this conversation.  This prevents us
-                                    # notifying her about other messages
-                                    $r->mailedLastForUser($uid);
-
-                                    $ret = MailRouter::TO_VOLUNTEERS;
                                 }
                             }
                         }
