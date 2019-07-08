@@ -5199,7 +5199,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $this->id
         ]);
 
-        $this->dbhm->preExec("UPDATE users SET deleted = NOW() WHERE userid = ?;", [
+        $this->dbhm->preExec("UPDATE users SET deleted = NOW() WHERE id = ?;", [
             $this->id
         ]);
     }
