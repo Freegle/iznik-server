@@ -1122,7 +1122,12 @@ class userTest extends IznikTestCase {
         $str = "Test";
         $mid1 = $cm->create($cid1, $uid, $str);
 
-        $u->forget();
+        $u->forget('Test');
+
+        $this->waitBackground();
+        $atts = $u->getPublic(NULL, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_DELETED, $atts['logs']);
+        assertNotNull($log);
 
         # Check we zapped things
         $u = User::get($this->dbhr, $this->dbhm, $uid);

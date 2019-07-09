@@ -289,7 +289,7 @@ function session() {
                                 $s = new Spam($dbhr, $dbhm);
 
                                 if (!$s->isSpammer($me->getEmailPreferred())) {
-                                    $me->forget();
+                                    $me->forget('Request');
 
                                     # Log out.
                                     $sessionLogout($dbhr, $dbhm);

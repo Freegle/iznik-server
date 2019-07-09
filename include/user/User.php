@@ -5098,10 +5098,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($ret);
     }
 
-    public function forget()
+    public function forget($reason)
     {
         # Wipe a user of personal data, for the GDPR right to be forgotten.  We don't delete the user entirely
-        # otherwise it would message up the stats.
+        # otherwise it would mess up the stats.
 
         # Clear name etc.
         $this->setPrivate('firstname', NULL);
@@ -5209,6 +5209,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->dbhm->preExec("UPDATE users SET deleted = NOW() WHERE id = ?;", [
             $this->id
         ]);
+
+        $l = new Log($this->dbhr, $this->dbhm);
+        $l->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_DELETED,
+            'user' => $this->id,
+            'text' => $reason
+        ]);
     }
 
     public function userRetention($userid = NULL)
@@ -5240,7 +5248,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             if (count($logs) == 0 || $logs[0]['logsago'] > 90) {
                 error_log("...forget user #{$user['id']} " . (count($logs) > 0 ? $logs[0]['logsago'] : ''));
                 $u = new User($this->dbhr, $this->dbhm, $user['id']);
-                $u->forget();
+                $u->forget('Inactive');
                 $count++;
             }
         }
