@@ -23,7 +23,7 @@ function stroll() {
                 # frictionless, so while this is a pain for tracking, we still get more donations.
             }
 
-            $facebooks = $dbhr->preQuery("SELECT * FROM users_donations WHERE source = 'Facebook';");
+            $facebooks = $dbhr->preQuery("SELECT * FROM users_donations WHERE source = 'Facebook' AND timestamp <= '2019-07-08';");
 
             foreach ($facebooks as $facebook) {
                 $sponsors[] = [
@@ -38,7 +38,7 @@ function stroll() {
 
             $nights = $dbhr->preQuery("SELECT * FROM stroll_nights ORDER BY id ASC");
 
-            $total = $dbhr->preQuery("SELECT SUM(GrossAmount) AS total FROM users_donations WHERE timestamp >= '2019-05-07' AND Payer NOT LIKE 'ppgfukpay@paypalgivingfund.org';");
+            $total = $dbhr->preQuery("SELECT SUM(GrossAmount) AS total FROM users_donations WHERE timestamp >= '2019-05-07' AND timestamp <= '2019-07-08' AND Payer NOT LIKE 'ppgfukpay@paypalgivingfund.org';");
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',
