@@ -1604,6 +1604,11 @@ WHERE chat_rooms.id IN $idlist;";
                                     $s = new Schedule($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                     $summ = $s->getSummary();
                                     $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your availability: $summ") : ($otheru->getName() . " has updated when they may be available: $summ");
+
+                                    if (!strlen($summ)) {
+                                        # No point sending this if there's no availability.
+                                        continue;
+                                    }
                                     break;
                                 }
 
