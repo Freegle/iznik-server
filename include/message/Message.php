@@ -3082,8 +3082,10 @@ class Message
         #
         # On Sat, May 14, 2016 at 2:19 PM, Edward Hibbert <
         # notify-5147-16226909@users.ilovefreegle.org> wrote:
-        if (preg_match('/(.*)^(\s*)On.*wrote\:$(.*)/ms', $textbody, $matches)) {
-            $textbody = $matches[1] . $matches[2];
+        #
+        # We're assuming here that everyone replies at the top.  Standard mail clients do this.
+        if (preg_match('/(.*)^\s*On.*?wrote\:(\s*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1];
         }
 
         # Or we might have this, as a reply from a Yahoo Group message.
@@ -3127,9 +3129,6 @@ class Message
         $textbody = preg_replace('/This mail was sent to.*?/mi', "", $textbody);
         $textbody = preg_replace('/You can change your settings by clicking here.*?/mi', "", $textbody);
 
-        # Quoting timestamp
-        $textbody = preg_replace('/^(\s*?)On .*?\> wrote\:/mi', "", $textbody);
-
         # | is used to quote.
         $textbody = preg_replace('/^\|/mi', '', $textbody);
 
@@ -3150,6 +3149,7 @@ class Message
         $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my .*smartphone./ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
+        $textbody = preg_replace('/Sent.* from my iPhone/i', '', $textbody);
         $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my Samsung device.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my Windows Phone.*/ms', '', $textbody);

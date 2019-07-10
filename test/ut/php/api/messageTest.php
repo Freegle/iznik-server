@@ -2737,5 +2737,5 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($replyid, $ret['message']['id']);
 
-        }
+    }
 }
