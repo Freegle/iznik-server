@@ -337,5 +337,37 @@ class groupAPITest extends IznikAPITestCase {
         assertEquals($this->uid, $ret['group']['affiliationconfirmedby']['id']);
         assertEquals($confdate, $ret['group']['affiliationconfirmed']);
     }
+
+    public function testLastActive() {
+        # Approve a message onto the group.
+        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'test@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $this->groupid,
+            'action' => 'Approve'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $this->waitBackground();
+
+        # Get the mods.
+        $ret = $this->call('memberships', 'GET', [
+            'id' => $this->groupid,
+            'filter' => Group::FILTER_MODERATORS,
+            'members' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['members']));
+    }
 }
 

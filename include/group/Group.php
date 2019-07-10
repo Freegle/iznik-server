@@ -776,6 +776,20 @@ GROUP BY memberships.groupid, held;
                 $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
             }
 
+            if ($filter === Group::FILTER_MODERATORS) {
+                # Also add in the last mod time.
+                $acts = $this->dbhr->preQuery("SELECT MAX(timestamp) AS moderated FROM logs WHERE byuser = ? AND groupid = ? AND logs.type = ? AND subtype = ?;", [
+                    $thisone['userid'],
+                    $thisone['groupid'],
+                    Log::TYPE_MESSAGE,
+                    Log::SUBTYPE_APPROVED
+                ]);
+
+                foreach ($acts as $act) {
+                    $thisone['lastmoderated'] = ISODate($act['moderated']);
+                }
+            }
+
             $ret[] = $thisone;
         }
 
