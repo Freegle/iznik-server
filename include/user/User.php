@@ -3571,12 +3571,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             # email addresses (don't ask) and we don't want those.  And some are stupidly long.
             $yahooid = $this->getPrivate('yahooid');
 
-            if (!$force && $yahooid && strpos($yahooid, '@') === FALSE && strlen($yahooid) <= 16) {
+            if (!$force && strlen(str_replace(' ', '', $yahooid)) && strpos($yahooid, '@') === FALSE && strlen($yahooid) <= 16) {
                 $email = str_replace(' ', '', $yahooid) . '-' . $this->id . '@' . USER_DOMAIN;
             } else {
                 # Their own email might already be of that nature, which would be lovely.
-                $personal = [];
-
                 if (!$force) {
                     $email = $this->getEmailPreferred();
 
