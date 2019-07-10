@@ -94,6 +94,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->log("Created feed {$ret['id']}");
         $nid = $ret['id'];
 
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test reply',
+            'replyto' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+
         # Get this individual one
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
@@ -115,6 +121,42 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals($newsfeedtext, $ret['newsfeed']['message']);
 
+        # Generate some other activity which will result in newsfeed entries
+        # - aboutme
+        # - noticeboard
+        # - story
+        $ret = $this->call('session', 'PATCH', [
+            'aboutme' => "Something long about me which will be interesting enough for the digest"
+        ]);
+        self::assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('noticeboard', 'POST', [
+            'lat' => 8.535,
+            'lng' => 179.215,
+            'description' => 'Test description'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('noticeboard', 'PATCH', [
+            'id' => $ret['id'],
+            'name' => 'UTTest2'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('stories', 'PUT', [
+            'headline' => 'Test story, nice and long so it gets included',
+            'story' => 'Test'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $this->user->setPrivate('systemrole', User::ROLE_MODERATOR);
+        $ret = $this->call('stories', 'PATCH', [
+            'id' => $ret['id'],
+            'reviewed' => 1,
+            'public' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
         # Should mail out to the other user.
         $n = $this->getMockBuilder('Newsfeed')
             ->setConstructorArgs(array($this->dbhm, $this->dbhm))
@@ -125,7 +167,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             return($this->sendMock($mailer, $message));
         }));
 
-        assertEquals(1, $n->digest($this->uid2));
+        assertEquals(4, $n->digest($this->uid2));
         $this->waitBackground();
         assertEquals(0, $n->digest($this->uid2));
 
@@ -270,7 +312,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
-        assertEquals(1, count($ret['newsfeed'][0]['replies']));
+        assertEquals(2, count($ret['newsfeed'][0]['replies']));
 
         # Refer it to WANTED - generates another reply.
         $this->log("Refer to WANTED");
@@ -284,7 +326,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             'id' => $nid
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(2, count($ret['newsfeed']['replies']));
+        assertEquals(3, count($ret['newsfeed']['replies']));
 
         # Refer it to OFFER - generates another reply.
         $this->log("Refer to OFFER");
@@ -298,7 +340,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             'id' => $nid
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(3, count($ret['newsfeed']['replies']));
+        assertEquals(4, count($ret['newsfeed']['replies']));
 
         # Refer it to TAKEN - generates another reply.
         $this->log("Refer to TAKEN");
@@ -312,7 +354,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             'id' => $nid
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(4, count($ret['newsfeed']['replies']));
+        assertEquals(5, count($ret['newsfeed']['replies']));
 
         # Refer it to RECEIVED - generates another reply.
         $this->log("Refer to RECEIVED");
@@ -326,7 +368,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             'id' => $nid
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(5, count($ret['newsfeed']['replies']));
+        assertEquals(6, count($ret['newsfeed']['replies']));
 
         # Report it
         $ret = $this->call('newsfeed', 'POST', [

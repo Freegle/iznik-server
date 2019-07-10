@@ -45,8 +45,7 @@ class StoryTest extends IznikTestCase {
 
         $count = $s->sendToCentral($sid);
         self::assertEquals(1, $count);
-
-        }
+    }
 
     public function testNewsletter() {
         $s = new Story($this->dbhr, $this->dbhm);
@@ -68,7 +67,6 @@ class StoryTest extends IznikTestCase {
         $nid = $s->generateNewsletter(1, 10, $sid);
         assertNotNull($nid);
         $this->dbhm->preExec("DELETE FROM newsletters WHERE id = ?;", [ $nid ]);
-
-        }
+    }
 }
 
