@@ -12,27 +12,19 @@ timestamp=$(date +%Y-%m-%d-%H-%M)
 
 pgrep mysql
 if [ $? == 0 ]; then
-    # ...to our archive server
-    $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
-    rc=$?
-    echo "Archive backup returned " $rc
-
-    # This fails with network glitches sometimes.  If so try again.
-    if [ $rc != 0 ]; then
-        $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
-        echo "Archive backup 2 returned " $?
-    fi
-
-    # Kick off the restore
-    ssh root@archive "nohup /var/www/iznik/scripts/restore > /tmp/restore.out 2>&1 &"
-
-    # ...to Google storage
+    # To Google storage
     $BACKUP | gzip - | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar.gz > /tmp/gsutil.out 2>&1
 
     if [ $? == 0 ]; then
       grep "Operation completed" /tmp/gsutil.out
       if [ $? == 0 ]; then
         cat /tmp/gsutil.out | mail -s "BACKUP SUCCESS: MySQL backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
+
+        # Copy to our archive server
+        ssh root@archive "/root/gsutil/gsutil cp gs://freegle_backup/iznik-$timestamp.tar.gz /archive/backups/"
+
+        # Kick off the restore
+        ssh root@archive "nohup /var/www/iznik/scripts/restore > /tmp/restore.out 2>&1 &"
       else
         cat /tmp/gsutil.out | mail -s "BACKUP ERROR: MySQL backup didn't work" $EMAIL
       fi
