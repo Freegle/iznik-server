@@ -1607,7 +1607,7 @@ WHERE chat_rooms.id IN $idlist;";
 
                                     if (!strlen($summ)) {
                                         # No point sending this if there's no availability.
-                                        continue;
+                                        continue 2;
                                     }
                                     break;
                                 }

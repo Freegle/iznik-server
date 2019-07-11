@@ -128,6 +128,12 @@ class scheduleAPITest extends IznikAPITestCase {
                 self::assertEquals(1, count($msg['matches']));
             }
         }
-        }
+    }
+
+    public function testEmptySummary() {
+        $s = new Schedule($this->dbhr, $this->dbhm);
+        $summ = $s->getSummary();
+        assertEquals(0, strlen($summ));
+    }
 }
 
