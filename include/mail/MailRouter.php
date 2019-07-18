@@ -274,7 +274,9 @@ class MailRouter
             } else if ($fromheader && preg_match('/confirm-nomail(.*)@yahoogroups.co.*/', $fromheader[0]['address'], $matches) === 1) {
                 # We have requested to turn off email; conform that.  Only once, as if it keeps happening we'll keep
                 # trying to turn it off.
-                if ($log) { error_log("Confirm noemail change"); }
+                if ($log) {
+                    error_log("Confirm noemail change");
+                }
                 $this->mail($fromheader[0]['address'], $to, "Yes please", "I confirm this");
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
@@ -615,6 +617,16 @@ class MailRouter
 
                 $ret = MailRouter::TO_SYSTEM;
             }
+        } else if (strcmp($this->msg->getFromaddr(), 'support@twitter.com') === 0 &&
+            preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches) &&
+            strpos($this->msg->getMessage(), 'We received your appeal regarding your account.') !== FALSE
+        ) {
+            # We need to confirm this to allow appeals of blocked accounts.
+            if ($log) {
+                error_log("Confirm twitter appeal");
+            }
+            $this->mail($fromheader[0]['address'], $to, "Re: " . $this->msg->getSubject(), "I confirm this");
+            $ret = MailRouter::TO_SYSTEM;
         } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches) ||
             preg_match('/(.*)-auto@' . GROUP_DOMAIN . '/', $to, $matches)) {
             # Mail to our owner address.  First check if it's spam according to SpamAssassin.
