@@ -65,7 +65,9 @@ function chatrooms() {
                         }
                         break;
                     case ChatRoom::TYPE_USER2MOD:
-                        $id = $r->createUser2Mod($myid, $groupid);
+                        # On FD this must use the logged in user.  On MT we would be creating a chat to
+                        # a different user.
+                        $id = $r->createUser2Mod(MODTOOLS ? ($userid ? $userid : $myid) : $myid, $groupid);
                         break;
                 }
 
