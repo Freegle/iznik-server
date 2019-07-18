@@ -3137,7 +3137,8 @@ class Message
             $textbody = substr($textbody, 0, strlen($textbody) - 1);
         }
 
-        return(trim($textbody));
+        # Strip underscores and dashes, which can arise due to quoting issues.
+        return(trim($textbody, " \t\n\r\0\x0B_-"));
     }
 
     public function stripSigs($textbody) {
