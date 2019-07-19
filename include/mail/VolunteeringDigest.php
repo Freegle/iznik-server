@@ -227,7 +227,7 @@ class VolunteeringDigest
                         $message->attach($htmlPart);
 
                         $headers = $message->getHeaders();
-                        $headers->addTextHeader('List-Unsubscribe', '<mailto:{{volunteeringoff}}>, <{{unsubscribe}}>');
+                        $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
 
                         Mail::addHeaders($message, Mail::VOLUNTEERING, $rep['{{uid}}']);
 

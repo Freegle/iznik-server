@@ -253,7 +253,7 @@ class EventDigest
                     Mail::addHeaders($message, Mail::EVENTS, $u->getId());
 
                     $headers = $message->getHeaders();
-                    $headers->addTextHeader('List-Unsubscribe', '<mailto:{{eventsoff}}>, <{{unsubscribe}}>');
+                    $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
 
                     try {
                         $message->setTo([ $email => $rep['{{toname}}'] ]);
