@@ -110,7 +110,7 @@ class Digest
         }
     }
 
-    public function send($groupid, $frequency, $host = 'localhost') {
+    public function send($groupid, $frequency, $host = 'localhost', $uidforce = NULL) {
         $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new Twig_Environment($loader);
 
@@ -149,7 +149,13 @@ class Digest
             # arrival is a high-precision timestamp, so it's effectively unique per message.
             $msgdtq = $track['msgdate'] ? " AND arrival > '{$track['msgdate']}' " : '';
 
-            $sql = "SELECT msgid, arrival, autoreposts FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgdtq ORDER BY arrival ASC;";
+            # If we're forcing, change the query so that we get a message to send.
+            $limq = $uidforce ? " LIMIT 1 " : '';
+            $ord = $uidforce ? " DESC " : " ASC ";
+            $oldest = $uidforce ? '' : $oldest;
+            $msgdtq = $uidforce ? '' : $msgdtq;
+
+            $sql = "SELECT msgid, arrival, autoreposts FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgdtq ORDER BY arrival $ord $limq;";
             $messages = $this->dbhr->preQuery($sql, [
                 $groupid,
                 MessageCollection::APPROVED,
@@ -364,7 +370,8 @@ class Digest
 
             if (count($tosend) > 0) {
                 # Now find the users we want to send to on this group for this frequency.
-                $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailfrequency = ? ORDER BY userid ASC;";
+                $uidq = $uidforce ? " AND userid = $uidforce " : '';
+                $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailfrequency = ? $uidq ORDER BY userid ASC;";
                 $users = $this->dbhr->preQuery($sql,
                     [ $groupid, $frequency ]);
 

@@ -23,7 +23,8 @@ if (count($opts) < 3) {
         $d->errorLog = true;
 
         foreach ($groups as $group) {
-            $total = $d->send($group['id'], $interval);
+            # Force
+            $total = $d->send($group['id'], $interval, 'localhost', $uid);
         }
 
         error_log("Sent $total");
