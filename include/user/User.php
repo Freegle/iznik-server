@@ -5434,7 +5434,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     }
 
     public function getRating() {
-        $ratings = $this->dbhr->preQuery("SELECT COUNT(*) AS count, rating FROM ratings WHERE ratee = ? GROUP BY rating;", [
+        $mysqltime = date("Y-m-d", strtotime("Midnight 182 days ago"));
+        $ratings = $this->dbhr->preQuery("SELECT COUNT(*) AS count, rating FROM ratings WHERE ratee = ? AND timestamp >= '$mysqltime' GROUP BY rating;", [
             $this->id
         ], FALSE, FALSE);
 
