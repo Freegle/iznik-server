@@ -104,6 +104,7 @@ class sessionClassTest extends IznikTestCase {
 
         $_SESSION['id'] = NULL;
         $_SERVER['HTTP_Authorization'] = 'Iznik ' . json_encode($ret);
+        error_log("Header " . $_SERVER['HTTP_Authorization']);
         global $sessionPrepared;
         $sessionPrepared = FALSE;
         prepareSession($this->dbhm, $this->dbhm);
