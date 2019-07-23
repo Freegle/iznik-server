@@ -103,7 +103,7 @@ class sessionClassTest extends IznikTestCase {
         $ret = $s->create($id);
 
         $_SESSION['id'] = NULL;
-        $_SERVER['HTTP_X-Iznik-Persistent'] = $ret;
+        $_SERVER['HTTP_Authorization'] = 'Iznik ' . json_encode($ret);
         global $sessionPrepared;
         $sessionPrepared = FALSE;
         prepareSession($this->dbhm, $this->dbhm);
