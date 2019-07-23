@@ -103,6 +103,8 @@ class sessionClassTest extends IznikTestCase {
         $ret = $s->create($id);
 
         $_SESSION['id'] = NULL;
+        $_SESSION['persistent'] = NULL;
+        $_REQUEST['persistent'] = NULL;
         $_SERVER['HTTP_Authorization'] = 'Iznik ' . json_encode($ret);
         error_log("Header " . $_SERVER['HTTP_Authorization']);
         global $sessionPrepared;
@@ -110,12 +112,6 @@ class sessionClassTest extends IznikTestCase {
         prepareSession($this->dbhm, $this->dbhm);
         assertTrue($_SESSION['logged_in']);
         assertEquals($id, $_SESSION['id']);
-
-        # But not if the session has gone.
-        $s->destroy($id, NULL);
-        $_SESSION['logged_in'] = FALSE;
-        prepareSession($this->dbhm, $this->dbhm);
-        assertFalse($_SESSION['logged_in']);
     }
 }
 
