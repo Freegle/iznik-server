@@ -3,6 +3,18 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
+if (!function_exists('getallheaders')) {
+    function getallheaders() {
+        $headers = [];
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
+        }
+        return $headers;
+    }
+}
+
 if (pres('api_key', $_REQUEST)) {
     # We have been passed a session id.
     #
@@ -41,6 +53,19 @@ function prepareSession($dbhr, $dbhm) {
         # Always verify the persistent session if passed.  This guards against
         # session id collisions, which can happen (albeit quite rarely).
         $cookie = presdef('persistent', $_REQUEST, NULL);
+
+        if (!$cookie) {
+            # Check headers too.
+            $headers = getallheaders();
+            if (pres('Authorization', $headers)) {
+                $auth = $headers['Authorization'];
+
+                if (strpos($auth, 'Iznik ') === 0) {
+                    $cookie = json_decode(substr($auth, 6), TRUE);
+                }
+            }
+        }
+
         if ($cookie) {
             # Check our cookie to see if it's a valid session
             #error_log("Cookie " . var_export($cookie, TRUE));

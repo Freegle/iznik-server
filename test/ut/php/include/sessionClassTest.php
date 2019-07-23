@@ -93,6 +93,28 @@ class sessionClassTest extends IznikTestCase {
         $_SESSION['logged_in'] = FALSE;
         prepareSession($this->dbhm, $this->dbhm);
         assertFalse($_SESSION['logged_in']);
+    }
 
-        }}
+    public function testRequestHeader() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+
+        $s = new Session($this->dbhm, $this->dbhm);
+        $ret = $s->create($id);
+
+        $_SESSION['id'] = NULL;
+        $_SERVER['HTTP_X-Iznik-Persistent'] = $ret;
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+        prepareSession($this->dbhm, $this->dbhm);
+        assertTrue($_SESSION['logged_in']);
+        assertEquals($id, $_SESSION['id']);
+
+        # But not if the session has gone.
+        $s->destroy($id, NULL);
+        $_SESSION['logged_in'] = FALSE;
+        prepareSession($this->dbhm, $this->dbhm);
+        assertFalse($_SESSION['logged_in']);
+    }
+}
 
