@@ -92,6 +92,7 @@ i1.url AS u1imageurl,
 i2.url AS u2imageurl,
 i1.data AS u1imagedata,
 i2.data AS u2imagedata,
+i3.id AS gimageid,
 chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastdate, chat_messages.type AS chatmsgtype" .
             ($myid ?
 ", CASE WHEN chat_rooms.chattype = 'User2Mod' AND chat_rooms.user1 != $myid THEN 
@@ -103,7 +104,8 @@ FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid
 LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
 LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
 LEFT JOIN users_images i1 ON i1.userid = u1.id
-LEFT JOIN users_images i2 ON i2.userid = u2.id 
+LEFT JOIN users_images i2 ON i2.userid = u2.id
+LEFT JOIN groups_images i3 ON i3.groupid = chat_rooms.groupid 
 LEFT JOIN chat_messages ON chat_messages.id = (SELECT id FROM chat_messages WHERE chat_messages.chatid = chat_rooms.id AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1)
 WHERE chat_rooms.id IN $idlist;";
 
@@ -178,16 +180,16 @@ WHERE chat_rooms.id IN $idlist;";
                         break;
                     case ChatRoom::TYPE_USER2MOD:
                         if ($room['user1'] == $myid) {
-                            $thisone['icon'] =  "https://" . IMAGE_DOMAIN . "/gimg_{$room['groupid']}.jpg";
+                            $thisone['icon'] =  "https://" . IMAGE_DOMAIN . "/gimg_{$room['gimageid']}.jpg";
                         } else{
                             $thisone['icon'] = $room['u1imageurl'] ? $room['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['user1'] . ".jpg");
                         }
                         break;
                     case ChatRoom::TYPE_MOD2MOD:
-                        $thisone['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_{$room['groupid']}.jpg";
+                        $thisone['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_{$room['gimageid']}.jpg";
                         break;
                     case ChatRoom::TYPE_GROUP:
-                        $thisone['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_{$room['groupid']}.jpg";
+                        $thisone['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_{$room['gimageid']}.jpg";
                         break;
                 }
 
