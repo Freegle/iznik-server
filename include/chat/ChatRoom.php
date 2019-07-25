@@ -90,6 +90,8 @@ CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' '
   AND chatid = chat_rooms.id AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS unseen,
 i1.url AS u1imageurl,
 i2.url AS u2imageurl,
+i1.data AS u1imagedata,
+i2.data AS u2imagedata,
 chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastdate, chat_messages.type AS chatmsgtype" .
             ($myid ?
 ", CASE WHEN chat_rooms.chattype = 'User2Mod' AND chat_rooms.user1 != $myid THEN 
@@ -117,6 +119,17 @@ WHERE chat_rooms.id IN $idlist;";
         foreach ($rooms as &$room) {
             if (pres('lastdate', $room)) {
                 $room['lastdate'] = ISODate($room['lastdate']);
+                $room['latestmessage'] = ISODate($room['latestmessage']);
+            }
+
+            if (!pres('u1imageurl', $room) && pres('u1imagedata', $room)) {
+                // This is an inline image, not an URL
+                $room['u1imageurl'] = 'data:image/png;base64,' . base64_encode($room['u1imagedata']);
+            }
+
+            if (!pres('u2imageurl', $room) && pres('u2imagedata', $room)) {
+                // This is an inline image, not an URL
+                $room['u2imageurl'] = 'data:image/png;base64,' . base64_encode($room['u2imagedata']);
             }
 
             switch ($room['chattype']) {
