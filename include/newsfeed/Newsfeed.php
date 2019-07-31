@@ -150,7 +150,8 @@ class Newsfeed extends Entity
         $atts = parent::getPublic();
         $users = [];
 
-        $this->fillIn($atts, $users, TRUE, $allreplies);
+        // This is the thread head.
+        $this->fillIn($atts, $users, TRUE, $allreplies, $atts['id']);
 
         foreach ($users as $user) {
             if ($user['id'] == presdef('userid', $atts, NULL)) {
@@ -201,8 +202,9 @@ class Newsfeed extends Entity
         return($atts);
     }
 
-    private function fillIn(&$entry, &$users, $checkreplies = TRUE, $allreplies = FALSE) {
+    private function fillIn(&$entry, &$users, $checkreplies = TRUE, $allreplies = FALSE, $threadhead = NULL) {
         unset($entry['position']);
+        $entry['threadhead'] = $threadhead;
 
         if ($entry['type'] != Newsfeed::TYPE_NOTICEBOARD) {
             # Noticeboards hackily have JSON data in message.
@@ -358,8 +360,8 @@ class Newsfeed extends Entity
                     # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
                     # are there but nobody else sees them.
                     if (!$hidden || $myid == $entry['userid']) {
-                        # Replies can themselves contain replies.
-                        $this->fillIn($reply, $users, TRUE);
+                        # Replies can themselves contain replies.  Preserve the thread head as we recurse.
+                        $this->fillIn($reply, $users, TRUE, FALSE, $threadhead ? $threadhead : $entry['id']);
 
                         if ($reply['visible'] &&
                             $last['userid'] == $reply['userid'] &&
@@ -451,7 +453,8 @@ class Newsfeed extends Entity
                     unset($entry['hidden']);
 
                     if ($fillin) {
-                        $this->fillIn($entry, $users);
+                        // This entry is the start of the thread.
+                        $this->fillIn($entry, $users, TRUE, FALSE, $entry['id']);
 
                         # We return invisible entries - they are filtered on the client, and it makes the paging work.
                         if ($entry['visible'] &&
