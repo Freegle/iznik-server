@@ -358,8 +358,8 @@ class Newsfeed extends Entity
                     # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
                     # are there but nobody else sees them.
                     if (!$hidden || $myid == $entry['userid']) {
-                        # Replies only one deep at present.
-                        $this->fillIn($reply, $users, FALSE);
+                        # Replies can themselves contain replies.
+                        $this->fillIn($reply, $users, TRUE);
 
                         if ($reply['visible'] &&
                             $last['userid'] == $reply['userid'] &&
