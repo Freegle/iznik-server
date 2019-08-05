@@ -135,7 +135,8 @@ class Message
         "We respond to emails as quickly as we can",
         "this email address is no longer in use",
         "away from the office",
-        "I won't be able to check any emails until after"
+        "I won't be able to check any emails until after",
+        "I'm on leave at the moment"
     ];
 
     private $autoreply_text_start = [
