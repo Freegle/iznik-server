@@ -200,30 +200,32 @@ class MessageCollection
                     # We only query on a small set of userids, so it's more efficient to get the list of messages from them
                     # first.
                     $seltab = "(SELECT id, arrival, " . ($summary ? 'subject, ' : '') . "fromuser, deleted, `type`, textbody, source FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
-                    $sql = "SELECT messages_groups.msgid AS id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 $outcomeq2 ORDER BY messages_groups.arrival DESC LIMIT $limit";
+                    $sql = "SELECT messages_groups.msgid AS id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 $outcomeq2 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
                 } else if (count($groupids) > 0) {
                     # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
                     $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
-                    $sql = "SELECT msgid as id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC LIMIT $limit;";
+                    $sql = "SELECT msgid as id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC, messages_groups.msgid DESC LIMIT $limit;";
                 } else {
                     # We are not searching within a specific group, so we have no choice but to do a larger join.
-                    $sql = "SELECT msgid AS id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
+                    $sql = "SELECT msgid AS id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
                 }
 
+                file_put_contents('/tmp/sql', "$sql\n", FILE_APPEND);
                 $msglist = $this->dbhr->preQuery($sql);
 
                 # Get an array of the basic info.  Save off context for next time.
-                $ctx = ['Date' => NULL, 'id' => PHP_INT_MAX];
+                $ctx = ['Date' => NULL, 'id' => 0];
 
                 foreach ($msglist as $msg) {
                     $tofill[] = $msg;
                     $thisepoch = strtotime($msg['arrival']);
 
                     if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
+                        # The messages are returned in order of date, then id.  This logic here matches the ordering
+                        # in the SQL above.
                         $ctx['Date'] = $thisepoch;
+                        $ctx['id'] = pres('id', $ctx) ? max($msg['id'], $ctx['id']) : $msg['id'];
                     }
-
-                    $ctx['id'] = min($msg['id'], $ctx['id']);
                 }
             }
 
