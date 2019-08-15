@@ -127,11 +127,13 @@ WHERE chat_rooms.id IN $idlist;";
             if (!pres('u1imageurl', $room) && pres('u1imagedata', $room)) {
                 // This is an inline image, not an URL
                 $room['u1imageurl'] = 'data:image/png;base64,' . base64_encode($room['u1imagedata']);
+                unset($room['u1imagedata']);
             }
 
             if (!pres('u2imageurl', $room) && pres('u2imagedata', $room)) {
                 // This is an inline image, not an URL
                 $room['u2imageurl'] = 'data:image/png;base64,' . base64_encode($room['u2imagedata']);
+                unset($room['u2imagedata']);
             }
 
             switch ($room['chattype']) {
