@@ -641,7 +641,7 @@ class Newsfeed extends Entity
 
         $latlng = $u->getLatLng(FALSE);
 
-        if ($latlng[0] || $latlng[1]) {
+        if ($u->sendOurMails() && ($latlng[0] || $latlng[1]) && $u->getSetting('notificationmails', TRUE)) {
             # We have a location for them.
             # Find the last one we saw.  Use master as we might have updated this for a previous group.
             $seens = $this->dbhm->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
@@ -750,39 +750,37 @@ class Newsfeed extends Entity
             if ($count > 0) {
                 # Got some to send
                 $u = new User($this->dbhr, $this->dbhm, $userid);
-                if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
-                    $url = $u->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
-                    $noemail = 'notificationmailsoff-' . $userid . "@" . USER_DOMAIN;
+                $url = $u->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
+                $noemail = 'notificationmailsoff-' . $userid . "@" . USER_DOMAIN;
 
-                    $html = $twig->render('newsfeed/digest.html', [
-                        'items' => $twigitems,
-                        'settings' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_NEWSFEED_DIGEST),
-                        'email' => $u->getEmailPreferred(),
-                        'noemail' => $noemail,
-                    ]);
+                $html = $twig->render('newsfeed/digest.html', [
+                    'items' => $twigitems,
+                    'settings' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_NEWSFEED_DIGEST),
+                    'email' => $u->getEmailPreferred(),
+                    'noemail' => $noemail,
+                ]);
 
-                    $message = Swift_Message::newInstance()
-                        ->setSubject($subj)
-                        ->setFrom([NOREPLY_ADDR => 'Freegle'])
-                        ->setReturnPath($u->getBounce())
-                        ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                        ->setBody("Recent conversations from nearby freeglers:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
+                $message = Swift_Message::newInstance()
+                    ->setSubject($subj)
+                    ->setFrom([NOREPLY_ADDR => 'Freegle'])
+                    ->setReturnPath($u->getBounce())
+                    ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                    ->setBody("Recent conversations from nearby freeglers:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
 
-                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                    # Outlook.
-                    $htmlPart = Swift_MimePart::newInstance();
-                    $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                    $htmlPart->setContentType('text/html');
-                    $htmlPart->setBody($html);
-                    $message->attach($htmlPart);
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
 
-                    Mail::addHeaders($message, Mail::NEWSFEED, $u->getId());
+                Mail::addHeaders($message, Mail::NEWSFEED, $u->getId());
 
-                    error_log("..." . $u->getEmailPreferred() . " send $count");
-                    list ($transport, $mailer) = getMailer();
-                    $this->sendIt($mailer, $message);
-                }
+                error_log("..." . $u->getEmailPreferred() . " send $count");
+                list ($transport, $mailer) = getMailer();
+                $this->sendIt($mailer, $message);
             }
         }
 
