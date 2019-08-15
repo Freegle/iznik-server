@@ -154,7 +154,7 @@ class Newsletter extends Entity
             foreach ($users as $user) {
                 $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
 
-                if (!$u->getPrivate('bouncing')) {
+                if (!$u->getPrivate('bouncing') && $u->sendOurMails()) {
                     # We are only interested in sending events to users for whom we have a preferred address -
                     # otherwise where would we send them?
                     $email = $u->getEmailPreferred();
@@ -244,7 +244,7 @@ class Newsletter extends Entity
                         if ($sent % 7 === 0) {
                             # This is set so that sending a newsletter takes several days, to avoid disrupting our
                             # normal mailing by flooding the system with these mails.
-                            sleep(1);
+                            sleep(2);
                         }
                     } catch (Exception $e) {
                         error_log($email . " skipped with " . $e->getMessage());
