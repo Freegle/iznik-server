@@ -235,7 +235,8 @@ class Digest
                             'visit' => '{{visit}}',
                             'LI_HASH' => '{{LI_HASH}}',
                             'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}',
-                            'JOB_ADS' => '{{jobads}}'
+                            'jobads' => '{{jobads}}',
+                            'joblocation' => '{{joblocation}}'
                         ]);
 
                         $tosend[] = [
@@ -353,7 +354,8 @@ class Digest
                         'visit' => '{{visit}}',
                         'LI_HASH' => '{{LI_HASH}}',
                         'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}',
-                        'JOB_ADS' => '{{jobads}}'
+                        'jobads' => '{{jobads}}',
+                        'joblocation' => '{{joblocation}}'
                     ]);
                 } catch (Exception $e) {
                     error_log("Message prepare failed with " . $e->getMessage());
@@ -399,6 +401,8 @@ class Digest
                         $placementid = "msgdigest-$groupid-$frequency-" . str_replace(',', '-', microtime(true));
 
                         # We build up an array of the substitutions we need.
+                        $jobads = $u->getJobAds();
+
                         $replacements[$email] = [
                             '{{uid}}' => $u->getId(),
                             '{{toname}}' => $u->getName(),
@@ -414,7 +418,8 @@ class Digest
                             '{{replyto}}' => $u->getId(),
                             '{{LI_HASH}}' =>  hash('sha1', $email),
                             '{{LI_PLACEMENT_ID}}' => $placementid,
-                            '{{jobads}}' => $u->getJobAds()
+                            '{{jobads}}' => implode('<br />', $jobads['jobs']),
+                            '{{joblocation}}' => $jobads['location']
                         ];
 
                         $emailToId[$email] = $u->getId();
