@@ -5557,6 +5557,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
+        if ($ret) {
+            # Randomise a bit so people don't see the same ones if they're getting multiple mails per day.
+            shuffle($ret);
+        }
+
         return([
             'location' => $search,
             'jobs' => $ret
