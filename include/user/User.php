@@ -5548,10 +5548,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         $loc = presdef('location', $job, '') . ' ' . presdef('postcode', $job, '');
 
                         $ret[] = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
-
-                        if (count($ret) > 3) {
-                            break;
-                        }
                     }
                 }
             }
@@ -5560,6 +5556,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if ($ret) {
             # Randomise a bit so people don't see the same ones if they're getting multiple mails per day.
             shuffle($ret);
+            $ret = array_slice($ret, 0, 4);
         }
 
         return([
