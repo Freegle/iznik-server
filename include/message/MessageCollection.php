@@ -210,7 +210,6 @@ class MessageCollection
                     $sql = "SELECT msgid AS id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
                 }
 
-                file_put_contents('/tmp/sql', "$sql\n", FILE_APPEND);
                 $msglist = $this->dbhr->preQuery($sql);
 
                 # Get an array of the basic info.  Save off context for next time.

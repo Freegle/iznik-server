@@ -972,6 +972,7 @@ class Message
                 }
 
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                $group['namedisplay'] = $g->getName();
 
                 # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
                 $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
