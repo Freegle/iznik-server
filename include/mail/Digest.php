@@ -418,7 +418,7 @@ class Digest
                             '{{replyto}}' => $u->getId(),
                             '{{LI_HASH}}' =>  hash('sha1', $email),
                             '{{LI_PLACEMENT_ID}}' => $placementid,
-                            '{{jobads}}' => implode('<br />', $jobads['jobs']),
+                            '{{jobads}}' => $jobads ? implode('<br />', $jobads['jobs']) : NULL,
                             '{{joblocation}}' => $jobads['location']
                         ];
 
