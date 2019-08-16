@@ -139,7 +139,7 @@
               </mj-column>
             </mj-group>
         </mj-section>
-        <mj-section background-color="#F7F6EC">
+        <mj-section background-color="#F7F6EC" padding=0>
           <mj-column>
             <mj-text background-color="#FFF8DC" color="#1D6607" font-size="20pt" line-height="1.25em" padding-bottom="0px">
               Jobs near&nbsp;{{ joblocation }}<br />
@@ -151,7 +151,7 @@
             </mj-button>
           </mj-column>
         </mj-section>
-        <mj-section background-color="#F7F6EC">
+        <mj-section background-color="#F7F6EC" padding=0>
           <mj-column>
             <mj-text>
               <a href="https://freegle.in/jobs/{{ joblocation }}" target="_blank" style="color: black">{{ jobads }}</a><br />
