@@ -312,7 +312,7 @@ class ChatMessage extends Entity
 
         # Strip any remaining quoted text in replies.
         $ret['message'] = trim(preg_replace('/\|.*$/m', "", $ret['message']));
-        $ret['message'] = trim(preg_replace('/\>.*$/m', "", $ret['message']));
+        $ret['message'] = trim(preg_replace('/^\>.*$/m', "", $ret['message']));
         $ret['message'] = trim(preg_replace('/\#yiv.*$/m', "", $ret['message']));
 
         return($ret);
