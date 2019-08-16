@@ -5522,7 +5522,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $l = new Location($this->dbhr, $this->dbhm);
             $pcs = $l->closestPostcode($lat, $lng);
 
-            if (count($pcs)) {
+            if ($pcs && count($pcs)) {
                 $p = strpos($pcs['name'], ' ');
                 $search = $p !== -1 ? substr($pcs['name'], 0, $p) : $pcs['name'];
             }
