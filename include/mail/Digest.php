@@ -402,6 +402,7 @@ class Digest
 
                         # We build up an array of the substitutions we need.
                         $jobads = $u->getJobAds();
+                        error_log("Job ads " . var_export($jobads, TRUE));
 
                         $replacements[$email] = [
                             '{{uid}}' => $u->getId(),
