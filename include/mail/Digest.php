@@ -234,7 +234,8 @@ class Digest
                             'noemail' => '{{noemail}}',
                             'visit' => '{{visit}}',
                             'LI_HASH' => '{{LI_HASH}}',
-                            'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}'
+                            'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}',
+                            'JOB_ADS' => '{{jobads}}'
                         ]);
 
                         $tosend[] = [
@@ -351,7 +352,8 @@ class Digest
                         'noemail' => '{{noemail}}',
                         'visit' => '{{visit}}',
                         'LI_HASH' => '{{LI_HASH}}',
-                        'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}'
+                        'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}',
+                        'JOB_ADS' => '{{jobads}}'
                     ]);
                 } catch (Exception $e) {
                     error_log("Message prepare failed with " . $e->getMessage());
@@ -411,7 +413,8 @@ class Digest
                             '{{creds}}' => $creds,
                             '{{replyto}}' => $u->getId(),
                             '{{LI_HASH}}' =>  hash('sha1', $email),
-                            '{{LI_PLACEMENT_ID}}' => $placementid
+                            '{{LI_PLACEMENT_ID}}' => $placementid,
+                            '{{jobads}}' => $u->getJobAds()
                         ];
 
                         $emailToId[$email] = $u->getId();

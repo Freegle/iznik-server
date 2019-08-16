@@ -287,7 +287,7 @@ class Location extends Entity
                 # by most popular.
                 if ($limit > 0) {
                     $sql = "SELECT locations.* FROM locations FORCE INDEX (gridid) $exclgroup WHERE LENGTH(name) >= " . strlen($termt) . " AND name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote($termt) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
-                    #error_log("%..% $sql");
+                    error_log("%..% $sql");
                     $locs = $this->dbhr->preQuery($sql);
 
                     foreach ($locs as $loc) {

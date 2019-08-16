@@ -24,7 +24,7 @@ if (!$gid) {
 
     $l = new Location($dbhr, $dbhm);
     $areaid = $l->create(NULL, 'Central', 'Polygon', 'POLYGON((-3.217620849609375 55.9565040997114,-3.151702880859375 55.9565040997114,-3.151702880859375 55.93304863776238,-3.217620849609375 55.93304863776238,-3.217620849609375 55.9565040997114))', 0);
-    $pcid = $l->create(NULL, 'EH3 6SS', 'Postcode', 'POINT(55.957571 -3.205333)', 0);
+    $pcid = $l->create(NULL, 'EH3 6SS', 'Postcode', 'POINT(-3.205333 55.957571)', 0);
 
     $u = new User($dbhr, $dbhm);
     $u->create('Test', 'User', 'Test User');

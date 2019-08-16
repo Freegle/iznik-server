@@ -1299,5 +1299,40 @@ class userTest extends IznikTestCase {
             'wanteds' => 1
         ], $u->getActiveCounts());
     }
+
+    public function testJobs() {
+        foreach (glob("/tmp/adview.*") AS $filename) {
+            unlink($filename);
+        }
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
+        # First when we have a postcode.
+        $settings = [
+            'mylocation' => [
+                'name' => 'EH3 6SS',
+                'lat' => 55.957571,
+                'lng' => -3.205333
+            ],
+        ];
+
+        $u->setPrivate('settings', json_encode($settings));
+        $jobs = $u->getJobAds();
+        assertEquals('EH3', $jobs['location']);
+
+        # And again for cache.
+        $jobs = $u->getJobAds();
+        assertEquals('EH3', $jobs['location']);
+
+        # Now when we have just a group membership
+        $u->addMembership($gid);
+        $u->setPrivate('settings', json_encode([]));
+        $jobs = $u->getJobAds();
+        assertEquals('TV13', $jobs['location']);
+    }
 }
 

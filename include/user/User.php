@@ -5504,4 +5504,62 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $id  = base_convert($enc, 2, 10);
         return($id);
     }
+
+    public function getJobAds() {
+        # We want to show a few job ads from nearby.
+        list ($lat, $lng, $loc) = $this->getLatLng();
+        $search = NULL;
+        $ret = NULL;
+
+        if ($loc) {
+            # We have a location.  Use that to save on expensive calls.  It's probably a postcode, so use the first
+            # part - we don't want to make it too specific else it looks like we're stalking.  Otherwise the full
+            # thing.
+            $p = strpos($loc, ' ');
+            $search = $p !== -1 ? substr($loc, 0, $p) : $loc;
+        } else {
+            # We need to find the closest postcode to this user.
+            $l = new Location($this->dbhr, $this->dbhm);
+            $pcs = $l->closestPostcode($lat, $lng);
+
+            if (count($pcs)) {
+                $p = strpos($pcs['name'], ' ');
+                $search = $p !== -1 ? substr($pcs['name'], 0, $p) : $pcs['name'];
+            }
+        }
+
+        if ($search) {
+            # AdView's servers can't keep up with us, so we keep a more or less daily cache of jobs per location.
+            $fn = "/tmp/adview." . base64_encode($search);
+
+            if (!is_file($fn) || (time() - filemtime($fn) > 20 * 3600)) {
+                # No cache or time to update.
+                $url = "https://adview.online/api/v1/jobs.json?publisher=2053&limit=50&location=" . urlencode($search);
+                $data = @file_get_contents($url);
+                file_put_contents($fn, $data);
+            } else {
+                $data = @file_get_contents($fn);
+            }
+
+            if ($data) {
+                $data = json_decode($data, TRUE);
+                if ($data) {
+                    foreach ($data['data'] as $job) {
+                        $loc = presdef('location', $job, '') . ' ' . presdef('postcode', $job, '');
+
+                        $ret[] = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
+
+                        if (count($ret) > 3) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return([
+            'location' => $search,
+            'jobs' => $ret
+        ]);
+    }
 }
