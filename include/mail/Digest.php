@@ -402,7 +402,6 @@ class Digest
 
                         # We build up an array of the substitutions we need.
                         $jobads = $u->getJobAds();
-                        error_log("Job ads " . var_export($jobads, TRUE));
 
                         $replacements[$email] = [
                             '{{uid}}' => $u->getId(),
@@ -419,7 +418,7 @@ class Digest
                             '{{replyto}}' => $u->getId(),
                             '{{LI_HASH}}' =>  hash('sha1', $email),
                             '{{LI_PLACEMENT_ID}}' => $placementid,
-                            '{{jobads}}' => count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                            '{{jobads}}' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
                             '{{joblocation}}' => $jobads['location']
                         ];
 
