@@ -1310,6 +1310,9 @@ class userTest extends IznikTestCase {
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
+        $g->setPrivate('lat', 55.9533);
+        $g->setPrivate('lng', -3.1883);
 
         # First when we have a postcode.
         $settings = [
@@ -1330,11 +1333,10 @@ class userTest extends IznikTestCase {
 
         # Now when we have just a group membership
         $l = new Location($this->dbhr, $this->dbhm);
-        $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $u->addMembership($gid);
         $u->setPrivate('settings', json_encode([]));
         $jobs = $u->getJobAds();
-        assertEquals('TV13', $jobs['location']);
+        assertEquals('EH1', $jobs['location']);
     }
 }
 
