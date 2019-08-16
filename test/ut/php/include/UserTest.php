@@ -1336,7 +1336,7 @@ class userTest extends IznikTestCase {
         $u->addMembership($gid);
         $u->setPrivate('settings', json_encode([]));
         $jobs = $u->getJobAds();
-        assertEquals('EH1', $jobs['location']);
+        assertTrue($jobs['location'] === 'EH1' || $jobs['location'] === 'EH3');
     }
 }
 
