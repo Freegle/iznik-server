@@ -1329,6 +1329,8 @@ class userTest extends IznikTestCase {
         assertEquals('EH3', $jobs['location']);
 
         # Now when we have just a group membership
+        $l = new Location($this->dbhr, $this->dbhm);
+        $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $u->addMembership($gid);
         $u->setPrivate('settings', json_encode([]));
         $jobs = $u->getJobAds();
