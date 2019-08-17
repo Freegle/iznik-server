@@ -146,7 +146,7 @@
             </mj-text>
           </mj-column>
           <mj-column>
-            <mj-button align="right" href="https://freegle.in/jobs/{{ joblocation }}" font-family="Helvetica" background-color="darkblue" color="white">
+            <mj-button align="right" href="https://www.ilovefreegle.org/jobs/{{ joblocation }}" font-family="Helvetica" background-color="darkblue" color="white">
               View more jobs
             </mj-button>
           </mj-column>
@@ -154,7 +154,7 @@
         <mj-section background-color="#F7F6EC" padding=0>
           <mj-column>
             <mj-text>
-              <a href="https://freegle.in/jobs/{{ joblocation }}" target="_blank" style="color: black">{{ jobads }}</a><br />
+              <a href="https://www.ilovefreegle.org/jobs/{{ joblocation }}" target="_blank" style="color: black">{{ jobads }}</a><br />
             </mj-text>
           </mj-column>
         </mj-section>
