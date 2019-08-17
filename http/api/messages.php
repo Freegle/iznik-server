@@ -30,7 +30,9 @@ function messages() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $groups = [];
+            # Ensure that if we aren't using any groups, we don't treat this as a systemwide search, because that
+            # kills the DB.
+            $groups = [0];
             $userids = [];
 
             if ($collection != MessageCollection::DRAFT) {
@@ -55,11 +57,6 @@ function messages() {
                         if (!MODTOOLS || !array_key_exists('active', $settings) || $settings['active']) {
                             $groups[] = $group['id'];
                         }
-                    }
-
-                    if (count($groups) == 0) {
-                        # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
-                        $groups[] = 0;
                     }
                 }
             }
