@@ -170,6 +170,10 @@ class MessageCollection
                 } else if ($age !== NULL) {
                     $mysqltime = date("Y-m-d", strtotime("Midnight $age days ago"));
                     $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
+                } else if (!MODTOOLS) {
+                    # No point showing old messages on FD, and this keeps the query fast.
+                    $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
+                    $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
                 }
 
                 # We might be looking for posts with no outcome.
@@ -204,7 +208,7 @@ class MessageCollection
                 } else if (count($groupids) > 0) {
                     # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
                     $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
-                    $sql = "SELECT msgid as id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC, messages_groups.msgid DESC LIMIT $limit;";
+                    $sql = "SELECT msgid as id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE $dateq $oldest $groupq $collectionq AND messages_groups.deleted = 0 $typeq ORDER BY arrival DESC, messages_groups.msgid DESC LIMIT $limit;";
                 } else {
                     # We are not searching within a specific group, so we have no choice but to do a larger join.
                     $sql = "SELECT msgid AS id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
