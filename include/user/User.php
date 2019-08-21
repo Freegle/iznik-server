@@ -5534,7 +5534,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if (!is_file($fn) || (time() - filemtime($fn) > 20 * 3600)) {
                 # No cache or time to update.
-                $url = "https://adview.online/api/v1/jobs.json?publisher=2053&limit=50&location=" . urlencode($search);
+                $url = "https://adview.online/api/v1/jobs.json?publisher=2053&limit=50&radius=5&location=" . urlencode($search);
                 $data = @file_get_contents($url);
                 file_put_contents($fn, $data);
             } else {
