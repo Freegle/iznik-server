@@ -784,7 +784,30 @@ class MailRouterTest extends IznikTestCase {
             # Should also show in work.
         }
 
+    }
+
+    public function testBulkOwnerMail() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+
+        for ($i = 0; $i < Spam::GROUP_THRESHOLD + 2; $i++) {
+            $this->log("Group $i");
+            $gid = $g->create("testgroup$i", Group::GROUP_OTHER);
+
+            $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+
+            $r = new MailRouter($this->dbhr, $this->dbhm);
+            $id = $r->received(Message::EMAIL, 'from@test.com', "testgroup$i-volunteers@" . GROUP_DOMAIN, $msg);
+            $this->log("Msg $id");
+            $rc = $r->route();
+
+            # The message can get marked as spam.
+            if ($i < Spam::GROUP_THRESHOLD - 1) {
+                assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+            } else {
+                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+            }
         }
+    }
 
     function testRouteAll() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));

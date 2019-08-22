@@ -33,6 +33,7 @@ class Spam {
     CONST REASON_REFERRED_TO_SPAMMER = 'Referenced known spammer';
     CONST REASON_KNOWN_KEYWORD = 'Known spam keyword';
     CONST REASON_DBL = 'URL on DBL';
+    CONST REASON_BULK_VOLUNTEER_MAIL = 'BulkVolunteerMail';
 
     const ACTION_SPAM = 'Spam';
     const ACTION_REVIEW = 'Review';
@@ -164,6 +165,18 @@ class Spam {
                         return (array(true, Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS, "Warning - subject $subj recently used on {$count['count']} groups"));
                     }
                 }
+            }
+        }
+
+        # Now check if this sender has mailed a lot of owners recently.
+        $sql = "SELECT COUNT(*) AS count FROM messages WHERE envelopefrom = ? and envelopeto LIKE '%-volunteers@" . GROUP_DOMAIN . "' AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
+        $counts = $this->dbhr->preQuery($sql, [
+            $msg->getEnvelopefrom()
+        ]);
+
+        foreach ($counts as $count) {
+            if ($count['count'] >= Spam::GROUP_THRESHOLD) {
+                return (array(true, Spam::REASON_BULK_VOLUNTEER_MAIL, "Warning - " . $msg->getEnvelopefrom() . " mailed {$count['count']} group volunteer addresses recently"));
             }
         }
 
