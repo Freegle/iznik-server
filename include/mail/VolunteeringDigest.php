@@ -132,9 +132,7 @@ class VolunteeringDigest
                     'unsubscribe' => '{{unsubscribe}}',
                     'email' => '{{email}}',
                     'noemail' => '{{noemail}}',
-                    'visit' => '{{visit}}',
-                    'LI_HASH' => '{{LI_HASH}}',
-                    'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}'
+                    'visit' => '{{visit}}'
                 ]);
 
                 $tosend = [
@@ -167,14 +165,12 @@ class VolunteeringDigest
                     #$email = 'activate@liveintent.com';
                     #$email = 'edward@ehibbert.org.uk';
 
+                    $jobads = $u->getJobAds();
+
                     if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
 
                     if ($email && $u->sendOurMails($g)) {
                         if ($this->errorlog) { error_log("Send to them"); }
-
-                        # The placement ID for ads needs to be unique.  We want to generated it here so that
-                        # not everyone in a single run gets the same ad.
-                        $placementid = "voldigest-$groupid-" . str_replace(',', '-', microtime(true));
 
                         $replacements[$email] = [
                             '{{uid}}' => $u->getId(),
@@ -185,8 +181,8 @@ class VolunteeringDigest
                             '{{noemail}}' => 'volunteeringoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                             '{{post}}' => "https://" . USER_SITE . "/volunteering",
                             '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid",
-                            '{{LI_HASH}}' =>  hash('sha1', $email),
-                            '{{LI_PLACEMENT_ID}}' => $placementid
+                            '{{jobads}}' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                            '{{joblocation}}' => $jobads['location']
                         ];
                     }
                 }

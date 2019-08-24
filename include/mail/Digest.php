@@ -233,8 +233,6 @@ class Digest
                             'frequency' => '{{frequency}}',
                             'noemail' => '{{noemail}}',
                             'visit' => '{{visit}}',
-                            'LI_HASH' => '{{LI_HASH}}',
-                            'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}',
                             'jobads' => '{{jobads}}',
                             'joblocation' => '{{joblocation}}'
                         ]);
@@ -352,8 +350,6 @@ class Digest
                         'frequency' => '{{frequency}}',
                         'noemail' => '{{noemail}}',
                         'visit' => '{{visit}}',
-                        'LI_HASH' => '{{LI_HASH}}',
-                        'LI_PLACEMENT_ID' => '{{LI_PLACEMENT_ID}}',
                         'jobads' => '{{jobads}}',
                         'joblocation' => '{{joblocation}}'
                     ]);
@@ -396,10 +392,6 @@ class Digest
                         $t = $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST);
                         $creds = substr($t, strpos($t, '?'));
 
-                        # The placement ID for ads needs to be unique.  We want to generated it here so that
-                        # not everyone in a single run gets the same ad.
-                        $placementid = "msgdigest-$groupid-$frequency-" . str_replace(',', '-', microtime(true));
-
                         # We build up an array of the substitutions we need.
                         $jobads = $u->getJobAds();
 
@@ -416,8 +408,6 @@ class Digest
                             '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups', User::SRC_DIGEST),
                             '{{creds}}' => $creds,
                             '{{replyto}}' => $u->getId(),
-                            '{{LI_HASH}}' =>  hash('sha1', $email),
-                            '{{LI_PLACEMENT_ID}}' => $placementid,
                             '{{jobads}}' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
                             '{{joblocation}}' => $jobads['location']
                         ];

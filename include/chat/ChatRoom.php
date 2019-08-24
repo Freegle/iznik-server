@@ -1482,7 +1482,6 @@ WHERE chat_rooms.id IN $idlist;";
         # members - which is a much smaller set.
         $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new Twig_Environment($loader);
-        $placement = "chatnotify" . microtime(true);
 
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
@@ -1757,8 +1756,7 @@ WHERE chat_rooms.id IN $idlist;";
                             #$to = 'log@ehibbert.org.uk';
                             #$to = 'activate@liveintent.com';
 
-                            # Parameters for LiveIntent ads
-                            $lihash = hash('sha1', $to);
+                            $jobads = $thisu->getJobAds();
 
                             try {
                                 switch ($chattype) {
@@ -1772,9 +1770,9 @@ WHERE chat_rooms.id IN $idlist;";
                                             'backcolour' => '#FFF8DC',
                                             'email' => $to,
                                             'aboutme' => $aboutu ? $aboutu->getAboutMe()['text'] : NULL,
-                                            'LI_HASH' => $lihash,
-                                            'LI_PLACEMENT_ID' => $placement,
-                                            'prevmsg' => $prevmsg
+                                            'prevmsg' => $prevmsg,
+                                            'jobads' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                                            'joblocation' => $jobads['location']
                                         ]);
 
                                         $sendname = $fromname;
@@ -1789,9 +1787,9 @@ WHERE chat_rooms.id IN $idlist;";
                                                 'messages' => $twigmessages,
                                                 'backcolour' => '#FFF8DC',
                                                 'email' => $to,
-                                                'LI_HASH' => $lihash,
-                                                'LI_PLACEMENT_ID' => $placement,
-                                                'prevmsg' => $prevmsg
+                                                'prevmsg' => $prevmsg,
+                                                'jobads' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                                                'joblocation' => $jobads['location']
                                             ]);
 
                                             $sendname = $fromname;
@@ -1807,9 +1805,9 @@ WHERE chat_rooms.id IN $idlist;";
                                                 'support' => SUPPORT_ADDR,
                                                 'backcolour' => '#E8FEFB',
                                                 'email' => $to,
-                                                'LI_HASH' => $lihash,
-                                                'LI_PLACEMENT_ID' => $placement,
-                                                'prevmsg' => $prevmsg
+                                                'prevmsg' => $prevmsg,
+                                                'jobads' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                                                'joblocation' => $jobads['location']
                                             ]);
 
                                             $sendname = 'Reply All';

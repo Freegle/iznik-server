@@ -185,17 +185,22 @@
         <mj-raw>
           {% endfor %}
         </mj-raw>
-        <mj-section background-color="#F7F6EC">
+        <mj-section background-color="#F7F6EC" padding=0>
           <mj-column>
-            <mj-text align="center">
-              Ads help keep Freegle running and free to use. Donating helps too!
+            <mj-text background-color="#FFF8DC" color="#1D6607" font-size="20pt" line-height="1.25em" padding-bottom="0px">
+              Jobs near you<br />
             </mj-text>
-            <mj-button align="center" href="https://freegle.in/paypalfundraiser" font-family="Helvetica" background-color="darkblue" color="white">
-              Donate
+            <mj-text background-color="#FFF8DC">
+              If you click through to view these then it will raise a little to help keep Freegle running and free to use.<br />
+            </mj-text>
+          </mj-column>
+          <mj-column>
+            <mj-button align="right" href="https://www.ilovefreegle.org/jobs/{{ joblocation }}" font-family="Helvetica" background-color="darkblue" color="white">
+              View more jobs
             </mj-button>
-            <mj-raw>
-                <table align="center" border="0" cellpadding="0" cellspacing="0" ><tr><td colspan="2"><a href="http://li.ilovefreegle.org/click?s=673515&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=673515&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0" style="max-width:320px;"/></a></td></tr><tr><td align="left"><a style="display: block; max-width: 116px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=673516&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=673516&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td><td align="right"><a style="display: block; max-width: 19px;  max-height: 15px;" href="http://li.ilovefreegle.org/click?s=673518&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" rel="nofollow"><img src="http://li.ilovefreegle.org/imp?s=673518&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" border="0"/></a></td></tr></table>
-            </mj-raw>
+            <mj-button align="right" href="https://freegle.in/paypalfundraiser" font-family="Helvetica" background-color="darkgreen" color="white">
+              Donating helps too!
+            </mj-button>
           </mj-column>
         </mj-section>
         <mj-section background-color="#E0E0E0">
@@ -210,9 +215,6 @@
           </mj-column>
         </mj-section>
       </mj-wrapper>
-    <mj-raw>
-        <table cellpadding="0" cellspacing="0" border="0" width="40" height="6"><tbody><tr><td><img src="http://li.ilovefreegle.org/imp?s=125479700&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479701&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479702&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479703&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479704&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479705&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479706&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479707&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479708&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479709&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479710&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479711&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479712&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479713&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479714&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479715&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479716&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479717&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479718&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td><td><img src="http://li.ilovefreegle.org/imp?s=125479719&sh={{ LI_HASH }}&p={{ LI_PLACEMENT_ID }}" width="2" height="6" border="0" /></td></tr></tbody></table>
-    </mj-raw>
     </mj-container>
   </mj-body>
 </mjml>
