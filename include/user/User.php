@@ -3889,12 +3889,15 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             #error_log("{$log['subtype']} gives $thisone {$log['groupid']}");
             if ($thisone && $log['groupid']) {
                 $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
-                $ret[] = [
-                    'timestamp' => ISODate($log['timestamp']),
-                    'type' => $thisone,
-                    'group' => $g->getPublic(),
-                    'text' => $log['text']
-                ];
+
+                if ($g->getId() === $log['groupid']) {
+                    $ret[] = [
+                        'timestamp' => ISODate($log['timestamp']),
+                        'type' => $thisone,
+                        'group' => $g->getPublic(),
+                        'text' => $log['text']
+                    ];
+                }
             }
         }
 
@@ -3972,10 +3975,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $thisone['chatrooms'] = [];
 
             if ($rooms) {
-                foreach ($rooms as $room) {
-                    $r = new ChatRoom($this->dbhr, $this->dbhm, $room);
-                    $thisone['chatrooms'][] = $r->getPublic();
-                }
+                $thisone['chatrooms'] = $r->fetchRooms($rooms, $user['userid'], FALSE);
             }
 
             # Add the public location and best guess lat/lng
