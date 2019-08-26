@@ -4,7 +4,17 @@
     <bookmark url="file://$PROJECT_DIR$/http/api/plugin.php" line="26" mnemonic="9" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="" />
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources/c928f5c7-d271-4b12-b686-a047cb3a932b/storage_v2/_src_/schema/iznik.P8MABg.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources/c928f5c7-d271-4b12-b686-a047cb3a932b/storage_v2/_src_/schema/iznik.P8MABg.zip" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dbnavigator.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/iznik-server.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
+    </list>
     <ignored path=".idea/deployment.xml" />
     <ignored path=".idea/encodings.xml" />
     <ignored path="scripts/fix/fix_alert.php" />
@@ -74,9 +84,9 @@
     <session id="-1629519600">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="19" />
+          <entry key="project.closed" value="20" />
           <entry key="project.open.time.0" value="2" />
-          <entry key="project.open.time.1" value="1" />
+          <entry key="project.open.time.1" value="2" />
           <entry key="project.open.time.10" value="4" />
           <entry key="project.open.time.13" value="2" />
           <entry key="project.open.time.14" value="1" />
@@ -89,7 +99,7 @@
           <entry key="project.open.time.7" value="1" />
           <entry key="project.open.time.8" value="2" />
           <entry key="project.open.time.9" value="5" />
-          <entry key="project.opened" value="36" />
+          <entry key="project.opened" value="37" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -147,7 +157,7 @@
           <entry key="php" value="41719" />
           <entry key="sql" value="27" />
           <entry key="start_background" value="104" />
-          <entry key="txt" value="5434" />
+          <entry key="txt" value="5448" />
           <entry key="xml" value="1" />
           <entry key="yml" value="1" />
         </counts>
@@ -160,7 +170,7 @@
           <entry key="JSON" value="72" />
           <entry key="JavaScript" value="7" />
           <entry key="PHP" value="41694" />
-          <entry key="PLAIN_TEXT" value="5799" />
+          <entry key="PLAIN_TEXT" value="5813" />
           <entry key="SQL" value="25" />
           <entry key="Scratch" value="3" />
           <entry key="XML" value="1" />
@@ -181,7 +191,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/include/user/User.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="194">
+            <state relative-caret-position="25364">
               <caret line="1493" column="36" selection-start-line="1493" selection-start-column="20" selection-end-line="1493" selection-end-column="36" />
             </state>
           </provider>
@@ -190,7 +200,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/http/api/memberships.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="281">
+            <state relative-caret-position="6358">
               <caret line="374" column="39" selection-start-line="374" selection-start-column="39" selection-end-line="374" selection-end-column="39" />
             </state>
           </provider>
@@ -204,8 +214,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/scripts/fix/fix_sheila.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret selection-end-line="45" selection-end-column="1" />
+            <state relative-caret-position="765">
+              <caret line="45" column="1" selection-start-line="45" selection-start-column="1" selection-end-line="45" selection-end-column="1" />
             </state>
           </provider>
         </entry>
@@ -213,7 +223,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/stubs/standard/standard_1.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="202">
+            <state relative-caret-position="16626">
               <caret line="978" column="9" selection-start-line="978" selection-start-column="9" selection-end-line="978" selection-end-column="9" />
             </state>
           </provider>
@@ -222,7 +232,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="219">
+            <state relative-caret-position="7089">
               <caret line="417" selection-start-line="416" selection-end-line="417" />
             </state>
           </provider>
@@ -249,8 +259,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/http/api/messages.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3264">
-              <caret line="192" column="9" selection-start-line="192" selection-start-column="9" selection-end-line="192" selection-end-column="9" />
+            <state relative-caret-position="3213">
+              <caret line="189" column="9" selection-start-line="189" selection-start-column="9" selection-end-line="189" selection-end-column="9" />
             </state>
           </provider>
         </entry>
@@ -379,7 +389,13 @@
   <component name="PhpServers">
     <servers />
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app4" />
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app4">
+    <include_path>
+      <path value="." />
+      <path value="/usr/bin/php" />
+      <path value="/usr/share/php" />
+    </include_path>
+  </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="405" />
     <option name="y" value="60" />
@@ -403,61 +419,6 @@
             <path>
               <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
               <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="composer" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="include" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="include" type="462c0819:PsiDirectoryNode" />
-              <item name="misc" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="install" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="plugin" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="plugin" type="462c0819:PsiDirectoryNode" />
-              <item name="chrome" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="scripts" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="scripts" type="462c0819:PsiDirectoryNode" />
-              <item name="cli" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="scripts" type="462c0819:PsiDirectoryNode" />
-              <item name="cron" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
-              <item name="scripts" type="462c0819:PsiDirectoryNode" />
-              <item name="fix" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -501,9 +462,35 @@
           <option name="mySupportsDeletion" value="false" />
           <option name="myCanBeAbsent" value="false" />
           <option name="myId" value="UPDATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/http/api/messages.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/chat/ChatMessage.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/chat/ChatRoom.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/group/Group.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/mail/Digest.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/mail/EventDigest.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/mail/Newsletter.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/mail/VolunteeringDigest.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/message/Message.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/message/MessageCollection.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/misc/Location.php</PATH>
           <PATH vcs="Git" revision="">$PROJECT_DIR$/include/newsfeed/Newsfeed.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/spam/Spam.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/user/User.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/install/testenv.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/mjml/chat_notify.mjml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/mjml/digest/events.mjml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/mjml/digest/multiple.mjml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/mjml/digest/single.mjml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/mjml/digest/volunteering.mjml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/twig/chat_notify.html</PATH>
           <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/twig/digest/events.html</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/twig/digest/multiple.html</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/twig/digest/single.html</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/twig/digest/volunteering.html</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/scripts/backup</PATH>
           <PATH vcs="Git" revision="">$PROJECT_DIR$/scripts/cron/git_recent_commits</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/test/ut/php/include/UserTest.php</PATH>
         </FILE-GROUP>
         <FILE-GROUP>
           <option name="myUpdateName" value="Created" />
@@ -511,6 +498,17 @@
           <option name="mySupportsDeletion" value="false" />
           <option name="myCanBeAbsent" value="false" />
           <option name="myId" value="CREATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/.gitignore</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/dataSources.xml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/deployment.xml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/encodings.xml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/iznik.iml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/modules.xml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/php-test-framework.xml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/php.xml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/vcs.xml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/composer.phar</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/http/adview.php</PATH>
         </FILE-GROUP>
         <FILE-GROUP>
           <option name="myUpdateName" value="Deleted" />
@@ -518,6 +516,7 @@
           <option name="mySupportsDeletion" value="false" />
           <option name="myCanBeAbsent" value="true" />
           <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/http/hvlu.php</PATH>
         </FILE-GROUP>
         <FILE-GROUP>
           <option name="myUpdateName" value="Restored" />
@@ -711,13 +710,7 @@
       <workItem from="1559142448818" duration="15736000" />
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
-    </task>
-    <task id="LOCAL-00106" summary="Only allow listing of Freegle groups">
-      <created>1545032475412</created>
-      <option name="number" value="00106" />
-      <option name="presentableId" value="LOCAL-00106" />
-      <option name="project" value="LOCAL" />
-      <updated>1545032475413</updated>
+      <workItem from="1566855130858" duration="178000" />
     </task>
     <task id="LOCAL-00107" summary="Change default group settings to match GAT settings">
       <created>1545208640116</created>
@@ -1055,7 +1048,14 @@
       <option name="project" value="LOCAL" />
       <updated>1562392683248</updated>
     </task>
-    <option name="localTasksCounter" value="155" />
+    <task id="LOCAL-00155" summary="Commit project">
+      <created>1566855311468</created>
+      <option name="number" value="00155" />
+      <option name="presentableId" value="LOCAL-00155" />
+      <option name="project" value="LOCAL" />
+      <updated>1566855311469</updated>
+    </task>
+    <option name="localTasksCounter" value="156" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -1091,13 +1091,12 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="372194000" />
+    <option name="totallyTimeSpent" value="372372000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="2062" height="1126" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15384616" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15534465" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info id="DB Browser" order="3" />
@@ -1109,8 +1108,8 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" weight="0.32997987" />
-      <window_info anchor="bottom" id="Version Control" order="9" show_stripe_button="false" weight="0.17002012" />
+      <window_info anchor="bottom" id="Database Changes" order="8" weight="0.32997987" />
+      <window_info active="true" anchor="bottom" id="Version Control" order="9" visible="true" weight="0.17002012" />
       <window_info anchor="bottom" id="Terminal" order="10" weight="0.32997987" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
       <window_info anchor="bottom" id="File Transfer" order="12" weight="0.21327968" />
@@ -1182,7 +1181,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Admin visit link wrong" />
     <MESSAGE value="Initial Return Path work." />
     <MESSAGE value="In MT, show at bottom of Settings-&gt;Group who confirmed affiliation and when" />
     <MESSAGE value="Allow list of shortlinks for group" />
@@ -1207,7 +1205,8 @@
     <MESSAGE value="Purge logs for old mail bounces to save space" />
     <MESSAGE value="Fix up group settings for allow edits" />
     <MESSAGE value="Remove stroll donation appeal from chat notifications" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove stroll donation appeal from chat notifications" />
+    <MESSAGE value="Commit project" />
+    <option name="LAST_COMMIT_MESSAGE" value="Commit project" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/include/group/Volunteering.php">
@@ -1568,6 +1567,45 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cli/user_mod_active.php" />
+    <entry file="file://$PROJECT_DIR$/include/user/User.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="25364">
+          <caret line="1493" column="36" selection-start-line="1493" selection-start-column="20" selection-end-line="1493" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/memberships.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6358">
+          <caret line="374" column="39" selection-start-line="374" selection-start-column="39" selection-end-line="374" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cli/user_split.php">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/stubs/standard/standard_1.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="16626">
+          <caret line="978" column="9" selection-start-line="978" selection-start-column="9" selection-end-line="978" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="7089">
+          <caret line="417" selection-start-line="416" selection-end-line="417" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cli/user_addmembership.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="442">
+          <caret line="26" column="24" selection-end-line="31" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/include/group/Group.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2788">
@@ -1577,60 +1615,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/http/api/messages.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3264">
-          <caret line="192" column="9" selection-start-line="192" selection-start-column="9" selection-end-line="192" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/cli/user_split.php">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/cli/user_addmembership.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="442">
-          <caret line="26" column="24" selection-end-line="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="219">
-          <caret line="417" selection-start-line="416" selection-end-line="417" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/http/api/memberships.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="281">
-          <caret line="374" column="39" selection-start-line="374" selection-start-column="39" selection-end-line="374" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/user/User.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="194">
-          <caret line="1493" column="36" selection-start-line="1493" selection-start-column="20" selection-end-line="1493" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/stubs/standard/standard_1.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="202">
-          <caret line="978" column="9" selection-start-line="978" selection-start-column="9" selection-end-line="978" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/cli/user_mod_active.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="408">
-          <caret line="24" column="30" lean-forward="true" selection-start-line="24" selection-start-column="30" selection-end-line="24" selection-end-column="30" />
+        <state relative-caret-position="3213">
+          <caret line="189" column="9" selection-start-line="189" selection-start-column="9" selection-end-line="189" selection-end-column="9" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/scripts/fix/fix_sheila.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret selection-end-line="45" selection-end-column="1" />
+        <state relative-caret-position="765">
+          <caret line="45" column="1" selection-start-line="45" selection-start-column="1" selection-end-line="45" selection-end-column="1" />
         </state>
       </provider>
     </entry>
