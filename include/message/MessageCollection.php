@@ -129,7 +129,7 @@ class MessageCollection
                     $summjoin = $summary ? ", messages.subject, (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
                     $groupq = "AND messages_groups.groupid IN (" . implode(',', $groupids) . ") ";
 
-                    $sql = "SELECT messages.id AS id, messages_groups.arrival, messages.type AS msgtype, fromuser $summjoin FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid INNER JOIN messages ON messages_groups.msgid = messages.id WHERE messages_edits.timestamp > '$mysqltime' AND messages_edits.reviewrequired = 1 $groupq AND $dateq;";
+                    $sql = "SELECT messages.id AS id, messages_groups.arrival, messages.type AS msgtype, fromuser $summjoin FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid INNER JOIN messages ON messages_groups.msgid = messages.id WHERE messages_edits.timestamp > '$mysqltime' AND messages_edits.reviewrequired = 1 AND messages_groups.deleted = 0 $groupq AND $dateq;";
                     $tofill2 = $this->dbhr->preQuery($sql);
 
                     $ctx = ['Date' => NULL, 'id' => PHP_INT_MAX];

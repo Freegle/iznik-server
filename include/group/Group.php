@@ -427,7 +427,7 @@ GROUP BY memberships.groupid, held;
             #
             # See also MessageCollection.
             $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
-            $editreviewcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT messages_edits.msgid) AS count FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid WHERE timestamp > '$mysqltime' AND reviewrequired = 1 AND messages_groups.groupid IN $groupq GROUP BY groupid;");
+            $editreviewcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT messages_edits.msgid) AS count FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid WHERE timestamp > '$mysqltime' AND reviewrequired = 1 AND messages_groups.groupid IN $groupq AND messages_groups.deleted = 0 GROUP BY groupid;");
 
             foreach ($groupids as $groupid) {
                 # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
