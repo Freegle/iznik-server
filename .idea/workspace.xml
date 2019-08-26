@@ -1,0 +1,1638 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/http/api/plugin.php" line="26" mnemonic="9" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="" />
+    <ignored path=".idea/deployment.xml" />
+    <ignored path=".idea/encodings.xml" />
+    <ignored path="scripts/fix/fix_alert.php" />
+    <ignored path=".idea/iznik-server.iml" />
+    <ignored path=".idea/misc.xml" />
+    <ignored path=".idea/modules.xml" />
+    <ignored path=".idea/vcs.xml" />
+    <ignored path=".idea/php.xml" />
+    <ignored path=".idea/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings" doNotAsk="true" synchronizationState="SYNCHRONIZE">
+    <pharConfigPath>$PROJECT_DIR$/composer/composer.json</pharConfigPath>
+  </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/iznik_server$userTest_testExport.xml" NAME="userTest.testExport Coverage Results" MODIFIED="1540446220606" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/iznik_server$groupFacebookTest_testBasic.xml" NAME="groupFacebookTest.testBasic Coverage Results" MODIFIED="1540489011382" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+  <component name="CoverageOptionsProvider">
+    <option name="myAddOrReplace" value="1" />
+  </component>
+  <component name="CoverageViewManager">
+    <option name="myElementSize" value="196" />
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <option name="HIDDEN_KINDS">
+      <set />
+    </option>
+    <expand>
+      <path>
+        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
+        <item name="db3" type="feb32156:DbDataSourceImpl" />
+      </path>
+      <path>
+        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
+        <item name="db3" type="feb32156:DbDataSourceImpl" />
+        <item name="schemas" type="d4e8921:DatabaseStructure$FamilyGroup" />
+      </path>
+      <path>
+        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
+        <item name="db3" type="feb32156:DbDataSourceImpl" />
+        <item name="schemas" type="d4e8921:DatabaseStructure$FamilyGroup" />
+        <item name="iznik: schema" type="c314c289:MysqlImplModel$Schema" />
+      </path>
+      <path>
+        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
+        <item name="db3" type="feb32156:DbDataSourceImpl" />
+        <item name="schemas" type="d4e8921:DatabaseStructure$FamilyGroup" />
+        <item name="iznik: schema" type="c314c289:MysqlImplModel$Schema" />
+        <item name="tables" type="d4e8921:DatabaseStructure$FamilyGroup" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="FUSProjectUsageTrigger">
+    <session id="-1629519600">
+      <usages-collector id="statistics.lifecycle.project">
+        <counts>
+          <entry key="project.closed" value="19" />
+          <entry key="project.open.time.0" value="2" />
+          <entry key="project.open.time.1" value="1" />
+          <entry key="project.open.time.10" value="4" />
+          <entry key="project.open.time.13" value="2" />
+          <entry key="project.open.time.14" value="1" />
+          <entry key="project.open.time.17" value="1" />
+          <entry key="project.open.time.2" value="3" />
+          <entry key="project.open.time.3" value="5" />
+          <entry key="project.open.time.4" value="5" />
+          <entry key="project.open.time.5" value="2" />
+          <entry key="project.open.time.6" value="2" />
+          <entry key="project.open.time.7" value="1" />
+          <entry key="project.open.time.8" value="2" />
+          <entry key="project.open.time.9" value="5" />
+          <entry key="project.opened" value="36" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.open">
+        <counts>
+          <entry key="Dockerfile" value="5" />
+          <entry key="JPG" value="1" />
+          <entry key="basic" value="1" />
+          <entry key="crontab" value="1" />
+          <entry key="html" value="8" />
+          <entry key="js" value="3" />
+          <entry key="json" value="3" />
+          <entry key="mjml" value="6" />
+          <entry key="notif_reply_text14" value="2" />
+          <entry key="notif_reply_text15" value="1" />
+          <entry key="notif_reply_text16" value="1" />
+          <entry key="php" value="403" />
+          <entry key="sql" value="5" />
+          <entry key="start_background" value="1" />
+          <entry key="tnatt1" value="1" />
+          <entry key="tnatt2" value="1" />
+          <entry key="tnsig" value="1" />
+          <entry key="txt" value="1" />
+          <entry key="weirdreceipt" value="1" />
+          <entry key="xml" value="2" />
+          <entry key="yml" value="3" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.open">
+        <counts>
+          <entry key="DBN-SQL" value="2" />
+          <entry key="Dockerfile" value="5" />
+          <entry key="HTML" value="7" />
+          <entry key="Image" value="1" />
+          <entry key="JSON" value="3" />
+          <entry key="JavaScript" value="3" />
+          <entry key="PHP" value="403" />
+          <entry key="PLAIN_TEXT" value="18" />
+          <entry key="SQL" value="1" />
+          <entry key="Scratch" value="3" />
+          <entry key="XML" value="2" />
+          <entry key="YAML" value="3" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.edit">
+        <counts>
+          <entry key="Dockerfile" value="611" />
+          <entry key="basic" value="3" />
+          <entry key="crontab" value="67" />
+          <entry key="html" value="34" />
+          <entry key="js" value="7" />
+          <entry key="json" value="72" />
+          <entry key="mjml" value="127" />
+          <entry key="notif_reply_text15" value="48" />
+          <entry key="notif_reply_text16" value="16" />
+          <entry key="php" value="41719" />
+          <entry key="sql" value="27" />
+          <entry key="start_background" value="104" />
+          <entry key="txt" value="5434" />
+          <entry key="xml" value="1" />
+          <entry key="yml" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.edit">
+        <counts>
+          <entry key="DBN-SQL" value="24" />
+          <entry key="Dockerfile" value="611" />
+          <entry key="HTML" value="34" />
+          <entry key="JSON" value="72" />
+          <entry key="JavaScript" value="7" />
+          <entry key="PHP" value="41694" />
+          <entry key="PLAIN_TEXT" value="5799" />
+          <entry key="SQL" value="25" />
+          <entry key="Scratch" value="3" />
+          <entry key="XML" value="1" />
+          <entry key="YAML" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.php.composer.command.options" />
+      <usages-collector id="statistics.js.language.service.starts" />
+      <usages-collector id="statistics.php.new.test" />
+      <usages-collector id="statistics.php.composer.actions" />
+      <usages-collector id="statistics.php.rename.constructor" />
+      <usages-collector id="statistics.php.new.class" />
+      <usages-collector id="statistics.vcs.git.usages" />
+    </session>
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/user/User.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="194">
+              <caret line="1493" column="36" selection-start-line="1493" selection-start-column="20" selection-end-line="1493" selection-end-column="36" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/http/api/memberships.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="281">
+              <caret line="374" column="39" selection-start-line="374" selection-start-column="39" selection-end-line="374" selection-end-column="39" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scripts/cli/user_split.php">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/scripts/fix/fix_sheila.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <caret selection-end-line="45" selection-end-column="1" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/stubs/standard/standard_1.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="202">
+              <caret line="978" column="9" selection-start-line="978" selection-start-column="9" selection-end-line="978" selection-end-column="9" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="219">
+              <caret line="417" selection-start-line="416" selection-end-line="417" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scripts/cli/user_addmembership.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="442">
+              <caret line="26" column="24" selection-end-line="31" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/group/Group.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2788">
+              <caret line="164" column="117" selection-start-line="164" selection-start-column="117" selection-end-line="164" selection-end-column="117" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/http/api/messages.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="3264">
+              <caret line="192" column="9" selection-start-line="192" selection-start-column="9" selection-end-line="192" selection-end-column="9" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>textbod</find>
+      <find>stripgum</find>
+      <find>'hey.'</find>
+      <find>yahoo-email</find>
+      <find>fundingtar</find>
+      <find>edit</find>
+      <find>work</find>
+      <find>-volun</find>
+      <find>out of the offic</find>
+      <find>permission denied</find>
+      <find>inventem</find>
+      <find>messages_rel</find>
+      <find>messages_related</find>
+      <find>messages_outcomes</find>
+      <find>joina</find>
+      <find>canedit</find>
+      <find>caneditro</find>
+      <find>n get</find>
+      <find>allowedits</find>
+      <find>allus</find>
+      <find>bounces_emails</find>
+      <find>'bounce'</find>
+      <find>delete</find>
+      <find>sponsora</find>
+      <find>images/edward</find>
+      <find>n edit</find>
+      <find>-subscr</find>
+      <find>via ban</find>
+      <find>'active'</find>
+      <find>foreach</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>$shared</replace>
+      <replace>$entity['namedisplay']</replace>
+      <replace>groupname</replace>
+      <replace>$room['name']</replace>
+      <replace>$room['user2']</replace>
+      <replace>{$room['groupid']}</replace>
+      <replace>$room</replace>
+      <replace>$chatmsg</replace>
+      <replace>$ret</replace>
+      <replace>$thisone</replace>
+      <replace>lastdate</replace>
+      <replace>$id</replace>
+      <replace>abc.defghin</replace>
+      <replace>FreeglePlayground</replace>
+      <replace>xxxx</replace>
+      <replace>polyindex</replace>
+      <replace>communityevent</replace>
+    </replaceStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/plugin/chrome/manifest.json" />
+        <option value="$PROJECT_DIR$/plugin/chrome/manifest.firefox.json" />
+        <option value="$PROJECT_DIR$/scripts/cron/user_exhort.php" />
+        <option value="$PROJECT_DIR$/mailtemplates/admin.php" />
+        <option value="$PROJECT_DIR$/include/utils.php" />
+        <option value="$PROJECT_DIR$/scripts/cli/returnpath_seeds.php" />
+        <option value="$PROJECT_DIR$/scripts/cron/group_stats.php" />
+        <option value="$PROJECT_DIR$/include/mail/Digest.php" />
+        <option value="$PROJECT_DIR$/include/chat/ChatRoom.php" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.html" />
+        <option value="$PROJECT_DIR$/include/misc/ReturnPath.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/api/groupTest.php" />
+        <option value="$PROJECT_DIR$/http/api/group.php" />
+        <option value="$PROJECT_DIR$/install/schema.sql" />
+        <option value="$PROJECT_DIR$/http/api/shortlink.php" />
+        <option value="$PROJECT_DIR$/include/misc/Shortlink.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/api/shortlinkTest.php" />
+        <option value="$PROJECT_DIR$/include/config.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/msgs/notif_reply_text15" />
+        <option value="$PROJECT_DIR$/test/ut/php/msgs/notif_reply_text16" />
+        <option value="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/api/communityEventTest.php" />
+        <option value="$PROJECT_DIR$/include/group/Volunteering.php" />
+        <option value="$PROJECT_DIR$/http/api/volunteering.php" />
+        <option value="$PROJECT_DIR$/http/api/communityevent.php" />
+        <option value="$PROJECT_DIR$/include/group/CommunityEvent.php" />
+        <option value="$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml" />
+        <option value="$PROJECT_DIR$/scripts/cron/chat_notifyemail.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" />
+        <option value="$PROJECT_DIR$/include/misc/Mail.php" />
+        <option value="$PROJECT_DIR$/include/group/Admin.php" />
+        <option value="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" />
+        <option value="$PROJECT_DIR$/include/user/Notifications.php" />
+        <option value="$PROJECT_DIR$/test/ut/IznikTestCase.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/include/UserTest.php" />
+        <option value="$PROJECT_DIR$/scripts/fix/fix_dashedemails.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/msgs/basic" />
+        <option value="$PROJECT_DIR$/http/api/stroll.php" />
+        <option value="$PROJECT_DIR$/include/mail/MailRouter.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" />
+        <option value="$PROJECT_DIR$/include/user/User.php" />
+        <option value="$PROJECT_DIR$/include/message/MessageCollection.php" />
+        <option value="$PROJECT_DIR$/http/api/messages.php" />
+        <option value="$PROJECT_DIR$/include/message/Message.php" />
+        <option value="$PROJECT_DIR$/scripts/fix/fix_allowedits.php" />
+        <option value="$PROJECT_DIR$/include/group/Group.php" />
+        <option value="$PROJECT_DIR$/scripts/cron/purge_logs.php" />
+        <option value="$PROJECT_DIR$/mailtemplates/twig/chat_notify.html" />
+        <option value="$PROJECT_DIR$/mailtemplates/mjml/chat_notify.mjml" />
+        <option value="$PROJECT_DIR$/scripts/cli/user_mod_active.php" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="PhpServers">
+    <servers />
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app4" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="405" />
+    <option name="y" value="60" />
+    <option name="width" value="1750" />
+    <option name="height" value="1250" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <OptionsSetting value="false" id="Update" />
+    <ConfirmationsSetting value="2" id="Add" />
+    <ConfirmationsSetting value="2" id="Remove" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="composer" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="include" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="include" type="462c0819:PsiDirectoryNode" />
+              <item name="misc" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="install" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="plugin" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="plugin" type="462c0819:PsiDirectoryNode" />
+              <item name="chrome" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="scripts" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="scripts" type="462c0819:PsiDirectoryNode" />
+              <item name="cli" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="scripts" type="462c0819:PsiDirectoryNode" />
+              <item name="cron" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="scripts" type="462c0819:PsiDirectoryNode" />
+              <item name="fix" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DatabaseDriversLRU" value="mysql" />
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
+    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="MySQL" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../hs-project-dev" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="C:/Program Files/nodejs/node" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="reference.webide.settings.project.settings.php" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\test\ut\php\images" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
+    </key>
+  </component>
+  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
+    <UpdatedFiles>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Updated from server" />
+        <option name="myStatusName" value="Changed on server" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="CHANGED_ON_SERVER" />
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated" />
+          <option name="myStatusName" value="Changed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UPDATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/include/newsfeed/Newsfeed.php</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/mailtemplates/twig/digest/events.html</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/scripts/cron/git_recent_commits</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Created" />
+          <option name="myStatusName" value="Created" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CREATED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Deleted" />
+          <option name="myStatusName" value="Deleted" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="true" />
+          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Restored" />
+          <option name="myStatusName" value="Will be restored" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="RESTORED" />
+        </FILE-GROUP>
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Modified" />
+        <option name="myStatusName" value="Modified" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MODIFIED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Skipped" />
+        <option name="myStatusName" value="Skipped" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SKIPPED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with conflicts" />
+        <option name="myStatusName" value="Will be merged with conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_CONFLICTS" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with tree conflicts" />
+        <option name="myStatusName" value="Merged with tree conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with property conflicts" />
+        <option name="myStatusName" value="Will be merged with property conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged" />
+        <option name="myStatusName" value="Will be merged" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Not in repository" />
+        <option name="myStatusName" value="Not in repository" />
+        <option name="mySupportsDeletion" value="true" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="UNKNOWN" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally added" />
+        <option name="myStatusName" value="Locally added" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_ADDED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally removed" />
+        <option name="myStatusName" value="Locally removed" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_REMOVED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Switched" />
+        <option name="myStatusName" value="Switched" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SWITCHED" />
+      </FILE-GROUP>
+    </UpdatedFiles>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="PHPUnit.chatMessagesTest.testEH">
+    <configuration name="IncomingMessageTest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="IncomingMessageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
+      <method v="2" />
+    </configuration>
+    <configuration name="chatMessagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="chatMessagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
+      <method v="2" />
+    </configuration>
+    <configuration name="chatRoomsTest.testNotifyUser2UserOwn" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="chatRoomsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" method="testNotifyUser2UserOwn" scope="Method" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
+      <method v="2" />
+    </configuration>
+    <configuration name="userTest.testActiveCounts" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testActiveCounts" scope="Method" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
+      <method v="2" />
+    </configuration>
+    <configuration name="userTest.testInvent" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testInvent" scope="Method" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="PHPUnit.chatRoomsTest.testNotifyUser2UserOwn" />
+      <item itemvalue="PHPUnit.userTest.testActiveCounts" />
+      <item itemvalue="PHPUnit.userTest.testInvent" />
+      <item itemvalue="PHPUnit.IncomingMessageTest.testBasic" />
+      <item itemvalue="PHPUnit.chatMessagesTest.testEH" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="PHPUnit.chatMessagesTest.testEH" />
+        <item itemvalue="PHPUnit.IncomingMessageTest.testBasic" />
+        <item itemvalue="PHPUnit.userTest.testInvent" />
+        <item itemvalue="PHPUnit.userTest.testActiveCounts" />
+        <item itemvalue="PHPUnit.chatRoomsTest.testNotifyUser2UserOwn" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="" />
+      <created>1536150977686</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1536150977686</updated>
+      <workItem from="1536150978982" duration="145000" />
+      <workItem from="1536152343834" duration="43000" />
+      <workItem from="1536129343370" duration="2058000" />
+      <workItem from="1536132028611" duration="682000" />
+      <workItem from="1536133290653" duration="775000" />
+      <workItem from="1536170403791" duration="1276000" />
+      <workItem from="1536214835326" duration="20658000" />
+      <workItem from="1536611084743" duration="1403000" />
+      <workItem from="1536645006830" duration="20587000" />
+      <workItem from="1537085615753" duration="26820000" />
+      <workItem from="1538374702087" duration="2199000" />
+      <workItem from="1538460528395" duration="27464000" />
+      <workItem from="1539105834471" duration="24148000" />
+      <workItem from="1539596393387" duration="14017000" />
+      <workItem from="1540360988403" duration="65547000" />
+      <workItem from="1541961019690" duration="38016000" />
+      <workItem from="1544427280945" duration="3813000" />
+      <workItem from="1544560003913" duration="2273000" />
+      <workItem from="1544994841175" duration="4298000" />
+      <workItem from="1546463491926" duration="6063000" />
+      <workItem from="1547490428814" duration="24037000" />
+      <workItem from="1550647048228" duration="6209000" />
+      <workItem from="1551011131017" duration="31000" />
+      <workItem from="1551120387758" duration="2568000" />
+      <workItem from="1551338466737" duration="15808000" />
+      <workItem from="1551798224510" duration="4572000" />
+      <workItem from="1552729593432" duration="1219000" />
+      <workItem from="1553595067850" duration="2179000" />
+      <workItem from="1553851280625" duration="12632000" />
+      <workItem from="1556055101517" duration="6399000" />
+      <workItem from="1556180719268" duration="10299000" />
+      <workItem from="1558033851719" duration="915000" />
+      <workItem from="1558299400190" duration="3250000" />
+      <workItem from="1559142448818" duration="15736000" />
+      <workItem from="1562915118883" duration="1833000" />
+      <workItem from="1564086126520" duration="2222000" />
+    </task>
+    <task id="LOCAL-00106" summary="Only allow listing of Freegle groups">
+      <created>1545032475412</created>
+      <option name="number" value="00106" />
+      <option name="presentableId" value="LOCAL-00106" />
+      <option name="project" value="LOCAL" />
+      <updated>1545032475413</updated>
+    </task>
+    <task id="LOCAL-00107" summary="Change default group settings to match GAT settings">
+      <created>1545208640116</created>
+      <option name="number" value="00107" />
+      <option name="presentableId" value="LOCAL-00107" />
+      <option name="project" value="LOCAL" />
+      <updated>1545208640116</updated>
+    </task>
+    <task id="LOCAL-00108" summary="Fixing small group areas">
+      <created>1545378490609</created>
+      <option name="number" value="00108" />
+      <option name="presentableId" value="LOCAL-00108" />
+      <option name="project" value="LOCAL" />
+      <updated>1545378490610</updated>
+    </task>
+    <task id="LOCAL-00109" summary="Suppress variant of our own logo in chat replies by email">
+      <created>1546507661953</created>
+      <option name="number" value="00109" />
+      <option name="presentableId" value="LOCAL-00109" />
+      <option name="project" value="LOCAL" />
+      <updated>1546507661954</updated>
+    </task>
+    <task id="LOCAL-00110" summary="API error when logged out">
+      <created>1546727656627</created>
+      <option name="number" value="00110" />
+      <option name="presentableId" value="LOCAL-00110" />
+      <option name="project" value="LOCAL" />
+      <updated>1546727656627</updated>
+    </task>
+    <task id="LOCAL-00111" summary="Don't relay autoreply messages on from email replies to chat">
+      <created>1547018222672</created>
+      <option name="number" value="00111" />
+      <option name="presentableId" value="LOCAL-00111" />
+      <option name="project" value="LOCAL" />
+      <updated>1547018222672</updated>
+    </task>
+    <task id="LOCAL-00112" summary="Remove another TN signature">
+      <created>1547288955706</created>
+      <option name="number" value="00112" />
+      <option name="presentableId" value="LOCAL-00112" />
+      <option name="project" value="LOCAL" />
+      <updated>1547288955706</updated>
+    </task>
+    <task id="LOCAL-00113" summary="Notification title can contain ''">
+      <created>1547490537716</created>
+      <option name="number" value="00113" />
+      <option name="presentableId" value="LOCAL-00113" />
+      <option name="project" value="LOCAL" />
+      <updated>1547490537718</updated>
+    </task>
+    <task id="LOCAL-00114" summary="Server changes to allow user profile pages">
+      <created>1547501870496</created>
+      <option name="number" value="00114" />
+      <option name="presentableId" value="LOCAL-00114" />
+      <option name="project" value="LOCAL" />
+      <updated>1547501870496</updated>
+    </task>
+    <task id="LOCAL-00115" summary="Sending volunteer events to groups which have them disabled">
+      <created>1547707641676</created>
+      <option name="number" value="00115" />
+      <option name="presentableId" value="LOCAL-00115" />
+      <option name="project" value="LOCAL" />
+      <updated>1547707641676</updated>
+    </task>
+    <task id="LOCAL-00116" summary="Replies missing from My Posts">
+      <created>1548771648792</created>
+      <option name="number" value="00116" />
+      <option name="presentableId" value="LOCAL-00116" />
+      <option name="project" value="LOCAL" />
+      <updated>1548771648792</updated>
+    </task>
+    <task id="LOCAL-00117" summary="Another spam text">
+      <created>1548916628483</created>
+      <option name="number" value="00117" />
+      <option name="presentableId" value="LOCAL-00117" />
+      <option name="project" value="LOCAL" />
+      <updated>1548916628483</updated>
+    </task>
+    <task id="LOCAL-00118" summary="Return CGA/DPA">
+      <created>1549353225303</created>
+      <option name="number" value="00118" />
+      <option name="presentableId" value="LOCAL-00118" />
+      <option name="project" value="LOCAL" />
+      <updated>1549353225303</updated>
+    </task>
+    <task id="LOCAL-00119" summary="Support Tools showing duplicate group names">
+      <created>1549353937839</created>
+      <option name="number" value="00119" />
+      <option name="presentableId" value="LOCAL-00119" />
+      <option name="project" value="LOCAL" />
+      <updated>1549353937839</updated>
+    </task>
+    <task id="LOCAL-00120" summary="Speed-up: We can stop PDO returning numeric keys and therefore don't have to filter them out">
+      <created>1549570778537</created>
+      <option name="number" value="00120" />
+      <option name="presentableId" value="LOCAL-00120" />
+      <option name="project" value="LOCAL" />
+      <updated>1549570778538</updated>
+    </task>
+    <task id="LOCAL-00121" summary="UT fixes">
+      <created>1549573308565</created>
+      <option name="number" value="00121" />
+      <option name="presentableId" value="LOCAL-00121" />
+      <option name="project" value="LOCAL" />
+      <updated>1549573308565</updated>
+    </task>
+    <task id="LOCAL-00122" summary="UT fixes">
+      <created>1549574601151</created>
+      <option name="number" value="00122" />
+      <option name="presentableId" value="LOCAL-00122" />
+      <option name="project" value="LOCAL" />
+      <updated>1549574601151</updated>
+    </task>
+    <task id="LOCAL-00123" summary="Newsfeed digest mails have a double double quote">
+      <created>1550649764278</created>
+      <option name="number" value="00123" />
+      <option name="presentableId" value="LOCAL-00123" />
+      <option name="project" value="LOCAL" />
+      <updated>1550649764279</updated>
+    </task>
+    <task id="LOCAL-00124" summary="* Profile is showing a count of messages even if they are still in Pending">
+      <created>1550750911653</created>
+      <option name="number" value="00124" />
+      <option name="presentableId" value="LOCAL-00124" />
+      <option name="project" value="LOCAL" />
+      <updated>1550750911653</updated>
+    </task>
+    <task id="LOCAL-00125" summary="* Don't send SMS notifications of your own messages even if you've asked for them to be mailed to you">
+      <created>1550754544947</created>
+      <option name="number" value="00125" />
+      <option name="presentableId" value="LOCAL-00125" />
+      <option name="project" value="LOCAL" />
+      <updated>1550754544947</updated>
+    </task>
+    <task id="LOCAL-00126" summary="ModPlugin broken by recent Chrome changes">
+      <created>1550838891638</created>
+      <option name="number" value="00126" />
+      <option name="presentableId" value="LOCAL-00126" />
+      <option name="project" value="LOCAL" />
+      <updated>1550838891638</updated>
+    </task>
+    <task id="LOCAL-00127" summary="Change exhorting for user stories not to ask people until they've been a member for a week">
+      <created>1550839041334</created>
+      <option name="number" value="00127" />
+      <option name="presentableId" value="LOCAL-00127" />
+      <option name="project" value="LOCAL" />
+      <updated>1550839041334</updated>
+    </task>
+    <task id="LOCAL-00128" summary="UT fixes">
+      <created>1550840068307</created>
+      <option name="number" value="00128" />
+      <option name="presentableId" value="LOCAL-00128" />
+      <option name="project" value="LOCAL" />
+      <updated>1550840068307</updated>
+    </task>
+    <task id="LOCAL-00129" summary="Admin visit link wrong">
+      <created>1551295330108</created>
+      <option name="number" value="00129" />
+      <option name="presentableId" value="LOCAL-00129" />
+      <option name="project" value="LOCAL" />
+      <updated>1551295330108</updated>
+    </task>
+    <task id="LOCAL-00130" summary="Initial Return Path work.">
+      <created>1551509094645</created>
+      <option name="number" value="00130" />
+      <option name="presentableId" value="LOCAL-00130" />
+      <option name="project" value="LOCAL" />
+      <updated>1551509094645</updated>
+    </task>
+    <task id="LOCAL-00131" summary="In MT, show at bottom of Settings-&gt;Group who confirmed affiliation and when">
+      <created>1551800348393</created>
+      <option name="number" value="00131" />
+      <option name="presentableId" value="LOCAL-00131" />
+      <option name="project" value="LOCAL" />
+      <updated>1551800348393</updated>
+    </task>
+    <task id="LOCAL-00132" summary="Allow list of shortlinks for group">
+      <created>1551880529669</created>
+      <option name="number" value="00132" />
+      <option name="presentableId" value="LOCAL-00132" />
+      <option name="project" value="LOCAL" />
+      <updated>1551880529669</updated>
+    </task>
+    <task id="LOCAL-00133" summary="More News to ChitChat changes">
+      <created>1551883451881</created>
+      <option name="number" value="00133" />
+      <option name="presentableId" value="LOCAL-00133" />
+      <option name="project" value="LOCAL" />
+      <updated>1551883451881</updated>
+    </task>
+    <task id="LOCAL-00134" summary="Sitemap broken">
+      <created>1553706992998</created>
+      <option name="number" value="00134" />
+      <option name="presentableId" value="LOCAL-00134" />
+      <option name="project" value="LOCAL" />
+      <updated>1553706993000</updated>
+    </task>
+    <task id="LOCAL-00135" summary="More reply text stripping">
+      <created>1553852561140</created>
+      <option name="number" value="00135" />
+      <option name="presentableId" value="LOCAL-00135" />
+      <option name="project" value="LOCAL" />
+      <updated>1553852561140</updated>
+    </task>
+    <task id="LOCAL-00136" summary="Add ability to hold community events and volunteer ops">
+      <created>1553934052153</created>
+      <option name="number" value="00136" />
+      <option name="presentableId" value="LOCAL-00136" />
+      <option name="project" value="LOCAL" />
+      <updated>1553934052153</updated>
+    </task>
+    <task id="LOCAL-00137" summary="Don't notify by email for About Me notification">
+      <created>1553944625892</created>
+      <option name="number" value="00137" />
+      <option name="presentableId" value="LOCAL-00137" />
+      <option name="project" value="LOCAL" />
+      <updated>1553944625892</updated>
+    </task>
+    <task id="LOCAL-00138" summary="Debugging chat email issues">
+      <created>1553963615765</created>
+      <option name="number" value="00138" />
+      <option name="presentableId" value="LOCAL-00138" />
+      <option name="project" value="LOCAL" />
+      <updated>1553963615765</updated>
+    </task>
+    <task id="LOCAL-00139" summary="* If you unfollow a chitchat thread, then you shouldn't see notifications for it.">
+      <created>1556098322042</created>
+      <option name="number" value="00139" />
+      <option name="presentableId" value="LOCAL-00139" />
+      <option name="project" value="LOCAL" />
+      <updated>1556098322043</updated>
+    </task>
+    <task id="LOCAL-00140" summary="* If you unfollow a chitchat thread, then you shouldn't see notifications for it.">
+      <created>1556098402854</created>
+      <option name="number" value="00140" />
+      <option name="presentableId" value="LOCAL-00140" />
+      <option name="project" value="LOCAL" />
+      <updated>1556098402854</updated>
+    </task>
+    <task id="LOCAL-00141" summary="Fix to notification change">
+      <created>1556098961239</created>
+      <option name="number" value="00141" />
+      <option name="presentableId" value="LOCAL-00141" />
+      <option name="project" value="LOCAL" />
+      <updated>1556098961239</updated>
+    </task>
+    <task id="LOCAL-00142" summary="Add active counts to newsfeed">
+      <created>1556125986527</created>
+      <option name="number" value="00142" />
+      <option name="presentableId" value="LOCAL-00142" />
+      <option name="project" value="LOCAL" />
+      <updated>1556125986527</updated>
+    </task>
+    <task id="LOCAL-00143" summary="Noticeboard notifications look silly">
+      <created>1556948472995</created>
+      <option name="number" value="00143" />
+      <option name="presentableId" value="LOCAL-00143" />
+      <option name="project" value="LOCAL" />
+      <updated>1556948472995</updated>
+    </task>
+    <task id="LOCAL-00144" summary="Admin editing info is wrong">
+      <created>1557308410138</created>
+      <option name="number" value="00144" />
+      <option name="presentableId" value="LOCAL-00144" />
+      <option name="project" value="LOCAL" />
+      <updated>1557308410138</updated>
+    </task>
+    <task id="LOCAL-00145" summary="Noticeboard notification bug">
+      <created>1557337936408</created>
+      <option name="number" value="00145" />
+      <option name="presentableId" value="LOCAL-00145" />
+      <option name="project" value="LOCAL" />
+      <updated>1557337936408</updated>
+    </task>
+    <task id="LOCAL-00146" summary="Creating our own email addresses starting with -">
+      <created>1557337954707</created>
+      <option name="number" value="00146" />
+      <option name="presentableId" value="LOCAL-00146" />
+      <option name="project" value="LOCAL" />
+      <updated>1557337954707</updated>
+    </task>
+    <task id="LOCAL-00147" summary="Fix up bad fromaddr addresses">
+      <created>1557338378876</created>
+      <option name="number" value="00147" />
+      <option name="presentableId" value="LOCAL-00147" />
+      <option name="project" value="LOCAL" />
+      <updated>1557338378876</updated>
+    </task>
+    <task id="LOCAL-00148" summary="Strip signatures on OFFER/WANTED posts">
+      <created>1557734427608</created>
+      <option name="number" value="00148" />
+      <option name="presentableId" value="LOCAL-00148" />
+      <option name="project" value="LOCAL" />
+      <updated>1557734427608</updated>
+    </task>
+    <task id="LOCAL-00149" summary="Add better donate request into chat notifications">
+      <created>1558592350321</created>
+      <option name="number" value="00149" />
+      <option name="presentableId" value="LOCAL-00149" />
+      <option name="project" value="LOCAL" />
+      <updated>1558592350322</updated>
+    </task>
+    <task id="LOCAL-00150" summary="Don't double count stroll donations at month end">
+      <created>1559319244158</created>
+      <option name="number" value="00150" />
+      <option name="presentableId" value="LOCAL-00150" />
+      <option name="project" value="LOCAL" />
+      <updated>1559319244160</updated>
+    </task>
+    <task id="LOCAL-00151" summary="Add another autoresponder message">
+      <created>1559486948591</created>
+      <option name="number" value="00151" />
+      <option name="presentableId" value="LOCAL-00151" />
+      <option name="project" value="LOCAL" />
+      <updated>1559486948592</updated>
+    </task>
+    <task id="LOCAL-00152" summary="Purge logs for old mail bounces to save space">
+      <created>1562390151663</created>
+      <option name="number" value="00152" />
+      <option name="presentableId" value="LOCAL-00152" />
+      <option name="project" value="LOCAL" />
+      <updated>1562390151663</updated>
+    </task>
+    <task id="LOCAL-00153" summary="Fix up group settings for allow edits">
+      <created>1562390173103</created>
+      <option name="number" value="00153" />
+      <option name="presentableId" value="LOCAL-00153" />
+      <option name="project" value="LOCAL" />
+      <updated>1562390173103</updated>
+    </task>
+    <task id="LOCAL-00154" summary="Remove stroll donation appeal from chat notifications">
+      <created>1562392683247</created>
+      <option name="number" value="00154" />
+      <option name="presentableId" value="LOCAL-00154" />
+      <option name="project" value="LOCAL" />
+      <updated>1562392683248</updated>
+    </task>
+    <option name="localTasksCounter" value="155" />
+    <servers />
+  </component>
+  <component name="TestHistory">
+    <history-entry file="userTest_testActiveCounts - 2019.04.24 at 13h 52m 29s.xml">
+      <configuration name="userTest.testActiveCounts" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 46m 31s.xml">
+      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 46m 58s.xml">
+      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 49m 57s.xml">
+      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 50m 48s.xml">
+      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 51m 16s.xml">
+      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="IncomingMessageTest_testBasic - 2019.05.13 at 08h 59m 40s.xml">
+      <configuration name="IncomingMessageTest.testBasic" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="IncomingMessageTest_testBasic - 2019.05.13 at 09h 00m 08s.xml">
+      <configuration name="IncomingMessageTest.testBasic" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="chatMessagesTest_testEH - 2019.06.21 at 21h 07m 29s.xml">
+      <configuration name="chatMessagesTest.testEH" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="chatMessagesTest_testEH - 2019.06.21 at 21h 08m 41s.xml">
+      <configuration name="chatMessagesTest.testEH" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="372194000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-7" y="-7" width="2062" height="1126" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15384616" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info id="DB Browser" order="3" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.36217305" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3309859" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" weight="0.32997987" />
+      <window_info anchor="bottom" id="Version Control" order="9" show_stripe_button="false" weight="0.17002012" />
+      <window_info anchor="bottom" id="Terminal" order="10" weight="0.32997987" />
+      <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
+      <window_info anchor="bottom" id="File Transfer" order="12" weight="0.21327968" />
+      <window_info anchor="bottom" id="DB Execution Console" order="13" />
+      <window_info anchor="bottom" id="Messages" order="14" />
+      <window_info active="true" anchor="bottom" id="Command Line Tools Console" order="15" weight="0.32997987" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Remote Host" order="3" sideWeight="0.496749" weight="0.2261194" />
+      <window_info anchor="right" id="Database" order="4" weight="0.32967034" />
+      <window_info anchor="right" id="Coverage" order="5" sideWeight="0.50325096" side_tool="true" visible="true" weight="0.15134865" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="FILTERS">
+                <map>
+                  <entry key="text">
+                    <value>
+                      <list>
+                        <option value="" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
+    <confirmRemoveEmptyChangelist value="2" />
+    <MESSAGE value="Admin visit link wrong" />
+    <MESSAGE value="Initial Return Path work." />
+    <MESSAGE value="In MT, show at bottom of Settings-&gt;Group who confirmed affiliation and when" />
+    <MESSAGE value="Allow list of shortlinks for group" />
+    <MESSAGE value="More News to ChitChat changes" />
+    <MESSAGE value="Sitemap broken" />
+    <MESSAGE value="More reply text stripping" />
+    <MESSAGE value="Add ability to hold community events and volunteer ops" />
+    <MESSAGE value="Don't notify by email for About Me notification" />
+    <MESSAGE value="Debugging chat email issues" />
+    <MESSAGE value="* If you unfollow a chitchat thread, then you shouldn't see notifications for it." />
+    <MESSAGE value="Fix to notification change" />
+    <MESSAGE value="Add active counts to newsfeed" />
+    <MESSAGE value="Noticeboard notifications look silly" />
+    <MESSAGE value="Admin editing info is wrong" />
+    <MESSAGE value="Noticeboard notification bug" />
+    <MESSAGE value="Creating our own email addresses starting with -" />
+    <MESSAGE value="Fix up bad fromaddr addresses" />
+    <MESSAGE value="Strip signatures on OFFER/WANTED posts" />
+    <MESSAGE value="Add better donate request into chat notifications" />
+    <MESSAGE value="Don't double count stroll donations at month end" />
+    <MESSAGE value="Add another autoresponder message" />
+    <MESSAGE value="Purge logs for old mail bounces to save space" />
+    <MESSAGE value="Fix up group settings for allow edits" />
+    <MESSAGE value="Remove stroll donation appeal from chat notifications" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove stroll donation appeal from chat notifications" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/include/group/Volunteering.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="481">
+          <caret line="190" selection-start-line="190" selection-end-line="190" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/group/CommunityEvent.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="277">
+          <caret line="178" selection-start-line="178" selection-end-line="178" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/communityevent.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="425">
+          <caret line="111" selection-start-line="111" selection-end-line="111" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/newsfeed.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3536">
+          <caret line="208" column="27" selection-start-line="208" selection-start-column="27" selection-end-line="208" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3621">
+          <caret line="213" column="28" selection-start-line="213" selection-start-column="28" selection-end-line="213" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cron/chat_notifyemail.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" column="22" selection-start-line="14" selection-start-column="22" selection-end-line="14" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/sitemap.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="357">
+          <caret line="21" column="12" selection-start-line="21" selection-start-column="5" selection-end-line="21" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1139">
+          <caret line="67" column="27" selection-start-line="67" selection-start-column="27" selection-end-line="67" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/user.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="232">
+          <caret line="109" column="39" selection-start-line="109" selection-start-column="39" selection-end-line="109" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/misc/Mail.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="82" column="40" selection-start-line="82" selection-start-column="40" selection-end-line="82" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/group/Admin.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="283">
+          <caret line="168" column="21" selection-start-line="168" selection-start-column="21" selection-end-line="168" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/noticeboard/Noticeboard.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="281">
+          <caret line="54" column="24" selection-start-line="54" selection-start-column="17" selection-end-line="54" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/newsfeed/Newsfeed.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="264">
+          <caret line="207" selection-start-line="206" selection-end-line="207" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/user/Notifications.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="74" column="21" selection-start-line="74" selection-start-column="21" selection-end-line="74" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/include/UserTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="14586">
+          <caret line="858" column="37" selection-start-line="858" selection-start-column="37" selection-end-line="858" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/fix/fix_emaildate.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="27" selection-end-line="54" selection-end-column="58" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/fix/fix_dashedemails.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" column="11" selection-start-line="14" selection-start-column="11" selection-end-line="14" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/msgs/basic">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1394">
+          <caret line="82" selection-start-line="82" selection-end-line="82" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/donateipn.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="52" selection-start-line="10" selection-start-column="52" selection-end-line="10" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cron/group_stats.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1530">
+          <caret line="90" column="42" selection-start-line="90" selection-start-column="42" selection-end-line="90" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="578">
+          <caret line="34" column="29" selection-start-line="34" selection-start-column="29" selection-end-line="34" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/include/MessageTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="8041">
+          <caret line="473" selection-start-line="473" selection-end-line="473" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/IznikTestCase.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="16" column="23" selection-start-line="16" selection-start-column="23" selection-end-line="16" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/session.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1658">
+          <caret line="96" column="85" selection-start-line="96" selection-start-column="81" selection-end-line="96" selection-end-column="85" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/stroll.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="40" column="175" selection-start-line="40" selection-start-column="175" selection-end-line="40" selection-end-column="175" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cron/admins.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="413">
+          <caret line="474" column="1" selection-start-line="474" selection-start-column="1" selection-end-line="474" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/chat/ChatRoom.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="545">
+          <caret line="717" column="20" selection-start-line="717" selection-start-column="20" selection-end-line="717" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/chatrooms.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="287">
+          <caret line="48" column="24" lean-forward="true" selection-start-line="48" selection-start-column="24" selection-end-line="48" selection-end-column="83" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/user/Story.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="227">
+          <caret line="239" column="35" lean-forward="true" selection-start-line="239" selection-start-column="35" selection-end-line="239" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/message.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="526">
+          <caret line="511" column="45" lean-forward="true" selection-start-line="511" selection-start-column="45" selection-end-line="511" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/message/MessageCollection.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="83">
+          <caret line="177" lean-forward="true" selection-start-line="177" selection-end-line="177" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/group/Alerts.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4063">
+          <caret line="239" column="20" selection-start-line="239" selection-start-column="20" selection-end-line="239" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cron/purge_logs.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="952">
+          <caret line="59" selection-start-line="59" selection-end-line="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/message/Message.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4335">
+          <caret line="256" column="24" selection-start-line="256" selection-start-column="24" selection-end-line="256" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/mail/MailRouter.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="12478">
+          <caret line="746" column="33" selection-start-line="746" selection-start-column="33" selection-end-line="746" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mailtemplates/mjml/chat_notify.mjml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2346">
+          <caret line="138" column="20" selection-start-line="138" selection-start-column="20" selection-end-line="138" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/mail/Bounce.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1615">
+          <caret line="95" column="84" selection-start-line="95" selection-start-column="70" selection-end-line="95" selection-end-column="84" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mailtemplates/twig/chat_notify.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="17180" selection-start-column="17180" selection-end-column="17180" />
+          <folding>
+            <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#1;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#1;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#span#0;n#div#0;n#td#0;n#tr#1;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#2;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#td#0;n#tr#2;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#td#0;n#tr#2;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#img#0;n#a#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#td#0;n#tr#2;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#3;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#3;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#4;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#4;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="e#5767#5773#0" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#5;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#5;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#span#0;n#div#0;n#td#0;n#tr#5;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#6;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#td#0;n#tr#6;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#td#0;n#tr#6;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#img#0;n#a#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#td#0;n#tr#6;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#7;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#7;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#8;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#8;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="e#7294#7300#0" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#9;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#9;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#10;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#td#0;n#tr#10;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#table#0;n#td#0;n#tr#10;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#td#0;n#tr#0;n#table#0;n#td#0;n#tr#10;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#11;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#11;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#hr#0;n#div#0;n#td#0;n#tr#11;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#span#0;n#div#0;n#td#0;n#tr#11;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#hr#1;n#div#0;n#td#0;n#tr#11;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#12;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#12;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#13;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#13;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="e#10864#10871#0" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#1;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#td#0;n#tr#1;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#table#0;n#td#0;n#tr#1;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#td#0;n#tr#0;n#table#0;n#td#0;n#tr#1;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#2;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#td#0;n#tr#2;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#3;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#table#0;n#td#0;n#tr#3;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#td#0;n#tr#0;n#table#0;n#td#0;n#tr#3;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#td#0;n#tr#0;n#table#0;n#td#0;n#tr#3;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#td#0;n#tr#0;n#tbody#0;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/fix/fix_groupsettings.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="20" column="43" selection-end-line="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/fix/fix_allowedits.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="17" column="19" selection-start-line="17" selection-start-column="19" selection-end-line="17" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/group/Group.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2788">
+          <caret line="164" column="117" selection-start-line="164" selection-start-column="117" selection-end-line="164" selection-end-column="117" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/messages.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3264">
+          <caret line="192" column="9" selection-start-line="192" selection-start-column="9" selection-end-line="192" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cli/user_split.php">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cli/user_addmembership.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="442">
+          <caret line="26" column="24" selection-end-line="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="219">
+          <caret line="417" selection-start-line="416" selection-end-line="417" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/memberships.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="281">
+          <caret line="374" column="39" selection-start-line="374" selection-start-column="39" selection-end-line="374" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/user/User.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="194">
+          <caret line="1493" column="36" selection-start-line="1493" selection-start-column="20" selection-end-line="1493" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/stubs/standard/standard_1.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="202">
+          <caret line="978" column="9" selection-start-line="978" selection-start-column="9" selection-end-line="978" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/cli/user_mod_active.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="408">
+          <caret line="24" column="30" lean-forward="true" selection-start-line="24" selection-start-column="30" selection-end-line="24" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/fix/fix_sheila.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="45" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
