@@ -236,6 +236,7 @@ function session() {
             $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
             $returnto = array_key_exists('returnto', $_REQUEST) ? $_REQUEST['returnto'] : NULL;
             $action = presdef('action', $_REQUEST, NULL);
+            $host = presdef('host', $_REQUEST, NULL);
 
             $id = NULL;
             $user = User::get($dbhr, $dbhm);
@@ -250,7 +251,7 @@ function session() {
                 $id = $session ? $session->getUserId() : NULL;
             } else if ($yahoologin) {
                 # Yahoo.
-                $y = Yahoo::getInstance($dbhr, $dbhm);
+                $y = Yahoo::getInstance($dbhr, $dbhm, $host);
                 list ($session, $ret) = $y->login($returnto);
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;

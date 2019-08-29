@@ -17,22 +17,24 @@ class Yahoo
     private $openid;
 
     private static $instance;
+    private $host = NULL;
 
-    public static function getInstance($dbhr, $dbhm)
+    public static function getInstance($dbhr, $dbhm, $host = NULL)
     {
         if (!isset(self::$instance)) {
-            self::$instance = new Yahoo($dbhr, $dbhm);
+            self::$instance = new Yahoo($dbhr, $dbhm, $host);
         }
         return self::$instance;
     }
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $host = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->host = $host ? $host : (getProtocol() . $_SERVER['HTTP_HOST']);
 
-        $this->openid = new LightOpenID;
-        $this->openid->realm = getProtocol() . $_SERVER['HTTP_HOST'];
+        $this->openid = new LightOpenID($host);
+        $this->openid->realm = $this->host;
 
         return ($this);
     }
@@ -49,7 +51,7 @@ class Yahoo
     {
         try
         {
-            $loginurl = getProtocol() . "{$_SERVER['HTTP_HOST']}/yahoologin?returnto=" . urlencode($returnto);
+            $loginurl = "{$this->host}/yahoologin?returnto=" . urlencode($returnto);
             $this->openid->returnUrl = $loginurl;
 
             if (($this->openid->validate()) &&
