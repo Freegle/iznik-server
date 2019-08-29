@@ -150,8 +150,16 @@ class Newsfeed extends Entity
         $atts = parent::getPublic();
         $users = [];
 
-        // This is the thread head.
-        $this->fillIn($atts, $users, TRUE, $allreplies, $atts['id']);
+        // Where does this thread start?
+        if ($atts['threadhead']) {
+            $threadhead = $atts['threadhead'];
+        } else if ($atts['replyto']) {
+            $threadhead = $atts['replyto'];
+        } else {
+            $threadhead = $atts['id'];
+        }
+
+        $this->fillIn($atts, $users, TRUE, $allreplies, $threadhead);
 
         foreach ($users as $user) {
             if ($user['id'] == presdef('userid', $atts, NULL)) {

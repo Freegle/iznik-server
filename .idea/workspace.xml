@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/session/Yahoo.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/session/Yahoo.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/openid.php" beforeDir="false" afterPath="$PROJECT_DIR$/lib/openid.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -218,13 +215,6 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-    </task>
-    <task id="LOCAL-00107" summary="Change default group settings to match GAT settings">
-      <created>1545208640116</created>
-      <option name="number" value="00107" />
-      <option name="presentableId" value="LOCAL-00107" />
-      <option name="project" value="LOCAL" />
-      <updated>1545208640116</updated>
     </task>
     <task id="LOCAL-00108" summary="Fixing small group areas">
       <created>1545378490609</created>
@@ -562,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1566855311469</updated>
     </task>
-    <option name="localTasksCounter" value="156" />
+    <task id="LOCAL-00156" summary="Yahoo login for new FD version">
+      <created>1567078765593</created>
+      <option name="number" value="00156" />
+      <option name="presentableId" value="LOCAL-00156" />
+      <option name="project" value="LOCAL" />
+      <updated>1567078765593</updated>
+    </task>
+    <option name="localTasksCounter" value="157" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -638,7 +635,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Initial Return Path work." />
     <MESSAGE value="In MT, show at bottom of Settings-&gt;Group who confirmed affiliation and when" />
     <MESSAGE value="Allow list of shortlinks for group" />
     <MESSAGE value="More News to ChitChat changes" />
@@ -663,6 +659,7 @@
     <MESSAGE value="Fix up group settings for allow edits" />
     <MESSAGE value="Remove stroll donation appeal from chat notifications" />
     <MESSAGE value="Commit project" />
-    <option name="LAST_COMMIT_MESSAGE" value="Commit project" />
+    <MESSAGE value="Yahoo login for new FD version" />
+    <option name="LAST_COMMIT_MESSAGE" value="Yahoo login for new FD version" />
   </component>
 </project>
