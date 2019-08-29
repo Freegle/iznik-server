@@ -151,9 +151,9 @@ class Newsfeed extends Entity
         $users = [];
 
         // Where does this thread start?
-        if ($atts['threadhead']) {
+        if (pres('threadhead', $atts)) {
             $threadhead = $atts['threadhead'];
-        } else if ($atts['replyto']) {
+        } else if (pres('replyto', $atts)) {
             $threadhead = $atts['replyto'];
         } else {
             $threadhead = $atts['id'];

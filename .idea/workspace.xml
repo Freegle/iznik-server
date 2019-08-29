@@ -216,13 +216,6 @@
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
     </task>
-    <task id="LOCAL-00108" summary="Fixing small group areas">
-      <created>1545378490609</created>
-      <option name="number" value="00108" />
-      <option name="presentableId" value="LOCAL-00108" />
-      <option name="project" value="LOCAL" />
-      <updated>1545378490610</updated>
-    </task>
     <task id="LOCAL-00109" summary="Suppress variant of our own logo in chat replies by email">
       <created>1546507661953</created>
       <option name="number" value="00109" />
@@ -559,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567078765593</updated>
     </task>
-    <option name="localTasksCounter" value="157" />
+    <task id="LOCAL-00157" summary="Newsfeed threadhead wrong.">
+      <created>1567093883286</created>
+      <option name="number" value="00157" />
+      <option name="presentableId" value="LOCAL-00157" />
+      <option name="project" value="LOCAL" />
+      <updated>1567093883286</updated>
+    </task>
+    <option name="localTasksCounter" value="158" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -635,7 +635,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="In MT, show at bottom of Settings-&gt;Group who confirmed affiliation and when" />
     <MESSAGE value="Allow list of shortlinks for group" />
     <MESSAGE value="More News to ChitChat changes" />
     <MESSAGE value="Sitemap broken" />
@@ -660,6 +659,7 @@
     <MESSAGE value="Remove stroll donation appeal from chat notifications" />
     <MESSAGE value="Commit project" />
     <MESSAGE value="Yahoo login for new FD version" />
-    <option name="LAST_COMMIT_MESSAGE" value="Yahoo login for new FD version" />
+    <MESSAGE value="Newsfeed threadhead wrong." />
+    <option name="LAST_COMMIT_MESSAGE" value="Newsfeed threadhead wrong." />
   </component>
 </project>
