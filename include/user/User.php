@@ -1813,11 +1813,12 @@ class User extends Entity
             # Find the group of which we are a member which is closest to our location.  We do this because generally
             # the number of groups we're in is small and therefore this will be quick, whereas the groupsNear call is
             # fairly slow.
-            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND polyindex IS NOT NULL AND onmap = 1 ORDER BY ST_distance(POINT(?, ?), polyindex) ASC LIMIT 1;";
+            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND polyindex IS NOT NULL AND onmap = 1 AND type = ? AND publish = 1 ORDER BY ST_distance(POINT(?, ?), polyindex) ASC LIMIT 1;";
             $groups = $this->dbhr->preQuery($sql, [
                 $this->id,
                 $lng,
-                $lat
+                $lat,
+                Group::GROUP_FREEGLE
             ]);
 
             if (count($groups) > 0) {
@@ -1828,9 +1829,10 @@ class User extends Entity
             }
         } else {
             # We don't have a location.  All we might have is a membership.
-            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? ORDER BY added DESC LIMIT 1;";
+            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND type = ? AND publish = 1 ORDER BY added DESC LIMIT 1;";
             $groups = $this->dbhr->preQuery($sql, [
                 $this->id,
+                Group::GROUP_FREEGLE
             ]);
 
             if (count($groups) > 0) {
