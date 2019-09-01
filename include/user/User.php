@@ -5511,7 +5511,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         # We want to show a few job ads from nearby.
         list ($lat, $lng, $loc) = $this->getLatLng();
         $search = NULL;
-        $ret = NULL;
+        $ret = '';
 
         if ($loc) {
             # We have a location.  Use that to save on expensive calls.  It's probably a postcode, so use the first
@@ -5545,20 +5545,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if ($data) {
                 $data = json_decode($data, TRUE);
-                if ($data) {
-                    foreach ($data['data'] as $job) {
-                        $loc = presdef('location', $job, '') . ' ' . presdef('postcode', $job, '');
+                if ($data && $data['data'] && count($data['data'])) {
+                    # Randomise a bit so people don't see the same ones if they're getting multiple mails per day.
+                    $jobs = $data['data'];
+                    shuffle($jobs);
+                    $jobs = array_slice($jobs, 0, 4);
 
-                        $ret[] = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
+                    foreach ($jobs as $job) {
+                        $loc = presdef('location', $job, '') . ' ' . presdef('postcode', $job, '');
+                        $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
+                        $ret .= '<a href="' . $job['url'] . '" target="_blank">' . htmlentities($title) . '</a><br />';
                     }
                 }
             }
-        }
-
-        if ($ret) {
-            # Randomise a bit so people don't see the same ones if they're getting multiple mails per day.
-            shuffle($ret);
-            $ret = array_slice($ret, 0, 4);
         }
 
         return([

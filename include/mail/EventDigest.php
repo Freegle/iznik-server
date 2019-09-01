@@ -205,7 +205,7 @@ class EventDigest
                         '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                         '{{post}}' => "https://" . USER_SITE . "/communityevents",
                         '{{visit}}' => "https://" . USER_SITE . "/mygroups",
-                        '{{jobads}}' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                        '{{jobads}}' => $jobads['jobs'],
                         '{{joblocation}}' => $jobads['location']
                     ];
                 }

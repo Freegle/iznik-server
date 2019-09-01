@@ -408,7 +408,7 @@ class Digest
                             '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups', User::SRC_DIGEST),
                             '{{creds}}' => $creds,
                             '{{replyto}}' => $u->getId(),
-                            '{{jobads}}' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                            '{{jobads}}' => $jobads['jobs'],
                             '{{joblocation}}' => $jobads['location']
                         ];
 

@@ -203,6 +203,13 @@
             </mj-button>
           </mj-column>
         </mj-section>
+        <mj-section background-color="#F7F6EC" padding=0>
+          <mj-column>
+            <mj-text>
+              {{ jobads }}
+            </mj-text>
+          </mj-column>
+        </mj-section>
         <mj-section background-color="#E0E0E0">
           <mj-column>
             <mj-text font-size="9pt" color="#707070">

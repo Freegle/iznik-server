@@ -181,7 +181,7 @@ class VolunteeringDigest
                             '{{noemail}}' => 'volunteeringoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                             '{{post}}' => "https://" . USER_SITE . "/volunteering",
                             '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid",
-                            '{{jobads}}' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                            '{{jobads}}' => $jobads['jobs'],
                             '{{joblocation}}' => $jobads['location']
                         ];
                     }

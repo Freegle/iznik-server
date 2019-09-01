@@ -3,7 +3,21 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/Digest.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/Digest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/EventDigest.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/EventDigest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/VolunteeringDigest.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/VolunteeringDigest.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/chat_notify.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/chat_notify.mjml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/digest/events.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/digest/events.mjml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/digest/multiple.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/digest/multiple.mjml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/digest/single.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/digest/single.mjml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/digest/volunteering.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/digest/volunteering.mjml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/chat_notify.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/chat_notify.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/digest/events.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/digest/events.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/digest/multiple.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/digest/multiple.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/digest/single.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/digest/single.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/digest/volunteering.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/digest/volunteering.html" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -120,7 +134,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.chatMessagesTest.testEH">
+  <component name="RunManager" selected="PHPUnit.userTest.testJobs">
     <configuration name="IncomingMessageTest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="IncomingMessageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
@@ -136,11 +150,6 @@
       <TestRunner class="chatMessagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatRoomsTest.testNotifyUser2UserOwn" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatRoomsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" method="testNotifyUser2UserOwn" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <configuration name="userTest.testActiveCounts" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testActiveCounts" scope="Method" use_alternative_configuration_file="true" />
@@ -151,22 +160,37 @@
       <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testInvent" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="userTest.testJobs" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testJobs" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <list>
-      <item itemvalue="PHPUnit.chatRoomsTest.testNotifyUser2UserOwn" />
       <item itemvalue="PHPUnit.userTest.testActiveCounts" />
       <item itemvalue="PHPUnit.userTest.testInvent" />
       <item itemvalue="PHPUnit.IncomingMessageTest.testBasic" />
       <item itemvalue="PHPUnit.chatMessagesTest.testEH" />
+      <item itemvalue="PHPUnit.userTest.testJobs" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.userTest.testJobs" />
         <item itemvalue="PHPUnit.chatMessagesTest.testEH" />
         <item itemvalue="PHPUnit.IncomingMessageTest.testBasic" />
         <item itemvalue="PHPUnit.userTest.testInvent" />
         <item itemvalue="PHPUnit.userTest.testActiveCounts" />
-        <item itemvalue="PHPUnit.chatRoomsTest.testNotifyUser2UserOwn" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="allServicesViewState">
+      <serviceView>
+        <treeState>
+          <expand />
+          <select />
+        </treeState>
+      </serviceView>
+    </option>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -215,13 +239,6 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-    </task>
-    <task id="LOCAL-00110" summary="API error when logged out">
-      <created>1546727656627</created>
-      <option name="number" value="00110" />
-      <option name="presentableId" value="LOCAL-00110" />
-      <option name="project" value="LOCAL" />
-      <updated>1546727656627</updated>
     </task>
     <task id="LOCAL-00111" summary="Don't relay autoreply messages on from email replies to chat">
       <created>1547018222672</created>
@@ -559,40 +576,15 @@
       <option name="project" value="LOCAL" />
       <updated>1567095160982</updated>
     </task>
-    <option name="localTasksCounter" value="159" />
+    <task id="LOCAL-00159" summary="When showing group membership in public, restrict to Freegle groups">
+      <created>1567236164620</created>
+      <option name="number" value="00159" />
+      <option name="presentableId" value="LOCAL-00159" />
+      <option name="project" value="LOCAL" />
+      <updated>1567236164621</updated>
+    </task>
+    <option name="localTasksCounter" value="160" />
     <servers />
-  </component>
-  <component name="TestHistory">
-    <history-entry file="userTest_testActiveCounts - 2019.04.24 at 13h 52m 29s.xml">
-      <configuration name="userTest.testActiveCounts" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
-    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 46m 31s.xml">
-      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
-    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 46m 58s.xml">
-      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
-    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 49m 57s.xml">
-      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
-    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 50m 48s.xml">
-      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
-    <history-entry file="userTest_testInvent - 2019.05.08 at 18h 51m 16s.xml">
-      <configuration name="userTest.testInvent" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
-    <history-entry file="IncomingMessageTest_testBasic - 2019.05.13 at 08h 59m 40s.xml">
-      <configuration name="IncomingMessageTest.testBasic" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
-    <history-entry file="IncomingMessageTest_testBasic - 2019.05.13 at 09h 00m 08s.xml">
-      <configuration name="IncomingMessageTest.testBasic" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
-    <history-entry file="chatMessagesTest_testEH - 2019.06.21 at 21h 07m 29s.xml">
-      <configuration name="chatMessagesTest.testEH" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
-    <history-entry file="chatMessagesTest_testEH - 2019.06.21 at 21h 08m 41s.xml">
-      <configuration name="chatMessagesTest.testEH" configurationId="PHPUnitRunConfigurationType" />
-    </history-entry>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
@@ -635,7 +627,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="More News to ChitChat changes" />
     <MESSAGE value="Sitemap broken" />
     <MESSAGE value="More reply text stripping" />
     <MESSAGE value="Add ability to hold community events and volunteer ops" />
@@ -660,6 +651,7 @@
     <MESSAGE value="Yahoo login for new FD version" />
     <MESSAGE value="Newsfeed threadhead wrong." />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="When showing group membership in public, restrict to Freegle groups" />
+    <option name="LAST_COMMIT_MESSAGE" value="When showing group membership in public, restrict to Freegle groups" />
   </component>
 </project>

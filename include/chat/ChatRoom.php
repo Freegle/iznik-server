@@ -1771,7 +1771,7 @@ WHERE chat_rooms.id IN $idlist;";
                                             'email' => $to,
                                             'aboutme' => $aboutu ? $aboutu->getAboutMe()['text'] : NULL,
                                             'prevmsg' => $prevmsg,
-                                            'jobads' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                                            'jobads' => $jobads['jobs'],
                                             'joblocation' => $jobads['location']
                                         ]);
 
