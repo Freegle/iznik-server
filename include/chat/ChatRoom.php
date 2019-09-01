@@ -75,6 +75,7 @@ class ChatRoom extends Entity
         # - gets user names for the users (if present), which we also use in naming the chat
         # - gets the most recent chat message (if any) which we need for getPublic()
         # - gets the count of unread messages for the logged in user.
+        # - gets the refmsgids for chats with unread messages
         # - gets any profiles for the users
         # - gets any most recent chat message info
         # - gets the last seen for this user.
@@ -117,6 +118,7 @@ WHERE chat_rooms.id IN $idlist;";
         ],FALSE,FALSE);
 
         $ret = [];
+        $refmsgids = [];
 
         foreach ($rooms as &$room) {
             if (pres('lastdate', $room)) {
@@ -195,10 +197,32 @@ WHERE chat_rooms.id IN $idlist;";
                         break;
                 }
 
+                if ($room['unseen']) {
+                    # We want to return the refmsgids for this chat.
+                    $refmsgids[] = $room['id'];
+                }
+
                 $ret[] = $thisone;
             } else {
                 # We are fetching internally
                 $ret[] = $room;
+            }
+        }
+
+        if (count($refmsgids)) {
+            $sql = "SELECT DISTINCT refmsgid, chatid FROM chat_messages WHERE chatid IN (" . implode(',', $refmsgids) . ") AND refmsgid IS NOT NULL;";
+            $ids = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+
+            foreach ($ids as $id) {
+                foreach ($ret as &$chat) {
+                    if ($chat['id'] === $id['chatid']) {
+                        if (pres('refmsgids', $chat)) {
+                            $chat['refmsgids'][] = $id['refmsgid'];
+                        } else {
+                            $chat['refmsgids'] = [ $id['refmsgid'] ];
+                        }
+                    }
+                }
             }
         }
 

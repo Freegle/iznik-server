@@ -267,7 +267,8 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Check it's unseen
         $ret = $this->call('chatrooms', 'GET', [
-            'chattypes' => [ ChatRoom::TYPE_USER2USER ]
+            'chattypes' => [ ChatRoom::TYPE_USER2USER ],
+            'summary' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatrooms']));

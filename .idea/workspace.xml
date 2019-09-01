@@ -4,6 +4,7 @@
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -120,7 +121,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.chatRoomsTest.testNotifyUser2Mod">
+  <component name="RunManager" selected="PHPUnit.chatRoomsAPITest.testAllSeen">
     <configuration name="IncomingMessageTest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="IncomingMessageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
@@ -136,14 +137,14 @@
       <TestRunner class="chatMessagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="chatRoomsAPITest.testAllSeen" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="chatRoomsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" method="testAllSeen" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="chatRoomsTest.testNotifyUser2Mod" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="chatRoomsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" method="testNotifyUser2Mod" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="userTest.testInvent" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testInvent" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="userTest.testJobs" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -152,19 +153,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.userTest.testInvent" />
       <item itemvalue="PHPUnit.IncomingMessageTest.testBasic" />
       <item itemvalue="PHPUnit.chatMessagesTest.testEH" />
       <item itemvalue="PHPUnit.userTest.testJobs" />
       <item itemvalue="PHPUnit.chatRoomsTest.testNotifyUser2Mod" />
+      <item itemvalue="PHPUnit.chatRoomsAPITest.testAllSeen" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.chatRoomsAPITest.testAllSeen" />
         <item itemvalue="PHPUnit.chatRoomsTest.testNotifyUser2Mod" />
         <item itemvalue="PHPUnit.userTest.testJobs" />
         <item itemvalue="PHPUnit.chatMessagesTest.testEH" />
         <item itemvalue="PHPUnit.IncomingMessageTest.testBasic" />
-        <item itemvalue="PHPUnit.userTest.testInvent" />
       </list>
     </recent_temporary>
   </component>
@@ -225,13 +226,6 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-    </task>
-    <task id="LOCAL-00112" summary="Remove another TN signature">
-      <created>1547288955706</created>
-      <option name="number" value="00112" />
-      <option name="presentableId" value="LOCAL-00112" />
-      <option name="project" value="LOCAL" />
-      <updated>1547288955706</updated>
     </task>
     <task id="LOCAL-00113" summary="Notification title can contain ''">
       <created>1547490537716</created>
@@ -569,7 +563,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567346225339</updated>
     </task>
-    <option name="localTasksCounter" value="161" />
+    <task id="LOCAL-00161" summary="UT fixes">
+      <created>1567348203627</created>
+      <option name="number" value="00161" />
+      <option name="presentableId" value="LOCAL-00161" />
+      <option name="project" value="LOCAL" />
+      <updated>1567348203627</updated>
+    </task>
+    <option name="localTasksCounter" value="162" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -635,9 +636,9 @@
     <MESSAGE value="Commit project" />
     <MESSAGE value="Yahoo login for new FD version" />
     <MESSAGE value="Newsfeed threadhead wrong." />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="When showing group membership in public, restrict to Freegle groups" />
     <MESSAGE value="Try to improve click-through rate of job ads" />
-    <option name="LAST_COMMIT_MESSAGE" value="Try to improve click-through rate of job ads" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>
