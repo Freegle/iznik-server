@@ -1788,7 +1788,7 @@ WHERE chat_rooms.id IN $idlist;";
                                                 'backcolour' => '#FFF8DC',
                                                 'email' => $to,
                                                 'prevmsg' => $prevmsg,
-                                                'jobads' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                                                'jobads' => $jobads['jobs'],
                                                 'joblocation' => $jobads['location']
                                             ]);
 
@@ -1806,7 +1806,7 @@ WHERE chat_rooms.id IN $idlist;";
                                                 'backcolour' => '#E8FEFB',
                                                 'email' => $to,
                                                 'prevmsg' => $prevmsg,
-                                                'jobads' => $jobads['jobs'] && count($jobads['jobs']) ? implode('<br />', $jobads['jobs']) : NULL,
+                                                'jobads' => $jobads['jobs'],
                                                 'joblocation' => $jobads['location']
                                             ]);
 
