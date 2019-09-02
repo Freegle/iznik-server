@@ -956,7 +956,7 @@ class Message
             # Add any groups that this message is on.
             $ret['groups'] = [];
             $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
-            $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
+            $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ], FALSE, FALSE);
             $showarea = TRUE;
             $showpc = TRUE;
             $expiretime = 90;
@@ -1137,7 +1137,7 @@ class Message
             if ($this->type == Message::TYPE_OFFER) {
                 # Add any promises, i.e. one or more people we've said can have this.
                 $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
-                $promises = $this->dbhr->preQuery($sql, [$this->id]);
+                $promises = $this->dbhr->preQuery($sql, [$this->id], FALSE, FALSE);
 
                 if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
                     $ret['promises'] = $promises;
@@ -1168,7 +1168,7 @@ class Message
             $ret['outcomes'] = $this->outcomes;
         } else {
             $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
-            $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+            $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ], FALSE, FALSE);
 
             # We can only see the details of the outcome if we have access.
             foreach ($ret['outcomes'] as &$outcome) {
@@ -1256,7 +1256,7 @@ class Message
             # Add any related messages
             $ret['related'] = [];
             $sql = "SELECT * FROM messages_related WHERE id1 = ? OR id2 = ?;";
-            $rels = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
+            $rels = $this->dbhr->preQuery($sql, [ $this->id, $this->id ], FALSE, FALSE);
             $relids = [];
             foreach ($rels as $rel) {
                 $id = $rel['id1'] == $this->id ? $rel['id2'] : $rel['id1'];
@@ -1299,7 +1299,7 @@ class Message
 
         if (!$summary && $myid && $this->fromuser == $myid) {
             # For our own messages, return the posting history.
-            $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid = ? ORDER BY date ASC;", [ $this->id ]);
+            $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid = ? ORDER BY date ASC;", [ $this->id ], FALSE, FALSE);
             $ret['postings'] = [];
             foreach ($posts as &$post) {
                 $post['date'] = ISODate($post['date']);
@@ -1311,7 +1311,7 @@ class Message
             # Return any edit history, most recent first.
             $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid = ? ORDER BY id DESC;", [
                 $this->id
-            ]);
+            ], FALSE, FALSE);
 
             foreach ($edits as &$edit) {
                 $edit['timestamp'] = ISODate($edit['timestamp']);

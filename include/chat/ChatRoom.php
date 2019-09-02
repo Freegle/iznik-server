@@ -2162,7 +2162,7 @@ WHERE chat_rooms.id IN $idlist;";
     public function nudges($userid) {
         return($this->dbhr->preQuery("SELECT * FROM users_nudges WHERE touser = ?;", [
             $userid
-        ], FALSE));
+        ], FALSE, FALSE));
     }
 
     public function nudgeCount($userid) {

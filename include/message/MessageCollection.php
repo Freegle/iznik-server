@@ -204,14 +204,14 @@ class MessageCollection
                     # We only query on a small set of userids, so it's more efficient to get the list of messages from them
                     # first.
                     $seltab = "(SELECT id, arrival, " . ($summary ? 'subject, ' : '') . "fromuser, deleted, `type`, textbody, source FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
-                    $sql = "SELECT messages_groups.msgid AS id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 $outcomeq2 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
+                    $sql = "SELECT messages_groups.msgid AS id, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 $outcomeq2 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
                 } else if (count($groupids) > 0) {
                     # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
                     $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
-                    $sql = "SELECT msgid as id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE $dateq $oldest $groupq $collectionq AND messages_groups.deleted = 0 $typeq ORDER BY arrival DESC, messages_groups.msgid DESC LIMIT $limit;";
+                    $sql = "SELECT msgid as id, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE $dateq $oldest $groupq $collectionq AND messages_groups.deleted = 0 $typeq ORDER BY arrival DESC, messages_groups.msgid DESC LIMIT $limit;";
                 } else {
                     # We are not searching within a specific group, so we have no choice but to do a larger join.
-                    $sql = "SELECT msgid AS id, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
+                    $sql = "SELECT msgid AS id, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
                 }
 
                 $msglist = $this->dbhr->preQuery($sql);
@@ -304,7 +304,7 @@ class MessageCollection
             if (!$messagetype || $type == $messagetype) {
                 $role = NULL;
 
-                $thisgroups = $m->getGroups(TRUE);
+                $thisgroups = pres('groupid', $msg) ? [ $msg['groupid'] ] : $m->getGroups(TRUE);
 
                 foreach ($thisgroups as $groupid) {
                     #error_log("Got role? $groupid");

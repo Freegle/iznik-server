@@ -508,29 +508,22 @@ class messagesTest extends IznikAPITestCase {
 
     public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
+        $this->dbhr->errorLog = TRUE;
+        $this->dbhm->errorLog = TRUE;
 
         $u = new User($this->dbhr, $this->dbhm);
 
         $uid = $u->findByEmail('edward@ehibbert.org.uk');
-        $uid = 835276;
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $_SESSION['id'] = $uid;
         $ret = $this->call('messages', 'GET', [
             'collection' => MessageCollection::ALLUSER,
-            'modtools' => FALSE,
+            'summary' => TRUE,
             'types' => [
                 Message::TYPE_OFFER,
                 Message::TYPE_WANTED
             ],
-            'grouptype' => Group::GROUP_FREEGLE,
             'fromuser' => $uid,
-            'summary' => TRUE,
-//            'context' => [
-//                'Date' => 1547565662,
-//                'id' => 54882678
-//            ]
         ]);
 
         assertEquals(0, $ret['ret']);
