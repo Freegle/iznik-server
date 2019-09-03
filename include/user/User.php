@@ -5554,7 +5554,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     foreach ($jobs as $job) {
                         $loc = presdef('location', $job, '') . ' ' . presdef('postcode', $job, '');
                         $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
-                        $ret .= '<a href="' . $job['url'] . '" target="_blank">' . htmlentities($title) . '</a><br />';
+                        $url = 'https://' . USER_SITE . '/jobs/' . urlencode($search);
+                        $ret .= '<a href="' . $url . '" target="_blank">' . htmlentities($title) . '</a><br />';
                     }
                 }
             }
