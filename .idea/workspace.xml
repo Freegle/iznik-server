@@ -121,10 +121,20 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messageAPITest.testChatSource">
+  <component name="RunManager" selected="PHPUnit.messageTest">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="messageAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" scope="Class" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="messageAPITest.testApprove" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testApprove" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messageAPITest.testChatSource" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -132,40 +142,30 @@
       <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testChatSource" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="messageAPITest.testSpam" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testSpam" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="messageTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageTest.testRelated" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" method="testRelated" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="messageTest.testRelated2" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" method="testRelated2" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <list>
-      <item itemvalue="PHPUnit.messagesTest.testEH" />
       <item itemvalue="PHPUnit.messageTest" />
-      <item itemvalue="PHPUnit.messageTest.testRelated" />
-      <item itemvalue="PHPUnit.messageTest.testRelated2" />
       <item itemvalue="PHPUnit.messageAPITest.testChatSource" />
+      <item itemvalue="PHPUnit.messageAPITest" />
+      <item itemvalue="PHPUnit.messageAPITest.testSpam" />
+      <item itemvalue="PHPUnit.messageAPITest.testApprove" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.messageAPITest.testApprove" />
+        <item itemvalue="PHPUnit.messageAPITest" />
+        <item itemvalue="PHPUnit.messageAPITest.testSpam" />
         <item itemvalue="PHPUnit.messageAPITest.testChatSource" />
         <item itemvalue="PHPUnit.messageTest" />
-        <item itemvalue="PHPUnit.messageTest.testRelated2" />
-        <item itemvalue="PHPUnit.messageTest.testRelated" />
-        <item itemvalue="PHPUnit.messagesTest.testEH" />
       </list>
     </recent_temporary>
   </component>
@@ -226,13 +226,6 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-    </task>
-    <task id="LOCAL-00116" summary="Replies missing from My Posts">
-      <created>1548771648792</created>
-      <option name="number" value="00116" />
-      <option name="presentableId" value="LOCAL-00116" />
-      <option name="project" value="LOCAL" />
-      <updated>1548771648792</updated>
     </task>
     <task id="LOCAL-00117" summary="Another spam text">
       <created>1548916628483</created>
@@ -570,7 +563,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567595186669</updated>
     </task>
-    <option name="localTasksCounter" value="165" />
+    <task id="LOCAL-00165" summary="Speed-ups: message groups">
+      <created>1567597490107</created>
+      <option name="number" value="00165" />
+      <option name="presentableId" value="LOCAL-00165" />
+      <option name="project" value="LOCAL" />
+      <updated>1567597490107</updated>
+    </task>
+    <option name="localTasksCounter" value="166" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -614,7 +614,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Debugging chat email issues" />
     <MESSAGE value="* If you unfollow a chitchat thread, then you shouldn't see notifications for it." />
     <MESSAGE value="Fix to notification change" />
     <MESSAGE value="Add active counts to newsfeed" />
@@ -639,6 +638,7 @@
     <MESSAGE value="Return refmsgids for new client" />
     <MESSAGE value="Speed-ups: message fetching" />
     <MESSAGE value="Speed-ups: message roles" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: message roles" />
+    <MESSAGE value="Speed-ups: message groups" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: message groups" />
   </component>
 </project>

@@ -689,7 +689,6 @@ class Message
      */
     public function getRolesForMessages($me = NULL, $msgs, $overrides = TRUE) {
         $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
         $ret = [];
         $groups = NULL;
 
@@ -709,7 +708,7 @@ class Message
                 } else {
                     if (!$groups) {
                         $msgids = array_column($msgs, 'id');
-                        $sql = "SELECT role, messages_groups.groupid, messages_groups.collection FROM memberships
+                        $sql = "SELECT role, messages_groups.groupid, messages_groups.collection, messages_groups.msgid FROM memberships
                               INNER JOIN messages_groups ON messages_groups.groupid = memberships.groupid
                                   AND userid = ? AND messages_groups.msgid IN (" . implode(',', $msgids) . ");";
                         $groups = $this->dbhr->preQuery($sql, [
@@ -781,7 +780,7 @@ class Message
      */
     public function getRoleForMessage($overrides = TRUE, $me = NULL) {
         # Use the multi-message method.
-        return($this->getRolesForMessages($me, $this->getThisAsArray(), $overrides)[0]);
+        return($this->getRolesForMessages($me, $this->getThisAsArray(), $overrides)[$this->id]);
     }
 
     public function canSee($atts) {
@@ -1010,7 +1009,7 @@ class Message
             $ret['showarea'] = TRUE;
             $ret['showpc'] = TRUE;
 
-            foreach ($ret['groups'] as $group) {
+            foreach ($ret['groups'] as &$group) {
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                     if (pres('approvedby', $group)) {
                         $group['approvedby'] = $this->getUser($group['approvedby'], $messagehistory, $userlist, FALSE);
