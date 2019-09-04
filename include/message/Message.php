@@ -1424,6 +1424,8 @@ ORDER BY lastdate DESC;";
                         }
                     }
                 }
+
+                filterResult($ret['fromuser']);
             }
 
             $rets[$msg['id']] = $ret;
@@ -1461,6 +1463,21 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function getPublicHeld(&$userlist, &$rets, $msgs, $messagehistory) {
+        $msgids = array_filter(array_column($msgs, 'id'));
+
+        foreach ($msgs as $msg) {
+            $ret = $rets[$msg['id']];
+
+            if (pres('heldby', $ret)) {
+                $ret['heldby'] = $this->getUser($ret['heldby'], $messagehistory, $userlist, FALSE);
+                filterResult($ret['heldby']);
+            }
+
+            $rets[$msg['id']] = $ret;
+        }
+    }
+
     /**
      * @param bool $messagehistory
      * @param bool $related
@@ -1489,6 +1506,7 @@ ORDER BY lastdate DESC;";
             $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall);
             $this->getPublicItem($rets, $msgs);
             $this->getPublicFromUser($userlist, $rets, $msgs, $roles, $messagehistory);
+            $this->getPublicHeld($userlist, $rets, $msgs, $messagehistory);
 
             if ($related) {
                 $this->getPublicRelated($rets, $msgs);
@@ -1496,11 +1514,6 @@ ORDER BY lastdate DESC;";
         }
 
         $ret = $rets[$this->id];
-
-        if (!$summary && pres('heldby', $ret)) {
-            $ret['heldby'] = $this->getUser($ret['heldby'], $messagehistory, $userlist, FALSE);
-            filterResult($ret['heldby']);
-        }
 
         if ($summary) {
             # Construct a minimal attachment list, i.e. just one if we have it.
