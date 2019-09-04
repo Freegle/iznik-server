@@ -1518,6 +1518,32 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function getPublicPostingHistory(&$rets, $msgs, $me, $myid) {
+        $fetch = [];
+
+        foreach ($rets as $ret) {
+            if ($myid && $ret['fromuser']['id'] == $myid) {
+                $fetch[] = $ret['id'];
+            }
+        }
+
+        if (count($fetch)) {
+            # For our own messages, return the posting history.
+            $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid IN (" . implode(',', $fetch) . ") ORDER BY date ASC;", NULL, FALSE, FALSE);
+
+            foreach ($rets as &$ret) {
+                $ret['postings'] = [];
+
+                foreach ($posts as $post) {
+                    if ($post['msgid'] == $ret['id']) {
+                        $post['date'] = ISODate($post['date']);
+                        $ret['postings'][] = $post;
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * @param bool $messagehistory
      * @param bool $related
@@ -1547,6 +1573,7 @@ ORDER BY lastdate DESC;";
             $this->getPublicItem($rets, $msgs);
             $this->getPublicFromUser($userlist, $rets, $msgs, $roles, $messagehistory);
             $this->getPublicHeld($userlist, $rets, $msgs, $messagehistory);
+            $this->getPublicPostingHistory($rets, $msgs, $me, $myid);
 
             if ($related) {
                 $this->getPublicRelated($rets, $msgs);
@@ -1554,16 +1581,6 @@ ORDER BY lastdate DESC;";
         }
 
         $ret = $rets[$this->id];
-
-        if (!$summary && $myid && $this->fromuser == $myid) {
-            # For our own messages, return the posting history.
-            $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid = ? ORDER BY date ASC;", [ $this->id ], FALSE, FALSE);
-            $ret['postings'] = [];
-            foreach ($posts as &$post) {
-                $post['date'] = ISODate($post['date']);
-                $ret['postings'][] = $post;
-            }
-        }
 
         if (!$summary && MODTOOLS && $me && $me->isModerator()) {
             # Return any edit history, most recent first.
