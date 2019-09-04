@@ -42,7 +42,7 @@ if (($sso->validatePayload($payload,$signature))) {
 
         error_log("Discourse signin " . var_export($extraParameters, TRUE));
 
-        $refer = 'https://discourse.ilovefreegle.org';
+        $refer = 'https://discourse2.ilovefreegle.org';
         if( array_key_exists('HTTP_REFERER',$_SERVER)){
           $refer = $_SERVER['HTTP_REFERER'];
         }
