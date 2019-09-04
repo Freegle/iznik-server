@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/c928f5c7-d271-4b12-b686-a047cb3a932b/storage_v2/_src_/schema/iznik.P8MABg.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/c928f5c7-d271-4b12-b686-a047cb3a932b/storage_v2/_src_/schema/iznik.P8MABg.zip" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -76,6 +76,7 @@
       <path value="/usr/share/php" />
     </include_path>
   </component>
+  <component name="ProjectId" id="1QNIy2qsnamByJ6kHwMtKRMqywI" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="false" id="Update" />
     <ConfirmationsSetting value="2" id="Add" />
@@ -100,6 +101,7 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="C:/Program Files/nodejs/node" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="reference.webide.settings.project.settings.php" />
   </component>
@@ -123,15 +125,10 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messagesTest.testEH">
+  <component name="RunManager" selected="PHPUnit.messagesTest.testApproved">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="messageAPITest.testApprove" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testApprove" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messageTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -144,9 +141,14 @@
       <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" method="testCensor" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageTest.testRelated" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="messagesTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" method="testRelated" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" scope="Class" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="messagesTest.testApproved" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testApproved" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -156,18 +158,18 @@
     </configuration>
     <list>
       <item itemvalue="PHPUnit.messageTest" />
-      <item itemvalue="PHPUnit.messageAPITest.testApprove" />
-      <item itemvalue="PHPUnit.messageTest.testRelated" />
       <item itemvalue="PHPUnit.messageTest.testCensor" />
       <item itemvalue="PHPUnit.messagesTest.testEH" />
+      <item itemvalue="PHPUnit.messagesTest" />
+      <item itemvalue="PHPUnit.messagesTest.testApproved" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="PHPUnit.messagesTest.testEH" />
+        <item itemvalue="PHPUnit.messagesTest.testApproved" />
+        <item itemvalue="PHPUnit.messagesTest" />
         <item itemvalue="PHPUnit.messageTest" />
+        <item itemvalue="PHPUnit.messagesTest.testEH" />
         <item itemvalue="PHPUnit.messageTest.testCensor" />
-        <item itemvalue="PHPUnit.messageTest.testRelated" />
-        <item itemvalue="PHPUnit.messageAPITest.testApprove" />
       </list>
     </recent_temporary>
   </component>
@@ -228,13 +230,7 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-    </task>
-    <task id="LOCAL-00118" summary="Return CGA/DPA">
-      <created>1549353225303</created>
-      <option name="number" value="00118" />
-      <option name="presentableId" value="LOCAL-00118" />
-      <option name="project" value="LOCAL" />
-      <updated>1549353225303</updated>
+      <workItem from="1567604881040" duration="6849000" />
     </task>
     <task id="LOCAL-00119" summary="Support Tools showing duplicate group names">
       <created>1549353937839</created>
@@ -572,7 +568,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567599253315</updated>
     </task>
-    <option name="localTasksCounter" value="167" />
+    <task id="LOCAL-00167" summary="UT fixes">
+      <created>1567600405621</created>
+      <option name="number" value="00167" />
+      <option name="presentableId" value="LOCAL-00167" />
+      <option name="project" value="LOCAL" />
+      <updated>1567600405621</updated>
+    </task>
+    <option name="localTasksCounter" value="168" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

@@ -929,7 +929,7 @@ class Message
         }
     }
 
-    private function getPublicAtts($me, $myid, $msgs, $roles, $seeall) {
+    private function getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary) {
         # Get the attributes which are visible based on our role.
         $rets = [];
         
@@ -969,6 +969,26 @@ class Message
             #
             # In the non-summary case we may be able to for our own messages, lower down.
             $ret['canedit'] = $myid && $me->isModerator() && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER);
+
+            # Remove any group subject tag.
+            $ret['subject'] = preg_replace('/^\[.*?\]\s*/', '', $ret['subject']);
+            $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
+
+            # Decode any HTML which is wrongly in there.
+            $ret['subject'] = html_entity_decode($ret['subject']);
+
+            # Add derived attributes.
+            $ret['arrival'] = ISODate($ret['arrival']);
+            $ret['date'] = ISODate($ret['date']);
+            $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
+            $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
+
+            if (pres('fromcountry', $ret)) {
+                $ret['fromcountry'] = code_to_country($ret['fromcountry']);
+            }
+
+            # TODO Is this still relevant?
+            $ret['publishconsent'] = pres('publishconsent', $msg) ? TRUE : FALSE;
 
             $rets[$msg['id']] = $ret;
         }
@@ -1084,6 +1104,219 @@ class Message
         }
     }
 
+    public function getPublicLocation($me, $myid, &$rets, $msgs, $roles, $seeall) {
+        # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
+        # we can see the precise location.  Many messages may be posted from the same location, so cache that.
+        $groups = NULL;
+
+        foreach ($msgs as $msg) {
+            $role = $roles[$msg['id']][0];
+            $ret = $rets[$msg['id']];
+
+            if (pres('locationid', $msg)) {
+                $l = $this->getLocation($msg['locationid'], $locationlist);
+
+                if ($ret['showarea']) {
+                    $areaid = $l->getPrivate('areaid');
+                    if ($areaid) {
+                        # This location is quite specific.  Return the area it's in.
+                        $a = $this->getLocation($areaid, $locationlist);
+                        $ret['area'] = $a->getPublic();
+                    } else {
+                        # This location isn't in an area; it is one.  Return it.
+                        $ret['area'] = $l->getPublic();
+                    }
+                }
+
+                if ($ret['showpc']) {
+                    $pcid = $l->getPrivate('postcodeid');
+                    if ($pcid) {
+                        $p = $this->getLocation($pcid, $locationlist);
+                        $ret['postcode'] = $p->getPublic();
+                    }
+                }
+
+                if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
+                    $ret['location'] = $l->getPublic();
+                }
+            }
+
+            unset($ret['showarea']);
+            unset($ret['showpc']);
+
+            $rets[$msg['id']] = $ret;
+        }
+    }
+
+    public function getPublicItem(&$rets, $msgs) {
+        $search = [];
+
+        foreach ($msgs as $msg) {
+            $ret = $rets[$msg['id']];
+
+            if (pres('itemid', $msg)) {
+                $ret['item'] = [
+                    'id' => $msg['itemid'],
+                    'name' => $msg['itemname']
+                ];
+            } else if (preg_match("/(.+)\:(.+)\((.+)\)/", $ret['subject'], $matches)) {
+                # See if we can find it.
+                $item = trim($matches[2]);
+                $itemid = NULL;
+                $search[] = [
+                    'id' => $msg['id'],
+                    'item' => $item
+                ];
+            }
+
+            $rets[$msg['id']] = $ret;
+        }
+
+        if (count($search)) {
+            $sql = "";
+            foreach ($search as $s) {
+                if ($sql !== '') {
+                    $sql .= " UNION ";
+                }
+
+                $sql .= "SELECT items.id, items.name FROM items WHERE name LIKE " . $this->dbhr->quote($s['item']);
+            }
+
+            $items = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+
+            foreach ($items as $item) {
+                foreach ($rets as &$ret) {
+                    if (!pres('item', $ret) && $ret['id'] == $s['id']) {
+                        $ret['item'] = [
+                            'id' => $item['id'],
+                            'name' => $item['name']
+                        ];
+                    }
+                }
+            }
+        }
+    }
+
+    public function getReplies($me, $myid, &$rets, $msgs, $summary, $roles, $seeall, $messagehistory) {
+        $allreplies = NULL;
+        $lastreplies = NULL;
+        $allpromises = NULL;
+
+        foreach ($msgs as $msg) {
+            $role = $roles[$msg['id']][0];
+            $ret = $rets[$msg['id']];
+
+            if ($summary) {
+                # We set this when constructing from MessageCollection.
+                $ret['replycount'] = $msg['replycount'];
+            } else if (!$summary) {
+                if ($allreplies === NULL) {
+                    # Get all the replies for these messages.
+                    $msgids = array_filter(array_column($msgs, 'id'));
+                    $sql = "SELECT DISTINCT t.* FROM (
+SELECT chat_messages.id, chat_messages.refmsgid, chat_roster.status , chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages 
+LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid 
+WHERE refmsgid IN (" . implode(',', $msgids) . ") AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid) t 
+ORDER BY lastdate DESC;";
+
+                    $res = $this->dbhr->preQuery($sql, [
+                        ChatMessage::TYPE_INTERESTED
+                    ], NULL, FALSE, FALSE);
+
+                    $allreplies = [];
+
+                    foreach ($res as $r) {
+                        if (!pres($r['refmsgid'], $allreplies)) {
+                            $allreplies[$r['refmsgid']] = [ $r ];
+                        } else {
+                            $allreplies[$r['refmsgid']][] = $r;
+                        }
+                    }
+                }
+
+                # Can always see the replycount.  The count should include even people who are blocked.
+                $replies = presdef($ret['id'], $allreplies, []);
+                $ret['replies'] = [];
+                $ret['replycount'] = count($replies);
+
+                # Can see replies if:
+                # - we want everything
+                # - we're on ModTools and we're a mod for this message
+                # - it's our message
+                if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
+                    # Add replies, as long as they're not awaiting review or rejected, or blocked.
+                    foreach ($replies as $reply) {
+                        $ctx = NULL;
+                        if ($reply['userid'] && $reply['status'] != ChatRoom::STATUS_BLOCKED) {
+                            $thisone = [
+                                'id' => $reply['id'],
+                                'user' => $this->getUser($reply['userid'], $messagehistory, $userlist, TRUE),
+                                'chatid' => $reply['chatid']
+                            ];
+
+                            # Add the last reply date and a snippet.
+                            if (!$lastreplies) {
+                                # Get the last replies for all the relevant chats.
+                                $chatids = array_filter(array_column($replies, 'chatid'));
+                                $sql = "SELECT m1.* FROM chat_messages m1 LEFT JOIN chat_messages m2 ON (m1.chatid = m2.chatid AND m1.id < m2.id) WHERE m2.id IS NULL AND m1.chatid IN (" . implode(',', $chatids) . ");";
+                                $lastreplies = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+                            }
+
+                            foreach ($lastreplies as $lastreply) {
+                                if ($lastreply['chatid'] == $reply['chatid']) {
+                                    $thisone['lastdate'] = ISODate($lastreply['date']);
+                                    $thisone['snippet'] = substr($lastreply['message'], 0, 30);
+                                }
+                            }
+
+                            $ret['replies'][] = $thisone;;
+                        }
+                    }
+
+                    # Whether or not we will auto-repost depends on whether there are replies.
+                    $ret['willautorepost'] = count($ret['replies']) == 0;
+
+                    $ret['promisecount'] = 0;
+                }
+
+                if ($this->type == Message::TYPE_OFFER) {
+                    # Add promises, i.e. one or more people we've said can have this.
+                    if (!$allpromises) {
+                        $msgids = array_filter(array_column($msgs, 'id'));
+                        $sql = "SELECT * FROM messages_promises WHERE msgid IN (" . implode(',', $msgids) . ");";
+                        $ps = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+                        $allpromises = [];
+
+                        foreach ($ps as $p) {
+                            if (!pres($p['msgid'], $allpromises)) {
+                                $allpromises[$p['msgid']] = [ $p ];
+                            } else {
+                                $allpromises[$p['msgid']][] = $p;
+                            }
+                        }
+                    }
+
+                    $promises = presdef($msg['id'], $allpromises, []);
+
+                    if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
+                        $ret['promises'] = $promises;
+
+                        foreach ($ret['replies'] as &$reply) {
+                            foreach ($ret['promises'] as $promise) {
+                                $reply['promised'] = presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
+                            }
+                        }
+                    }
+
+                    $ret['promisecount'] = count($promises);
+                    $ret['promised'] = count($promises) > 0;
+                }
+            }
+
+            $rets[$msg['id']] = $ret;
+        }
+    }
+
     /**
      * @param bool $messagehistory
      * @param bool $related
@@ -1103,156 +1336,17 @@ class Message
         # We call the methods that handle an array of messages, which are shared with MessageCollection.  Each of
         # these return their info in an array indexed by message id.
         $roles = $this->getRolesForMessages($me, $msgs);
-        $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall);
+        $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary);
         $this->getPublicGroups($me, $myid, $rets, $msgs, $roles, $summary, $seeall, $messagehistory);
+        $this->getReplies($me, $myid, $rets, $msgs, $summary, $roles, $seeall, $messagehistory);
+
+        if (!$summary) {
+            $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall);
+            $this->getPublicItem($rets, $msgs);
+        }
 
         $role = $roles[$this->id][0];
         $ret = $rets[$this->id];
-
-        # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
-        # we can see the precise location.  Many messages may be posted from the same location, so cache that.
-        if (!$summary && $this->locationid) {
-            $l = $this->getLocation($this->locationid, $locationlist);
-
-            if ($ret['showarea']) {
-                $areaid = $l->getPrivate('areaid');
-                if ($areaid) {
-                    # This location is quite specific.  Return the area it's in.
-                    $a = $this->getLocation($areaid, $locationlist);
-                    $ret['area'] = $a->getPublic();
-                } else {
-                    # This location isn't in an area; it is one.  Return it.
-                    $ret['area'] = $l->getPublic();
-                }
-            }
-
-            if ($ret['showpc']) {
-                $pcid = $l->getPrivate('postcodeid');
-                if ($pcid) {
-                    $p = $this->getLocation($pcid, $locationlist);
-                    $ret['postcode'] = $p->getPublic();
-                }
-            }
-
-            if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
-                $ret['location'] = $l->getPublic();
-            }
-        }
-
-        # Remove any group subject tag.
-        $ret['subject'] = preg_replace('/^\[.*?\]\s*/', '', $ret['subject']);
-        $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
-        
-        # Decode any HTML which is wrongly in there.
-        $ret['subject'] = html_entity_decode($ret['subject']);
-
-        if (!$summary) {
-            # Get the item.  Although it's an extra DB call, we use this in creating structured data for SEO.
-            if ($this->itemid) {
-                $ret['item'] = [
-                    'id' => $this->itemid,
-                    'name' => $this->itemname
-                ];
-            } else if (preg_match("/(.+)\:(.+)\((.+)\)/", $ret['subject'], $matches)) {
-                # See if we can find it.
-                $item = trim($matches[2]);
-                $itemid = NULL;
-                $items = $this->dbhr->preQuery("SELECT items.id FROM items WHERE name LIKE ?;", [ $item ]);
-                $itemid = count($items) == 0 ? NULL : $items[0]['id'];
-                $ret['item'] = [
-                    'id' => $itemid,
-                    'name' => $item
-                ];
-            }
-        }
-
-        if ($summary) {
-            # We set this when constructing from MessageCollection.
-            $ret['replycount'] = $this->replycount;
-        } else if (!$summary) {
-            # Can always see the replycount.  The count should include even people who are blocked.
-            $sql = "SELECT DISTINCT t.*FROM (SELECT chat_messages.id, chat_roster.status , chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != ? AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid) t ORDER BY lastdate DESC;";
-            $replies = $this->dbhr->preQuery($sql, [
-                $this->id,
-                $this->fromuser,
-                ChatMessage::TYPE_INTERESTED
-            ]);
-
-            $ret['replies'] = [];
-            $ret['replycount'] = count($replies);
-
-            # Can see replies if:
-            # - we want everything
-            # - we're on ModTools and we're a mod for this message
-            # - it's our message
-            if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
-                # Add replies, as long as they're not awaiting review or rejected, or blocked.
-                foreach ($replies as $reply) {
-                    $ctx = NULL;
-                    if ($reply['userid'] && $reply['status'] != ChatRoom::STATUS_BLOCKED) {
-                        $thisone = [
-                            'id' => $reply['id'],
-                            'user' => $this->getUser($reply['userid'], $messagehistory, $userlist, TRUE),
-                            'chatid' => $reply['chatid']
-                        ];
-
-                        # Add the last reply date and a snippet.
-                        $lastreplies = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid = ? AND chatid = ? ORDER BY id DESC LIMIT 1;", [
-                            $reply['userid'],
-                            $reply['chatid']
-                        ]);
-
-                        foreach ($lastreplies as $lastreply) {
-                            $thisone['lastdate'] = ISODate($lastreply['date']);
-                            $thisone['snippet'] = substr($lastreply['message'], 0, 30);
-                        }
-
-                        $ret['replies'][] = $thisone;;
-                    }
-                }
-
-                # Whether or not we will auto-repost depends on whether there are replies.
-                $ret['willautorepost'] = count($ret['replies']) == 0;
-
-                $ret['promisecount'] = 0;
-            } else {
-                # Can see a count of replies.
-                $sql = "SELECT COUNT(DISTINCT t.userid) AS count FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t;";
-                $replies = $this->dbhr->preQuery($sql, [
-                    $this->id,
-                    ChatMessage::TYPE_INTERESTED,
-                    $this->fromuser
-                ]);
-                $ret['replycount'] = $replies[0]['count'];
-            }
-
-            if ($this->type == Message::TYPE_OFFER) {
-                # Add any promises, i.e. one or more people we've said can have this.
-                $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
-                $promises = $this->dbhr->preQuery($sql, [$this->id], FALSE, FALSE);
-
-                if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
-                    $ret['promises'] = $promises;
-
-                    foreach ($ret['replies'] as &$reply) {
-                        foreach ($ret['promises'] as $promise) {
-                            $reply['promised'] = presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
-                        }
-                    }
-                }
-
-                $ret['promisecount'] = count($promises);
-                $ret['promised'] = count($promises) > 0;
-            }
-        }
-
-        # Add derived attributes.
-        $ret['arrival'] = ISODate($ret['arrival']);
-        $ret['date'] = ISODate($ret['date']);
-        $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
-        $arrivalago = floor((time() - strtotime($ret['arrival'])) / 86400);
-
-        $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
         # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
         if ($summary) {
@@ -1294,8 +1388,6 @@ class Message
         }
 
         unset($ret['expiretime']);
-        unset($ret['showarea']);
-        unset($ret['showpc']);
 
         if (!$summary) {
             if ($role == User::ROLE_NONMEMBER) {
@@ -1310,14 +1402,6 @@ class Message
             # We have a flag for FOP - but legacy posting methods might put it in the body.
             $ret['FOP'] = (pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
         }
-
-        if (pres('fromcountry', $ret)) {
-            $ret['fromcountry'] = code_to_country($ret['fromcountry']);
-        }
-
-        # Publish consent was returned in the construct.
-        # TODO Is this still relevant?
-        $ret['publishconsent'] = $this->publishconsent ? TRUE : FALSE;
 
         if (!$summary && $this->fromuser && pres('fromuser', $ret)) {
             # We know who sent this.  We may be able to return this (depending on the role we have for the message
