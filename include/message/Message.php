@@ -32,6 +32,8 @@ class Message
     const TYPE_ADMIN = 'Admin';
     const TYPE_OTHER = 'Other';
 
+    const EXPIRE_TIME = 90;
+
     const OUTCOME_TAKEN = 'Taken';
     const OUTCOME_RECEIVED = 'Received';
     const OUTCOME_WITHDRAWN = 'Withdrawn';
@@ -706,10 +708,9 @@ class Message
                     $role = User::ROLE_MODERATOR;
                 } else {
                     if (!$groups) {
-                        $msgids = array_column('id', $msgs);
+                        $msgids = array_column($msgs, 'id');
                         $sql = "SELECT role, messages_groups.groupid, messages_groups.collection FROM memberships
-                              INNER JOIN messages_groups ON messages_groups.msgid = ?
-                                  AND messages_groups.groupid = memberships.groupid
+                              INNER JOIN messages_groups ON messages_groups.groupid = memberships.groupid
                                   AND userid = ? AND messages_groups.msgid IN (" . implode(',', $msgids) . ");";
                         $groups = $this->dbhr->preQuery($sql, [
                             $me->getId()
@@ -993,6 +994,81 @@ class Message
         return([$ret]);
     }
 
+    public function getPublicGroups($me, $myid, &$rets, $msgs, $roles, $summary, $seeall, $messagehistory) {
+        foreach ($msgs as $msg) {
+            $role = $roles[$msg['id']][0];
+            $ret = $rets[$msg['id']];
+
+            if (!$summary) {
+                # In the summary case we fetched the groups in MessageCollection.  Otherwise we won't have fetched the groups yet.
+                $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
+                $msg['groups'] = $this->dbhr->preQuery($sql, [ $msg['id'] ], FALSE, FALSE);
+            }
+
+            $ret['groups'] = $msg['groups'];
+
+            $ret['showarea'] = TRUE;
+            $ret['showpc'] = TRUE;
+
+            foreach ($ret['groups'] as $group) {
+                if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
+                    if (pres('approvedby', $group)) {
+                        $group['approvedby'] = $this->getUser($group['approvedby'], $messagehistory, $userlist, FALSE);
+                    }
+                }
+
+                $group['arrival'] = ISODate($group['arrival']);
+                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                $group['namedisplay'] = $g->getName();
+
+                # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
+                $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+                $repost = $msg['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                $maxreposts = $repost * $reposts['max'];
+                $ret['expiretime'] = max(Message::EXPIRE_TIME, $maxreposts);
+
+                if (!$ret['canedit'] && $myid && $myid === $msg['fromuser'] && $msg['source'] == Message::PLATFORM) {
+                    # This is our own message, which we may be able to edit if the group allows it.
+                    $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
+                    $ourPS = $me->getMembershipAtt($group['groupid'], 'ourPostingStatus');
+
+                    if (((!$ourPS || $ourPS === Group::POSTING_MODERATED) && $allowedits['moderated']) ||
+                        ($ourPS === Group::POSTING_DEFAULT && $allowedits['group'])) {
+                        # Yes, we can edit.
+                        $ret['canedit'] = TRUE;
+                    }
+                }
+
+                if (!$summary) {
+                    $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
+                    $ret['keyword'] = presdef(strtolower($msg['type']), $keywords, $msg['type']);
+
+                    # Some groups disable the area or postcode.  If so, hide that.
+                    $includearea = $g->getSetting('includearea', TRUE);
+                    $includepc = $g->getSetting('includepc', TRUE);
+                    $ret['showarea'] = !$includearea ? FALSE : $ret['showarea'];
+                    $ret['showpc'] = !$includepc ? FALSE : $ret['showpc'];
+
+                    if (pres('mine', $ret)) {
+                        # Can we repost?
+                        $ret['canrepost'] = FALSE;
+
+                        $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
+                        $interval = $msg['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                        $arrival = strtotime($group['arrival']);
+                        $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
+
+                        if ($group['hoursago'] > $interval * 24) {
+                            $ret['canrepost'] = TRUE;
+                        }
+                    }
+                }
+            }
+
+            $rets[$msg['id']] = $ret;
+        }
+    }
+
     /**
      * @param bool $messagehistory
      * @param bool $related
@@ -1013,112 +1089,17 @@ class Message
         # these return their info in an array indexed by message id.
         $roles = $this->getRolesForMessages($me, $msgs);
         $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall);
+        $this->getPublicGroups($me, $myid, $rets, $msgs, $roles, $summary, $seeall, $messagehistory);
 
         $role = $roles[$this->id][0];
         $ret = $rets[$this->id];
-
-        if ($summary) {
-            # Add a very basic copy of the groups which we set up in MessageCollection.
-            $ret['groups'] = $this->groups;
-
-            # And other attributes.
-            $ret['type'] = $this->type;
-            $expiretime = 90;
-
-            foreach ($ret['groups'] as $group) {
-                $group['arrival'] = ISODate($group['arrival']);
-                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                $group['namedisplay'] = $g->getName();
-
-                # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
-                $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
-                $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-                $maxreposts = $repost * $reposts['max'];
-                $expiretime = max($expiretime, $maxreposts);
-
-                if (!$ret['canedit'] && $myid && $myid === $this->getFromuser() && $this->getSource() == Message::PLATFORM) {
-                    # This is our own message, which we may be able to edit if the group allows it.
-                    $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
-                    $ourPS = $me->getMembershipAtt($group['groupid'], 'ourPostingStatus');
-
-                    if (((!$ourPS || $ourPS === Group::POSTING_MODERATED) && $allowedits['moderated']) ||
-                        ($ourPS === Group::POSTING_DEFAULT && $allowedits['group'])) {
-                        # Yes, we can edit.
-                        $ret['canedit'] = TRUE;
-                    }
-                }
-            }
-        } else {
-            # Add any groups that this message is on.
-            $ret['groups'] = [];
-            $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
-            $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ], FALSE, FALSE);
-            $showarea = TRUE;
-            $showpc = TRUE;
-            $expiretime = 90;
-
-            foreach ($ret['groups'] as &$group) {
-                $group['arrival'] = ISODate($group['arrival']);
-                #error_log("{$this->id} approved by {$group['approvedby']}");
-
-                if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
-                    if (pres('approvedby', $group)) {
-                        $group['approvedby'] = $this->getUser($group['approvedby'], $messagehistory, $userlist, FALSE);
-                    }
-                }
-
-                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                $group['namedisplay'] = $g->getName();
-
-                # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
-                $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
-                $repost = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-                $maxreposts = $repost * $reposts['max'];
-                $expiretime = max($expiretime, $maxreposts);
-
-                if (!$ret['canedit'] && $myid && $myid === $this->getFromuser() && $this->getSource() == Message::PLATFORM) {
-                    # This is our own message, which we may be able to edit if the group allows it.
-                    $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
-                    $ourPS = $me->getMembershipAtt($group['groupid'], 'ourPostingStatus');
-
-                    if (((!$ourPS || $ourPS === Group::POSTING_MODERATED) && $allowedits['moderated']) ||
-                        ($ourPS === Group::POSTING_DEFAULT && $allowedits['group'])) {
-                        # Yes, we can edit.
-                        $ret['canedit'] = TRUE;
-                    }
-                }
-
-                $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
-                $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
-
-                # Some groups disable the area or postcode.  If so, hide that.
-                $includearea = $g->getSetting('includearea', TRUE);
-                $includepc = $g->getSetting('includepc', TRUE);
-                $showarea = !$includearea ? FALSE : $showarea;
-                $showpc = !$includepc ? FALSE : $showpc;
-
-                if (pres('mine', $ret)) {
-                    # Can we repost?
-                    $ret['canrepost'] = FALSE;
-
-                    $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
-                    $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-                    $arrival = strtotime($group['arrival']);
-                    $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
-
-                    if ($group['hoursago'] > $interval * 24) {
-                        $ret['canrepost'] = TRUE;
-                    }
-                }
-            }
-        }
 
         # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
         # we can see the precise location.  Many messages may be posted from the same location, so cache that.
         if (!$summary && $this->locationid) {
             $l = $this->getLocation($this->locationid, $locationlist);
 
-            if ($showarea) {
+            if ($ret['showarea']) {
                 $areaid = $l->getPrivate('areaid');
                 if ($areaid) {
                     # This location is quite specific.  Return the area it's in.
@@ -1130,7 +1111,7 @@ class Message
                 }
             }
 
-            if ($showpc) {
+            if ($ret['showpc']) {
                 $pcid = $l->getPrivate('postcodeid');
                 if ($pcid) {
                     $p = $this->getLocation($pcid, $locationlist);
@@ -1285,7 +1266,7 @@ class Message
                 $grouparrival = strtotime($group['arrival']);
                 $grouparrivalago = floor((time() - $grouparrival) / 86400);
 
-                if ($grouparrivalago > $expiretime) {
+                if ($grouparrivalago > $ret['expiretime']) {
                     # Assume anything this old is no longer available.
                     $ret['outcomes'] = [
                         [
@@ -1296,6 +1277,10 @@ class Message
                 }
             }
         }
+
+        unset($ret['expiretime']);
+        unset($ret['showarea']);
+        unset($ret['showpc']);
 
         if (!$summary) {
             if ($role == User::ROLE_NONMEMBER) {
