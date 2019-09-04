@@ -707,7 +707,7 @@ class Message
                     $role = User::ROLE_MODERATOR;
                 } else {
                     if (!$groups) {
-                        $msgids = array_column($msgs, 'id');
+                        $msgids = array_filter(array_column($msgs, 'id'));
                         $sql = "SELECT role, messages_groups.groupid, messages_groups.collection, messages_groups.msgid FROM memberships
                               INNER JOIN messages_groups ON messages_groups.groupid = memberships.groupid
                                   AND userid = ? AND messages_groups.msgid IN (" . implode(',', $msgids) . ");";
@@ -916,7 +916,7 @@ class Message
     public function promiseCounts(&$msgs) {
         # This reduces DB ops by getting them all at once.
         if ($msgs) {
-            $msgids = array_column($msgs, 'id');
+            $msgids = array_filter(array_column($msgs, 'id'));
             $sql = "SELECT COUNT(*) AS count, msgid FROM messages_promises WHERE msgid IN (" . implode(',', $msgids) . ");";
             $promises = $this->dbhr->preQuery($sql, [$this->id]);
             foreach ($promises as $promise) {
@@ -994,14 +994,30 @@ class Message
     }
 
     public function getPublicGroups($me, $myid, &$rets, $msgs, $roles, $summary, $seeall, $messagehistory) {
+        $msgids = array_filter(array_column($msgs, 'id'));
+        $groups = NULL;
+
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
             $ret = $rets[$msg['id']];
 
             if (!$summary) {
                 # In the summary case we fetched the groups in MessageCollection.  Otherwise we won't have fetched the groups yet.
-                $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
-                $msg['groups'] = $this->dbhr->preQuery($sql, [ $msg['id'] ], FALSE, FALSE);
+                if ($groups === NULL) {
+                    $groups = [];
+
+                    if ($msgids) {
+                        $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid IN (" . implode (',', $msgids ) . ") AND deleted = 0;";
+                        $groups = $this->dbhr->preQuery($sql, [$msg['id']], FALSE, FALSE);
+                    }
+                }
+
+                $msg['groups'] = [];
+                foreach ($groups as $group) {
+                    if ($group['msgid'] == $msg['id']) {
+                        $msg['groups'][] = $group;
+                    }
+                }
             }
 
             $ret['groups'] = $msg['groups'];
@@ -2448,7 +2464,7 @@ class Message
         } else {
             # We have the groups in hand.
             if ($justids) {
-                $ret = array_column($this->groups, 'groupid');
+                $ret = array_filter(array_column($this->groups, 'groupid'));
             } else {
                 $ret = $this->groups;
             }

@@ -1157,7 +1157,7 @@ class User extends Entity
         $c = new ModConfig($this->dbhr, $this->dbhm);
 
         # Get all the groups efficiently.
-        $groupids = array_column($groups, 'groupid');
+        $groupids = array_filter(array_column($groups, 'groupid'));
         $gc = new GroupCollection($this->dbhr, $this->dbhm, $groupids);
         $groupobjs = $gc->get();
         $getworkids = [];
@@ -1256,7 +1256,7 @@ class User extends Entity
             $ids = $this->dbhr->preQuery($sql, [ $me->getId() ]);
         }
 
-        $configids = array_column($ids, 'id');
+        $configids = array_filter(array_column($ids, 'id'));
 
         if ($configids) {
             # Get all the info we need for the modconfig object in a single SELECT for performance.  This is particularly
@@ -5489,7 +5489,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $beforetime
         ], FALSE, FALSE);
 
-        return(count($ids) ? array_column($ids, 'id') : []);
+        return(count($ids) ? array_filter(array_column($ids, 'id')) : []);
     }
 
     public static function encodeId($id) {
