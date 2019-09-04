@@ -1544,6 +1544,40 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function getPublicEditHistory(&$userlist, &$rets, $msgs, $me, $myid) {
+        $doit = MODTOOLS && $me && $me->isModerator();
+        $msgids = array_filter(array_column($msgs, 'id'));
+
+        if ($doit) {
+            # Return any edit history, most recent first.
+            $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;", [
+                $this->id
+            ], FALSE, FALSE);
+        }
+
+        foreach ($rets as &$ret) {
+            $ret['edits'] = [];
+
+            if ($doit) {
+                foreach ($edits as &$edit) {
+                    if ($ret['id'] == $edit['msgid']) {
+                        $edit['timestamp'] = ISODate($edit['timestamp']);
+
+                        if (pres('byuser', $edit)) {
+                            $u = User::get($this->dbhr, $this->dbhm, $edit['byuser']);
+                            $ctx = NULL;
+                            $edit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+                        }
+                    }
+                }
+
+                if (count($edits)) {
+                    $ret['edits'] = $edits;
+                }
+            }
+        }
+    }
+
     /**
      * @param bool $messagehistory
      * @param bool $related
@@ -1554,10 +1588,15 @@ ORDER BY lastdate DESC;";
      * @return array
      */
     public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = NULL, $summary = FALSE) {
+        $msgs = $this->getThisAsArray();
+        $rets = $this->getPublics($msgs, $messagehistory, $related, $seeall, $userlist, $locationlist, $summary);
+        $ret = $rets[$this->id];
+        return($ret);
+    }
+
+    public function getPublics($msgs, $messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = NULL, $summary = FALSE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
-
-        $msgs = $this->getThisAsArray();
 
         # We call the methods that handle an array of messages, which are shared with MessageCollection.  Each of
         # these return their info in an array indexed by message id.
@@ -1574,36 +1613,14 @@ ORDER BY lastdate DESC;";
             $this->getPublicFromUser($userlist, $rets, $msgs, $roles, $messagehistory);
             $this->getPublicHeld($userlist, $rets, $msgs, $messagehistory);
             $this->getPublicPostingHistory($rets, $msgs, $me, $myid);
+            $this->getPublicEditHistory($userlist, $rets, $msgs, $me, $myid);
 
             if ($related) {
                 $this->getPublicRelated($rets, $msgs);
             }
         }
 
-        $ret = $rets[$this->id];
-
-        if (!$summary && MODTOOLS && $me && $me->isModerator()) {
-            # Return any edit history, most recent first.
-            $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid = ? ORDER BY id DESC;", [
-                $this->id
-            ], FALSE, FALSE);
-
-            foreach ($edits as &$edit) {
-                $edit['timestamp'] = ISODate($edit['timestamp']);
-
-                if (pres('byuser', $edit)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $edit['byuser']);
-                    $ctx = NULL;
-                    $edit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
-                }
-            }
-
-            if (count($edits)) {
-                $ret['edits'] = $edits;
-            }
-        }
-
-        return($ret);
+        return($rets);
     }
 
     /**

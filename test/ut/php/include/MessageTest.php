@@ -652,8 +652,7 @@ class messageTest extends IznikTestCase {
         $atts = $u->getPublic(NULL, FALSE, TRUE);
         $log = $this->findLog('Message', 'Autoreposted', $atts['logs']);
         self::assertNotNull($log);
-
-        }
+    }
 
     public function testChaseup() {
         $g = Group::get($this->dbhr, $this->dbhm);

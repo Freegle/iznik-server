@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Speed-ups: get message posting history">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Attachment.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Attachment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -102,7 +102,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.IncomingMessageTest.testAttachmentDup">
+  <component name="RunManager" selected="PHPUnit.messageTest">
     <configuration name="IncomingMessageTest.testAttachmentDup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="IncomingMessageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" method="testAttachmentDup" scope="Method" use_alternative_configuration_file="true" />
@@ -142,8 +142,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="PHPUnit.IncomingMessageTest.testAttachmentDup" />
         <item itemvalue="PHPUnit.messageTest" />
+        <item itemvalue="PHPUnit.IncomingMessageTest.testAttachmentDup" />
         <item itemvalue="PHPUnit.messageAPITest.testHold" />
         <item itemvalue="PHPUnit.messagesTest.testApproved" />
         <item itemvalue="PHPUnit.messagesTest" />
@@ -207,21 +207,7 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-      <workItem from="1567604881040" duration="10992000" />
-    </task>
-    <task id="LOCAL-00124" summary="* Profile is showing a count of messages even if they are still in Pending">
-      <created>1550750911653</created>
-      <option name="number" value="00124" />
-      <option name="presentableId" value="LOCAL-00124" />
-      <option name="project" value="LOCAL" />
-      <updated>1550750911653</updated>
-    </task>
-    <task id="LOCAL-00125" summary="* Don't send SMS notifications of your own messages even if you've asked for them to be mailed to you">
-      <created>1550754544947</created>
-      <option name="number" value="00125" />
-      <option name="presentableId" value="LOCAL-00125" />
-      <option name="project" value="LOCAL" />
-      <updated>1550754544947</updated>
+      <workItem from="1567604881040" duration="12281000" />
     </task>
     <task id="LOCAL-00126" summary="ModPlugin broken by recent Chrome changes">
       <created>1550838891638</created>
@@ -552,7 +538,21 @@
       <option name="project" value="LOCAL" />
       <updated>1567613967628</updated>
     </task>
-    <option name="localTasksCounter" value="173" />
+    <task id="LOCAL-00173" summary="Speed-ups: get message attachments">
+      <created>1567616035911</created>
+      <option name="number" value="00173" />
+      <option name="presentableId" value="LOCAL-00173" />
+      <option name="project" value="LOCAL" />
+      <updated>1567616035911</updated>
+    </task>
+    <task id="LOCAL-00174" summary="Speed-ups: get message posting history">
+      <created>1567616544852</created>
+      <option name="number" value="00174" />
+      <option name="presentableId" value="LOCAL-00174" />
+      <option name="project" value="LOCAL" />
+      <updated>1567616544852</updated>
+    </task>
+    <option name="localTasksCounter" value="175" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -596,8 +596,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Noticeboard notification bug" />
-    <MESSAGE value="Creating our own email addresses starting with -" />
     <MESSAGE value="Fix up bad fromaddr addresses" />
     <MESSAGE value="Strip signatures on OFFER/WANTED posts" />
     <MESSAGE value="Add better donate request into chat notifications" />
@@ -621,6 +619,8 @@
     <MESSAGE value="Speed-ups: get message from user" />
     <MESSAGE value="Speed-ups: get related messages" />
     <MESSAGE value="Speed-ups: get message hold" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get message hold" />
+    <MESSAGE value="Speed-ups: get message attachments" />
+    <MESSAGE value="Speed-ups: get message posting history" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get message posting history" />
   </component>
 </project>

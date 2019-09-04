@@ -286,7 +286,6 @@ class MessageCollection
                     ];
 
                     $m->setAttachments($atts);
-//                    $m->setPrivate('attachments', $atts);
                 }
             } else {
                 # We will fetch and later return all the message info, which is slower.
