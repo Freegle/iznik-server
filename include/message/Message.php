@@ -1430,6 +1430,37 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function getPublicRelated(&$rets, $msgs) {
+        $msgids = array_filter(array_column($msgs, 'id'));
+        $relateds = [];
+
+        if (count($msgids)) {
+            $relateds = $this->dbhr->preQuery("SELECT * FROM messages_related WHERE id1 IN (" . implode(',', $msgids) . ") OR id2  IN (" . implode(',', $msgids) . ");");
+        }
+
+        foreach ($msgs as $msg) {
+            $ret = $rets[$msg['id']];
+
+            # Add any related messages
+            $ret['related'] = [];
+            $relids = [];
+
+            foreach ($relateds as $rel) {
+                if ($rel['id1'] == $msg['id'] || $rel['id2'] == $msg['id']) {
+                    $id = $rel['id1'] == $this->id ? $rel['id2'] : $rel['id1'];
+
+                    if (!array_key_exists($id, $relids)) {
+                        $m = new Message($this->dbhr, $this->dbhm, $id);
+                        $ret['related'][] = $m->getPublic(FALSE, FALSE);
+                        $relids[$id] = TRUE;
+                    }
+                }
+            }
+
+            $rets[$msg['id']] = $ret;
+        }
+    }
+
     /**
      * @param bool $messagehistory
      * @param bool $related
@@ -1458,26 +1489,13 @@ ORDER BY lastdate DESC;";
             $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall);
             $this->getPublicItem($rets, $msgs);
             $this->getPublicFromUser($userlist, $rets, $msgs, $roles, $messagehistory);
+
+            if ($related) {
+                $this->getPublicRelated($rets, $msgs);
+            }
         }
 
         $ret = $rets[$this->id];
-
-        if (!$summary && $related) {
-            # Add any related messages
-            $ret['related'] = [];
-            $sql = "SELECT * FROM messages_related WHERE id1 = ? OR id2 = ?;";
-            $rels = $this->dbhr->preQuery($sql, [ $this->id, $this->id ], FALSE, FALSE);
-            $relids = [];
-            foreach ($rels as $rel) {
-                $id = $rel['id1'] == $this->id ? $rel['id2'] : $rel['id1'];
-
-                if (!array_key_exists($id, $relids)) {
-                    $m = new Message($this->dbhr, $this->dbhm, $id);
-                    $ret['related'][] = $m->getPublic(FALSE, FALSE);
-                    $relids[$id] = TRUE;
-                }
-            }
-        }
 
         if (!$summary && pres('heldby', $ret)) {
             $ret['heldby'] = $this->getUser($ret['heldby'], $messagehistory, $userlist, FALSE);
