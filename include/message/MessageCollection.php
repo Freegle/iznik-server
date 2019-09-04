@@ -295,11 +295,6 @@ class MessageCollection
 
             $public = $m->getPublic(MODTOOLS, TRUE, FALSE, $this->userlist, $this->locationlist, $summary);
 
-            if ($this->allUser) {
-                # Need the promise count for My Posts page
-                $public['promisecount'] = $m->promiseCount();
-            }
-
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
                 $role = NULL;
@@ -397,6 +392,11 @@ class MessageCollection
             if ($limit <= 0) {
                 break;
             }
+        }
+
+        if ($this->allUser) {
+            # Need the promise count for My Posts page
+            $m->promiseCounts($msgs);
         }
 
         return ([$groups, $msgs]);

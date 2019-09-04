@@ -676,78 +676,111 @@ class Message
         }
     }
 
-    public function getRoleForMessage($overrides = TRUE, $me = NULL) {
-        # Our role for a message is the highest role we have on any group that this message is on.  That means that
-        # we have limited access to information on other groups of which we are not a moderator, but that is legitimate
-        # if the message is on our group.
-        #
-        # We might also be a partner.
+    /**
+     * Get the roles for multiple messages.
+     *
+     * @param bool Allow system role overrides
+     * @param null $me
+     * @param int $myid
+     * @param array $msgs
+     * @return mixed
+     */
+    public function getRolesForMessages($me = NULL, $msgs, $overrides = TRUE) {
         $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
-        $role = pres('partner', $_SESSION) ? User::ROLE_MEMBER : User::ROLE_NONMEMBER;
-        $groupid = NULL;
+        $myid = $me ? $me->getId() : NULL;
+        $ret = [];
+        $groups = NULL;
 
-        if ($me) {
-            if ($me->getId() == $this->fromuser) {
-                # It's our message.  We have full rights.
-                $role = User::ROLE_MODERATOR;
-            } else {
-                $sql = "SELECT role, messages_groups.groupid, messages_groups.collection FROM memberships
-              INNER JOIN messages_groups ON messages_groups.msgid = ?
-                  AND messages_groups.groupid = memberships.groupid
-                  AND userid = ?;";
-                $groups = $this->dbhr->preQuery($sql, [
+        foreach ($msgs as $msg) {
+            # Our role for a message is the highest role we have on any group that this message is on.  That means that
+            # we have limited access to information on other groups of which we are not a moderator, but that is legitimate
+            # if the message is on our group.
+            #
+            # We might also be a partner, which allows us to appear like a member rather than a non-member.
+            $role = pres('partner', $_SESSION) ? User::ROLE_MEMBER : User::ROLE_NONMEMBER;
+            $groupid = NULL;
+
+            if ($me) {
+                if ($me->getId() == $this->fromuser) {
+                    # It's our message.  We have full rights.
+                    $role = User::ROLE_MODERATOR;
+                } else {
+                    if (!$groups) {
+                        $msgids = array_column('id', $msgs);
+                        $sql = "SELECT role, messages_groups.groupid, messages_groups.collection FROM memberships
+                              INNER JOIN messages_groups ON messages_groups.msgid = ?
+                                  AND messages_groups.groupid = memberships.groupid
+                                  AND userid = ? AND messages_groups.msgid IN (" . implode(',', $msgids) . ");";
+                        $groups = $this->dbhr->preQuery($sql, [
+                            $me->getId()
+                        ]);
+                    }
+
+                    #error_log("$sql {$this->id}, " . $me->getId() . " " . var_export($groups, TRUE));
+
+                    foreach ($groups as $group) {
+                        if ($msg['id'] === $group['msgid']) {
+                            switch ($group['role']) {
+                                case User::ROLE_OWNER:
+                                    # Owner is highest.
+                                    $role = $group['role'];
+                                    break;
+                                case User::ROLE_MODERATOR:
+                                    # Upgrade from member or non-member to mod.
+                                    $role = ($role == User::ROLE_MEMBER || $role == User::ROLE_NONMEMBER) ? User::ROLE_MODERATOR : $role;
+                                    break;
+                                case User::ROLE_MEMBER:
+                                    # Just a member
+                                    $role = User::ROLE_MEMBER;
+                                    break;
+                            }
+
+                            $groupid = $group['groupid'];
+                        }
+                    }
+
+                    if ($overrides) {
+                        switch ($me->getPrivate('systemrole')) {
+                            case User::SYSTEMROLE_SUPPORT:
+                                $role = User::ROLE_MODERATOR;
+                                break;
+                            case User::SYSTEMROLE_ADMIN:
+                                $role = User::ROLE_OWNER;
+                                break;
+                        }
+                    }
+                }
+            }
+
+            if ($role == User::ROLE_NONMEMBER && $this->isdraft) {
+                # We can potentially upgrade our role if this is one of our drafts.
+                $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
                     $this->id,
-                    $me->getId()
+                    session_id(),
+                    $me ? $me->getId() : NULL
                 ]);
 
-                #error_log("$sql {$this->id}, " . $me->getId() . " " . var_export($groups, TRUE));
-
-                foreach ($groups as $group) {
-                    switch ($group['role']) {
-                        case User::ROLE_OWNER:
-                            # Owner is highest.
-                            $role = $group['role'];
-                            break;
-                        case User::ROLE_MODERATOR:
-                            # Upgrade from member or non-member to mod.
-                            $role = ($role == User::ROLE_MEMBER || $role == User::ROLE_NONMEMBER) ? User::ROLE_MODERATOR : $role;
-                            break;
-                        case User::ROLE_MEMBER:
-                            # Just a member
-                            $role = User::ROLE_MEMBER;
-                            break;
-                    }
-
-                    $groupid = $group['groupid'];
-                }
-
-                if ($overrides) {
-                    switch ($me->getPrivate('systemrole')) {
-                        case User::SYSTEMROLE_SUPPORT:
-                            $role = User::ROLE_MODERATOR;
-                            break;
-                        case User::SYSTEMROLE_ADMIN:
-                            $role = User::ROLE_OWNER;
-                            break;
-                    }
+                foreach ($drafts as $draft) {
+                    $role = User::ROLE_MODERATOR;
                 }
             }
+
+            $ret[$msg['id']] = [ $role, $groupid ];
         }
 
-        if ($role == User::ROLE_NONMEMBER && $this->isdraft) {
-            # We can potentially upgrade our role if this is one of our drafts.
-            $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
-                $this->id,
-                session_id(),
-                $me ? $me->getId() : NULL
-            ]);
+        return($ret);
+    }
 
-            foreach ($drafts as $draft) {
-                $role = User::ROLE_MODERATOR;
-            }
-        }
-
-        return([ $role, $groupid ]);
+    /**
+     * Get the role for this message.
+     *
+     * @param bool Allow system role overrides
+     * @param null $me
+     * @return mixed
+     */
+    public function getRoleForMessage($overrides = TRUE, $me = NULL) {
+        # Use the multi-message method.
+        return($this->getRolesForMessages($me, $this->getThisAsArray(), $overrides)[0]);
     }
 
     public function canSee($atts) {
@@ -875,51 +908,114 @@ class Message
     }
 
     public function promiseCount() {
-        $sql = "SELECT COUNT(*) AS count FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
+        $sql = "SELECT COUNT(*) AS count FROM messages_promises WHERE msgid = ?;";
         $promises = $this->dbhr->preQuery($sql, [$this->id]);
         return($promises[0]['count']);
     }
 
+    public function promiseCounts(&$msgs) {
+        # This reduces DB ops by getting them all at once.
+        if ($msgs) {
+            $msgids = array_column($msgs, 'id');
+            $sql = "SELECT COUNT(*) AS count, msgid FROM messages_promises WHERE msgid IN (" . implode(',', $msgids) . ");";
+            $promises = $this->dbhr->preQuery($sql, [$this->id]);
+            foreach ($promises as $promise) {
+                foreach ($msgs as &$msg) {
+                    if ($msg['id'] === $promise['msgid']) {
+                        $msg['promisecount'] = $promise['count'];
+                    }
+                }
+            }
+        }
+    }
+
+    private function getPublicAtts($me, $myid, $msgs, $roles, $seeall) {
+        # Get the attributes which are visible based on our role.
+        $rets = [];
+        
+        foreach ($msgs as $msg) {
+            $role = $roles[$msg['id']][0];
+            $ret = [];
+            $ret['myrole'] = $role;
+
+            foreach ($this->nonMemberAtts as $att) {
+                $ret[$att] = $this->$att;
+            }
+
+            if ($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
+                foreach ($this->memberAtts as $att) {
+                    $ret[$att] = $this->$att;
+                }
+            }
+
+            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
+                foreach ($this->moderatorAtts as $att) {
+                    $ret[$att] = $this->$att;
+                }
+            }
+
+            if ($role == User::ROLE_OWNER || $seeall) {
+                foreach ($this->ownerAtts as $att) {
+                    $ret[$att] = $this->$att;
+                }
+            }
+
+            # URL people can follow to get to the message on our site.
+            $ret['url'] = 'https://' . USER_SITE . '/message/' . $this->id;
+
+            $ret['mine'] = $myid && $this->fromuser == $myid;
+
+            # If we are a mod with sufficient rights on this message, we can edit it.
+            #
+            # In the non-summary case we may be able to for our own messages, lower down.
+            $ret['canedit'] = $myid && $me->isModerator() && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER);
+
+            $rets[$msg['id']] = $ret;
+        }
+
+        return($rets);
+    }
+
+    private function getThisAsArray() {
+        # This is a rather hacky function.  We have methods which work on an array of message attributes, and we
+        # also have an instance of Message which represents a single one, where the attributes are properties of the
+        # object.  This method allows us to convert an object into an array for use with those methods.
+        #
+        # In retrospect we would implement Message rather differently.
+        $ret = [];
+
+        foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts, $this->internalAtts) as $attr) {
+            if (property_exists($this, $attr)) {
+                $ret[$attr] = $this->$attr;
+            }
+        }
+
+        return([$ret]);
+    }
+
+    /**
+     * @param bool $messagehistory
+     * @param bool $related
+     * @param bool $seeall
+     * @param null $userlist is a way to cache users over multiple calls
+     * @param null $locationlist is a way to cache users over multiple calls
+     * @param bool $summary
+     * @return array
+     */
     public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = NULL, $summary = FALSE) {
-        # userlist is a way to cache users.  This avoids getting the same users repeatedly, e.g. when used from
-        # MessageCollection for ALLUSER messages.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
-        $ret = [];
-        $role = $this->getRoleForMessage()[0];
-        $ret['myrole'] = $role;
 
-        foreach ($this->nonMemberAtts as $att) {
-            $ret[$att] = $this->$att;
-        }
+        $msgs = $this->getThisAsArray();
+        $msgids = [ $this->id ];
 
-        if ($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
-            foreach ($this->memberAtts as $att) {
-                $ret[$att] = $this->$att;
-            }
-        }
+        # We call the methods that handle an array of messages, which are shared with MessageCollection.  Each of
+        # these return their info in an array indexed by message id.
+        $roles = $this->getRolesForMessages($me, $msgs);
+        $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall);
 
-        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
-            foreach ($this->moderatorAtts as $att) {
-                $ret[$att] = $this->$att;
-            }
-        }
-
-        if ($role == User::ROLE_OWNER || $seeall) {
-            foreach ($this->ownerAtts as $att) {
-                $ret[$att] = $this->$att;
-            }
-        }
-
-        # URL people can follow to get to the message on our site.
-        $ret['url'] = 'https://' . USER_SITE . '/message/' . $this->id;
-
-        $ret['mine'] = $myid && $this->fromuser == $myid;
-
-        # If we are a mod with sufficient rights on this message, we can edit it.
-        #
-        # In the non-summary case we may be able to for our own messages, lower down.
-        $ret['canedit'] = $myid && $me->isModerator() && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER);
+        $role = $roles[$this->id][0];
+        $ret = $rets[$this->id];
 
         if ($summary) {
             # Add a very basic copy of the groups which we set up in MessageCollection.
