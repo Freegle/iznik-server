@@ -990,6 +990,20 @@ class Message
             # TODO Is this still relevant?
             $ret['publishconsent'] = pres('publishconsent', $msg) ? TRUE : FALSE;
 
+            if (!$summary) {
+                if ($role == User::ROLE_NONMEMBER) {
+                    # For non-members we want to strip out any potential phone numbers or email addresses.
+                    $ret['textbody'] = preg_replace('/[0-9]{4,}/', '***', $ret['textbody']);
+                    $ret['textbody'] = preg_replace(Message::EMAIL_REGEXP, '***@***.com', $ret['textbody']);
+
+                    # We can't do this in HTML, so just zap it.
+                    $ret['htmlbody'] = NULL;
+                }
+
+                # We have a flag for FOP - but legacy posting methods might put it in the body.
+                $ret['FOP'] = (pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
+            }
+
             $rets[$msg['id']] = $ret;
         }
 
@@ -1013,7 +1027,7 @@ class Message
         return([$ret]);
     }
 
-    public function getPublicGroups($me, $myid, &$rets, $msgs, $roles, $summary, $seeall, $messagehistory) {
+    public function getPublicGroups($me, $myid, &$userlist, &$rets, $msgs, $roles, $summary, $seeall, $messagehistory) {
         $msgids = array_filter(array_column($msgs, 'id'));
         $groups = NULL;
 
@@ -1197,7 +1211,7 @@ class Message
         }
     }
 
-    public function getPublicReplies($me, $myid, &$rets, $msgs, $summary, $roles, $seeall, $messagehistory) {
+    public function getPublicReplies($me, $myid, &$userlist, &$rets, $msgs, $summary, $roles, $seeall, $messagehistory) {
         $allreplies = NULL;
         $lastreplies = NULL;
         $allpromises = NULL;
@@ -1213,23 +1227,25 @@ class Message
                 if ($allreplies === NULL) {
                     # Get all the replies for these messages.
                     $msgids = array_filter(array_column($msgs, 'id'));
-                    $sql = "SELECT DISTINCT t.* FROM (
+                    $allreplies = [];
+
+                    if (count($msgids)) {
+                        $sql = "SELECT DISTINCT t.* FROM (
 SELECT chat_messages.id, chat_messages.refmsgid, chat_roster.status , chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages 
 LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid 
 WHERE refmsgid IN (" . implode(',', $msgids) . ") AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid) t 
 ORDER BY lastdate DESC;";
 
-                    $res = $this->dbhr->preQuery($sql, [
-                        ChatMessage::TYPE_INTERESTED
-                    ], NULL, FALSE);
+                        $res = $this->dbhr->preQuery($sql, [
+                            ChatMessage::TYPE_INTERESTED
+                        ], NULL, FALSE);
 
-                    $allreplies = [];
-
-                    foreach ($res as $r) {
-                        if (!pres($r['refmsgid'], $allreplies)) {
-                            $allreplies[$r['refmsgid']] = [ $r ];
-                        } else {
-                            $allreplies[$r['refmsgid']][] = $r;
+                        foreach ($res as $r) {
+                            if (!pres($r['refmsgid'], $allreplies)) {
+                                $allreplies[$r['refmsgid']] = [ $r ];
+                            } else {
+                                $allreplies[$r['refmsgid']][] = $r;
+                            }
                         }
                     }
                 }
@@ -1331,8 +1347,12 @@ ORDER BY lastdate DESC;";
             } else {
                 if ($outcomes === NULL) {
                     $msgids = array_filter(array_column($msgs, 'id'));
-                    $sql = "SELECT * FROM messages_outcomes WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;";
-                    $outcomes = $this->dbhr->preQuery($sql, [ $this->id ], FALSE, FALSE);
+                    $outcomes = [];
+
+                    if (count($msgids)) {
+                        $sql = "SELECT * FROM messages_outcomes WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;";
+                        $outcomes = $this->dbhr->preQuery($sql, [ $this->id ], FALSE, FALSE);
+                    }
                 }
 
                 $ret['outcomes'] = [];
@@ -1378,6 +1398,38 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function getPublicFromUser(&$userlist, &$rets, $msgs, $roles, $messagehistory) {
+        foreach ($msgs as $msg) {
+            $role = $roles[$msg['id']][0];
+            $ret = $rets[$msg['id']];
+
+            if ($msg['fromuser'] && pres('fromuser', $ret)) {
+                # We know who sent this.  We may be able to return this (depending on the role we have for the message
+                # and hence the attributes we have already filled in).  We also want to know if we have consent
+                # to republish it.
+                $ret['fromuser'] = $this->getUser($this->fromuser, $messagehistory, $userlist, TRUE);
+
+                if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                    # We can see their emails.
+                    $u = $userlist[$msg['fromuser']][0];
+                    $ret['fromuser']['emails'] = $u->getEmails();
+                } else if (pres('partner', $_SESSION)) {
+                    # Partners can see emails which belong to us, for the purposes of replying.
+                    $u = $userlist[$msg['fromuser']][0];
+                    $emails = $u->getEmails();
+                    $ret['fromuser']['emails'] = [];
+                    foreach ($emails as $email) {
+                        if (ourDomain($email['email'])) {
+                            $ret['fromuser']['emails'] = $email;
+                        }
+                    }
+                }
+            }
+
+            $rets[$msg['id']] = $ret;
+        }
+    }
+
     /**
      * @param bool $messagehistory
      * @param bool $related
@@ -1398,60 +1450,17 @@ ORDER BY lastdate DESC;";
         # these return their info in an array indexed by message id.
         $roles = $this->getRolesForMessages($me, $msgs);
         $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary);
-        $this->getPublicGroups($me, $myid, $rets, $msgs, $roles, $summary, $seeall, $messagehistory);
-        $this->getPublicReplies($me, $myid, $rets, $msgs, $summary, $roles, $seeall, $messagehistory);
+        $this->getPublicGroups($me, $myid, $userlist, $rets, $msgs, $roles, $summary, $seeall, $messagehistory);
+        $this->getPublicReplies($me, $myid, $userlist, $rets, $msgs, $summary, $roles, $seeall, $messagehistory);
         $this->getPublicOutcomes($me, $myid, $rets, $msgs, $summary, $roles, $seeall);
 
         if (!$summary) {
             $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall);
             $this->getPublicItem($rets, $msgs);
+            $this->getPublicFromUser($userlist, $rets, $msgs, $roles, $messagehistory);
         }
 
-        $role = $roles[$this->id][0];
         $ret = $rets[$this->id];
-
-        if (!$summary) {
-            if ($role == User::ROLE_NONMEMBER) {
-                # For non-members we want to strip out any potential phone numbers or email addresses.
-                $ret['textbody'] = preg_replace('/[0-9]{4,}/', '***', $ret['textbody']);
-                $ret['textbody'] = preg_replace(Message::EMAIL_REGEXP, '***@***.com', $ret['textbody']);
-
-                # We can't do this in HTML, so just zap it.
-                $ret['htmlbody'] = NULL;
-            }
-
-            # We have a flag for FOP - but legacy posting methods might put it in the body.
-            $ret['FOP'] = (pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
-        }
-
-        if (!$summary && $this->fromuser && pres('fromuser', $ret)) {
-            # We know who sent this.  We may be able to return this (depending on the role we have for the message
-            # and hence the attributes we have already filled in).  We also want to know if we have consent
-            # to republish it.
-            $ret['fromuser'] = $this->getUser($this->fromuser, $messagehistory, $userlist, TRUE);
-
-            if (pres('partner', $_REQUEST) && !pres('partner', $_SESSION)) {
-                $_SESSION['partner'] = partner($this->dbhr, $_REQUEST['partner']);
-            }
-
-            if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
-                # We can see their emails.
-                $u = $userlist[$this->fromuser][0];
-                $ret['fromuser']['emails'] = $u->getEmails();
-            } else if (pres('partner', $_SESSION)) {
-                # Partners can see emails which belong to us, for the purposes of replying.
-                $u = $userlist[$this->fromuser][0];
-                $emails = $u->getEmails();
-                $ret['fromuser']['emails'] = [];
-                foreach ($emails as $email) {
-                    if (ourDomain($email['email'])) {
-                        $ret['fromuser']['emails'] = $email;
-                    }
-                }
-            }
-
-            filterResult($ret['fromuser']);
-        }
 
         if (!$summary && $related) {
             # Add any related messages

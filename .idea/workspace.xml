@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -122,7 +123,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messagesTest.testApproved">
+  <component name="RunManager" selected="PHPUnit.messageTest">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -162,9 +163,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.messageTest" />
         <item itemvalue="PHPUnit.messagesTest.testApproved" />
         <item itemvalue="PHPUnit.messagesTest" />
-        <item itemvalue="PHPUnit.messageTest" />
         <item itemvalue="PHPUnit.messagesTest.testEH" />
         <item itemvalue="PHPUnit.messageTest.testCensor" />
       </list>
@@ -227,14 +228,7 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-      <workItem from="1567604881040" duration="7452000" />
-    </task>
-    <task id="LOCAL-00120" summary="Speed-up: We can stop PDO returning numeric keys and therefore don't have to filter them out">
-      <created>1549570778537</created>
-      <option name="number" value="00120" />
-      <option name="presentableId" value="LOCAL-00120" />
-      <option name="project" value="LOCAL" />
-      <updated>1549570778538</updated>
+      <workItem from="1567604881040" duration="8222000" />
     </task>
     <task id="LOCAL-00121" summary="UT fixes">
       <created>1549573308565</created>
@@ -572,7 +566,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567611922988</updated>
     </task>
-    <option name="localTasksCounter" value="169" />
+    <task id="LOCAL-00169" summary="Speed-ups: get message outcomes">
+      <created>1567612518371</created>
+      <option name="number" value="00169" />
+      <option name="presentableId" value="LOCAL-00169" />
+      <option name="project" value="LOCAL" />
+      <updated>1567612518371</updated>
+    </task>
+    <option name="localTasksCounter" value="170" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -616,7 +617,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Fix to notification change" />
     <MESSAGE value="Add active counts to newsfeed" />
     <MESSAGE value="Noticeboard notifications look silly" />
     <MESSAGE value="Admin editing info is wrong" />
@@ -641,6 +641,7 @@
     <MESSAGE value="Speed-ups: message groups" />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Speed-ups: get message replies" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get message replies" />
+    <MESSAGE value="Speed-ups: get message outcomes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get message outcomes" />
   </component>
 </project>
