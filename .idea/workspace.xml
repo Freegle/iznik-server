@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Speed-ups: get message posting history">
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -102,7 +100,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messageTest">
+  <component name="RunManager" selected="PHPUnit.messageAPITest.testChatSource">
     <configuration name="IncomingMessageTest.testAttachmentDup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="IncomingMessageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" method="testAttachmentDup" scope="Method" use_alternative_configuration_file="true" />
@@ -113,9 +111,14 @@
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageAPITest.testHold" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="membershipsAPITest.testJoinAndSee" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testHold" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="membershipsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/membershipsTest.php" method="testJoinAndSee" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="messageAPITest.testChatSource" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testChatSource" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messageTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -123,30 +126,25 @@
       <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messagesTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" scope="Class" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="messagesTest.testApproved" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testApproved" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
       <item itemvalue="PHPUnit.messageTest" />
-      <item itemvalue="PHPUnit.messagesTest" />
-      <item itemvalue="PHPUnit.messagesTest.testApproved" />
-      <item itemvalue="PHPUnit.messageAPITest.testHold" />
       <item itemvalue="PHPUnit.IncomingMessageTest.testAttachmentDup" />
+      <item itemvalue="PHPUnit.messagesTest.testEH" />
+      <item itemvalue="PHPUnit.membershipsAPITest.testJoinAndSee" />
+      <item itemvalue="PHPUnit.messageAPITest.testChatSource" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.messageAPITest.testChatSource" />
+        <item itemvalue="PHPUnit.membershipsAPITest.testJoinAndSee" />
+        <item itemvalue="PHPUnit.messagesTest.testEH" />
         <item itemvalue="PHPUnit.messageTest" />
         <item itemvalue="PHPUnit.IncomingMessageTest.testAttachmentDup" />
-        <item itemvalue="PHPUnit.messageAPITest.testHold" />
-        <item itemvalue="PHPUnit.messagesTest.testApproved" />
-        <item itemvalue="PHPUnit.messagesTest" />
       </list>
     </recent_temporary>
   </component>
@@ -207,14 +205,7 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-      <workItem from="1567604881040" duration="12281000" />
-    </task>
-    <task id="LOCAL-00126" summary="ModPlugin broken by recent Chrome changes">
-      <created>1550838891638</created>
-      <option name="number" value="00126" />
-      <option name="presentableId" value="LOCAL-00126" />
-      <option name="project" value="LOCAL" />
-      <updated>1550838891638</updated>
+      <workItem from="1567604881040" duration="13458000" />
     </task>
     <task id="LOCAL-00127" summary="Change exhorting for user stories not to ask people until they've been a member for a week">
       <created>1550839041334</created>
@@ -552,7 +543,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567616544852</updated>
     </task>
-    <option name="localTasksCounter" value="175" />
+    <task id="LOCAL-00175" summary="Speed-ups: initial code restructure for individual messages now complete">
+      <created>1567617333518</created>
+      <option name="number" value="00175" />
+      <option name="presentableId" value="LOCAL-00175" />
+      <option name="project" value="LOCAL" />
+      <updated>1567617333518</updated>
+    </task>
+    <option name="localTasksCounter" value="176" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -596,7 +594,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Fix up bad fromaddr addresses" />
     <MESSAGE value="Strip signatures on OFFER/WANTED posts" />
     <MESSAGE value="Add better donate request into chat notifications" />
     <MESSAGE value="Don't double count stroll donations at month end" />
@@ -621,6 +618,7 @@
     <MESSAGE value="Speed-ups: get message hold" />
     <MESSAGE value="Speed-ups: get message attachments" />
     <MESSAGE value="Speed-ups: get message posting history" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get message posting history" />
+    <MESSAGE value="Speed-ups: initial code restructure for individual messages now complete" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: initial code restructure for individual messages now complete" />
   </component>
 </project>
