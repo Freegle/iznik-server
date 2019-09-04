@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/c928f5c7-d271-4b12-b686-a047cb3a932b/storage_v2/_src_/schema/iznik.P8MABg.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/c928f5c7-d271-4b12-b686-a047cb3a932b/storage_v2/_src_/schema/iznik.P8MABg.zip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -230,14 +227,7 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-      <workItem from="1567604881040" duration="6849000" />
-    </task>
-    <task id="LOCAL-00119" summary="Support Tools showing duplicate group names">
-      <created>1549353937839</created>
-      <option name="number" value="00119" />
-      <option name="presentableId" value="LOCAL-00119" />
-      <option name="project" value="LOCAL" />
-      <updated>1549353937839</updated>
+      <workItem from="1567604881040" duration="7452000" />
     </task>
     <task id="LOCAL-00120" summary="Speed-up: We can stop PDO returning numeric keys and therefore don't have to filter them out">
       <created>1549570778537</created>
@@ -575,7 +565,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567600405621</updated>
     </task>
-    <option name="localTasksCounter" value="168" />
+    <task id="LOCAL-00168" summary="Speed-ups: get message replies">
+      <created>1567611922987</created>
+      <option name="number" value="00168" />
+      <option name="presentableId" value="LOCAL-00168" />
+      <option name="project" value="LOCAL" />
+      <updated>1567611922988</updated>
+    </task>
+    <option name="localTasksCounter" value="169" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -619,7 +616,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="* If you unfollow a chitchat thread, then you shouldn't see notifications for it." />
     <MESSAGE value="Fix to notification change" />
     <MESSAGE value="Add active counts to newsfeed" />
     <MESSAGE value="Noticeboard notifications look silly" />
@@ -644,6 +640,7 @@
     <MESSAGE value="Speed-ups: message roles" />
     <MESSAGE value="Speed-ups: message groups" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Speed-ups: get message replies" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get message replies" />
   </component>
 </project>

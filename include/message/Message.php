@@ -1197,7 +1197,7 @@ class Message
         }
     }
 
-    public function getReplies($me, $myid, &$rets, $msgs, $summary, $roles, $seeall, $messagehistory) {
+    public function getPublicReplies($me, $myid, &$rets, $msgs, $summary, $roles, $seeall, $messagehistory) {
         $allreplies = NULL;
         $lastreplies = NULL;
         $allpromises = NULL;
@@ -1221,7 +1221,7 @@ ORDER BY lastdate DESC;";
 
                     $res = $this->dbhr->preQuery($sql, [
                         ChatMessage::TYPE_INTERESTED
-                    ], NULL, FALSE, FALSE);
+                    ], NULL, FALSE);
 
                     $allreplies = [];
 
@@ -1317,6 +1317,67 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function getPublicOutcomes($me, $myid, &$rets, $msgs, $summary, $roles, $seeall) {
+        $outcomes = NULL;
+
+        foreach ($msgs as $msg) {
+            $role = $roles[$msg['id']][0];
+            $ret = $rets[$msg['id']];
+
+            # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
+            if ($summary) {
+                # We set this when constructing.
+                $ret['outcomes'] = $msg['outcomes'];
+            } else {
+                if ($outcomes === NULL) {
+                    $msgids = array_filter(array_column($msgs, 'id'));
+                    $sql = "SELECT * FROM messages_outcomes WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;";
+                    $outcomes = $this->dbhr->preQuery($sql, [ $this->id ], FALSE, FALSE);
+                }
+
+                $ret['outcomes'] = [];
+
+                foreach ($outcomes as &$outcome) {
+                    if ($outcome['msgid'] == $msg['id']) {
+                        # We can only see the details of the outcome if we have access.
+                        if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $msg['fromuser'] == $myid))) {
+                            $outcome['userid'] = NULL;
+                            $outcome['happiness'] = NULL;
+                            $outcome['comments'] = NULL;
+                        }
+
+                        $outcome['timestamp'] = ISODate($outcome['timestamp']);
+                    }
+
+                    $ret['outcomes'][] = $outcome;
+                }
+            }
+
+            if (count($ret['outcomes']) === 0) {
+                # No outcomes - but has it expired?  Need to check the groups though - it might be reposted later, in
+                # which case the time on messages_groups is bumped whereas the message arrival time is the same..
+                foreach ($ret['groups'] as $group) {
+                    $grouparrival = strtotime($group['arrival']);
+                    $grouparrivalago = floor((time() - $grouparrival) / 86400);
+
+                    if ($grouparrivalago > $ret['expiretime']) {
+                        # Assume anything this old is no longer available.
+                        $ret['outcomes'] = [
+                            [
+                                'timestamp' => $ret['arrival'],
+                                'outcome' => Message::OUTCOME_EXPIRED
+                            ]
+                        ];
+                    }
+                }
+            }
+
+            unset($ret['expiretime']);
+
+            $rets[$msg['id']] = $ret;
+        }
+    }
+
     /**
      * @param bool $messagehistory
      * @param bool $related
@@ -1338,7 +1399,8 @@ ORDER BY lastdate DESC;";
         $roles = $this->getRolesForMessages($me, $msgs);
         $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary);
         $this->getPublicGroups($me, $myid, $rets, $msgs, $roles, $summary, $seeall, $messagehistory);
-        $this->getReplies($me, $myid, $rets, $msgs, $summary, $roles, $seeall, $messagehistory);
+        $this->getPublicReplies($me, $myid, $rets, $msgs, $summary, $roles, $seeall, $messagehistory);
+        $this->getPublicOutcomes($me, $myid, $rets, $msgs, $summary, $roles, $seeall);
 
         if (!$summary) {
             $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall);
@@ -1347,47 +1409,6 @@ ORDER BY lastdate DESC;";
 
         $role = $roles[$this->id][0];
         $ret = $rets[$this->id];
-
-        # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
-        if ($summary) {
-            # We set this when constructing.
-            $ret['outcomes'] = $this->outcomes;
-        } else {
-            $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
-            $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ], FALSE, FALSE);
-
-            # We can only see the details of the outcome if we have access.
-            foreach ($ret['outcomes'] as &$outcome) {
-                if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
-                    $outcome['userid'] = NULL;
-                    $outcome['happiness'] = NULL;
-                    $outcome['comments'] = NULL;
-                }
-
-                $outcome['timestamp'] = ISODate($outcome['timestamp']);
-            }
-        }
-
-        if (count($ret['outcomes']) === 0) {
-            # No outcomes - but has it expired?  Need to check the groups though - it might be reposted later, in
-            # which case the time on messages_groups is bumped whereas the message arrival time is the same..
-            foreach ($ret['groups'] as $group) {
-                $grouparrival = strtotime($group['arrival']);
-                $grouparrivalago = floor((time() - $grouparrival) / 86400);
-
-                if ($grouparrivalago > $ret['expiretime']) {
-                    # Assume anything this old is no longer available.
-                    $ret['outcomes'] = [
-                        [
-                            'timestamp' => $ret['arrival'],
-                            'outcome' => Message::OUTCOME_EXPIRED
-                        ]
-                    ];
-                }
-            }
-        }
-
-        unset($ret['expiretime']);
 
         if (!$summary) {
             if ($role == User::ROLE_NONMEMBER) {
