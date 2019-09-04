@@ -1522,7 +1522,7 @@ ORDER BY lastdate DESC;";
         $fetch = [];
 
         foreach ($rets as $ret) {
-            if ($myid && $ret['fromuser']['id'] == $myid) {
+            if ($myid && pres('fromuser', $ret) && $ret['fromuser']['id'] == $myid) {
                 $fetch[] = $ret['id'];
             }
         }
