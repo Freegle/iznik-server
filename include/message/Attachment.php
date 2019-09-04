@@ -78,7 +78,8 @@ class Attachment
     public function getPublic() {
         $ret = array(
             'id' => $this->id,
-            'hash' => $this->hash
+            'hash' => $this->hash,
+            $this->idatt => $this->{$this->idatt}
         );
 
         if (stripos($this->contentType, 'image') !== FALSE) {
@@ -111,12 +112,13 @@ class Attachment
         }
 
         if ($id) {
-            $sql = "SELECT contenttype, hash, archived FROM {$this->table} WHERE id = ?;";
+            $sql = "SELECT {$this->idatt}, contenttype, hash, archived FROM {$this->table} WHERE id = ?;";
             $atts = $this->dbhr->preQuery($sql, [$id]);
             foreach ($atts as $att) {
                 $this->contentType = $att['contenttype'];
                 $this->hash = $att['hash'];
                 $this->archived = $att['archived'];
+                $this->{$this->idatt} = $att[$this->idatt];
             }
         }
     }
@@ -151,6 +153,20 @@ class Attachment
         $ret = [];
         foreach ($atts as $att) {
             $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id']);
+        }
+
+        return($ret);
+    }
+
+    public function getByIds($ids) {
+        $ret = [];
+
+        if (count($ids)) {
+            $sql = "SELECT id, {$this->idatt} FROM {$this->table} WHERE {$this->idatt} IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
+            $atts = $this->dbhr->preQuery($sql);
+            foreach ($atts as $att) {
+                $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id']);
+            }
         }
 
         return($ret);

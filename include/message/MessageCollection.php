@@ -277,17 +277,17 @@ class MessageCollection
                 if (pres('attachmentid', $msg)) {
                     $a = new Attachment($this->dbhr, $this->dbhm);
 
-                    $m->setAttachments([
+                    $atts = [
                         [
                             'id' => $msg['attachmentid'],
                             'path' => $a->getpath(false, $msg['attachmentid']),
                             'paththumb' => $a->getpath(true, $msg['attachmentid'])
                         ]
-                    ]);
-                }
+                    ];
 
-                # TODO getRoleForMessage still has DB ops.
-                # TODO canSee still has DB ops
+                    $m->setAttachments($atts);
+//                    $m->setPrivate('attachments', $atts);
+                }
             } else {
                 # We will fetch and later return all the message info, which is slower.
                 $m = new Message($this->dbhr, $this->dbhm, $msg['id']);

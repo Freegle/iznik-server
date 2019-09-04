@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Attachment.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Attachment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -37,30 +40,7 @@
     <option name="HIDDEN_KINDS">
       <set />
     </option>
-    <expand>
-      <path>
-        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
-        <item name="db3" type="feb32156:DbDataSourceImpl" />
-      </path>
-      <path>
-        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
-        <item name="db3" type="feb32156:DbDataSourceImpl" />
-        <item name="schemas" type="d4e8921:DatabaseStructure$FamilyGroup" />
-      </path>
-      <path>
-        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
-        <item name="db3" type="feb32156:DbDataSourceImpl" />
-        <item name="schemas" type="d4e8921:DatabaseStructure$FamilyGroup" />
-        <item name="iznik: schema" type="c314c289:MysqlImplModel$Schema" />
-      </path>
-      <path>
-        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
-        <item name="db3" type="feb32156:DbDataSourceImpl" />
-        <item name="schemas" type="d4e8921:DatabaseStructure$FamilyGroup" />
-        <item name="iznik: schema" type="c314c289:MysqlImplModel$Schema" />
-        <item name="tables" type="d4e8921:DatabaseStructure$FamilyGroup" />
-      </path>
-    </expand>
+    <expand />
     <select />
   </component>
   <component name="Git.Settings">
@@ -122,7 +102,12 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messageTest">
+  <component name="RunManager" selected="PHPUnit.IncomingMessageTest.testAttachmentDup">
+    <configuration name="IncomingMessageTest.testAttachmentDup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="IncomingMessageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" method="testAttachmentDup" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -148,25 +133,20 @@
       <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testApproved" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <list>
       <item itemvalue="PHPUnit.messageTest" />
-      <item itemvalue="PHPUnit.messagesTest.testEH" />
       <item itemvalue="PHPUnit.messagesTest" />
       <item itemvalue="PHPUnit.messagesTest.testApproved" />
       <item itemvalue="PHPUnit.messageAPITest.testHold" />
+      <item itemvalue="PHPUnit.IncomingMessageTest.testAttachmentDup" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="PHPUnit.messageAPITest.testHold" />
+        <item itemvalue="PHPUnit.IncomingMessageTest.testAttachmentDup" />
         <item itemvalue="PHPUnit.messageTest" />
+        <item itemvalue="PHPUnit.messageAPITest.testHold" />
         <item itemvalue="PHPUnit.messagesTest.testApproved" />
         <item itemvalue="PHPUnit.messagesTest" />
-        <item itemvalue="PHPUnit.messagesTest.testEH" />
       </list>
     </recent_temporary>
   </component>
@@ -227,14 +207,7 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-      <workItem from="1567604881040" duration="8897000" />
-    </task>
-    <task id="LOCAL-00123" summary="Newsfeed digest mails have a double double quote">
-      <created>1550649764278</created>
-      <option name="number" value="00123" />
-      <option name="presentableId" value="LOCAL-00123" />
-      <option name="project" value="LOCAL" />
-      <updated>1550649764279</updated>
+      <workItem from="1567604881040" duration="10992000" />
     </task>
     <task id="LOCAL-00124" summary="* Profile is showing a count of messages even if they are still in Pending">
       <created>1550750911653</created>
@@ -572,7 +545,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567613758402</updated>
     </task>
-    <option name="localTasksCounter" value="172" />
+    <task id="LOCAL-00172" summary="Speed-ups: get message hold">
+      <created>1567613967628</created>
+      <option name="number" value="00172" />
+      <option name="presentableId" value="LOCAL-00172" />
+      <option name="project" value="LOCAL" />
+      <updated>1567613967628</updated>
+    </task>
+    <option name="localTasksCounter" value="173" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -616,7 +596,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Admin editing info is wrong" />
     <MESSAGE value="Noticeboard notification bug" />
     <MESSAGE value="Creating our own email addresses starting with -" />
     <MESSAGE value="Fix up bad fromaddr addresses" />
@@ -641,6 +620,7 @@
     <MESSAGE value="Speed-ups: get message outcomes" />
     <MESSAGE value="Speed-ups: get message from user" />
     <MESSAGE value="Speed-ups: get related messages" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get related messages" />
+    <MESSAGE value="Speed-ups: get message hold" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get message hold" />
   </component>
 </project>

@@ -1024,6 +1024,7 @@ class Message
             }
         }
 
+        $ret['attachments'] = $this->attachments;
         return([$ret]);
     }
 
@@ -1034,6 +1035,7 @@ class Message
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
             $ret = $rets[$msg['id']];
+            $msg['groups'] = [];
 
             if (!$summary) {
                 # In the summary case we fetched the groups in MessageCollection.  Otherwise we won't have fetched the groups yet.
@@ -1046,7 +1048,6 @@ class Message
                     }
                 }
 
-                $msg['groups'] = [];
                 foreach ($groups as $group) {
                     if ($group['msgid'] == $msg['id']) {
                         $msg['groups'][] = $group;
@@ -1222,7 +1223,7 @@ class Message
 
             if ($summary) {
                 # We set this when constructing from MessageCollection.
-                $ret['replycount'] = $msg['replycount'];
+                $ret['replycount'] = presdef('replycount', $msg, 0);
             } else if (!$summary) {
                 if ($allreplies === NULL) {
                     # Get all the replies for these messages.
@@ -1339,11 +1340,12 @@ ORDER BY lastdate DESC;";
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
             $ret = $rets[$msg['id']];
+            $ret['outcomes'] = [];
 
             # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
             if ($summary) {
                 # We set this when constructing.
-                $ret['outcomes'] = $msg['outcomes'];
+                $ret['outcomes'] = presdef('outcomes', $msg, []);
             } else {
                 if ($outcomes === NULL) {
                     $msgids = array_filter(array_column($msgs, 'id'));
@@ -1354,8 +1356,6 @@ ORDER BY lastdate DESC;";
                         $outcomes = $this->dbhr->preQuery($sql, [ $this->id ], FALSE, FALSE);
                     }
                 }
-
-                $ret['outcomes'] = [];
 
                 foreach ($outcomes as &$outcome) {
                     if ($outcome['msgid'] == $msg['id']) {
@@ -1464,14 +1464,54 @@ ORDER BY lastdate DESC;";
     }
 
     public function getPublicHeld(&$userlist, &$rets, $msgs, $messagehistory) {
-        $msgids = array_filter(array_column($msgs, 'id'));
-
         foreach ($msgs as $msg) {
             $ret = $rets[$msg['id']];
 
             if (pres('heldby', $ret)) {
                 $ret['heldby'] = $this->getUser($ret['heldby'], $messagehistory, $userlist, FALSE);
                 filterResult($ret['heldby']);
+            }
+
+            $rets[$msg['id']] = $ret;
+        }
+    }
+
+    public function getPublicAttachments(&$rets, $msgs, $summary) {
+        $msgids = array_filter(array_column($msgs, 'id'));
+
+        $atts = NULL;
+
+        if (!$summary) {
+            $a = new Attachment($this->dbhr, $this->dbhm);
+            $atts = $a->getByIds($msgids);
+        }
+
+        foreach ($msgs as $msg) {
+            $ret = $rets[$msg['id']];
+
+            if ($summary) {
+                # Construct a minimal attachment list, i.e. just one if we have it.
+                $ret['attachments'] = presdef('attachments', $msg, []);
+            } else if (!$summary) {
+                # Add any attachments - visible to non-members.
+                $ret['attachments'] = [];
+                $atthash = [];
+
+                foreach ($atts as $att) {
+                    /** @var $att Attachment */
+                    $pub = $att->getPublic();
+
+                    if ($pub['msgid'] == $msg['id']) {
+                        # We suppress return of duplicate attachments by using the image hash.  This helps in the case where
+                        # the same photo is (for example) included in the mail both as an inline attachment and as a link
+                        # in the text.
+                        $hash = $att->getHash();
+                        if (!$hash || !pres($msg['id'] . '-' . $hash, $atthash)) {
+                            $ret['attachments'][] = $pub;
+                            $atthash[$msg['id'] . '-' . $hash] = TRUE;
+                        }
+                    }
+                }
             }
 
             $rets[$msg['id']] = $ret;
@@ -1492,7 +1532,6 @@ ORDER BY lastdate DESC;";
         $myid = $me ? $me->getId() : NULL;
 
         $msgs = $this->getThisAsArray();
-        $msgids = [ $this->id ];
 
         # We call the methods that handle an array of messages, which are shared with MessageCollection.  Each of
         # these return their info in an array indexed by message id.
@@ -1501,6 +1540,7 @@ ORDER BY lastdate DESC;";
         $this->getPublicGroups($me, $myid, $userlist, $rets, $msgs, $roles, $summary, $seeall, $messagehistory);
         $this->getPublicReplies($me, $myid, $userlist, $rets, $msgs, $summary, $roles, $seeall, $messagehistory);
         $this->getPublicOutcomes($me, $myid, $rets, $msgs, $summary, $roles, $seeall);
+        $this->getPublicAttachments($rets, $msgs, $summary);
 
         if (!$summary) {
             $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall);
@@ -1514,29 +1554,6 @@ ORDER BY lastdate DESC;";
         }
 
         $ret = $rets[$this->id];
-
-        if ($summary) {
-            # Construct a minimal attachment list, i.e. just one if we have it.
-            $ret['attachments'] = $this->attachments;
-        } else if (!$summary) {
-            # TODO We want one of them in the summary case.
-            # Add any attachments - visible to non-members.
-            $ret['attachments'] = [];
-            $atts = $this->getAttachments();
-            $atthash = [];
-
-            foreach ($atts as $att) {
-                # We suppress return of duplicate attachments by using the image hash.  This helps in the case where
-                # the same photo is (for example) included in the mail both as an inline attachment and as a link
-                # in the text.
-                $hash = $att->getHash();
-                if (!$hash || !pres($hash, $atthash)) {
-                    /** @var $att Attachment */
-                    $ret['attachments'][] = $att->getPublic();
-                    $atthash[$hash] = TRUE;
-                }
-            }
-        }
 
         if (!$summary && $myid && $this->fromuser == $myid) {
             # For our own messages, return the posting history.
