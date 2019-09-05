@@ -273,15 +273,18 @@ class MessageCollection
             #
             # getPublics will filter them based on what we are allowed to see.
             $msgids = array_filter(array_column($msglist, 'id'));
-            $sql = "SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id IN (" . implode(',', $msgids) . ");";
-            $vals = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
-            foreach ($vals as $val) {
-                foreach ($msglist as &$msg) {
-                    if ($msg['id'] == $val['id']) {
-                        $msg = array_merge($msg, $val);
 
-                        if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && $msg['FOP'] === NULL) {
-                            $msg['FOP'] = 1;
+            if (count($msgids)) {
+                $sql = "SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id IN (" . implode(',', $msgids) . ");";
+                $vals = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+                foreach ($vals as $val) {
+                    foreach ($msglist as &$msg) {
+                        if ($msg['id'] == $val['id']) {
+                            $msg = array_merge($msg, $val);
+
+                            if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && $msg['FOP'] === NULL) {
+                                $msg['FOP'] = 1;
+                            }
                         }
                     }
                 }

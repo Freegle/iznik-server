@@ -793,11 +793,9 @@ class Message
         foreach ($msgs as $atts) {
             # We can see messages if:
             # - we're a mod or an owner, or
-            # - for approved messages on Freegle groups which use FD:
-            #   - we're a member, or
-            #   - we have publish consent, or
-            #   - it's a TrashNothing message (the TN TOS allows this).
-            # - for pending messages, if it's a platform message (this allows Facebook share preview to work)
+            # - it's a message on a Freegle group, specifically including
+            #    - Pending to allow Facebook share preview, and
+            #    - TrashNothing message (the TN TOS allows this).
             $role = $atts['myrole'];
 
             $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
@@ -812,11 +810,7 @@ class Message
                     #error_log("...type == FREEGLE " . ($g->getPrivate('type') == Group::GROUP_FREEGLE));
                     #error_log("...onhere " . $g->getPrivate('onhere'));
 
-                    if ((($atts['sourceheader'] == Message::PLATFORM || ($atts['publishconsent'] || $role == User::ROLE_MEMBER)) &&
-                        ($group['collection'] == MessageCollection::APPROVED || ($group['collection'] == MessageCollection::PENDING && $atts['sourceheader'] == Message::PLATFORM)) &&
-                        $g->getPrivate('type') == Group::GROUP_FREEGLE &&
-                        $g->getPrivate('onhere') || strpos($atts['fromaddr'], '@user.trashnothing.com') !== FALSE)
-                    ) {
+                    if ($g->getPrivate('type') == Group::GROUP_FREEGLE) {
                         $cansee = TRUE;
                     }
                 }
@@ -1567,31 +1561,33 @@ ORDER BY lastdate DESC;";
         $doit = MODTOOLS && $me && $me->isModerator();
         $msgids = array_filter(array_column($msgs, 'id'));
 
-        if ($doit) {
-            # Return any edit history, most recent first.
-            $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;", [
-                $this->id
-            ], FALSE, FALSE);
-        }
-
-        foreach ($rets as &$ret) {
-            $ret['edits'] = [];
-
+        if (count($msgids)) {
             if ($doit) {
-                foreach ($edits as &$edit) {
-                    if ($ret['id'] == $edit['msgid']) {
-                        $edit['timestamp'] = ISODate($edit['timestamp']);
+                # Return any edit history, most recent first.
+                $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;", [
+                    $this->id
+                ], FALSE, FALSE);
+            }
 
-                        if (pres('byuser', $edit)) {
-                            $u = User::get($this->dbhr, $this->dbhm, $edit['byuser']);
-                            $ctx = NULL;
-                            $edit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+            foreach ($rets as &$ret) {
+                $ret['edits'] = [];
+
+                if ($doit) {
+                    foreach ($edits as &$edit) {
+                        if ($ret['id'] == $edit['msgid']) {
+                            $edit['timestamp'] = ISODate($edit['timestamp']);
+
+                            if (pres('byuser', $edit)) {
+                                $u = User::get($this->dbhr, $this->dbhm, $edit['byuser']);
+                                $ctx = NULL;
+                                $edit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+                            }
                         }
                     }
-                }
 
-                if (count($edits)) {
-                    $ret['edits'] = $edits;
+                    if (count($edits)) {
+                        $ret['edits'] = $edits;
+                    }
                 }
             }
         }

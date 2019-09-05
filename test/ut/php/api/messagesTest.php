@@ -48,20 +48,7 @@ class messagesTest extends IznikAPITestCase {
         $a = new Message($this->dbhr, $this->dbhm, $id);
         $a->setPrivate('source', Message::PLATFORM);
 
-        # Should be able to see this message even logged out, as this is a Freegle group...once we have consent.
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1
-        ]);
-        $this->log("Get when logged out but no permission" . var_export($ret, true));
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
-
-        # Should be able to get a summary of the id, subject and any attachments.
-
-        $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
-        $sender->setPrivate('publishconsent', 1);
-
+        # Should be able to see this message even logged out, as this is a Freegle group.
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1
         ]);
