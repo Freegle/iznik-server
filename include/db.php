@@ -136,6 +136,7 @@ class LoggedPDO {
     private $dsn = NULL;
     private $username = NULL;
     private $password = NULL;
+    private $connected = FALSE;
 
     const DUPLICATE_KEY = 1062;
     const MAX_LOG_SIZE = 100000;
@@ -170,39 +171,46 @@ class LoggedPDO {
 
     public function __construct($dsn, $username, $password, $options, $readonly = FALSE, LoggedPDO $readconn = NULL)
     {
-        $start = microtime(true);
         $this->dsn = $dsn;
         $this->username = $username;
         $this->password = $password;
         $this->options = $options;
         $this->readonly = $readonly;
         $this->readconn = $readconn;
-
-        # Try a few times to get a connection to make us resilient to errors.
-        $gotit = FALSE;
-        $count = 0;
-
-        do {
-            try {
-                $this->_db = new PDO($dsn, $username, $password, [
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-                ]);
-                $gotit = TRUE;
-            } catch (Exception $e) {
-                error_log("DB connect exception " . $e->getMessage());
-                sleep(1);
-                $count++;
-            }
-        } while (!$gotit && $count < 30);
-        
-        $this->dbwaittime += microtime(true) - $start;
-
-        #error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for connect");
-
         $this->cache = NULL;
 
         return $this;
+    }
+
+    private function doConnect() {
+        if (!$this->connected) {
+            # We haven't connected yet.  Do so now.  We defer the connect because all API calls have both a read
+            # and a write connection, and many won't use the write one, so it's a waste of time opening it until we
+            # need it.
+            #
+            # Try a few times to get a connection to make us resilient to errors.
+            $start = microtime(true);
+            $gotit = FALSE;
+            $count = 0;
+
+            do {
+                try {
+                    $this->_db = new PDO($this->dsn, $this->username, $this->password, [
+                        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+                        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                    ]);
+                    $gotit = TRUE;
+                } catch (Exception $e) {
+                    error_log("DB connect exception " . $e->getMessage());
+                    sleep(1);
+                    $count++;
+                }
+            } while (!$gotit && $count < 30);
+
+            $this->dbwaittime += microtime(true) - $start;
+
+            $this->connected = TRUE;
+        }
     }
 
     private function getRedis() {
@@ -241,6 +249,7 @@ class LoggedPDO {
     }
 
     public function parentPrepare($sql) {
+        $this->doConnect();
         return($this->_db->prepare($sql));
     }
 
@@ -250,6 +259,8 @@ class LoggedPDO {
     }
 
     public function executeStatement($sth, $params) {
+        $this->doConnect();
+
         # Split into function for UT
         return($sth->execute($params));
     }
@@ -269,6 +280,7 @@ class LoggedPDO {
     }
 
     private function prex($sql, $params = NULL, $select, $log, $usecache = TRUE) {
+        $this->doConnect();
         #error_log($sql);
         $try = 0;
         $ret = NULL;
@@ -486,10 +498,12 @@ class LoggedPDO {
     }
 
     public function parentExec($sql) {
+        $this->doConnect();
         return($this->_db->exec($sql));
     }
 
     function retryExec($sql) {
+        $this->doConnect();
         $try = 0;
         $ret = NULL;
         $msg = '';
@@ -547,10 +561,12 @@ class LoggedPDO {
     }
 
     public function parentQuery($sql) {
+        $this->doConnect();
         return($this->_db->query($sql));
     }
 
     public function retryQuery($sql) {
+        $this->doConnect();
         $try = 0;
         $ret = NULL;
         $worked = false;
@@ -610,18 +626,22 @@ class LoggedPDO {
     }
 
     public function setAttribute($attr, $val) {
+        $this->doConnect();
         return($this->_db->setAttribute($attr, $val));
     }
 
     public function quote($str) {
+        $this->doConnect();
         return($this->_db->quote($str));
     }
 
     public function errorInfo() {
+        $this->doConnect();
         return($this->_db ? $this->_db->errorInfo() : 'No DB handle');
     }
 
     public function rollBack() {
+        $this->doConnect();
         $this->inTransaction = FALSE;
 
         $time = microtime(true);
@@ -643,6 +663,7 @@ class LoggedPDO {
     }
 
     public function beginTransaction() {
+        $this->doConnect();
         $this->inTransaction = TRUE;
         $this->transactionStart = microtime(true);
         $ret = $this->_db->beginTransaction();
@@ -664,6 +685,7 @@ class LoggedPDO {
     }
 
     function commit() {
+        $this->doConnect();
         $time = microtime(true);
         # PDO's commit() isn't reliable - it can return true
         $this->_db->query('COMMIT;');
@@ -692,6 +714,7 @@ class LoggedPDO {
     }
 
     public function exec ($sql, $log = true)    {
+        $this->doConnect();
         $time = microtime(true);
         $ret = $this->retryExec($sql);
         $this->lastInsert = $this->_db->lastInsertId();
@@ -715,15 +738,18 @@ class LoggedPDO {
     }
 
     public function query($sql) {
+        $this->doConnect();
         $ret = $this->retryQuery($sql);
         return($ret);
     }
 
     public function lastInsertId() {
+        $this->doConnect();
         return($this->lastInsert);
     }
 
     public function rowsAffected() {
+        $this->doConnect();
         return($this->rowsAffected);
     }
 
