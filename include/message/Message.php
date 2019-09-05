@@ -138,7 +138,8 @@ class Message
         "this email address is no longer in use",
         "away from the office",
         "I won't be able to check any emails until after",
-        "I'm on leave at the moment"
+        "I'm on leave at the moment",
+        "We'll get back to you as soon as possible"
     ];
 
     private $autoreply_text_start = [
