@@ -91,7 +91,7 @@ class Attachment
         return($ret);
     }
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $type = Attachment::TYPE_MESSAGE)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $type = Attachment::TYPE_MESSAGE, $atts = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -113,8 +113,8 @@ class Attachment
 
         if ($id) {
             $sql = "SELECT {$this->idatt}, contenttype, hash, archived FROM {$this->table} WHERE id = ?;";
-            $atts = $this->dbhr->preQuery($sql, [$id]);
-            foreach ($atts as $att) {
+            $as = $atts ? [ $atts ] : $this->dbhr->preQuery($sql, [$id]);
+            foreach ($as as $att) {
                 $this->contentType = $att['contenttype'];
                 $this->hash = $att['hash'];
                 $this->archived = $att['archived'];
@@ -162,10 +162,10 @@ class Attachment
         $ret = [];
 
         if (count($ids)) {
-            $sql = "SELECT id, {$this->idatt} FROM {$this->table} WHERE {$this->idatt} IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
+            $sql = "SELECT id, {$this->idatt}, contenttype, hash, archived FROM {$this->table} WHERE {$this->idatt} IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
-                $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id']);
+                $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], Attachment::TYPE_MESSAGE, $att);
             }
         }
 

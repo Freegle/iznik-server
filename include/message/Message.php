@@ -594,7 +594,8 @@ class Message
 
         if ($id) {
             if (!$atts) {
-                # We need to fetch.
+                # We need to fetch.  Similar logic in MessageCollection::fillIn.
+                #
                 # When constructing we do some LEFT JOINs with other tables where we expect to only have one row at most.
                 # This saves queries later, which is a round trip to the DB server.
                 #
@@ -783,60 +784,77 @@ class Message
         return($this->getRolesForMessages($me, $this->getThisAsArray(), $overrides)[$this->id]);
     }
 
-    public function canSee($atts) {
-        # Can we see this message?  This is called after getPublic because most of the time we can, and doing
+    public function canSees($msgs) {
+        # Can we see these messages?  This is called after getPublic because most of the time we can, and doing
         # that saves queries.
-        #
-        # We can see messages if:
-        # - we're a mod or an owner, or
-        # - for approved messages on Freegle groups which use FD:
-        #   - we're a member, or
-        #   - we have publish consent, or
-        #   - it's a TrashNothing message (the TN TOS allows this).
-        # - for pending messages, if it's a platform message (this allows Facebook share preview to work)
-        $role = $atts['myrole'];
+        $cansees = [];
+        $drafts = NULL;
 
-        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
+        foreach ($msgs as $atts) {
+            # We can see messages if:
+            # - we're a mod or an owner, or
+            # - for approved messages on Freegle groups which use FD:
+            #   - we're a member, or
+            #   - we have publish consent, or
+            #   - it's a TrashNothing message (the TN TOS allows this).
+            # - for pending messages, if it's a platform message (this allows Facebook share preview to work)
+            $role = $atts['myrole'];
 
-        if (!$cansee) {
-            foreach ($atts['groups'] as $group) {
-                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                #error_log("Consider show " . $this->getID());
-                #error_log("...plat or TN " . ($this->getSourceheader() == Message::PLATFORM || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE));
-                #error_log("...consent || member " . ($atts['publishconsent'] || $role == User::ROLE_MEMBER));
-                #error_log("...coll == APPROVED " . ($group['collection'] == MessageCollection::APPROVED));
-                #error_log("...type == FREEGLE " . ($g->getPrivate('type') == Group::GROUP_FREEGLE));
-                #error_log("...onhere " . $g->getPrivate('onhere'));
+            $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
 
-                if ((($this->getSourceheader() == Message::PLATFORM || ($atts['publishconsent'] || $role == User::ROLE_MEMBER)) &&
-                    ($group['collection'] == MessageCollection::APPROVED || ($group['collection'] == MessageCollection::PENDING && $this->getSourceheader() == Message::PLATFORM)) &&
-                    $g->getPrivate('type') == Group::GROUP_FREEGLE &&
-                    $g->getPrivate('onhere') || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE)
-                ) {
-                    $cansee = TRUE;
+            if (!$cansee) {
+                foreach ($atts['groups'] as $group) {
+                    $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                    #error_log("Consider show " . $this->getID());
+                    #error_log("...plat or TN " . ($this->getSourceheader() == Message::PLATFORM || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE));
+                    #error_log("...consent || member " . ($atts['publishconsent'] || $role == User::ROLE_MEMBER));
+                    #error_log("...coll == APPROVED " . ($group['collection'] == MessageCollection::APPROVED));
+                    #error_log("...type == FREEGLE " . ($g->getPrivate('type') == Group::GROUP_FREEGLE));
+                    #error_log("...onhere " . $g->getPrivate('onhere'));
+
+                    if ((($atts['sourceheader'] == Message::PLATFORM || ($atts['publishconsent'] || $role == User::ROLE_MEMBER)) &&
+                        ($group['collection'] == MessageCollection::APPROVED || ($group['collection'] == MessageCollection::PENDING && $atts['sourceheader'] == Message::PLATFORM)) &&
+                        $g->getPrivate('type') == Group::GROUP_FREEGLE &&
+                        $g->getPrivate('onhere') || strpos($atts['fromaddr'], '@user.trashnothing.com') !== FALSE)
+                    ) {
+                        $cansee = TRUE;
+                    }
                 }
             }
-        }
 
-        #error_log("Cansee now $cansee");
+            #error_log("Cansee now $cansee");
 
-        if (!$cansee) {
-            # We can see our drafts.
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            if ($me) {
-                $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
-                    $this->id,
-                    session_id(),
-                    $me ? $me->getId() : NULL
-                ]);
+            if (!$cansee) {
+                # We can see our drafts.
+                if ($drafts === NULL) {
+                    $drafts = [];
+
+                    $me = whoAmI($this->dbhr, $this->dbhm);
+                    if ($me) {
+                        $msgids = array_filter(array_column($msgs, 'id'));
+                        $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid IN (" . implode(',', $msgids) . ") AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
+                            session_id(),
+                            $me->getId()
+                        ]);
+                    }
+                }
 
                 foreach ($drafts as $draft) {
-                    $cansee = TRUE;
+                    if ($draft['msgid'] == $atts['id']) {
+                        $cansee = TRUE;
+                    }
                 }
             }
+
+            $cansees[$atts['id']] = $cansee;
         }
 
-        return($cansee);
+        return($cansees);
+    }
+
+    public function canSee($atts) {
+        $cansees = $this->canSees([ $atts ]);
+        return($cansees[$atts['id']]);
     }
 
     public function stripGumf() {
@@ -886,7 +904,7 @@ class Message
         } else {
             $u = User::get($this->dbhr, $this->dbhm, $uid);
             $ctx = NULL;
-            $atts = $u->getPublic(MODTOOLS ? $this->getGroups() : NULL, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
+            $atts = $u->getPublic(NULL, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
 
             if ($info) {
                 $atts['info'] = $u->getInfo();
@@ -913,57 +931,41 @@ class Message
         return($promises[0]['count']);
     }
 
-    public function promiseCounts(&$msgs) {
-        # This reduces DB ops by getting them all at once.
-        if ($msgs) {
-            $msgids = array_filter(array_column($msgs, 'id'));
-            $sql = "SELECT COUNT(*) AS count, msgid FROM messages_promises WHERE msgid IN (" . implode(',', $msgids) . ");";
-            $promises = $this->dbhr->preQuery($sql, [$this->id]);
-            foreach ($promises as $promise) {
-                foreach ($msgs as &$msg) {
-                    if ($msg['id'] === $promise['msgid']) {
-                        $msg['promisecount'] = $promise['count'];
-                    }
-                }
-            }
-        }
-    }
-
     private function getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary) {
         # Get the attributes which are visible based on our role.
         $rets = [];
-        
+
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
             $ret = [];
             $ret['myrole'] = $role;
 
             foreach ($this->nonMemberAtts as $att) {
-                $ret[$att] = $this->$att;
+                $ret[$att] = presdef($att, $msg, NULL);
             }
 
             if ($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                 foreach ($this->memberAtts as $att) {
-                    $ret[$att] = $this->$att;
+                    $ret[$att] = presdef($att, $msg, NULL);
                 }
             }
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                 foreach ($this->moderatorAtts as $att) {
-                    $ret[$att] = $this->$att;
+                    $ret[$att] = presdef($att, $msg, NULL);
                 }
             }
 
             if ($role == User::ROLE_OWNER || $seeall) {
                 foreach ($this->ownerAtts as $att) {
-                    $ret[$att] = $this->$att;
+                    $ret[$att] = presdef($att, $msg, NULL);
                 }
             }
 
             # URL people can follow to get to the message on our site.
-            $ret['url'] = 'https://' . USER_SITE . '/message/' . $this->id;
+            $ret['url'] = 'https://' . USER_SITE . '/message/' . $msg['id'];
 
-            $ret['mine'] = $myid && $this->fromuser == $myid;
+            $ret['mine'] = $myid && $msg['fromuser'] == $myid;
 
             # If we are a mod with sufficient rights on this message, we can edit it.
             #
@@ -1028,9 +1030,10 @@ class Message
         return([$ret]);
     }
 
-    public function getPublicGroups($me, $myid, &$userlist, &$rets, $msgs, $roles, $summary, $seeall, $messagehistory) {
+    public function getPublicGroups($me, $myid, &$userlist, &$rets, $msgs, $roles, $summary, $seeall) {
         $msgids = array_filter(array_column($msgs, 'id'));
         $groups = NULL;
+        $approvedcache = [];
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
@@ -1063,7 +1066,21 @@ class Message
             foreach ($ret['groups'] as &$group) {
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                     if (pres('approvedby', $group)) {
-                        $group['approvedby'] = $this->getUser($group['approvedby'], $messagehistory, $userlist, FALSE);
+                        if (!pres($group['approvedby'], $approvedcache)) {
+                            $appby = $this->dbhr->preQuery("SELECT id, fullname, firstname, lastname FROM users WHERE id = ?;", [
+                                $group['approvedby']
+                            ]);
+
+                            foreach ($appby as $app) {
+                                $name = pres('fullname', $app) ? $app['fullname'] : "{$app['firstname']} {$app['lastname']}";
+                                $approvedcache[$group['approvedby']] = [
+                                    'id' => $group['approvedby'],
+                                    'displayname' => $name
+                                ];
+                            }
+
+                            $group['approvedby'] = $approvedcache[$group['approvedby']];
+                        }
                     }
                 }
 
@@ -1119,10 +1136,12 @@ class Message
         }
     }
 
-    public function getPublicLocation($me, $myid, &$rets, $msgs, $roles, $seeall) {
-        # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
-        # we can see the precise location.  Many messages may be posted from the same location, so cache that.
-        $groups = NULL;
+    public function getPublicLocation($me, $myid, &$rets, $msgs, $roles, $seeall, &$locationlist) {
+        $l = new Location($this->dbhr, $this->dbhm);
+
+        # Cache the locations we'll need efficiently.
+        $locids = array_filter(array_column($msgs, 'locationid'));
+        $l->getByIds($locids, $locationlist);
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
@@ -1131,6 +1150,8 @@ class Message
             if (pres('locationid', $msg)) {
                 $l = $this->getLocation($msg['locationid'], $locationlist);
 
+                # We can always see any area and top-level postcode.  If we're a mod or this is our message
+                # we can see the precise location.
                 if ($ret['showarea']) {
                     $areaid = $l->getPrivate('areaid');
                     if ($areaid) {
@@ -1407,7 +1428,7 @@ ORDER BY lastdate DESC;";
                 # We know who sent this.  We may be able to return this (depending on the role we have for the message
                 # and hence the attributes we have already filled in).  We also want to know if we have consent
                 # to republish it.
-                $ret['fromuser'] = $this->getUser($this->fromuser, $messagehistory, $userlist, TRUE);
+                $ret['fromuser'] = $this->getUser($msg['fromuser'], $messagehistory, $userlist, TRUE);
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                     # We can see their emails.
@@ -1468,7 +1489,7 @@ ORDER BY lastdate DESC;";
             $ret = $rets[$msg['id']];
 
             if (pres('heldby', $ret)) {
-                $ret['heldby'] = $this->getUser($ret['heldby'], $messagehistory, $userlist, FALSE);
+                $ret['heldby'] = $this->getUser($ret['heldby'], FALSE, $userlist, FALSE);
                 filterResult($ret['heldby']);
             }
 
@@ -1481,10 +1502,8 @@ ORDER BY lastdate DESC;";
 
         $atts = NULL;
 
-        if (!$summary) {
-            $a = new Attachment($this->dbhr, $this->dbhm);
-            $atts = $a->getByIds($msgids);
-        }
+        $a = new Attachment($this->dbhr, $this->dbhm);
+        $atts = $a->getByIds($msgids);
 
         foreach ($msgs as $msg) {
             $ret = $rets[$msg['id']];
@@ -1602,13 +1621,13 @@ ORDER BY lastdate DESC;";
         # these return their info in an array indexed by message id.
         $roles = $this->getRolesForMessages($me, $msgs);
         $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary);
-        $this->getPublicGroups($me, $myid, $userlist, $rets, $msgs, $roles, $summary, $seeall, $messagehistory);
-        $this->getPublicReplies($me, $myid, $userlist, $rets, $msgs, $summary, $roles, $seeall, $messagehistory);
+        $this->getPublicGroups($me, $myid, $userlist, $rets, $msgs, $roles, $summary, $seeall);
+        $this->getPublicReplies($me, $myid, $userlist, $rets, $msgs, $summary, $roles, $seeall, FALSE);
         $this->getPublicOutcomes($me, $myid, $rets, $msgs, $summary, $roles, $seeall);
         $this->getPublicAttachments($rets, $msgs, $summary);
 
         if (!$summary) {
-            $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall);
+            $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall, $locationlist);
             $this->getPublicItem($rets, $msgs);
             $this->getPublicFromUser($userlist, $rets, $msgs, $roles, $messagehistory);
             $this->getPublicHeld($userlist, $rets, $msgs, $messagehistory);

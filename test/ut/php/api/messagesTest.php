@@ -506,30 +506,30 @@ class messagesTest extends IznikAPITestCase {
 
         }
 
-//    public function testEH() {
-////        $u = new User($this->dbhr, $this->dbhm);
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
-//
+    public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);
-//
-//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-//        $u = new User($this->dbhr, $this->dbhm, $uid);
-//        $_SESSION['id'] = $uid;
-//        $ret = $this->call('messages', 'GET', [
-//            'collection' => MessageCollection::ALLUSER,
-//            'summary' => TRUE,
-//            'types' => [
-//                Message::TYPE_OFFER,
-//                Message::TYPE_WANTED
-//            ],
-//            'fromuser' => $uid,
-//        ]);
-//
-//        assertEquals(0, $ret['ret']);
-//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-//        error_log(var_export($ret['context'], TRUE));
-//        error_log("Got " . count($ret['messages']) . " messages");
-//    }
+        $this->dbhr->errorLog = TRUE;
+        $this->dbhm->errorLog = TRUE;
+
+        $u = new User($this->dbhr, $this->dbhm);
+
+        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $_SESSION['id'] = $uid;
+        $ret = $this->call('messages', 'GET', [
+            'collection' => MessageCollection::ALLUSER,
+            'summary' => TRUE,
+            'types' => [
+                Message::TYPE_OFFER,
+                Message::TYPE_WANTED
+            ],
+            'fromuser' => $uid,
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+        error_log(var_export($ret['context'], TRUE));
+        error_log("Got " . count($ret['messages']) . " messages");
+    }
 }
 

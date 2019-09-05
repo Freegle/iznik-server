@@ -97,9 +97,9 @@ class MessageCollection
                 $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
                 $userids = $userids ? $userids : ($me ? [$me->getId()] : NULL);
 
-                $summjoin = $summary ? ", messages.subject, (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
+                $summjoin = $summary ? ", messages.subject, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
 
-                $sql = $userids ? ("SELECT msgid AS id, messages.arrival, messages.type AS type, fromuser $summjoin FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) $oldest ORDER BY messages.id DESC LIMIT $limit;") : "SELECT msgid AS id, messages.type AS msgtype, fromuser $summjoin FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id  WHERE session = ? $oldest ORDER BY messages.id DESC LIMIT $limit;";
+                $sql = $userids ? ("SELECT msgid AS id, messages.arrival, messages.type AS type, fromuser $summjoin FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) $oldest ORDER BY messages.id DESC LIMIT $limit;") : "SELECT msgid AS id, messages.type AS type, fromuser $summjoin FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id  WHERE session = ? $oldest ORDER BY messages.id DESC LIMIT $limit;";
                 $tofill = $this->dbhr->preQuery($sql, [
                     session_id()
                 ]);
@@ -126,10 +126,10 @@ class MessageCollection
                 if ($me && $me->isModerator()) {
                     $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
 
-                    $summjoin = $summary ? ", messages.subject, (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
+                    $summjoin = $summary ? ", messages.subject, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
                     $groupq = "AND messages_groups.groupid IN (" . implode(',', $groupids) . ") ";
 
-                    $sql = "SELECT messages.id AS id, messages_groups.arrival, messages.type AS msgtype, fromuser $summjoin FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid INNER JOIN messages ON messages_groups.msgid = messages.id WHERE messages_edits.timestamp > '$mysqltime' AND messages_edits.reviewrequired = 1 AND messages_groups.deleted = 0 $groupq AND $dateq;";
+                    $sql = "SELECT messages.id AS id, messages_groups.arrival, messages.type, fromuser $summjoin FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid INNER JOIN messages ON messages_groups.msgid = messages.id WHERE messages_edits.timestamp > '$mysqltime' AND messages_edits.reviewrequired = 1 AND messages_groups.deleted = 0 $groupq AND $dateq;";
                     $tofill2 = $this->dbhr->preQuery($sql);
 
                     $ctx = ['Date' => NULL, 'id' => PHP_INT_MAX];
@@ -188,7 +188,6 @@ class MessageCollection
                 (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid,
                 (SELECT COALESCE(namefull, nameshort) FROM groups WHERE groups.id = messages_groups.groupid) AS namedisplay,
                 (SELECT COUNT(DISTINCT userid) FROM chat_messages WHERE refmsgid = messages.id AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != messages.fromuser AND chat_messages.type = 'Interested') AS replycount,                  
-                (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, 
                 (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
 
                 # We may have some groups to filter by.
@@ -214,6 +213,7 @@ class MessageCollection
                     $sql = "SELECT msgid AS id, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
                 }
 
+                #error_log("Get list $sql");
                 $msglist = $this->dbhr->preQuery($sql);
 
                 # Get an array of the basic info.  Save off context for next time.
@@ -245,20 +245,13 @@ class MessageCollection
     {
         $msgs = [];
         $groups = [];
-        $roles = [];
 
-        # Don't return the message attribute as it will be huge.  They can get that via a call to the
-        # message API call.
-        foreach ($msglist as $msg) {
+        # We need to do a little tweaking of msglist to get it ready to pass to getPublics.
+        foreach ($msglist as &$msg) {
             if ($summary) {
-                # We have fetched all the info we will need; set up a message object using that.  In the summary
-                # case, this saves any DB ops in filling in this message, while still using the logic within Message
-                # (e.g. for access).  More code complexity, but much better performance.
-                $m = new Message($this->dbhr, $this->dbhm, $msg['id'], $msg);
-
                 if (pres('groupid', $msg)) {
                     # TODO If we support messages on multiple groups then this needs reworking.
-                    $m->setGroups([
+                    $msg['groups'] = ([
                         [
                             'groupid' => $msg['groupid'],
                             'namedisplay' => $msg['namedisplay'],
@@ -269,76 +262,56 @@ class MessageCollection
                 }
 
                 if (pres('outcomeid', $msg)) {
-                    $m->setOutcomes([ $msg['outcomeid'] ]);
+                    $msg['outcomes'] = [$msg['outcomeid']];
                 }
-
-                $m->setAttachments([]);
-
-                if (pres('attachmentid', $msg)) {
-                    $a = new Attachment($this->dbhr, $this->dbhm);
-
-                    $atts = [
-                        [
-                            'id' => $msg['attachmentid'],
-                            'path' => $a->getpath(false, $msg['attachmentid']),
-                            'paththumb' => $a->getpath(true, $msg['attachmentid'])
-                        ]
-                    ];
-
-                    $m->setAttachments($atts);
-                }
-            } else {
-                # We will fetch and later return all the message info, which is slower.
-                $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
             }
+        }
 
-            $public = $m->getPublic(MODTOOLS, TRUE, FALSE, $this->userlist, $this->locationlist, $summary);
+        if (!$summary) {
+            # In the summary case we have fetched the message attributes we need.  Otherwise we need to get them now.
+            # This loginc is similar to Message::_construct.
+            #
+            # getPublics will filter them based on what we are allowed to see.
+            $msgids = array_filter(array_column($msglist, 'id'));
+            $sql = "SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id IN (" . implode(',', $msgids) . ");";
+            $vals = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+            foreach ($vals as $val) {
+                foreach ($msglist as &$msg) {
+                    if ($msg['id'] == $val['id']) {
+                        $msg = array_merge($msg, $val);
 
-            $type = $m->getType();
+                        if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && $msg['FOP'] === NULL) {
+                            $msg['FOP'] = 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $publics = $m->getPublics($msglist,MODTOOLS, TRUE, FALSE, $this->userlist, $this->locationlist, $summary);
+        $cansees = NULL;
+
+        foreach ($publics as &$public) {
+            $type = $public['type'];
+
             if (!$messagetype || $type == $messagetype) {
-                $role = NULL;
-
-                $thisgroups = pres('groupid', $msg) ? [ $msg['groupid'] ] : $m->getGroups(TRUE);
-
-                foreach ($thisgroups as $groupid) {
-                    #error_log("Got role? $groupid");
-                    if (array_key_exists($groupid, $roles)) {
-                        $role = $roles[$groupid];
-                        #error_log("Saved roll get $role");
-                    }
+                if ($cansees === NULL) {
+                    $cansees = $m->canSees($publics);
                 }
 
-                if (!$role) {
-                    list ($role, $gid) = $m->getRoleForMessage(FALSE);
-                    #error_log("Got role $role for $gid");
+                $cansee = $cansees[$public['id']];
 
-                    if ($gid) {
-                        # Save the role on this group for later messages.
-                        $roles[$gid] = $role;
-                    }
-                }
-
-                $cansee = $m->canSee($public);
                 $coll = presdef('collection', $msg, MessageCollection::APPROVED);
 
                 if ($cansee && $coll != MessageCollection::DRAFT) {
                     # Make sure we only return this if it's on a group.
-                    $cansee = FALSE;
-
-                    foreach ($thisgroups as $groupid) {
-                        $cansee = TRUE;
-
-                        if (!$summary) {
-                            # No need to return the groups for summary case.
-                            if (!array_key_exists($groupid, $groups)) {
-                                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-                                $groups[$groupid] = $g->getPublic();
-                            }
-                        }
-                    }
+                    $cansee = count($public['groups']) > 0;
                 }
 
                 if ($cansee) {
+                    $role = $public['myrole'];
+
                     switch ($coll) {
                         case MessageCollection::DRAFT:
                         case MessageCollection::QUEUED_YAHOO_USER:
@@ -391,11 +364,6 @@ class MessageCollection
             if ($limit <= 0) {
                 break;
             }
-        }
-
-        if ($this->allUser) {
-            # Need the promise count for My Posts page
-            $m->promiseCounts($msgs);
         }
 
         return ([$groups, $msgs]);

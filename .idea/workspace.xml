@@ -3,7 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Attachment.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Attachment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/misc/Location.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Location.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -100,12 +104,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messageAPITest.testChatSource">
-    <configuration name="IncomingMessageTest.testAttachmentDup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="IncomingMessageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" method="testAttachmentDup" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="PHPUnit.messagesTest.testEH">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -126,6 +125,11 @@
       <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="messageTest.testIncludeArea" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" method="testIncludeArea" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
@@ -133,18 +137,18 @@
     </configuration>
     <list>
       <item itemvalue="PHPUnit.messageTest" />
-      <item itemvalue="PHPUnit.IncomingMessageTest.testAttachmentDup" />
       <item itemvalue="PHPUnit.messagesTest.testEH" />
       <item itemvalue="PHPUnit.membershipsAPITest.testJoinAndSee" />
       <item itemvalue="PHPUnit.messageAPITest.testChatSource" />
+      <item itemvalue="PHPUnit.messageTest.testIncludeArea" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="PHPUnit.messageAPITest.testChatSource" />
-        <item itemvalue="PHPUnit.membershipsAPITest.testJoinAndSee" />
         <item itemvalue="PHPUnit.messagesTest.testEH" />
         <item itemvalue="PHPUnit.messageTest" />
-        <item itemvalue="PHPUnit.IncomingMessageTest.testAttachmentDup" />
+        <item itemvalue="PHPUnit.messageTest.testIncludeArea" />
+        <item itemvalue="PHPUnit.messageAPITest.testChatSource" />
+        <item itemvalue="PHPUnit.membershipsAPITest.testJoinAndSee" />
       </list>
     </recent_temporary>
   </component>
@@ -205,21 +209,7 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-      <workItem from="1567604881040" duration="13458000" />
-    </task>
-    <task id="LOCAL-00127" summary="Change exhorting for user stories not to ask people until they've been a member for a week">
-      <created>1550839041334</created>
-      <option name="number" value="00127" />
-      <option name="presentableId" value="LOCAL-00127" />
-      <option name="project" value="LOCAL" />
-      <updated>1550839041334</updated>
-    </task>
-    <task id="LOCAL-00128" summary="UT fixes">
-      <created>1550840068307</created>
-      <option name="number" value="00128" />
-      <option name="presentableId" value="LOCAL-00128" />
-      <option name="project" value="LOCAL" />
-      <updated>1550840068307</updated>
+      <workItem from="1567604881040" duration="23353000" />
     </task>
     <task id="LOCAL-00129" summary="Admin visit link wrong">
       <created>1551295330108</created>
@@ -550,7 +540,21 @@
       <option name="project" value="LOCAL" />
       <updated>1567617333518</updated>
     </task>
-    <option name="localTasksCounter" value="176" />
+    <task id="LOCAL-00176" summary="UT fixes">
+      <created>1567618522701</created>
+      <option name="number" value="00176" />
+      <option name="presentableId" value="LOCAL-00176" />
+      <option name="project" value="LOCAL" />
+      <updated>1567618522701</updated>
+    </task>
+    <task id="LOCAL-00177" summary="UT fixes">
+      <created>1567619038531</created>
+      <option name="number" value="00177" />
+      <option name="presentableId" value="LOCAL-00177" />
+      <option name="project" value="LOCAL" />
+      <updated>1567619038531</updated>
+    </task>
+    <option name="localTasksCounter" value="178" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -610,7 +614,6 @@
     <MESSAGE value="Speed-ups: message fetching" />
     <MESSAGE value="Speed-ups: message roles" />
     <MESSAGE value="Speed-ups: message groups" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Speed-ups: get message replies" />
     <MESSAGE value="Speed-ups: get message outcomes" />
     <MESSAGE value="Speed-ups: get message from user" />
@@ -619,6 +622,7 @@
     <MESSAGE value="Speed-ups: get message attachments" />
     <MESSAGE value="Speed-ups: get message posting history" />
     <MESSAGE value="Speed-ups: initial code restructure for individual messages now complete" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: initial code restructure for individual messages now complete" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>

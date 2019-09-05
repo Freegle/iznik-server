@@ -20,9 +20,9 @@ class Location extends Entity
     private $log;
     var $loc;
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $fetched = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'locations', 'loc', $this->publicatts);
+        $this->fetch($dbhr, $dbhm, $id, 'locations', 'loc', $this->publicatts, $fetched);
         $this->log = new Log($dbhr, $dbhm);
     }
 
@@ -708,5 +708,34 @@ class Location extends Entity
         }
 
         return($ret);
+    }
+
+    public function getByIds($locids, &$locationlist) {
+        # Efficiently get a bunch of locations.
+        $locids = array_unique(array_diff($locids, array_filter(array_column($locationlist, 'id'))));
+
+        if (count($locids)) {
+            $sql = "SELECT " . implode(',', $this->publicatts) . " FROM locations WHERE id IN (" . implode(',', $locids) . ");";
+            $fetches = $this->dbhr->preQuery($sql);
+            $others = [];
+
+            foreach ($fetches as $fetch) {
+                $locationlist[$fetch['id']] = new Location($this->dbhr, $this->dbhm, $fetch['id'], $fetch);
+                $others[] = pres('areaid', $fetch);
+                $others[] = pres('postcodeid', $fetch);
+            }
+
+            # Now get the postcode and area locations.
+            $others = array_unique(array_filter($others));
+
+            if (count($others)) {
+                $sql = "SELECT " . implode(',', $this->publicatts) . " FROM locations WHERE id IN (" . implode(',', $others) . ");";
+                $fetches = $this->dbhr->preQuery($sql);
+
+                foreach ($fetches as $fetch) {
+                    $locationlist[$fetch['id']] = new Location($this->dbhr, $this->dbhm, $fetch['id'], $fetch);
+                }
+            }
+        }
     }
 }
