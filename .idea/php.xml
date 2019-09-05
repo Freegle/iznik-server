@@ -9,17 +9,17 @@
   </component>
   <component name="PhpInterpreters">
     <interpreters>
-      <interpreter home="sftp://DATA" id="37311cee-6db3-4863-8f12-3c2baef6ef2a" name="app4" debugger_id="php.debugger.XDebug">
-        <remote_data WEB_SERVER_CONFIG_ID="3a70e86f-781c-4c29-b52b-a79066c0671d" WEB_SERVER_CONFIG_NAME="IZNIK MT DBG app4" WEB_SERVER_CREDENTIALS_ID="sftp://root@app4.ilovefreegle.org:22" INTERPRETER_PATH="/usr/bin/php" HELPERS_PATH="/root/.phpstorm_helpers" INITIALIZED="false" VALID="true" />
+      <interpreter id="37311cee-6db3-4863-8f12-3c2baef6ef2a" name="app4" home="sftp://DATA" debugger_id="php.debugger.XDebug">
+        <remote_data WEB_SERVER_CONFIG_ID="3a70e86f-781c-4c29-b52b-a79066c0671d" WEB_SERVER_CONFIG_NAME="IZNIK MT DBG app4" WEB_SERVER_CREDENTIALS_ID="sftp://root@app4.ilovefreegle.org:22" INTERPRETER_PATH="/usr/bin/php" HELPERS_PATH="/root/.phpstorm_helpers" INITIALIZED="false" VALID="true" RUN_AS_ROOT_VIA_SUDO="false" />
       </interpreter>
-      <interpreter home="sftp://DATA" id="acb90c1e-e06f-43ad-8462-3b005bf5c9c2" name="bulk3" debugger_id="php.debugger.XDebug">
-        <remote_data WEB_SERVER_CONFIG_ID="47d47bee-72b8-4875-a174-1db45f40556b" WEB_SERVER_CONFIG_NAME="bulk3.ilovefreegle.org" WEB_SERVER_CREDENTIALS_ID="sftp://root@bulk3.ilovefreegle.org:22" INTERPRETER_PATH="/usr/bin/php" HELPERS_PATH="/root/.phpstorm_helpers" INITIALIZED="false" VALID="true" />
+      <interpreter id="acb90c1e-e06f-43ad-8462-3b005bf5c9c2" name="bulk3" home="sftp://DATA" debugger_id="php.debugger.XDebug">
+        <remote_data WEB_SERVER_CONFIG_ID="47d47bee-72b8-4875-a174-1db45f40556b" WEB_SERVER_CONFIG_NAME="bulk3.ilovefreegle.org" WEB_SERVER_CREDENTIALS_ID="sftp://root@bulk3.ilovefreegle.org:22" INTERPRETER_PATH="/usr/bin/php" HELPERS_PATH="/root/.phpstorm_helpers" INITIALIZED="false" VALID="true" RUN_AS_ROOT_VIA_SUDO="false" />
       </interpreter>
-      <interpreter home="sftp://DATA" id="f522b9ff-a708-46cb-9c96-71183439e5bb" name="app1" debugger_id="php.debugger.XDebug">
-        <remote_data WEB_SERVER_CONFIG_ID="42d90d1a-747a-4eb9-960e-e496a4600a58" WEB_SERVER_CONFIG_NAME="IZNIK MT DBG app1" WEB_SERVER_CREDENTIALS_ID="sftp://root@app1.ilovefreegle.org:22" INTERPRETER_PATH="/usr/bin/php" HELPERS_PATH="/root/.phpstorm_helpers" INITIALIZED="false" VALID="true" />
+      <interpreter id="f522b9ff-a708-46cb-9c96-71183439e5bb" name="app1" home="sftp://DATA" debugger_id="php.debugger.XDebug">
+        <remote_data WEB_SERVER_CONFIG_ID="42d90d1a-747a-4eb9-960e-e496a4600a58" WEB_SERVER_CONFIG_NAME="IZNIK MT DBG app1" WEB_SERVER_CREDENTIALS_ID="sftp://root@app1.ilovefreegle.org:22" INTERPRETER_PATH="/usr/bin/php" HELPERS_PATH="/root/.phpstorm_helpers" INITIALIZED="false" VALID="true" RUN_AS_ROOT_VIA_SUDO="false" />
       </interpreter>
-      <interpreter home="sftp://DATA" id="55f96fde-3eeb-4702-95f4-52b2a3492a10" name="Docker (project level)" debugger_id="php.debugger.XDebug">
-        <remote_data WEB_SERVER_CONFIG_ID="cee5fe54-2aab-4a2e-93e5-c3968bb13838" WEB_SERVER_CONFIG_NAME="IZNIK Docker" WEB_SERVER_CREDENTIALS_ID="sftp://root@127.0.0.1:1022" INTERPRETER_PATH="/usr/bin/php" HELPERS_PATH="/root/.phpstorm_helpers" INITIALIZED="false" VALID="true" />
+      <interpreter id="55f96fde-3eeb-4702-95f4-52b2a3492a10" name="Docker (project level)" home="sftp://DATA" debugger_id="php.debugger.XDebug">
+        <remote_data WEB_SERVER_CONFIG_ID="cee5fe54-2aab-4a2e-93e5-c3968bb13838" WEB_SERVER_CONFIG_NAME="IZNIK Docker" WEB_SERVER_CREDENTIALS_ID="sftp://root@127.0.0.1:1022" INTERPRETER_PATH="/usr/bin/php" HELPERS_PATH="/root/.phpstorm_helpers" INITIALIZED="false" VALID="true" RUN_AS_ROOT_VIA_SUDO="false" />
       </interpreter>
     </interpreters>
   </component>
@@ -28,7 +28,6 @@
       <extension name="Ev" enabled="false" />
       <extension name="SQLite" enabled="false" />
       <extension name="SplType" enabled="false" />
-      <extension name="ZendCache" enabled="false" />
       <extension name="ZendDebugger" enabled="false" />
       <extension name="ZendUtils" enabled="false" />
       <extension name="amqp" enabled="false" />
@@ -36,7 +35,6 @@
       <extension name="apcu" enabled="false" />
       <extension name="bcmath" enabled="false" />
       <extension name="bz2" enabled="false" />
-      <extension name="com" enabled="false" />
       <extension name="couchbase" enabled="false" />
       <extension name="cubrid" enabled="false" />
       <extension name="dba" enabled="false" />
@@ -94,7 +92,6 @@
       <extension name="v8js" enabled="false" />
       <extension name="win32service" enabled="false" />
       <extension name="wincache" enabled="false" />
-      <extension name="xcache" enabled="false" />
       <extension name="xhprof" enabled="false" />
       <extension name="xmlrpc" enabled="false" />
       <extension name="yaml" enabled="false" />

@@ -613,13 +613,13 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
         $pid = $ret['plugin'][0]['id'];
 
-        # The message should exist as rejected.  Shouldn't be able to see logged out
-        $this->log("Can't see logged out");
+        # The message should exist as rejected.  Should be able to see logged out
+        $this->log("Can see logged out");
         $_SESSION['id'] = NULL;
         $ret = $this->call('message', 'GET', [
             'id' => $m->getId()
         ]);
-        assertEquals(2, $ret['ret']);
+        assertEquals(0, $ret['ret']);
 
         # Now log in as the sender.
         $uid = $m->getFromuser();

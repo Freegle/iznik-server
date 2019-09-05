@@ -2073,6 +2073,7 @@ class User extends Entity
                 }
 
                 if ($sql) {
+                    error_log("GEt history $sql, {$this->id}, $earliest");
                     $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
                         $this->id,
                         $earliest

@@ -703,7 +703,7 @@ class Message
             $groupid = NULL;
 
             if ($me) {
-                if ($me->getId() == $this->fromuser) {
+                if ($me->getId() == $msg['fromuser']) {
                     # It's our message.  We have full rights.
                     $role = User::ROLE_MODERATOR;
                 } else {
@@ -891,21 +891,22 @@ class Message
         return($text ? $text : '');
     }
 
-    private function getUser($uid, $messagehistory, &$userlist, $info) {
+    private function getUser($uid, $messagehistory, &$userlist, $info, $groupids = NULL) {
         # Get the user details, relative to the groups this message appears on.
-        if ($userlist && array_key_exists($uid, $userlist)) {
-            $atts = $userlist[$uid][1];
+        $key = "$uid-$messagehistory-" . ($groupids ? implode(',', $groupids) : '');
+        if ($userlist && array_key_exists($key, $userlist)) {
+            $atts = $userlist[$key][1];
         } else {
             $u = User::get($this->dbhr, $this->dbhm, $uid);
             $ctx = NULL;
-            $atts = $u->getPublic(NULL, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
+            $atts = $u->getPublic($groupids, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
 
             if ($info) {
                 $atts['info'] = $u->getInfo();
             }
 
             # Save for next time.
-            $userlist[$uid] = [ $u, $atts];
+            $userlist[$key] = [ $u, $atts];
         }
 
         return($atts);
@@ -1166,7 +1167,7 @@ class Message
                     }
                 }
 
-                if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
+                if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $msg['fromuser'] == $myid)) {
                     $ret['location'] = $l->getPublic();
                 }
             }
@@ -1422,7 +1423,8 @@ ORDER BY lastdate DESC;";
                 # We know who sent this.  We may be able to return this (depending on the role we have for the message
                 # and hence the attributes we have already filled in).  We also want to know if we have consent
                 # to republish it.
-                $ret['fromuser'] = $this->getUser($msg['fromuser'], $messagehistory, $userlist, TRUE);
+                #error_log("Get from " . var_export($ret['groups'], TRUE));
+                $ret['fromuser'] = $this->getUser($msg['fromuser'], $messagehistory, $userlist, TRUE, array_column($ret['groups'], 'groupid'));
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                     # We can see their emails.
