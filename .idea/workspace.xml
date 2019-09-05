@@ -2,13 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/ut/IznikTestCase.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/IznikTestCase.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -111,14 +108,14 @@
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="chatMessagesAPITest.testConversation" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="chatMessagesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" method="testConversation" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="iznik-server" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="messageAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messageAPITest.testApproved" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -139,17 +136,17 @@
     <list>
       <item itemvalue="PHPUnit.messageTest" />
       <item itemvalue="PHPUnit.ut" />
-      <item itemvalue="PHPUnit.messageAPITest" />
       <item itemvalue="PHPUnit.iznik-server" />
       <item itemvalue="PHPUnit.messageAPITest.testApproved" />
+      <item itemvalue="PHPUnit.chatMessagesAPITest.testConversation" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="PHPUnit.ut" />
+        <item itemvalue="PHPUnit.chatMessagesAPITest.testConversation" />
         <item itemvalue="PHPUnit.messageAPITest.testApproved" />
         <item itemvalue="PHPUnit.iznik-server" />
         <item itemvalue="PHPUnit.messageTest" />
-        <item itemvalue="PHPUnit.messageAPITest" />
       </list>
     </recent_temporary>
   </component>
@@ -210,14 +207,7 @@
       <workItem from="1562915118883" duration="1833000" />
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
-      <workItem from="1567604881040" duration="30130000" />
-    </task>
-    <task id="LOCAL-00132" summary="Allow list of shortlinks for group">
-      <created>1551880529669</created>
-      <option name="number" value="00132" />
-      <option name="presentableId" value="LOCAL-00132" />
-      <option name="project" value="LOCAL" />
-      <updated>1551880529669</updated>
+      <workItem from="1567604881040" duration="31867000" />
     </task>
     <task id="LOCAL-00133" summary="More News to ChitChat changes">
       <created>1551883451881</created>
@@ -555,7 +545,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567678048180</updated>
     </task>
-    <option name="localTasksCounter" value="181" />
+    <task id="LOCAL-00181" summary="UT fixes">
+      <created>1567683067112</created>
+      <option name="number" value="00181" />
+      <option name="presentableId" value="LOCAL-00181" />
+      <option name="project" value="LOCAL" />
+      <updated>1567683067112</updated>
+    </task>
+    <option name="localTasksCounter" value="182" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

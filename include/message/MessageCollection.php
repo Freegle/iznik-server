@@ -78,6 +78,8 @@ class MessageCollection
 
     function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL, $hasoutcome = NULL, $summary = FALSE)
     {
+        $backstop = 1000;
+
         do {
             $tofill = [];
             $me = NULL;
@@ -236,7 +238,8 @@ class MessageCollection
             #error_log("Filled in " . count($msgs) . " from " . count($tofill));
 
             # We might have excluded all the messages we found; if so, keep going.
-        } while (count($tofill) > 0 && count($msgs) == 0);
+            $backstop--;
+        } while (count($tofill) > 0 && count($msgs) == 0 && $backstop > 0);
 
         return ([$groups, $msgs]);
     }

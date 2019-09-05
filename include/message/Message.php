@@ -753,10 +753,10 @@ class Message
                 }
             }
 
-            if ($role == User::ROLE_NONMEMBER && $this->isdraft) {
+            if ($role == User::ROLE_NONMEMBER && $msg['isdraft']) {
                 # We can potentially upgrade our role if this is one of our drafts.
                 $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
-                    $this->id,
+                    $msg['id'],
                     session_id(),
                     $me ? $me->getId() : NULL
                 ]);
@@ -891,10 +891,11 @@ class Message
         return($text ? $text : '');
     }
 
-    private function getUser($uid, $messagehistory, &$userlist, $info, $groupids = NULL) {
+    private function getUser($uid, $messagehistory, &$userlist, $info, $groupids = NULL, $obj = FALSE) {
         # Get the user details, relative to the groups this message appears on.
         $key = "$uid-$messagehistory-" . ($groupids ? implode(',', $groupids) : '');
         if ($userlist && array_key_exists($key, $userlist)) {
+            $u = $userlist[$key][0];
             $atts = $userlist[$key][1];
         } else {
             $u = User::get($this->dbhr, $this->dbhm, $uid);
@@ -909,7 +910,7 @@ class Message
             $userlist[$key] = [ $u, $atts];
         }
 
-        return($atts);
+        return($obj ? $u : $atts);
     }
 
     private function getLocation($locationid, &$locationlist) {
@@ -1428,11 +1429,11 @@ ORDER BY lastdate DESC;";
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                     # We can see their emails.
-                    $u = $userlist[$msg['fromuser']][0];
+                    $u = $this->getUser($msg['fromuser'], $messagehistory, $userlist, TRUE, array_column($ret['groups'], 'groupid'), TRUE);
                     $ret['fromuser']['emails'] = $u->getEmails();
                 } else if (pres('partner', $_SESSION)) {
                     # Partners can see emails which belong to us, for the purposes of replying.
-                    $u = $userlist[$msg['fromuser']][0];
+                    $u = $this->getUser($msg['fromuser'], $messagehistory, $userlist, TRUE, array_column($ret['groups'], 'groupid'), TRUE);
                     $emails = $u->getEmails();
                     $ret['fromuser']['emails'] = [];
                     foreach ($emails as $email) {

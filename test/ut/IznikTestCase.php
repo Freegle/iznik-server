@@ -61,7 +61,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     protected function setUp() {
         parent::setUp ();
 
-        error_log(__METHOD__);
+        $this->log(__METHOD__);
 
         error_reporting(E_ALL);
 
