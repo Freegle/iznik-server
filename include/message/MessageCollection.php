@@ -247,7 +247,6 @@ class MessageCollection
     public function fillIn($msglist, $limit, $messagetype, $summary)
     {
         $msgs = [];
-        $groups = [];
 
         # We need to do a little tweaking of msglist to get it ready to pass to getPublics.
         foreach ($msglist as &$msg) {
@@ -272,7 +271,7 @@ class MessageCollection
 
         if (!$summary) {
             # In the summary case we have fetched the message attributes we need.  Otherwise we need to get them now.
-            # This loginc is similar to Message::_construct.
+            # This logic is similar to Message::_construct.
             #
             # getPublics will filter them based on what we are allowed to see.
             $msgids = array_filter(array_column($msglist, 'id'));
@@ -370,6 +369,24 @@ class MessageCollection
             if ($limit <= 0) {
                 break;
             }
+        }
+
+        # Get groups.
+        $groupids = [];
+        foreach ($msgs as $msg) {
+            if (pres('groups', $msg)) {
+                foreach ($msg['groups'] as $group) {
+                    $groupids[] = $group['groupid'];
+                }
+            }
+        }
+
+        $groupids = array_unique($groupids);
+        $groups = [];
+
+        foreach ($groupids as $groupid) {
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+            $groups[$groupid] = $g->getPublic();
         }
 
         return ([$groups, $msgs]);
