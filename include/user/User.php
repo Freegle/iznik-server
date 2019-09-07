@@ -1624,15 +1624,46 @@ class User extends Entity
         $ret = [];
         $ret['openage'] = User::OPEN_AGE;
         $start = date('Y-m-d', strtotime("{$ret['openage']} days ago"));
+        $days90 = date("Y-m-d", strtotime("90 days ago"));
 
+        // We can combine some queries into a single one.  This is better for performance because it saves on
+        // the round trip (seriously, I've measured it, and it's worth doing).
+        //
         // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
-        $replies = $this->dbhr->preQuery("SELECT COUNT(DISTINCT refmsgid) AS count FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND type = ?;", [
+        $replies = $this->dbhr->preQuery("SELECT 
+(SELECT COUNT(DISTINCT refmsgid) FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND type = ?) AS replycount, 
+(SELECT COUNT(*) AS count FROM messages_outcomes WHERE userid = ? AND timestamp > ? AND outcome = ?) AS takencount,
+(SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?) AS reneged,
+(SELECT COUNT(DISTINCT msgid) AS count FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.userid = ? AND messages_outcomes.userid = ? AND messages_outcomes.userid != messages.fromuser AND messages.arrival >= '$days90') AS collected,
+(SELECT CONCAT(timestamp, ',', text) FROM users_aboutme WHERE userid = ? ORDER BY timestamp DESC LIMIT 1) AS abouttext
+;", [
             $this->id,
             $start,
-            ChatMessage::TYPE_INTERESTED
+            ChatMessage::TYPE_INTERESTED,
+            $this->id,
+            $start,
+            Message::OUTCOME_TAKEN,
+            $this->id,
+            $start,
+            ChatMessage::TYPE_INTERESTED,
+            Message::OUTCOME_TAKEN,
+            $this->id,
+            $this->id,
+            $this->id
         ], FALSE, FALSE);
 
-        $ret['replies'] = $replies[0]['count'];
+        $ret['replies'] = $replies[0]['replycount'];
+        $ret['taken'] = $replies[0]['takencount'];
+        $ret['reneged'] = $replies[0]['reneged'];
+        $ret['collected'] = $replies[0]['collected'];
+
+        if (pres('abouttext', $replies[0])) {
+            $p = strpos($replies[0]['abouttext'], ',');
+            $ret['aboutme'] = [
+                'timestamp' => ISODate(substr($replies[0]['abouttext'], 0, $p)),
+                'text' => substr($replies[0]['abouttext'], $p + 1)
+            ];
+        }
 
         $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 GROUP BY messages.type, messages_outcomes.outcome;", [
             $this->id,
@@ -1661,21 +1692,6 @@ class User extends Entity
             }
         }
 
-        $takens = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes WHERE userid = ? AND timestamp > ? AND outcome = ?;", [
-            $this->id,
-            $start,
-            Message::OUTCOME_TAKEN
-        ], FALSE, FALSE);
-
-        $ret['taken'] = $takens[0]['count'];
-
-        $reneges = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?;", [
-            $this->id,
-            $start
-        ], FALSE, FALSE);
-
-        $ret['reneged'] = $reneges[0]['count'];
-
         # Distance away.
         $me = whoAmI($this->dbhr, $this->dbhm);
 
@@ -1688,19 +1704,6 @@ class User extends Entity
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $ret['replytime'] = $r->replyTime($this->id);
         $ret['nudges'] = $r->nudgeCount($this->id);
-
-        # Number of items collected.
-        $mysqltime = date("Y-m-d", strtotime("90 days ago"));
-        $collected = $this->dbhr->preQuery("SELECT COUNT(DISTINCT msgid) AS count FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.userid = ? AND messages_outcomes.userid = ? AND messages_outcomes.userid != messages.fromuser AND messages.arrival >= '$mysqltime';", [
-            ChatMessage::TYPE_INTERESTED,
-            Message::OUTCOME_TAKEN,
-            $this->id,
-            $this->id
-        ], FALSE, FALSE);
-
-        $ret['collected'] = $collected[0]['count'];
-
-        $ret['aboutme'] = $this->getAboutMe();
 
         $ret['ratings'] = $this->getRating();
 
