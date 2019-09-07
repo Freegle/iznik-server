@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="IZNIK MT DBG app4" showAutoUploadSettingsWarning="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="IZNIK MT DBG app4">
     <serverData>
       <paths name="CAN">
         <serverdata>
@@ -17,6 +17,13 @@
         </serverdata>
       </paths>
       <paths name="DB Backups">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/var/www/iznik" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Docker">
         <serverdata>
           <mappings>
             <mapping deploy="/var/www/iznik" local="$PROJECT_DIR$" web="/" />
@@ -41,13 +48,6 @@
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="IZNIK Docker">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/var/www/iznik" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

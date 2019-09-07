@@ -1039,28 +1039,35 @@ class Message
 
             if (!$summary) {
                 # In the summary case we fetched the groups in MessageCollection.  Otherwise we won't have fetched the groups yet.
+
                 if ($groups === NULL) {
                     $groups = [];
 
                     if ($msgids) {
                         $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid IN (" . implode (',', $msgids ) . ") AND deleted = 0;";
-                        $groups = $this->dbhr->preQuery($sql, [$msg['id']], FALSE, FALSE);
+                        $groups = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
                     }
                 }
 
+                $retgroups = [];
                 foreach ($groups as $group) {
-                    if ($group['msgid'] == $msg['id']) {
-                        $msg['groups'][] = $group;
+                    if ($group['msgid'] == $ret['id']) {
+                        #error_log("Add message {$msg['id']} {$msg['subject']} group {$group['msgid']}, {$ret['id']} val {$group['groupid']}");
+                        $retgroups[] = $group;
                     }
                 }
+
+                $ret['groups'] = $retgroups;
+            } else {
+                $ret['groups'] = $msg['groups'];
             }
 
-            $ret['groups'] = $msg['groups'];
 
             $ret['showarea'] = TRUE;
             $ret['showpc'] = TRUE;
 
-            foreach ($ret['groups'] as &$group) {
+            # We don't use foreach with & because that copies data by reference which causes bugs.
+            for ($groupind = 0; $groupind < count($ret['groups']); $groupind++ ) {
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                     if (pres('approvedby', $group)) {
                         if (!pres($group['approvedby'], $approvedcache)) {
@@ -1081,9 +1088,10 @@ class Message
                     }
                 }
 
-                $group['arrival'] = ISODate($group['arrival']);
-                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                $group['namedisplay'] = $g->getName();
+                $ret['groups'][$groupind]['arrival'] = ISODate($ret['groups'][$groupind]['arrival']);
+                $g = Group::get($this->dbhr, $this->dbhm, $ret['groups'][$groupind]['groupid']);
+                $ret['groups'][$groupind]['namedisplay'] = $g->getName();
+                #error_log("Message {$group['msgid']} {$group['groupid']} {$group['namedisplay']}");
 
                 # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
                 $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
@@ -1094,7 +1102,7 @@ class Message
                 if (!$ret['canedit'] && $myid && $myid === $msg['fromuser'] && $msg['source'] == Message::PLATFORM) {
                     # This is our own message, which we may be able to edit if the group allows it.
                     $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
-                    $ourPS = $me->getMembershipAtt($group['groupid'], 'ourPostingStatus');
+                    $ourPS = $me->getMembershipAtt($ret['groups'][$groupind]['groupid'], 'ourPostingStatus');
 
                     if (((!$ourPS || $ourPS === Group::POSTING_MODERATED) && $allowedits['moderated']) ||
                         ($ourPS === Group::POSTING_DEFAULT && $allowedits['group'])) {
@@ -1119,10 +1127,10 @@ class Message
 
                         $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
                         $interval = $msg['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-                        $arrival = strtotime($group['arrival']);
+                        $arrival = strtotime($ret['groups'][$groupind]['arrival']);
                         $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
 
-                        if ($group['hoursago'] > $interval * 24) {
+                        if ($ret['groups'][$groupind]['hoursago'] > $interval * 24) {
                             $ret['canrepost'] = TRUE;
                         }
                     }
@@ -1131,6 +1139,12 @@ class Message
 
             $rets[$msg['id']] = $ret;
         }
+//
+//        error_log('---');
+//        foreach ($rets as $m) {
+//            error_log("{$m['id']} {$m['subject']} group {$m['groups'][0]['groupid']}");
+//        }
+//        error_log('---');
     }
 
     public function getPublicLocation($me, $myid, &$rets, $msgs, $roles, $seeall, &$locationlist) {
@@ -1574,7 +1588,7 @@ ORDER BY lastdate DESC;";
             }
 
             foreach ($rets as &$ret) {
-                $ret['edits'] = [];
+                $ret['edits'] = NULL;
 
                 if ($doit) {
                     foreach ($edits as &$edit) {

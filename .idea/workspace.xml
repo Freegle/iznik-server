@@ -2,8 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -13,9 +17,6 @@
   </component>
   <component name="ComposerSettings" doNotAsk="true" synchronizationState="SYNCHRONIZE">
     <pharConfigPath>$PROJECT_DIR$/composer/composer.json</pharConfigPath>
-    <execution>
-      <executable />
-    </execution>
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/iznik_server$userTest_testExport.xml" NAME="userTest.testExport Coverage Results" MODIFIED="1540446220606" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
@@ -41,8 +42,185 @@
     <expand />
     <select />
   </component>
+  <component name="FUSProjectUsageTrigger">
+    <session id="-1629519600">
+      <usages-collector id="statistics.file.extensions.open">
+        <counts>
+          <entry key="backup" value="1" />
+          <entry key="php" value="11" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.open">
+        <counts>
+          <entry key="PHP" value="11" />
+          <entry key="PLAIN_TEXT" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.edit">
+        <counts>
+          <entry key="backup" value="6" />
+          <entry key="php" value="2255" />
+          <entry key="txt" value="68" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.edit">
+        <counts>
+          <entry key="PHP" value="2249" />
+          <entry key="PLAIN_TEXT" value="74" />
+          <entry key="SQL" value="6" />
+        </counts>
+      </usages-collector>
+    </session>
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/message/MessageCollection.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="110">
+              <caret line="296" selection-start-line="296" selection-end-line="296" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ut/php/api/messagesTest.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="364">
+              <caret line="506" column="55" selection-start-line="506" selection-start-column="55" selection-end-line="506" selection-end-column="55" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ut/php/api/sessionTest.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="197">
+              <caret line="537" selection-start-line="537" selection-end-line="537" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/http/api/messages.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="250">
+              <caret line="129" column="64" selection-start-line="129" selection-start-column="64" selection-end-line="129" selection-end-column="64" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/user/User.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="222">
+              <caret line="1665" selection-start-line="1665" selection-end-line="1665" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scripts/backup">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="272">
+              <caret line="16" column="9" selection-start-line="16" selection-start-column="9" selection-end-line="16" selection-end-column="9" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/include/message/Message.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="110">
+              <caret line="1590" column="36" selection-start-line="1590" selection-start-column="36" selection-end-line="1590" selection-end-column="36" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/user/Search.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-848">
+              <caret line="3" column="38" selection-start-line="3" selection-start-column="38" selection-end-line="3" selection-end-column="38" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/misc/Search.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-646">
+              <caret line="293" column="35" selection-start-line="293" selection-start-column="35" selection-end-line="293" selection-end-column="35" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/misc/Location.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="162">
+              <caret line="11" column="10" selection-start-line="11" selection-start-column="10" selection-end-line="11" selection-end-column="10" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>returning gr</find>
+      <find>getin</find>
+      <find>'info'</find>
+      <find>replyti</find>
+      <find>freegle_backup</find>
+      <find>radi</find>
+      <find>damlev</find>
+      <find>great</find>
+      <find>st_dis</find>
+      <find>distance</find>
+      <find>miles</find>
+      <find>radius</find>
+      <find>search</find>
+      <find>milgetpubli</find>
+      <find>testeh</find>
+      <find>SELECT msgid as id, messages_groups.groupid, messages_groups.arrival</find>
+      <find>get lis</find>
+      <find>(SELECT publishconsent FROM users</find>
+      <find>this</find>
+      <find>msg</find>
+      <find>fillin</find>
+      <find>getpublic</find>
+      <find>getpublicgr</find>
+      <find>$group</find>
+      <find>'groupind'</find>
+      <find>getpublicedits</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>$groupind</replace>
+    </replaceStrings>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/scripts/backup" />
+        <option value="$PROJECT_DIR$/include/user/User.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" />
+        <option value="$PROJECT_DIR$/include/message/MessageCollection.php" />
+        <option value="$PROJECT_DIR$/include/message/Message.php" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="PhpServers">
+    <servers />
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app4">
     <include_path>
@@ -51,11 +229,41 @@
       <path value="/usr/share/php" />
     </include_path>
   </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="486" />
+    <option name="y" value="72" />
+    <option name="width" value="2100" />
+    <option name="height" value="1500" />
+  </component>
   <component name="ProjectId" id="1QNIy2qsnamByJ6kHwMtKRMqywI" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="false" id="Update" />
     <ConfirmationsSetting value="2" id="Add" />
     <ConfirmationsSetting value="2" id="Remove" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="iznik-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="iznik-server" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="DatabaseDriversLRU" value="mysql" />
@@ -104,47 +312,53 @@
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
       <method v="2" />
     </configuration>
     <configuration name="chatMessagesAPITest.testConversation" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="chatMessagesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" method="testConversation" scope="Method" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
       <method v="2" />
     </configuration>
     <configuration name="dbTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="dbTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/dbTest.php" scope="Class" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="messageAPITest.testApproved" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testApproved" scope="Method" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
       <method v="2" />
     </configuration>
     <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
+      <method v="2" />
+    </configuration>
+    <configuration name="sessionTest.testAboutMe" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testAboutMe" scope="Method" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
       <method v="2" />
     </configuration>
     <configuration name="ut" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" use_alternative_configuration_file="true" />
+      <option name="workingDirectory" value="C:\Users\Edward\PhpstormProjects\iznik-server\http\api" />
       <method v="2" />
     </configuration>
     <list>
       <item itemvalue="PHPUnit.ut" />
-      <item itemvalue="PHPUnit.messageAPITest.testApproved" />
       <item itemvalue="PHPUnit.chatMessagesAPITest.testConversation" />
       <item itemvalue="PHPUnit.messagesTest.testEH" />
       <item itemvalue="PHPUnit.dbTest" />
+      <item itemvalue="PHPUnit.sessionTest.testAboutMe" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="PHPUnit.messagesTest.testEH" />
-        <item itemvalue="PHPUnit.dbTest" />
+        <item itemvalue="PHPUnit.sessionTest.testAboutMe" />
         <item itemvalue="PHPUnit.ut" />
+        <item itemvalue="PHPUnit.dbTest" />
         <item itemvalue="PHPUnit.chatMessagesAPITest.testConversation" />
-        <item itemvalue="PHPUnit.messageAPITest.testApproved" />
       </list>
     </recent_temporary>
   </component>
@@ -206,20 +420,6 @@
       <workItem from="1564086126520" duration="2222000" />
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
-    </task>
-    <task id="LOCAL-00136" summary="Add ability to hold community events and volunteer ops">
-      <created>1553934052153</created>
-      <option name="number" value="00136" />
-      <option name="presentableId" value="LOCAL-00136" />
-      <option name="project" value="LOCAL" />
-      <updated>1553934052153</updated>
-    </task>
-    <task id="LOCAL-00137" summary="Don't notify by email for About Me notification">
-      <created>1553944625892</created>
-      <option name="number" value="00137" />
-      <option name="presentableId" value="LOCAL-00137" />
-      <option name="project" value="LOCAL" />
-      <updated>1553944625892</updated>
     </task>
     <task id="LOCAL-00138" summary="Debugging chat email issues">
       <created>1553963615765</created>
@@ -550,8 +750,86 @@
       <option name="project" value="LOCAL" />
       <updated>1567694062212</updated>
     </task>
-    <option name="localTasksCounter" value="185" />
+    <task id="LOCAL-00185" summary="Switch to UK backup for Brexit reasons">
+      <created>1567848886493</created>
+      <option name="number" value="00185" />
+      <option name="presentableId" value="LOCAL-00185" />
+      <option name="project" value="LOCAL" />
+      <updated>1567848886494</updated>
+    </task>
+    <task id="LOCAL-00186" summary="Speed-ups: get user info">
+      <created>1567848921066</created>
+      <option name="number" value="00186" />
+      <option name="presentableId" value="LOCAL-00186" />
+      <option name="project" value="LOCAL" />
+      <updated>1567848921067</updated>
+    </task>
+    <option name="localTasksCounter" value="187" />
     <servers />
+  </component>
+  <component name="TestHistory">
+    <history-entry file="sessionTest_testAboutMe - 2019.09.07 at 10h 32m 30s.xml">
+      <configuration name="sessionTest.testAboutMe" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="sessionTest_testAboutMe - 2019.09.07 at 10h 32m 56s.xml">
+      <configuration name="sessionTest.testAboutMe" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="sessionTest_testAboutMe - 2019.09.07 at 10h 33m 28s.xml">
+      <configuration name="sessionTest.testAboutMe" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="sessionTest_testAboutMe - 2019.09.07 at 10h 33m 50s.xml">
+      <configuration name="sessionTest.testAboutMe" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="sessionTest_testAboutMe - 2019.09.07 at 10h 34m 00s.xml">
+      <configuration name="sessionTest.testAboutMe" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="sessionTest_testAboutMe - 2019.09.07 at 10h 34m 23s.xml">
+      <configuration name="sessionTest.testAboutMe" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="messagesTest_testEH - 2019.09.07 at 10h 45m 30s.xml">
+      <configuration name="messagesTest.testEH" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="messagesTest_testEH - 2019.09.07 at 10h 45m 41s.xml">
+      <configuration name="messagesTest.testEH" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="messagesTest_testEH - 2019.09.07 at 10h 47m 05s.xml">
+      <configuration name="messagesTest.testEH" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+    <history-entry file="messagesTest_testEH - 2019.09.07 at 11h 17m 34s.xml">
+      <configuration name="messagesTest.testEH" configurationId="PHPUnitRunConfigurationType" />
+    </history-entry>
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="16412000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-7" y="-7" width="1721" height="935" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.16255268" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="DB Browser" order="2" />
+      <window_info id="Favorites" order="3" side_tool="true" />
+      <window_info anchor="bottom" id="File Transfer" weight="0.32997987" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32876712" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.19676214" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info active="true" anchor="bottom" id="Version Control" order="8" visible="true" weight="0.32876712" />
+      <window_info anchor="bottom" id="DB Execution Console" order="9" />
+      <window_info anchor="bottom" id="Database Changes" order="10" />
+      <window_info anchor="bottom" id="Terminal" order="11" />
+      <window_info anchor="bottom" id="Event Log" order="12" side_tool="true" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Remote Host" order="3" />
+      <window_info anchor="right" id="Database" order="4" />
+    </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
@@ -572,6 +850,12 @@
         <entry key="MAIN">
           <value>
             <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
               <option name="FILTERS">
                 <map>
                   <entry key="text">
@@ -594,8 +878,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Add another autoresponder message" />
-    <MESSAGE value="Purge logs for old mail bounces to save space" />
     <MESSAGE value="Fix up group settings for allow edits" />
     <MESSAGE value="Remove stroll donation appeal from chat notifications" />
     <MESSAGE value="Commit project" />
@@ -619,6 +901,87 @@
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Another Autoreply message" />
     <MESSAGE value="Speed-ups: don't open connections to the database unless we actually need them" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: don't open connections to the database unless we actually need them" />
+    <MESSAGE value="Switch to UK backup for Brexit reasons" />
+    <MESSAGE value="Speed-ups: get user info" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get user info" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/include/chat/ChatRoom.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="244">
+          <caret line="2167" column="20" selection-start-line="2167" selection-start-column="20" selection-end-line="2167" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/backup">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="16" column="9" selection-start-line="16" selection-start-column="9" selection-end-line="16" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/user/Search.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-848">
+          <caret line="3" column="38" selection-start-line="3" selection-start-column="38" selection-end-line="3" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/misc/Search.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-646">
+          <caret line="293" column="35" selection-start-line="293" selection-start-column="35" selection-end-line="293" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/http/api/messages.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="250">
+          <caret line="129" column="64" selection-start-line="129" selection-start-column="64" selection-end-line="129" selection-end-column="64" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/misc/Location.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="162">
+          <caret line="11" column="10" selection-start-line="11" selection-start-column="10" selection-end-line="11" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/api/sessionTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="537" selection-start-line="537" selection-end-line="537" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/user/User.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="222">
+          <caret line="1665" selection-start-line="1665" selection-end-line="1665" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/api/messagesTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="364">
+          <caret line="506" column="55" selection-start-line="506" selection-start-column="55" selection-end-line="506" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/message/MessageCollection.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="110">
+          <caret line="296" selection-start-line="296" selection-end-line="296" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/message/Message.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="110">
+          <caret line="1590" column="36" selection-start-line="1590" selection-start-column="36" selection-end-line="1590" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
   </component>
 </project>

@@ -504,13 +504,13 @@ class messagesTest extends IznikAPITestCase {
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $_SESSION['id'] = $uid;
         $ret = $this->call('messages', 'GET', [
-            'collection' => MessageCollection::ALLUSER,
+            'collection' => MessageCollection::APPROVED,
             'summary' => TRUE,
             'types' => [
                 Message::TYPE_OFFER,
                 Message::TYPE_WANTED
             ],
-            'fromuser' => $uid,
+//            'fromuser' => $uid,
         ]);
 
         assertEquals(0, $ret['ret']);
