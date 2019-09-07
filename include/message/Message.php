@@ -1083,7 +1083,7 @@ class Message
                                 ];
                             }
 
-                            $group['approvedby'] = $approvedcache[$group['approvedby']];
+                            $ret['groups'][$groupind]['approvedby'] = $approvedcache[$group['approvedby']];
                         }
                     }
                 }
