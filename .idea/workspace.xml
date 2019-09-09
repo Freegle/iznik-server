@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -150,8 +147,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="PHPUnit.ut" />
-        <item itemvalue="PHPUnit.userTest.testProfile" />
         <item itemvalue="PHPUnit.userTest" />
+        <item itemvalue="PHPUnit.userTest.testProfile" />
         <item itemvalue="PHPUnit.userTest.testAFreegler" />
         <item itemvalue="PHPUnit.messageAPITest.testApprove" />
       </list>
@@ -216,13 +213,6 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-    </task>
-    <task id="LOCAL-00140" summary="* If you unfollow a chitchat thread, then you shouldn't see notifications for it.">
-      <created>1556098402854</created>
-      <option name="number" value="00140" />
-      <option name="presentableId" value="LOCAL-00140" />
-      <option name="project" value="LOCAL" />
-      <updated>1556098402854</updated>
     </task>
     <task id="LOCAL-00141" summary="Fix to notification change">
       <created>1556098961239</created>
@@ -560,7 +550,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568043253480</updated>
     </task>
-    <option name="localTasksCounter" value="189" />
+    <task id="LOCAL-00189" summary="Speed-ups: get user profiles">
+      <created>1568048286212</created>
+      <option name="number" value="00189" />
+      <option name="presentableId" value="LOCAL-00189" />
+      <option name="project" value="LOCAL" />
+      <updated>1568048286212</updated>
+    </task>
+    <option name="localTasksCounter" value="190" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +601,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Remove stroll donation appeal from chat notifications" />
     <MESSAGE value="Commit project" />
     <MESSAGE value="Yahoo login for new FD version" />
     <MESSAGE value="Newsfeed threadhead wrong." />
@@ -629,6 +625,7 @@
     <MESSAGE value="Speed-ups: get user info" />
     <MESSAGE value="Fixes to speed-ups" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Speed-ups: get user profiles" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get user profiles" />
   </component>
 </project>

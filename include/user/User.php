@@ -2076,6 +2076,59 @@ class User extends Entity
         }
     }
 
+    public function getPublicHistory($me, &$rets, $users, $groupids, $msgcoll, $historyfull, $systemrole) {
+        $userids = array_keys($rets);
+
+        foreach ($rets as &$atts) {
+            $atts['messagehistory'] = [];
+        }
+
+        # Add in the message history - from any of the emails associated with this user.
+        #
+        # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
+        $sql = NULL;
+        $collq = count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ") : '';
+        $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
+
+        if ($groupids && count($groupids) > 0) {
+            # On these groups
+            $groupq = implode(',', $groupids);
+            $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid WHERE messages.arrival > ? ORDER BY messages.arrival DESC;";
+        } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
+            # We can see all groups.
+            $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid WHERE messages.arrival > ? ORDER BY messages.arrival DESC;";
+        }
+
+        if ($sql) {
+             $histories = $this->dbhr->preQuery($sql, [
+                $earliest
+             ]);
+
+             foreach ($histories as $history) {
+                 $history['arrival'] = pres('repostdate', $history) ? ISODate($history['repostdate']) : ISODate($history['arrival']);
+                 $history['date'] = ISODate($history['date']);
+                 $atts['messagehistory'][] = $history;
+             }
+        }
+
+        # Add in a count of recent "modmail" type logs which a mod might care about.
+        $modships = $me ? $me->getModeratorships() : [];
+        $modships = count($modships) == 0 ? [0] : $modships;
+        $sql = "SELECT COUNT(*) AS count, userid FROM `users_modmails` WHERE userid IN (" . implode(',', $userids) . ") AND groupid IN (" . implode(',', $modships) . ") GROUP BY userid;";
+        #error_log("Find modmails $sql");
+        $modmails = $this->dbhr->preQuery($sql);
+
+        foreach ($rets as &$ret) {
+            $ret['modmails'] = 0;
+
+            foreach ($modmails as $modmail) {
+                if ($modmail['userid'] == $ret['id']) {
+                    $ret['modmails'] = $modmail['count'];
+                }
+            }
+        }
+    }
+
     public function getPublics($users, $groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -2088,49 +2141,15 @@ class User extends Entity
         $this->getPublicAtts($rets, $users, $me);
         $this->getPublicProfiles($rets, $users);
 
+        if (MODTOOLS) {
+            if ($history) {
+                $this->getPublicHistory($me, $rets, $users, $groupids, $msgcoll, $historyfull, $systemrole);
+            }
+        }
 
         foreach ($rets as &$atts) {
             # Some info is only relevant for ModTools, rather than the user site.
             if (MODTOOLS) {
-                if ($history) {
-                    # Add in the message history - from any of the emails associated with this user.
-                    #
-                    # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
-                    $atts['messagehistory'] = [];
-                    $sql = NULL;
-                    $collq = count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ") : '';
-                    $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
-
-                    if ($groupids && count($groupids) > 0) {
-                        # On these groups
-                        $groupq = implode(',', $groupids);
-                        $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid WHERE messages.arrival > ? ORDER BY messages.arrival DESC;";
-                    } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
-                        # We can see all groups.
-                        $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid WHERE messages.arrival > ? ORDER BY messages.arrival DESC;";
-                    }
-
-                    if ($sql) {
-                        $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
-                            $this->id,
-                            $earliest
-                        ]);
-
-                        foreach ($atts['messagehistory'] as &$hist) {
-                            $hist['arrival'] = pres('repostdate', $hist) ? ISODate($hist['repostdate']) : ISODate($hist['arrival']);
-                            $hist['date'] = ISODate($hist['date']);
-                        }
-                    }
-                }
-
-                # Add in a count of recent "modmail" type logs which a mod might care about.
-                $modships = $me ? $me->getModeratorships() : [];
-                $modships = count($modships) == 0 ? [0] : $modships;
-                $sql = "SELECT COUNT(*) AS count FROM `users_modmails` WHERE userid = ? AND groupid IN (" . implode(',', $modships) . ");";
-                #error_log("Find modmails $sql");
-                $modmails = (count($modships) == 0 || $modships == [0]) ? [['count' => 0]] : $this->dbhr->preQuery($sql, [$this->id]);
-                $atts['modmails'] = $modmails[0]['count'];
-
                 if ($logs) {
                     # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
                     # - creation - either of ourselves or others during syncing.
@@ -2138,6 +2157,7 @@ class User extends Entity
                     # Don't cache as there might be a lot, they're rarely used, and it can cause UT issues.
                     $me = whoAmI($this->dbhr, $this->dbhm);
                     $startq = $ctx ? " AND id < {$ctx['id']} " : '';
+                    $modships = $me ? $me->getModeratorships() : [];
                     $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND groupid IN (" . implode(',', $modships) . ")";
                     $modq = $modmailsonly ? $modmailq : '';
                     $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
