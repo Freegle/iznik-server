@@ -1994,7 +1994,7 @@ class User extends Entity
 
     public function getPublicAtts(&$rets, $users) {
         foreach ($users as $user) {
-            $ret = $rets[$user['id']];
+            $ret = presdef($user['id'], $rets, []);
 
             foreach ($this->publicatts as $att) {
                 if (pres($att, $user)) {
