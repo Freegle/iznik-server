@@ -131,7 +131,6 @@ class User extends Entity
         $this->user = NULL;
         $this->id = NULL;
         $this->table = 'users';
-        $this->profile = NULL;
         $this->spammer = [];
 
         if ($id) {
@@ -151,10 +150,9 @@ class User extends Entity
                     ]);
             }
 
-            $sql = "SELECT users.*, users_images.id AS imageid, users_images.url AS imageurl, users_images.default AS imagedefault, spam_users.id AS spamid, spam_users.userid AS spamuserid, spam_users.byuserid AS spambyuserid, spam_users.added AS spamadded, spam_users.collection AS spamcollection, spam_users.reason AS spamreason FROM users LEFT JOIN users_images ON users_images.userid = users.id LEFT JOIN spam_users ON spam_users.userid = users.id WHERE users.id = ? ORDER BY imageid DESC LIMIT 1;";
+            # Fetch the user.  There are so many users that there is no point trying to use the query cache.
+            $sql = "SELECT users.*, spam_users.id AS spamid, spam_users.userid AS spamuserid, spam_users.byuserid AS spambyuserid, spam_users.added AS spamadded, spam_users.collection AS spamcollection, spam_users.reason AS spamreason FROM users LEFT JOIN spam_users ON spam_users.userid = users.id WHERE users.id = ?;";
 
-            # Fetch the user and any profile image.  There are so many users that there is no point trying
-            # to use the query cache.
             $users = $dbhr->preQuery($sql, [
                 $id
             ], FALSE, FALSE);
@@ -172,26 +170,6 @@ class User extends Entity
                         $this->spammer['added'] = ISODate($this->spammer['added']);
                     } else {
                         $this->spammer = TRUE;
-                    }
-                }
-
-                if ($user['imageid']) {
-                    # We found a profile.  Move it out of the user attributes.
-                    $this->profile = [];
-                    foreach (['id', 'url', 'default'] as $att) {
-                        $this->profile[$att]= $user['image'. $att];
-                        unset($user['image' . $att]);
-                    }
-
-                    if (!$this->profile['default']) {
-                        # If it's a gravatar image we can return a thumbnail url that specifies a different size.
-                        $turl = pres('url', $this->profile) ? $this->profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$this->profile['id']}.jpg");
-                        $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
-                        $this->profile = [
-                            'url' => pres('url', $this->profile) ? $this->profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$this->profile['id']}.jpg"),
-                            'turl' => $turl,
-                            'default' => FALSE
-                        ];
                     }
                 }
 
@@ -327,15 +305,17 @@ class User extends Entity
         return ("bounce-{$this->id}-" . time() . "@" . USER_DOMAIN);
     }
 
-    public function getName($default = TRUE)
+    public function getName($default = TRUE, $atts = NULL)
     {
+        $atts = $atts ? $atts : $this->user;
+
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.
         $name = NULL;
-        if ($this->user['fullname']) {
-            $name = $this->user['fullname'];
-        } else if ($this->user['firstname'] || $this->user['lastname']) {
-            $name = $this->user['firstname'] . ' ' . $this->user['lastname'];
+        if ($atts['fullname']) {
+            $name = $atts['fullname'];
+        } else if ($atts['firstname'] || $atts['lastname']) {
+            $name = $atts['firstname'] . ' ' . $atts['lastname'];
         }
 
         # Make sure we don't return an email if somehow one has snuck in.
@@ -1992,8 +1972,8 @@ class User extends Entity
         return($ret);
     }
 
-    public function getPublicAtts(&$rets, $users) {
-        foreach ($users as $user) {
+    public function getPublicAtts(&$rets, $users, $me) {
+        foreach ($users as &$user) {
             $ret = presdef($user['id'], $rets, []);
 
             foreach ($this->publicatts as $att) {
@@ -2004,84 +1984,112 @@ class User extends Entity
                 }
             }
 
+            $ret['settings'] = presdef('settings', $user, NULL) ? json_decode($user['settings'], TRUE) : ['dummy' => TRUE];
+            $ret['settings']['notificationmails'] = array_key_exists('notificationmails', $ret['settings']) ? $ret['settings']['notificationmails'] : TRUE;
+            $ret['settings']['modnotifs'] = array_key_exists('modnotifs', $ret['settings']) ? $ret['settings']['modnotifs'] : 4;
+            $ret['settings']['backupmodnotifs'] = array_key_exists('backupmodnotifs', $ret['settings']) ? $ret['settings']['backupmodnotifs'] : 12;
+
+            if ($ret['id'] &&
+                (($ret['fullname'] == 'A freegler') ||
+                    (strlen($ret['fullname']) == 32 && $ret['fullname'] == $ret['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $ret['fullname'])))) {
+                # We have some names derived from Yahoo IDs which are hex strings.  They look silly.  Replace them with
+                # something better.  Ditto "A freegler", which is a legacy way in which names were anonymised.
+                $u = new User($this->dbhr, $this->dbhm, $ret['id']);
+                $email = $u->inventEmail();
+                $ret['fullname'] = substr($email, 0, strpos($email, '-'));
+                $u->setPrivate('fullname', $user['fullname']);
+            }
+
+            $ret['displayname'] = $this->getName(TRUE, $user);
+
+            $ret['added'] = ISODate($user['added']);
+
+            foreach (['fullname', 'firstname', 'lastname'] as $att) {
+                # Make sure we don't return an email if somehow one has snuck in.
+                $ret[$att] = strpos($ret[$att], '@') !== FALSE ? substr($ret[$att], 0, strpos($ret[$att], '@')) : $ret[$att];
+            }
+
+            if ($me && $ret['id'] == $me->getId()) {
+                # Add in private attributes for our own entry.
+                $ret['emails'] = $me->getEmails();
+                $ret['email'] = $me->getEmailPreferred();
+                $ret['relevantallowed'] = $me->getPrivate('relevantallowed');
+                $ret['permissions'] = $me->getPrivate('permissions');
+            }
+
+            if ($me && ($me->isModerator() || $this->id == $me->getId())) {
+                # Mods can see email settings, no matter which group.
+                $ret['onholidaytill'] = (pres('onholidaytill', $ret) && (time() < strtotime($ret['onholidaytill']))) ? ISODate($ret['onholidaytill']) : NULL;
+            } else {
+                # Don't show some attributes unless they're a mod or ourselves.
+                $ismod = $ret['systemrole'] == User::SYSTEMROLE_ADMIN ||
+                    $ret['systemrole'] == User::SYSTEMROLE_SUPPORT ||
+                    $ret['systemrole'] == User::SYSTEMROLE_MODERATOR;
+                $showmod = $ismod && presdef('showmod', $ret['settings'], FALSE);
+                $ret['settings'] = ['showmod' => $showmod];
+                $ret['yahooid'] = NULL;
+                $ret['yahooUserId'] = NULL;
+            }
+
             $rets[$user['id']] = $ret;
+        }
+    }
+    
+    public function getPublicProfiles(&$rets) {
+        $userids = array_filter(array_keys($rets));
+
+        foreach ($rets as &$ret) {
+            $ret['profile'] = [
+                'url' => 'https://' . USER_SITE . '/images/defaultprofile.png',
+                'turl' => 'https://' . USER_SITE . '/images/defaultprofile.png',
+                'default' => TRUE
+            ];
+        }
+
+        # Ordering by id ASC means we'll end up with the most recent value in our output.
+        $sql = "SELECT * FROM users_images WHERE userid IN (" . implode(',', $userids) . ") ORDER BY userid, id ASC;";
+
+        $profiles = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+
+        foreach ($profiles as $profile) {
+            $ret = $rets[$profile['userid']];
+
+            # Get a profile.  This function is called so frequently that we can't afford to query external sites
+            # within it, so if we don't find one, we default to none.
+            if (pres('imageid', $profile) &&
+                gettype($ret['settings']) == 'array' &&
+                (!array_key_exists('useprofile', $ret['settings']) || $ret['settings']['useprofile'])) {
+                # We found a profile that we can use.
+                if (!$profile['default']) {
+                    # If it's a gravatar image we can return a thumbnail url that specifies a different size.
+                    $turl = pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
+                    $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
+                    $ret['profile'] = [
+                        'url' => pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
+                        'turl' => $turl,
+                        'default' => FALSE
+                    ];
+                }
+            }
+
+            $rets[$profile['userid']] = $ret;
         }
     }
 
     public function getPublics($users, $groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
+        $myid = $me ? $me->getId() : NULL;
+        $freeglemod = $me && $me->isFreegleMod();
+
         $rets = [];
 
-        $this->getPublicAtts($rets, $users);
+        $this->getPublicAtts($rets, $users, $me);
+        $this->getPublicProfiles($rets, $users);
+
 
         foreach ($rets as &$atts) {
-            $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : ['dummy' => TRUE];
-            $atts['settings']['notificationmails'] = array_key_exists('notificationmails', $atts['settings']) ? $atts['settings']['notificationmails'] : TRUE;
-            $atts['settings']['modnotifs'] = array_key_exists('modnotifs', $atts['settings']) ? $atts['settings']['modnotifs'] : 4;
-            $atts['settings']['backupmodnotifs'] = array_key_exists('backupmodnotifs', $atts['settings']) ? $atts['settings']['backupmodnotifs'] : 12;
-
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
-            $myid = $me ? $me->getId() : NULL;
-            $freeglemod = $me && $me->isFreegleMod();
-
-            if ($this->id &&
-                (($this->getName() == 'A freegler') ||
-                    (strlen($atts['fullname']) == 32 && $atts['fullname'] == $atts['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $atts['fullname'])))) {
-                # We have some names derived from Yahoo IDs which are hex strings.  They look silly.  Replace them with
-                # something better.  Ditto "A freegler", which is a legacy way in which names were anonymised.
-                $email = $this->inventEmail();
-                $atts['fullname'] = substr($email, 0, strpos($email, '-'));
-                $this->setPrivate('fullname', $atts['fullname']);
-            }
-
-            $atts['displayname'] = $this->getName();
-
-            $atts['added'] = ISODate($atts['added']);
-
-            foreach (['fullname', 'firstname', 'lastname'] as $att) {
-                # Make sure we don't return an email if somehow one has snuck in.
-                $atts[$att] = strpos($atts[$att], '@') !== FALSE ? substr($atts[$att], 0, strpos($atts[$att], '@')) : $atts[$att];
-            }
-
-            # Get a profile.  This function is called so frequently that we can't afford to query external sites
-            # within it, so if we don't find one, we default to none.
-            $atts['profile'] = [
-                'url' => 'https://' . USER_SITE . '/images/defaultprofile.png',
-                'turl' => 'https://' . USER_SITE . '/images/defaultprofile.png',
-                'default' => TRUE
-            ];
-
-            $emails = NULL;
-
-            if (gettype($atts['settings']) == 'array' &&
-                (!array_key_exists('useprofile', $atts['settings']) || $atts['settings']['useprofile']) &&
-                ($this->profile) &&
-                (!$this->profile['default'])) {
-                # Return the profile
-                $atts['profile'] = $this->profile;
-            }
-
-            if ($me && $this->id == $me->getId()) {
-                # Add in private attributes for our own entry.
-                $emails = $emails ? $emails : $me->getEmails();
-                $atts['emails'] = $emails;
-                $atts['email'] = $me->getEmailPreferred();
-                $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
-                $atts['permissions'] = $me->getPrivate('permissions');
-            }
-
-            if ($me && ($me->isModerator() || $this->id == $me->getId())) {
-                # Mods can see email settings, no matter which group.
-                $atts['onholidaytill'] = ($this->user['onholidaytill'] && (time() < strtotime($this->user['onholidaytill']))) ? ISODate($this->user['onholidaytill']) : NULL;
-            } else {
-                # Don't show some attributes unless they're a mod or ourselves.
-                $showmod = $this->isModerator() && presdef('showmod', $atts['settings'], FALSE);
-                $atts['settings'] = ['showmod' => $showmod];
-                $atts['yahooid'] = NULL;
-                $atts['yahooUserId'] = NULL;
-            }
-
             # Some info is only relevant for ModTools, rather than the user site.
             if (MODTOOLS) {
                 if ($history) {

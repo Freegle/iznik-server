@@ -905,14 +905,6 @@ class userTest extends IznikTestCase {
 
     public function testProfile() {
         $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->findByEmail('norfolkmod@gmail.com');
-        $this->dbhm->preExec("DELETE FROM users_images WHERE userid = ?;", [ $uid ]);
-        $u = new User($this->dbhr, $this->dbhm, $uid);
-        $atts = $u->getPublic();
-        $u->ensureAvatar($atts);
-        $this->log("Profile " . var_export($atts['profile'], TRUE));
-        assertTrue($atts['profile']['gravatar']);
-        $this->log("norfolkmod@gmail.com URL {$atts['profile']['url']}");
 
         $uid = $u->create("Test", "User", "Test User");
         $this->log("Created user $uid");
@@ -937,7 +929,7 @@ class userTest extends IznikTestCase {
         $u->create('Test', 'User', '42decfdc9afca38d682324e2e5a02123');
         $u->setPrivate('yahooid', '42decfdc9afca38d682324e2e5a02123');
         $atts = $u->getPublic();
-        self::assertLessThan(32, $atts['fullname']);
+        self::assertLessThan(32, strlen($atts['fullname']));
 
         }
 
@@ -946,8 +938,7 @@ class userTest extends IznikTestCase {
         $u->create('Test', 'User', 'A freegler');
         $atts = $u->getPublic();
         self::assertNotEquals('A freegler', $atts['fullname']);
-
-        }
+     }
 
     public function testSetting() {
         $u = User::get($this->dbhm, $this->dbhm);

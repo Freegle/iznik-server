@@ -170,14 +170,16 @@ class Newsfeed extends Entity
 
         if ($anyreplies && pres('replies', $atts)) {
             foreach ($atts['replies'] as &$reply) {
-                if (!pres($reply['userid'], $users)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
-                    $ctx = NULL;
-                    $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-                    $reply['user']['activecounts'] = $u->getActiveCounts();
-                    $users[$reply['userid']] = $reply['user'];
-                } else {
-                    $reply['user'] = $users[$reply['userid']];
+                if (pres('userid', $reply)) {
+                    if (!pres($reply['userid'], $users)) {
+                        $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
+                        $ctx = NULL;
+                        $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                        $reply['user']['activecounts'] = $u->getActiveCounts();
+                        $users[$reply['userid']] = $reply['user'];
+                    } else {
+                        $reply['user'] = $users[$reply['userid']];
+                    }
                 }
             }
         }
