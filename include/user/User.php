@@ -1967,9 +1967,154 @@ class User extends Entity
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
         $users = [ $this->user ];
-        $rets = $this->getPublics($users, $groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
-        $ret = $rets[$this->id];
-        return($ret);
+        $rets = $this->getPublics($users, $groupids, $history, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
+        $atts = $rets[$this->id];
+
+        if ($logs) {
+            # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
+            # - creation - either of ourselves or others during syncing.
+            # - deletion of users due to syncing
+            # Don't cache as there might be a lot, they're rarely used, and it can cause UT issues.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
+            $startq = $ctx ? " AND id < {$ctx['id']} " : '';
+            $modships = $me ? $me->getModeratorships() : [];
+            $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND groupid IN (" . implode(',', $modships) . ")";
+            $modq = $modmailsonly ? $modmailq : '';
+            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
+            $logs = $this->dbhr->preQuery($sql, [$this->id, $this->id], FALSE, FALSE);
+            #error_log($sql . $this->id);
+            $atts['logs'] = [];
+            $groups = [];
+            $users = [];
+            $configs = [];
+
+            if (!$ctx) {
+                $ctx = ['id' => 0];
+            }
+
+            foreach ($logs as $log) {
+                $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : min($ctx['id'], $log['id']);
+
+                if (pres('byuser', $log)) {
+                    if (!pres($log['byuser'], $users)) {
+                        $u = User::get($this->dbhr, $this->dbhm, $log['byuser']);
+                        $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
+                    }
+
+                    $log['byuser'] = $users[$log['byuser']];
+                }
+
+                if (pres('user', $log)) {
+                    if (!pres($log['user'], $users)) {
+                        $u = User::get($this->dbhr, $this->dbhm, $log['user']);
+                        $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
+                    }
+
+                    $log['user'] = $users[$log['user']];
+                }
+
+                if (pres('groupid', $log)) {
+                    if (!pres($log['groupid'], $groups)) {
+                        $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
+
+                        if ($g->getId()) {
+                            $groups[$log['groupid']] = $g->getPublic();
+                            $groups[$log['groupid']]['myrole'] = $me ? $me->getRoleForGroup($log['groupid']) : User::ROLE_NONMEMBER;
+                        }
+                    }
+
+                    # We can see logs for ourselves.
+                    if (!($myid != NULL && pres('user', $log) && presdef('id', $log['user'], NULL) == $myid) &&
+                        $g->getId() &&
+                        $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
+                        $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR
+                    ) {
+                        # We can only see logs for this group if we have a mod role, or if we have appropriate system
+                        # rights.  Skip this log.
+                        continue;
+                    }
+
+                    $log['group'] = presdef($log['groupid'], $groups, NULL);
+                }
+
+                if (pres('configid', $log)) {
+                    if (!pres($log['configid'], $configs)) {
+                        $c = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
+
+                        if ($c->getId()) {
+                            $configs[$log['configid']] = $c->getPublic();
+                        }
+                    }
+
+                    if (pres($log['configid'], $configs)) {
+                        $log['config'] = $configs[$log['configid']];
+                    }
+                }
+
+                if (pres('stdmsgid', $log)) {
+                    $s = new StdMessage($this->dbhr, $this->dbhm, $log['stdmsgid']);
+                    $log['stdmsg'] = $s->getPublic();
+                }
+
+                if (pres('msgid', $log)) {
+                    $m = new Message($this->dbhr, $this->dbhm, $log['msgid']);
+
+                    if ($m->getID()) {
+                        $log['message'] = $m->getPublic(FALSE);
+                    } else {
+                        # The message has been deleted.
+                        $log['message'] = [
+                            'id' => $log['msgid'],
+                            'deleted' => true
+                        ];
+
+                        # See if we can find out why.
+                        $sql = "SELECT * FROM logs WHERE msgid = ? AND type = 'Message' AND subtype = 'Deleted' ORDER BY id DESC LIMIT 1;";
+                        $deletelogs = $this->dbhr->preQuery($sql, [$log['msgid']]);
+                        foreach ($deletelogs as $deletelog) {
+                            $log['message']['deletereason'] = $deletelog['text'];
+                        }
+                    }
+
+                    # Prune large attributes.
+                    unset($log['message']['textbody']);
+                    unset($log['message']['htmlbody']);
+                    unset($log['message']['message']);
+                }
+
+                $log['timestamp'] = ISODate($log['timestamp']);
+
+                $atts['logs'][] = $log;
+            }
+
+            # Get merge history
+            $ids = [$this->id];
+            $merges = [];
+            do {
+                $added = FALSE;
+                $sql = "SELECT * FROM logs WHERE type = 'User' AND subtype = 'Merged' AND user IN (" . implode(',', $ids) . ");";
+                $logs = $this->dbhr->preQuery($sql);
+                foreach ($logs as $log) {
+                    #error_log("Consider merge log {$log['text']}");
+                    if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
+                        #error_log("Matched " . var_export($matches, TRUE));
+                        #error_log("Check ids {$matches[1]} and {$matches[2]}");
+                        foreach ([$matches[1], $matches[2]] as $id) {
+                            if (!in_array($id, $ids, TRUE)) {
+                                $added = TRUE;
+                                $ids[] = $id;
+                                $merges[] = ['timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3]];
+                            }
+                        }
+                    }
+                }
+            } while ($added);
+
+            $atts['merges'] = $merges;
+        }
+
+        return($atts);
     }
 
     public function getPublicAtts(&$rets, $users, $me) {
@@ -2129,7 +2274,7 @@ class User extends Entity
         }
     }
 
-    public function getPublics($users, $groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
+    public function getPublics($users, $groupids = NULL, $history = TRUE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
@@ -2145,158 +2290,15 @@ class User extends Entity
             if ($history) {
                 $this->getPublicHistory($me, $rets, $users, $groupids, $msgcoll, $historyfull, $systemrole);
             }
+
+            if ($comments) {
+                $atts['comments'] = $this->getComments($me, $rets);
+            }
         }
 
         foreach ($rets as &$atts) {
             # Some info is only relevant for ModTools, rather than the user site.
             if (MODTOOLS) {
-                if ($logs) {
-                    # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
-                    # - creation - either of ourselves or others during syncing.
-                    # - deletion of users due to syncing
-                    # Don't cache as there might be a lot, they're rarely used, and it can cause UT issues.
-                    $me = whoAmI($this->dbhr, $this->dbhm);
-                    $startq = $ctx ? " AND id < {$ctx['id']} " : '';
-                    $modships = $me ? $me->getModeratorships() : [];
-                    $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND groupid IN (" . implode(',', $modships) . ")";
-                    $modq = $modmailsonly ? $modmailq : '';
-                    $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
-                    $logs = $this->dbhr->preQuery($sql, [$this->id, $this->id], FALSE, FALSE);
-                    #error_log($sql . $this->id);
-                    $atts['logs'] = [];
-                    $groups = [];
-                    $users = [];
-                    $configs = [];
-
-                    if (!$ctx) {
-                        $ctx = ['id' => 0];
-                    }
-
-                    foreach ($logs as $log) {
-                        $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : min($ctx['id'], $log['id']);
-
-                        if (pres('byuser', $log)) {
-                            if (!pres($log['byuser'], $users)) {
-                                $u = User::get($this->dbhr, $this->dbhm, $log['byuser']);
-                                $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
-                            }
-
-                            $log['byuser'] = $users[$log['byuser']];
-                        }
-
-                        if (pres('user', $log)) {
-                            if (!pres($log['user'], $users)) {
-                                $u = User::get($this->dbhr, $this->dbhm, $log['user']);
-                                $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
-                            }
-
-                            $log['user'] = $users[$log['user']];
-                        }
-
-                        if (pres('groupid', $log)) {
-                            if (!pres($log['groupid'], $groups)) {
-                                $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
-
-                                if ($g->getId()) {
-                                    $groups[$log['groupid']] = $g->getPublic();
-                                    $groups[$log['groupid']]['myrole'] = $me ? $me->getRoleForGroup($log['groupid']) : User::ROLE_NONMEMBER;
-                                }
-                            }
-
-                            # We can see logs for ourselves.
-                            if (!($myid != NULL && pres('user', $log) && presdef('id', $log['user'], NULL) == $myid) &&
-                                $g->getId() &&
-                                $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
-                                $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR
-                            ) {
-                                # We can only see logs for this group if we have a mod role, or if we have appropriate system
-                                # rights.  Skip this log.
-                                continue;
-                            }
-
-                            $log['group'] = presdef($log['groupid'], $groups, NULL);
-                        }
-
-                        if (pres('configid', $log)) {
-                            if (!pres($log['configid'], $configs)) {
-                                $c = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
-
-                                if ($c->getId()) {
-                                    $configs[$log['configid']] = $c->getPublic();
-                                }
-                            }
-
-                            if (pres($log['configid'], $configs)) {
-                                $log['config'] = $configs[$log['configid']];
-                            }
-                        }
-
-                        if (pres('stdmsgid', $log)) {
-                            $s = new StdMessage($this->dbhr, $this->dbhm, $log['stdmsgid']);
-                            $log['stdmsg'] = $s->getPublic();
-                        }
-
-                        if (pres('msgid', $log)) {
-                            $m = new Message($this->dbhr, $this->dbhm, $log['msgid']);
-
-                            if ($m->getID()) {
-                                $log['message'] = $m->getPublic(FALSE);
-                            } else {
-                                # The message has been deleted.
-                                $log['message'] = [
-                                    'id' => $log['msgid'],
-                                    'deleted' => true
-                                ];
-
-                                # See if we can find out why.
-                                $sql = "SELECT * FROM logs WHERE msgid = ? AND type = 'Message' AND subtype = 'Deleted' ORDER BY id DESC LIMIT 1;";
-                                $deletelogs = $this->dbhr->preQuery($sql, [$log['msgid']]);
-                                foreach ($deletelogs as $deletelog) {
-                                    $log['message']['deletereason'] = $deletelog['text'];
-                                }
-                            }
-
-                            # Prune large attributes.
-                            unset($log['message']['textbody']);
-                            unset($log['message']['htmlbody']);
-                            unset($log['message']['message']);
-                        }
-
-                        $log['timestamp'] = ISODate($log['timestamp']);
-
-                        $atts['logs'][] = $log;
-                    }
-
-                    # Get merge history
-                    $ids = [$this->id];
-                    $merges = [];
-                    do {
-                        $added = FALSE;
-                        $sql = "SELECT * FROM logs WHERE type = 'User' AND subtype = 'Merged' AND user IN (" . implode(',', $ids) . ");";
-                        $logs = $this->dbhr->preQuery($sql);
-                        foreach ($logs as $log) {
-                            #error_log("Consider merge log {$log['text']}");
-                            if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
-                                #error_log("Matched " . var_export($matches, TRUE));
-                                #error_log("Check ids {$matches[1]} and {$matches[2]}");
-                                foreach ([$matches[1], $matches[2]] as $id) {
-                                    if (!in_array($id, $ids, TRUE)) {
-                                        $added = TRUE;
-                                        $ids[] = $id;
-                                        $merges[] = ['timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3]];
-                                    }
-                                }
-                            }
-                        }
-                    } while ($added);
-
-                    $atts['merges'] = $merges;
-                }
-
-                if ($comments) {
-                    $atts['comments'] = $this->getComments();
-                }
-
                 if ($this->user['suspectcount'] > 0) {
                     # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
                     # - has a system role which allows it
@@ -3260,18 +3262,23 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->notif->notifyGroupMods($groupid);
     }
 
-    public function getComments()
+    public function getComments($me, &$rets)
     {
+        $userids = array_keys($rets);
+
+        foreach ($rets as &$ret) {
+            $ret['comments'] = [];
+        }
+
         # We can only see comments on groups on which we have mod status.
-        $me = whoAmI($this->dbhr, $this->dbhm);
         $groupids = $me ? $me->getModeratorships() : [];
         $groupids = count($groupids) == 0 ? [0] : $groupids;
 
         # Generally there will be no or few comments.  It's quicker (because of indexing) to get them all and filter
-        # by groupid than it is to construct a query which includes groupid.
-        $sql = "SELECT * FROM users_comments WHERE userid = ? ORDER BY date DESC;";
+        # by groupid than it is to construct a query which includes groupid.  Likewise it's not really worth
+        # optimising the calls for byuser, since there won't be any for most users.
+        $sql = "SELECT * FROM users_comments WHERE userid IN (" . implode(',', $userids) . ") ORDER BY date DESC;";
         $comments = $this->dbhr->preQuery($sql, [$this->id]);
-        $ret = [];
 
         foreach ($comments as &$comment) {
             if (in_array($comment['groupid'], $groupids)) {
@@ -3285,7 +3292,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $comment['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
                 }
 
-                $ret[] = $comment;
+                $ret['comments'][] = $comment;
             }
         }
 

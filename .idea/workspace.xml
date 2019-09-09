@@ -3,7 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/IznikAPITestCase.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/IznikAPITestCase.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -106,15 +108,15 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.ut">
+  <component name="RunManager" selected="PHPUnit.messagesTest.testApproved">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageAPITest.testApprove" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="messagesTest.testApproved" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testApprove" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testApproved" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="userTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -122,9 +124,9 @@
       <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="userTest.testAFreegler" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="userTest.testComments" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testAFreegler" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testComments" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="userTest.testProfile" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -138,19 +140,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.messageAPITest.testApprove" />
       <item itemvalue="PHPUnit.userTest" />
-      <item itemvalue="PHPUnit.userTest.testAFreegler" />
       <item itemvalue="PHPUnit.userTest.testProfile" />
       <item itemvalue="PHPUnit.ut" />
+      <item itemvalue="PHPUnit.userTest.testComments" />
+      <item itemvalue="PHPUnit.messagesTest.testApproved" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.messagesTest.testApproved" />
         <item itemvalue="PHPUnit.ut" />
+        <item itemvalue="PHPUnit.userTest.testComments" />
         <item itemvalue="PHPUnit.userTest" />
         <item itemvalue="PHPUnit.userTest.testProfile" />
-        <item itemvalue="PHPUnit.userTest.testAFreegler" />
-        <item itemvalue="PHPUnit.messageAPITest.testApprove" />
       </list>
     </recent_temporary>
   </component>
@@ -213,13 +215,6 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-    </task>
-    <task id="LOCAL-00141" summary="Fix to notification change">
-      <created>1556098961239</created>
-      <option name="number" value="00141" />
-      <option name="presentableId" value="LOCAL-00141" />
-      <option name="project" value="LOCAL" />
-      <updated>1556098961239</updated>
     </task>
     <task id="LOCAL-00142" summary="Add active counts to newsfeed">
       <created>1556125986527</created>
@@ -557,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568048286212</updated>
     </task>
-    <option name="localTasksCounter" value="190" />
+    <task id="LOCAL-00190" summary="Speed-ups: message history">
+      <created>1568050674996</created>
+      <option name="number" value="00190" />
+      <option name="presentableId" value="LOCAL-00190" />
+      <option name="project" value="LOCAL" />
+      <updated>1568050674996</updated>
+    </task>
+    <option name="localTasksCounter" value="191" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -601,7 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Commit project" />
     <MESSAGE value="Yahoo login for new FD version" />
     <MESSAGE value="Newsfeed threadhead wrong." />
     <MESSAGE value="When showing group membership in public, restrict to Freegle groups" />
@@ -626,6 +627,7 @@
     <MESSAGE value="Fixes to speed-ups" />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Speed-ups: get user profiles" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: get user profiles" />
+    <MESSAGE value="Speed-ups: message history" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: message history" />
   </component>
 </project>
