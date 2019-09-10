@@ -4,8 +4,8 @@
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -46,7 +46,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="Docker (project level)">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app1">
     <include_path>
       <path value="." />
       <path value="/usr/bin/php" />
@@ -108,15 +108,10 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.ut">
+  <component name="RunManager" selected="PHPUnit.volunteeringAPITest.testEH">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="chatMessagesTest.testReplyFromSpammer" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatMessagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" method="testReplyFromSpammer" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messageAPITest.testApproved" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -139,20 +134,25 @@
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="volunteeringAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="volunteeringAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="PHPUnit.ut" />
-      <item itemvalue="PHPUnit.chatMessagesTest.testReplyFromSpammer" />
       <item itemvalue="PHPUnit.messagesTest.testEH" />
       <item itemvalue="PHPUnit.messagesTest.testSpam" />
       <item itemvalue="PHPUnit.messageAPITest.testApproved" />
+      <item itemvalue="PHPUnit.volunteeringAPITest.testEH" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.volunteeringAPITest.testEH" />
         <item itemvalue="PHPUnit.ut" />
         <item itemvalue="PHPUnit.messageAPITest.testApproved" />
         <item itemvalue="PHPUnit.messagesTest.testSpam" />
         <item itemvalue="PHPUnit.messagesTest.testEH" />
-        <item itemvalue="PHPUnit.chatMessagesTest.testReplyFromSpammer" />
       </list>
     </recent_temporary>
   </component>
@@ -215,13 +215,6 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-    </task>
-    <task id="LOCAL-00148" summary="Strip signatures on OFFER/WANTED posts">
-      <created>1557734427608</created>
-      <option name="number" value="00148" />
-      <option name="presentableId" value="LOCAL-00148" />
-      <option name="project" value="LOCAL" />
-      <updated>1557734427608</updated>
     </task>
     <task id="LOCAL-00149" summary="Add better donate request into chat notifications">
       <created>1558592350321</created>
@@ -559,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568116645302</updated>
     </task>
-    <option name="localTasksCounter" value="197" />
+    <task id="LOCAL-00197" summary="UT fixes">
+      <created>1568128327869</created>
+      <option name="number" value="00197" />
+      <option name="presentableId" value="LOCAL-00197" />
+      <option name="project" value="LOCAL" />
+      <updated>1568128327869</updated>
+    </task>
+    <option name="localTasksCounter" value="198" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
