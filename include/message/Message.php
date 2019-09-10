@@ -1035,11 +1035,9 @@ class Message
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
             $ret = $rets[$msg['id']];
-            $msg['groups'] = [];
 
             if (!$summary) {
                 # In the summary case we fetched the groups in MessageCollection.  Otherwise we won't have fetched the groups yet.
-
                 if ($groups === NULL) {
                     $groups = [];
 
@@ -1069,21 +1067,21 @@ class Message
             # We don't use foreach with & because that copies data by reference which causes bugs.
             for ($groupind = 0; $groupind < count($ret['groups']); $groupind++ ) {
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
-                    if (pres('approvedby', $group)) {
-                        if (!pres($group['approvedby'], $approvedcache)) {
+                    if (pres('approvedby', $ret['groups'][$groupind])) {
+                        if (!pres($ret['groups'][$groupind]['approvedby'], $approvedcache)) {
                             $appby = $this->dbhr->preQuery("SELECT id, fullname, firstname, lastname FROM users WHERE id = ?;", [
-                                $group['approvedby']
+                                $ret['groups'][$groupind]['approvedby']
                             ]);
 
                             foreach ($appby as $app) {
                                 $name = pres('fullname', $app) ? $app['fullname'] : "{$app['firstname']} {$app['lastname']}";
-                                $approvedcache[$group['approvedby']] = [
-                                    'id' => $group['approvedby'],
+                                $approvedcache[$ret['groups'][$groupind]['approvedby']] = [
+                                    'id' => $ret['groups'][$groupind]['approvedby'],
                                     'displayname' => $name
                                 ];
                             }
 
-                            $ret['groups'][$groupind]['approvedby'] = $approvedcache[$group['approvedby']];
+                            $ret['groups'][$groupind]['approvedby'] = $approvedcache[$ret['groups'][$groupind]['approvedby']];
                         }
                     }
                 }
