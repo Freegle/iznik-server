@@ -2423,12 +2423,116 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
     }
-    
+
+    public function getPublicApplied(&$rets, $me, $freeglemod, $applied, $systemrole, $groupids) {
+        $userids = array_keys($rets);
+
+        if ($applied &&
+            $systemrole == User::ROLE_MODERATOR ||
+            $systemrole == User::SYSTEMROLE_ADMIN ||
+            $systemrole == User::SYSTEMROLE_SUPPORT
+        ) {
+            # As well as being a member of a group, they might have joined and left, or applied and been rejected.
+            # This is useful info for moderators.
+            $groupq = ($groupids && count($groupids) > 0) ? (" AND (DATEDIFF(NOW(), added) <= 31 OR groupid IN (" . implode(',', $groupids) . ")) ") : ' AND DATEDIFF(NOW(), added) <= 31 ';
+            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") $groupq ORDER BY added DESC;";
+            $membs = $this->dbhr->preQuery($sql);
+
+            foreach ($rets as &$ret) {
+                $ret['applied'] = [];
+
+                foreach ($membs as $memb) {
+                    if ($ret['id'] == $memb['userid']) {
+                        $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
+                        $memb['namedisplay'] = $name;
+                        $memb['added'] = ISODate($memb['added']);
+                        $memb['id'] = $memb['groupid'];
+                        unset($memb['groupid']);
+
+                        if ($memb['lat'] && $memb['lng']) {
+                            $box = presdef('activearea', $ret, NULL);
+
+                            $box = [
+                                'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
+                                'swlng' => $box == NULL ? $memb['lng'] : min($memb['lng'], $box['swlng']),
+                                'nelng' => $box == NULL ? $memb['lng'] : max($memb['lng'], $box['nelng']),
+                                'nelat' => $box == NULL ? $memb['lat'] : max($memb['lat'], $box['nelat'])
+                            ];
+
+                            $ret['activearea'] = $box;
+                            $ret['activedistance'] = $box ? round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng'])) : NULL;
+                        }
+
+                        $ret['applied'][] = $memb;
+                    }
+                }
+            }
+        }
+    }
+
+    public function getPublicSpammer(&$rets, $me, $systemrole) {
+        $showspammer = $systemrole == User::ROLE_MODERATOR ||
+            $systemrole == User::SYSTEMROLE_ADMIN ||
+            $systemrole == User::SYSTEMROLE_SUPPORT;
+
+        # We want to check for spammers.  If we have suitable rights then we can
+        # return detailed info; otherwise just that they are on the list,.
+        #
+        # We don't do this for our own logged in user, otherwise we recurse to death.
+        $myid = $me ? $me->getId() : NULL;
+        $userids = array_filter(array_keys($rets), function($val) use ($myid) {
+            return($val != $myid);
+        });
+
+        if (count($userids)) {
+            # Fetch the users.  There are so many users that there is no point trying to use the query cache.
+            $sql = "SELECT * FROM spam_users WHERE userid IN (" . implode(',', $userids) . ");";
+
+            $users = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+
+            foreach ($rets as &$ret) {
+                foreach ($users as &$user) {
+                    if ($user['userid'] == $ret['id']) {
+                        if ($user['spamid']) {
+                            if ($showspammer) {
+                                $ret['spammer'] = [];
+                                foreach (['id', 'userid', 'byuserid', 'added', 'collection', 'reason'] as $att) {
+                                    $ret['spammer'][$att]= $user[$att];
+                                }
+
+                                $ret['spammer']['added'] = ISODate($ret['spammer']['added']);
+                            } else {
+                                $ret['spammer'] = TRUE;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public function getEmailHistory(&$rets) {
+        $userids = array_keys($rets);
+
+        $emails = $this->dbhr->preQuery("SELECT * FROM logs_emails WHERE userid IN (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
+
+        foreach ($rets as &$ret) {
+            $ret['emailhistory'] = [];
+
+            foreach ($emails as $email) {
+                if ($ret['id'] == $email['userid']) {
+                    $email['timestamp'] = ISODate($email['timestamp']);
+                    unset($email['userid']);
+                    $ret['emailhistory'][] = $email;
+                }
+            }
+        }
+    }
+
     public function getPublics($users, $groupids = NULL, $history = TRUE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
-        $myid = $me ? $me->getId() : NULL;
         $freeglemod = $me && $me->isFreegleMod();
 
         $rets = [];
@@ -2439,6 +2543,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if (MODTOOLS) {
             $this->getPublicSuspect($rets, $me, $systemrole, $freeglemod);
             $this->getPublicMemberOf($rets, $me, $freeglemod, $memberof, $systemrole);
+            $this->getPublicApplied($rets, $me, $freeglemod, $applied, $systemrole, $groupids);
+            $this->getPublicSpammer($rets, $me, $systemrole);
             
             if ($history) {
                 $this->getPublicHistory($me, $rets, $users, $groupids, $msgcoll, $historyfull, $systemrole);
@@ -2447,66 +2553,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             if ($comments) {
                 $this->getComments($me, $rets);
             }
-        }
 
-        foreach ($rets as &$atts) {
-            # Some info is only relevant for ModTools, rather than the user site.
-            if (MODTOOLS) {
-                if ($applied &&
-                    $systemrole == User::ROLE_MODERATOR ||
-                    $systemrole == User::SYSTEMROLE_ADMIN ||
-                    $systemrole == User::SYSTEMROLE_SUPPORT
-                ) {
-                    # As well as being a member of a group, they might have joined and left, or applied and been rejected.
-                    # This is useful info for moderators.  If the user is suspicious then return the complete list; otherwise
-                    # just the recent ones.
-                    $groupq = ($groupids && count($groupids) > 0) ? (" AND (DATEDIFF(NOW(), added) <= 31 OR groupid IN (" . implode(',', $groupids) . ")) ") : ' AND DATEDIFF(NOW(), added) <= 31 ';
-                    $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
-                    $membs = $this->dbhr->preQuery($sql, [$this->id]);
-                    $box = presdef('activearea', $atts, NULL);
-
-                    foreach ($membs as &$memb) {
-                        $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
-                        $memb['namedisplay'] = $name;
-                        $memb['added'] = ISODate($memb['added']);
-                        $memb['id'] = $memb['groupid'];
-                        unset($memb['groupid']);
-
-                        if ($memb['lat'] && $memb['lng']) {
-
-                            $box = [
-                                'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
-                                'swlng' => $box == NULL ? $memb['lng'] : min($memb['lng'], $box['swlng']),
-                                'nelng' => $box == NULL ? $memb['lng'] : max($memb['lng'], $box['nelng']),
-                                'nelat' => $box == NULL ? $memb['lat'] : max($memb['lat'], $box['nelat'])
-                            ];
-                        }
-                    }
-
-                    $atts['applied'] = $membs;
-                    $atts['activearea'] = $box;
-                    $atts['activedistance'] = $box ? round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng'])) : NULL;
-                }
-
-                if ($systemrole == User::ROLE_MODERATOR ||
-                    $systemrole == User::SYSTEMROLE_ADMIN ||
-                    $systemrole == User::SYSTEMROLE_SUPPORT
-                ) {
-                    # Also fetch whether they're on the spammer list.
-                    if ($this->spammer) {
-                        $atts['spammer'] = $this->spammer;
-                    }
-                }
-
-                if ($emailhistory) {
-                    $emails = $this->dbhr->preQuery("SELECT * FROM logs_emails WHERE userid = ?;", [$this->id]);
-                    $atts['emailhistory'] = [];
-                    foreach ($emails as &$email) {
-                        $email['timestamp'] = ISODate($email['timestamp']);
-                        unset($email['userid']);
-                        $atts['emailhistory'][] = $email;
-                    }
-                }
+            if ($emailhistory) {
+                $this->getEmailHistory($rets);
             }
         }
 
