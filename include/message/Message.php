@@ -1060,7 +1060,6 @@ class Message
                 $ret['groups'] = $msg['groups'];
             }
 
-
             $ret['showarea'] = TRUE;
             $ret['showpc'] = TRUE;
 
@@ -1397,9 +1396,9 @@ ORDER BY lastdate DESC;";
                         }
 
                         $outcome['timestamp'] = ISODate($outcome['timestamp']);
-                    }
 
-                    $ret['outcomes'][] = $outcome;
+                        $ret['outcomes'][] = $outcome;
+                    }
                 }
             }
 
@@ -1429,27 +1428,56 @@ ORDER BY lastdate DESC;";
     }
 
     public function getPublicFromUser(&$userlist, &$rets, $msgs, $roles, $messagehistory) {
+        # Get all the fromusers in a single call - saves on DB ops.
+        $u = new User($this->dbhr, $this->dbhm);
+        $fromuids = [];
+        $groupids = [];
+
+        foreach ($rets as $ret) {
+            if (pres('groups', $ret)) {
+                foreach ($ret['groups'] as $group) {
+                    $groupids[] = $group['groupid'];
+                }
+            }
+        }
+
+        $groupids = array_unique($groupids);
+
+        $fromusers = [];
+
+        foreach ($msgs as $msg) {
+            if (pres('fromuser', $msg)) {
+                $fromuids[] = $msg['fromuser'];
+            }
+        }
+
+        $fromuids = array_unique($fromuids);
+        $emails = count($fromuids) ? $u->getEmailsById($fromuids) : [];
+
+        if (count($fromuids)) {
+            $ctx = NULL;
+            $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, $ctx, NULL, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, [ MessageCollection::APPROVED ], FALSE);
+        }
+
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
             $ret = $rets[$msg['id']];
 
-            if ($msg['fromuser'] && pres('fromuser', $ret)) {
+            if (pres('fromuser', $ret)) {
                 # We know who sent this.  We may be able to return this (depending on the role we have for the message
                 # and hence the attributes we have already filled in).  We also want to know if we have consent
                 # to republish it.
                 #error_log("Get from " . var_export($ret['groups'], TRUE));
-                $ret['fromuser'] = $this->getUser($msg['fromuser'], $messagehistory, $userlist, TRUE, array_column($ret['groups'], 'groupid'));
+                $ret['fromuser'] = $fromusers[$ret['fromuser']];
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                     # We can see their emails.
-                    $u = $this->getUser($msg['fromuser'], $messagehistory, $userlist, TRUE, array_column($ret['groups'], 'groupid'), TRUE);
-                    $ret['fromuser']['emails'] = $u->getEmails();
+                    $ret['fromuser']['emails'] = $emails[$msg['fromuser']];
                 } else if (pres('partner', $_SESSION)) {
                     # Partners can see emails which belong to us, for the purposes of replying.
-                    $u = $this->getUser($msg['fromuser'], $messagehistory, $userlist, TRUE, array_column($ret['groups'], 'groupid'), TRUE);
-                    $emails = $u->getEmails();
+                    $es = $emails[$msg['fromuser']];
                     $ret['fromuser']['emails'] = [];
-                    foreach ($emails as $email) {
+                    foreach ($es as $email) {
                         if (ourDomain($email['email'])) {
                             $ret['fromuser']['emails'] = $email;
                         }

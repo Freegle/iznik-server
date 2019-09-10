@@ -134,45 +134,14 @@ class User extends Entity
         $this->spammer = [];
 
         if ($id) {
-            $showspammer = FALSE;
-
-            if (isset($_SESSION) && pres('id', $_SESSION) && $_SESSION['id'] != $id) {
-                # We want to check for spammers.  If we're on ModTools and we have suitable rights then we can
-                # return detailed info; otherwise just that they are on the list,.
-                #
-                # We don't do this for our own logged in user, otherwise we recurse to death.
-                $me = whoAmI($dbhr, $dbhm);
-
-                $showspammer = MODTOOLS && $me && in_array($me->getPrivate('systemrole'),[
-                        User::ROLE_MODERATOR,
-                        User::SYSTEMROLE_ADMIN,
-                        User::SYSTEMROLE_SUPPORT
-                    ]);
-            }
-
             # Fetch the user.  There are so many users that there is no point trying to use the query cache.
-            $sql = "SELECT users.*, spam_users.id AS spamid, spam_users.userid AS spamuserid, spam_users.byuserid AS spambyuserid, spam_users.added AS spamadded, spam_users.collection AS spamcollection, spam_users.reason AS spamreason FROM users LEFT JOIN spam_users ON spam_users.userid = users.id WHERE users.id = ?;";
+            $sql = "SELECT * FROM users WHERE id = ?;";
 
             $users = $dbhr->preQuery($sql, [
                 $id
             ], FALSE, FALSE);
 
             foreach ($users as &$user) {
-                if ($user['spamid']) {
-                    if ($showspammer) {
-                        # Move spammer out of user attributes.
-                        $this->spammer = [];
-                        foreach (['id', 'userid', 'byuserid', 'added', 'collection', 'reason'] as $att) {
-                            $this->spammer[$att]= $user['spam'. $att];
-                            unset($user['spam' . $att]);
-                        }
-
-                        $this->spammer['added'] = ISODate($this->spammer['added']);
-                    } else {
-                        $this->spammer = TRUE;
-                    }
-                }
-
                 $this->user = $user;
                 $this->id = $id;
             }
@@ -401,6 +370,7 @@ class User extends Entity
 
     public function getEmails($recent = FALSE, $nobouncing = FALSE)
     {
+        #error_log("Get emails " .  debug_backtrace()[1]['function']);
         # Don't return canon - don't need it on the client.
         $ordq = $recent ? 'id' : 'preferred';
 
@@ -417,6 +387,19 @@ class User extends Entity
         }
 
         return ($this->emails);
+    }
+
+    public function getEmailsById($uids) {
+        $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid IN (" . implode(',', $uids) . ") ORDER BY preferred DESC, email ASC;";
+        $emails = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+        $ret = [];
+
+        foreach ($emails as $email) {
+            $email['ourdomain'] = ourDomain($email['email']);
+            $ret[$email['userid']][] = $email;
+        }
+
+        return ($ret);
     }
 
     public function getEmailPreferred()
@@ -2129,11 +2112,7 @@ class User extends Entity
             }
 
             foreach ($atts as $att) {
-                if (pres($att, $user)) {
-                    $ret[$att] = $this->{$this->name}[$att];
-                } else {
-                    $ret[$att] = NULL;
-                }
+                $ret[$att] = presdef($att, $user, NULL);
             }
 
             $ret['settings'] = presdef('settings', $user, NULL) ? json_decode($user['settings'], TRUE) : ['dummy' => TRUE];
@@ -2169,7 +2148,7 @@ class User extends Entity
                 $ret['permissions'] = $me->getPrivate('permissions');
             }
 
-            if ($me && ($me->isModerator() || $this->id == $me->getId())) {
+            if ($me && ($me->isModerator() || $user['id'] == $me->getId())) {
                 # Mods can see email settings, no matter which group.
                 $ret['onholidaytill'] = (pres('onholidaytill', $ret) && (time() < strtotime($ret['onholidaytill']))) ? ISODate($ret['onholidaytill']) : NULL;
             } else {
@@ -2354,7 +2333,7 @@ INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyaho
     public function getPublicMemberOf(&$rets, $me, $freeglemod, $memberof, $systemrole) {
         $userids = [];
 
-        foreach ($rets as &$ret) {
+        foreach ($rets as $ret) {
             $ret['activearea'] = NULL;
 
             if (!pres('memberof', $ret)) {
@@ -2385,6 +2364,15 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             foreach ($rets as &$ret) {
                 $ret['memberof'] = [];
+                $ourEmailId = NULL;
+
+                if (pres('emails', $ret)) {
+                    foreach ($ret['emails'] as $email) {
+                        if (ourDomain($email['email'])) {
+                            $ourEmailId = $email['id'];
+                        }
+                    }
+                }
 
                 foreach ($groups as $group) {
                     if ($ret['id'] === $group['userid']) {
@@ -2398,7 +2386,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                             'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
                             'collection' => $group['coll'],
                             'role' => $group['role'],
-                            'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
+                            'emailid' => $group['emailid'] ? $group['emailid'] : $ourEmailId,
                             'emailfrequency' => $group['emailfrequency'],
                             'eventsallowed' => $group['eventsallowed'],
                             'volunteeringallowed' => $group['volunteeringallowed'],
@@ -2409,7 +2397,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         ];
 
                         if ($group['lat'] && $group['lng']) {
-                            $box = $ret['activearea'];
+                            $box = presdef('activearea', $ret, NULL);
 
                             $ret['activearea'] = [
                                 'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
@@ -2488,7 +2476,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             foreach ($rets as &$ret) {
                 foreach ($users as &$user) {
-                    error_log("Check spammer {$user['userid']} vs {$ret['id']}");
                     if ($user['userid'] == $ret['id']) {
                         if (MODTOOLS && ($systemrole == User::ROLE_MODERATOR ||
                                 $systemrole == User::SYSTEMROLE_ADMIN ||
@@ -2526,6 +2513,23 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
+    public function getPublicsById($uids, $groupids = NULL, $history = TRUE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE) {
+         $users = $this->dbhr->preQuery("SELECT * FROM users WHERE id IN (" . implode(',', $uids) . ");", NULL, FALSE, FALSE);
+         $rets = $this->getPublics($users, $groupids, $history, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
+         return($rets);
+    }
+
+    public function getPublicEmails(&$rets) {
+        $userids = array_keys($rets);
+        $emails = $this->getEmailsById($userids);
+
+        foreach ($rets as &$ret) {
+            if (pres($ret['id'], $emails)) {
+                $ret['emails'] = $emails[$ret['id']];
+            }
+        }
+    }
+
     public function getPublics($users, $groupids = NULL, $history = TRUE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -2537,15 +2541,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->getPublicAtts($rets, $users, $me);
         $this->getPublicProfiles($rets, $users);
 
+        if ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) {
+            $this->getPublicEmails($rets);
+        }
+
+        if ($history) {
+            $this->getPublicHistory($me, $rets, $users, $groupids, $msgcoll, $historyfull, $systemrole);
+        }
+
         if (MODTOOLS) {
             $this->getPublicSuspect($rets, $me, $systemrole, $freeglemod);
             $this->getPublicMemberOf($rets, $me, $freeglemod, $memberof, $systemrole);
             $this->getPublicApplied($rets, $me, $freeglemod, $applied, $systemrole, $groupids);
             $this->getPublicSpammer($rets, $me, $systemrole);
-            
-            if ($history) {
-                $this->getPublicHistory($me, $rets, $users, $groupids, $msgcoll, $historyfull, $systemrole);
-            }
 
             if ($comments) {
                 $this->getComments($me, $rets);
