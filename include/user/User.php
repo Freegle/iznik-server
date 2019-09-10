@@ -2120,8 +2120,15 @@ class User extends Entity
     public function getPublicAtts(&$rets, $users, $me) {
         foreach ($users as &$user) {
             $ret = presdef($user['id'], $rets, []);
+            $atts = $this->publicatts;
 
-            foreach ($this->publicatts as $att) {
+            if (MODTOOLS) {
+                # We have some extra attributes.
+                $atts[] = 'suspectcount';
+                $atts[] = 'suspectreason';
+            }
+
+            foreach ($atts as $att) {
                 if (pres($att, $user)) {
                     $ret[$att] = $this->{$this->name}[$att];
                 } else {
@@ -2274,6 +2281,149 @@ class User extends Entity
         }
     }
 
+    public function getPublicSuspect(&$rets, $me, $systemrole, $freeglemod) {
+        foreach ($rets as &$ret) {
+            if ($ret['suspectcount'] > 0) {
+                # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
+                # - has a system role which allows it
+                # - is a mod on a group which this user is also on.
+                #
+                # This is rare so we don't need to optimise DB ops.
+                $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
+                $memberof = [];
+
+                # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
+                # the case where you have two emails and one is approved and the other pending.
+                #
+                # For groups which have moved from Yahoo we might have multiple entries in memberships_yahoo.  We
+                # don't want this to manifest as multiple memberships on the group once it's native.  So we do
+                # a union of two queries - one for groups on Yahoo and one not.
+                $sql = "SELECT memberships.*,CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, 
+memberships_yahoo.emailid, memberships_yahoo.added AS yadded, 
+groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships 
+LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyahoo = 1
+UNION
+SELECT memberships.*, memberships.collection AS coll,
+NULL AS emailid, NULL AS yadded, 
+groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships 
+INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyahoo = 0
+;";
+                $groups = $this->dbhr->preQuery($sql, [$this->id, $this->id]);
+
+                foreach ($groups as $group) {
+                    $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
+                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+
+                    $thisone = [
+                        'id' => $group['groupid'],
+                        'membershipid' => $group['id'],
+                        'namedisplay' => $name,
+                        'nameshort' => $group['nameshort'],
+                        'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
+                        'collection' => $group['coll'],
+                        'role' => $group['role'],
+                        'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
+                        'emailfrequency' => $group['emailfrequency'],
+                        'eventsallowed' => $group['eventsallowed'],
+                        'volunteeringallowed' => $group['volunteeringallowed'],
+                        'ourPostingStatus' => $group['ourPostingStatus'],
+                        'type' => $group['type'],
+                        'onyahoo' => $group['onyahoo'],
+                        'onhere' => $group['onhere']
+                    ];
+
+                    $memberof[] = $thisone;
+
+                    # We can see this membership if we're a mod on the group, or we're a mod on a Freegle group
+                    # and this is one.
+                    if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR ||
+                        ($group['type'] == Group::GROUP_FREEGLE && $freeglemod)) {
+                        $visible = TRUE;
+                    }
+                }
+
+                if ($visible) {
+                    $ret['suspectcount'] = $ret['suspectcount'];
+                    $ret['suspectreason'] = $ret['suspectreason'];
+                    $ret['memberof'] = $memberof;
+                }
+            }
+        }
+    }
+
+    public function getPublicMemberOf(&$rets, $me, $freeglemod, $memberof, $systemrole) {
+        $userids = [];
+
+        foreach ($rets as &$ret) {
+            $ret['activearea'] = NULL;
+
+            if (!pres('memberof', $ret)) {
+                # We haven't provided the complete list already, e.g. because the user is suspect.
+                $userids[] = $ret['id'];
+            }
+        }
+
+        if ($memberof &&
+            count($userids) &&
+            ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT)
+        ) {
+            # Gt the recent ones (which preserves some privacy for the user but allows us to spot abuse) and any which
+            # are on our groups.
+            $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
+            $modids = array_merge([0], $me->getModeratorships());
+            $freegleq = $freeglemod ? " OR groups.type = 'Freegle' " : '';
+            $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, 
+memberships_yahoo.emailid, memberships_yahoo.added AS yadded, 
+groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq) AND onyahoo = 1 
+UNION
+SELECT DISTINCT memberships.*, memberships.collection AS coll, 
+NULL AS emailid, NULL AS yadded, 
+groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq) AND onyahoo = 0
+;";
+            $groups = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+            #error_log("Get groups $sql, {$this->id}");
+
+            foreach ($rets as &$ret) {
+                $memberof = [];
+
+                foreach ($groups as $group) {
+                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+
+                    $memberof[] = [
+                        'id' => $group['groupid'],
+                        'membershipid' => $group['id'],
+                        'namedisplay' => $name,
+                        'nameshort' => $group['nameshort'],
+                        'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
+                        'collection' => $group['coll'],
+                        'role' => $group['role'],
+                        'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
+                        'emailfrequency' => $group['emailfrequency'],
+                        'eventsallowed' => $group['eventsallowed'],
+                        'volunteeringallowed' => $group['volunteeringallowed'],
+                        'ourpostingstatus' => $group['ourPostingStatus'],
+                        'type' => $group['type'],
+                        'onyahoo' => $group['onyahoo'],
+                        'onhere' => $group['onhere']
+                    ];
+
+                    if ($group['lat'] && $group['lng']) {
+                        $box = $ret['activearea'];
+
+                        $ret['activearea'] = [
+                            'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
+                            'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
+                            'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
+                            'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
+                        ];
+                    }
+                }
+
+                $ret['memberof'] = $memberof;
+            }
+        }
+    }
+    
     public function getPublics($users, $groupids = NULL, $history = TRUE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -2287,138 +2437,21 @@ class User extends Entity
         $this->getPublicProfiles($rets, $users);
 
         if (MODTOOLS) {
+            $this->getPublicSuspect($rets, $me, $systemrole, $freeglemod);
+            $this->getPublicMemberOf($rets, $me, $freeglemod, $memberof, $systemrole);
+            
             if ($history) {
                 $this->getPublicHistory($me, $rets, $users, $groupids, $msgcoll, $historyfull, $systemrole);
             }
 
             if ($comments) {
-                $atts['comments'] = $this->getComments($me, $rets);
+                $this->getComments($me, $rets);
             }
         }
 
         foreach ($rets as &$atts) {
             # Some info is only relevant for ModTools, rather than the user site.
             if (MODTOOLS) {
-                if ($this->user['suspectcount'] > 0) {
-                    # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
-                    # - has a system role which allows it
-                    # - is a mod on a group which this user is also on.
-                    $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
-                    $memberof = [];
-
-                    # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
-                    # the case where you have two emails and one is approved and the other pending.
-                    #
-                    # For groups which have moved from Yahoo we might have multiple entries in memberships_yahoo.  We
-                    # don't want this to manifest as multiple memberships on the group once it's native.  So we do
-                    # a union of two queries - one for groups on Yahoo and one not.
-                    $sql = "SELECT memberships.*,CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, 
-memberships_yahoo.emailid, memberships_yahoo.added AS yadded, 
-groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships 
-LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyahoo = 1
-UNION
-SELECT memberships.*, memberships.collection AS coll,
-NULL AS emailid, NULL AS yadded, 
-groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships 
-INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyahoo = 0
-;";
-                    $groups = $this->dbhr->preQuery($sql, [$this->id, $this->id]);
-
-                    foreach ($groups as $group) {
-                        $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
-                        $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-
-                        $thisone = [
-                            'id' => $group['groupid'],
-                            'membershipid' => $group['id'],
-                            'namedisplay' => $name,
-                            'nameshort' => $group['nameshort'],
-                            'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
-                            'collection' => $group['coll'],
-                            'role' => $group['role'],
-                            'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
-                            'emailfrequency' => $group['emailfrequency'],
-                            'eventsallowed' => $group['eventsallowed'],
-                            'volunteeringallowed' => $group['volunteeringallowed'],
-                            'ourPostingStatus' => $group['ourPostingStatus'],
-                            'type' => $group['type'],
-                            'onyahoo' => $group['onyahoo'],
-                            'onhere' => $group['onhere']
-                        ];
-
-                        $memberof[] = $thisone;
-
-                        # We can see this membership if we're a mod on the group, or we're a mod on a Freegle group
-                        # and this is one.
-                        if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR ||
-                            ($group['type'] == Group::GROUP_FREEGLE && $freeglemod)) {
-                            $visible = TRUE;
-                        }
-                    }
-
-                    if ($visible) {
-                        $atts['suspectcount'] = $this->user['suspectcount'];
-                        $atts['suspectreason'] = $this->user['suspectreason'];
-                        $atts['memberof'] = $memberof;
-                    }
-                }
-
-                $box = NULL;
-
-                if ($memberof && !array_key_exists('memberof', $atts) &&
-                    ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT)
-                ) {
-                    # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
-                    # allows us to spot abuse) and any which are on our groups.
-                    $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
-                    $modids = array_merge([0], $me->getModeratorships());
-                    $freegleq = $freeglemod ? " OR groups.type = 'Freegle' " : '';
-                    $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, 
-memberships_yahoo.emailid, memberships_yahoo.added AS yadded, 
-groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq) AND onyahoo = 1 
-UNION
-SELECT DISTINCT memberships.*, memberships.collection AS coll, 
-NULL AS emailid, NULL AS yadded, 
-groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq) AND onyahoo = 0
-;";
-                    $groups = $this->dbhr->preQuery($sql, [$this->id, $this->id]);
-                    #error_log("Get groups $sql, {$this->id}");
-                    $memberof = [];
-
-                    foreach ($groups as $group) {
-                        $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-
-                        $memberof[] = [
-                            'id' => $group['groupid'],
-                            'membershipid' => $group['id'],
-                            'namedisplay' => $name,
-                            'nameshort' => $group['nameshort'],
-                            'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
-                            'collection' => $group['coll'],
-                            'role' => $group['role'],
-                            'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
-                            'emailfrequency' => $group['emailfrequency'],
-                            'eventsallowed' => $group['eventsallowed'],
-                            'volunteeringallowed' => $group['volunteeringallowed'],
-                            'ourpostingstatus' => $group['ourPostingStatus'],
-                            'type' => $group['type'],
-                            'onyahoo' => $group['onyahoo'],
-                            'onhere' => $group['onhere']
-                        ];
-
-                        if ($group['lat'] && $group['lng']) {
-                            $box = [
-                                'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
-                                'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
-                                'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
-                                'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
-                            ];
-                        }
-                    }
-
-                    $atts['memberof'] = $memberof;
-                }
-
                 if ($applied &&
                     $systemrole == User::ROLE_MODERATOR ||
                     $systemrole == User::SYSTEMROLE_ADMIN ||
@@ -2430,6 +2463,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $groupq = ($groupids && count($groupids) > 0) ? (" AND (DATEDIFF(NOW(), added) <= 31 OR groupid IN (" . implode(',', $groupids) . ")) ") : ' AND DATEDIFF(NOW(), added) <= 31 ';
                     $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
                     $membs = $this->dbhr->preQuery($sql, [$this->id]);
+                    $box = presdef('activearea', $atts, NULL);
+
                     foreach ($membs as &$memb) {
                         $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
                         $memb['namedisplay'] = $name;
@@ -2438,6 +2473,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         unset($memb['groupid']);
 
                         if ($memb['lat'] && $memb['lng']) {
+
                             $box = [
                                 'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
                                 'swlng' => $box == NULL ? $memb['lng'] : min($memb['lng'], $box['swlng']),
