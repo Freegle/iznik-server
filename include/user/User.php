@@ -2384,42 +2384,42 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             #error_log("Get groups $sql, {$this->id}");
 
             foreach ($rets as &$ret) {
-                $memberof = [];
+                $ret['memberof'] = [];
 
                 foreach ($groups as $group) {
-                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+                    if ($ret['id'] === $group['userid']) {
+                        $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
 
-                    $memberof[] = [
-                        'id' => $group['groupid'],
-                        'membershipid' => $group['id'],
-                        'namedisplay' => $name,
-                        'nameshort' => $group['nameshort'],
-                        'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
-                        'collection' => $group['coll'],
-                        'role' => $group['role'],
-                        'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
-                        'emailfrequency' => $group['emailfrequency'],
-                        'eventsallowed' => $group['eventsallowed'],
-                        'volunteeringallowed' => $group['volunteeringallowed'],
-                        'ourpostingstatus' => $group['ourPostingStatus'],
-                        'type' => $group['type'],
-                        'onyahoo' => $group['onyahoo'],
-                        'onhere' => $group['onhere']
-                    ];
-
-                    if ($group['lat'] && $group['lng']) {
-                        $box = $ret['activearea'];
-
-                        $ret['activearea'] = [
-                            'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
-                            'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
-                            'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
-                            'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
+                        $ret['memberof'][] = [
+                            'id' => $group['groupid'],
+                            'membershipid' => $group['id'],
+                            'namedisplay' => $name,
+                            'nameshort' => $group['nameshort'],
+                            'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
+                            'collection' => $group['coll'],
+                            'role' => $group['role'],
+                            'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
+                            'emailfrequency' => $group['emailfrequency'],
+                            'eventsallowed' => $group['eventsallowed'],
+                            'volunteeringallowed' => $group['volunteeringallowed'],
+                            'ourpostingstatus' => $group['ourPostingStatus'],
+                            'type' => $group['type'],
+                            'onyahoo' => $group['onyahoo'],
+                            'onhere' => $group['onhere']
                         ];
+
+                        if ($group['lat'] && $group['lng']) {
+                            $box = $ret['activearea'];
+
+                            $ret['activearea'] = [
+                                'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
+                                'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
+                                'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
+                                'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
+                            ];
+                        }
                     }
                 }
-
-                $ret['memberof'] = $memberof;
             }
         }
     }
