@@ -2471,12 +2471,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     }
 
     public function getPublicSpammer(&$rets, $me, $systemrole) {
-        $showspammer = $systemrole == User::ROLE_MODERATOR ||
-            $systemrole == User::SYSTEMROLE_ADMIN ||
-            $systemrole == User::SYSTEMROLE_SUPPORT;
-
         # We want to check for spammers.  If we have suitable rights then we can
-        # return detailed info; otherwise just that they are on the list,.
+        # return detailed info; otherwise just that they are on the list.
         #
         # We don't do this for our own logged in user, otherwise we recurse to death.
         $myid = $me ? $me->getId() : NULL;
@@ -2492,18 +2488,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             foreach ($rets as &$ret) {
                 foreach ($users as &$user) {
+                    error_log("Check spammer {$user['userid']} vs {$ret['id']}");
                     if ($user['userid'] == $ret['id']) {
-                        if ($user['spamid']) {
-                            if ($showspammer) {
-                                $ret['spammer'] = [];
-                                foreach (['id', 'userid', 'byuserid', 'added', 'collection', 'reason'] as $att) {
-                                    $ret['spammer'][$att]= $user[$att];
-                                }
-
-                                $ret['spammer']['added'] = ISODate($ret['spammer']['added']);
-                            } else {
-                                $ret['spammer'] = TRUE;
+                        if (MODTOOLS && ($systemrole == User::ROLE_MODERATOR ||
+                                $systemrole == User::SYSTEMROLE_ADMIN ||
+                                $systemrole == User::SYSTEMROLE_SUPPORT)) {
+                            $ret['spammer'] = [];
+                            foreach (['id', 'userid', 'byuserid', 'added', 'collection', 'reason'] as $att) {
+                                $ret['spammer'][$att]= $user[$att];
                             }
+
+                            $ret['spammer']['added'] = ISODate($ret['spammer']['added']);
+                        } else {
+                            $ret['spammer'] = TRUE;
                         }
                     }
                 }

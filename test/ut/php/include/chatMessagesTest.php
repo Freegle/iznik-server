@@ -143,7 +143,7 @@ class chatMessagesTest extends IznikTestCase {
         # Check they show as on the list, but only when we're a mod
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
-        assertFalse(array_key_exists('spammer', $atts));
+        assertEquals('boolean', gettype($atts['spammer']));
         $u2 = new User($this->dbhr, $this->dbhm);
         $uid2 = $u2->create('Test', 'User', 'Test User');
         assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
