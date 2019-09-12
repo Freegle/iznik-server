@@ -2093,53 +2093,67 @@ WHERE chat_rooms.id IN $idlist;";
     }
 
     public function replyTime($userid, $force = FALSE) {
-        $times = $this->dbhr->preQuery("SELECT replytime FROM users_replytime WHERE userid = ?;", [
-            $userid
-        ], FALSE, FALSE);
+        $ret = $this->replyTimes([ $userid ], $force);
+        return($ret[$userid]);
+    }
 
-        if (!$force && count($times) > 0 && $times[0]['replytime'] < 30*24*60*60) {
-            $ret = $times[0]['replytime'];
-        } else {
-            # Calculate typical reply time.
-            $delays = [];
+    public function replyTimes($uids, $force = FALSE) {
+        $times = $this->dbhr->preQuery("SELECT replytime, userid FROM users_replytime WHERE userid IN (" . implode(',', $uids) . ");", NULL, FALSE, FALSE);
+        $ret = [];
+        $left = [];
 
+        foreach ($times as $time) {
+            if (!$force && count($times) > 0 && $time['replytime'] < 30*24*60*60) {
+                $ret[$time['userid']] = $time['replytime'];
+            } else {
+                $left[] = $time['userid'];
+            }
+        }
+
+        if (count($left)) {
             $mysqltime = date("Y-m-d", strtotime("90 days ago"));
-            $msgs = $this->dbhr->preQuery("SELECT chat_messages.id, chat_messages.chatid, chat_messages.date FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.userid = ? AND chat_messages.date > ? AND chat_rooms.chattype = ? AND chat_messages.type IN (?, ?);", [
-                $userid,
+            $msgs = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_messages.id, chat_messages.chatid, chat_messages.date FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.userid IN (" . implode(',', $left) . ") AND chat_messages.date > ? AND chat_rooms.chattype = ? AND chat_messages.type IN (?, ?);", [
                 $mysqltime,
                 ChatRoom::TYPE_USER2USER,
                 ChatMessage::TYPE_INTERESTED,
                 ChatMessage::TYPE_DEFAULT
             ], FALSE, FALSE);
 
-            foreach ($msgs as $msg) {
-                #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}");
-                # Find the previous message in this conversation.
-                $lasts = $this->dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE chatid = ? AND id < ? AND userid != ?;", [
-                    $msg['chatid'],
-                    $msg['id'],
-                    $userid
-                ], FALSE, FALSE);
+            # Calculate typical reply time.
+            foreach ($left as $userid) {
+                $delays = [];
 
-                if (count($lasts) > 0 && $lasts[0]['max']) {
-                    $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
-                    #error_log("Last {$lasts[0]['max']} delay $thisdelay");
-                    if ($thisdelay < 30 * 24 * 60 * 60) {
-                        # Ignore very large delays - probably dating from a previous interaction.
-                        $delays[] = $thisdelay;
+                foreach ($msgs as $msg) {
+                    if ($msg['userid'] == $userid) {
+                        #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}");
+                        # Find the previous message in this conversation.
+                        $lasts = $this->dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE chatid = ? AND id < ? AND userid != ?;", [
+                            $msg['chatid'],
+                            $msg['id'],
+                            $userid
+                        ], FALSE, FALSE);
+
+                        if (count($lasts) > 0 && $lasts[0]['max']) {
+                            $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
+                            #error_log("Last {$lasts[0]['max']} delay $thisdelay");
+                            if ($thisdelay < 30 * 24 * 60 * 60) {
+                                # Ignore very large delays - probably dating from a previous interaction.
+                                $delays[] = $thisdelay;
+                            }
+                        }
                     }
                 }
+
+                $time = (count($delays) > 0) ? calculate_median($delays) : NULL;
+
+                $this->dbhm->preExec("REPLACE INTO users_replytime (userid, replytime) VALUES (?, ?);", [
+                    $userid,
+                    $time
+                ]);
+
+                $ret[$userid] = $time;
             }
-
-            $ret = (count($delays) > 0) ? calculate_median($delays) : NULL;
-
-            $this->dbhm->preExec("REPLACE INTO users_replytime (userid, replytime) VALUES (?, ?);", [
-                $userid,
-                $ret
-            ]);
         }
-
-        #error_log("Return $ret for $userid");
 
         return($ret);
     }

@@ -1678,8 +1678,13 @@ class User extends Entity
             $ret['publiclocation'] = $this->getPublicLocation();
         }
 
-//        $r = new ChatRoom($this->dbhr, $this->dbhm);
-//        $ret['replytime'] = $r->replyTime($this->id);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $replytimes = $r->replyTimes($uids);
+
+        foreach ($replytimes as $uid => &$replytime) {
+            $users[$uid]['replytime'] = $replytime;
+        }
+
 //        $ret['nudges'] = $r->nudgeCount($this->id);
 //
 //        $ret['ratings'] = $this->getRating();
