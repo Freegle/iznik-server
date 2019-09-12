@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" afterDir="false" />
     </list>
@@ -108,7 +110,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.volunteeringAPITest.testEH">
+  <component name="RunManager" selected="PHPUnit.messagesTest.testEH">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -148,11 +150,11 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.messagesTest.testEH" />
         <item itemvalue="PHPUnit.volunteeringAPITest.testEH" />
         <item itemvalue="PHPUnit.ut" />
         <item itemvalue="PHPUnit.messageAPITest.testApproved" />
         <item itemvalue="PHPUnit.messagesTest.testSpam" />
-        <item itemvalue="PHPUnit.messagesTest.testEH" />
       </list>
     </recent_temporary>
   </component>
@@ -215,13 +217,6 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-    </task>
-    <task id="LOCAL-00149" summary="Add better donate request into chat notifications">
-      <created>1558592350321</created>
-      <option name="number" value="00149" />
-      <option name="presentableId" value="LOCAL-00149" />
-      <option name="project" value="LOCAL" />
-      <updated>1558592350322</updated>
     </task>
     <task id="LOCAL-00150" summary="Don't double count stroll donations at month end">
       <created>1559319244158</created>
@@ -559,7 +554,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568128327869</updated>
     </task>
-    <option name="localTasksCounter" value="198" />
+    <task id="LOCAL-00198" summary="UT fixes">
+      <created>1568130391059</created>
+      <option name="number" value="00198" />
+      <option name="presentableId" value="LOCAL-00198" />
+      <option name="project" value="LOCAL" />
+      <updated>1568130391059</updated>
+    </task>
+    <option name="localTasksCounter" value="199" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

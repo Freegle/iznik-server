@@ -262,23 +262,5 @@ class volunteeringAPITest extends IznikAPITestCase {
 
         assertFalse(array_key_exists('heldby', $ret['volunteering']));
     }
-
-    public function testEH()
-    {
-        $this->dbhr->errorLog = TRUE;
-        $this->dbhm->errorLog = TRUE;
-
-        $u = new User($this->dbhr, $this->dbhm);
-
-        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
-        $_SESSION['id'] = $uid;
-
-        $ret = $this->call('volunteering', 'GET', [
-            'systemwide' => true,
-            'pending' => true,
-        ]);
-
-    }
 }
 

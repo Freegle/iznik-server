@@ -1457,6 +1457,7 @@ ORDER BY lastdate DESC;";
         if (count($fromuids)) {
             $ctx = NULL;
             $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, $ctx, NULL, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, [ MessageCollection::APPROVED ], FALSE);
+            $u->getInfos($fromusers);
         }
 
         foreach ($msgs as $msg) {
@@ -1613,24 +1614,29 @@ ORDER BY lastdate DESC;";
                 ], FALSE, FALSE);
             }
 
-            foreach ($rets as &$ret) {
-                $ret['edits'] = NULL;
+            # We can't use foreach because then data is copied by reference.
+            foreach ($rets as $retind => $ret) {
+                $rets[$retind]['edits'] = [];
 
                 if ($doit) {
-                    foreach ($edits as &$edit) {
-                        if ($ret['id'] == $edit['msgid']) {
-                            $edit['timestamp'] = ISODate($edit['timestamp']);
+                    for ($editind = 0; $editind < count($edits); $editind++) {
+                        error_log("Compare {$rets[$retind]['id']}, {$edits[$editind]['msgid']}");
+                        if ($rets[$retind]['id'] == $edits[$editind]['msgid']) {
+                            $thisedit = $edits[$editind]; 
+                            $thisedit['timestamp'] = ISODate($thisedit['timestamp']);
 
-                            if (pres('byuser', $edit)) {
-                                $u = User::get($this->dbhr, $this->dbhm, $edit['byuser']);
+                            if (pres('byuser', $thisedit)) {
+                                $u = User::get($this->dbhr, $this->dbhm, $thisedit['byuser']);
                                 $ctx = NULL;
-                                $edit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+                                $thisedit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
                             }
+                            
+                            $rets[$retind]['edits'][] = $thisedit;
                         }
                     }
 
-                    if (count($edits)) {
-                        $ret['edits'] = $edits;
+                    if (count($rets[$retind]['edits']) === 0) {
+                        $rets[$retind]['edits'] = NULL;
                     }
                 }
             }

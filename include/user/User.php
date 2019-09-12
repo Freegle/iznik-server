@@ -1584,6 +1584,92 @@ class User extends Entity
         return($ret);
     }
 
+    public function getInfos(&$users) {
+        $uids = array_filter(array_column($users, 'id'));
+        error_log("Get infos for " . json_encode($uids));
+
+        $start = date('Y-m-d', strtotime("{User::OPEN_AGE} days ago"));
+        $days90 = date("Y-m-d", strtotime("90 days ago"));
+        $userq = "userid IN (" . implode(',', $uids) . ")";
+
+        // We can combine some queries into a single one.  This is better for performance because it saves on
+        // the round trip (seriously, I've measured it, and it's worth doing).
+        //
+        // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
+        $counts = $this->dbhr->preQuery("SELECT * FROM  
+(SELECT COUNT(DISTINCT refmsgid) AS replycount, userid FROM chat_messages WHERE $userq AND date > ? AND refmsgid IS NOT NULL AND type = ?) t1 LEFT JOIN 
+(SELECT COUNT(*) AS takencount, userid FROM messages_outcomes WHERE $userq AND timestamp > ? AND outcome = ?) t2 ON t1.userid = t2.userid LEFT JOIN
+(SELECT COUNT(DISTINCT(msgid)) AS reneged, userid FROM messages_reneged WHERE $userq AND timestamp > ?) t3 ON t3.userid = t1.userid LEFT JOIN
+(SELECT COUNT(DISTINCT msgid) AS collected, messages_outcomes.userid FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.$userq AND messages_outcomes.$userq AND messages_outcomes.userid != messages.fromuser AND messages.arrival >= '$days90') t4 ON t4.userid = t1.userid LEFT JOIN
+(SELECT timestamp AS abouttime, text AS abouttext, userid FROM users_aboutme WHERE $userq ORDER BY timestamp DESC LIMIT 1) t5 ON t5.userid = t1.userid
+;", [
+            $start,
+            ChatMessage::TYPE_INTERESTED,
+            $start,
+            Message::OUTCOME_TAKEN,
+            $start,
+            ChatMessage::TYPE_INTERESTED,
+            Message::OUTCOME_TAKEN
+        ], FALSE, FALSE);
+
+        foreach ($users as &$user) {
+            $user['info']['replies'] = 0;
+            $user['info']['taken'] = 0;
+            $user['info']['reneged'] = 0;
+            $user['info']['collected'] = 0;
+
+            foreach ($counts as $count) {
+                if ($count['userid'] == $user['id']) {
+                    $user['info']['replies'] = $count['replycount'];
+                    $user['info']['taken'] = $count['takencount'];
+                    $user['info']['reneged'] = $count['reneged'];
+                    $user['info']['collected'] = $count['collected'];
+
+                    if (pres('abouttime', $count)) {
+                        $user['info']['aboutme'] = [
+                            'timestamp' => ISODate($count['abouttime']),
+                            'text' => $count['abouttext']
+                        ];
+                    }
+                }
+            }
+        }
+
+        $counts = $this->dbhr->preQuery("SELECT messages_outcomes.userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 GROUP BY messages_outcomes.userid, messages.type, messages_outcomes.outcome;", [
+            $start,
+            MessageCollection::APPROVED
+        ], FALSE, FALSE);
+
+        #error_log("Got counts " . var_export($counts, TRUE));
+
+        foreach ($users as &$user) {
+            $user['info']['offers'] = 0;
+            $user['info']['wanteds'] = 0;
+            $user['info']['openoffers'] = 0;
+            $user['info']['openwanteds'] = 0;
+
+            foreach ($counts as $count) {
+                if ($count['userid'] == $user['id']) {
+                    if ($count['type'] == Message::TYPE_OFFER) {
+                        $user['info']['offers'] += $count['count'];
+
+                        if (!pres('outcome', $count)) {
+                            $user['info']['openoffers'] += $count['count'];
+                        }
+                    } else if ($count['type'] == Message::TYPE_WANTED) {
+                        $user['info']['wanteds'] += $count['count'];
+
+                        if (!pres('outcome', $count)) {
+                            $user['info']['openwanteds'] += $count['count'];
+                        }
+                    }
+                }
+            }
+
+            #error_log("Returned " . var_export($user['info'], TRUE));
+        }
+    }
+    
     public function getInfo()
     {
         # Extra user info.
