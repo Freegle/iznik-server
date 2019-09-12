@@ -2100,13 +2100,15 @@ WHERE chat_rooms.id IN $idlist;";
     public function replyTimes($uids, $force = FALSE) {
         $times = $this->dbhr->preQuery("SELECT replytime, userid FROM users_replytime WHERE userid IN (" . implode(',', $uids) . ");", NULL, FALSE, FALSE);
         $ret = [];
-        $left = [];
+        $left = $uids;
 
         foreach ($times as $time) {
             if (!$force && count($times) > 0 && $time['replytime'] < 30*24*60*60) {
                 $ret[$time['userid']] = $time['replytime'];
-            } else {
-                $left[] = $time['userid'];
+
+                $left = array_filter($left, function($id) use ($time) {
+                    return($id != $time['userid']);
+                });
             }
         }
 
@@ -2122,6 +2124,7 @@ WHERE chat_rooms.id IN $idlist;";
             # Calculate typical reply time.
             foreach ($left as $userid) {
                 $delays = [];
+                $ret[$userid] = NULL;
 
                 foreach ($msgs as $msg) {
                     if ($msg['userid'] == $userid) {

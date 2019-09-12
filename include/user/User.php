@@ -4563,7 +4563,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     {
         $locs = $this->getLatLngs([ $this->user ], $usedef, $usegroup, [ $this->user ]);
         $loc = $locs[$this->id];
-        return([ $loc['lat'], $loc['lng'], $loc['loc'] ]);
+        return([ $loc['lat'], $loc['lng'], presdef('loc', $loc, NULL) ]);
     }
 
     public function getLatLngs($users, $usedef = TRUE, $usegroup = TRUE, $atts = NULL)
@@ -4621,8 +4621,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             foreach ($membs as $memb) {
                 $ret[$memb['userid']] = [
                     'lat' => $memb['lat'],
-                    'lng' => $memb['lng'],
-                    'loc' => presdef('namefull', $memb, $memb['nameshort'])
+                    'lng' => $memb['lng']
                 ];
 
                 $userids = array_filter($userids, function($id) use ($memb) {
@@ -4631,14 +4630,17 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        if ($userids && count($userids) && $usedef) {
+        if ($userids && count($userids)) {
             # Still some we haven't handled.
             foreach ($userids as $userid) {
-                $ret[$userid] = [
-                    'lat' => 53.9450,
-                    'lng' => -2.5209,
-                    'loc' => 'Somewhere'
-                ];
+                if ($usedef) {
+                    $ret[$userid] = [
+                        'lat' => 53.9450,
+                        'lng' => -2.5209
+                    ];
+                } else {
+                    $ret[$userid] = NULL;
+                }
             }
         }
 
