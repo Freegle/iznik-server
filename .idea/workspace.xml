@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -49,7 +51,7 @@
     <other-services-enabled>true</other-services-enabled>
     <auto-save>true</auto-save>
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app1">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="Docker (project level)">
     <include_path>
       <path value="." />
       <path value="/usr/bin/php" />
@@ -111,7 +113,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.newsfeedAPITest">
+  <component name="RunManager" selected="PHPUnit.ut">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -151,10 +153,10 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.ut" />
         <item itemvalue="PHPUnit.newsfeedAPITest" />
         <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
         <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
-        <item itemvalue="PHPUnit.ut" />
         <item itemvalue="PHPUnit.chatMessagesAPITest.testConversation" />
       </list>
     </recent_temporary>
@@ -218,20 +220,6 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-    </task>
-    <task id="LOCAL-00162" summary="Return refmsgids for new client">
-      <created>1567350760327</created>
-      <option name="number" value="00162" />
-      <option name="presentableId" value="LOCAL-00162" />
-      <option name="project" value="LOCAL" />
-      <updated>1567350760328</updated>
-    </task>
-    <task id="LOCAL-00163" summary="Speed-ups: message fetching">
-      <created>1567443433661</created>
-      <option name="number" value="00163" />
-      <option name="presentableId" value="LOCAL-00163" />
-      <option name="project" value="LOCAL" />
-      <updated>1567443433661</updated>
     </task>
     <task id="LOCAL-00164" summary="Speed-ups: message roles">
       <created>1567595186669</created>
@@ -562,7 +550,21 @@
       <option name="project" value="LOCAL" />
       <updated>1568311555105</updated>
     </task>
-    <option name="localTasksCounter" value="211" />
+    <task id="LOCAL-00211" summary="Speed-ups: chitchat">
+      <created>1568311666032</created>
+      <option name="number" value="00211" />
+      <option name="presentableId" value="LOCAL-00211" />
+      <option name="project" value="LOCAL" />
+      <updated>1568311666032</updated>
+    </task>
+    <task id="LOCAL-00212" summary="UT fixes">
+      <created>1568313317025</created>
+      <option name="number" value="00212" />
+      <option name="presentableId" value="LOCAL-00212" />
+      <option name="project" value="LOCAL" />
+      <updated>1568313317025</updated>
+    </task>
+    <option name="localTasksCounter" value="213" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -629,8 +631,8 @@
     <MESSAGE value="Speed-ups: replytime" />
     <MESSAGE value="Speed-ups: finish restructuring getting of user info" />
     <MESSAGE value="Speed-ups: chitchat fetching of users" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Speed-ups: chitchat" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: chitchat" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>

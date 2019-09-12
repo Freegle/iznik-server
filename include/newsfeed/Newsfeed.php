@@ -224,9 +224,9 @@ class Newsfeed extends Entity
 
         if ($ids && count($ids)) {
             $likes = $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") GROUP BY newsfeedid;", NULL, FALSE, FALSE);
-            $mylikes = $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") AND userid = ?;", [
+            $mylikes = $me ? $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") AND userid = ?;", [
                 $me->getId()
-            ], FALSE, FALSE);
+            ], FALSE, FALSE) : [];
 
             if ($checkreplies) {
                 # Don't cache replies - might be lots and might change frequently.
