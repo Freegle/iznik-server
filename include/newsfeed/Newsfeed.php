@@ -233,7 +233,7 @@ class Newsfeed extends Entity
                 #
                 # We only return 11; this matches the 10 in the client in newsfeed.  That's enough to cause it to show
                 # the "Show earlier" prompt; it will then fetch more as required.
-                $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC LIMIT 11;", NULL, FALSE);
+                $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;", NULL, FALSE);
                 $replies = array_reverse($replies);
             }
 

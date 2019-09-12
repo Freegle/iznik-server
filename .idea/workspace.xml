@@ -219,13 +219,6 @@
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
     </task>
-    <task id="LOCAL-00161" summary="UT fixes">
-      <created>1567348203627</created>
-      <option name="number" value="00161" />
-      <option name="presentableId" value="LOCAL-00161" />
-      <option name="project" value="LOCAL" />
-      <updated>1567348203627</updated>
-    </task>
     <task id="LOCAL-00162" summary="Return refmsgids for new client">
       <created>1567350760327</created>
       <option name="number" value="00162" />
@@ -562,7 +555,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568311412057</updated>
     </task>
-    <option name="localTasksCounter" value="210" />
+    <task id="LOCAL-00210" summary="Speed-ups: chitchat">
+      <created>1568311555105</created>
+      <option name="number" value="00210" />
+      <option name="presentableId" value="LOCAL-00210" />
+      <option name="project" value="LOCAL" />
+      <updated>1568311555105</updated>
+    </task>
+    <option name="localTasksCounter" value="211" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
