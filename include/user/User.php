@@ -4601,7 +4601,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
                     foreach ($membs as $memb) {
                         if ($memb['userid'] == $att['id']) {
-                            $grp = $memb['namefull'] ? $memb['namefull'] : $membs['nameshort'];
+                            $grp = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
                         }
                     }
                 }
