@@ -1160,7 +1160,7 @@ class Message
 
                 # We can always see any area and top-level postcode.  If we're a mod or this is our message
                 # we can see the precise location.
-                if ($ret['showarea']) {
+                if (pres('showarea', $ret)) {
                     $areaid = $l->getPrivate('areaid');
                     if ($areaid) {
                         # This location is quite specific.  Return the area it's in.
@@ -1172,7 +1172,7 @@ class Message
                     }
                 }
 
-                if ($ret['showpc']) {
+                if (pres('showpc', $ret)) {
                     $pcid = $l->getPrivate('postcodeid');
                     if ($pcid) {
                         $p = $this->getLocation($pcid, $locationlist);
@@ -1409,7 +1409,7 @@ ORDER BY lastdate DESC;";
                     $grouparrival = strtotime($group['arrival']);
                     $grouparrivalago = floor((time() - $grouparrival) / 86400);
 
-                    if ($grouparrivalago > $ret['expiretime']) {
+                    if ($grouparrivalago > presdef('expiretime', $ret, 0)) {
                         # Assume anything this old is no longer available.
                         $ret['outcomes'] = [
                             [
@@ -1468,7 +1468,6 @@ ORDER BY lastdate DESC;";
                 # We know who sent this.  We may be able to return this (depending on the role we have for the message
                 # and hence the attributes we have already filled in).  We also want to know if we have consent
                 # to republish it.
-                #error_log("Get from " . var_export($ret['groups'], TRUE));
                 $ret['fromuser'] = $fromusers[$ret['fromuser']];
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {

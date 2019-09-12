@@ -4,6 +4,7 @@
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -214,13 +215,6 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-    </task>
-    <task id="LOCAL-00151" summary="Add another autoresponder message">
-      <created>1559486948591</created>
-      <option name="number" value="00151" />
-      <option name="presentableId" value="LOCAL-00151" />
-      <option name="project" value="LOCAL" />
-      <updated>1559486948592</updated>
     </task>
     <task id="LOCAL-00152" summary="Purge logs for old mail bounces to save space">
       <created>1562390151663</created>
@@ -558,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568275411301</updated>
     </task>
-    <option name="localTasksCounter" value="200" />
+    <task id="LOCAL-00200" summary="Comments, duplicate, message counts showing wrongly">
+      <created>1568277510156</created>
+      <option name="number" value="00200" />
+      <option name="presentableId" value="LOCAL-00200" />
+      <option name="project" value="LOCAL" />
+      <updated>1568277510156</updated>
+    </task>
+    <option name="localTasksCounter" value="201" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -602,7 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Return refmsgids for new client" />
     <MESSAGE value="Speed-ups: message fetching" />
     <MESSAGE value="Speed-ups: message roles" />
     <MESSAGE value="Speed-ups: message groups" />
@@ -627,6 +627,7 @@
     <MESSAGE value="Speed-ups: user applied, spammer, email history" />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Edits showing wrongly" />
-    <option name="LAST_COMMIT_MESSAGE" value="Edits showing wrongly" />
+    <MESSAGE value="Comments, duplicate, message counts showing wrongly" />
+    <option name="LAST_COMMIT_MESSAGE" value="Comments, duplicate, message counts showing wrongly" />
   </component>
 </project>

@@ -1586,7 +1586,6 @@ class User extends Entity
 
     public function getInfos(&$users) {
         $uids = array_filter(array_column($users, 'id'));
-        error_log("Get infos for " . json_encode($uids));
 
         $start = date('Y-m-d', strtotime("{User::OPEN_AGE} days ago"));
         $days90 = date("Y-m-d", strtotime("90 days ago"));
@@ -1640,8 +1639,6 @@ class User extends Entity
             MessageCollection::APPROVED
         ], FALSE, FALSE);
 
-        #error_log("Got counts " . var_export($counts, TRUE));
-
         foreach ($users as &$user) {
             $user['info']['offers'] = 0;
             $user['info']['wanteds'] = 0;
@@ -1665,9 +1662,27 @@ class User extends Entity
                     }
                 }
             }
-
-            #error_log("Returned " . var_export($user['info'], TRUE));
         }
+
+        # Distance away.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        if ($me) {
+            list ($mylat, $mylng, $myloc) = $me->getLatLng();
+            $latlngs = $this->getLatLngs($users);
+
+            foreach ($latlngs as $userid => $latlng) {
+                $users[$userid]['milesaway'] = $this->getDistanceBetween($mylat, $mylng, $latlng['lat'], $latlng['lng']);
+            }
+
+            $ret['publiclocation'] = $this->getPublicLocation();
+        }
+
+//        $r = new ChatRoom($this->dbhr, $this->dbhm);
+//        $ret['replytime'] = $r->replyTime($this->id);
+//        $ret['nudges'] = $r->nudgeCount($this->id);
+//
+//        $ret['ratings'] = $this->getRating();
     }
     
     public function getInfo()
@@ -1788,11 +1803,14 @@ class User extends Entity
         return floatval("0." . implode('', $dec));
     }
 
-    public function getDistance($mylat, $mylng)
+    public function getDistance($mylat, $mylng) {
+        list ($tlat, $tlng, $tloc) = $this->getLatLng();
+        return($this->getDistanceBetween($mylat, $mylng, $tlat, $tlng));
+    }
+
+    public function getDistanceBetween($mylat, $mylng, $tlat, $tlng)
     {
         $p1 = new POI($mylat, $mylng);
-
-        list ($tlat, $tlng, $tloc) = $this->getLatLng();
 
         # We need to make sure that we don't reveal the actual location (well, the postcode location) to
         # someone attempting to triangulate.  So first we move the location a bit based on something which
@@ -4530,49 +4548,88 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function getLatLng($usedef = TRUE, $usegroup = TRUE)
     {
-        $s = $this->getPrivate('settings');
-        $lat = NULL;
-        $lng = NULL;
-        $loc = NULL;
+        $locs = $this->getLatLngs([ $this->user ], $usedef, $usegroup, [ $this->user ]);
+        $loc = $locs[$this->id];
+        return([ $loc['lat'], $loc['lng'], $loc['loc'] ]);
+    }
 
-        if ($s) {
-            $settings = json_decode($s, TRUE);
+    public function getLatLngs($users, $usedef = TRUE, $usegroup = TRUE, $atts = NULL)
+    {
+        $userids = array_filter(array_column($users, 'id'));
+        $ret = [];
 
-            if (pres('mylocation', $settings)) {
-                $lat = $settings['mylocation']['lat'];
-                $lng = $settings['mylocation']['lng'];
-                $loc = presdef('name', $settings['mylocation'], NULL);
+        if ($userids && count($userids)) {
+            $atts = $atts ? $atts : $this->dbhr->preQuery("SELECT id, settings, lastlocation FROM users WHERE id in (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
+
+            foreach ($atts as $att) {
+                $lat = NULL;
+                $lng = NULL;
+                $loc = NULL;
+
+                if (pres('settings', $att)) {
+                    $settings = $att['settings'];
+                    $settings = json_decode($settings, TRUE);
+
+                    if (pres('mylocation', $settings)) {
+                        $lat = $settings['mylocation']['lat'];
+                        $lng = $settings['mylocation']['lng'];
+                        $loc = presdef('name', $settings['mylocation'], NULL);
+                    }
+                }
+
+                if ($lat === NULL) {
+                    $lid = $this->getPrivate('lastlocation');
+
+                    if ($lid) {
+                        $l = new Location($this->dbhr, $this->dbhm, $lid);
+                        $lat = $l->getPrivate('lat');
+                        $lng = $l->getPrivate('lng');
+                        $loc = $l->getPrivate('name');
+                    }
+                }
+
+                if ($lat !== NULL) {
+                    $ret[$att['id']] = [
+                        'lat' => $lat,
+                        'lng' => $lng,
+                        'loc' => $loc
+                    ];
+
+                    $userids = array_filter($userids, function($id) use ($att) {
+                        return $id !== $att['id'];
+                    });
+                }
             }
         }
 
-        if (!$lat) {
-            $lid = $this->getPrivate('lastlocation');
+        if ($userids && count($userids) && $usegroup) {
+            # Still some we haven't handled.  Get the memberships.  Logic will choose most recently joined.
+            $membs = $this->dbhr->preQuery("SELECT userid, lat, lng, nameshort, namefull FROM groups INNER JOIN memberships ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") ORDER BY added ASC;", NULL, FALSE, FALSE);
+            foreach ($membs as $memb) {
+                $ret[$memb['userid']] = [
+                    'lat' => $memb['lat'],
+                    'lng' => $memb['lng'],
+                    'loc' => presdef('namefull', $memb, $memb['nameshort'])
+                ];
 
-            if ($lid) {
-                $l = new Location($this->dbhr, $this->dbhm, $lid);
-                $lat = $l->getPrivate('lat');
-                $lng = $l->getPrivate('lng');
-                $loc = $l->getPrivate('name');
+                $userids = array_filter($userids, function($id) use ($memb) {
+                    return $id !== $memb['id'];
+                });
             }
         }
 
-        if (!$lat && $usegroup) {
-            # Try for user groups
-            $membs = $this->getMemberships();
-
-            if (count($membs) > 0) {
-                $lat = $membs[0]['lat'];
-                $lng = $membs[0]['lng'];
+        if ($userids && count($userids) && $usedef) {
+            # Still some we haven't handled.
+            foreach ($userids as $userid) {
+                $ret[$userid] = [
+                    'lat' => 53.9450,
+                    'lng' => -2.5209,
+                    'loc' => 'Somewhere'
+                ];
             }
         }
 
-        if ($usedef) {
-            # ...or failing that, a default.
-            $lat = $lat ? $lat : 53.9450;
-            $lng = $lng ? $lng : -2.5209;
-        }
-
-        return ([$lat, $lng, $loc]);
+        return ($ret);
     }
 
     public function isFreegleMod()
