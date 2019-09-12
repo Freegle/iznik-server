@@ -1575,29 +1575,31 @@ class User extends Entity
         $start = date('Y-m-d', strtotime(User::OPEN_AGE . " days ago"));
         $uids = array_filter(array_column($users, 'id'));
 
-        $counts = $this->dbhr->preQuery("SELECT messages.fromuser AS userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.fromuser, messages.type, messages_outcomes.outcome;", [
-            $start,
-            MessageCollection::APPROVED
-        ], FALSE, FALSE);
+        if (count($uids)) {
+            $counts = $this->dbhr->preQuery("SELECT messages.fromuser AS userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.fromuser, messages.type, messages_outcomes.outcome;", [
+                $start,
+                MessageCollection::APPROVED
+            ], FALSE, FALSE);
 
-        foreach ($users as $user) {
-            $offers = 0;
-            $wanteds = 0;
+            foreach ($users as $user) {
+                $offers = 0;
+                $wanteds = 0;
 
-            foreach ($counts as $count) {
-                if ($count['userid'] == $user['id']) {
-                    if ($count['type'] == Message::TYPE_OFFER) {
-                        $offers += $count['count'];
-                    } else if ($count['type'] == Message::TYPE_WANTED) {
-                        $wanteds += $count['count'];
+                foreach ($counts as $count) {
+                    if ($count['userid'] == $user['id']) {
+                        if ($count['type'] == Message::TYPE_OFFER) {
+                            $offers += $count['count'];
+                        } else if ($count['type'] == Message::TYPE_WANTED) {
+                            $wanteds += $count['count'];
+                        }
                     }
                 }
-            }
 
-            $users[$user['id']]['activecounts'] = [
-                'offers' => $offers,
-                'wanteds' => $wanteds
-            ];
+                $users[$user['id']]['activecounts'] = [
+                    'offers' => $offers,
+                    'wanteds' => $wanteds
+                ];
+            }
         }
     }
 
@@ -2603,9 +2605,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     }
 
     public function getPublicsById($uids, $groupids = NULL, $history = TRUE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE) {
-         $users = $this->dbhr->preQuery("SELECT * FROM users WHERE id IN (" . implode(',', $uids) . ");", NULL, FALSE, FALSE);
-         $rets = $this->getPublics($users, $groupids, $history, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
-         return($rets);
+        $rets = [];
+
+        if (count($uids)) {
+            $users = $this->dbhr->preQuery("SELECT * FROM users WHERE id IN (" . implode(',', $uids) . ");", NULL, FALSE, FALSE);
+            $rets = $this->getPublics($users, $groupids, $history, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
+        }
+
+        return($rets);
     }
 
     public function getPublicEmails(&$rets) {
