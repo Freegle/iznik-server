@@ -2595,14 +2595,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         $emails = $this->dbhr->preQuery("SELECT * FROM logs_emails WHERE userid IN (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
 
-        foreach ($rets as &$ret) {
-            $ret['emailhistory'] = [];
+        foreach ($rets as $retind => $ret) {
+            $rets[$retind]['emailhistory'] = [];
 
             foreach ($emails as $email) {
-                if ($ret['id'] == $email['userid']) {
+                if ($rets[$retind]['userid'] == $email['userid']) {
                     $email['timestamp'] = ISODate($email['timestamp']);
                     unset($email['userid']);
-                    $ret['emailhistory'][] = $email;
+                    $rets[$retind]['emailhistory'][] = $email;
                 }
             }
         }
@@ -3451,10 +3451,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     {
         $userids = array_keys($rets);
 
-        foreach ($rets as &$ret) {
-            $ret['comments'] = [];
-        }
-
         # We can only see comments on groups on which we have mod status.
         $groupids = $me ? $me->getModeratorships() : [];
         $groupids = count($groupids) == 0 ? [0] : $groupids;
@@ -3464,24 +3460,29 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         # optimising the calls for byuser, since there won't be any for most users.
         $sql = "SELECT * FROM users_comments WHERE userid IN (" . implode(',', $userids) . ") ORDER BY date DESC;";
         $comments = $this->dbhr->preQuery($sql, [$this->id]);
+        #error_log("Got comments " . var_export($comments, TRUE));
 
-        foreach ($comments as &$comment) {
-            if (in_array($comment['groupid'], $groupids)) {
-                $comment['date'] = ISODate($comment['date']);
+        foreach ($rets as $retind => $ret) {
+            $rets[$retind]['comments'] = [];
 
-                if (pres('byuserid', $comment)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $comment['byuserid']);
+            for ($commentind = 0; $commentind < count($comments); $commentind++) {
+                if ($comments[$commentind]['userid'] == $rets[$retind]['id']) {
+                    if (in_array($comments[$commentind]['groupid'], $groupids)) {
+                        $comments[$commentind]['date'] = ISODate($comments[$commentind]['date']);
 
-                    # Don't ask for comments to stop stack overflow.
-                    $ctx = NULL;
-                    $comment['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                        if (pres('byuserid', $comments[$commentind])) {
+                            $u = User::get($this->dbhr, $this->dbhm, $comments[$commentind]['byuserid']);
+
+                            # Don't ask for comments to stop stack overflow.
+                            $ctx = NULL;
+                            $comments[$commentind]['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                        }
+
+                        $rets[$retind]['comments'][] = $comments[$commentind];
+                    }
                 }
-
-                $ret['comments'][] = $comment;
             }
         }
-
-        return ($ret);
     }
 
     public function getComment($id)

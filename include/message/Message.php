@@ -1456,7 +1456,7 @@ ORDER BY lastdate DESC;";
 
         if (count($fromuids)) {
             $ctx = NULL;
-            $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, $ctx, NULL, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, [ MessageCollection::APPROVED ], FALSE);
+            $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, [ MessageCollection::APPROVED ], FALSE);
             $u->getInfos($fromusers);
         }
 
@@ -1620,7 +1620,6 @@ ORDER BY lastdate DESC;";
 
                 if ($doit) {
                     for ($editind = 0; $editind < count($edits); $editind++) {
-                        error_log("Compare {$rets[$retind]['id']}, {$edits[$editind]['msgid']}");
                         if ($rets[$retind]['id'] == $edits[$editind]['msgid']) {
                             $thisedit = $edits[$editind]; 
                             $thisedit['timestamp'] = ISODate($thisedit['timestamp']);
