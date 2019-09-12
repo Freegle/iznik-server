@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -108,10 +106,15 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messagesTest.testEH">
+  <component name="RunManager" selected="PHPUnit.chatRoomsTest.testNotifyUser2Mod">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="chatRoomsTest.testNotifyUser2Mod" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="chatRoomsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" method="testNotifyUser2Mod" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messageAPITest.testApproved" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -122,11 +125,6 @@
     <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="messagesTest.testSpam" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testSpam" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="ut" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -142,17 +140,17 @@
     <list>
       <item itemvalue="PHPUnit.ut" />
       <item itemvalue="PHPUnit.messagesTest.testEH" />
-      <item itemvalue="PHPUnit.messagesTest.testSpam" />
       <item itemvalue="PHPUnit.messageAPITest.testApproved" />
       <item itemvalue="PHPUnit.volunteeringAPITest.testEH" />
+      <item itemvalue="PHPUnit.chatRoomsTest.testNotifyUser2Mod" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.chatRoomsTest.testNotifyUser2Mod" />
         <item itemvalue="PHPUnit.messagesTest.testEH" />
         <item itemvalue="PHPUnit.volunteeringAPITest.testEH" />
         <item itemvalue="PHPUnit.ut" />
         <item itemvalue="PHPUnit.messageAPITest.testApproved" />
-        <item itemvalue="PHPUnit.messagesTest.testSpam" />
       </list>
     </recent_temporary>
   </component>
@@ -215,13 +213,6 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-    </task>
-    <task id="LOCAL-00152" summary="Purge logs for old mail bounces to save space">
-      <created>1562390151663</created>
-      <option name="number" value="00152" />
-      <option name="presentableId" value="LOCAL-00152" />
-      <option name="project" value="LOCAL" />
-      <updated>1562390151663</updated>
     </task>
     <task id="LOCAL-00153" summary="Fix up group settings for allow edits">
       <created>1562390173103</created>
@@ -559,7 +550,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568277510156</updated>
     </task>
-    <option name="localTasksCounter" value="201" />
+    <task id="LOCAL-00201" summary="Edits not showing">
+      <created>1568282394411</created>
+      <option name="number" value="00201" />
+      <option name="presentableId" value="LOCAL-00201" />
+      <option name="project" value="LOCAL" />
+      <updated>1568282394411</updated>
+    </task>
+    <option name="localTasksCounter" value="202" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,7 +601,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: message fetching" />
     <MESSAGE value="Speed-ups: message roles" />
     <MESSAGE value="Speed-ups: message groups" />
     <MESSAGE value="Speed-ups: get message replies" />
@@ -628,6 +625,7 @@
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Edits showing wrongly" />
     <MESSAGE value="Comments, duplicate, message counts showing wrongly" />
-    <option name="LAST_COMMIT_MESSAGE" value="Comments, duplicate, message counts showing wrongly" />
+    <MESSAGE value="Edits not showing" />
+    <option name="LAST_COMMIT_MESSAGE" value="Edits not showing" />
   </component>
 </project>

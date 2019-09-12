@@ -4613,7 +4613,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 ];
 
                 $userids = array_filter($userids, function($id) use ($memb) {
-                    return $id !== $memb['id'];
+                    return $id !== $memb['userid'];
                 });
             }
         }
