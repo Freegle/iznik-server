@@ -1685,9 +1685,17 @@ class User extends Entity
             $users[$uid]['replytime'] = $replytime;
         }
 
-//        $ret['nudges'] = $r->nudgeCount($this->id);
-//
-//        $ret['ratings'] = $this->getRating();
+        $nudges = $r->nudgeCounts($uids);
+
+        foreach ($nudges as $uid => $nudgecount) {
+            $users[$uid]['nudges'] = $nudgecount;
+        }
+
+        $ratings = $this->getRatings($uids);
+
+        foreach ($ratings as $uid => $rating) {
+            $users[$uid]['ratings'] = $rating;
+        }
     }
     
     public function getInfo()
@@ -5750,33 +5758,45 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     }
 
     public function getRating() {
+        return($this->getRatings([$this->id])[$this->id]);
+    }
+
+    public function getRatings($uids) {
         $mysqltime = date("Y-m-d", strtotime("Midnight 182 days ago"));
-        $ratings = $this->dbhr->preQuery("SELECT COUNT(*) AS count, rating FROM ratings WHERE ratee = ? AND timestamp >= '$mysqltime' GROUP BY rating;", [
-            $this->id
-        ], FALSE, FALSE);
-
-        $ret = [
-            User::RATING_UP => 0,
-            User::RATING_DOWN => 0,
-            User::RATING_MINE => NULL
-        ];
-
-        foreach ($ratings as $rate) {
-            $ret[$rate['rating']] = $rate['count'];
-        }
-
+        $ret = [];
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        if ($myid != $this->id) {
-            # We can't rate ourselves, so don't bother checking.
-            $ratings = $this->dbhr->preQuery("SELECT rating FROM ratings WHERE ratee = ? AND rater = ?;", [
-                $this->id,
-                $myid
-            ], FALSE, FALSE);
 
-            foreach ($ratings as $rating) {
-                $ret[User::RATING_MINE] = $rating['rating'];
+        $ratings = $this->dbhr->preQuery("SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' GROUP BY rating, ratee;", NULL, FALSE, FALSE);
+
+        foreach ($uids as $uid) {
+            $ret[$uid] = [
+                User::RATING_UP => 0,
+                User::RATING_DOWN => 0,
+                User::RATING_MINE => NULL
+            ];
+
+            foreach ($ratings as $rate) {
+                if ($rate['ratee'] == $uid) {
+                    $ret[$uid][$rate['rating']] = $rate['count'];
+                }
+            }
+        }
+
+        $ratings = $this->dbhr->preQuery("SELECT rating, ratee FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND rater = ?;", [
+            $myid
+        ], FALSE, FALSE);
+
+        foreach ($uids as $uid) {
+            if ($myid != $this->id) {
+                # We can't rate ourselves, so don't bother checking.
+
+                foreach ($ratings as $rating) {
+                    if ($rating['ratee'] == $uid) {
+                        $ret[$uid][User::RATING_MINE] = $rating['rating'];
+                    }
+                }
             }
         }
 

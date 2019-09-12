@@ -2173,25 +2173,37 @@ WHERE chat_rooms.id IN $idlist;";
         return($id);
     }
 
+    public function nudgess($uids) {
+        return($this->dbhr->preQuery("SELECT * FROM users_nudges WHERE touser IN (" . implode(',', $uids) . ");", NULL, FALSE, FALSE));
+    }
+
     public function nudges($userid) {
-        return($this->dbhr->preQuery("SELECT * FROM users_nudges WHERE touser = ?;", [
-            $userid
-        ], FALSE, FALSE));
+        return($this->nudgess([ $userid ]));
     }
 
     public function nudgeCount($userid) {
-        $nudges = $this->nudges($userid);
-        $sent = 0;
-        $responded = 0;
+        return($this->nudgeCounts([ $userid ])[$userid]);
+    }
 
-        foreach ($nudges as $nudge) {
-            $sent++;
-            $responded = $nudge['responded'] ? ($responded + 1) : $responded;
+    public function nudgeCounts($uids) {
+        $nudges = $this->nudgess($uids);
+        $ret = [];
+
+        foreach ($uids as $uid) {
+            $sent = 0;
+            $responded = 0;
+
+            foreach ($nudges as $nudge) {
+                $sent++;
+                $responded = $nudge['responded'] ? ($responded + 1) : $responded;
+            }
+
+            $ret[$uid] = [
+                'sent' => $sent,
+                'responded' => $responded
+            ];
         }
 
-        return([
-            'sent' => $sent,
-            'responded' => $responded
-        ]);
+        return $ret;
     }
 }
