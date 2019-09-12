@@ -243,21 +243,6 @@ class Newsfeed extends Entity
                 }
             }
 
-            if ($entry['userid'] && !array_key_exists($entry['userid'], $users)) {
-                $u = User::get($this->dbhr, $this->dbhm, $entry['userid']);
-                $uctx = NULL;
-                $users[$entry['userid']] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-                $users[$entry['userid']]['publiclocation'] = $u->getPublicLocation();
-
-                if ($users[$entry['userid']]['profile']['default']) {
-                    # We always want to show an avatar for the newsfeed, but we don't have one.  This won't cause
-                    # a flood of updates since the newsfeed is fetched gradually.
-                    $u->ensureAvatar($users[$entry['userid']]);
-                }
-
-                $users[$entry['userid']]['activecounts'] = $u->getActiveCounts();
-            }
-
             if (pres('msgid', $entry)) {
                 $m = new Message($this->dbhr, $this->dbhm, $entry['msgid']);
                 $entry['refmsg'] = $m->getPublic(FALSE, FALSE);
@@ -426,7 +411,6 @@ class Newsfeed extends Entity
 
     public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx, $fillin = TRUE) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        $users = [];
         $topitems = [];
         $bottomitems = [];
 
@@ -453,6 +437,27 @@ class Newsfeed extends Entity
 
             $me = whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
+
+            # Get the users that we need for filling in more efficiently - find their ids and then get them in
+            # a single call.
+            $users = [];
+            $uids = array_filter(array_column($entries, 'userid'));
+            $newsids = array_filter(array_column($entries, 'id'));
+
+            if (count($newsids)) {
+                do {
+                    # We keep going until we've not picked up any more users.
+                    $uidcount = count($uids);
+
+                    $replies = $this->dbhr->preQuery("SELECT id, userid FROM newsfeed WHERE replyto IN (" . implode(',', $newsids) . ");", NULL, FALSE, FALSE);
+                    $uids = array_unique(array_merge($uids, array_filter(array_column($replies, 'userid'))));
+                    $newsids = array_unique(array_merge($newsids, array_filter(array_column($replies, 'id'))));
+                } while (count($uids) !== $uidcount);
+
+                $users = $u->getPublicsById($uids);
+                $u->getPublicLocations($users);
+                $u->getActiveCountss($users);
+            }
 
             foreach ($entries as &$entry) {
                 $hidden = $entry['hidden'];

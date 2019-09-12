@@ -1562,26 +1562,43 @@ class User extends Entity
     }
 
     public function getActiveCounts() {
-        $start = date('Y-m-d', strtotime(User::OPEN_AGE . " days ago"));
+        $users = [
+            $this->id => [
+                'id' => $this->id
+            ]];
 
-        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.type, messages_outcomes.outcome;", [
-            $this->id,
+        $this->getActiveCountss($users);
+        return($users[$this->id]['activecounts']);
+    }
+
+    public function getActiveCountss(&$users) {
+        $start = date('Y-m-d', strtotime(User::OPEN_AGE . " days ago"));
+        $uids = array_filter(array_column($users, 'id'));
+
+        $counts = $this->dbhr->preQuery("SELECT messages.fromuser AS userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.fromuser, messages.type, messages_outcomes.outcome;", [
             $start,
             MessageCollection::APPROVED
         ], FALSE, FALSE);
 
-        $ret['offers'] = 0;
-        $ret['wanteds'] = 0;
+        foreach ($users as $user) {
+            $offers = 0;
+            $wanteds = 0;
 
-        foreach ($counts as $count) {
-            if ($count['type'] == Message::TYPE_OFFER) {
-                $ret['offers'] += $count['count'];
-            } else if ($count['type'] == Message::TYPE_WANTED) {
-                $ret['wanteds'] += $count['count'];
+            foreach ($counts as $count) {
+                if ($count['userid'] == $user['id']) {
+                    if ($count['type'] == Message::TYPE_OFFER) {
+                        $offers += $count['count'];
+                    } else if ($count['type'] == Message::TYPE_WANTED) {
+                        $wanteds += $count['count'];
+                    }
+                }
             }
-        }
 
-        return($ret);
+            $users[$user['id']]['activecounts'] = [
+                'offers' => $offers,
+                'wanteds' => $wanteds
+            ];
+        }
     }
 
     public function getInfos(&$users) {
@@ -1675,7 +1692,7 @@ class User extends Entity
                 $users[$userid]['milesaway'] = $this->getDistanceBetween($mylat, $mylng, $latlng['lat'], $latlng['lng']);
             }
 
-            $ret['publiclocation'] = $this->getPublicLocation();
+            $ret['publiclocation'] = $this->getPublicLocations($users);
         }
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
@@ -1858,81 +1875,33 @@ class User extends Entity
         return $url;
     }
 
+    public function getPublicLocations(&$users) {
+        $latlngs = $this->getLatLngs($users);
+
+        foreach ($latlngs as $userid => $latlng) {
+            $loc = presdef('loc', $latlng, NULL);
+            $grp = presdef('group', $latlng, NULL);
+
+            $display = $loc ? ($loc . ($grp ? ", $grp" : "")) : ($grp ? $grp : '');
+
+            $users[$userid]['publiclocation'] = [
+                'display' => $display,
+                'location' => $loc,
+                'groupname' => $grp
+            ];
+        }
+    }
+
     public function getPublicLocation()
     {
-        $loc = NULL;
-        $grp = NULL;
+        $users = [
+            $this->id => [
+                'id' => $this->id ]
+        ];
 
-        $aid = NULL;
-        $lid = NULL;
-        $lat = NULL;
-        $lng = NULL;
-
-        $s = $this->getPrivate('settings');
-
-        if ($s) {
-            $settings = json_decode($s, TRUE);
-
-            if (pres('mylocation', $settings) && pres('area', $settings['mylocation'])) {
-                $loc = $settings['mylocation']['area']['name'];
-                $lid = $settings['mylocation']['id'];
-                $lat = $settings['mylocation']['lat'];
-                $lng = $settings['mylocation']['lng'];
-            }
-        }
-
-        if (!$loc) {
-            # Get the name of the last area we used.
-            $areas = $this->dbhr->preQuery("SELECT id, name, lat, lng FROM locations WHERE id IN (SELECT areaid FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE users.id = ?);", [
-                $this->id
-            ]);
-
-            foreach ($areas as $area) {
-                $loc = $area['name'];
-                $lid = $area['id'];
-                $lat = $area['lat'];
-                $lng = $area['lng'];
-            }
-        }
-
-        if ($lid) {
-            # Find the group of which we are a member which is closest to our location.  We do this because generally
-            # the number of groups we're in is small and therefore this will be quick, whereas the groupsNear call is
-            # fairly slow.
-            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND polyindex IS NOT NULL AND onmap = 1 AND type = ? AND publish = 1 ORDER BY ST_distance(POINT(?, ?), polyindex) ASC LIMIT 1;";
-            $groups = $this->dbhr->preQuery($sql, [
-                $this->id,
-                $lng,
-                $lat,
-                Group::GROUP_FREEGLE
-            ]);
-
-            if (count($groups) > 0) {
-                $grp = $groups[0]['namefull'] ? $groups[0]['namefull'] : $groups[0]['nameshort'];
-
-                # The location name might be in the group name, in which case just use the group.
-                $loc = strpos($grp, $loc) !== FALSE ? NULL : $loc;
-            }
-        } else {
-            # We don't have a location.  All we might have is a membership.
-            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND type = ? AND publish = 1 ORDER BY added DESC LIMIT 1;";
-            $groups = $this->dbhr->preQuery($sql, [
-                $this->id,
-                Group::GROUP_FREEGLE
-            ]);
-
-            if (count($groups) > 0) {
-                $grp = $groups[0]['namefull'] ? $groups[0]['namefull'] : $groups[0]['nameshort'];
-            }
-        }
-
-        $display = $loc ? ($loc . ($grp ? ", $grp" : "")) : ($grp ? $grp : '');
-
-        return ([
-            'display' => $display,
-            'location' => $loc,
-            'groupname' => $grp
-        ]);
+        $this->getLatLngs($users);
+        $this->getPublicLocations($users);
+        return($users[$this->id]['publiclocation']);
     }
 
     public function ensureAvatar(&$atts)
@@ -1940,10 +1909,9 @@ class User extends Entity
         # This involves querying external sites, so we need to use it with care, otherwise we can hang our
         # system.  It can also cause updates, so if we call it lots of times, it can result in cluster issues.
         $forcedefault = FALSE;
-        $s = $this->getPrivate('settings');
+        $settings = presdef('settings', $atts, NULL);
 
-        if ($s) {
-            $settings = json_decode($s, TRUE);
+        if ($settings) {
             if (array_key_exists('useprofile', $settings) && !$settings['useprofile']) {
                 $forcedefault = TRUE;
             }
@@ -1951,7 +1919,7 @@ class User extends Entity
 
         if (!$forcedefault && $atts['profile']['default']) {
             # See if we can do better than a default.
-            $emails = $this->getEmails();
+            $emails = $this->getEmails($atts['id']);
 
             foreach ($emails as $email) {
                 if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
@@ -2034,7 +2002,7 @@ class User extends Entity
 
             # Save for next time.
             $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`, hash) VALUES (?, ?, ?, ?);", [
-                $this->id,
+                $atts['id'],
                 $atts['profile']['default'] ? NULL : $atts['profile']['url'],
                 $atts['profile']['default'],
                 $hash
@@ -2310,8 +2278,7 @@ class User extends Entity
             foreach ($profiles as $profile) {
                 # Get a profile.  This function is called so frequently that we can't afford to query external sites
                 # within it, so if we don't find one, we default to none.
-                if (pres('imageid', $profile) &&
-                    gettype($rets[$profile['userid']]['settings']) == 'array' &&
+                if (gettype($rets[$profile['userid']]['settings']) == 'array' &&
                     (!array_key_exists('useprofile', $rets[$profile['userid']]['settings']) || $rets[$profile['userid']]['settings']['useprofile'])) {
                     # We found a profile that we can use.
                     if (!$profile['default']) {
@@ -4557,12 +4524,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function getLatLng($usedef = TRUE, $usegroup = TRUE)
     {
-        $locs = $this->getLatLngs([ $this->user ], $usedef, $usegroup, [ $this->user ]);
+        $locs = $this->getLatLngs([ $this->user ], $usedef, $usegroup, FALSE, [ $this->user ]);
         $loc = $locs[$this->id];
         return([ $loc['lat'], $loc['lng'], presdef('loc', $loc, NULL) ]);
     }
 
-    public function getLatLngs($users, $usedef = TRUE, $usegroup = TRUE, $atts = NULL)
+    public function getLatLngs($users, $usedef = TRUE, $usegroup = TRUE, $needgroup = FALSE, $atts = NULL)
     {
         $userids = array_filter(array_column($users, 'id'));
         $ret = [];
@@ -4617,7 +4584,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             foreach ($membs as $memb) {
                 $ret[$memb['userid']] = [
                     'lat' => $memb['lat'],
-                    'lng' => $memb['lng']
+                    'lng' => $memb['lng'],
+                    'group' => presdef('namefull', $memb, $memb['nameshort'])
                 ];
 
                 $userids = array_filter($userids, function($id) use ($memb) {
@@ -4637,6 +4605,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 } else {
                     $ret[$userid] = NULL;
                 }
+            }
+        }
+
+        if ($needgroup) {
+            # Get a group name.
+            $membs = $this->dbhr->preQuery("SELECT userid, nameshort, namefull FROM groups INNER JOIN memberships ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', array_filter(array_column($users, 'id'))) . ") ORDER BY added ASC;", NULL, FALSE, FALSE);
+            foreach ($membs as $memb) {
+                $ret[$memb['userid']] = [
+                    'group' => presdef('namefull', $memb, $memb['nameshort'])
+                ];
             }
         }
 

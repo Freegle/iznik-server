@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -46,7 +45,13 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="Docker (project level)">
+  <component name="JsFlowSettings">
+    <service-enabled>true</service-enabled>
+    <exe-path />
+    <other-services-enabled>true</other-services-enabled>
+    <auto-save>true</auto-save>
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app1">
     <include_path>
       <path value="." />
       <path value="/usr/bin/php" />
@@ -108,7 +113,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.ut">
+  <component name="RunManager" selected="PHPUnit.newsfeedAPITest.testEH">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -119,9 +124,9 @@
       <TestRunner class="chatMessagesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" method="testConversation" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatMessagesAPITest.testReview" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="newsfeedAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatMessagesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" method="testReview" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="sessionTest.testAboutMe" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -141,18 +146,18 @@
     </configuration>
     <list>
       <item itemvalue="PHPUnit.ut" />
-      <item itemvalue="PHPUnit.chatMessagesAPITest.testReview" />
       <item itemvalue="PHPUnit.sessionTest.testAboutMe" />
       <item itemvalue="PHPUnit.userTest.testJobs" />
       <item itemvalue="PHPUnit.chatMessagesAPITest.testConversation" />
+      <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
         <item itemvalue="PHPUnit.ut" />
         <item itemvalue="PHPUnit.chatMessagesAPITest.testConversation" />
         <item itemvalue="PHPUnit.userTest.testJobs" />
         <item itemvalue="PHPUnit.sessionTest.testAboutMe" />
-        <item itemvalue="PHPUnit.chatMessagesAPITest.testReview" />
       </list>
     </recent_temporary>
   </component>
@@ -215,13 +220,6 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-    </task>
-    <task id="LOCAL-00157" summary="Newsfeed threadhead wrong.">
-      <created>1567093883286</created>
-      <option name="number" value="00157" />
-      <option name="presentableId" value="LOCAL-00157" />
-      <option name="project" value="LOCAL" />
-      <updated>1567093883286</updated>
     </task>
     <task id="LOCAL-00158" summary="UT fixes">
       <created>1567095160982</created>
@@ -559,7 +557,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568288089355</updated>
     </task>
-    <option name="localTasksCounter" value="206" />
+    <task id="LOCAL-00206" summary="UT fixes">
+      <created>1568292518913</created>
+      <option name="number" value="00206" />
+      <option name="presentableId" value="LOCAL-00206" />
+      <option name="project" value="LOCAL" />
+      <updated>1568292518913</updated>
+    </task>
+    <option name="localTasksCounter" value="207" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
