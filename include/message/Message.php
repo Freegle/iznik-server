@@ -1034,7 +1034,6 @@ class Message
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
-            $ret = $rets[$msg['id']];
 
             if (!$summary) {
                 # In the summary case we fetched the groups in MessageCollection.  Otherwise we won't have fetched the groups yet.
@@ -1049,99 +1048,91 @@ class Message
 
                 $retgroups = [];
                 foreach ($groups as $group) {
-                    if ($group['msgid'] == $ret['id']) {
-                        #error_log("Add message {$msg['id']} {$msg['subject']} group {$group['msgid']}, {$ret['id']} val {$group['groupid']}");
+                    if ($group['msgid'] == $rets[$msg['id']]['id']) {
+                        #error_log("Add message {$msg['id']} {$msg['subject']} group {$group['msgid']}, {$rets[$msg['id']]['id']} val {$group['groupid']}");
                         $retgroups[] = $group;
                     }
                 }
 
-                $ret['groups'] = $retgroups;
+                $rets[$msg['id']]['groups'] = $retgroups;
             } else {
-                $ret['groups'] = $msg['groups'];
+                $rets[$msg['id']]['groups'] = $msg['groups'];
             }
 
-            $ret['showarea'] = TRUE;
-            $ret['showpc'] = TRUE;
+            $rets[$msg['id']]['showarea'] = TRUE;
+            $rets[$msg['id']]['showpc'] = TRUE;
 
             # We don't use foreach with & because that copies data by reference which causes bugs.
-            for ($groupind = 0; $groupind < count($ret['groups']); $groupind++ ) {
+            for ($groupind = 0; $groupind < count($rets[$msg['id']]['groups']); $groupind++ ) {
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
-                    if (pres('approvedby', $ret['groups'][$groupind])) {
-                        if (!pres($ret['groups'][$groupind]['approvedby'], $approvedcache)) {
+                    if (pres('approvedby', $rets[$msg['id']]['groups'][$groupind])) {
+                        if (!pres($rets[$msg['id']]['groups'][$groupind]['approvedby'], $approvedcache)) {
                             $appby = $this->dbhr->preQuery("SELECT id, fullname, firstname, lastname FROM users WHERE id = ?;", [
-                                $ret['groups'][$groupind]['approvedby']
+                                $rets[$msg['id']]['groups'][$groupind]['approvedby']
                             ]);
 
                             foreach ($appby as $app) {
                                 $name = pres('fullname', $app) ? $app['fullname'] : "{$app['firstname']} {$app['lastname']}";
-                                $approvedcache[$ret['groups'][$groupind]['approvedby']] = [
-                                    'id' => $ret['groups'][$groupind]['approvedby'],
+                                $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']] = [
+                                    'id' => $rets[$msg['id']]['groups'][$groupind]['approvedby'],
                                     'displayname' => $name
                                 ];
                             }
 
-                            $ret['groups'][$groupind]['approvedby'] = $approvedcache[$ret['groups'][$groupind]['approvedby']];
+                            $rets[$msg['id']]['groups'][$groupind]['approvedby'] = $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']];
                         }
                     }
                 }
 
-                $ret['groups'][$groupind]['arrival'] = ISODate($ret['groups'][$groupind]['arrival']);
-                $g = Group::get($this->dbhr, $this->dbhm, $ret['groups'][$groupind]['groupid']);
-                $ret['groups'][$groupind]['namedisplay'] = $g->getName();
+                $rets[$msg['id']]['groups'][$groupind]['arrival'] = ISODate($rets[$msg['id']]['groups'][$groupind]['arrival']);
+                $g = Group::get($this->dbhr, $this->dbhm, $rets[$msg['id']]['groups'][$groupind]['groupid']);
+                $rets[$msg['id']]['groups'][$groupind]['namedisplay'] = $g->getName();
                 #error_log("Message {$group['msgid']} {$group['groupid']} {$group['namedisplay']}");
 
                 # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
                 $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
                 $repost = $msg['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $maxreposts = $repost * $reposts['max'];
-                $ret['expiretime'] = max(Message::EXPIRE_TIME, $maxreposts);
+                $rets[$msg['id']]['expiretime'] = max(Message::EXPIRE_TIME, $maxreposts);
 
-                if (!$ret['canedit'] && $myid && $myid === $msg['fromuser'] && $msg['source'] == Message::PLATFORM) {
+                if (!$rets[$msg['id']]['canedit'] && $myid && $myid === $msg['fromuser'] && $msg['source'] == Message::PLATFORM) {
                     # This is our own message, which we may be able to edit if the group allows it.
                     $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
-                    $ourPS = $me->getMembershipAtt($ret['groups'][$groupind]['groupid'], 'ourPostingStatus');
+                    $ourPS = $me->getMembershipAtt($rets[$msg['id']]['groups'][$groupind]['groupid'], 'ourPostingStatus');
 
                     if (((!$ourPS || $ourPS === Group::POSTING_MODERATED) && $allowedits['moderated']) ||
                         ($ourPS === Group::POSTING_DEFAULT && $allowedits['group'])) {
                         # Yes, we can edit.
-                        $ret['canedit'] = TRUE;
+                        $rets[$msg['id']]['canedit'] = TRUE;
                     }
                 }
 
                 if (!$summary) {
                     $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
-                    $ret['keyword'] = presdef(strtolower($msg['type']), $keywords, $msg['type']);
+                    $rets[$msg['id']]['keyword'] = presdef(strtolower($msg['type']), $keywords, $msg['type']);
 
                     # Some groups disable the area or postcode.  If so, hide that.
                     $includearea = $g->getSetting('includearea', TRUE);
                     $includepc = $g->getSetting('includepc', TRUE);
-                    $ret['showarea'] = !$includearea ? FALSE : $ret['showarea'];
-                    $ret['showpc'] = !$includepc ? FALSE : $ret['showpc'];
+                    $rets[$msg['id']]['showarea'] = !$includearea ? FALSE : $rets[$msg['id']]['showarea'];
+                    $rets[$msg['id']]['showpc'] = !$includepc ? FALSE : $rets[$msg['id']]['showpc'];
 
-                    if (pres('mine', $ret)) {
+                    if (pres('mine', $rets[$msg['id']])) {
                         # Can we repost?
-                        $ret['canrepost'] = FALSE;
+                        $rets[$msg['id']]['canrepost'] = FALSE;
 
                         $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
                         $interval = $msg['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-                        $arrival = strtotime($ret['groups'][$groupind]['arrival']);
-                        $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
+                        $arrival = strtotime($rets[$msg['id']]['groups'][$groupind]['arrival']);
+                        $rets[$msg['id']]['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
 
-                        if ($ret['groups'][$groupind]['hoursago'] > $interval * 24) {
-                            $ret['canrepost'] = TRUE;
+                        if ($rets[$msg['id']]['groups'][$groupind]['hoursago'] > $interval * 24) {
+                            $rets[$msg['id']]['canrepost'] = TRUE;
                         }
                     }
                 }
             }
-
-            $rets[$msg['id']] = $ret;
         }
-//
-//        error_log('---');
-//        foreach ($rets as $m) {
-//            error_log("{$m['id']} {$m['subject']} group {$m['groups'][0]['groupid']}");
-//        }
-//        error_log('---');
     }
 
     public function getPublicLocation($me, $myid, &$rets, $msgs, $roles, $seeall, &$locationlist) {
@@ -1153,42 +1144,39 @@ class Message
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
-            $ret = $rets[$msg['id']];
 
             if (pres('locationid', $msg)) {
                 $l = $this->getLocation($msg['locationid'], $locationlist);
 
                 # We can always see any area and top-level postcode.  If we're a mod or this is our message
                 # we can see the precise location.
-                if (pres('showarea', $ret)) {
+                if (pres('showarea', $rets[$msg['id']])) {
                     $areaid = $l->getPrivate('areaid');
                     if ($areaid) {
                         # This location is quite specific.  Return the area it's in.
                         $a = $this->getLocation($areaid, $locationlist);
-                        $ret['area'] = $a->getPublic();
+                        $rets[$msg['id']]['area'] = $a->getPublic();
                     } else {
                         # This location isn't in an area; it is one.  Return it.
-                        $ret['area'] = $l->getPublic();
+                        $rets[$msg['id']]['area'] = $l->getPublic();
                     }
                 }
 
-                if (pres('showpc', $ret)) {
+                if (pres('showpc', $rets[$msg['id']])) {
                     $pcid = $l->getPrivate('postcodeid');
                     if ($pcid) {
                         $p = $this->getLocation($pcid, $locationlist);
-                        $ret['postcode'] = $p->getPublic();
+                        $rets[$msg['id']]['postcode'] = $p->getPublic();
                     }
                 }
 
                 if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $msg['fromuser'] == $myid)) {
-                    $ret['location'] = $l->getPublic();
+                    $rets[$msg['id']]['location'] = $l->getPublic();
                 }
             }
 
-            unset($ret['showarea']);
-            unset($ret['showpc']);
-
-            $rets[$msg['id']] = $ret;
+            unset($rets[$msg['id']]['showarea']);
+            unset($rets[$msg['id']]['showpc']);
         }
     }
 
@@ -1196,14 +1184,12 @@ class Message
         $search = [];
 
         foreach ($msgs as $msg) {
-            $ret = $rets[$msg['id']];
-
             if (pres('itemid', $msg)) {
-                $ret['item'] = [
+                $rets[$msg['id']]['item'] = [
                     'id' => $msg['itemid'],
                     'name' => $msg['itemname']
                 ];
-            } else if (preg_match("/(.+)\:(.+)\((.+)\)/", $ret['subject'], $matches)) {
+            } else if (preg_match("/(.+)\:(.+)\((.+)\)/", $rets[$msg['id']]['subject'], $matches)) {
                 # See if we can find it.
                 $item = trim($matches[2]);
                 $itemid = NULL;
@@ -1212,8 +1198,6 @@ class Message
                     'item' => $item
                 ];
             }
-
-            $rets[$msg['id']] = $ret;
         }
 
         if (count($search)) {
@@ -1248,11 +1232,10 @@ class Message
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
-            $ret = $rets[$msg['id']];
 
             if ($summary) {
                 # We set this when constructing from MessageCollection.
-                $ret['replycount'] = presdef('replycount', $msg, 0);
+                $rets[$msg['id']]['replycount'] = presdef('replycount', $msg, 0);
             } else if (!$summary) {
                 if ($allreplies === NULL) {
                     # Get all the replies for these messages.
@@ -1281,9 +1264,9 @@ ORDER BY lastdate DESC;";
                 }
 
                 # Can always see the replycount.  The count should include even people who are blocked.
-                $replies = presdef($ret['id'], $allreplies, []);
-                $ret['replies'] = [];
-                $ret['replycount'] = count($replies);
+                $replies = presdef($rets[$msg['id']]['id'], $allreplies, []);
+                $rets[$msg['id']]['replies'] = [];
+                $rets[$msg['id']]['replycount'] = count($replies);
 
                 # Can see replies if:
                 # - we want everything
@@ -1315,14 +1298,14 @@ ORDER BY lastdate DESC;";
                                 }
                             }
 
-                            $ret['replies'][] = $thisone;;
+                            $rets[$msg['id']]['replies'][] = $thisone;;
                         }
                     }
 
                     # Whether or not we will auto-repost depends on whether there are replies.
-                    $ret['willautorepost'] = count($ret['replies']) == 0;
+                    $rets[$msg['id']]['willautorepost'] = count($rets[$msg['id']]['replies']) == 0;
 
-                    $ret['promisecount'] = 0;
+                    $rets[$msg['id']]['promisecount'] = 0;
                 }
 
                 if ($this->type == Message::TYPE_OFFER) {
@@ -1345,21 +1328,19 @@ ORDER BY lastdate DESC;";
                     $promises = presdef($msg['id'], $allpromises, []);
 
                     if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
-                        $ret['promises'] = $promises;
+                        $rets[$msg['id']]['promises'] = $promises;
 
-                        foreach ($ret['replies'] as &$reply) {
-                            foreach ($ret['promises'] as $promise) {
+                        foreach ($rets[$msg['id']]['replies'] as &$reply) {
+                            foreach ($rets[$msg['id']]['promises'] as $promise) {
                                 $reply['promised'] = presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
                             }
                         }
                     }
 
-                    $ret['promisecount'] = count($promises);
-                    $ret['promised'] = count($promises) > 0;
+                    $rets[$msg['id']]['promisecount'] = count($promises);
+                    $rets[$msg['id']]['promised'] = count($promises) > 0;
                 }
             }
-
-            $rets[$msg['id']] = $ret;
         }
     }
 
@@ -1368,13 +1349,12 @@ ORDER BY lastdate DESC;";
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
-            $ret = $rets[$msg['id']];
-            $ret['outcomes'] = [];
+            $rets[$msg['id']]['outcomes'] = [];
 
             # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
             if ($summary) {
                 # We set this when constructing.
-                $ret['outcomes'] = presdef('outcomes', $msg, []);
+                $rets[$msg['id']]['outcomes'] = presdef('outcomes', $msg, []);
             } else {
                 if ($outcomes === NULL) {
                     $msgids = array_filter(array_column($msgs, 'id'));
@@ -1397,23 +1377,23 @@ ORDER BY lastdate DESC;";
 
                         $outcome['timestamp'] = ISODate($outcome['timestamp']);
 
-                        $ret['outcomes'][] = $outcome;
+                        $rets[$msg['id']]['outcomes'][] = $outcome;
                     }
                 }
             }
 
-            if (count($ret['outcomes']) === 0) {
+            if (count($rets[$msg['id']]['outcomes']) === 0) {
                 # No outcomes - but has it expired?  Need to check the groups though - it might be reposted later, in
                 # which case the time on messages_groups is bumped whereas the message arrival time is the same..
-                foreach ($ret['groups'] as $group) {
+                foreach ($rets[$msg['id']]['groups'] as $group) {
                     $grouparrival = strtotime($group['arrival']);
                     $grouparrivalago = floor((time() - $grouparrival) / 86400);
 
-                    if ($grouparrivalago > presdef('expiretime', $ret, 0)) {
+                    if ($grouparrivalago > presdef('expiretime', $rets[$msg['id']], 0)) {
                         # Assume anything this old is no longer available.
-                        $ret['outcomes'] = [
+                        $rets[$msg['id']]['outcomes'] = [
                             [
-                                'timestamp' => $ret['arrival'],
+                                'timestamp' => $rets[$msg['id']]['arrival'],
                                 'outcome' => Message::OUTCOME_EXPIRED
                             ]
                         ];
@@ -1421,9 +1401,7 @@ ORDER BY lastdate DESC;";
                 }
             }
 
-            unset($ret['expiretime']);
-
-            $rets[$msg['id']] = $ret;
+            unset($rets[$msg['id']]['expiretime']);
         }
     }
 
@@ -1462,32 +1440,29 @@ ORDER BY lastdate DESC;";
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
-            $ret = $rets[$msg['id']];
 
             if (pres('fromuser', $ret)) {
                 # We know who sent this.  We may be able to return this (depending on the role we have for the message
                 # and hence the attributes we have already filled in).  We also want to know if we have consent
                 # to republish it.
-                $ret['fromuser'] = $fromusers[$ret['fromuser']];
+                $rets[$msg['id']]['fromuser'] = $fromusers[$rets[$msg['id']]['fromuser']];
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                     # We can see their emails.
-                    $ret['fromuser']['emails'] = $emails[$msg['fromuser']];
+                    $rets[$msg['id']]['fromuser']['emails'] = $emails[$msg['fromuser']];
                 } else if (pres('partner', $_SESSION)) {
                     # Partners can see emails which belong to us, for the purposes of replying.
                     $es = $emails[$msg['fromuser']];
-                    $ret['fromuser']['emails'] = [];
+                    $rets[$msg['id']]['fromuser']['emails'] = [];
                     foreach ($es as $email) {
                         if (ourDomain($email['email'])) {
-                            $ret['fromuser']['emails'] = $email;
+                            $rets[$msg['id']]['fromuser']['emails'] = $email;
                         }
                     }
                 }
 
-                filterResult($ret['fromuser']);
+                filterResult($rets[$msg['id']]['fromuser']);
             }
-
-            $rets[$msg['id']] = $ret;
         }
     }
 
@@ -1500,10 +1475,8 @@ ORDER BY lastdate DESC;";
         }
 
         foreach ($msgs as $msg) {
-            $ret = $rets[$msg['id']];
-
             # Add any related messages
-            $ret['related'] = [];
+            $rets[$msg['id']]['related'] = [];
             $relids = [];
 
             foreach ($relateds as $rel) {
@@ -1512,26 +1485,20 @@ ORDER BY lastdate DESC;";
 
                     if (!array_key_exists($id, $relids)) {
                         $m = new Message($this->dbhr, $this->dbhm, $id);
-                        $ret['related'][] = $m->getPublic(FALSE, FALSE);
+                        $rets[$msg['id']]['related'][] = $m->getPublic(FALSE, FALSE);
                         $relids[$id] = TRUE;
                     }
                 }
             }
-
-            $rets[$msg['id']] = $ret;
         }
     }
 
     public function getPublicHeld(&$userlist, &$rets, $msgs, $messagehistory) {
         foreach ($msgs as $msg) {
-            $ret = $rets[$msg['id']];
-
-            if (pres('heldby', $ret)) {
-                $ret['heldby'] = $this->getUser($ret['heldby'], FALSE, $userlist, FALSE);
-                filterResult($ret['heldby']);
+            if (pres('heldby', $rets[$msg['id']])) {
+                $rets[$msg['id']]['heldby'] = $this->getUser($rets[$msg['id']]['heldby'], FALSE, $userlist, FALSE);
+                filterResult($rets[$msg['id']]);
             }
-
-            $rets[$msg['id']] = $ret;
         }
     }
 
@@ -1544,14 +1511,12 @@ ORDER BY lastdate DESC;";
         $atts = $a->getByIds($msgids);
 
         foreach ($msgs as $msg) {
-            $ret = $rets[$msg['id']];
-
             if ($summary) {
                 # Construct a minimal attachment list, i.e. just one if we have it.
-                $ret['attachments'] = presdef('attachments', $msg, []);
+                $rets[$msg['id']]['attachments'] = presdef('attachments', $msg, []);
             } else if (!$summary) {
                 # Add any attachments - visible to non-members.
-                $ret['attachments'] = [];
+                $rets[$msg['id']]['attachments'] = [];
                 $atthash = [];
 
                 foreach ($atts as $att) {
@@ -1564,14 +1529,12 @@ ORDER BY lastdate DESC;";
                         # in the text.
                         $hash = $att->getHash();
                         if (!$hash || !pres($msg['id'] . '-' . $hash, $atthash)) {
-                            $ret['attachments'][] = $pub;
+                            $rets[$msg['id']]['attachments'][] = $pub;
                             $atthash[$msg['id'] . '-' . $hash] = TRUE;
                         }
                     }
                 }
             }
-
-            $rets[$msg['id']] = $ret;
         }
     }
 

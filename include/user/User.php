@@ -2226,7 +2226,9 @@ class User extends Entity
 
     public function getPublicAtts(&$rets, $users, $me) {
         foreach ($users as &$user) {
-            $ret = presdef($user['id'], $rets, []);
+            if (!array_key_exists($user['id'], $rets)) {
+                $rets[$user['id']] = [];
+            }
             $atts = $this->publicatts;
 
             if (MODTOOLS) {
@@ -2236,57 +2238,55 @@ class User extends Entity
             }
 
             foreach ($atts as $att) {
-                $ret[$att] = presdef($att, $user, NULL);
+                $rets[$user['id']][$att] = presdef($att, $user, NULL);
             }
 
-            $ret['settings'] = presdef('settings', $user, NULL) ? json_decode($user['settings'], TRUE) : ['dummy' => TRUE];
-            $ret['settings']['notificationmails'] = array_key_exists('notificationmails', $ret['settings']) ? $ret['settings']['notificationmails'] : TRUE;
-            $ret['settings']['modnotifs'] = array_key_exists('modnotifs', $ret['settings']) ? $ret['settings']['modnotifs'] : 4;
-            $ret['settings']['backupmodnotifs'] = array_key_exists('backupmodnotifs', $ret['settings']) ? $ret['settings']['backupmodnotifs'] : 12;
+            $rets[$user['id']]['settings'] = presdef('settings', $user, NULL) ? json_decode($user['settings'], TRUE) : ['dummy' => TRUE];
+            $rets[$user['id']]['settings']['notificationmails'] = array_key_exists('notificationmails', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['notificationmails'] : TRUE;
+            $rets[$user['id']]['settings']['modnotifs'] = array_key_exists('modnotifs', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['modnotifs'] : 4;
+            $rets[$user['id']]['settings']['backupmodnotifs'] = array_key_exists('backupmodnotifs', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['backupmodnotifs'] : 12;
 
-            if ($ret['id'] &&
-                (($ret['fullname'] == 'A freegler') ||
-                    (strlen($ret['fullname']) == 32 && $ret['fullname'] == $ret['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $ret['fullname'])))) {
+            if ($rets[$user['id']]['id'] &&
+                (($rets[$user['id']]['fullname'] == 'A freegler') ||
+                    (strlen($rets[$user['id']]['fullname']) == 32 && $rets[$user['id']]['fullname'] == $rets[$user['id']]['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $rets[$user['id']]['fullname'])))) {
                 # We have some names derived from Yahoo IDs which are hex strings.  They look silly.  Replace them with
                 # something better.  Ditto "A freegler", which is a legacy way in which names were anonymised.
-                $u = new User($this->dbhr, $this->dbhm, $ret['id']);
+                $u = new User($this->dbhr, $this->dbhm, $rets[$user['id']]['id']);
                 $email = $u->inventEmail();
-                $ret['fullname'] = substr($email, 0, strpos($email, '-'));
+                $rets[$user['id']]['fullname'] = substr($email, 0, strpos($email, '-'));
                 $u->setPrivate('fullname', $user['fullname']);
             }
 
-            $ret['displayname'] = $this->getName(TRUE, $user);
+            $rets[$user['id']]['displayname'] = $this->getName(TRUE, $user);
 
-            $ret['added'] = ISODate($user['added']);
+            $rets[$user['id']]['added'] = ISODate($user['added']);
 
             foreach (['fullname', 'firstname', 'lastname'] as $att) {
                 # Make sure we don't return an email if somehow one has snuck in.
-                $ret[$att] = strpos($ret[$att], '@') !== FALSE ? substr($ret[$att], 0, strpos($ret[$att], '@')) : $ret[$att];
+                $rets[$user['id']][$att] = strpos($rets[$user['id']][$att], '@') !== FALSE ? substr($rets[$user['id']][$att], 0, strpos($rets[$user['id']][$att], '@')) : $rets[$user['id']][$att];
             }
 
-            if ($me && $ret['id'] == $me->getId()) {
+            if ($me && $rets[$user['id']]['id'] == $me->getId()) {
                 # Add in private attributes for our own entry.
-                $ret['emails'] = $me->getEmails();
-                $ret['email'] = $me->getEmailPreferred();
-                $ret['relevantallowed'] = $me->getPrivate('relevantallowed');
-                $ret['permissions'] = $me->getPrivate('permissions');
+                $rets[$user['id']]['emails'] = $me->getEmails();
+                $rets[$user['id']]['email'] = $me->getEmailPreferred();
+                $rets[$user['id']]['relevantallowed'] = $me->getPrivate('relevantallowed');
+                $rets[$user['id']]['permissions'] = $me->getPrivate('permissions');
             }
 
             if ($me && ($me->isModerator() || $user['id'] == $me->getId())) {
                 # Mods can see email settings, no matter which group.
-                $ret['onholidaytill'] = (pres('onholidaytill', $ret) && (time() < strtotime($ret['onholidaytill']))) ? ISODate($ret['onholidaytill']) : NULL;
+                $rets[$user['id']]['onholidaytill'] = (pres('onholidaytill', $rets[$user['id']]) && (time() < strtotime($rets[$user['id']]['onholidaytill']))) ? ISODate($rets[$user['id']]['onholidaytill']) : NULL;
             } else {
                 # Don't show some attributes unless they're a mod or ourselves.
-                $ismod = $ret['systemrole'] == User::SYSTEMROLE_ADMIN ||
-                    $ret['systemrole'] == User::SYSTEMROLE_SUPPORT ||
-                    $ret['systemrole'] == User::SYSTEMROLE_MODERATOR;
-                $showmod = $ismod && presdef('showmod', $ret['settings'], FALSE);
-                $ret['settings'] = ['showmod' => $showmod];
-                $ret['yahooid'] = NULL;
-                $ret['yahooUserId'] = NULL;
+                $ismod = $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_ADMIN ||
+                    $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_SUPPORT ||
+                    $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_MODERATOR;
+                $showmod = $ismod && presdef('showmod', $rets[$user['id']]['settings'], FALSE);
+                $rets[$user['id']]['settings'] = ['showmod' => $showmod];
+                $rets[$user['id']]['yahooid'] = NULL;
+                $rets[$user['id']]['yahooUserId'] = NULL;
             }
-
-            $rets[$user['id']] = $ret;
         }
     }
     
@@ -2308,27 +2308,23 @@ class User extends Entity
             $profiles = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
 
             foreach ($profiles as $profile) {
-                $ret = $rets[$profile['userid']];
-
                 # Get a profile.  This function is called so frequently that we can't afford to query external sites
                 # within it, so if we don't find one, we default to none.
                 if (pres('imageid', $profile) &&
-                    gettype($ret['settings']) == 'array' &&
-                    (!array_key_exists('useprofile', $ret['settings']) || $ret['settings']['useprofile'])) {
+                    gettype($rets[$profile['userid']]['settings']) == 'array' &&
+                    (!array_key_exists('useprofile', $rets[$profile['userid']]['settings']) || $rets[$profile['userid']]['settings']['useprofile'])) {
                     # We found a profile that we can use.
                     if (!$profile['default']) {
                         # If it's a gravatar image we can return a thumbnail url that specifies a different size.
                         $turl = pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
                         $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
-                        $ret['profile'] = [
+                        $rets[$profile['userid']]['profile'] = [
                             'url' => pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
                             'turl' => $turl,
                             'default' => FALSE
                         ];
                     }
                 }
-
-                $rets[$profile['userid']] = $ret;
             }
         }
     }
@@ -2665,7 +2661,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $rets = [];
 
         $this->getPublicAtts($rets, $users, $me);
-        $this->getPublicProfiles($rets, $users);
+        $this->getPublicProfiles($rets);
 
         if ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) {
             $this->getPublicEmails($rets);
