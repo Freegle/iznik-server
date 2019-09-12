@@ -1877,23 +1877,6 @@ class User extends Entity
         return $url;
     }
 
-    public function getPublicLocations(&$users) {
-        $latlngs = $this->getLatLngs($users);
-
-        foreach ($latlngs as $userid => $latlng) {
-            $loc = presdef('loc', $latlng, NULL);
-            $grp = presdef('group', $latlng, NULL);
-
-            $display = $loc ? ($loc . ($grp ? ", $grp" : "")) : ($grp ? $grp : '');
-
-            $users[$userid]['publiclocation'] = [
-                'display' => $display,
-                'location' => $loc,
-                'groupname' => $grp
-            ];
-        }
-    }
-
     public function getPublicLocation()
     {
         $users = [
@@ -4536,6 +4519,104 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return([ $loc['lat'], $loc['lng'], presdef('loc', $loc, NULL) ]);
     }
 
+    public function getPublicLocations(&$users, $atts = NULL)
+    {
+        $userids = array_filter(array_column($users, 'id'));
+        $ret = [];
+        $areas = NULL;
+        $groups = NULL;
+        $membs = NULL;
+
+        if ($userids && count($userids)) {
+            $atts = $atts ? $atts : $this->dbhr->preQuery("SELECT id, settings, lastlocation FROM users WHERE id in (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
+
+            foreach ($atts as $att) {
+                $loc = NULL;
+                $grp = NULL;
+
+                $aid = NULL;
+                $lid = NULL;
+                $lat = NULL;
+                $lng = NULL;
+
+                if (pres('settings', $att)) {
+                    $settings = $att['settings'];
+                    $settings = json_decode($settings, TRUE);
+
+                    if (pres('mylocation', $settings) && pres('area', $settings['mylocation'])) {
+                        $loc = $settings['mylocation']['area']['name'];
+                        $lid = $settings['mylocation']['id'];
+                        $lat = $settings['mylocation']['lat'];
+                        $lng = $settings['mylocation']['lng'];
+                    }
+                }
+
+                if (!$loc) {
+                    # Get the name of the last area we used.
+                    if ($areas === NULL) {
+                        $areas = $this->dbhr->preQuery("SELECT l2.id, l2.name, l2.lat, l2.lng, users.id AS userid FROM locations l1 
+                            INNER JOIN users ON users.lastlocation = l1.id
+                            INNER JOIN locations l2 ON l2.id = l1.areaid
+                            WHERE users.id IN (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
+                    }
+
+                    foreach ($areas as $area) {
+                        if ($att['id'] === $area['userid']) {
+                            $loc = $area['name'];
+                            $lid = $area['id'];
+                            $lat = $area['lat'];
+                            $lng = $area['lng'];
+                        }
+                    }
+                }
+
+                if ($lid) {
+                    # Find the group of which we are a member which is closest to our location.  We do this because generally
+                    # the number of groups we're in is small and therefore this will be quick, whereas the groupsNear call is
+                    # fairly slow.
+                    if (!$groups) {
+                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, ST_distance(POINT(?, ?), polyindex) AS dist FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(',', $userids) . ") AND polyindex IS NOT NULL AND onmap = 1 ORDER BY dist DESC;";
+                        $groups = $this->dbhr->preQuery($sql, [
+                            $lng,
+                            $lat
+                        ]);
+                    }
+
+                    foreach ($groups as $group) {
+                        if ($group['userid'] == $att['id']) {
+                            $grp = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+
+                            # The location name might be in the group name, in which case just use the group.
+                            $loc = strpos($grp, $loc) !== FALSE ? NULL : $loc;
+                        }
+                    }
+                } else {
+                    # We don't have a location.  All we might have is a membership.
+                    if (!$membs) {
+                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(',', $userids) . ") ORDER BY added ASC;";
+                        $membs = $this->dbhr->preQuery($sql, [
+                            $this->id,
+                        ]);
+                    }
+
+                    foreach ($membs as $memb) {
+                        if ($memb['userid'] == $att['id']) {
+                            $grp = $memb['namefull'] ? $memb['namefull'] : $membs['nameshort'];
+                        }
+                    }
+                }
+
+                $display = $loc ? ($loc . ($grp ? ", $grp" : "")) : ($grp ? $grp : '');
+
+                $users[$att['id']]['publiclocation'] = [
+                    'display' => $display,
+                    'location' => $loc,
+                    'groupname' => $grp
+                ];
+            }
+        }
+    }
+
     public function getLatLngs($users, $usedef = TRUE, $usegroup = TRUE, $needgroup = FALSE, $atts = NULL)
     {
         $userids = array_filter(array_column($users, 'id'));
@@ -4575,7 +4656,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $ret[$att['id']] = [
                         'lat' => $lat,
                         'lng' => $lng,
-                        'loc' => $loc
+                        'loc' => $loc,
                     ];
 
                     $userids = array_filter($userids, function($id) use ($att) {

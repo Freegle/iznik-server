@@ -159,7 +159,12 @@ class Newsfeed extends Entity
             $threadhead = $atts['id'];
         }
 
-        $this->fillIn($atts, $users, TRUE, $allreplies, $threadhead);
+        $atts['threadhead'] = $threadhead;
+        $entries = [ $atts ];
+
+        $this->fillIn($entries, $users, TRUE, $allreplies);
+
+        $atts = $entries[0];
 
         foreach ($users as $user) {
             if ($user['id'] == presdef('userid', $atts, NULL)) {
@@ -212,171 +217,185 @@ class Newsfeed extends Entity
         return($atts);
     }
 
-    private function fillIn(&$entry, &$users, $checkreplies = TRUE, $allreplies = FALSE, $threadhead = NULL) {
-        unset($entry['position']);
-        $entry['threadhead'] = $threadhead;
+    private function fillIn(&$entries, &$users, $checkreplies = TRUE, $allreplies = FALSE) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+        $ids = array_filter(array_column($entries, 'id'));
 
-        if ($entry['type'] != Newsfeed::TYPE_NOTICEBOARD) {
-            # Noticeboards hackily have JSON data in message.
-            $entry['message'] = trim($entry['message']);
-        }
-
-        $use = !presdef('reviewrequired', $entry, FALSE) && !presdef('deleted', $entry, FALSE);
-
-        #error_log("Use $use for type {$entry['type']} from " . presdef('reviewrequired', $entry, FALSE) . "," . presdef('deleted', $entry, FALSE));
-
-        if ($use) {
-            global $urlPattern;
-
-            if (preg_match_all($urlPattern, $entry['message'], $matches)) {
-                foreach ($matches as $val) {
-                    foreach ($val as $url) {
-                        $p = new Preview($this->dbhr, $this->dbhm);
-                        $id = $p->get($url);
-
-                        if ($id) {
-                            $entry['preview'] = $p->getPublic();
-                        }
-
-                        break 2;
-                    }
-                }
-            }
-
-            if (pres('msgid', $entry)) {
-                $m = new Message($this->dbhr, $this->dbhm, $entry['msgid']);
-                $entry['refmsg'] = $m->getPublic(FALSE, FALSE);
-            }
-
-            if (pres('eventid', $entry)) {
-                $e = new CommunityEvent($this->dbhr, $this->dbhm, $entry['eventid']);
-                $use = FALSE;
-                #error_log("Consider event " . $e->getPrivate('pending') . ", " . $e->getPrivate('deleted'));
-                if (!$e->getPrivate('pending') && !$e->getPrivate('deleted')) {
-                    $use = TRUE;
-                    $entry['communityevent'] = $e->getPublic();
-                }
-            }
-
-            if (pres('volunteeringid', $entry)) {
-                $v = new Volunteering($this->dbhr, $this->dbhm, $entry['volunteeringid']);
-                $use = FALSE;
-                #error_log("Consider volunteering " . $v->getPrivate('pending') . ", " . $v->getPrivate('deleted'));
-                if (!$v->getPrivate('pending') && !$v->getPrivate('deleted')) {
-                    $use = TRUE;
-                    $entry['volunteering'] = $v->getPublic();
-                }
-            }
-
-            if (pres('publicityid', $entry)) {
-                $pubs = $this->dbhr->preQuery("SELECT postid, data FROM groups_facebook_toshare WHERE id = ?;", [ $entry['publicityid'] ]);
-
-                if (preg_match('/(.*)_(.*)/', $pubs[0]['postid'], $matches)) {
-                    # Create the iframe version of the Facebook plugin.
-                    $pageid = $matches[1];
-                    $postid = $matches[2];
-
-                    $data = json_decode($pubs[0]['data'], TRUE);
-
-                    $entry['publicity'] = [
-                        'id' => $entry['publicityid'],
-                        'postid' => $pubs[0]['postid'],
-                        'iframe' => '<iframe class="completefull" src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>',
-                        'full_picture' => presdef('full_picture', $data, NULL),
-                        'message' => presdef('message', $data, NULL),
-                        'type' => presdef('type', $data, NULL)
-                    ];
-                }
-            }
-
-            if (pres('storyid', $entry)) {
-                $s = new Story($this->dbhr, $this->dbhm, $entry['storyid']);
-                $use = FALSE;
-                #error_log("Consider story " . $s->getPrivate('reviewed') . ", " . $s->getPrivate('public'));
-                if ($s->getPrivate('reviewed') && $s->getPrivate('public') && $s->getId()) {
-                    $use = TRUE;
-                    $entry['story'] = $s->getPublic();
-                }
-            }
-
-            if (pres('imageid', $entry)) {
-                $a = new Attachment($this->dbhr, $this->dbhm, $entry['imageid'], Attachment::TYPE_NEWSFEED);
-
-                $entry['image'] = [
-                    'id' => $entry['imageid'],
-                    'path' => $a->getPath(FALSE),
-                    'paththumb' => $a->getPath(TRUE)
-                ];
-            }
-
-            $entry['timestamp'] = ISODate($entry['timestamp']);
-
-            if (pres('added', $entry)) {
-                $entry['added'] = ISODate($entry['added']);
-            }
-
-            $me = whoAmI($this->dbhr, $this->dbhm);
-
-            $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid = ?;", [
-                $entry['id']
+        if ($ids && count($ids)) {
+            $likes = $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") GROUP BY newsfeedid;", NULL, FALSE, FALSE);
+            $mylikes = $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") AND userid = ?;", [
+                $me->getId()
             ], FALSE, FALSE);
-
-            $entry['loves'] = $likes[0]['count'];
-            $entry['loved'] = FALSE;
-
-            if ($me) {
-                $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid = ? AND userid = ?;", [
-                    $entry['id'],
-                    $me->getId()
-                ], FALSE, FALSE);
-                $entry['loved'] = $likes[0]['count'] > 0;
-            }
-
-            $myid = $me ? $me->getId() : NULL;
-
-            $entry['replies'] = [];
 
             if ($checkreplies) {
                 # Don't cache replies - might be lots and might change frequently.
                 #
                 # We only return 11; this matches the 10 in the client in newsfeed.  That's enough to cause it to show
                 # the "Show earlier" prompt; it will then fetch more as required.
-                $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id DESC LIMIT 11;", [
-                    $entry['id']
-                ], FALSE);
-
+                $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC LIMIT 11;", NULL, FALSE);
                 $replies = array_reverse($replies);
-                
-                $last = NULL;
+            }
 
-                foreach ($replies as &$reply) {
-                    $hidden = $reply['hidden'];
+            for ($entindex = 0; $entindex < count($entries); $entindex++) {
+                unset($entries[$entindex]['position']);
 
-                    # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
-                    # are there but nobody else sees them.
-                    if (!$hidden || $myid == $entry['userid']) {
-                        # Replies can themselves contain replies.  Preserve the thread head as we recurse.
-                        $this->fillIn($reply, $users, TRUE, FALSE, $threadhead ? $threadhead : $entry['id']);
+                if ($entries[$entindex]['type'] != Newsfeed::TYPE_NOTICEBOARD) {
+                    # Noticeboards hackily have JSON data in message.
+                    $entries[$entindex]['message'] = trim($entries[$entindex]['message']);
+                }
 
-                        if ($reply['visible'] &&
-                            $last['userid'] == $reply['userid'] &&
-                            $last['type'] == $reply['type'] &&
-                            $last['message'] == $reply['message']
-                        ) {
-                            # Suppress duplicates.
-                            $reply['visible'] = FALSE;
+                $use = !presdef('reviewrequired', $entries[$entindex], FALSE) && !presdef('deleted', $entries[$entindex], FALSE);
+
+                #error_log("Use $use for type {$entries[$entindex]['type']} from " . presdef('reviewrequired', $entries[$entindex], FALSE) . "," . presdef('deleted', $entries[$entindex], FALSE));
+
+                if ($use) {
+                    global $urlPattern;
+
+                    if (preg_match_all($urlPattern, $entries[$entindex]['message'], $matches)) {
+                        foreach ($matches as $val) {
+                            foreach ($val as $url) {
+                                $p = new Preview($this->dbhr, $this->dbhm);
+                                $id = $p->get($url);
+
+                                if ($id) {
+                                    $entries[$entindex]['preview'] = $p->getPublic();
+                                }
+
+                                break 2;
+                            }
                         }
-
-                        $entry['replies'][] = $reply;
                     }
 
-                    $last = $reply;
+                    if (pres('msgid', $entries[$entindex])) {
+                        $m = new Message($this->dbhr, $this->dbhm, $entries[$entindex]['msgid']);
+                        $entries[$entindex]['refmsg'] = $m->getPublic(FALSE, FALSE);
+                    }
+
+                    if (pres('eventid', $entries[$entindex])) {
+                        $e = new CommunityEvent($this->dbhr, $this->dbhm, $entries[$entindex]['eventid']);
+                        $use = FALSE;
+                        #error_log("Consider event " . $e->getPrivate('pending') . ", " . $e->getPrivate('deleted'));
+                        if (!$e->getPrivate('pending') && !$e->getPrivate('deleted')) {
+                            $use = TRUE;
+                            $entries[$entindex]['communityevent'] = $e->getPublic();
+                        }
+                    }
+
+                    if (pres('volunteeringid', $entries[$entindex])) {
+                        $v = new Volunteering($this->dbhr, $this->dbhm, $entries[$entindex]['volunteeringid']);
+                        $use = FALSE;
+                        #error_log("Consider volunteering " . $v->getPrivate('pending') . ", " . $v->getPrivate('deleted'));
+                        if (!$v->getPrivate('pending') && !$v->getPrivate('deleted')) {
+                            $use = TRUE;
+                            $entries[$entindex]['volunteering'] = $v->getPublic();
+                        }
+                    }
+
+                    if (pres('publicityid', $entries[$entindex])) {
+                        $pubs = $this->dbhr->preQuery("SELECT postid, data FROM groups_facebook_toshare WHERE id = ?;", [ $entries[$entindex]['publicityid'] ]);
+
+                        if (preg_match('/(.*)_(.*)/', $pubs[0]['postid'], $matches)) {
+                            # Create the iframe version of the Facebook plugin.
+                            $pageid = $matches[1];
+                            $postid = $matches[2];
+
+                            $data = json_decode($pubs[0]['data'], TRUE);
+
+                            $entries[$entindex]['publicity'] = [
+                                'id' => $entries[$entindex]['publicityid'],
+                                'postid' => $pubs[0]['postid'],
+                                'iframe' => '<iframe class="completefull" src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>',
+                                'full_picture' => presdef('full_picture', $data, NULL),
+                                'message' => presdef('message', $data, NULL),
+                                'type' => presdef('type', $data, NULL)
+                            ];
+                        }
+                    }
+
+                    if (pres('storyid', $entries[$entindex])) {
+                        $s = new Story($this->dbhr, $this->dbhm, $entries[$entindex]['storyid']);
+                        $use = FALSE;
+                        #error_log("Consider story " . $s->getPrivate('reviewed') . ", " . $s->getPrivate('public'));
+                        if ($s->getPrivate('reviewed') && $s->getPrivate('public') && $s->getId()) {
+                            $use = TRUE;
+                            $entries[$entindex]['story'] = $s->getPublic();
+                        }
+                    }
+
+                    if (pres('imageid', $entries[$entindex])) {
+                        $a = new Attachment($this->dbhr, $this->dbhm, $entries[$entindex]['imageid'], Attachment::TYPE_NEWSFEED);
+
+                        $entries[$entindex]['image'] = [
+                            'id' => $entries[$entindex]['imageid'],
+                            'path' => $a->getPath(FALSE),
+                            'paththumb' => $a->getPath(TRUE)
+                        ];
+                    }
+
+                    $entries[$entindex]['timestamp'] = ISODate($entries[$entindex]['timestamp']);
+
+                    if (pres('added', $entries[$entindex])) {
+                        $entries[$entindex]['added'] = ISODate($entries[$entindex]['added']);
+                    }
+
+                    $entries[$entindex]['loves'] = 0;
+                    $entries[$entindex]['loved'] = FALSE;
+
+                    foreach ($likes as $like) {
+                        if ($like['newsfeedid'] == $entries[$entindex]['id']) {
+                            $entries[$entindex]['loves'] = $like['count'];
+                        }
+                    }
+
+                    if ($me) {
+                        foreach ($mylikes as $like) {
+                            if ($like['newsfeedid'] == $entries[$entindex]['id']) {
+                                $entries[$entindex]['loved'] = $like['count'] > 0;
+                            }
+                        }
+                    }
+
+                    $entries[$entindex]['replies'] = [];
+
+                    if ($checkreplies) {
+                        $last = NULL;
+
+                        foreach ($replies as &$reply) {
+                            if ($reply['replyto'] == $entries[$entindex]['id']) {
+                                $hidden = $reply['hidden'];
+
+                                # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
+                                # are there but nobody else sees them.
+                                if (!$hidden || $myid == $entries[$entindex]['userid']) {
+                                    # Replies can themselves contain replies.  Preserve the thread head as we recurse.
+                                    $reply['threadhead'] = pres('threadhead', $entries[$entindex]) ? $entries[$entindex]['threadhead'] : $entries[$entindex]['id'];
+                                }
+                            }
+                        }
+
+                        $this->fillIn($replies, $users, TRUE, FALSE);
+
+                        foreach ($replies as &$reply) {
+                            if ($reply['visible'] &&
+                                $last['userid'] == $reply['userid'] &&
+                                $last['type'] == $reply['type'] &&
+                                $last['message'] == $reply['message']
+                            ) {
+                                # Suppress duplicates.
+                                $reply['visible'] = FALSE;
+                            }
+
+                            $entries[$entindex]['replies'][] = $reply;
+
+                            $last = $reply;
+                        }
+                    }
                 }
+
+                $entries[$entindex]['visible'] = $use;
             }
         }
-
-        $entry['visible'] = $use;
-        return($use);
     }
 
     public function getNearbyDistance($userid, $max = 204800) {
@@ -459,6 +478,8 @@ class Newsfeed extends Entity
                 $u->getActiveCountss($users);
             }
 
+            $filtered = [];
+            
             foreach ($entries as &$entry) {
                 $hidden = $entry['hidden'];
 
@@ -466,28 +487,35 @@ class Newsfeed extends Entity
                 # are there but nobody else sees them.
                 if (!$hidden || $myid == $entry['userid']) {
                     unset($entry['hidden']);
+                    $filtered[] = $entry;
+                }
 
-                    if ($fillin) {
-                        // This entry is the start of the thread.
-                        $this->fillIn($entry, $users, TRUE, FALSE, $entry['id']);
-
-                        # We return invisible entries - they are filtered on the client, and it makes the paging work.
-                        if ($entry['visible'] &&
-                            $last['userid'] == $entry['userid'] &&
-                            $last['type'] == $entry['type'] &&
-                            $last['message'] == $entry['message']) {
-                            # Suppress duplicates.
-                            $entry['visible'] = FALSE;
-                        }
+                // This entry is the start of the thread.
+                $entry['threadhead'] = $entry['id'];
+            }
+            
+            if ($fillin) {
+                $this->fillIn($filtered, $users, TRUE, FALSE);
+            }
+            
+            foreach ($filtered as &$entry) {
+                if ($fillin) {
+                    # We return invisible entries - they are filtered on the client, and it makes the paging work.
+                    if ($entry['visible'] &&
+                        $last['userid'] == $entry['userid'] &&
+                        $last['type'] == $entry['type'] &&
+                        $last['message'] == $entry['message']) {
+                        # Suppress duplicates.
+                        $entry['visible'] = FALSE;
                     }
+                }
 
-                    if (count($topitems) < 2 && ($entry['pinned'] || $entry['type'] !=  Newsfeed::TYPE_ALERT)) {
-                        # We want to return pinned items at the top, and also the first non-alert one, so that
-                        # we have interesting user-content at the top.
-                        $topitems[] = $entry;
-                    } else {
-                        $bottomitems[] = $entry;
-                    }
+                if (count($topitems) < 2 && ($entry['pinned'] || $entry['type'] !=  Newsfeed::TYPE_ALERT)) {
+                    # We want to return pinned items at the top, and also the first non-alert one, so that
+                    # we have interesting user-content at the top.
+                    $topitems[] = $entry;
+                } else {
+                    $bottomitems[] = $entry;
                 }
 
                 $ctx = [

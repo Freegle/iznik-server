@@ -101,9 +101,11 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         # Get this individual one
+        error_log("Get the individual");
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
         ]);
+        error_log("Got " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals($nid, $ret['newsfeed']['id']);
         self::assertEquals('Google', $ret['newsfeed']['preview']['title']);
@@ -705,12 +707,13 @@ class newsfeedAPITest extends IznikAPITestCase {
         }
 
 //    public function testEH() {
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
 //        $u = new User($this->dbhr, $this->dbhm);
 //
 //        $uid = $u->findByEmail('edward@ehibbert.org.uk');
 //        $_SESSION['id'] = $uid;
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
+//        error_log("Start it");
 //        $ret = $this->call('newsfeed', 'GET', [
 //            'types' => [
 //                Newsfeed::TYPE_MESSAGE,
@@ -721,12 +724,12 @@ class newsfeedAPITest extends IznikAPITestCase {
 //                Newsfeed::TYPE_ABOUT_ME
 //            ],
 //            'context' => [
-//                'distance' => 0
+//                'distance' => 'nearby'
 //            ]
 //        ]);
 //
 //        assertEquals(0, $ret['ret']);
-//        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
 //        $this->log(var_export($ret, TRUE));
 //    }
 }
