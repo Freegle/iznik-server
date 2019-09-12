@@ -360,6 +360,7 @@ class Newsfeed extends Entity
 
                     if ($checkreplies) {
                         $last = NULL;
+                        $replyfill = [];
 
                         foreach ($replies as &$reply) {
                             if ($reply['replyto'] == $entries[$entindex]['id']) {
@@ -370,13 +371,16 @@ class Newsfeed extends Entity
                                 if (!$hidden || $myid == $entries[$entindex]['userid']) {
                                     # Replies can themselves contain replies.  Preserve the thread head as we recurse.
                                     $reply['threadhead'] = pres('threadhead', $entries[$entindex]) ? $entries[$entindex]['threadhead'] : $entries[$entindex]['id'];
+                                    $replyfill[] = $reply;
                                 }
                             }
                         }
 
-                        $this->fillIn($replies, $users, TRUE, FALSE);
+                        $this->fillIn($replyfill, $users, TRUE, FALSE);
 
-                        foreach ($replies as &$reply) {
+                        $entries[$entindex]['replies'] = [];
+
+                        foreach ($replyfill as &$reply) {
                             if ($reply['visible'] &&
                                 $last['userid'] == $reply['userid'] &&
                                 $last['type'] == $reply['type'] &&
