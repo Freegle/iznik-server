@@ -1654,7 +1654,8 @@ class User extends Entity
             }
         }
 
-        $counts = $this->dbhr->preQuery("SELECT messages_outcomes.userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 GROUP BY messages_outcomes.userid, messages.type, messages_outcomes.outcome;", [
+        $sql = "SELECT messages.fromuser AS userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 GROUP BY messages.fromuser, messages.type, messages_outcomes.outcome;";
+        $counts = $this->dbhr->preQuery($sql, [
             $start,
             MessageCollection::APPROVED
         ], FALSE, FALSE);
@@ -2299,10 +2300,10 @@ class User extends Entity
         if ($groupids && count($groupids) > 0) {
             # On these groups
             $groupq = implode(',', $groupids);
-            $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid WHERE messages.arrival > ? ORDER BY messages.arrival DESC;";
+            $sql = "SELECT messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid WHERE messages.arrival > ? ORDER BY messages.arrival DESC;";
         } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
             # We can see all groups.
-            $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid WHERE messages.arrival > ? ORDER BY messages.arrival DESC;";
+            $sql = "SELECT messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid WHERE messages.arrival > ? ORDER BY messages.arrival DESC;";
         }
 
         if ($sql) {
@@ -2310,10 +2311,14 @@ class User extends Entity
                 $earliest
              ]);
 
-             foreach ($histories as $history) {
-                 $history['arrival'] = pres('repostdate', $history) ? ISODate($history['repostdate']) : ISODate($history['arrival']);
-                 $history['date'] = ISODate($history['date']);
-                 $atts['messagehistory'][] = $history;
+             foreach ($rets as $userid => $ret) {
+                 foreach ($histories as $history) {
+                     if ($history['fromuser'] == $ret['id']) {
+                         $history['arrival'] = pres('repostdate', $history) ? ISODate($history['repostdate']) : ISODate($history['arrival']);
+                         $history['date'] = ISODate($history['date']);
+                         $rets[$userid]['messagehistory'][] = $history;
+                     }
+                 }
              }
         }
 

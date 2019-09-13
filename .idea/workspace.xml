@@ -3,8 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -107,7 +107,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.newsfeedAPITest.testEH">
+  <component name="RunManager" selected="PHPUnit.messagesTest.testEH">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -118,14 +118,14 @@
       <TestRunner class="authorityAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/AuthorityTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="newsfeedAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" scope="Class" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="newsfeedAPITest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="newsfeedAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -142,16 +142,16 @@
       <item itemvalue="PHPUnit.ut" />
       <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
       <item itemvalue="PHPUnit.newsfeedAPITest" />
-      <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
       <item itemvalue="PHPUnit.authorityAPITest.testBasic" />
+      <item itemvalue="PHPUnit.messagesTest.testEH" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.messagesTest.testEH" />
         <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
         <item itemvalue="PHPUnit.authorityAPITest.testBasic" />
         <item itemvalue="PHPUnit.ut" />
         <item itemvalue="PHPUnit.newsfeedAPITest" />
-        <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
       </list>
     </recent_temporary>
   </component>
@@ -214,14 +214,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="4990000" />
-    </task>
-    <task id="LOCAL-00166" summary="UT fixes">
-      <created>1567599253315</created>
-      <option name="number" value="00166" />
-      <option name="presentableId" value="LOCAL-00166" />
-      <option name="project" value="LOCAL" />
-      <updated>1567599253315</updated>
+      <workItem from="1568359210231" duration="7646000" />
     </task>
     <task id="LOCAL-00167" summary="UT fixes">
       <created>1567600405621</created>
@@ -559,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568362307013</updated>
     </task>
-    <option name="localTasksCounter" value="215" />
+    <task id="LOCAL-00215" summary="Speed-ups: chitchat">
+      <created>1568364212150</created>
+      <option name="number" value="00215" />
+      <option name="presentableId" value="LOCAL-00215" />
+      <option name="project" value="LOCAL" />
+      <updated>1568364212150</updated>
+    </task>
+    <option name="localTasksCounter" value="216" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
