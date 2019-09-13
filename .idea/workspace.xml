@@ -2,9 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/discourse.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/discourse_sso.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/discourse2.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/index.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -123,14 +126,14 @@
       <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="newsfeedAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" scope="Class" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <configuration name="newsfeedAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="notificationsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="notificationsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/NotificationsTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="ut" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -141,17 +144,17 @@
     <list>
       <item itemvalue="PHPUnit.ut" />
       <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
-      <item itemvalue="PHPUnit.newsfeedAPITest" />
       <item itemvalue="PHPUnit.authorityAPITest.testBasic" />
       <item itemvalue="PHPUnit.messagesTest.testEH" />
+      <item itemvalue="PHPUnit.notificationsTest" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="PHPUnit.messagesTest.testEH" />
+        <item itemvalue="PHPUnit.notificationsTest" />
         <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
         <item itemvalue="PHPUnit.authorityAPITest.testBasic" />
         <item itemvalue="PHPUnit.ut" />
-        <item itemvalue="PHPUnit.newsfeedAPITest" />
       </list>
     </recent_temporary>
   </component>
@@ -214,28 +217,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="7646000" />
-    </task>
-    <task id="LOCAL-00167" summary="UT fixes">
-      <created>1567600405621</created>
-      <option name="number" value="00167" />
-      <option name="presentableId" value="LOCAL-00167" />
-      <option name="project" value="LOCAL" />
-      <updated>1567600405621</updated>
-    </task>
-    <task id="LOCAL-00168" summary="Speed-ups: get message replies">
-      <created>1567611922987</created>
-      <option name="number" value="00168" />
-      <option name="presentableId" value="LOCAL-00168" />
-      <option name="project" value="LOCAL" />
-      <updated>1567611922988</updated>
-    </task>
-    <task id="LOCAL-00169" summary="Speed-ups: get message outcomes">
-      <created>1567612518371</created>
-      <option name="number" value="00169" />
-      <option name="presentableId" value="LOCAL-00169" />
-      <option name="project" value="LOCAL" />
-      <updated>1567612518371</updated>
+      <workItem from="1568359210231" duration="22866000" />
     </task>
     <task id="LOCAL-00170" summary="Speed-ups: get message from user">
       <created>1567613286003</created>
@@ -559,7 +541,28 @@
       <option name="project" value="LOCAL" />
       <updated>1568364212150</updated>
     </task>
-    <option name="localTasksCounter" value="216" />
+    <task id="LOCAL-00216" summary="Message history not showing">
+      <created>1568366975710</created>
+      <option name="number" value="00216" />
+      <option name="presentableId" value="LOCAL-00216" />
+      <option name="project" value="LOCAL" />
+      <updated>1568366975710</updated>
+    </task>
+    <task id="LOCAL-00217" summary="UT fixes">
+      <created>1568374713568</created>
+      <option name="number" value="00217" />
+      <option name="presentableId" value="LOCAL-00217" />
+      <option name="project" value="LOCAL" />
+      <updated>1568374713568</updated>
+    </task>
+    <task id="LOCAL-00218" summary="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down.">
+      <created>1568378160235</created>
+      <option name="number" value="00218" />
+      <option name="presentableId" value="LOCAL-00218" />
+      <option name="project" value="LOCAL" />
+      <updated>1568378160236</updated>
+    </task>
+    <option name="localTasksCounter" value="219" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,8 +606,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: get message from user" />
-    <MESSAGE value="Speed-ups: get related messages" />
     <MESSAGE value="Speed-ups: get message hold" />
     <MESSAGE value="Speed-ups: get message attachments" />
     <MESSAGE value="Speed-ups: get message posting history" />
@@ -626,8 +627,10 @@
     <MESSAGE value="Speed-ups: replytime" />
     <MESSAGE value="Speed-ups: finish restructuring getting of user info" />
     <MESSAGE value="Speed-ups: chitchat fetching of users" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Speed-ups: chitchat" />
-    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: chitchat" />
+    <MESSAGE value="Message history not showing" />
+    <MESSAGE value="UT fixes" />
+    <MESSAGE value="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down." />
+    <option name="LAST_COMMIT_MESSAGE" value="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down." />
   </component>
 </project>
