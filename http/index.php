@@ -4,6 +4,20 @@ try {
     header('Access-Control-Allow-Origin: *');
     date_default_timezone_set('UTC');
     session_start();
+
+    # Set a cookie to enable Discourse sign-in.
+    $host = $_SERVER && array_key_exists('HTTP_HOST', $_SERVER) ? $_SERVER['HTTP_HOST'] : 'iznik.modtools.org';
+
+    if (strpos($host, 'modtools') !== FALSE) {
+        if (array_key_exists('Iznik-Discourse-SSO', $_COOKIE)) {
+            # Already got it.
+            #error_log("Got Discourse SSO cookie");
+        } else if (array_key_exists('persistent', $_SESSION)) {
+            #error_log("Set Discourse Cookie");
+            setcookie('Iznik-Discourse-SSO', json_encode($_SESSION['persistent']), 0, '/', '.modtools.org');
+        }
+    }
+
     define( 'BASE_DIR', dirname(__FILE__) . '/..' );
     require_once(BASE_DIR . '/include/config.php');
 
