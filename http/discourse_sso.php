@@ -78,9 +78,9 @@ if (($sso->validatePayload($payload,$signature))) {
                 );
 
                 $refer = 'https://discourse.ilovefreegle.org';
-                if (array_key_exists('HTTP_REFERER', $_SERVER)) {
-                    $refer = $_SERVER['HTTP_REFERER'];
-                }
+//                if (array_key_exists('HTTP_REFERER', $_SERVER)) {
+//                    $refer = $_SERVER['HTTP_REFERER'];
+//                }
                 $query = $sso->getSignInString($nonce, $session['userid'], $session['email'], $extraParameters);
                 header('Location: ' . $refer . '/session/sso_login?' . $query);
                 exit(0);
@@ -91,5 +91,5 @@ if (($sso->validatePayload($payload,$signature))) {
 
 // Redirect.  This will force sign-in, which will set up the cookie, then redirect back here so that
 // we then successfully log in.
-header('Location: http://www.ilovefreegle.org/discourse' );
+header('Location: http://modtools.org/discourse' );
 die();

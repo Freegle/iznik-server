@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/discourse.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/discourse_sso.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/discourse2.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/discourse_sso.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/discourse_sso.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/http/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/index.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -217,14 +214,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="22866000" />
-    </task>
-    <task id="LOCAL-00170" summary="Speed-ups: get message from user">
-      <created>1567613286003</created>
-      <option name="number" value="00170" />
-      <option name="presentableId" value="LOCAL-00170" />
-      <option name="project" value="LOCAL" />
-      <updated>1567613286004</updated>
+      <workItem from="1568359210231" duration="24644000" />
     </task>
     <task id="LOCAL-00171" summary="Speed-ups: get related messages">
       <created>1567613758402</created>
@@ -562,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568378160236</updated>
     </task>
-    <option name="localTasksCounter" value="219" />
+    <task id="LOCAL-00219" summary="More Discourse login">
+      <created>1568388463306</created>
+      <option name="number" value="00219" />
+      <option name="presentableId" value="LOCAL-00219" />
+      <option name="project" value="LOCAL" />
+      <updated>1568388463306</updated>
+    </task>
+    <option name="localTasksCounter" value="220" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -606,7 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: get message hold" />
     <MESSAGE value="Speed-ups: get message attachments" />
     <MESSAGE value="Speed-ups: get message posting history" />
     <MESSAGE value="Speed-ups: initial code restructure for individual messages now complete" />
@@ -631,6 +627,7 @@
     <MESSAGE value="Message history not showing" />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down." />
-    <option name="LAST_COMMIT_MESSAGE" value="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down." />
+    <MESSAGE value="More Discourse login" />
+    <option name="LAST_COMMIT_MESSAGE" value="More Discourse login" />
   </component>
 </project>
