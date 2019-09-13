@@ -221,12 +221,20 @@ class Newsfeed extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $ids = array_filter(array_column($entries, 'id'));
+        $previews = [];
 
         if ($ids && count($ids)) {
             $likes = $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") GROUP BY newsfeedid;", NULL, FALSE, FALSE);
             $mylikes = $me ? $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") AND userid = ?;", [
                 $me->getId()
             ], FALSE, FALSE) : [];
+
+            $imageids = array_filter(array_column($entries, 'imageid'));
+            $images = [];
+            if ($imageids && count($imageids)) {
+                $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_NEWSFEED);
+                $images = $a->getByImageIds($imageids);
+            }
 
             if ($checkreplies) {
                 # Don't cache replies - might be lots and might change frequently.
@@ -255,11 +263,17 @@ class Newsfeed extends Entity
                     if (preg_match_all($urlPattern, $entries[$entindex]['message'], $matches)) {
                         foreach ($matches as $val) {
                             foreach ($val as $url) {
-                                $p = new Preview($this->dbhr, $this->dbhm);
-                                $id = $p->get($url);
+                                # We just might have repeated previews of the same URL.
+                                if (pres($url, $previews)) {
+                                    $entries[$entindex]['preview'] = $previews[$url];
+                                } else {
+                                    $p = new Preview($this->dbhr, $this->dbhm);
+                                    $id = $p->get($url);
 
-                                if ($id) {
-                                    $entries[$entindex]['preview'] = $p->getPublic();
+                                    if ($id) {
+                                        $entries[$entindex]['preview'] = $p->getPublic();
+                                        $previews[$url] = $entries[$entindex]['preview'];
+                                    }
                                 }
 
                                 break 2;
@@ -324,13 +338,11 @@ class Newsfeed extends Entity
                     }
 
                     if (pres('imageid', $entries[$entindex])) {
-                        $a = new Attachment($this->dbhr, $this->dbhm, $entries[$entindex]['imageid'], Attachment::TYPE_NEWSFEED);
-
-                        $entries[$entindex]['image'] = [
-                            'id' => $entries[$entindex]['imageid'],
-                            'path' => $a->getPath(FALSE),
-                            'paththumb' => $a->getPath(TRUE)
-                        ];
+                        foreach ($images as $image) {
+                            if ($image->getId() == $entries[$entindex]['imageid']) {
+                                $entries[$entindex]['image'] = $image->getPublic();
+                            }
+                        }
                     }
 
                     $entries[$entindex]['timestamp'] = ISODate($entries[$entindex]['timestamp']);
@@ -422,10 +434,9 @@ class Newsfeed extends Entity
             $mysqltime = date('Y-m-d', strtotime("30 days ago"));
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
-            $sql = "SELECT DISTINCT userid FROM newsfeed FORCE INDEX (position) WHERE MBRContains($box, position) AND replyto IS NULL AND type != ? AND timestamp >= '$mysqltime' LIMIT $limit;";
-            $others = $this->dbhr->preQuery($sql, [
-                Newsfeed::TYPE_ALERT
-            ]);
+            $sql = "SELECT DISTINCT userid FROM newsfeed FORCE INDEX (position) WHERE MBRContains($box, position) AND replyto IS NULL AND type != '" . Newsfeed::TYPE_ALERT . "' AND timestamp >= '$mysqltime' LIMIT $limit;";
+            error_log("Get near $sql");
+            $others = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
             #error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid using $sql");
         } while ($dist < $max && count($others) < $limit);
 

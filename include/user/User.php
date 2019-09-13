@@ -120,6 +120,7 @@ class User extends Entity
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
+        #error_log("Construct user " .  debug_backtrace()[1]['function'] . "," . debug_backtrace()[2]['function']);
         # We don't use Entity::fetch because we can reduce the number of DB ops in getPublic later by
         # doing a more complex query here.  This adds code complexity, but as you can imagine the performance of
         # this class is critical.
@@ -3446,6 +3447,21 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $comments = $this->dbhr->preQuery($sql, [$this->id]);
         #error_log("Got comments " . var_export($comments, TRUE));
 
+        $commentuids = [];
+        foreach ($comments as $comment) {
+            if (pres('byuserid', $comment)) {
+                $commentuids[] = $comment['byuserid'];
+            }
+        }
+
+        $commentusers = [];
+
+        if ($commentuids && count($commentuids)) {
+            $ctx = NULL;
+            $commentusers = $this->getPublicsById($commentuids, NULL, FALSE, $ctx, FALSE);
+        }
+
+
         foreach ($rets as $retind => $ret) {
             $rets[$retind]['comments'] = [];
 
@@ -3455,11 +3471,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         $comments[$commentind]['date'] = ISODate($comments[$commentind]['date']);
 
                         if (pres('byuserid', $comments[$commentind])) {
-                            $u = User::get($this->dbhr, $this->dbhm, $comments[$commentind]['byuserid']);
-
-                            # Don't ask for comments to stop stack overflow.
-                            $ctx = NULL;
-                            $comments[$commentind]['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                            $comments[$commentind]['byuser'] = $commentusers[$comments[$commentind]['byuserid']];
                         }
 
                         $rets[$retind]['comments'][] = $comments[$commentind];

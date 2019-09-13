@@ -706,31 +706,31 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         }
 
-//    public function testEH() {
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
-//        $u = new User($this->dbhr, $this->dbhm);
-//
-//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-//        $_SESSION['id'] = $uid;
-//        error_log("Start it");
-//        $ret = $this->call('newsfeed', 'GET', [
-//            'types' => [
-//                Newsfeed::TYPE_MESSAGE,
-//                Newsfeed::TYPE_COMMUNITY_EVENT,
-//                Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY,
-//                Newsfeed::TYPE_ALERT,
-//                Newsfeed::TYPE_STORY,
-//                Newsfeed::TYPE_ABOUT_ME
-//            ],
-//            'context' => [
-//                'distance' => 'nearby'
-//            ]
-//        ]);
-//
-//        assertEquals(0, $ret['ret']);
-//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-//        $this->log(var_export($ret, TRUE));
-//    }
+    public function testEH() {
+        $this->dbhr->errorLog = TRUE;
+        $this->dbhm->errorLog = TRUE;
+        $u = new User($this->dbhr, $this->dbhm);
+
+        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+        $_SESSION['id'] = $uid;
+        error_log("Start it");
+        $ret = $this->call('newsfeed', 'GET', [
+            'types' => [
+                Newsfeed::TYPE_MESSAGE,
+                Newsfeed::TYPE_COMMUNITY_EVENT,
+                Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY,
+                Newsfeed::TYPE_ALERT,
+                Newsfeed::TYPE_STORY,
+                Newsfeed::TYPE_ABOUT_ME
+            ],
+            'context' => [
+                'distance' => 'nearby'
+            ]
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+        $this->log(var_export($ret, TRUE));
+    }
 }
 
