@@ -2584,7 +2584,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $rets[$retind]['emailhistory'] = [];
 
             foreach ($emails as $email) {
-                if ($rets[$retind]['userid'] == $email['userid']) {
+                if ($rets[$retind]['id'] == $email['userid']) {
                     $email['timestamp'] = ISODate($email['timestamp']);
                     unset($email['userid']);
                     $rets[$retind]['emailhistory'][] = $email;
