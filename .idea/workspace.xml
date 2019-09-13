@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/db.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/db.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Attachment.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Attachment.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -218,14 +214,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="3085000" />
-    </task>
-    <task id="LOCAL-00165" summary="Speed-ups: message groups">
-      <created>1567597490107</created>
-      <option name="number" value="00165" />
-      <option name="presentableId" value="LOCAL-00165" />
-      <option name="project" value="LOCAL" />
-      <updated>1567597490107</updated>
+      <workItem from="1568359210231" duration="4990000" />
     </task>
     <task id="LOCAL-00166" summary="UT fixes">
       <created>1567599253315</created>
@@ -563,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568314061259</updated>
     </task>
-    <option name="localTasksCounter" value="214" />
+    <task id="LOCAL-00214" summary="Speed-ups: chitchat">
+      <created>1568362307012</created>
+      <option name="number" value="00214" />
+      <option name="presentableId" value="LOCAL-00214" />
+      <option name="project" value="LOCAL" />
+      <updated>1568362307013</updated>
+    </task>
+    <option name="localTasksCounter" value="215" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -630,8 +626,8 @@
     <MESSAGE value="Speed-ups: replytime" />
     <MESSAGE value="Speed-ups: finish restructuring getting of user info" />
     <MESSAGE value="Speed-ups: chitchat fetching of users" />
-    <MESSAGE value="Speed-ups: chitchat" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Speed-ups: chitchat" />
+    <option name="LAST_COMMIT_MESSAGE" value="Speed-ups: chitchat" />
   </component>
 </project>

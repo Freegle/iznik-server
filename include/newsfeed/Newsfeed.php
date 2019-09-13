@@ -243,6 +243,7 @@ class Newsfeed extends Entity
                 # the "Show earlier" prompt; it will then fetch more as required.
                 $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;", NULL, FALSE);
                 $replies = array_reverse($replies);
+                $this->fillIn($replies, $users, TRUE, FALSE);
             }
 
             for ($entindex = 0; $entindex < count($entries); $entindex++) {
@@ -372,7 +373,7 @@ class Newsfeed extends Entity
 
                     if ($checkreplies) {
                         $last = NULL;
-                        $replyfill = [];
+                        $entries[$entindex]['replies'] = [];
 
                         foreach ($replies as &$reply) {
                             if ($reply['replyto'] == $entries[$entindex]['id']) {
@@ -383,28 +384,21 @@ class Newsfeed extends Entity
                                 if (!$hidden || $myid == $entries[$entindex]['userid']) {
                                     # Replies can themselves contain replies.  Preserve the thread head as we recurse.
                                     $reply['threadhead'] = pres('threadhead', $entries[$entindex]) ? $entries[$entindex]['threadhead'] : $entries[$entindex]['id'];
-                                    $replyfill[] = $reply;
+
+                                    if ($reply['visible'] &&
+                                        $last['userid'] == $reply['userid'] &&
+                                        $last['type'] == $reply['type'] &&
+                                        $last['message'] == $reply['message']
+                                    ) {
+                                        # Suppress duplicates.
+                                        $reply['visible'] = FALSE;
+                                    }
+
+                                    $entries[$entindex]['replies'][] = $reply;
+
+                                    $last = $reply;
                                 }
                             }
-                        }
-
-                        $this->fillIn($replyfill, $users, TRUE, FALSE);
-
-                        $entries[$entindex]['replies'] = [];
-
-                        foreach ($replyfill as &$reply) {
-                            if ($reply['visible'] &&
-                                $last['userid'] == $reply['userid'] &&
-                                $last['type'] == $reply['type'] &&
-                                $last['message'] == $reply['message']
-                            ) {
-                                # Suppress duplicates.
-                                $reply['visible'] = FALSE;
-                            }
-
-                            $entries[$entindex]['replies'][] = $reply;
-
-                            $last = $reply;
                         }
                     }
                 }
@@ -435,7 +429,6 @@ class Newsfeed extends Entity
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
             $sql = "SELECT DISTINCT userid FROM newsfeed FORCE INDEX (position) WHERE MBRContains($box, position) AND replyto IS NULL AND type != '" . Newsfeed::TYPE_ALERT . "' AND timestamp >= '$mysqltime' LIMIT $limit;";
-            error_log("Get near $sql");
             $others = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
             #error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid using $sql");
         } while ($dist < $max && count($others) < $limit);

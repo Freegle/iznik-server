@@ -33,6 +33,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
 
         $l = new Location($this->dbhr, $this->dbhm);
         $this->areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
@@ -706,31 +707,31 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         }
 
-    public function testEH() {
-        $this->dbhr->errorLog = TRUE;
-        $this->dbhm->errorLog = TRUE;
-        $u = new User($this->dbhr, $this->dbhm);
-
-        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-        $_SESSION['id'] = $uid;
-        error_log("Start it");
-        $ret = $this->call('newsfeed', 'GET', [
-            'types' => [
-                Newsfeed::TYPE_MESSAGE,
-                Newsfeed::TYPE_COMMUNITY_EVENT,
-                Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY,
-                Newsfeed::TYPE_ALERT,
-                Newsfeed::TYPE_STORY,
-                Newsfeed::TYPE_ABOUT_ME
-            ],
-            'context' => [
-                'distance' => 'nearby'
-            ]
-        ]);
-
-        assertEquals(0, $ret['ret']);
-        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-        $this->log(var_export($ret, TRUE));
-    }
+//    public function testEH() {
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//        $u = new User($this->dbhr, $this->dbhm);
+//
+//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        $_SESSION['id'] = $uid;
+//        error_log("Start it");
+//        $ret = $this->call('newsfeed', 'GET', [
+//            'types' => [
+//                Newsfeed::TYPE_MESSAGE,
+//                Newsfeed::TYPE_COMMUNITY_EVENT,
+//                Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY,
+//                Newsfeed::TYPE_ALERT,
+//                Newsfeed::TYPE_STORY,
+//                Newsfeed::TYPE_ABOUT_ME
+//            ],
+//            'context' => [
+//                'distance' => 'nearby'
+//            ]
+//        ]);
+//
+//        assertEquals(0, $ret['ret']);
+//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//        $this->log(var_export($ret, TRUE));
+//    }
 }
 
