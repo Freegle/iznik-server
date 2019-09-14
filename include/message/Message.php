@@ -1481,7 +1481,7 @@ ORDER BY lastdate DESC;";
 
             foreach ($relateds as $rel) {
                 if ($rel['id1'] == $msg['id'] || $rel['id2'] == $msg['id']) {
-                    $id = $rel['id1'] == $this->id ? $rel['id2'] : $rel['id1'];
+                    $id = $rel['id1'] == $msg['id'] ? $rel['id2'] : $rel['id1'];
 
                     if (!array_key_exists($id, $relids)) {
                         $m = new Message($this->dbhr, $this->dbhm, $id);
