@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -213,14 +213,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="26714000" />
-    </task>
-    <task id="LOCAL-00172" summary="Speed-ups: get message hold">
-      <created>1567613967628</created>
-      <option name="number" value="00172" />
-      <option name="presentableId" value="LOCAL-00172" />
-      <option name="project" value="LOCAL" />
-      <updated>1567613967628</updated>
+      <workItem from="1568359210231" duration="27572000" />
     </task>
     <task id="LOCAL-00173" summary="Speed-ups: get message attachments">
       <created>1567616035911</created>
@@ -558,7 +551,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568392800292</updated>
     </task>
-    <option name="localTasksCounter" value="221" />
+    <task id="LOCAL-00221" summary="Remove warning">
+      <created>1568449286884</created>
+      <option name="number" value="00221" />
+      <option name="presentableId" value="LOCAL-00221" />
+      <option name="project" value="LOCAL" />
+      <updated>1568449286884</updated>
+    </task>
+    <option name="localTasksCounter" value="222" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -602,7 +602,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: get message attachments" />
     <MESSAGE value="Speed-ups: get message posting history" />
     <MESSAGE value="Speed-ups: initial code restructure for individual messages now complete" />
     <MESSAGE value="Speed-ups: fetching of multiple messages" />
@@ -627,6 +626,7 @@
     <MESSAGE value="UT fixes" />
     <MESSAGE value="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down." />
     <MESSAGE value="More Discourse login" />
-    <option name="LAST_COMMIT_MESSAGE" value="More Discourse login" />
+    <MESSAGE value="Remove warning" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove warning" />
   </component>
 </project>

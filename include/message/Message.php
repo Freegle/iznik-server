@@ -754,7 +754,7 @@ class Message
                 }
             }
 
-            if ($role == User::ROLE_NONMEMBER && $msg['isdraft']) {
+            if ($role == User::ROLE_NONMEMBER && presdef('isdraft', $msg, FALSE)) {
                 # We can potentially upgrade our role if this is one of our drafts.
                 $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
                     $msg['id'],
@@ -1056,7 +1056,7 @@ class Message
 
                 $rets[$msg['id']]['groups'] = $retgroups;
             } else {
-                $rets[$msg['id']]['groups'] = $msg['groups'];
+                $rets[$msg['id']]['groups'] = presdef('groups', $msg, []);
             }
 
             $rets[$msg['id']]['showarea'] = TRUE;
@@ -1441,7 +1441,7 @@ ORDER BY lastdate DESC;";
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
 
-            if (pres('fromuser', $ret)) {
+            if (pres('fromuser', $rets[$msg['id']])) {
                 # We know who sent this.  We may be able to return this (depending on the role we have for the message
                 # and hence the attributes we have already filled in).  We also want to know if we have consent
                 # to republish it.
