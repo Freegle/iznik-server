@@ -190,6 +190,7 @@ class MessageCollection
                 (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid,
                 (SELECT COALESCE(namefull, nameshort) FROM groups WHERE groups.id = messages_groups.groupid) AS namedisplay,
                 (SELECT COUNT(DISTINCT userid) FROM chat_messages WHERE refmsgid = messages.id AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != messages.fromuser AND chat_messages.type = 'Interested') AS replycount,                  
+                (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, 
                 (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
 
                 # We may have some groups to filter by.
@@ -265,6 +266,18 @@ class MessageCollection
 
                 if (pres('outcomeid', $msg)) {
                     $msg['outcomes'] = [$msg['outcomeid']];
+                }
+
+                if (pres('attachmentid', $msg)) {
+                    $a = new Attachment($this->dbhr, $this->dbhm);
+
+                    $msg['attachments'] = [
+                        [
+                            'id' => $msg['attachmentid'],
+                            'path' => $a->getpath(false, $msg['attachmentid']),
+                            'paththumb' => $a->getpath(true, $msg['attachmentid'])
+                        ]
+                    ];
                 }
             }
         }

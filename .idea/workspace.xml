@@ -3,8 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -107,7 +108,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.newsfeedAPITest.testBasic">
+  <component name="RunManager" selected="PHPUnit.messagesTest.testAttachment">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -118,9 +119,9 @@
       <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="messagesTest.testAttachment" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testAttachment" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="newsfeedAPITest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -133,25 +134,25 @@
       <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="notificationsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="ut" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="notificationsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/NotificationsTest.php" scope="Class" use_alternative_configuration_file="true" />
+      <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
       <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
-      <item itemvalue="PHPUnit.messagesTest.testEH" />
-      <item itemvalue="PHPUnit.notificationsTest" />
       <item itemvalue="PHPUnit.messagesTest" />
       <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
+      <item itemvalue="PHPUnit.ut" />
+      <item itemvalue="PHPUnit.messagesTest.testAttachment" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.messagesTest.testAttachment" />
+        <item itemvalue="PHPUnit.ut" />
         <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
         <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
         <item itemvalue="PHPUnit.messagesTest" />
-        <item itemvalue="PHPUnit.messagesTest.testEH" />
-        <item itemvalue="PHPUnit.notificationsTest" />
       </list>
     </recent_temporary>
   </component>
@@ -214,14 +215,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="32213000" />
-    </task>
-    <task id="LOCAL-00175" summary="Speed-ups: initial code restructure for individual messages now complete">
-      <created>1567617333518</created>
-      <option name="number" value="00175" />
-      <option name="presentableId" value="LOCAL-00175" />
-      <option name="project" value="LOCAL" />
-      <updated>1567617333518</updated>
+      <workItem from="1568359210231" duration="37111000" />
     </task>
     <task id="LOCAL-00176" summary="UT fixes">
       <created>1567618522701</created>
@@ -559,7 +553,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568466972550</updated>
     </task>
-    <option name="localTasksCounter" value="224" />
+    <task id="LOCAL-00224" summary="Bug in display of single chitchat item">
+      <created>1568539260107</created>
+      <option name="number" value="00224" />
+      <option name="presentableId" value="LOCAL-00224" />
+      <option name="project" value="LOCAL" />
+      <updated>1568539260107</updated>
+    </task>
+    <option name="localTasksCounter" value="225" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: initial code restructure for individual messages now complete" />
     <MESSAGE value="Speed-ups: fetching of multiple messages" />
     <MESSAGE value="Another Autoreply message" />
     <MESSAGE value="Speed-ups: don't open connections to the database unless we actually need them" />
@@ -628,6 +628,7 @@
     <MESSAGE value="More Discourse login" />
     <MESSAGE value="Remove warning" />
     <MESSAGE value="Messages showing as related to themselves" />
-    <option name="LAST_COMMIT_MESSAGE" value="Messages showing as related to themselves" />
+    <MESSAGE value="Bug in display of single chitchat item" />
+    <option name="LAST_COMMIT_MESSAGE" value="Bug in display of single chitchat item" />
   </component>
 </project>
