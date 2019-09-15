@@ -111,6 +111,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         self::assertEquals($nid, $ret['newsfeed']['id']);
         self::assertEquals('Google', $ret['newsfeed']['preview']['title']);
         self::assertEquals('Test with url https://google.co.uk', $ret['newsfeed']['message']);
+        assertEquals($this->user->getId(), $ret['newsfeed']['user']['id']);
 
         # Edit it.
         $newsfeedtext = 'Test2 with url https://google.co.uk with some extra length to make sure it gets digested';

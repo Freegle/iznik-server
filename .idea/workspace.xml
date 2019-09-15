@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -50,7 +51,7 @@
     <other-services-enabled>true</other-services-enabled>
     <auto-save>true</auto-save>
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app1">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app4">
     <include_path>
       <path value="." />
       <path value="/usr/bin/php" />
@@ -106,15 +107,10 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messagesTest">
+  <component name="RunManager" selected="PHPUnit.newsfeedAPITest.testBasic">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="authorityAPITest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="authorityAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/AuthorityTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messagesTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -125,6 +121,11 @@
     <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="newsfeedAPITest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="newsfeedAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -139,18 +140,18 @@
     </configuration>
     <list>
       <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
-      <item itemvalue="PHPUnit.authorityAPITest.testBasic" />
       <item itemvalue="PHPUnit.messagesTest.testEH" />
       <item itemvalue="PHPUnit.notificationsTest" />
       <item itemvalue="PHPUnit.messagesTest" />
+      <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
+        <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
         <item itemvalue="PHPUnit.messagesTest" />
         <item itemvalue="PHPUnit.messagesTest.testEH" />
         <item itemvalue="PHPUnit.notificationsTest" />
-        <item itemvalue="PHPUnit.newsfeedAPITest.testEH" />
-        <item itemvalue="PHPUnit.authorityAPITest.testBasic" />
       </list>
     </recent_temporary>
   </component>
@@ -213,14 +214,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="28330000" />
-    </task>
-    <task id="LOCAL-00174" summary="Speed-ups: get message posting history">
-      <created>1567616544852</created>
-      <option name="number" value="00174" />
-      <option name="presentableId" value="LOCAL-00174" />
-      <option name="project" value="LOCAL" />
-      <updated>1567616544852</updated>
+      <workItem from="1568359210231" duration="32213000" />
     </task>
     <task id="LOCAL-00175" summary="Speed-ups: initial code restructure for individual messages now complete">
       <created>1567617333518</created>
@@ -558,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568450171691</updated>
     </task>
-    <option name="localTasksCounter" value="223" />
+    <task id="LOCAL-00223" summary="Messages showing as related to themselves">
+      <created>1568466972550</created>
+      <option name="number" value="00223" />
+      <option name="presentableId" value="LOCAL-00223" />
+      <option name="project" value="LOCAL" />
+      <updated>1568466972550</updated>
+    </task>
+    <option name="localTasksCounter" value="224" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -602,7 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: get message posting history" />
     <MESSAGE value="Speed-ups: initial code restructure for individual messages now complete" />
     <MESSAGE value="Speed-ups: fetching of multiple messages" />
     <MESSAGE value="Another Autoreply message" />
@@ -627,6 +627,7 @@
     <MESSAGE value="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down." />
     <MESSAGE value="More Discourse login" />
     <MESSAGE value="Remove warning" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove warning" />
+    <MESSAGE value="Messages showing as related to themselves" />
+    <option name="LAST_COMMIT_MESSAGE" value="Messages showing as related to themselves" />
   </component>
 </project>

@@ -166,13 +166,6 @@ class Newsfeed extends Entity
 
         $atts = $entries[0];
 
-        foreach ($users as $user) {
-            if ($user['id'] == presdef('userid', $atts, NULL)) {
-                $atts['user'] = $user;
-                unset($atts['userid']);
-            }
-        }
-
         if ($anyreplies && pres('replies', $atts)) {
             foreach ($atts['replies'] as &$reply) {
                 if (pres('userid', $reply)) {
@@ -203,7 +196,7 @@ class Newsfeed extends Entity
                     $uatts['publiclocation'] = $u->getPublicLocation();
                     $atts['lovelist'][] = $uatts;
                 } else {
-                    $atts['lovelist'][] = $user[$love['userid']];
+                    $atts['lovelist'][] = $users[$love['userid']];
                 }
             }
         }
@@ -212,6 +205,15 @@ class Newsfeed extends Entity
             $me = whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
             $atts['unfollowed'] = $this->unfollowed($myid, $this->id);
+        }
+
+        if (pres('userid', $atts)) {
+            $u = User::get($this->dbhr, $this->dbhm);
+            $users = $u->getPublicsById([ $atts['userid'] ]);
+            $u->getPublicLocations($users);
+            $u->getActiveCountss($users);
+            $atts['user'] = $users[$atts['userid']];
+            unset($atts['userid']);
         }
 
         return($atts);
