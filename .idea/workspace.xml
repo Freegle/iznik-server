@@ -3,8 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -107,7 +107,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.chatRoomsAPITest.testEH">
+  <component name="RunManager" selected="PHPUnit.messageAPITest.testReject">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -116,6 +116,11 @@
     <configuration name="chatRoomsAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="chatRoomsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="groupTest.testMerge" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="groupTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/groupTest.php" method="testMerge" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messageAPITest.testReject" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -128,30 +133,25 @@
       <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testAttachment" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="newsfeedAPITest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <configuration name="ut" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
       <item itemvalue="PHPUnit.ut" />
       <item itemvalue="PHPUnit.messagesTest.testAttachment" />
       <item itemvalue="PHPUnit.messageAPITest.testReject" />
       <item itemvalue="PHPUnit.chatRoomsAPITest.testEH" />
+      <item itemvalue="PHPUnit.groupTest.testMerge" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="PHPUnit.chatRoomsAPITest.testEH" />
         <item itemvalue="PHPUnit.messageAPITest.testReject" />
+        <item itemvalue="PHPUnit.groupTest.testMerge" />
+        <item itemvalue="PHPUnit.chatRoomsAPITest.testEH" />
         <item itemvalue="PHPUnit.messagesTest.testAttachment" />
         <item itemvalue="PHPUnit.ut" />
-        <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
       </list>
     </recent_temporary>
   </component>
@@ -214,14 +214,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="44863000" />
-    </task>
-    <task id="LOCAL-00178" summary="Speed-ups: fetching of multiple messages">
-      <created>1567675163798</created>
-      <option name="number" value="00178" />
-      <option name="presentableId" value="LOCAL-00178" />
-      <option name="project" value="LOCAL" />
-      <updated>1567675163798</updated>
+      <workItem from="1568359210231" duration="45580000" />
     </task>
     <task id="LOCAL-00179" summary="UT fixes">
       <created>1567676377988</created>
@@ -559,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568627594069</updated>
     </task>
-    <option name="localTasksCounter" value="227" />
+    <task id="LOCAL-00227" summary="Not hiding profile images fully when requested to do so">
+      <created>1568630061481</created>
+      <option name="number" value="00227" />
+      <option name="presentableId" value="LOCAL-00227" />
+      <option name="project" value="LOCAL" />
+      <updated>1568630061481</updated>
+    </task>
+    <option name="localTasksCounter" value="228" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,7 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: don't open connections to the database unless we actually need them" />
     <MESSAGE value="Switch to UK backup for Brexit reasons" />
     <MESSAGE value="Speed-ups: get user info" />
     <MESSAGE value="Fixes to speed-ups" />
@@ -628,6 +627,7 @@
     <MESSAGE value="Bug in display of single chitchat item" />
     <MESSAGE value="Photos missing after recent performance fixes" />
     <MESSAGE value="Modmail count doesn't match modmail logs." />
-    <option name="LAST_COMMIT_MESSAGE" value="Modmail count doesn't match modmail logs." />
+    <MESSAGE value="Not hiding profile images fully when requested to do so" />
+    <option name="LAST_COMMIT_MESSAGE" value="Not hiding profile images fully when requested to do so" />
   </component>
 </project>

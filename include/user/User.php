@@ -2590,30 +2590,40 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
                     $rets[$uid]['logs'][] = $log;
                 }
+            }
+        }
 
-                # Get merge history
-                $merges = [];
-                do {
-                    $added = FALSE;
-                    $sql = "SELECT * FROM logs WHERE type = 'User' AND subtype = 'Merged' AND user IN (" . implode(',', $uids) . ");";
-                    $logs = $this->dbhr->preQuery($sql);
-                    foreach ($logs as $log) {
-                        #error_log("Consider merge log {$log['text']}");
-                        if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
-                            #error_log("Matched " . var_export($matches, TRUE));
-                            #error_log("Check ids {$matches[1]} and {$matches[2]}");
-                            foreach ([$matches[1], $matches[2]] as $id) {
-                                if (!in_array($id, $ids, TRUE)) {
-                                    $added = TRUE;
-                                    $ids[] = $id;
-                                    $merges[] = ['timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3]];
-                                }
-                            }
+        # Get merge history
+        $merges = [];
+        do {
+            $added = FALSE;
+            $sql = "SELECT * FROM logs WHERE type = 'User' AND subtype = 'Merged' AND user IN (" . implode(',', $uids) . ");";
+            $logs = $this->dbhr->preQuery($sql);
+            foreach ($logs as $log) {
+                #error_log("Consider merge log {$log['text']}");
+                if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
+                    #error_log("Matched " . var_export($matches, TRUE));
+                    #error_log("Check ids {$matches[1]} and {$matches[2]}");
+                    foreach ([$matches[1], $matches[2]] as $id) {
+                        if (!in_array($id, $uids, TRUE)) {
+                            $added = TRUE;
+                            $uids[] = $id;
+                            $merges[] = ['timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3]];
                         }
                     }
-                } while ($added);
+                }
+            }
+        } while ($added);
 
-                $rets[$uid]['merges'] = $merges;
+        $merges = array_unique($merges, SORT_REGULAR);
+
+        foreach ($rets as $uid => $ret) {
+            $rets[$uid]['merges'] = [];
+
+            foreach ($merges as $merge) {
+                if ($merge['from'] == $ret['id'] || $merge['to'] == $ret['id']) {
+                    $rets[$uid]['merges'][] = $merge;
+                }
             }
         }
     }

@@ -616,8 +616,8 @@ class messageAPITest extends IznikAPITestCase
         $pid = $ret['plugin'][0]['id'];
 
         # User should have modmails.
-        $u->updateModMails($senduser);
         $this->waitBackground();
+        $u->updateModMails($senduser);
         $ret = $this->call('user', 'GET', [
             'id' => $senduser,
             'logs' => TRUE,
