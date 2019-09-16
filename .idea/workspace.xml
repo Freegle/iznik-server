@@ -3,8 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/index.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -214,14 +213,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="45580000" />
-    </task>
-    <task id="LOCAL-00179" summary="UT fixes">
-      <created>1567676377988</created>
-      <option name="number" value="00179" />
-      <option name="presentableId" value="LOCAL-00179" />
-      <option name="project" value="LOCAL" />
-      <updated>1567676377989</updated>
+      <workItem from="1568359210231" duration="47232000" />
     </task>
     <task id="LOCAL-00180" summary="UT fixes">
       <created>1567678048180</created>
@@ -559,7 +551,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568630061481</updated>
     </task>
-    <option name="localTasksCounter" value="228" />
+    <task id="LOCAL-00228" summary="UT fixes">
+      <created>1568630720035</created>
+      <option name="number" value="00228" />
+      <option name="presentableId" value="LOCAL-00228" />
+      <option name="project" value="LOCAL" />
+      <updated>1568630720035</updated>
+    </task>
+    <option name="localTasksCounter" value="229" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -619,7 +618,6 @@
     <MESSAGE value="Speed-ups: chitchat fetching of users" />
     <MESSAGE value="Speed-ups: chitchat" />
     <MESSAGE value="Message history not showing" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down." />
     <MESSAGE value="More Discourse login" />
     <MESSAGE value="Remove warning" />
@@ -628,6 +626,7 @@
     <MESSAGE value="Photos missing after recent performance fixes" />
     <MESSAGE value="Modmail count doesn't match modmail logs." />
     <MESSAGE value="Not hiding profile images fully when requested to do so" />
-    <option name="LAST_COMMIT_MESSAGE" value="Not hiding profile images fully when requested to do so" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>
