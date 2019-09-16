@@ -596,12 +596,11 @@ class userAPITest extends IznikAPITestCase {
         $this->log("Get most active " . var_export($ret, TRUE));
         self::assertEquals($this->user->getId(), $ret['members'][0]['id']);
 
-        }
+    }
 
     public function  testGravatar() {
         $u = new User($this->dbhr, $this->dbhm);
         self::assertNotNull($u->gravatar('edward@ehibbert.org.uk'));
-
-        }
+    }
 }
 

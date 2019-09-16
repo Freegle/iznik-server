@@ -46,11 +46,13 @@ try {
     error_log("Failed to delete non-Freegle logs " . $e->getMessage());
 }
 
-# Delete logs for messages which no longer exist.  Typically spam.
+# Delete logs for messages which no longer exist.  Typically spam, but we need to keep the logs for 30 days
+# as they might relate to mod activity.
 try {
     error_log("Logs for messages no longer around:");
     $total = 0;
-    $logs = $dbhm->query("SELECT logs.id FROM logs LEFT JOIN messages ON messages.id = logs.msgid WHERE logs.type = 'Message' AND logs.msgid IS NOT NULL AND messages.id IS NULL;");
+    $start = date('Y-m-d', strtotime("midnight 30 days ago"));
+    $logs = $dbhm->query("SELECT logs.id FROM logs LEFT JOIN messages ON messages.id = logs.msgid WHERE logs.type = 'Message' AND logs.msgid IS NOT NULL AND messages.id IS NULL AND logs.timestamp < '$start';");
     error_log("Found " . count($logs));
 
     foreach ($logs as $log) {

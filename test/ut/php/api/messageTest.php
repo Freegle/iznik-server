@@ -551,6 +551,8 @@ class messageAPITest extends IznikAPITestCase
         $m->method('mailer')->willReturn(false);
 
         assertEquals(Message::TYPE_OFFER, $m->getType());
+        $senduser = $m->getFromUser();
+        error_log("Send user $senduser");
 
         # Set to platform for testing message visibility.
         $m->setPrivate('sourceheader', Message::PLATFORM);
@@ -612,6 +614,19 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($group1, $ret['plugin'][0]['groupid']);
         assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
         $pid = $ret['plugin'][0]['id'];
+
+        # User should have modmails.
+        $u->updateModMails($senduser);
+        $this->waitBackground();
+        $ret = $this->call('user', 'GET', [
+            'id' => $senduser,
+            'logs' => TRUE,
+            'modmailsonly' => TRUE
+        ]);
+        assertEquals(Log::TYPE_MESSAGE, $ret['user']['logs'][0]['type']);
+        assertEquals(Log::SUBTYPE_REJECTED, $ret['user']['logs'][0]['subtype']);
+
+        assertEquals(1, $ret['user']['modmails']);
 
         # The message should exist as rejected.  Should be able to see logged out
         $this->log("Can see logged out");
