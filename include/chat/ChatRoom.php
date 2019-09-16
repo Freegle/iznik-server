@@ -86,6 +86,8 @@ class ChatRoom extends Entity
 SELECT chat_rooms.*, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname, 
 CASE WHEN u1.fullname IS NOT NULL THEN u1.fullname ELSE CONCAT(u1.firstname, ' ', u1.lastname) END AS u1name,
 CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' ', u2.lastname) END AS u2name,
+u1.settings AS u1settings,
+u2.settings AS u2settings,
 (SELECT COUNT(*) AS count FROM chat_messages WHERE id > 
   COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = ? AND status != ? AND status != ?), 0) 
   AND chatid = chat_rooms.id AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS unseen,
@@ -124,6 +126,20 @@ WHERE chat_rooms.id IN $idlist;";
             if (pres('lastdate', $room)) {
                 $room['lastdate'] = ISODate($room['lastdate']);
                 $room['latestmessage'] = ISODate($room['latestmessage']);
+            }
+
+            # We might be forbidden from showing the profiles.
+            $u1settings = pres('u1settings', $room) ? json_decode($room['u1settings'], TRUE) : NULL;
+            $u2settings = pres('u2settings', $room) ? json_decode($room['u2settings'], TRUE) : NULL;
+
+            if ($u1settings !== NULL && !pres('useprofile', $u1settings)) {
+                $room['u1imageurl'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+                unset($room['u1imagedata']);
+            }
+
+            if ($u2settings !== NULL && !pres('useprofile', $u2settings)) {
+                $room['u2imageurl'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+                unset($room['u2imagedata']);
             }
 
             if (!pres('u1imageurl', $room) && pres('u1imagedata', $room)) {
