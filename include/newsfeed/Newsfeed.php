@@ -493,15 +493,15 @@ class Newsfeed extends Entity
             foreach ($entries as &$entry) {
                 $hidden = $entry['hidden'];
 
+                // This entry is the start of the thread.
+                $entry['threadhead'] = $entry['id'];
+
                 # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
                 # are there but nobody else sees them.
                 if (!$hidden || $myid == $entry['userid']) {
                     unset($entry['hidden']);
                     $filtered[] = $entry;
                 }
-
-                // This entry is the start of the thread.
-                $entry['threadhead'] = $entry['id'];
             }
             
             if ($fillin) {

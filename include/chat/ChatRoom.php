@@ -1943,9 +1943,6 @@ WHERE chat_rooms.id IN $idlist;";
                     $mailedtoall = min($mailedtoall, $max['lastmsgemailed']);
                 }
 
-                # Delete after 30/04/2019.
-                if ($mailedtoall < $maxbugspot) { error_log("Aha! chat bug $mailedtoall vs $maxbugspot"); }
-
                 $lastmaxmailed = $lastmaxmailed ? $lastmaxmailed : 0;
                 #error_log("Set mailedto all for $lastmaxmailed to $maxmailednow for {$chat['chatid']}");
                 $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id > ? AND id <= ? AND chatid = ?;", [
