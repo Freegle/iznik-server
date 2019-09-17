@@ -107,6 +107,7 @@ class Message
         "Many thanks for your",
         "Automatic reply",
         "Mail Receipt",
+        "Read receipt",
         "Automated reply",
         "Auto-Reply",
         "Out of Office",
