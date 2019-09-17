@@ -1316,11 +1316,11 @@ class userTest extends IznikTestCase {
 
         $u->setPrivate('settings', json_encode($settings));
         $jobs = $u->getJobAds();
-        assertEquals('EH3', $jobs['location']);
+        assertEquals('Edinburgh', $jobs['location']);
 
         # And again for cache.
         $jobs = $u->getJobAds();
-        assertEquals('EH3', $jobs['location']);
+        assertEquals('Edinburgh', $jobs['location']);
 
         # Now when we have just a group membership
         $l = new Location($this->dbhr, $this->dbhm);

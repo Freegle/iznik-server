@@ -45,6 +45,8 @@ if (!$gid) {
     $dbhm->preExec("INSERT INTO spam_countries (country) VALUES ('Cameroon');");
     $dbhm->preExec("INSERT INTO spam_whitelist_links (domain, count) VALUES ('users.ilovefreegle.org', 3);");
     $dbhm->preExec("INSERT INTO spam_whitelist_links (domain, count) VALUES ('freegle.in', 3);");
+
+    $dbhm->preExec("INSERT INTO towns (name, lat, lng, position) VALUES ('Edinburgh', 55.9500,-3.2000, GeomFromText('POINT (-3.2000 55.9500)'));");
 } else {
     error_log("Test environment already set up.");
 }

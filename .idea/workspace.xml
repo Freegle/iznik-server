@@ -2,8 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/scripts/fix/fix_towns.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/index.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/install/testenv.php" beforeDir="false" afterPath="$PROJECT_DIR$/install/testenv.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -106,7 +111,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messageAPITest.testReject">
+  <component name="RunManager" selected="PHPUnit.userTest.testJobs">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -132,25 +137,25 @@
       <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testAttachment" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="ut" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="userTest.testJobs" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" use_alternative_configuration_file="true" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testJobs" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.ut" />
       <item itemvalue="PHPUnit.messagesTest.testAttachment" />
       <item itemvalue="PHPUnit.messageAPITest.testReject" />
       <item itemvalue="PHPUnit.chatRoomsAPITest.testEH" />
       <item itemvalue="PHPUnit.groupTest.testMerge" />
+      <item itemvalue="PHPUnit.userTest.testJobs" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.userTest.testJobs" />
         <item itemvalue="PHPUnit.messageAPITest.testReject" />
         <item itemvalue="PHPUnit.groupTest.testMerge" />
         <item itemvalue="PHPUnit.chatRoomsAPITest.testEH" />
         <item itemvalue="PHPUnit.messagesTest.testAttachment" />
-        <item itemvalue="PHPUnit.ut" />
       </list>
     </recent_temporary>
   </component>
@@ -213,14 +218,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="47232000" />
-    </task>
-    <task id="LOCAL-00180" summary="UT fixes">
-      <created>1567678048180</created>
-      <option name="number" value="00180" />
-      <option name="presentableId" value="LOCAL-00180" />
-      <option name="project" value="LOCAL" />
-      <updated>1567678048180</updated>
+      <workItem from="1568359210231" duration="54802000" />
     </task>
     <task id="LOCAL-00181" summary="UT fixes">
       <created>1567683067112</created>
@@ -558,7 +556,14 @@
       <option name="project" value="LOCAL" />
       <updated>1568630720035</updated>
     </task>
-    <option name="localTasksCounter" value="229" />
+    <task id="LOCAL-00229" summary="Fix Discourse signin loop">
+      <created>1568645409859</created>
+      <option name="number" value="00229" />
+      <option name="presentableId" value="LOCAL-00229" />
+      <option name="project" value="LOCAL" />
+      <updated>1568645409859</updated>
+    </task>
+    <option name="localTasksCounter" value="230" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -602,7 +607,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Switch to UK backup for Brexit reasons" />
     <MESSAGE value="Speed-ups: get user info" />
     <MESSAGE value="Fixes to speed-ups" />
     <MESSAGE value="Speed-ups: get user profiles" />
@@ -627,6 +631,7 @@
     <MESSAGE value="Modmail count doesn't match modmail logs." />
     <MESSAGE value="Not hiding profile images fully when requested to do so" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Fix Discourse signin loop" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix Discourse signin loop" />
   </component>
 </project>

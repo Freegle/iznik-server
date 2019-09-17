@@ -42,6 +42,7 @@ function session() {
                 if (!$components || (gettype($components) == 'array' && in_array('me', $components))) {
                     # Don't want to use cached information when looking at our own session.
                     $ret['me'] = $me->getPublic();
+                    $ret['me']['city'] = $me->getCity();
 
                     # Don't need to return this, and it might be large.
                     $ret['me']['messagehistory'] = NULL;

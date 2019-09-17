@@ -5939,28 +5939,29 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return($id);
     }
 
+    public function getCity()
+    {
+        $city = NULL;
+
+        # Find the closest town
+        list ($lat, $lng, $loc) = $this->getLatLng();
+        $sql = "SELECT id, name, ST_distance(position, Point(?, ?)) AS dist FROM towns WHERE position IS NOT NULL ORDER BY dist ASC LIMIT 1;";
+        #error_log("Get $sql, $lng, $lat");
+        $towns = $this->dbhr->preQuery($sql, [$lng, $lat], FALSE, FALSE);
+
+        foreach ($towns as $town) {
+            $city = $town['name'];
+        }
+
+        return($city);
+    }
+
     public function getJobAds() {
         # We want to show a few job ads from nearby.
-        list ($lat, $lng, $loc) = $this->getLatLng();
         $search = NULL;
         $ret = '';
 
-        if ($loc) {
-            # We have a location.  Use that to save on expensive calls.  It's probably a postcode, so use the first
-            # part - we don't want to make it too specific else it looks like we're stalking.  Otherwise the full
-            # thing.
-            $p = strpos($loc, ' ');
-            $search = $p !== -1 ? substr($loc, 0, $p) : $loc;
-        } else {
-            # We need to find the closest postcode to this user.
-            $l = new Location($this->dbhr, $this->dbhm);
-            $pcs = $l->closestPostcode($lat, $lng);
-
-            if ($pcs && count($pcs)) {
-                $p = strpos($pcs['name'], ' ');
-                $search = $p !== -1 ? substr($pcs['name'], 0, $p) : $pcs['name'];
-            }
-        }
+        $search = $this->getCity();
 
         if ($search) {
             # AdView's servers can't keep up with us, so we keep a more or less daily cache of jobs per location.
