@@ -3,8 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/discourse_sso.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/discourse_sso.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -214,21 +214,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="57477000" />
-    </task>
-    <task id="LOCAL-00183" summary="Another Autoreply message">
-      <created>1567691255795</created>
-      <option name="number" value="00183" />
-      <option name="presentableId" value="LOCAL-00183" />
-      <option name="project" value="LOCAL" />
-      <updated>1567691255796</updated>
-    </task>
-    <task id="LOCAL-00184" summary="Speed-ups: don't open connections to the database unless we actually need them">
-      <created>1567694062212</created>
-      <option name="number" value="00184" />
-      <option name="presentableId" value="LOCAL-00184" />
-      <option name="project" value="LOCAL" />
-      <updated>1567694062212</updated>
+      <workItem from="1568359210231" duration="59068000" />
     </task>
     <task id="LOCAL-00185" summary="Switch to UK backup for Brexit reasons">
       <created>1567848886493</created>
@@ -559,7 +545,21 @@
       <option name="project" value="LOCAL" />
       <updated>1568711501111</updated>
     </task>
-    <option name="localTasksCounter" value="232" />
+    <task id="LOCAL-00232" summary="ChitChat thread head broken by recent fixes, not that anyone will notice apart from me">
+      <created>1568713834282</created>
+      <option name="number" value="00232" />
+      <option name="presentableId" value="LOCAL-00232" />
+      <option name="project" value="LOCAL" />
+      <updated>1568713834283</updated>
+    </task>
+    <task id="LOCAL-00233" summary="Suppress &quot;Read receipt&quot; messages">
+      <created>1568714042769</created>
+      <option name="number" value="00233" />
+      <option name="presentableId" value="LOCAL-00233" />
+      <option name="project" value="LOCAL" />
+      <updated>1568714042770</updated>
+    </task>
+    <option name="localTasksCounter" value="234" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,8 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Fixes to speed-ups" />
-    <MESSAGE value="Speed-ups: get user profiles" />
     <MESSAGE value="Speed-ups: message history" />
     <MESSAGE value="Speed-ups: user logs, comments" />
     <MESSAGE value="Speed-ups: user memberships, suspect count" />
@@ -628,6 +626,8 @@
     <MESSAGE value="Fix Discourse signin loop" />
     <MESSAGE value="Change job ads to search by nearest city" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="ChitChat thread head broken by recent fixes, not that anyone will notice apart from me" />
+    <MESSAGE value="Suppress &quot;Read receipt&quot; messages" />
+    <option name="LAST_COMMIT_MESSAGE" value="Suppress &quot;Read receipt&quot; messages" />
   </component>
 </project>

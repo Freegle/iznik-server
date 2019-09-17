@@ -25,14 +25,16 @@ try {
                 $grouplist[] = $membership['namedisplay'];
             }
 
-            # Save the info we need for login.
-            $session['name'] = str_replace($u->getName(), ' ', '');
-            $session['avatar_url'] = $atts['profile']['url'];
-            $session['admin'] = $u->isAdmin();
-            $session['email'] = $u->getEmailPreferred();
-            $session['grouplist'] = implode(',', $grouplist);
+            if (count($memberships)) {
+                # Save the info we need for login.
+                $session['name'] = str_replace($u->getName(), ' ', '');
+                $session['avatar_url'] = $atts['profile']['url'];
+                $session['admin'] = $u->isAdmin();
+                $session['email'] = $u->getEmailPreferred();
+                $session['grouplist'] = implode(',', $grouplist);
 
-            $tosave[] = $session;
+                $tosave[] = $session;
+            }
         }
 
         $count++;

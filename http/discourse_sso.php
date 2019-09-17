@@ -42,6 +42,12 @@ if (($sso->validatePayload($payload,$signature))) {
                     $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
 
                     $memberships = $u->getMemberships(TRUE, Group::GROUP_FREEGLE);
+
+                    if (count($memberships) === 0) {
+                        # Not a Freegle mod.
+                        exit(0);
+                    }
+
                     $grouplist = [];
 
                     foreach ($memberships as $membership) {
