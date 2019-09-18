@@ -55,7 +55,7 @@ if (($sso->validatePayload($payload,$signature))) {
                     }
 
                     # Save the info we need for login.
-                    $session['name'] = str_replace($u->getName(), ' ', '');
+                    $session['name'] = $u->getName(); // str_replace(' ', '', $u->getName());
                     $session['avatar_url'] = $atts['profile']['url'];
                     $session['admin'] = $u->isAdmin();
                     $session['email'] = $u->getEmailPreferred();
