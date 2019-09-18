@@ -1079,9 +1079,9 @@ class Message
                                     'displayname' => $name
                                 ];
                             }
-
-                            $rets[$msg['id']]['groups'][$groupind]['approvedby'] = $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']];
                         }
+
+                        $rets[$msg['id']]['groups'][$groupind]['approvedby'] = $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']];
                     }
                 }
 
