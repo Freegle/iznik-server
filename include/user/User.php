@@ -1607,7 +1607,7 @@ class User extends Entity
     public function getInfos(&$users) {
         $uids = array_filter(array_column($users, 'id'));
 
-        $start = date('Y-m-d', strtotime("{User::OPEN_AGE} days ago"));
+        $start = date('Y-m-d', strtotime(User::OPEN_AGE . " days ago"));
         $days90 = date("Y-m-d", strtotime("90 days ago"));
         $userq = "userid IN (" . implode(',', $uids) . ")";
 
