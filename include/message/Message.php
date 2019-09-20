@@ -1226,10 +1226,11 @@ class Message
         }
     }
 
-    public function getPublicReplies($me, $myid, &$userlist, &$rets, $msgs, $summary, $roles, $seeall, $messagehistory) {
+    public function getPublicReplies($me, $myid, &$rets, $msgs, $summary, $roles, $seeall, $messagehistory) {
         $allreplies = NULL;
         $lastreplies = NULL;
         $allpromises = NULL;
+        $replyusers = [];
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
@@ -1247,7 +1248,7 @@ class Message
                         $sql = "SELECT DISTINCT t.* FROM (
 SELECT chat_messages.id, chat_messages.refmsgid, chat_roster.status , chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages 
 LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid 
-WHERE refmsgid IN (" . implode(',', $msgids) . ") AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid) t 
+WHERE refmsgid IN (" . implode(',', $msgids) . ") AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid, chat_messages.refmsgid) t 
 ORDER BY lastdate DESC;";
 
                         $res = $this->dbhr->preQuery($sql, [
@@ -1256,16 +1257,24 @@ ORDER BY lastdate DESC;";
 
                         foreach ($res as $r) {
                             if (!pres($r['refmsgid'], $allreplies)) {
-                                $allreplies[$r['refmsgid']] = [ $r ];
+                                $allreplies[$r['refmsgid']] = [$r];
                             } else {
                                 $allreplies[$r['refmsgid']][] = $r;
                             }
+                        }
+
+                        $userids = array_filter(array_column($res, 'userid'));
+                        if (count($userids)) {
+                            $u = new User($this->dbhr, $this->dbhm);
+                            $ctx = NULL;
+                            $replyusers = $u->getPublicsById($userids, NULL, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, [MessageCollection::APPROVED], FALSE);
+                            $u->getInfos($replyusers);
                         }
                     }
                 }
 
                 # Can always see the replycount.  The count should include even people who are blocked.
-                $replies = presdef($rets[$msg['id']]['id'], $allreplies, []);
+                $replies = presdef($msg['id'], $allreplies, []);
                 $rets[$msg['id']]['replies'] = [];
                 $rets[$msg['id']]['replycount'] = count($replies);
 
@@ -1273,22 +1282,27 @@ ORDER BY lastdate DESC;";
                 # - we want everything
                 # - we're on ModTools and we're a mod for this message
                 # - it's our message
-                if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
+                if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $msg['fromuser'] == $myid)) {
                     # Add replies, as long as they're not awaiting review or rejected, or blocked.
+                    $ourreplies = [];
                     foreach ($replies as $reply) {
                         $ctx = NULL;
                         if ($reply['userid'] && $reply['status'] != ChatRoom::STATUS_BLOCKED) {
                             $thisone = [
                                 'id' => $reply['id'],
-                                'user' => $this->getUser($reply['userid'], $messagehistory, $userlist, TRUE),
+                                'user' => $replyusers[$reply['userid']],
                                 'chatid' => $reply['chatid']
                             ];
 
                             # Add the last reply date and a snippet.
                             if (!$lastreplies) {
                                 # Get the last replies for all the relevant chats.
-                                $chatids = array_filter(array_column($replies, 'chatid'));
-                                $sql = "SELECT m1.* FROM chat_messages m1 LEFT JOIN chat_messages m2 ON (m1.chatid = m2.chatid AND m1.id < m2.id) WHERE m2.id IS NULL AND m1.chatid IN (" . implode(',', $chatids) . ");";
+                                $chatids = [];
+                                foreach ($allreplies as $allreplyid => $allreply) {
+                                    $chatids = array_merge($chatids, array_filter(array_column($allreply, 'chatid')));
+                                }
+
+                                $sql = "SELECT DISTINCT m1.* FROM chat_messages m1 LEFT JOIN chat_messages m2 ON (m1.chatid = m2.chatid AND m1.id < m2.id) WHERE m2.id IS NULL AND m1.chatid IN (" . implode(',', $chatids) . ");";
                                 $lastreplies = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
                             }
 
@@ -1299,9 +1313,11 @@ ORDER BY lastdate DESC;";
                                 }
                             }
 
-                            $rets[$msg['id']]['replies'][] = $thisone;;
+                            $ourreplies[] = $thisone;;
                         }
                     }
+
+                    $rets[$msg['id']]['replies'] = $ourreplies;
 
                     # Whether or not we will auto-repost depends on whether there are replies.
                     $rets[$msg['id']]['willautorepost'] = count($rets[$msg['id']]['replies']) == 0;
@@ -1309,7 +1325,7 @@ ORDER BY lastdate DESC;";
                     $rets[$msg['id']]['promisecount'] = 0;
                 }
 
-                if ($this->type == Message::TYPE_OFFER) {
+                if ($msg['type'] == Message::TYPE_OFFER) {
                     # Add promises, i.e. one or more people we've said can have this.
                     if (!$allpromises) {
                         $msgids = array_filter(array_column($msgs, 'id'));
@@ -1328,12 +1344,12 @@ ORDER BY lastdate DESC;";
 
                     $promises = presdef($msg['id'], $allpromises, []);
 
-                    if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
+                    if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $msg['fromuser'] == $myid)) {
                         $rets[$msg['id']]['promises'] = $promises;
 
-                        foreach ($rets[$msg['id']]['replies'] as &$reply) {
+                        foreach ($rets[$msg['id']]['replies'] as $key => $reply) {
                             foreach ($rets[$msg['id']]['promises'] as $promise) {
-                                $reply['promised'] = presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
+                                $rets[$msg['id']]['replies'][$key]['promised'] = presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
                             }
                         }
                     }
@@ -1363,7 +1379,7 @@ ORDER BY lastdate DESC;";
 
                     if (count($msgids)) {
                         $sql = "SELECT * FROM messages_outcomes WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;";
-                        $outcomes = $this->dbhr->preQuery($sql, [ $this->id ], FALSE, FALSE);
+                        $outcomes = $this->dbhr->preQuery($sql, [ $msg['id'] ], FALSE, FALSE);
                     }
                 }
 
@@ -1630,7 +1646,7 @@ ORDER BY lastdate DESC;";
         $roles = $this->getRolesForMessages($me, $msgs);
         $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary);
         $this->getPublicGroups($me, $myid, $userlist, $rets, $msgs, $roles, $summary, $seeall);
-        $this->getPublicReplies($me, $myid, $userlist, $rets, $msgs, $summary, $roles, $seeall, FALSE);
+        $this->getPublicReplies($me, $myid, $rets, $msgs, $summary, $roles, $seeall, FALSE);
         $this->getPublicOutcomes($me, $myid, $rets, $msgs, $summary, $roles, $seeall);
         $this->getPublicAttachments($rets, $msgs, $summary);
 

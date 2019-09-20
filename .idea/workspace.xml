@@ -3,8 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/discourse_sso.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/discourse_sso.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -51,7 +51,7 @@
     <other-services-enabled>true</other-services-enabled>
     <auto-save>true</auto-save>
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="app4">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="Docker (project level)">
     <include_path>
       <path value="." />
       <path value="/usr/bin/php" />
@@ -107,20 +107,15 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.userTest.testJobs">
+  <component name="RunManager" selected="PHPUnit.ut">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatRoomsAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="locationsAPITest.testAreaAndPostcode" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatRoomsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="groupTest.testMerge" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="groupTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/groupTest.php" method="testMerge" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="locationsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/locationsTest.php" method="testAreaAndPostcode" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messageAPITest.testReject" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -128,9 +123,9 @@
       <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testReject" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messagesTest.testAttachment" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testAttachment" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="userTest.testJobs" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -138,20 +133,25 @@
       <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testJobs" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="ut" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <list>
-      <item itemvalue="PHPUnit.messagesTest.testAttachment" />
       <item itemvalue="PHPUnit.messageAPITest.testReject" />
-      <item itemvalue="PHPUnit.chatRoomsAPITest.testEH" />
-      <item itemvalue="PHPUnit.groupTest.testMerge" />
       <item itemvalue="PHPUnit.userTest.testJobs" />
+      <item itemvalue="PHPUnit.messagesTest.testEH" />
+      <item itemvalue="PHPUnit.ut" />
+      <item itemvalue="PHPUnit.locationsAPITest.testAreaAndPostcode" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.ut" />
+        <item itemvalue="PHPUnit.locationsAPITest.testAreaAndPostcode" />
+        <item itemvalue="PHPUnit.messagesTest.testEH" />
         <item itemvalue="PHPUnit.userTest.testJobs" />
         <item itemvalue="PHPUnit.messageAPITest.testReject" />
-        <item itemvalue="PHPUnit.groupTest.testMerge" />
-        <item itemvalue="PHPUnit.chatRoomsAPITest.testEH" />
-        <item itemvalue="PHPUnit.messagesTest.testAttachment" />
       </list>
     </recent_temporary>
   </component>
@@ -214,42 +214,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="59068000" />
-    </task>
-    <task id="LOCAL-00185" summary="Switch to UK backup for Brexit reasons">
-      <created>1567848886493</created>
-      <option name="number" value="00185" />
-      <option name="presentableId" value="LOCAL-00185" />
-      <option name="project" value="LOCAL" />
-      <updated>1567848886494</updated>
-    </task>
-    <task id="LOCAL-00186" summary="Speed-ups: get user info">
-      <created>1567848921066</created>
-      <option name="number" value="00186" />
-      <option name="presentableId" value="LOCAL-00186" />
-      <option name="project" value="LOCAL" />
-      <updated>1567848921067</updated>
-    </task>
-    <task id="LOCAL-00187" summary="Fixes to speed-ups">
-      <created>1567858990661</created>
-      <option name="number" value="00187" />
-      <option name="presentableId" value="LOCAL-00187" />
-      <option name="project" value="LOCAL" />
-      <updated>1567858990661</updated>
-    </task>
-    <task id="LOCAL-00188" summary="UT fixes">
-      <created>1568043253480</created>
-      <option name="number" value="00188" />
-      <option name="presentableId" value="LOCAL-00188" />
-      <option name="project" value="LOCAL" />
-      <updated>1568043253480</updated>
-    </task>
-    <task id="LOCAL-00189" summary="Speed-ups: get user profiles">
-      <created>1568048286212</created>
-      <option name="number" value="00189" />
-      <option name="presentableId" value="LOCAL-00189" />
-      <option name="project" value="LOCAL" />
-      <updated>1568048286212</updated>
+      <workItem from="1568359210231" duration="77349000" />
     </task>
     <task id="LOCAL-00190" summary="Speed-ups: message history">
       <created>1568050674996</created>
@@ -559,7 +524,42 @@
       <option name="project" value="LOCAL" />
       <updated>1568714042770</updated>
     </task>
-    <option name="localTasksCounter" value="234" />
+    <task id="LOCAL-00234" summary="Discourse SSO should only work for Freegle mods">
+      <created>1568719695399</created>
+      <option name="number" value="00234" />
+      <option name="presentableId" value="LOCAL-00234" />
+      <option name="project" value="LOCAL" />
+      <updated>1568719695399</updated>
+    </task>
+    <task id="LOCAL-00235" summary="Allow spaces in Discourse usernames">
+      <created>1568819610314</created>
+      <option name="number" value="00235" />
+      <option name="presentableId" value="LOCAL-00235" />
+      <option name="project" value="LOCAL" />
+      <updated>1568819610314</updated>
+    </task>
+    <task id="LOCAL-00236" summary="Holiday setting broken by recent changes">
+      <created>1568819622670</created>
+      <option name="number" value="00236" />
+      <option name="presentableId" value="LOCAL-00236" />
+      <option name="project" value="LOCAL" />
+      <updated>1568819622670</updated>
+    </task>
+    <task id="LOCAL-00237" summary="Approved by broken by recent changes">
+      <created>1568828748557</created>
+      <option name="number" value="00237" />
+      <option name="presentableId" value="LOCAL-00237" />
+      <option name="project" value="LOCAL" />
+      <updated>1568828748557</updated>
+    </task>
+    <task id="LOCAL-00238" summary="Open OFFER count broken recently">
+      <created>1568842353672</created>
+      <option name="number" value="00238" />
+      <option name="presentableId" value="LOCAL-00238" />
+      <option name="project" value="LOCAL" />
+      <updated>1568842353672</updated>
+    </task>
+    <option name="localTasksCounter" value="239" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,11 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: message history" />
-    <MESSAGE value="Speed-ups: user logs, comments" />
-    <MESSAGE value="Speed-ups: user memberships, suspect count" />
-    <MESSAGE value="Speed-ups: user applied, spammer, email history" />
-    <MESSAGE value="Edits showing wrongly" />
     <MESSAGE value="Comments, duplicate, message counts showing wrongly" />
     <MESSAGE value="Edits not showing" />
     <MESSAGE value="Speed-ups: replytime" />
@@ -628,6 +623,11 @@
     <MESSAGE value="UT fixes" />
     <MESSAGE value="ChitChat thread head broken by recent fixes, not that anyone will notice apart from me" />
     <MESSAGE value="Suppress &quot;Read receipt&quot; messages" />
-    <option name="LAST_COMMIT_MESSAGE" value="Suppress &quot;Read receipt&quot; messages" />
+    <MESSAGE value="Discourse SSO should only work for Freegle mods" />
+    <MESSAGE value="Allow spaces in Discourse usernames" />
+    <MESSAGE value="Holiday setting broken by recent changes" />
+    <MESSAGE value="Approved by broken by recent changes" />
+    <MESSAGE value="Open OFFER count broken recently" />
+    <option name="LAST_COMMIT_MESSAGE" value="Open OFFER count broken recently" />
   </component>
 </project>

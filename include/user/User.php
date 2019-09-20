@@ -1715,7 +1715,7 @@ class User extends Entity
         $ratings = $this->getRatings($uids);
 
         foreach ($ratings as $uid => $rating) {
-            $users[$uid]['ratings'] = $rating;
+            $users[$uid]['info']['ratings'] = $rating;
         }
     }
     
@@ -5865,8 +5865,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-
-        $ratings = $this->dbhr->preQuery("SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' GROUP BY rating, ratee;", NULL, FALSE, FALSE);
+        $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' GROUP BY rating, ratee;";
+        $ratings = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
 
         foreach ($uids as $uid) {
             $ret[$uid] = [
