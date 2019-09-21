@@ -34,7 +34,7 @@ while (($line = fgets($handle)) !== false) {
             $domain = $parts[8];
 
             if ($count > 100) {
-                $problem = $defers / $count > 0.2 || $delay > 30 * 60;
+                $problem = ($defers / $count > 0.2 && $delay > 60) || $delay > 30 * 60;
                 if ($problem) {
                     error_log("Problem domain: sent $count defers $defers delay $delay to $domain");
                 }
