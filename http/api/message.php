@@ -251,7 +251,7 @@ function message() {
                     $textbody = presdef('textbody', $_REQUEST, NULL);
                     $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
                     $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
-                    $attachments = presdef('attachments', $_REQUEST, NULL);
+                    $attachments = array_key_exists('attachments', $_REQUEST) ? $_REQUEST['attachments'] : NULL;
 
                     $ret = [
                         'ret' => 0,

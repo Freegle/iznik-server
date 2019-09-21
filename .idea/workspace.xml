@@ -3,8 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/message.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/message.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -214,21 +213,7 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="77349000" />
-    </task>
-    <task id="LOCAL-00190" summary="Speed-ups: message history">
-      <created>1568050674996</created>
-      <option name="number" value="00190" />
-      <option name="presentableId" value="LOCAL-00190" />
-      <option name="project" value="LOCAL" />
-      <updated>1568050674996</updated>
-    </task>
-    <task id="LOCAL-00191" summary="Speed-ups: user logs, comments">
-      <created>1568052761783</created>
-      <option name="number" value="00191" />
-      <option name="presentableId" value="LOCAL-00191" />
-      <option name="project" value="LOCAL" />
-      <updated>1568052761783</updated>
+      <workItem from="1568359210231" duration="83927000" />
     </task>
     <task id="LOCAL-00192" summary="Speed-ups: user memberships, suspect count">
       <created>1568106965064</created>
@@ -559,7 +544,21 @@
       <option name="project" value="LOCAL" />
       <updated>1568842353672</updated>
     </task>
-    <option name="localTasksCounter" value="239" />
+    <task id="LOCAL-00239" summary="Replies missing from My Posts">
+      <created>1568967581027</created>
+      <option name="number" value="00239" />
+      <option name="presentableId" value="LOCAL-00239" />
+      <option name="project" value="LOCAL" />
+      <updated>1568967581027</updated>
+    </task>
+    <task id="LOCAL-00240" summary="Make domain delay warning less trigger-happy.">
+      <created>1569052538189</created>
+      <option name="number" value="00240" />
+      <option name="presentableId" value="LOCAL-00240" />
+      <option name="project" value="LOCAL" />
+      <updated>1569052538190</updated>
+    </task>
+    <option name="localTasksCounter" value="241" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,8 +602,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Comments, duplicate, message counts showing wrongly" />
-    <MESSAGE value="Edits not showing" />
     <MESSAGE value="Speed-ups: replytime" />
     <MESSAGE value="Speed-ups: finish restructuring getting of user info" />
     <MESSAGE value="Speed-ups: chitchat fetching of users" />
@@ -628,6 +625,8 @@
     <MESSAGE value="Holiday setting broken by recent changes" />
     <MESSAGE value="Approved by broken by recent changes" />
     <MESSAGE value="Open OFFER count broken recently" />
-    <option name="LAST_COMMIT_MESSAGE" value="Open OFFER count broken recently" />
+    <MESSAGE value="Replies missing from My Posts" />
+    <MESSAGE value="Make domain delay warning less trigger-happy." />
+    <option name="LAST_COMMIT_MESSAGE" value="Make domain delay warning less trigger-happy." />
   </component>
 </project>
