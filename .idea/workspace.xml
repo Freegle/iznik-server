@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/scripts/cli/autorepost_stats.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/welcome/welcome.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/welcome/welcome.mjml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/welcome/welcome.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/welcome/welcome.html" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -214,14 +213,8 @@
       <workItem from="1566855130858" duration="178000" />
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
-      <workItem from="1568359210231" duration="85913000" />
-    </task>
-    <task id="LOCAL-00193" summary="Speed-ups: user memberships, suspect count">
-      <created>1568108081536</created>
-      <option name="number" value="00193" />
-      <option name="presentableId" value="LOCAL-00193" />
-      <option name="project" value="LOCAL" />
-      <updated>1568108081536</updated>
+      <workItem from="1568359210231" duration="88338000" />
+      <workItem from="1569342615237" duration="2178000" />
     </task>
     <task id="LOCAL-00194" summary="Speed-ups: user applied, spammer, email history">
       <created>1568111442703</created>
@@ -559,7 +552,14 @@
       <option name="project" value="LOCAL" />
       <updated>1569082418574</updated>
     </task>
-    <option name="localTasksCounter" value="242" />
+    <task id="LOCAL-00242" summary="Remove reference to Yahoo TOS from welcome email">
+      <created>1569228099488</created>
+      <option name="number" value="00242" />
+      <option name="presentableId" value="LOCAL-00242" />
+      <option name="project" value="LOCAL" />
+      <updated>1569228099488</updated>
+    </task>
+    <option name="localTasksCounter" value="243" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -586,7 +586,7 @@
                   <entry key="text">
                     <value>
                       <list>
-                        <option value="" />
+                        <option value="volunteer" />
                       </list>
                     </value>
                   </entry>
@@ -603,7 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: finish restructuring getting of user info" />
     <MESSAGE value="Speed-ups: chitchat fetching of users" />
     <MESSAGE value="Speed-ups: chitchat" />
     <MESSAGE value="Message history not showing" />
@@ -628,6 +627,7 @@
     <MESSAGE value="Replies missing from My Posts" />
     <MESSAGE value="Make domain delay warning less trigger-happy." />
     <MESSAGE value="Can't edit away last attachment" />
-    <option name="LAST_COMMIT_MESSAGE" value="Can't edit away last attachment" />
+    <MESSAGE value="Remove reference to Yahoo TOS from welcome email" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove reference to Yahoo TOS from welcome email" />
   </component>
 </project>
