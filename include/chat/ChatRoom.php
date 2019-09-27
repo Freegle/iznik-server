@@ -552,8 +552,7 @@ WHERE chat_rooms.id IN $idlist;";
             }
         }
 
-        # Icon for chat.  We assume that any user icons will have been created by this point.  We dip down into
-        # the icon name format here rather than instatiate the User/Group objects for performance.
+        # Icon for chat.  We assume that any user icons will have been created by this point.
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
                 if ($u1id == $myid) {
@@ -564,16 +563,16 @@ WHERE chat_rooms.id IN $idlist;";
                 break;
             case ChatRoom::TYPE_USER2MOD:
                 if ($u1id == $myid) {
-                    $ret['icon'] =  "https://" . IMAGE_DOMAIN . "/gimg_$gid.jpg";
+                    $ret['icon'] =  "https://" . IMAGE_DOMAIN . "/gimg_{$this->chatroom['gimageid']}.jpg";
                 } else{
                     $ret['icon'] = $this->chatroom['u1imageurl'] ? $this->chatroom['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $u1id . ".jpg");
                 }
                 break;
             case ChatRoom::TYPE_MOD2MOD:
-                $ret['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_$gid.jpg";
+                $ret['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_{$this->chatroom['gimageid']}.jpg";
                 break;
             case ChatRoom::TYPE_GROUP:
-                $ret['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_$gid.jpg";
+                $ret['icon'] = "https://" . IMAGE_DOMAIN . "/gimg_{$this->chatroom['gimageid']}.jpg";
                 break;
         }
 
