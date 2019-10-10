@@ -19,6 +19,10 @@ try {
             $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
 
             $memberships = $u->getMemberships(TRUE, Group::GROUP_FREEGLE);
+            if (count($memberships) === 0) {
+              # Not a Freegle mod.
+              continue;
+            }
             $grouplist = [];
 
             foreach ($memberships as $membership) {
@@ -27,7 +31,7 @@ try {
 
             if (count($memberships)) {
                 # Save the info we need for login.
-                $session['name'] = str_replace($u->getName(), ' ', '');
+                $session['name'] = $u->getName(); // str_replace(' ', '', $u->getName());
                 $session['avatar_url'] = $atts['profile']['url'];
                 $session['admin'] = $u->isAdmin();
                 $session['email'] = $u->getEmailPreferred();
