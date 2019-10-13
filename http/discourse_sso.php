@@ -1,5 +1,7 @@
 <?php
 
+// Keep in sync with scripts/cron/discourse_cache_session.php
+
 define( 'BASE_DIR', dirname(__FILE__) . '/..' );
 require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
@@ -59,7 +61,7 @@ if (($sso->validatePayload($payload,$signature))) {
                     $session['avatar_url'] = $atts['profile']['url'];
                     $session['admin'] = $u->isAdmin();
                     $session['email'] = $u->getEmailPreferred();
-                    $session['grouplist'] = implode(',', $grouplist);
+                    $session['grouplist'] = substr(implode(',', $grouplist),1000);  // Actual max is 3000 but 1000 is enough
                 }
             }
         } catch (Exception $e) {
