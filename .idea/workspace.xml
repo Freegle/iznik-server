@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/scripts/cli/autorepost_stats.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/backup" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/backup" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -214,21 +214,7 @@
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
       <workItem from="1568359210231" duration="88338000" />
-      <workItem from="1569342615237" duration="2178000" />
-    </task>
-    <task id="LOCAL-00194" summary="Speed-ups: user applied, spammer, email history">
-      <created>1568111442703</created>
-      <option name="number" value="00194" />
-      <option name="presentableId" value="LOCAL-00194" />
-      <option name="project" value="LOCAL" />
-      <updated>1568111442703</updated>
-    </task>
-    <task id="LOCAL-00195" summary="UT fixes">
-      <created>1568112812641</created>
-      <option name="number" value="00195" />
-      <option name="presentableId" value="LOCAL-00195" />
-      <option name="project" value="LOCAL" />
-      <updated>1568112812641</updated>
+      <workItem from="1569342615237" duration="6670000" />
     </task>
     <task id="LOCAL-00196" summary="UT fixes">
       <created>1568116645302</created>
@@ -559,7 +545,21 @@
       <option name="project" value="LOCAL" />
       <updated>1569228099488</updated>
     </task>
-    <option name="localTasksCounter" value="243" />
+    <task id="LOCAL-00243" summary="Repost stats">
+      <created>1569398135956</created>
+      <option name="number" value="00243" />
+      <option name="presentableId" value="LOCAL-00243" />
+      <option name="project" value="LOCAL" />
+      <updated>1569398135956</updated>
+    </task>
+    <task id="LOCAL-00244" summary="Icon for chat with mods is wrong">
+      <created>1569584125265</created>
+      <option name="number" value="00244" />
+      <option name="presentableId" value="LOCAL-00244" />
+      <option name="project" value="LOCAL" />
+      <updated>1569584125266</updated>
+    </task>
+    <option name="localTasksCounter" value="245" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,8 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: chitchat fetching of users" />
-    <MESSAGE value="Speed-ups: chitchat" />
     <MESSAGE value="Message history not showing" />
     <MESSAGE value="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down." />
     <MESSAGE value="More Discourse login" />
@@ -628,6 +626,8 @@
     <MESSAGE value="Make domain delay warning less trigger-happy." />
     <MESSAGE value="Can't edit away last attachment" />
     <MESSAGE value="Remove reference to Yahoo TOS from welcome email" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove reference to Yahoo TOS from welcome email" />
+    <MESSAGE value="Repost stats" />
+    <MESSAGE value="Icon for chat with mods is wrong" />
+    <option name="LAST_COMMIT_MESSAGE" value="Icon for chat with mods is wrong" />
   </component>
 </project>
