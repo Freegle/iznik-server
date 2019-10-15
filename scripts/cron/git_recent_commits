@@ -12,7 +12,7 @@ printf "This is an automated list of the changes to the client code in the last 
 grep "^*" /tmp/git.log >> /tmp/git.mail
 printf "\n...and here are the ones which are minor, or only affect volunteers in ModTools, or are internal changes that you wouldn't notice:\n\n"  >> /tmp/git.mail
 grep -v "^*" /tmp/git.log >> /tmp/git.mail
-cat /tmp/git.mail | mail -s "Client code changes in the last 7 days" "Freegle-Tech@yahoogroups.com" -aFrom:geeks@ilovefreegle.org
+cat /tmp/git.mail | mail -s "Client code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
 rm /tmp/git.mail
 cd /tmp
 
@@ -26,7 +26,7 @@ printf "This is an automated list of the changes to the server code in the last 
 grep "^*" /tmp/git.log >> /tmp/git.mail
 printf "\n...and here are the ones which are minor, or only affect volunteers in ModTools, or are internal changes that you wouldn't notice:\n\n"  >> /tmp/git.mail
 grep -v "^*" /tmp/git.log >> /tmp/git.mail
-cat /tmp/git.mail | mail -s "Server code changes in the last 7 days" "Freegle-Tech@yahoogroups.com" -aFrom:geeks@ilovefreegle.org
+cat /tmp/git.mail | mail -s "Server code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
 rm /tmp/git.mail
 cd /tmp
 
@@ -40,7 +40,7 @@ printf "This is an automated list of the changes to the new client code in the l
 grep "^*" /tmp/git.log >> /tmp/git.mail
 printf "\n...and here are the ones which are minor, or only affect volunteers in ModTools, or are internal changes that you wouldn't notice:\n\n"  >> /tmp/git.mail
 grep -v "^*" /tmp/git.log >> /tmp/git.mail
-cat /tmp/git.mail | mail -s "New version of client (not live yet) code changes in the last 7 days" "Freegle-Tech@yahoogroups.com" -aFrom:geeks@ilovefreegle.org
+cat /tmp/git.mail | mail -s "New version of client (not live yet) code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
 rm /tmp/git.mail
 cd /tmp
 

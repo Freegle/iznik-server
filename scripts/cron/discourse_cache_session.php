@@ -1,5 +1,7 @@
 <?php
 
+// Keep in sync with http/discourse_sso.php
+
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
@@ -19,6 +21,10 @@ try {
             $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
 
             $memberships = $u->getMemberships(TRUE, Group::GROUP_FREEGLE);
+            if (count($memberships) === 0) {
+              # Not a Freegle mod.
+              continue;
+            }
             $grouplist = [];
 
             foreach ($memberships as $membership) {
@@ -27,11 +33,11 @@ try {
 
             if (count($memberships)) {
                 # Save the info we need for login.
-                $session['name'] = str_replace($u->getName(), ' ', '');
+                $session['name'] = $u->getName(); // str_replace(' ', '', $u->getName());
                 $session['avatar_url'] = $atts['profile']['url'];
                 $session['admin'] = $u->isAdmin();
                 $session['email'] = $u->getEmailPreferred();
-                $session['grouplist'] = implode(',', $grouplist);
+                $session['grouplist'] = substr(implode(',', $grouplist),1000);  // Actual max is 3000 but 1000 is enough
 
                 $tosave[] = $session;
             }
