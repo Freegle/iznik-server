@@ -48,7 +48,7 @@ fi
 rm -r /tmp/etcback
 mkdir /tmp/etcback
 cd /tmp/etcback
-for host in app1 app4 bulk1 bulk2 db1 db2 db3
+for host in app1 app4 bulk2 bulk3 bulk4 db1 db2 db3
 do
     ssh $host "(cd /etc; tar -cvzf - ./)" > $host.etc.tgz
     ssh $host "(cd /var/spool/cron; tar -cvzf - ./)" > $host.crontab.tgz
