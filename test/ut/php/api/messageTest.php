@@ -1200,7 +1200,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Test edit', $ret['message']['htmlbody']);
         self::assertEquals(0, $ret['message']['FOP']);
 
-        }
+    }
 
     public function testEditAsMember()
     {
@@ -1829,11 +1829,9 @@ class messageAPITest extends IznikAPITestCase
             $rc = $u->submitYahooQueued($gid);
             assertEquals(1, $rc);
         }
+    }
 
-        }
-
-    public function testSubmitNative()
-    {
+    public function testSubmitNative() {
         $email = 'test-' . rand() . '@blackhole.io';
 
         # This is similar to the actions on the client
@@ -1907,7 +1905,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
 
-        }
+    }
 
     public function testSubmitNativeApprove()
     {
@@ -2751,6 +2749,64 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($replyid, $ret['message']['id']);
+    }
 
+    public function testNativeSpam() {
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        # This is similar to the actions on the client
+        # - find a location close to a lat/lng
+        # - create a draft with a location
+        # - find the closest group to that location
+        # - submit it
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+
+        $this->group->setPrivate('onyahoo', 0);
+
+        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        # Find a location
+        $g = Group::get($this->dbhr, $this->dbhm);
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->groupid,
+            'textbody' => 'Text body with viagra'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        $this->log("Created draft $id");
+
+        # This will get sent as for native groups we can do so immediate.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email,
+            'ignoregroupoverride' => true
+        ]);
+
+        $this->log("Message #$id should be spam " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals('Success', $ret['status']);
+
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::SPAM);
+        $ctx = NULL;
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        $this->log("Got pending messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        self::assertEquals($id, $msgs[0]['id']);
     }
 }

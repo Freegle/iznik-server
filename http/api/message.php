@@ -479,6 +479,15 @@ function message() {
                                             $postcoll = $g->getSetting('moderated', 0) ? MessageCollection::PENDING : $u->postToCollection($groupid);
                                         }
 
+                                        # Check if it's spam
+                                        $s = new Spam($dbhr, $dbhm);
+                                        list ($rc, $reason) = $s->checkMessage($m);
+
+                                        if ($rc) {
+                                            # It is.  Put in the spam collection.
+                                            $postcoll = MessageCollection::SPAM;
+                                        }
+
                                         # We want the message to come from one of our emails rather than theirs, so
                                         # that replies come back to us and privacy is maintained.
                                         $fromemail = $u->inventEmail();
