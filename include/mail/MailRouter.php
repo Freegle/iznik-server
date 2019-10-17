@@ -193,6 +193,9 @@ class MailRouter
         if ($this->spam->isSpammer($from)) {
             # Mail from spammer. Drop it.
             $ret = MailRouter::DROPPED;
+        } else if (strpos($this->msg->getEnvelopefrom(), '@comms.yahoo.net') !== FALSE) {
+            # Announcement - drop it
+            $ret = MailRouter::DROPPED;
         } else if ($this->msg->getSource() == Message::YAHOO_SYSTEM) {
             $ret = MailRouter::DROPPED;
 
@@ -679,7 +682,7 @@ class MailRouter
 
                                     # Don't want to pass on OOF etc.
                                     if (!$this->msg->isAutoreply()) {
-                                        # Create/get a change between the sender and the group mods.
+                                        # Create/get a chat between the sender and the group mods.
                                         $r = new ChatRoom($this->dbhr, $this->dbhm);
                                         $chatid = $r->createUser2Mod($uid, $gid);
                                         if ($this->log) {

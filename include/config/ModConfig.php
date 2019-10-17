@@ -441,7 +441,6 @@ class ModConfig extends Entity
             User::ROLE_MODERATOR
         ]);
 
-        error_log("Found using " . count($usings));
         return($usings);
     }
 }
