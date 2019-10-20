@@ -31,7 +31,7 @@ if (count($opts) < 2) {
             $membs2 = $dbhr->preQuery("SELECT * FROM memberships WHERE groupid = ? AND userid = ?;", [$dstid, $memb['userid']]);
             $already = count($membs2) > 0;
             if (!$already) {
-                $dbhm->preQuery("UPDATE memberships SET groupid = ? WHERE groupid = ? AND userid = ?;", [$dstid, $srcid, $memb['userid']]);
+                $dbhm->preExec("UPDATE memberships SET groupid = ? WHERE groupid = ? AND userid = ?;", [$dstid, $srcid, $memb['userid']]);
 
                 if ($dstg->getPrivate('onyahoo')) {
                     $u = new User($dbhr, $dbhm, $memb['userid']);
@@ -64,8 +64,8 @@ if (count($opts) < 2) {
             error_log("Gen stats for $date");
             $s = new Stats($dbhr, $dbhm, $dstid);
             $s->generate($date);
-            $i--;
-        } while ($date >= '2015-08-25');
+            $i++;
+        } while (strtotime($date) >= strtotime('2015-08-25'));
     } else {
         error_log("Groups not found");
     }
