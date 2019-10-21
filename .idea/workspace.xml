@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install/iznik.conf.php" beforeDir="false" afterPath="$PROJECT_DIR$/install/iznik.conf.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/group/CommunityEvent.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/group/CommunityEvent.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -218,14 +215,7 @@
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
       <workItem from="1568359210231" duration="88338000" />
-      <workItem from="1569342615237" duration="38312000" />
-    </task>
-    <task id="LOCAL-00202" summary="UT fixes">
-      <created>1568283549792</created>
-      <option name="number" value="00202" />
-      <option name="presentableId" value="LOCAL-00202" />
-      <option name="project" value="LOCAL" />
-      <updated>1568283549792</updated>
+      <workItem from="1569342615237" duration="43232000" />
     </task>
     <task id="LOCAL-00203" summary="Speed-ups: replytime">
       <created>1568284279805</created>
@@ -563,7 +553,14 @@
       <option name="project" value="LOCAL" />
       <updated>1571570039407</updated>
     </task>
-    <option name="localTasksCounter" value="251" />
+    <task id="LOCAL-00251" summary="Return Discourse info for MT">
+      <created>1571642362685</created>
+      <option name="number" value="00251" />
+      <option name="presentableId" value="LOCAL-00251" />
+      <option name="project" value="LOCAL" />
+      <updated>1571642362685</updated>
+    </task>
+    <option name="localTasksCounter" value="252" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -607,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Photos missing after recent performance fixes" />
     <MESSAGE value="Modmail count doesn't match modmail logs." />
     <MESSAGE value="Not hiding profile images fully when requested to do so" />
     <MESSAGE value="Fix Discourse signin loop" />
@@ -632,6 +628,7 @@
     <MESSAGE value="Drop announcement messages from Yahoo" />
     <MESSAGE value="Fixes to group merge" />
     <MESSAGE value="Bumping when last active on users migrated from Yahoo" />
-    <option name="LAST_COMMIT_MESSAGE" value="Bumping when last active on users migrated from Yahoo" />
+    <MESSAGE value="Return Discourse info for MT" />
+    <option name="LAST_COMMIT_MESSAGE" value="Return Discourse info for MT" />
   </component>
 </project>

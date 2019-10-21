@@ -184,6 +184,7 @@ class CommunityEvent extends Entity
 
         # Ensure leading 0 not stripped.
         $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
+        $atts['url'] = 'https://' . USER_SITE . '/communityevent/' . $atts['id'];
 
         return($atts);
     }
