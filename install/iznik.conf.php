@@ -62,6 +62,8 @@ define('PAYPAL_THANKS_FROM', 'treasurer@ilovefreegle.org');
 
 # Discourse SSO
 define('DISCOURSE_SECRET', 'zzz');
+define('DISCOURSE_APIKEY', 'zzz');
+define('DISCOURSE_API', 'zzz');
 
 # We verify email addresses.
 define('BRITEVERIFY_PRIVATE_KEY', 'zzzz');

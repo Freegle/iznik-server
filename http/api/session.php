@@ -213,6 +213,64 @@ function session() {
                                 }
                             }
                         }
+
+                        # Get Discourse notifications and unread topics, to drive mods through to that site.
+                        if ($me->isFreegleMod()) {
+                            # We need this quick or not at all.
+                            $ctx = stream_context_create(array('http'=>
+                                array(
+                                    'timeout' => 1,
+                                )
+                            ));
+
+                            $unreadcount = 0;
+                            $notifcount = 0;
+                            $newcount = 0;
+
+                            # Have to look up the name we need for other API calls by user id.
+                            $username = @file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json?api_username=system&api_key=' . DISCOURSE_APIKEY, FALSE, $ctx);
+
+                            if ($username) {
+                                $users = json_decode($username, TRUE);
+
+                                if (pres('users', $users) && count($users['users'])) {
+                                    $name = $users['users'][0]['username'];
+                                    $news = @file_get_contents(DISCOURSE_API . '/new.json?api_key=' . DISCOURSE_APIKEY . '&api_username=' . $name, FALSE, $ctx);
+                                    $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json?api_key=' . DISCOURSE_APIKEY . '&api_username=' . $name, FALSE, $ctx);
+                                    $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json?api_key=' . DISCOURSE_APIKEY . '&api_username=' . $name, FALSE, $ctx);
+
+                                    if ($news && $unreads && $notifs) {
+                                        $topics = json_decode($news, TRUE);
+
+                                        if (pres('topic_list', $topics)) {
+                                            $newcount = count($topics['topic_list']['topics']);
+                                        }
+
+                                        $topics = json_decode($unreads, TRUE);
+
+                                        if (pres('topic_list', $topics)) {
+                                            $unreadcount = count($topics['topic_list']['topics']);
+                                        }
+
+                                        $notifs = json_decode($notifs, TRUE);
+                                        if (pres('unread_notifications', $notifs)) {
+                                            $notifcount = intval($notifs['unread_notifications']);
+                                        }
+
+                                        $_SESSION['discourse'] = [
+                                            'notifications' => $notifcount,
+                                            'unreadtopics' => $unreadcount,
+                                            'newtopics' => $newcount
+                                        ];
+                                    }
+                                    #error_log("$name notifs $notifcount new topics $newcount unread topics $unreadcount");
+                                }
+                            }
+                        }
+
+                        # Using the value from session means we fall back to an old value if we can't get it, e.g.
+                        # for rate-limiting.
+                        $ret['discourse'] = presdef('discourse', $_SESSION, NULL);
                     }
                 }
             } else {
