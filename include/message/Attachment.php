@@ -245,7 +245,7 @@ class Attachment
     }
 
     public function setData($data) {
-        $this->dbhm->preExec("UPDATE messages_attachments SET archived = 0, data = ? WHERE id = ?;", [
+        $this->dbhm->preExec("UPDATE {$this->table} SET archived = 0, data = ? WHERE id = ?;", [
             $data,
             $this->id
         ]);

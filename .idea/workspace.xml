@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/group/CommunityEvent.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/group/CommunityEvent.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -215,14 +214,8 @@
       <workItem from="1567604881040" duration="40394000" />
       <workItem from="1567922924379" duration="2535000" />
       <workItem from="1568359210231" duration="88338000" />
-      <workItem from="1569342615237" duration="43232000" />
-    </task>
-    <task id="LOCAL-00203" summary="Speed-ups: replytime">
-      <created>1568284279805</created>
-      <option name="number" value="00203" />
-      <option name="presentableId" value="LOCAL-00203" />
-      <option name="project" value="LOCAL" />
-      <updated>1568284279806</updated>
+      <workItem from="1569342615237" duration="44057000" />
+      <workItem from="1571733775126" duration="1535000" />
     </task>
     <task id="LOCAL-00204" summary="Speed-ups: finish restructuring getting of user info">
       <created>1568285671265</created>
@@ -560,7 +553,14 @@
       <option name="project" value="LOCAL" />
       <updated>1571642362685</updated>
     </task>
-    <option name="localTasksCounter" value="252" />
+    <task id="LOCAL-00252" summary="Return URL for community events">
+      <created>1571681175257</created>
+      <option name="number" value="00252" />
+      <option name="presentableId" value="LOCAL-00252" />
+      <option name="project" value="LOCAL" />
+      <updated>1571681175258</updated>
+    </task>
+    <option name="localTasksCounter" value="253" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Modmail count doesn't match modmail logs." />
     <MESSAGE value="Not hiding profile images fully when requested to do so" />
     <MESSAGE value="Fix Discourse signin loop" />
     <MESSAGE value="Change job ads to search by nearest city" />
@@ -629,6 +628,7 @@
     <MESSAGE value="Fixes to group merge" />
     <MESSAGE value="Bumping when last active on users migrated from Yahoo" />
     <MESSAGE value="Return Discourse info for MT" />
-    <option name="LAST_COMMIT_MESSAGE" value="Return Discourse info for MT" />
+    <MESSAGE value="Return URL for community events" />
+    <option name="LAST_COMMIT_MESSAGE" value="Return URL for community events" />
   </component>
 </project>
