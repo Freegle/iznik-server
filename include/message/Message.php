@@ -1989,8 +1989,6 @@ ORDER BY lastdate DESC;";
             }
         }
 
-        $this->removeAttachDir();
-
         # Get IP
         $ip = $this->getHeader('x-freegle-ip');
         $ip = $ip ? $ip : $this->getHeader('x-trash-nothing-user-ip');
@@ -2381,9 +2379,6 @@ ORDER BY lastdate DESC;";
             $this->fromuser = $userid;
         }
 
-        # Attachments now safely stored in the DB
-        $this->removeAttachDir();
-        
         return(TRUE);
     }
 
@@ -2634,6 +2629,9 @@ ORDER BY lastdate DESC;";
                 $this->addToMessageHistory();
             }
         }
+
+        # Attachments now safely stored in the DB
+        $this->removeAttachDir();
 
         return([ $this->id, $already ]);
     }
