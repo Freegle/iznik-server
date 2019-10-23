@@ -39,7 +39,7 @@ try {
                 $session['avatar_url'] = $atts['profile']['url'];
                 $session['admin'] = $u->isAdmin();
                 $session['email'] = $u->getEmailPreferred();
-                $session['grouplist'] = substr(implode(',', $grouplist),1000);  // Actual max is 3000 but 1000 is enough
+                $session['grouplist'] = substr(implode(',', $grouplist),0,1000);  // Actual max is 3000 but 1000 is enough
 
                 $tosave[] = $session;
             }
