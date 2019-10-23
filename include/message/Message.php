@@ -1937,11 +1937,18 @@ ORDER BY lastdate DESC;";
     }
 
     private function removeAttachDir() {
-        if (count($this->attachments) == 0) {
-            # No attachments - tidy up temp dir.
-            rrmdir($this->attach_dir);
-            $this->attach_dir = NULL;
+        # Be careful what we delete.
+        if ($this->attach_dir && strpos($this->attach_dir, sys_get_temp_dir()) !== FALSE) {
+            foreach ($this->attachments as $att) {
+                /** @var \PhpMimeMailParser\Attachment $att */
+                $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
+                @unlink($fn);
+            }
+
+            rmdir($this->attach_dir);
         }
+
+        $this->attach_dir = NULL;
     }
     
     # Parse a raw SMTP message.
