@@ -4548,9 +4548,15 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function getLatLng($usedef = TRUE, $usegroup = TRUE)
     {
-        $locs = $this->getLatLngs([ $this->user ], $usedef, $usegroup, FALSE, [ $this->user ]);
-        $loc = $locs[$this->id];
-        return([ $loc['lat'], $loc['lng'], presdef('loc', $loc, NULL) ]);
+        $ret = [ 0, 0, NULL ];
+
+        if ($this->id) {
+            $locs = $this->getLatLngs([ $this->user ], $usedef, $usegroup, FALSE, [ $this->user ]);
+            $loc = $locs[$this->id];
+            $ret = [ $loc['lat'], $loc['lng'], presdef('loc', $loc, NULL) ];
+        }
+
+        return $ret;
     }
 
     public function getPublicLocations(&$users, $atts = NULL)

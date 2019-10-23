@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -216,14 +216,7 @@
       <workItem from="1567922924379" duration="2535000" />
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
-      <workItem from="1571733775126" duration="7398000" />
-    </task>
-    <task id="LOCAL-00206" summary="UT fixes">
-      <created>1568292518913</created>
-      <option name="number" value="00206" />
-      <option name="presentableId" value="LOCAL-00206" />
-      <option name="project" value="LOCAL" />
-      <updated>1568292518913</updated>
+      <workItem from="1571733775126" duration="10559000" />
     </task>
     <task id="LOCAL-00207" summary="Speed-ups: chitchat fetching of users">
       <created>1568297745552</created>
@@ -561,7 +554,14 @@
       <option name="project" value="LOCAL" />
       <updated>1571808623943</updated>
     </task>
-    <option name="localTasksCounter" value="255" />
+    <task id="LOCAL-00255" summary="UT fixes">
+      <created>1571813876873</created>
+      <option name="number" value="00255" />
+      <option name="presentableId" value="LOCAL-00255" />
+      <option name="project" value="LOCAL" />
+      <updated>1571813876873</updated>
+    </task>
+    <option name="localTasksCounter" value="256" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -606,7 +606,6 @@
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
     <MESSAGE value="Change job ads to search by nearest city" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="ChitChat thread head broken by recent fixes, not that anyone will notice apart from me" />
     <MESSAGE value="Suppress &quot;Read receipt&quot; messages" />
     <MESSAGE value="Discourse SSO should only work for Freegle mods" />
@@ -630,6 +629,7 @@
     <MESSAGE value="Return URL for community events" />
     <MESSAGE value="Can't rotate images unless they are message ones." />
     <MESSAGE value="Remove temp files after message parsing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove temp files after message parsing" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>
