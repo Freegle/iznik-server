@@ -205,6 +205,7 @@ class Volunteering extends Entity
 
         # Ensure leading 0 not stripped.
         $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
+        $atts['url'] = 'https://' . USER_SITE . '/volunteering/' . $atts['id'];
 
         return($atts);
     }

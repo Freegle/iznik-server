@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -216,14 +215,7 @@
       <workItem from="1567922924379" duration="2535000" />
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
-      <workItem from="1571733775126" duration="10559000" />
-    </task>
-    <task id="LOCAL-00207" summary="Speed-ups: chitchat fetching of users">
-      <created>1568297745552</created>
-      <option name="number" value="00207" />
-      <option name="presentableId" value="LOCAL-00207" />
-      <option name="project" value="LOCAL" />
-      <updated>1568297745552</updated>
+      <workItem from="1571733775126" duration="11071000" />
     </task>
     <task id="LOCAL-00208" summary="UT fixes">
       <created>1568299036426</created>
@@ -561,7 +553,14 @@
       <option name="project" value="LOCAL" />
       <updated>1571813876873</updated>
     </task>
-    <option name="localTasksCounter" value="256" />
+    <task id="LOCAL-00256" summary="Fix warning">
+      <created>1571822776222</created>
+      <option name="number" value="00256" />
+      <option name="presentableId" value="LOCAL-00256" />
+      <option name="project" value="LOCAL" />
+      <updated>1571822776222</updated>
+    </task>
+    <option name="localTasksCounter" value="257" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -583,17 +582,6 @@
         <entry key="MAIN">
           <value>
             <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="text">
-                    <value>
-                      <list>
-                        <option value="volunteer" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
               <option name="COLUMN_ORDER" />
             </State>
           </value>
@@ -605,7 +593,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Change job ads to search by nearest city" />
     <MESSAGE value="ChitChat thread head broken by recent fixes, not that anyone will notice apart from me" />
     <MESSAGE value="Suppress &quot;Read receipt&quot; messages" />
     <MESSAGE value="Discourse SSO should only work for Freegle mods" />
@@ -630,6 +617,7 @@
     <MESSAGE value="Can't rotate images unless they are message ones." />
     <MESSAGE value="Remove temp files after message parsing" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Fix warning" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix warning" />
   </component>
 </project>
