@@ -12,10 +12,12 @@ echo "checkusers\r\n";
 global $dbhr, $dbhm;
 
 // https://docs.discourse.org/
-$api_key = 'cc7c91cc03943b7b302dcf06536fd248e3b44bbbce929bcccb60a968defc57e3';
+// DISCOURSE_SECRET
+// DISCOURSE_APIKEY
+// DISCOURSE_API
 $api_username = 'system';
-$sso_secret = 'gottabebetterthanyahoo';
 
+define('GEEKSALERTS_ADDR','geek-alerts@ilovefreegle.org');
 
 //////////////////////////////////////////////////////////////////////////
 // GET ALL USERS
@@ -24,8 +26,8 @@ $sso_secret = 'gottabebetterthanyahoo';
 //  https://discourse.ilovefreegle.org/groups/trust_level_0/members.json?limit=50&offset=50
 
 function GetAllUsers(){
-  global $api_key,$api_username,$sso_secret;
-  $q = "?api_key=$api_key&api_username=$api_username";
+  global $api_username;
+  $q = '?api_key='.DISCOURSE_APIKEY."&api_username=$api_username";
   $q .= "&limit=1000&offset=0";
   $url = 'https://discourse.ilovefreegle.org/groups/trust_level_0/members.json'.$q;
 
@@ -38,7 +40,7 @@ function GetAllUsers(){
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
-    throw new Exception('curl_errno: GetAllUsers ');
+    throw new Exception('curl_errno: GetAllUsers');
   }
   curl_close( $ch );
 
@@ -48,7 +50,7 @@ function GetAllUsers(){
   //echo print_r($allusers)."\r\n\r\n";
   if (property_exists($allusers, 'errors')){
     echo print_r($allusers)."\r\n\r\n";
-    return null;
+    throw new Exception('GetAllUsers error '.$allusers->errors[0]);
   }
   return $allusers->members;
 }
@@ -58,8 +60,8 @@ function GetAllUsers(){
 // https://discourse.ilovefreegle.org/admin/users/{id}/{username}
 
 function GetUser($id,$username){
-  global $api_key,$api_username,$sso_secret;
-  $q = "?api_key=$api_key&api_username=$api_username";
+  global $api_username;
+  $q = '?api_key='.DISCOURSE_APIKEY."&api_username=$api_username";
   $url = 'https://discourse.ilovefreegle.org/admin/users/'.$id.'/'.$username.'.json'.$q;
 
   $ch = curl_init();
@@ -71,7 +73,7 @@ function GetUser($id,$username){
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
-    throw new Exception('curl_errno: GetAllUsers ');
+    throw new Exception('curl_errno: GetUser '.$id." - ".$id);
   }
   curl_close( $ch );
 
@@ -81,7 +83,7 @@ function GetUser($id,$username){
   //echo print_r($fulluser)."\r\n\r\n";
   if (property_exists($fulluser, 'errors')){
     echo print_r($fulluser)."\r\n\r\n";
-    return null;
+    throw new Exception('GetUser error '.$fulluser->errors[0]);
   }
   else{
     if (property_exists($fulluser, 'single_sign_on_record')){
@@ -96,8 +98,8 @@ function GetUser($id,$username){
 // https://discourse.ilovefreegle.org//users/[username]/emails.json
 
 function GetUserEmail($username){
-  global $api_key,$api_username,$sso_secret;
-  $q = "?api_key=$api_key&api_username=$api_username";
+  global $api_username;
+  $q = '?api_key='.DISCOURSE_APIKEY."&api_username=$api_username";
   $url = 'https://discourse.ilovefreegle.org/users/'.$username.'/emails.json'.$q;
 
   $ch = curl_init();
@@ -119,7 +121,7 @@ function GetUserEmail($username){
   //echo print_r($useremails)."\r\n\r\n";
   if (property_exists($useremails, 'errors')){
     echo print_r($useremails)."\r\n\r\n";
-    return null;
+    throw new Exception('GetUserEmail error '.$useremails->errors[0]);
   }
   return $useremails->email;
 }
@@ -128,6 +130,7 @@ function GetUserEmail($username){
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
+$headers = 'From: geeks@ilovefreegle.org';
 try{
 
   // Get all users from Discourse
@@ -220,29 +223,27 @@ try{
   echo "\r\n";
 
   $mailedcentralmods = false;
-  $headers = 'From: geeks@ilovefreegle.org';
   $subject = 'Discourse checkuser OK';
   if( $notmod || $notuser){
     $subject = 'Discourse checkuser USERS TO CHECK';
-    //$sent = mail('cc+centralmods@phdcc.com', $subject, $report,$headers);
-    $sent = mail('centralmods@ilovefreegle.org', $subject, $report,$headers);
+    $sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
     echo "Mail sent to centralmods: ".$sent."\r\n";
     $report = "Mail sent to centralmods: ".$sent."\r\n".$report;
     $mailedcentralmods = true;
   }
 
   if( !$mailedcentralmods && (date('w')==6)){
-    //$sent = mail('cc+centralmods@phdcc.com', $subject, $report,$headers);
-    $sent = mail('centralmods@ilovefreegle.org', $subject, $report,$headers);
+    $sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
     echo "Mail sent to centralmods: ".$sent."\r\n";
   }
   
   //$report = wordwrap($report, 70, "\r\n");
-  //$sent = mail('cc+discoursecheckusers@phdcc.com', $subject, $report,$headers);
-  $sent = mail('geek-alerts@ilovefreegle.org', $subject, $report,$headers);
+  $sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
   echo "Mail sent to geeks: ".$sent."\r\n";
 
 } catch (Exception $e) {
   echo $e->getMessage();
   error_log("Failed with " . $e->getMessage());
+  $sent = mail(GEEKSALERTS_ADDR, "Discourse checkuser EXCEPTION", $e->getMessage(),$headers);
+  echo "Mail sent to geeks: ".$sent."\r\n";
 }
