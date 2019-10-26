@@ -85,12 +85,7 @@ function GetUser($id,$username){
     echo print_r($fulluser)."\r\n\r\n";
     throw new Exception('GetUser error '.$fulluser->errors[0]);
   }
-  else{
-    if (property_exists($fulluser, 'single_sign_on_record')){
-      return $fulluser->single_sign_on_record->external_id;
-    }
-  }
-  return false;
+  return $fulluser;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,7 +121,9 @@ function GetUserEmail($username){
   return $useremails->email;
 }
 
-
+//  https://discourse.ilovefreegle.org/admin/users/list/active.json
+//  "last_emailed_at":"2019-10-26T07:14:45.040Z"
+//  "last_emailed_age":19775.883742965,
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -149,6 +146,8 @@ try{
   $everseen = 0;
   $postedinlastweek = 0;
   $seeninlastweek = 0;
+  $evermailed = 0;
+  $mailedinlastweek = 0;
   foreach ($allusers as $user) {
     usleep(250000);
     $count++;
@@ -178,8 +177,21 @@ try{
       if( $interval->days<8) $seeninlastweek++;
     }
 
-    // Get external id from Discourse ie MT user id
-    $external_id = GetUser($user->id,$user->username);
+    // Get external_id from Discourse ie MT user id - and last_emailed_at 
+    $external_id = false;
+    $fulluser = GetUser($user->id,$user->username);
+    if (property_exists($fulluser, 'single_sign_on_record')){
+      $external_id  = $fulluser->single_sign_on_record->external_id;
+    }
+    if( $fulluser->last_emailed_at){
+      $evermailed++;
+      $lastmailed = DateTime::createFromFormat('Y-m-d\TH:i:s.uP', $fulluser->last_emailed_at);
+      //echo "lastmailed: ".print_r($lastmailed)."\r\n";
+      $interval = $lastmailed->diff($now);
+      //echo "interval days: ".$interval->days."\r\n";
+      if( $interval->days<8) $mailedinlastweek++;
+    }
+
     echo $count." external_id: ".$external_id."\r\n";
     if( $external_id){
       $u = new User($dbhr, $dbhm, $external_id);
@@ -218,6 +230,9 @@ try{
   $report .= "\r\n";
   $report .= "everseen: $everseen\r\n";
   $report .= "seeninlastweek: $seeninlastweek\r\n";
+  $report .= "\r\n";
+  $report .= "evermailed: $evermailed\r\n";
+  $report .= "mailedinlastweek: $mailedinlastweek\r\n";
 
   echo $report;
   echo "\r\n";
