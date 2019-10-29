@@ -111,7 +111,10 @@ if (preg_match('/List-Unsubscribe: <mailto:(.*)-unsubscribe@yahoogroups.co/', $m
 }
 
 if ($cont) {
-    if (preg_match('/^Subject: MODERATE -- (.*) posted to (.*)/m', $msg, $matches)) {
+    if (stripos($envfrom, "@comms.yahoo.net") !== FALSE) {
+        error_log("Yahoo Announcement");
+        $rc = MailRouter::DROPPED;
+    } else if (preg_match('/^Subject: MODERATE -- (.*) posted to (.*)/m', $msg, $matches)) {
         # This is a moderation notification for a pending message.
         error_log("MODERATE");
         $r->received(Message::YAHOO_PENDING, NULL, $envto, $msg);
