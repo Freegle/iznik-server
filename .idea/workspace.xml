@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/scripts/cli/group_delete.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -215,14 +217,8 @@
       <workItem from="1567922924379" duration="2535000" />
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
-      <workItem from="1571733775126" duration="11071000" />
-    </task>
-    <task id="LOCAL-00208" summary="UT fixes">
-      <created>1568299036426</created>
-      <option name="number" value="00208" />
-      <option name="presentableId" value="LOCAL-00208" />
-      <option name="project" value="LOCAL" />
-      <updated>1568299036426</updated>
+      <workItem from="1571733775126" duration="14998000" />
+      <workItem from="1572272547699" duration="2593000" />
     </task>
     <task id="LOCAL-00209" summary="Speed-ups: chitchat">
       <created>1568311412057</created>
@@ -560,7 +556,14 @@
       <option name="project" value="LOCAL" />
       <updated>1571822776222</updated>
     </task>
-    <option name="localTasksCounter" value="257" />
+    <task id="LOCAL-00257" summary="Add URL for volunteer opportunities">
+      <created>1571823365396</created>
+      <option name="number" value="00257" />
+      <option name="presentableId" value="LOCAL-00257" />
+      <option name="project" value="LOCAL" />
+      <updated>1571823365397</updated>
+    </task>
+    <option name="localTasksCounter" value="258" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -593,7 +596,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="ChitChat thread head broken by recent fixes, not that anyone will notice apart from me" />
     <MESSAGE value="Suppress &quot;Read receipt&quot; messages" />
     <MESSAGE value="Discourse SSO should only work for Freegle mods" />
     <MESSAGE value="Allow spaces in Discourse usernames" />
@@ -618,6 +620,7 @@
     <MESSAGE value="Remove temp files after message parsing" />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Fix warning" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix warning" />
+    <MESSAGE value="Add URL for volunteer opportunities" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add URL for volunteer opportunities" />
   </component>
 </project>
