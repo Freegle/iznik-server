@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/incoming/incoming.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/incoming/incoming.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/donations/collected.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/donations/collected.mjml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/donations/collected.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/donations/collected.html" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -217,14 +218,7 @@
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
       <workItem from="1571733775126" duration="14998000" />
-      <workItem from="1572272547699" duration="3518000" />
-    </task>
-    <task id="LOCAL-00210" summary="Speed-ups: chitchat">
-      <created>1568311555105</created>
-      <option name="number" value="00210" />
-      <option name="presentableId" value="LOCAL-00210" />
-      <option name="project" value="LOCAL" />
-      <updated>1568311555105</updated>
+      <workItem from="1572272547699" duration="4267000" />
     </task>
     <task id="LOCAL-00211" summary="Speed-ups: chitchat">
       <created>1568311666032</created>
@@ -562,7 +556,14 @@
       <option name="project" value="LOCAL" />
       <updated>1572340383395</updated>
     </task>
-    <option name="localTasksCounter" value="259" />
+    <task id="LOCAL-00259" summary="Yahoo Announcement mails flooding our system">
+      <created>1572341317856</created>
+      <option name="number" value="00259" />
+      <option name="presentableId" value="LOCAL-00259" />
+      <option name="project" value="LOCAL" />
+      <updated>1572341317856</updated>
+    </task>
+    <option name="localTasksCounter" value="260" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -595,7 +596,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Discourse SSO should only work for Freegle mods" />
     <MESSAGE value="Allow spaces in Discourse usernames" />
     <MESSAGE value="Holiday setting broken by recent changes" />
     <MESSAGE value="Approved by broken by recent changes" />
@@ -620,6 +620,7 @@
     <MESSAGE value="Fix warning" />
     <MESSAGE value="Add URL for volunteer opportunities" />
     <MESSAGE value="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups" />
-    <option name="LAST_COMMIT_MESSAGE" value="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups" />
+    <MESSAGE value="Yahoo Announcement mails flooding our system" />
+    <option name="LAST_COMMIT_MESSAGE" value="Yahoo Announcement mails flooding our system" />
   </component>
 </project>

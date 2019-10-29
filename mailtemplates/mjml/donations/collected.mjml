@@ -69,7 +69,7 @@
               Donate
             </mj-button>
             <mj-text>
-              We realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!
+              There are other ways to donate <a href="https://www.ilovefreegle.org/donate">here</a>.  We realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!
             </mj-text>
           </mj-column>
         </mj-section>
