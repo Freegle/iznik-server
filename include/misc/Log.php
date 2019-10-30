@@ -68,6 +68,7 @@ class Log
     const SUBTYPE_NOTIFICATIONOFF = 'NotificationOff';
     const SUBTYPE_AUTO_APPROVED = 'Autoapproved';
     const SUBTYPE_UNBOUNCE = 'Unbounce';
+    const SUBTYPE_WORRYWORDS = 'WorryWords';
     
     const LOG_USER_CACHE_SIZE = 1000;
 

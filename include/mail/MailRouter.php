@@ -968,39 +968,52 @@ class MailRouter
                             # Drop unless the email comes from a group member.
                             $ret = MailRouter::DROPPED;
 
-                            foreach ($groups as $group) {
-                                $appmemb = $u->isApprovedMember($group['groupid']);
-                                if ($log) { error_log("Approved member? $appmemb"); }
-                                if ($appmemb) {
-                                    # Whether we post to pending or approved depends on the group setting,
-                                    # and if that is set not to moderate, the user setting.  Similar code for
-                                    # this setting in message API call.
-                                    #
-                                    # For posts by email we moderate all posts by moderators, to avoid accidents -
-                                    # this has been requested by volunteers.
-                                    $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                                    $ps = ($u->isModOrOwner($group['groupid']) || $g->getSetting('moderated', 0)) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
-                                    $ps = $ps ? $ps : Group::POSTING_MODERATED;
-                                    if ($log) { error_log("Member, Our PS is $ps"); }
+                            # Check the message for worry words.
+                            $w = new WorryWords($this->dbhr, $this->dbhm);
+                            $worry = $w->checkMessage($this->msg->getID(), $this->msg->getFromuser(), $this->msg->getSubject(), $this->msg->getTextbody());
 
-                                    if ($ps == Group::POSTING_MODERATED) {
-                                        if ($log) { error_log("Mark as pending"); }
-                                        if ($this->markPending($notspam, FALSE)) {
-                                            $ret = MailRouter::PENDING;
-                                        }
-                                    } else {
-                                        if ($log) { error_log("Mark as approved"); }
-                                        if ($this->markApproved()) {
-                                            $ret = MailRouter::APPROVED;
-                                        }
+                            foreach ($groups as $group) {
+                                if ($worry) {
+                                    if ($log) { error_log("Worrying => pending"); }
+                                    if ($this->markPending($notspam, FALSE)) {
+                                        $ret = MailRouter::PENDING;
                                     }
                                 } else {
-                                    # Not a member.  Reply to let them know.  This is particularly useful to
-                                    # Trash Nothing.
-                                    #
-                                    # This isn't a pretty mail, but it's not a very common case at all.
-                                    $this->mail($fromheader[0]['address'], $to, "Message Rejected", "You posted by email to $to, but you're not a member of that group.");
-                                    $ret = MailRouter::DROPPED;
+                                    $appmemb = $u->isApprovedMember($group['groupid']);
+                                    if ($log) { error_log("Approved member? $appmemb"); }
+                                    if ($appmemb) {
+                                        # Worrying messages always go to Pending.
+                                        #
+                                        # Otherwise whether we post to pending or approved depends on the group setting,
+                                        # and if that is set not to moderate, the user setting.  Similar code for
+                                        # this setting in message API call.
+                                        #
+                                        # For posts by email we moderate all posts by moderators, to avoid accidents -
+                                        # this has been requested by volunteers.
+                                        $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                                        $ps = ($u->isModOrOwner($group['groupid']) || $g->getSetting('moderated', 0)) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
+                                        $ps = $ps ? $ps : Group::POSTING_MODERATED;
+                                        if ($log) { error_log("Member, Our PS is $ps"); }
+
+                                        if ($ps == Group::POSTING_MODERATED) {
+                                            if ($log) { error_log("Mark as pending"); }
+                                            if ($this->markPending($notspam, FALSE)) {
+                                                $ret = MailRouter::PENDING;
+                                            }
+                                        } else {
+                                            if ($log) { error_log("Mark as approved"); }
+                                            if ($this->markApproved()) {
+                                                $ret = MailRouter::APPROVED;
+                                            }
+                                        }
+                                    } else {
+                                        # Not a member.  Reply to let them know.  This is particularly useful to
+                                        # Trash Nothing.
+                                        #
+                                        # This isn't a pretty mail, but it's not a very common case at all.
+                                        $this->mail($fromheader[0]['address'], $to, "Message Rejected", "You posted by email to $to, but you're not a member of that group.");
+                                        $ret = MailRouter::DROPPED;
+                                    }
                                 }
                             }
                         }

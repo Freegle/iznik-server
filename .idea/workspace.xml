@@ -2,9 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/ut/php/msgs/worry" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/donations/collected.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/donations/collected.mjml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/donations/collected.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/donations/collected.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/message.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/MailRouter.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/MailRouter.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/misc/Log.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Log.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -108,7 +116,12 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.imageAPITest">
+  <component name="RunManager" selected="PHPUnit.MailRouterTest.testWorry">
+    <configuration name="MailRouterTest.testWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testWorry" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -119,40 +132,35 @@
       <TestRunner class="imageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/imageTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="locationsAPITest.testAreaAndPostcode" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="messageAPITest.testNativeWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="locationsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" file="$PROJECT_DIR$/test/ut/php/api/locationsTest.php" method="testAreaAndPostcode" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testNativeWorry" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageAPITest.testNativeSpam" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="worryWordsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testNativeSpam" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messagesTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="worryWordsTest.testGroup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="ut" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" directory="$PROJECT_DIR$/test/ut" use_alternative_configuration_file="true" />
+      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testGroup" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.messagesTest.testEH" />
-      <item itemvalue="PHPUnit.ut" />
-      <item itemvalue="PHPUnit.locationsAPITest.testAreaAndPostcode" />
-      <item itemvalue="PHPUnit.messageAPITest.testNativeSpam" />
       <item itemvalue="PHPUnit.imageAPITest" />
+      <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
+      <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
+      <item itemvalue="PHPUnit.worryWordsTest" />
+      <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
+        <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
+        <item itemvalue="PHPUnit.worryWordsTest" />
+        <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
         <item itemvalue="PHPUnit.imageAPITest" />
-        <item itemvalue="PHPUnit.messageAPITest.testNativeSpam" />
-        <item itemvalue="PHPUnit.ut" />
-        <item itemvalue="PHPUnit.locationsAPITest.testAreaAndPostcode" />
-        <item itemvalue="PHPUnit.messagesTest.testEH" />
       </list>
     </recent_temporary>
   </component>
@@ -218,14 +226,7 @@
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
       <workItem from="1571733775126" duration="14998000" />
-      <workItem from="1572272547699" duration="4267000" />
-    </task>
-    <task id="LOCAL-00211" summary="Speed-ups: chitchat">
-      <created>1568311666032</created>
-      <option name="number" value="00211" />
-      <option name="presentableId" value="LOCAL-00211" />
-      <option name="project" value="LOCAL" />
-      <updated>1568311666032</updated>
+      <workItem from="1572272547699" duration="11631000" />
     </task>
     <task id="LOCAL-00212" summary="UT fixes">
       <created>1568313317025</created>
@@ -563,7 +564,14 @@
       <option name="project" value="LOCAL" />
       <updated>1572341317856</updated>
     </task>
-    <option name="localTasksCounter" value="260" />
+    <task id="LOCAL-00260" summary="Add link to other donation mechanisms">
+      <created>1572347527313</created>
+      <option name="number" value="00260" />
+      <option name="presentableId" value="LOCAL-00260" />
+      <option name="project" value="LOCAL" />
+      <updated>1572347527313</updated>
+    </task>
+    <option name="localTasksCounter" value="261" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -596,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Allow spaces in Discourse usernames" />
     <MESSAGE value="Holiday setting broken by recent changes" />
     <MESSAGE value="Approved by broken by recent changes" />
     <MESSAGE value="Open OFFER count broken recently" />
@@ -621,6 +628,7 @@
     <MESSAGE value="Add URL for volunteer opportunities" />
     <MESSAGE value="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups" />
     <MESSAGE value="Yahoo Announcement mails flooding our system" />
-    <option name="LAST_COMMIT_MESSAGE" value="Yahoo Announcement mails flooding our system" />
+    <MESSAGE value="Add link to other donation mechanisms" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add link to other donation mechanisms" />
   </component>
 </project>

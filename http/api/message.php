@@ -412,6 +412,10 @@ function message() {
                                     $fromemail = NULL;
                                     $cont = TRUE;
 
+                                    # Check the message for worry words.
+                                    $w = new WorryWords($dbhr, $dbhm);
+                                    $worry = $w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody());
+
                                     # Assume this post is moderated unless we decide otherwise below.
                                     if ($g->getPrivate('onyahoo')) {
                                         # We need to make sure we're a member of the Yahoo group with an email address
@@ -476,7 +480,9 @@ function message() {
                                             #
                                             # The entire group might be moderated, or the member might be, in which
                                             # case the message goes to pending, otherwise approved.
-                                            $postcoll = $g->getSetting('moderated', 0) ? MessageCollection::PENDING : $u->postToCollection($groupid);
+                                            #
+                                            # Worrying messages always go to Pending.
+                                            $postcoll = ($worry || $g->getSetting('moderated', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
                                         }
 
                                         # Check if it's spam

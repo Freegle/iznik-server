@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
+require_once IZNIK_BASE . '/include/message/WorryWords.php';
 require_once IZNIK_BASE . '/include/misc/plugin.php';
 require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
 require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
@@ -30,6 +31,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Tidy test subjects
         $this->dbhm->preExec("DELETE FROM spam_whitelist_subjects WHERE subject LIKE 'Test spam subject%';");
+        $this->dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");
 
         # Delete any UT playground messages
         $g = Group::get($dbhr, $dbhm);
@@ -197,7 +199,7 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
-        }
+    }
 
     public function testSpamSubject() {
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -233,8 +235,7 @@ class MailRouterTest extends IznikTestCase {
         foreach ($groups as $group) {
             $group->delete();
         }
-
-        }
+    }
 
     public function testSpam() {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
@@ -1742,6 +1743,23 @@ class MailRouterTest extends IznikTestCase {
         $mid = $r->received(Message::EMAIL, 'support@twitter.com', 'testgroup1-volunteers@groups.ilovefreegle.org', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
+    }
+
+    public function testWorry() {
+        $this->dbhm->preExec("INSERT INTO worrywords (keyword, type) VALUES (?, ?);", [
+            'UTtest1',
+            WorryWords::TYPE_REPORTABLE
+        ]);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/worry');
+        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        assertNotNull($m->getPublic()['worry']);
     }
 
 

@@ -7,6 +7,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
+require_once(IZNIK_BASE . '/include/message/WorryWords.php');
 require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
@@ -1621,6 +1622,18 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function getWorry(&$msgs) {
+       if (MODTOOLS) {
+           # We check the messages again.  This means if something is added to worry words while our message is in
+           # pending, we'll see it.
+           $w = new WorryWords($this->dbhr, $this->dbhm);
+
+           foreach ($msgs as $msgind => $msg) {
+               $msgs[$msgind]['worry'] = $w->checkMessage($msg['id'], pres('fromuser', $msg) ? $msg['fromuser']['id'] : NULL, $msg['subject'], $msg['textbody']);
+           }
+       }
+    }
+
     /**
      * @param bool $messagehistory
      * @param bool $related
@@ -1657,6 +1670,7 @@ ORDER BY lastdate DESC;";
             $this->getPublicHeld($userlist, $rets, $msgs, $messagehistory);
             $this->getPublicPostingHistory($rets, $msgs, $me, $myid);
             $this->getPublicEditHistory($userlist, $rets, $msgs, $me, $myid);
+            $this->getWorry($rets);
 
             if ($related) {
                 $this->getPublicRelated($rets, $msgs);
