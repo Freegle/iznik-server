@@ -1904,7 +1904,7 @@ WHERE chat_rooms.id IN $idlist;";
 
                                     $sentsome = TRUE;
 
-                                    if (RETURN_PATH && !pres('seed', $member)) {
+                                    if (!RETURN_PATH || !pres('seed', $member)) {
                                         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                             $lastmsgemailed,
                                             $member['userid'],
@@ -1937,7 +1937,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $mailedtoall = PHP_INT_MAX;
                 $maxes = $this->dbhm->preQuery("SELECT lastmsgemailed, userid FROM chat_roster WHERE chatid = ? GROUP BY userid", [
                     $chat['chatid']
-                ]);
+                ], FALSE, FALSE);
                 foreach ($maxes as $max) {
                     $mailedtoall = min($mailedtoall, $max['lastmsgemailed']);
                 }

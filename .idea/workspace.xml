@@ -2,17 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test/ut/php/msgs/worry" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/message.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/mail/MailRouter.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/MailRouter.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/misc/Log.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Log.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -226,14 +217,7 @@
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
       <workItem from="1571733775126" duration="14998000" />
-      <workItem from="1572272547699" duration="11631000" />
-    </task>
-    <task id="LOCAL-00212" summary="UT fixes">
-      <created>1568313317025</created>
-      <option name="number" value="00212" />
-      <option name="presentableId" value="LOCAL-00212" />
-      <option name="project" value="LOCAL" />
-      <updated>1568313317025</updated>
+      <workItem from="1572272547699" duration="15332000" />
     </task>
     <task id="LOCAL-00213" summary="UT fixes">
       <created>1568314061259</created>
@@ -571,7 +555,14 @@
       <option name="project" value="LOCAL" />
       <updated>1572347527313</updated>
     </task>
-    <option name="localTasksCounter" value="261" />
+    <task id="LOCAL-00261" summary="WorryWords">
+      <created>1572452224121</created>
+      <option name="number" value="00261" />
+      <option name="presentableId" value="LOCAL-00261" />
+      <option name="project" value="LOCAL" />
+      <updated>1572452224121</updated>
+    </task>
+    <option name="localTasksCounter" value="262" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +595,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Holiday setting broken by recent changes" />
     <MESSAGE value="Approved by broken by recent changes" />
     <MESSAGE value="Open OFFER count broken recently" />
     <MESSAGE value="Replies missing from My Posts" />
@@ -629,6 +619,7 @@
     <MESSAGE value="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups" />
     <MESSAGE value="Yahoo Announcement mails flooding our system" />
     <MESSAGE value="Add link to other donation mechanisms" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add link to other donation mechanisms" />
+    <MESSAGE value="WorryWords" />
+    <option name="LAST_COMMIT_MESSAGE" value="WorryWords" />
   </component>
 </project>
