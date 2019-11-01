@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/install/iznik.conf.php" beforeDir="false" afterPath="$PROJECT_DIR$/install/iznik.conf.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -218,14 +217,7 @@
       <workItem from="1569342615237" duration="44057000" />
       <workItem from="1571733775126" duration="14998000" />
       <workItem from="1572272547699" duration="30443000" />
-      <workItem from="1572636722625" duration="21000" />
-    </task>
-    <task id="LOCAL-00218" summary="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down.">
-      <created>1568378160235</created>
-      <option name="number" value="00218" />
-      <option name="presentableId" value="LOCAL-00218" />
-      <option name="project" value="LOCAL" />
-      <updated>1568378160236</updated>
+      <workItem from="1572636722625" duration="649000" />
     </task>
     <task id="LOCAL-00219" summary="More Discourse login">
       <created>1568388463306</created>
@@ -563,7 +555,14 @@
       <option name="project" value="LOCAL" />
       <updated>1572631220962</updated>
     </task>
-    <option name="localTasksCounter" value="267" />
+    <task id="LOCAL-00267" summary="UT fixes">
+      <created>1572636752221</created>
+      <option name="number" value="00267" />
+      <option name="presentableId" value="LOCAL-00267" />
+      <option name="project" value="LOCAL" />
+      <updated>1572636752221</updated>
+    </task>
+    <option name="localTasksCounter" value="268" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -609,7 +608,6 @@
     <MESSAGE value="Return URL for community events" />
     <MESSAGE value="Can't rotate images unless they are message ones." />
     <MESSAGE value="Remove temp files after message parsing" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Fix warning" />
     <MESSAGE value="Add URL for volunteer opportunities" />
     <MESSAGE value="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups" />
@@ -621,6 +619,7 @@
     <MESSAGE value="Per-group donation raised figure is wrong.  Script to find active mods." />
     <MESSAGE value="Reposting messages not showing in message history" />
     <MESSAGE value="Add URL to story" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add URL to story" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>

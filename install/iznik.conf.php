@@ -90,8 +90,6 @@ define('SITE_HOST', $host);
 define('CHAT_HOST', 'users.ilovefreegle.org');
 define('CHAT_PORT', 555);
 
-define('CENTRAL_MAIL_TO', 'discoursereplies+Tech@ilovefreegle.org');
-
 switch($host) {
     case 'iznik.modtools.org':
         define('SITE_NAME', 'Iznik');
@@ -145,7 +143,7 @@ define('VOLUNTEERS_ADDR', 'volunteers@ilovefreegle.org');
 define('NOREPLY_ADDR', 'noreply@ilovefreegle.org');
 
 # Central mods mailing list, where we send periodic mails
-define('CENTRAL_MAIL_TO', 'FreegleUK-Central@yahoogroups.com');
+define('CENTRAL_MAIL_TO', 'discoursereplies+Tech@ilovefreegle.org');
 define('CENTRAL_MAIL_FROM', 'geeks@ilovefreegle.org');
 
 define('DONATION_TARGET', 2000);
