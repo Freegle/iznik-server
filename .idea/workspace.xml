@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/scripts/cli/user_activemods.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/misc/Donations.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Donations.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -217,21 +219,7 @@
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
       <workItem from="1571733775126" duration="14998000" />
-      <workItem from="1572272547699" duration="15332000" />
-    </task>
-    <task id="LOCAL-00213" summary="UT fixes">
-      <created>1568314061259</created>
-      <option name="number" value="00213" />
-      <option name="presentableId" value="LOCAL-00213" />
-      <option name="project" value="LOCAL" />
-      <updated>1568314061259</updated>
-    </task>
-    <task id="LOCAL-00214" summary="Speed-ups: chitchat">
-      <created>1568362307012</created>
-      <option name="number" value="00214" />
-      <option name="presentableId" value="LOCAL-00214" />
-      <option name="project" value="LOCAL" />
-      <updated>1568362307013</updated>
+      <workItem from="1572272547699" duration="23664000" />
     </task>
     <task id="LOCAL-00215" summary="Speed-ups: chitchat">
       <created>1568364212150</created>
@@ -562,7 +550,21 @@
       <option name="project" value="LOCAL" />
       <updated>1572452224121</updated>
     </task>
-    <option name="localTasksCounter" value="262" />
+    <task id="LOCAL-00262" summary="Possible fix for chat repeatedly mailing">
+      <created>1572459655194</created>
+      <option name="number" value="00262" />
+      <option name="presentableId" value="LOCAL-00262" />
+      <option name="project" value="LOCAL" />
+      <updated>1572459655195</updated>
+    </task>
+    <task id="LOCAL-00263" summary="Another message footer">
+      <created>1572522301518</created>
+      <option name="number" value="00263" />
+      <option name="presentableId" value="LOCAL-00263" />
+      <option name="project" value="LOCAL" />
+      <updated>1572522301518</updated>
+    </task>
+    <option name="localTasksCounter" value="264" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -595,8 +597,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Approved by broken by recent changes" />
-    <MESSAGE value="Open OFFER count broken recently" />
     <MESSAGE value="Replies missing from My Posts" />
     <MESSAGE value="Make domain delay warning less trigger-happy." />
     <MESSAGE value="Can't edit away last attachment" />
@@ -620,6 +620,8 @@
     <MESSAGE value="Yahoo Announcement mails flooding our system" />
     <MESSAGE value="Add link to other donation mechanisms" />
     <MESSAGE value="WorryWords" />
-    <option name="LAST_COMMIT_MESSAGE" value="WorryWords" />
+    <MESSAGE value="Possible fix for chat repeatedly mailing" />
+    <MESSAGE value="Another message footer" />
+    <option name="LAST_COMMIT_MESSAGE" value="Another message footer" />
   </component>
 </project>

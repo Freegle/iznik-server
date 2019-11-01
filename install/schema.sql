@@ -4233,6 +4233,7 @@ DROP TABLE IF EXISTS `worrywords`;
 CREATE TABLE `worrywords` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `keyword` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `substance` VARCHAR(255) NULL DEFAULT NULL,
   `type` enum('Regulated','Reportable','Medicine') COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
