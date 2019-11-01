@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/install/iznik.conf.php" beforeDir="false" afterPath="$PROJECT_DIR$/install/iznik.conf.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -217,14 +218,7 @@
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
       <workItem from="1571733775126" duration="14998000" />
-      <workItem from="1572272547699" duration="24427000" />
-    </task>
-    <task id="LOCAL-00216" summary="Message history not showing">
-      <created>1568366975710</created>
-      <option name="number" value="00216" />
-      <option name="presentableId" value="LOCAL-00216" />
-      <option name="project" value="LOCAL" />
-      <updated>1568366975710</updated>
+      <workItem from="1572272547699" duration="29083000" />
     </task>
     <task id="LOCAL-00217" summary="UT fixes">
       <created>1568374713568</created>
@@ -562,7 +556,14 @@
       <option name="project" value="LOCAL" />
       <updated>1572613635574</updated>
     </task>
-    <option name="localTasksCounter" value="265" />
+    <task id="LOCAL-00265" summary="Reposting messages not showing in message history">
+      <created>1572615064729</created>
+      <option name="number" value="00265" />
+      <option name="presentableId" value="LOCAL-00265" />
+      <option name="project" value="LOCAL" />
+      <updated>1572615064729</updated>
+    </task>
+    <option name="localTasksCounter" value="266" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -595,7 +596,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Make domain delay warning less trigger-happy." />
     <MESSAGE value="Can't edit away last attachment" />
     <MESSAGE value="Remove reference to Yahoo TOS from welcome email" />
     <MESSAGE value="Repost stats" />
@@ -620,6 +620,7 @@
     <MESSAGE value="Possible fix for chat repeatedly mailing" />
     <MESSAGE value="Another message footer" />
     <MESSAGE value="Per-group donation raised figure is wrong.  Script to find active mods." />
-    <option name="LAST_COMMIT_MESSAGE" value="Per-group donation raised figure is wrong.  Script to find active mods." />
+    <MESSAGE value="Reposting messages not showing in message history" />
+    <option name="LAST_COMMIT_MESSAGE" value="Reposting messages not showing in message history" />
   </component>
 </project>

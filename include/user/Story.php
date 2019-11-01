@@ -131,6 +131,8 @@ class Story extends Entity
             ];
         }
 
+        $ret['url'] = 'https://' . USER_SITE . '/story/' . $ret['id'];
+
         return($ret);
     }
 

@@ -90,8 +90,7 @@ define('SITE_HOST', $host);
 define('CHAT_HOST', 'users.ilovefreegle.org');
 define('CHAT_PORT', 555);
 
-# Where we send event tracking.
-define('EVENT_HOST', 'dev.ilovefreegle.org');
+define('CENTRAL_MAIL_TO', 'discoursereplies+Tech@ilovefreegle.org');
 
 switch($host) {
     case 'iznik.modtools.org':
