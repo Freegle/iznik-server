@@ -3,8 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install/iznik.conf.php" beforeDir="false" afterPath="$PROJECT_DIR$/install/iznik.conf.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -108,7 +107,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.MailRouterTest.testWorry">
+  <component name="RunManager" selected="PHPUnit.userTest.testBadYahooId">
     <configuration name="MailRouterTest.testWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testWorry" scope="Method" use_alternative_configuration_file="true" />
@@ -119,14 +118,14 @@
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="imageAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="imageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/imageTest.php" scope="Class" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <configuration name="messageAPITest.testNativeWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testNativeWorry" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="userTest.testBadYahooId" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testBadYahooId" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="worryWordsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -140,19 +139,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.imageAPITest" />
       <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
       <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
       <item itemvalue="PHPUnit.worryWordsTest" />
       <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
+      <item itemvalue="PHPUnit.userTest.testBadYahooId" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.userTest.testBadYahooId" />
         <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
         <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
         <item itemvalue="PHPUnit.worryWordsTest" />
         <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
-        <item itemvalue="PHPUnit.imageAPITest" />
       </list>
     </recent_temporary>
   </component>
@@ -218,14 +217,8 @@
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
       <workItem from="1571733775126" duration="14998000" />
-      <workItem from="1572272547699" duration="29083000" />
-    </task>
-    <task id="LOCAL-00217" summary="UT fixes">
-      <created>1568374713568</created>
-      <option name="number" value="00217" />
-      <option name="presentableId" value="LOCAL-00217" />
-      <option name="project" value="LOCAL" />
-      <updated>1568374713568</updated>
+      <workItem from="1572272547699" duration="30443000" />
+      <workItem from="1572636722625" duration="21000" />
     </task>
     <task id="LOCAL-00218" summary="When logged in to MT, set a cookie to allow future log in to Discourse even if MT is down.">
       <created>1568378160235</created>
@@ -563,7 +556,14 @@
       <option name="project" value="LOCAL" />
       <updated>1572615064729</updated>
     </task>
-    <option name="localTasksCounter" value="266" />
+    <task id="LOCAL-00266" summary="Add URL to story">
+      <created>1572631220962</created>
+      <option name="number" value="00266" />
+      <option name="presentableId" value="LOCAL-00266" />
+      <option name="project" value="LOCAL" />
+      <updated>1572631220962</updated>
+    </task>
+    <option name="localTasksCounter" value="267" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -596,7 +596,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Can't edit away last attachment" />
     <MESSAGE value="Remove reference to Yahoo TOS from welcome email" />
     <MESSAGE value="Repost stats" />
     <MESSAGE value="Icon for chat with mods is wrong" />
@@ -621,6 +620,7 @@
     <MESSAGE value="Another message footer" />
     <MESSAGE value="Per-group donation raised figure is wrong.  Script to find active mods." />
     <MESSAGE value="Reposting messages not showing in message history" />
-    <option name="LAST_COMMIT_MESSAGE" value="Reposting messages not showing in message history" />
+    <MESSAGE value="Add URL to story" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add URL to story" />
   </component>
 </project>

@@ -2150,7 +2150,7 @@ class User extends Entity
         #
         # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
         $sql = NULL;
-        $collq = count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ") : '';
+        $collq = $msgcoll && count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ") : '';
         $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
 
         if ($groupids && count($groupids) > 0) {
