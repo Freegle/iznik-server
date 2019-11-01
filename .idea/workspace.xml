@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/scripts/cli/user_activemods.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/misc/Donations.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Donations.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -219,14 +217,7 @@
       <workItem from="1568359210231" duration="88338000" />
       <workItem from="1569342615237" duration="44057000" />
       <workItem from="1571733775126" duration="14998000" />
-      <workItem from="1572272547699" duration="23664000" />
-    </task>
-    <task id="LOCAL-00215" summary="Speed-ups: chitchat">
-      <created>1568364212150</created>
-      <option name="number" value="00215" />
-      <option name="presentableId" value="LOCAL-00215" />
-      <option name="project" value="LOCAL" />
-      <updated>1568364212150</updated>
+      <workItem from="1572272547699" duration="24427000" />
     </task>
     <task id="LOCAL-00216" summary="Message history not showing">
       <created>1568366975710</created>
@@ -564,7 +555,14 @@
       <option name="project" value="LOCAL" />
       <updated>1572522301518</updated>
     </task>
-    <option name="localTasksCounter" value="264" />
+    <task id="LOCAL-00264" summary="Per-group donation raised figure is wrong.  Script to find active mods.">
+      <created>1572613635574</created>
+      <option name="number" value="00264" />
+      <option name="presentableId" value="LOCAL-00264" />
+      <option name="project" value="LOCAL" />
+      <updated>1572613635574</updated>
+    </task>
+    <option name="localTasksCounter" value="265" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -597,7 +595,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Replies missing from My Posts" />
     <MESSAGE value="Make domain delay warning less trigger-happy." />
     <MESSAGE value="Can't edit away last attachment" />
     <MESSAGE value="Remove reference to Yahoo TOS from welcome email" />
@@ -622,6 +619,7 @@
     <MESSAGE value="WorryWords" />
     <MESSAGE value="Possible fix for chat repeatedly mailing" />
     <MESSAGE value="Another message footer" />
-    <option name="LAST_COMMIT_MESSAGE" value="Another message footer" />
+    <MESSAGE value="Per-group donation raised figure is wrong.  Script to find active mods." />
+    <option name="LAST_COMMIT_MESSAGE" value="Per-group donation raised figure is wrong.  Script to find active mods." />
   </component>
 </project>
