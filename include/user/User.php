@@ -5888,7 +5888,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        $ratings = $this->dbhr->preQuery("SELECT rating, ratee FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND rater = ?;", [
+        $ratings = $this->dbhr->preQuery("SELECT rating, ratee FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND rater = ? AND timestamp >= '$mysqltime';", [
             $myid
         ], FALSE, FALSE);
 
