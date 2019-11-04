@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/install/iznik.conf.php" beforeDir="false" afterPath="$PROJECT_DIR$/install/iznik.conf.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/WorryWords.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cli/user_activemods.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cli/user_activemods.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -106,7 +109,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.userTest.testBadYahooId">
+  <component name="RunManager" selected="PHPUnit.worryWordsTest.testEH">
     <configuration name="MailRouterTest.testWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testWorry" scope="Method" use_alternative_configuration_file="true" />
@@ -132,25 +135,25 @@
       <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="worryWordsTest.testGroup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="worryWordsTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testGroup" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
       <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
       <item itemvalue="PHPUnit.worryWordsTest" />
       <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
       <item itemvalue="PHPUnit.userTest.testBadYahooId" />
+      <item itemvalue="PHPUnit.worryWordsTest.testEH" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.worryWordsTest.testEH" />
         <item itemvalue="PHPUnit.userTest.testBadYahooId" />
         <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
         <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
         <item itemvalue="PHPUnit.worryWordsTest" />
-        <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
       </list>
     </recent_temporary>
   </component>
@@ -217,14 +220,8 @@
       <workItem from="1569342615237" duration="44057000" />
       <workItem from="1571733775126" duration="14998000" />
       <workItem from="1572272547699" duration="30443000" />
-      <workItem from="1572636722625" duration="649000" />
-    </task>
-    <task id="LOCAL-00219" summary="More Discourse login">
-      <created>1568388463306</created>
-      <option name="number" value="00219" />
-      <option name="presentableId" value="LOCAL-00219" />
-      <option name="project" value="LOCAL" />
-      <updated>1568388463306</updated>
+      <workItem from="1572636722625" duration="9815000" />
+      <workItem from="1572871158327" duration="1407000" />
     </task>
     <task id="LOCAL-00220" summary="More Discourse login">
       <created>1568392800292</created>
@@ -562,7 +559,14 @@
       <option name="project" value="LOCAL" />
       <updated>1572636752221</updated>
     </task>
-    <option name="localTasksCounter" value="268" />
+    <task id="LOCAL-00268" summary="UT fixes">
+      <created>1572648015317</created>
+      <option name="number" value="00268" />
+      <option name="presentableId" value="LOCAL-00268" />
+      <option name="project" value="LOCAL" />
+      <updated>1572648015317</updated>
+    </task>
+    <option name="localTasksCounter" value="269" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

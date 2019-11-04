@@ -17,7 +17,47 @@ uasort($counts, function($a, $b) {
 });
 $counts = array_slice($counts, 0, 100);
 
+$mentorgroups = [];
+
 foreach ($counts as $count) {
     $u = new User($dbhr, $dbhm, $count['byuser']);
-    error_log("#{$count['byuser']} " . $u->getName() . " (" . $u->getEmailPreferred() . ")");
+    $membs = $u->getMemberships(TRUE);
+
+    $modon = count($membs);
+    $homegroup = '';
+
+    $settings = $u->getPrivate('settings');
+    $settings = json_decode($settings, TRUE);
+
+    if (pres('mylocation', $settings)) {
+        #error_log($u->getName() . " location {$settings['mylocation']['id']}");
+        $l = new Location($dbhr, $dbhm, $settings['mylocation']['id']);
+        $nears = $l->groupsNear(20, TRUE, 50);
+
+        foreach ($nears as $near) {
+            if (!strlen($homegroup)) {
+                $homegroup = $near['nameshort'];
+            }
+
+            #error_log("Near {$near['id']}");
+            if ($near['mentored']) {
+                if (!array_key_exists($near['nameshort'], $mentorgroups)) {
+                    $mentorgroups[$near['nameshort']] = [];
+                }
+
+                $mentorgroups[$near['nameshort']][] = $u->getName() . " (" . $u->getEmailPreferred() . ") home group $homegroup mod on $modon";
+            }
+        }
+    }
+}
+
+ksort($mentorgroups);
+foreach ($mentorgroups as $group => $possibles) {
+    error_log($group);
+
+    ksort($possibles);
+
+    foreach ($possibles as $possible) {
+        error_log("...$possible");
+    }
 }
