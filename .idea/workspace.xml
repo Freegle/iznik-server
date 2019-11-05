@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/adview.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/adview.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/WorryWords.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -220,21 +218,7 @@
       <workItem from="1571733775126" duration="14998000" />
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
-      <workItem from="1572871158327" duration="3443000" />
-    </task>
-    <task id="LOCAL-00223" summary="Messages showing as related to themselves">
-      <created>1568466972550</created>
-      <option name="number" value="00223" />
-      <option name="presentableId" value="LOCAL-00223" />
-      <option name="project" value="LOCAL" />
-      <updated>1568466972550</updated>
-    </task>
-    <task id="LOCAL-00224" summary="Bug in display of single chitchat item">
-      <created>1568539260107</created>
-      <option name="number" value="00224" />
-      <option name="presentableId" value="LOCAL-00224" />
-      <option name="project" value="LOCAL" />
-      <updated>1568539260107</updated>
+      <workItem from="1572871158327" duration="3596000" />
     </task>
     <task id="LOCAL-00225" summary="Photos missing after recent performance fixes">
       <created>1568562004859</created>
@@ -565,7 +549,21 @@
       <option name="project" value="LOCAL" />
       <updated>1572884743344</updated>
     </task>
-    <option name="localTasksCounter" value="272" />
+    <task id="LOCAL-00272" summary="Randomise order of job ads to liven things up">
+      <created>1572951100994</created>
+      <option name="number" value="00272" />
+      <option name="presentableId" value="LOCAL-00272" />
+      <option name="project" value="LOCAL" />
+      <updated>1572951100994</updated>
+    </task>
+    <task id="LOCAL-00273" summary="Add a type of worry word for things that just need reviewing.">
+      <created>1572951123851</created>
+      <option name="number" value="00273" />
+      <option name="presentableId" value="LOCAL-00273" />
+      <option name="project" value="LOCAL" />
+      <updated>1572951123851</updated>
+    </task>
+    <option name="localTasksCounter" value="274" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -598,8 +596,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Correct backup of crontabs" />
-    <MESSAGE value="Remove bulk1 from backup now retired" />
     <MESSAGE value="Scan messages posted via the Platform for spam as well as those received by email" />
     <MESSAGE value="Drop announcement messages from Yahoo" />
     <MESSAGE value="Fixes to group merge" />
@@ -623,6 +619,8 @@
     <MESSAGE value="Your thumbs up/down of someone should expire, just like other people's ratings do." />
     <MESSAGE value="&quot;provide&quot; isn't &quot;peroxide&quot;" />
     <MESSAGE value="More on identifying active mods." />
-    <option name="LAST_COMMIT_MESSAGE" value="More on identifying active mods." />
+    <MESSAGE value="Randomise order of job ads to liven things up" />
+    <MESSAGE value="Add a type of worry word for things that just need reviewing." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add a type of worry word for things that just need reviewing." />
   </component>
 </project>

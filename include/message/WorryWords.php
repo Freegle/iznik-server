@@ -11,6 +11,7 @@ class WorryWords {
     CONST TYPE_REGULATED = 'Regulated';     // UK regulated substance
     CONST TYPE_REPORTABLE = 'Reportable';   // UK reportable substance
     CONST TYPE_MEDICINE = 'Medicine';       // Medicines/supplements.
+    CONST TYPE_REVIEW = 'Review';           // Just needs looking at.
 
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
