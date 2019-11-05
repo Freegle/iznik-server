@@ -3,9 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/WorryWords.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cli/user_activemods.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cli/user_activemods.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/adview.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/adview.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -221,28 +220,7 @@
       <workItem from="1571733775126" duration="14998000" />
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
-      <workItem from="1572871158327" duration="1407000" />
-    </task>
-    <task id="LOCAL-00220" summary="More Discourse login">
-      <created>1568392800292</created>
-      <option name="number" value="00220" />
-      <option name="presentableId" value="LOCAL-00220" />
-      <option name="project" value="LOCAL" />
-      <updated>1568392800292</updated>
-    </task>
-    <task id="LOCAL-00221" summary="Remove warning">
-      <created>1568449286884</created>
-      <option name="number" value="00221" />
-      <option name="presentableId" value="LOCAL-00221" />
-      <option name="project" value="LOCAL" />
-      <updated>1568449286884</updated>
-    </task>
-    <task id="LOCAL-00222" summary="Remove warning">
-      <created>1568450171691</created>
-      <option name="number" value="00222" />
-      <option name="presentableId" value="LOCAL-00222" />
-      <option name="project" value="LOCAL" />
-      <updated>1568450171691</updated>
+      <workItem from="1572871158327" duration="3443000" />
     </task>
     <task id="LOCAL-00223" summary="Messages showing as related to themselves">
       <created>1568466972550</created>
@@ -566,7 +544,28 @@
       <option name="project" value="LOCAL" />
       <updated>1572648015317</updated>
     </task>
-    <option name="localTasksCounter" value="269" />
+    <task id="LOCAL-00269" summary="Your thumbs up/down of someone should expire, just like other people's ratings do.">
+      <created>1572884708587</created>
+      <option name="number" value="00269" />
+      <option name="presentableId" value="LOCAL-00269" />
+      <option name="project" value="LOCAL" />
+      <updated>1572884708587</updated>
+    </task>
+    <task id="LOCAL-00270" summary="&quot;provide&quot; isn't &quot;peroxide&quot;">
+      <created>1572884733746</created>
+      <option name="number" value="00270" />
+      <option name="presentableId" value="LOCAL-00270" />
+      <option name="project" value="LOCAL" />
+      <updated>1572884733746</updated>
+    </task>
+    <task id="LOCAL-00271" summary="More on identifying active mods.">
+      <created>1572884743344</created>
+      <option name="number" value="00271" />
+      <option name="presentableId" value="LOCAL-00271" />
+      <option name="project" value="LOCAL" />
+      <updated>1572884743344</updated>
+    </task>
+    <option name="localTasksCounter" value="272" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -599,9 +598,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Remove reference to Yahoo TOS from welcome email" />
-    <MESSAGE value="Repost stats" />
-    <MESSAGE value="Icon for chat with mods is wrong" />
     <MESSAGE value="Correct backup of crontabs" />
     <MESSAGE value="Remove bulk1 from backup now retired" />
     <MESSAGE value="Scan messages posted via the Platform for spam as well as those received by email" />
@@ -624,6 +620,9 @@
     <MESSAGE value="Reposting messages not showing in message history" />
     <MESSAGE value="Add URL to story" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Your thumbs up/down of someone should expire, just like other people's ratings do." />
+    <MESSAGE value="&quot;provide&quot; isn't &quot;peroxide&quot;" />
+    <MESSAGE value="More on identifying active mods." />
+    <option name="LAST_COMMIT_MESSAGE" value="More on identifying active mods." />
   </component>
 </project>
