@@ -6,4 +6,8 @@ $url = "https://adview.online/api/v1/jobs.json?publisher=2053&limit=50&radius=5&
 
 $data = file_get_contents($url);
 
+if (array_key_exists('data', $data)) {
+    shuffle($data['data']);
+}
+
 echo $data;
