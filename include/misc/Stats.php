@@ -365,7 +365,14 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $ret = [];
-        $ret['groupids'] = $groupids;
+        $ret['groupids'] = [];
+
+        foreach ($groupids as $groupid) {
+            if ($groupid) {
+                $ret['groupids'][] = $groupid;
+            }
+        }
+
         $start = date('Y-m-d', strtotime($startdate, strtotime($date)));
         #error_log("Start at $start from $startdate");
         $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
