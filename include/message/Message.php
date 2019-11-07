@@ -1097,7 +1097,7 @@ class Message
                 $maxreposts = $repost * $reposts['max'];
                 $rets[$msg['id']]['expiretime'] = max(Message::EXPIRE_TIME, $maxreposts);
 
-                if (!$rets[$msg['id']]['canedit'] && $myid && $myid === $msg['fromuser'] && $msg['source'] == Message::PLATFORM) {
+                if (array_key_exists('canedit', $rets[$msg['id']]) && !$rets[$msg['id']]['canedit'] && $myid && $myid === $msg['fromuser'] && $msg['source'] == Message::PLATFORM) {
                     # This is our own message, which we may be able to edit if the group allows it.
                     $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
                     $ourPS = $me->getMembershipAtt($rets[$msg['id']]['groups'][$groupind]['groupid'], 'ourPostingStatus');
