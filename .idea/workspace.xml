@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/include/message/WorryWords.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/adview.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/adview.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/socat" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/socat" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -218,42 +222,7 @@
       <workItem from="1571733775126" duration="14998000" />
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
-      <workItem from="1572871158327" duration="3596000" />
-    </task>
-    <task id="LOCAL-00225" summary="Photos missing after recent performance fixes">
-      <created>1568562004859</created>
-      <option name="number" value="00225" />
-      <option name="presentableId" value="LOCAL-00225" />
-      <option name="project" value="LOCAL" />
-      <updated>1568562004859</updated>
-    </task>
-    <task id="LOCAL-00226" summary="Modmail count doesn't match modmail logs.">
-      <created>1568627594069</created>
-      <option name="number" value="00226" />
-      <option name="presentableId" value="LOCAL-00226" />
-      <option name="project" value="LOCAL" />
-      <updated>1568627594069</updated>
-    </task>
-    <task id="LOCAL-00227" summary="Not hiding profile images fully when requested to do so">
-      <created>1568630061481</created>
-      <option name="number" value="00227" />
-      <option name="presentableId" value="LOCAL-00227" />
-      <option name="project" value="LOCAL" />
-      <updated>1568630061481</updated>
-    </task>
-    <task id="LOCAL-00228" summary="UT fixes">
-      <created>1568630720035</created>
-      <option name="number" value="00228" />
-      <option name="presentableId" value="LOCAL-00228" />
-      <option name="project" value="LOCAL" />
-      <updated>1568630720035</updated>
-    </task>
-    <task id="LOCAL-00229" summary="Fix Discourse signin loop">
-      <created>1568645409859</created>
-      <option name="number" value="00229" />
-      <option name="presentableId" value="LOCAL-00229" />
-      <option name="project" value="LOCAL" />
-      <updated>1568645409859</updated>
+      <workItem from="1572871158327" duration="16543000" />
     </task>
     <task id="LOCAL-00230" summary="Change job ads to search by nearest city">
       <created>1568710393919</created>
@@ -563,7 +532,42 @@
       <option name="project" value="LOCAL" />
       <updated>1572951123851</updated>
     </task>
-    <option name="localTasksCounter" value="274" />
+    <task id="LOCAL-00274" summary="Add a type of worry word for things that just need reviewing.">
+      <created>1572951238728</created>
+      <option name="number" value="00274" />
+      <option name="presentableId" value="LOCAL-00274" />
+      <option name="project" value="LOCAL" />
+      <updated>1572951238728</updated>
+    </task>
+    <task id="LOCAL-00275" summary="levenshtein call can output loads of text causing API call to fail">
+      <created>1573056902786</created>
+      <option name="number" value="00275" />
+      <option name="presentableId" value="LOCAL-00275" />
+      <option name="project" value="LOCAL" />
+      <updated>1573056902786</updated>
+    </task>
+    <task id="LOCAL-00276" summary="Fix bad HTML in email">
+      <created>1573056933093</created>
+      <option name="number" value="00276" />
+      <option name="presentableId" value="LOCAL-00276" />
+      <option name="project" value="LOCAL" />
+      <updated>1573056933093</updated>
+    </task>
+    <task id="LOCAL-00277" summary="Don't return 0 groupid in stats">
+      <created>1573057998292</created>
+      <option name="number" value="00277" />
+      <option name="presentableId" value="LOCAL-00277" />
+      <option name="project" value="LOCAL" />
+      <updated>1573057998292</updated>
+    </task>
+    <task id="LOCAL-00278" summary="Edit failing in MT">
+      <created>1573127540684</created>
+      <option name="number" value="00278" />
+      <option name="presentableId" value="LOCAL-00278" />
+      <option name="project" value="LOCAL" />
+      <updated>1573127540684</updated>
+    </task>
+    <option name="localTasksCounter" value="279" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -596,10 +600,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Scan messages posted via the Platform for spam as well as those received by email" />
-    <MESSAGE value="Drop announcement messages from Yahoo" />
-    <MESSAGE value="Fixes to group merge" />
-    <MESSAGE value="Bumping when last active on users migrated from Yahoo" />
     <MESSAGE value="Return Discourse info for MT" />
     <MESSAGE value="Return URL for community events" />
     <MESSAGE value="Can't rotate images unless they are message ones." />
@@ -621,6 +621,10 @@
     <MESSAGE value="More on identifying active mods." />
     <MESSAGE value="Randomise order of job ads to liven things up" />
     <MESSAGE value="Add a type of worry word for things that just need reviewing." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add a type of worry word for things that just need reviewing." />
+    <MESSAGE value="levenshtein call can output loads of text causing API call to fail" />
+    <MESSAGE value="Fix bad HTML in email" />
+    <MESSAGE value="Don't return 0 groupid in stats" />
+    <MESSAGE value="Edit failing in MT" />
+    <option name="LAST_COMMIT_MESSAGE" value="Edit failing in MT" />
   </component>
 </project>
