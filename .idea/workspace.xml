@@ -3,10 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/adview.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/adview.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/socat" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/socat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cron/sa_train" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/sa_train" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/restartapp" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/restartapp" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -222,28 +220,7 @@
       <workItem from="1571733775126" duration="14998000" />
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
-      <workItem from="1572871158327" duration="16543000" />
-    </task>
-    <task id="LOCAL-00230" summary="Change job ads to search by nearest city">
-      <created>1568710393919</created>
-      <option name="number" value="00230" />
-      <option name="presentableId" value="LOCAL-00230" />
-      <option name="project" value="LOCAL" />
-      <updated>1568710393919</updated>
-    </task>
-    <task id="LOCAL-00231" summary="UT fixes">
-      <created>1568711501111</created>
-      <option name="number" value="00231" />
-      <option name="presentableId" value="LOCAL-00231" />
-      <option name="project" value="LOCAL" />
-      <updated>1568711501111</updated>
-    </task>
-    <task id="LOCAL-00232" summary="ChitChat thread head broken by recent fixes, not that anyone will notice apart from me">
-      <created>1568713834282</created>
-      <option name="number" value="00232" />
-      <option name="presentableId" value="LOCAL-00232" />
-      <option name="project" value="LOCAL" />
-      <updated>1568713834283</updated>
+      <workItem from="1572871158327" duration="17559000" />
     </task>
     <task id="LOCAL-00233" summary="Suppress &quot;Read receipt&quot; messages">
       <created>1568714042769</created>
@@ -567,7 +544,28 @@
       <option name="project" value="LOCAL" />
       <updated>1573127540684</updated>
     </task>
-    <option name="localTasksCounter" value="279" />
+    <task id="LOCAL-00279" summary="Job ad shuffing not working">
+      <created>1573379892251</created>
+      <option name="number" value="00279" />
+      <option name="presentableId" value="LOCAL-00279" />
+      <option name="project" value="LOCAL" />
+      <updated>1573379892251</updated>
+    </task>
+    <task id="LOCAL-00280" summary="Capture error output from database connection proxying">
+      <created>1573379905943</created>
+      <option name="number" value="00280" />
+      <option name="presentableId" value="LOCAL-00280" />
+      <option name="project" value="LOCAL" />
+      <updated>1573379905943</updated>
+    </task>
+    <task id="LOCAL-00281" summary="Fix stats gap">
+      <created>1573379932048</created>
+      <option name="number" value="00281" />
+      <option name="presentableId" value="LOCAL-00281" />
+      <option name="project" value="LOCAL" />
+      <updated>1573379932048</updated>
+    </task>
+    <option name="localTasksCounter" value="282" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -600,9 +598,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Return Discourse info for MT" />
-    <MESSAGE value="Return URL for community events" />
-    <MESSAGE value="Can't rotate images unless they are message ones." />
     <MESSAGE value="Remove temp files after message parsing" />
     <MESSAGE value="Fix warning" />
     <MESSAGE value="Add URL for volunteer opportunities" />
@@ -625,6 +620,9 @@
     <MESSAGE value="Fix bad HTML in email" />
     <MESSAGE value="Don't return 0 groupid in stats" />
     <MESSAGE value="Edit failing in MT" />
-    <option name="LAST_COMMIT_MESSAGE" value="Edit failing in MT" />
+    <MESSAGE value="Job ad shuffing not working" />
+    <MESSAGE value="Capture error output from database connection proxying" />
+    <MESSAGE value="Fix stats gap" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix stats gap" />
   </component>
 </project>
