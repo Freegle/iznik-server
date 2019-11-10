@@ -4,4 +4,4 @@
 # TCP.
 killall -9 socat
 cd /var/www/iznik/scripts
-nohup socat TCP4-LISTEN:3306,fork UNIX-CONNECT:/var/run/mysqld/mysqld.sock&
+nohup socat TCP4-LISTEN:3306,fork UNIX-CONNECT:/var/run/mysqld/mysqld.sock 2>&1&
