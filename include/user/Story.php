@@ -209,7 +209,9 @@ class Story extends Entity
     public function getStories($groupid, $story, $limit = 20, $reviewnewsletter = FALSE) {
         $limit = intval($limit);
         if ($reviewnewsletter) {
-            $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE newsletter = 1 AND mailedtomembers = 0 ORDER BY RAND();";
+            $last = $this->dbhr->preQuery("SELECT MAX(created) AS max FROM newsletters WHERE type = 'Stories';");
+            $since = $last[0]['max'];
+            $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE newsletter = 1 AND mailedtomembers = 0 AND date >= '$since' ORDER BY RAND();";
         } else {
             $sql1 = "SELECT DISTINCT users_stories.id FROM users_stories WHERE reviewed = 1 AND public = 1 AND userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
             $sql2 = "SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid = $groupid AND reviewed = 1 AND public = 1 AND users_stories.userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
@@ -388,6 +390,7 @@ class Story extends Entity
             $nid = $n->create(NULL,
                 "Lovely stories from other freeglers!",
                 "This is a selection of recent stories from other freeglers.  If you can't read the HTML version, have a look at https://" . USER_SITE . '/stories');
+            $n->setPrivate('type', 'Stories');
 
             # Heading intro.
             $header = story_newsletter();
