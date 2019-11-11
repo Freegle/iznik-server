@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/group/CommunityEvent.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/group/CommunityEvent.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/communityEventTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/communityEventTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -221,14 +219,8 @@
       <workItem from="1571733775126" duration="14998000" />
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
-      <workItem from="1572871158327" duration="25049000" />
-    </task>
-    <task id="LOCAL-00236" summary="Holiday setting broken by recent changes">
-      <created>1568819622670</created>
-      <option name="number" value="00236" />
-      <option name="presentableId" value="LOCAL-00236" />
-      <option name="project" value="LOCAL" />
-      <updated>1568819622670</updated>
+      <workItem from="1572871158327" duration="26018000" />
+      <workItem from="1573490489986" duration="990000" />
     </task>
     <task id="LOCAL-00237" summary="Approved by broken by recent changes">
       <created>1568828748557</created>
@@ -566,7 +558,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573474776634</updated>
     </task>
-    <option name="localTasksCounter" value="285" />
+    <task id="LOCAL-00285" summary="Events showing as editable which shouldn't be.">
+      <created>1573482433057</created>
+      <option name="number" value="00285" />
+      <option name="presentableId" value="LOCAL-00285" />
+      <option name="project" value="LOCAL" />
+      <updated>1573482433057</updated>
+    </task>
+    <option name="localTasksCounter" value="286" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -599,7 +598,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups" />
     <MESSAGE value="Yahoo Announcement mails flooding our system" />
     <MESSAGE value="Add link to other donation mechanisms" />
     <MESSAGE value="WorryWords" />
@@ -624,6 +622,7 @@
     <MESSAGE value="Fix a couple of old references to hhvm" />
     <MESSAGE value="Allow force verification of email" />
     <MESSAGE value="Newsletter story created with wrong type" />
-    <option name="LAST_COMMIT_MESSAGE" value="Newsletter story created with wrong type" />
+    <MESSAGE value="Events showing as editable which shouldn't be." />
+    <option name="LAST_COMMIT_MESSAGE" value="Events showing as editable which shouldn't be." />
   </component>
 </project>

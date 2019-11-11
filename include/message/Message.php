@@ -2790,33 +2790,35 @@ ORDER BY lastdate DESC;";
             # We can do a simple substitution in the from name.
             $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
-            if (ourDomain($to)) {
-                # This is a user who we host.  We can therefore send the message via chat.  This is better than
-                # sending it by email and then parsing the email later to work out what we intended to send and
-                # construct a chat message from it :-).
-                $cconly = TRUE;
-                $r = new ChatRoom($this->dbhr, $this->dbhm);
-                $rid = $r->createUser2Mod($this->getFromuser(), $groupid);
+            # We add the message into chat.  For users who we host, we leave the message unseen; that will then
+            # later generate a notification to them.  Otherwise we mail them the message and mark it as seen,
+            # because they would get confused by a mail in our notification format.
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            $rid = $r->createUser2Mod($this->getFromuser(), $groupid);
 
-                if ($rid) {
-                    $m = new ChatMessage($this->dbhr, $this->dbhm);
-                    $mid = $m->create($rid,
-                        $myid,
-                        "$subject\r\n\r\n$body",
-                        ChatMessage::TYPE_MODMAIL,
-                        $this->id,
-                        FALSE,
-                        NULL);
+            if ($rid) {
+                $m = new ChatMessage($this->dbhr, $this->dbhm);
+                $mid = $m->create($rid,
+                    $myid,
+                    "$subject\r\n\r\n$body",
+                    ChatMessage::TYPE_MODMAIL,
+                    $this->id,
+                    FALSE,
+                    NULL);
 
-                    $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->getFromuser() . " $to)\n\n" . $body);
+                $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->getFromuser() . " $to)\n\n" . $body);
 
-                    # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
-                    # appearing as unread to us and other mods.
-                    $r->updateRoster($myid, $mid);
-                }
-            } else {
-                # For other users, we send the message out by mail.
+                # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
+                # appearing as unread to us and other mods.
+                $r->updateRoster($myid, $mid);
+            }
+
+            if (!ourDomain($to)) {
+                # Mail it out, naked of any of our notification wrapping.
                 $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
+
+                # Mark the message as seen, because have mailed it.
+                $r->updateRoster($myid, $this->getFromuser());
             }
         }
     }
