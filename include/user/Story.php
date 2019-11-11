@@ -341,7 +341,7 @@ class Story extends Entity
             $html = story_central(CENTRAL_MAIL_TO, CENTRAL_MAIL_TO, $url, $html);
 
             $message = Swift_Message::newInstance()
-                ->setSubject("Recent stories from freeglers")
+                ->setSubject(date("d-M-Y")." Recent stories from freeglers")
                 ->setFrom([CENTRAL_MAIL_FROM => SITE_NAME])
                 ->setReturnPath(CENTRAL_MAIL_FROM)
                 ->setTo(CENTRAL_MAIL_TO)
