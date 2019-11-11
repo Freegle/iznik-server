@@ -449,8 +449,9 @@ function session() {
                 $ret = ['ret' => 0, 'status' => 'Success'];
 
                 $email = presdef('email', $_REQUEST, NULL);
+                $force = array_key_exists('force', $_REQUEST) ? filter_var($_REQUEST['force'], FILTER_VALIDATE_BOOLEAN) : FALSE;
                 if ($email) {
-                    if (!$me->verifyEmail($email)) {
+                    if (!$me->verifyEmail($email, $force)) {
                         $ret = ['ret' => 10, 'status' => "We've sent a verification mail; please check your mailbox." ];
                     }
                 }

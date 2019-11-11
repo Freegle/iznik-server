@@ -3,8 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cron/sa_train" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/sa_train" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/restartapp" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/restartapp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -220,14 +220,7 @@
       <workItem from="1571733775126" duration="14998000" />
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
-      <workItem from="1572871158327" duration="17559000" />
-    </task>
-    <task id="LOCAL-00233" summary="Suppress &quot;Read receipt&quot; messages">
-      <created>1568714042769</created>
-      <option name="number" value="00233" />
-      <option name="presentableId" value="LOCAL-00233" />
-      <option name="project" value="LOCAL" />
-      <updated>1568714042770</updated>
+      <workItem from="1572871158327" duration="21015000" />
     </task>
     <task id="LOCAL-00234" summary="Discourse SSO should only work for Freegle mods">
       <created>1568719695399</created>
@@ -565,7 +558,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573379932048</updated>
     </task>
-    <option name="localTasksCounter" value="282" />
+    <task id="LOCAL-00282" summary="Fix a couple of old references to hhvm">
+      <created>1573380863726</created>
+      <option name="number" value="00282" />
+      <option name="presentableId" value="LOCAL-00282" />
+      <option name="project" value="LOCAL" />
+      <updated>1573380863726</updated>
+    </task>
+    <option name="localTasksCounter" value="283" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -598,7 +598,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Remove temp files after message parsing" />
     <MESSAGE value="Fix warning" />
     <MESSAGE value="Add URL for volunteer opportunities" />
     <MESSAGE value="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups" />
@@ -623,6 +622,7 @@
     <MESSAGE value="Job ad shuffing not working" />
     <MESSAGE value="Capture error output from database connection proxying" />
     <MESSAGE value="Fix stats gap" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix stats gap" />
+    <MESSAGE value="Fix a couple of old references to hhvm" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix a couple of old references to hhvm" />
   </component>
 </project>

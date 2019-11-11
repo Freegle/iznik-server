@@ -3741,17 +3741,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->sendIt($mailer, $message);
     }
 
-    public function verifyEmail($email)
+    public function verifyEmail($email, $force = false)
     {
         # If this is one of our current emails, then we can just make it the primary.
         $emails = $this->getEmails();
         $handled = FALSE;
 
-        foreach ($emails as $anemail) {
-            if ($anemail['email'] == $email) {
-                # It's one of ours already; make sure it's flagged as primary.
-                $this->addEmail($email, 1);
-                $handled = TRUE;
+        if (!$force) {
+            foreach ($emails as $anemail) {
+                if ($anemail['email'] == $email) {
+                    # It's one of ours already; make sure it's flagged as primary.
+                    $this->addEmail($email, 1);
+                    $handled = TRUE;
+                }
             }
         }
 
