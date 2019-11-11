@@ -63,9 +63,7 @@ EOT;
                                                             <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                         </tr>
                                                         <tr>
-                                                            <td colspan="2">
-                                                                <font color=gray><hr></font>
-                                                            </td>
+                                                            <td height="3" style="font-size:3px; line-height:3px; border-top:1px solid grey;"> </td><!-- Dark -->
                                                         </tr>        
                                                         <tr>
                                                             <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->

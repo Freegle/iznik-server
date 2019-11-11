@@ -6,7 +6,7 @@ function story_one($groupname, $headline, $story, $hr = TRUE) {
         '<p>' . nl2br(trim($story)) . '</p>';
 
     if ($hr) {
-        $html .= '<span style="color: gray"><hr></span>';
+        $html .= '<p style="font-size:3px; line-height:3px; border-top:1px solid grey;">&nbsp;</p>';
     }
 
     return($html);
