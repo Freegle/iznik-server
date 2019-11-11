@@ -3,7 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/Story.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/Story.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/group/CommunityEvent.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/group/CommunityEvent.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/communityEventTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/communityEventTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -107,7 +109,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.worryWordsTest.testEH">
+  <component name="RunManager" selected="PHPUnit.volunteeringAPITest.testCreate">
     <configuration name="MailRouterTest.testWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testWorry" scope="Method" use_alternative_configuration_file="true" />
@@ -118,9 +120,9 @@
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageAPITest.testNativeWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="communityEventAPITest.testCreate" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testNativeWorry" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="communityEventAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/communityEventTest.php" method="testCreate" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="userTest.testBadYahooId" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -128,9 +130,9 @@
       <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testBadYahooId" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="worryWordsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="volunteeringAPITest.testCreate" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" scope="Class" use_alternative_configuration_file="true" />
+      <TestRunner class="volunteeringAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" method="testCreate" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="worryWordsTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -139,19 +141,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
-      <item itemvalue="PHPUnit.worryWordsTest" />
       <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
       <item itemvalue="PHPUnit.userTest.testBadYahooId" />
       <item itemvalue="PHPUnit.worryWordsTest.testEH" />
+      <item itemvalue="PHPUnit.communityEventAPITest.testCreate" />
+      <item itemvalue="PHPUnit.volunteeringAPITest.testCreate" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.volunteeringAPITest.testCreate" />
+        <item itemvalue="PHPUnit.communityEventAPITest.testCreate" />
         <item itemvalue="PHPUnit.worryWordsTest.testEH" />
         <item itemvalue="PHPUnit.userTest.testBadYahooId" />
         <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
-        <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
-        <item itemvalue="PHPUnit.worryWordsTest" />
       </list>
     </recent_temporary>
   </component>
@@ -219,14 +221,7 @@
       <workItem from="1571733775126" duration="14998000" />
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
-      <workItem from="1572871158327" duration="22268000" />
-    </task>
-    <task id="LOCAL-00235" summary="Allow spaces in Discourse usernames">
-      <created>1568819610314</created>
-      <option name="number" value="00235" />
-      <option name="presentableId" value="LOCAL-00235" />
-      <option name="project" value="LOCAL" />
-      <updated>1568819610314</updated>
+      <workItem from="1572871158327" duration="25049000" />
     </task>
     <task id="LOCAL-00236" summary="Holiday setting broken by recent changes">
       <created>1568819622670</created>
@@ -564,7 +559,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573464445142</updated>
     </task>
-    <option name="localTasksCounter" value="284" />
+    <task id="LOCAL-00284" summary="Newsletter story created with wrong type">
+      <created>1573474776634</created>
+      <option name="number" value="00284" />
+      <option name="presentableId" value="LOCAL-00284" />
+      <option name="project" value="LOCAL" />
+      <updated>1573474776634</updated>
+    </task>
+    <option name="localTasksCounter" value="285" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -597,7 +599,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Add URL for volunteer opportunities" />
     <MESSAGE value="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups" />
     <MESSAGE value="Yahoo Announcement mails flooding our system" />
     <MESSAGE value="Add link to other donation mechanisms" />
@@ -622,6 +623,7 @@
     <MESSAGE value="Fix stats gap" />
     <MESSAGE value="Fix a couple of old references to hhvm" />
     <MESSAGE value="Allow force verification of email" />
-    <option name="LAST_COMMIT_MESSAGE" value="Allow force verification of email" />
+    <MESSAGE value="Newsletter story created with wrong type" />
+    <option name="LAST_COMMIT_MESSAGE" value="Newsletter story created with wrong type" />
   </component>
 </project>
