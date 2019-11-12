@@ -83,7 +83,7 @@ function user() {
 
                     $ret['logcontext'] = $ctx;
 
-                    if ($info && $id && $u->getId() === $id) {
+                    if ($info && $id && $u->getId() == $id) {
                         $u->ensureAvatar($ret['user']);
                         $ret['user']['info'] = $u->getInfo();
                     }

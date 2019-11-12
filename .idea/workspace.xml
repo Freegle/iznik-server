@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/user.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/user.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -107,15 +107,15 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.volunteeringAPITest.testCreate">
-    <configuration name="MailRouterTest.testWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testWorry" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="PHPUnit.chatRoomsAPITest.testNudge">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="chatRoomsAPITest.testNudge" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="chatRoomsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" method="testNudge" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="communityEventAPITest.testCreate" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -139,19 +139,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
       <item itemvalue="PHPUnit.userTest.testBadYahooId" />
       <item itemvalue="PHPUnit.worryWordsTest.testEH" />
       <item itemvalue="PHPUnit.communityEventAPITest.testCreate" />
       <item itemvalue="PHPUnit.volunteeringAPITest.testCreate" />
+      <item itemvalue="PHPUnit.chatRoomsAPITest.testNudge" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.chatRoomsAPITest.testNudge" />
         <item itemvalue="PHPUnit.volunteeringAPITest.testCreate" />
         <item itemvalue="PHPUnit.communityEventAPITest.testCreate" />
         <item itemvalue="PHPUnit.worryWordsTest.testEH" />
         <item itemvalue="PHPUnit.userTest.testBadYahooId" />
-        <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
       </list>
     </recent_temporary>
   </component>
@@ -220,21 +220,7 @@
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
       <workItem from="1572871158327" duration="26018000" />
-      <workItem from="1573490489986" duration="990000" />
-    </task>
-    <task id="LOCAL-00237" summary="Approved by broken by recent changes">
-      <created>1568828748557</created>
-      <option name="number" value="00237" />
-      <option name="presentableId" value="LOCAL-00237" />
-      <option name="project" value="LOCAL" />
-      <updated>1568828748557</updated>
-    </task>
-    <task id="LOCAL-00238" summary="Open OFFER count broken recently">
-      <created>1568842353672</created>
-      <option name="number" value="00238" />
-      <option name="presentableId" value="LOCAL-00238" />
-      <option name="project" value="LOCAL" />
-      <updated>1568842353672</updated>
+      <workItem from="1573490489986" duration="4548000" />
     </task>
     <task id="LOCAL-00239" summary="Replies missing from My Posts">
       <created>1568967581027</created>
@@ -565,7 +551,21 @@
       <option name="project" value="LOCAL" />
       <updated>1573482433057</updated>
     </task>
-    <option name="localTasksCounter" value="286" />
+    <task id="LOCAL-00286" summary="ModMails to TN users don't show up in chat">
+      <created>1573491821074</created>
+      <option name="number" value="00286" />
+      <option name="presentableId" value="LOCAL-00286" />
+      <option name="project" value="LOCAL" />
+      <updated>1573491821074</updated>
+    </task>
+    <task id="LOCAL-00287" summary="Avoid returning DB error">
+      <created>1573572607395</created>
+      <option name="number" value="00287" />
+      <option name="presentableId" value="LOCAL-00287" />
+      <option name="project" value="LOCAL" />
+      <updated>1573572607395</updated>
+    </task>
+    <option name="localTasksCounter" value="288" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -598,8 +598,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Yahoo Announcement mails flooding our system" />
-    <MESSAGE value="Add link to other donation mechanisms" />
     <MESSAGE value="WorryWords" />
     <MESSAGE value="Possible fix for chat repeatedly mailing" />
     <MESSAGE value="Another message footer" />
@@ -623,6 +621,8 @@
     <MESSAGE value="Allow force verification of email" />
     <MESSAGE value="Newsletter story created with wrong type" />
     <MESSAGE value="Events showing as editable which shouldn't be." />
-    <option name="LAST_COMMIT_MESSAGE" value="Events showing as editable which shouldn't be." />
+    <MESSAGE value="ModMails to TN users don't show up in chat" />
+    <MESSAGE value="Avoid returning DB error" />
+    <option name="LAST_COMMIT_MESSAGE" value="Avoid returning DB error" />
   </component>
 </project>
