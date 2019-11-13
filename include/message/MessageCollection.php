@@ -484,9 +484,8 @@ class MessageCollection
         $mysqltime = date("Y-m-d H:i:s", strtotime($since));
 
         # We want messages which have been deleted, or had an outcome.
-        $changes = $this->dbhm->preQuery("SELECT messages.id, messages.deleted AS timestamp, 'Deleted' AS `type` FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages.deleted > ? AND messages_groups.collection = ? UNION SELECT msgid AS id, timestamp, outcome AS `type` FROM messages_outcomes WHERE timestamp > ? UNION SELECT msgid AS id, timestamp, 'Edited' AS `type` FROM messages_edits WHERE timestamp > ?;", [
+        $changes = $this->dbhm->preQuery("SELECT id, deleted AS timestamp, 'Deleted' AS `type` FROM messages WHERE deleted > ? UNION SELECT msgid AS id, timestamp, outcome AS `type` FROM messages_outcomes WHERE timestamp > ? UNION SELECT msgid AS id, timestamp, 'Edited' AS `type` FROM messages_edits WHERE timestamp > ?;", [
             $mysqltime,
-            MessageCollection::APPROVED,
             $mysqltime,
             $mysqltime
         ]);

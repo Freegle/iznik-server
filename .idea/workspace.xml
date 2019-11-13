@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Don't return messages in changes call while they are still in Pending">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -220,14 +219,7 @@
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
       <workItem from="1572871158327" duration="26018000" />
-      <workItem from="1573490489986" duration="6818000" />
-    </task>
-    <task id="LOCAL-00240" summary="Make domain delay warning less trigger-happy.">
-      <created>1569052538189</created>
-      <option name="number" value="00240" />
-      <option name="presentableId" value="LOCAL-00240" />
-      <option name="project" value="LOCAL" />
-      <updated>1569052538190</updated>
+      <workItem from="1573490489986" duration="7139000" />
     </task>
     <task id="LOCAL-00241" summary="Can't edit away last attachment">
       <created>1569082418574</created>
@@ -565,7 +557,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573574148795</updated>
     </task>
-    <option name="localTasksCounter" value="289" />
+    <task id="LOCAL-00289" summary="Don't return messages in changes call while they are still in Pending">
+      <created>1573656943160</created>
+      <option name="number" value="00289" />
+      <option name="presentableId" value="LOCAL-00289" />
+      <option name="project" value="LOCAL" />
+      <updated>1573656943160</updated>
+    </task>
+    <option name="localTasksCounter" value="290" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -598,7 +597,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="WorryWords" />
     <MESSAGE value="Possible fix for chat repeatedly mailing" />
     <MESSAGE value="Another message footer" />
     <MESSAGE value="Per-group donation raised figure is wrong.  Script to find active mods." />
@@ -623,6 +621,7 @@
     <MESSAGE value="ModMails to TN users don't show up in chat" />
     <MESSAGE value="Avoid returning DB error" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Don't return messages in changes call while they are still in Pending" />
+    <option name="LAST_COMMIT_MESSAGE" value="Don't return messages in changes call while they are still in Pending" />
   </component>
 </project>
