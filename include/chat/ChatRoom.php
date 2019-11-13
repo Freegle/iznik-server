@@ -123,23 +123,28 @@ WHERE chat_rooms.id IN $idlist;";
         $refmsgids = [];
 
         foreach ($rooms as &$room) {
+            $room['u1name'] = presdef('u1name', $room, 'Someone');
+            $room['u2name'] = presdef('u2name', $room, 'Someone');
+
             if (pres('lastdate', $room)) {
                 $room['lastdate'] = ISODate($room['lastdate']);
                 $room['latestmessage'] = ISODate($room['latestmessage']);
             }
 
-            # We might be forbidden from showing the profiles.
-            $u1settings = pres('u1settings', $room) ? json_decode($room['u1settings'], TRUE) : NULL;
-            $u2settings = pres('u2settings', $room) ? json_decode($room['u2settings'], TRUE) : NULL;
+            if (!MODTOOLS) {
+                # We might be forbidden from showing the profiles.
+                $u1settings = pres('u1settings', $room) ? json_decode($room['u1settings'], TRUE) : NULL;
+                $u2settings = pres('u2settings', $room) ? json_decode($room['u2settings'], TRUE) : NULL;
 
-            if ($u1settings !== NULL && !pres('useprofile', $u1settings)) {
-                $room['u1imageurl'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
-                unset($room['u1imagedata']);
-            }
+                if ($u1settings !== NULL && !pres('useprofile', $u1settings)) {
+                    $room['u1imageurl'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+                    unset($room['u1imagedata']);
+                }
 
-            if ($u2settings !== NULL && !pres('useprofile', $u2settings)) {
-                $room['u2imageurl'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
-                unset($room['u2imagedata']);
+                if ($u2settings !== NULL && !pres('useprofile', $u2settings)) {
+                    $room['u2imageurl'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+                    unset($room['u2imagedata']);
+                }
             }
 
             if (!pres('u1imageurl', $room) && pres('u1imagedata', $room)) {
