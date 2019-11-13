@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Don't return messages in changes call while they are still in Pending">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/user.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/user.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -220,14 +220,7 @@
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
       <workItem from="1572871158327" duration="26018000" />
-      <workItem from="1573490489986" duration="4548000" />
-    </task>
-    <task id="LOCAL-00239" summary="Replies missing from My Posts">
-      <created>1568967581027</created>
-      <option name="number" value="00239" />
-      <option name="presentableId" value="LOCAL-00239" />
-      <option name="project" value="LOCAL" />
-      <updated>1568967581027</updated>
+      <workItem from="1573490489986" duration="6818000" />
     </task>
     <task id="LOCAL-00240" summary="Make domain delay warning less trigger-happy.">
       <created>1569052538189</created>
@@ -565,7 +558,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573572607395</updated>
     </task>
-    <option name="localTasksCounter" value="288" />
+    <task id="LOCAL-00288" summary="UT fixes">
+      <created>1573574148795</created>
+      <option name="number" value="00288" />
+      <option name="presentableId" value="LOCAL-00288" />
+      <option name="project" value="LOCAL" />
+      <updated>1573574148795</updated>
+    </task>
+    <option name="localTasksCounter" value="289" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +604,6 @@
     <MESSAGE value="Per-group donation raised figure is wrong.  Script to find active mods." />
     <MESSAGE value="Reposting messages not showing in message history" />
     <MESSAGE value="Add URL to story" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Your thumbs up/down of someone should expire, just like other people's ratings do." />
     <MESSAGE value="&quot;provide&quot; isn't &quot;peroxide&quot;" />
     <MESSAGE value="More on identifying active mods." />
@@ -623,6 +622,7 @@
     <MESSAGE value="Events showing as editable which shouldn't be." />
     <MESSAGE value="ModMails to TN users don't show up in chat" />
     <MESSAGE value="Avoid returning DB error" />
-    <option name="LAST_COMMIT_MESSAGE" value="Avoid returning DB error" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>
