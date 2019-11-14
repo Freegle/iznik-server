@@ -28,6 +28,18 @@ function status()
         $warningtext = NULL;
         $errortext = NULL;
 
+        # Get beanstalk queue length.
+        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' "echo -e \"stats\\\\\\\\r\\\\\\\\nquit\\\\\\\\r\\\\\\\\n\" | nc localhost 11300 | grep current-jobs-ready 2>&1"';
+        $op = shell_exec($cmd);
+        $info[$host]['beanstalk'] = $op;
+        $count = intval(substr($op, 20));
+
+        if ($count > 10000) {
+            $warning = TRUE;
+            $overallwarning = TRUE;
+            $warningtext = "beanstalkd queue large ($count)";
+        }
+
         $op = shell_exec("ssh -oStrictHostKeyChecking=no root@$host monit summary 2>&1");
         #error_log("$host returned $op err " );
         $info[$host]['monit'] = $op;
