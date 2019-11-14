@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -220,14 +219,7 @@
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
       <workItem from="1572871158327" duration="26018000" />
-      <workItem from="1573490489986" duration="17538000" />
-    </task>
-    <task id="LOCAL-00245" summary="Correct backup of crontabs">
-      <created>1571144692862</created>
-      <option name="number" value="00245" />
-      <option name="presentableId" value="LOCAL-00245" />
-      <option name="project" value="LOCAL" />
-      <updated>1571144692862</updated>
+      <workItem from="1573490489986" duration="18713000" />
     </task>
     <task id="LOCAL-00246" summary="Remove bulk1 from backup now retired">
       <created>1571213574755</created>
@@ -565,7 +557,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573749648788</updated>
     </task>
-    <option name="localTasksCounter" value="294" />
+    <task id="LOCAL-00294" summary="UT fixes">
+      <created>1573750766480</created>
+      <option name="number" value="00294" />
+      <option name="presentableId" value="LOCAL-00294" />
+      <option name="project" value="LOCAL" />
+      <updated>1573750766480</updated>
+    </task>
+    <option name="localTasksCounter" value="295" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -617,12 +616,12 @@
     <MESSAGE value="Events showing as editable which shouldn't be." />
     <MESSAGE value="ModMails to TN users don't show up in chat" />
     <MESSAGE value="Avoid returning DB error" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Don't return messages in changes call while they are still in Pending" />
     <MESSAGE value="Back out previous change" />
     <MESSAGE value="Missing username in chat list on MT" />
     <MESSAGE value="Add check for beanstalk queue length" />
     <MESSAGE value="User location wrong on chitchat" />
-    <option name="LAST_COMMIT_MESSAGE" value="User location wrong on chitchat" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>

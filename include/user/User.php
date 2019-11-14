@@ -4620,7 +4620,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $groups = $this->dbhr->preQuery($sql, [
                         $lng,
                         $lat,
-                        $atts['id']
+                        $att['id']
                     ]);
 
                     foreach ($groups as $group) {
