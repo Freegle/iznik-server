@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -219,35 +220,7 @@
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
       <workItem from="1572871158327" duration="26018000" />
-      <workItem from="1573490489986" duration="7139000" />
-    </task>
-    <task id="LOCAL-00241" summary="Can't edit away last attachment">
-      <created>1569082418574</created>
-      <option name="number" value="00241" />
-      <option name="presentableId" value="LOCAL-00241" />
-      <option name="project" value="LOCAL" />
-      <updated>1569082418574</updated>
-    </task>
-    <task id="LOCAL-00242" summary="Remove reference to Yahoo TOS from welcome email">
-      <created>1569228099488</created>
-      <option name="number" value="00242" />
-      <option name="presentableId" value="LOCAL-00242" />
-      <option name="project" value="LOCAL" />
-      <updated>1569228099488</updated>
-    </task>
-    <task id="LOCAL-00243" summary="Repost stats">
-      <created>1569398135956</created>
-      <option name="number" value="00243" />
-      <option name="presentableId" value="LOCAL-00243" />
-      <option name="project" value="LOCAL" />
-      <updated>1569398135956</updated>
-    </task>
-    <task id="LOCAL-00244" summary="Icon for chat with mods is wrong">
-      <created>1569584125265</created>
-      <option name="number" value="00244" />
-      <option name="presentableId" value="LOCAL-00244" />
-      <option name="project" value="LOCAL" />
-      <updated>1569584125266</updated>
+      <workItem from="1573490489986" duration="17538000" />
     </task>
     <task id="LOCAL-00245" summary="Correct backup of crontabs">
       <created>1571144692862</created>
@@ -564,7 +537,35 @@
       <option name="project" value="LOCAL" />
       <updated>1573656943160</updated>
     </task>
-    <option name="localTasksCounter" value="290" />
+    <task id="LOCAL-00290" summary="Back out previous change">
+      <created>1573657236214</created>
+      <option name="number" value="00290" />
+      <option name="presentableId" value="LOCAL-00290" />
+      <option name="project" value="LOCAL" />
+      <updated>1573657236214</updated>
+    </task>
+    <task id="LOCAL-00291" summary="Missing username in chat list on MT">
+      <created>1573662767501</created>
+      <option name="number" value="00291" />
+      <option name="presentableId" value="LOCAL-00291" />
+      <option name="project" value="LOCAL" />
+      <updated>1573662767501</updated>
+    </task>
+    <task id="LOCAL-00292" summary="Add check for beanstalk queue length">
+      <created>1573730789223</created>
+      <option name="number" value="00292" />
+      <option name="presentableId" value="LOCAL-00292" />
+      <option name="project" value="LOCAL" />
+      <updated>1573730789223</updated>
+    </task>
+    <task id="LOCAL-00293" summary="User location wrong on chitchat">
+      <created>1573749648788</created>
+      <option name="number" value="00293" />
+      <option name="presentableId" value="LOCAL-00293" />
+      <option name="project" value="LOCAL" />
+      <updated>1573749648788</updated>
+    </task>
+    <option name="localTasksCounter" value="294" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -597,10 +598,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Possible fix for chat repeatedly mailing" />
-    <MESSAGE value="Another message footer" />
-    <MESSAGE value="Per-group donation raised figure is wrong.  Script to find active mods." />
-    <MESSAGE value="Reposting messages not showing in message history" />
     <MESSAGE value="Add URL to story" />
     <MESSAGE value="Your thumbs up/down of someone should expire, just like other people's ratings do." />
     <MESSAGE value="&quot;provide&quot; isn't &quot;peroxide&quot;" />
@@ -622,6 +619,10 @@
     <MESSAGE value="Avoid returning DB error" />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Don't return messages in changes call while they are still in Pending" />
-    <option name="LAST_COMMIT_MESSAGE" value="Don't return messages in changes call while they are still in Pending" />
+    <MESSAGE value="Back out previous change" />
+    <MESSAGE value="Missing username in chat list on MT" />
+    <MESSAGE value="Add check for beanstalk queue length" />
+    <MESSAGE value="User location wrong on chitchat" />
+    <option name="LAST_COMMIT_MESSAGE" value="User location wrong on chitchat" />
   </component>
 </project>
