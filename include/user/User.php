@@ -4616,13 +4616,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     # Find the group of which we are a member which is closest to our location.  We do this because generally
                     # the number of groups we're in is small and therefore this will be quick, whereas the groupsNear call is
                     # fairly slow.
-                    if (!$groups) {
-                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, ST_distance(POINT(?, ?), polyindex) AS dist FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(',', $userids) . ") AND polyindex IS NOT NULL AND onmap = 1 ORDER BY dist DESC;";
-                        $groups = $this->dbhr->preQuery($sql, [
-                            $lng,
-                            $lat
-                        ]);
-                    }
+                    $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, ST_distance(POINT(?, ?), polyindex) AS dist FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND polyindex IS NOT NULL AND onmap = 1 ORDER BY dist DESC;";
+                    $groups = $this->dbhr->preQuery($sql, [
+                        $lng,
+                        $lat,
+                        $atts['userid']
+                    ]);
 
                     foreach ($groups as $group) {
                         if ($group['userid'] == $att['id']) {
