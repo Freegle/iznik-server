@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -220,14 +220,7 @@
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
       <workItem from="1572871158327" duration="26018000" />
-      <workItem from="1573490489986" duration="21375000" />
-    </task>
-    <task id="LOCAL-00247" summary="Scan messages posted via the Platform for spam as well as those received by email">
-      <created>1571332838267</created>
-      <option name="number" value="00247" />
-      <option name="presentableId" value="LOCAL-00247" />
-      <option name="project" value="LOCAL" />
-      <updated>1571332838267</updated>
+      <workItem from="1573490489986" duration="22184000" />
     </task>
     <task id="LOCAL-00248" summary="Drop announcement messages from Yahoo">
       <created>1571339959443</created>
@@ -565,7 +558,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573751940854</updated>
     </task>
-    <option name="localTasksCounter" value="296" />
+    <task id="LOCAL-00296" summary="Don't mail out very old chat messages">
+      <created>1573809476855</created>
+      <option name="number" value="00296" />
+      <option name="presentableId" value="LOCAL-00296" />
+      <option name="project" value="LOCAL" />
+      <updated>1573809476855</updated>
+    </task>
+    <option name="localTasksCounter" value="297" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -598,7 +598,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Add URL to story" />
     <MESSAGE value="Your thumbs up/down of someone should expire, just like other people's ratings do." />
     <MESSAGE value="&quot;provide&quot; isn't &quot;peroxide&quot;" />
     <MESSAGE value="More on identifying active mods." />
@@ -623,6 +622,7 @@
     <MESSAGE value="Add check for beanstalk queue length" />
     <MESSAGE value="User location wrong on chitchat" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Don't mail out very old chat messages" />
+    <option name="LAST_COMMIT_MESSAGE" value="Don't mail out very old chat messages" />
   </component>
 </project>
