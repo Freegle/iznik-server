@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/WorryWords.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -107,7 +108,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.chatRoomsAPITest.testNudge">
+  <component name="RunManager" selected="PHPUnit.worryWordsTest.testGroup">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -123,11 +124,6 @@
       <TestRunner class="communityEventAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/communityEventTest.php" method="testCreate" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="userTest.testBadYahooId" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testBadYahooId" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <configuration name="volunteeringAPITest.testCreate" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="volunteeringAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/VolunteeringTest.php" method="testCreate" scope="Method" use_alternative_configuration_file="true" />
@@ -138,20 +134,25 @@
       <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="worryWordsTest.testGroup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testGroup" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <list>
-      <item itemvalue="PHPUnit.userTest.testBadYahooId" />
       <item itemvalue="PHPUnit.worryWordsTest.testEH" />
       <item itemvalue="PHPUnit.communityEventAPITest.testCreate" />
       <item itemvalue="PHPUnit.volunteeringAPITest.testCreate" />
       <item itemvalue="PHPUnit.chatRoomsAPITest.testNudge" />
+      <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
+        <item itemvalue="PHPUnit.worryWordsTest.testEH" />
         <item itemvalue="PHPUnit.chatRoomsAPITest.testNudge" />
         <item itemvalue="PHPUnit.volunteeringAPITest.testCreate" />
         <item itemvalue="PHPUnit.communityEventAPITest.testCreate" />
-        <item itemvalue="PHPUnit.worryWordsTest.testEH" />
-        <item itemvalue="PHPUnit.userTest.testBadYahooId" />
       </list>
     </recent_temporary>
   </component>
@@ -220,14 +221,8 @@
       <workItem from="1572272547699" duration="30443000" />
       <workItem from="1572636722625" duration="9815000" />
       <workItem from="1572871158327" duration="26018000" />
-      <workItem from="1573490489986" duration="22184000" />
-    </task>
-    <task id="LOCAL-00248" summary="Drop announcement messages from Yahoo">
-      <created>1571339959443</created>
-      <option name="number" value="00248" />
-      <option name="presentableId" value="LOCAL-00248" />
-      <option name="project" value="LOCAL" />
-      <updated>1571339959443</updated>
+      <workItem from="1573490489986" duration="23434000" />
+      <workItem from="1574020625439" duration="854000" />
     </task>
     <task id="LOCAL-00249" summary="Fixes to group merge">
       <created>1571570028350</created>
@@ -565,7 +560,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573809476855</updated>
     </task>
-    <option name="localTasksCounter" value="297" />
+    <task id="LOCAL-00297" summary="When someone reports chitchat threads, ask Support to take a look">
+      <created>1573814555239</created>
+      <option name="number" value="00297" />
+      <option name="presentableId" value="LOCAL-00297" />
+      <option name="project" value="LOCAL" />
+      <updated>1573814555239</updated>
+    </task>
+    <option name="localTasksCounter" value="298" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -598,7 +600,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Your thumbs up/down of someone should expire, just like other people's ratings do." />
     <MESSAGE value="&quot;provide&quot; isn't &quot;peroxide&quot;" />
     <MESSAGE value="More on identifying active mods." />
     <MESSAGE value="Randomise order of job ads to liven things up" />
@@ -623,6 +624,7 @@
     <MESSAGE value="User location wrong on chitchat" />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Don't mail out very old chat messages" />
-    <option name="LAST_COMMIT_MESSAGE" value="Don't mail out very old chat messages" />
+    <MESSAGE value="When someone reports chitchat threads, ask Support to take a look" />
+    <option name="LAST_COMMIT_MESSAGE" value="When someone reports chitchat threads, ask Support to take a look" />
   </component>
 </project>

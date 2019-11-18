@@ -37,7 +37,8 @@ class WorryWords {
 
             foreach ($words as $word) {
                 foreach ($this->words as $worryword) {
-                    if (@levenshtein(strtolower($worryword['keyword']), strtolower($word)) < 2) {
+                    $ratio = strlen($word) / strlen($worryword['keyword']);
+                    if (($ratio >= 0.75 && $ratio <= 1.25) && @levenshtein(strtolower($worryword['keyword']), strtolower($word)) < 2) {
                         # Close enough to be worrying.
                         if ($log) {
                             $this->log->log([

@@ -11,11 +11,13 @@ require_once IZNIK_BASE . '/include/message/Message.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class worryWordsTest extends IznikTestCase {
+class worryWordsTest extends IznikTestCase
+{
     private $dbhr, $dbhm;
 
-    protected function setUp() {
-        parent::setUp ();
+    protected function setUp()
+    {
+        parent::setUp();
 
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
@@ -24,7 +26,8 @@ class worryWordsTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");
     }
 
-    public function testGroup() {
+    public function testGroup()
+    {
         $this->dbhm->preExec("INSERT INTO worrywords (keyword, type) VALUES (?, ?);", [
             'UTtest1',
             WorryWords::TYPE_REPORTABLE
@@ -47,7 +50,7 @@ class worryWordsTest extends IznikTestCase {
         assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
 
         $this->waitBackground();
-        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [ $mid ], FALSE, FALSE);
+        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid], FALSE, FALSE);
         $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_WORRYWORDS, $logs);
         error_log("Found log " . var_export($log, TRUE));
 
@@ -59,10 +62,17 @@ class worryWordsTest extends IznikTestCase {
         assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
 
         $this->waitBackground();
-        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [ $mid ], FALSE, FALSE);
+        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid], FALSE, FALSE);
         $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_WORRYWORDS, $logs);
         error_log("Found log " . var_export($log, TRUE));
     }
+//
+//    public function testEH()
+//    {
+//        $w = new WorryWords($this->dbhr, $this->dbhm);
+//        $m = new Message($this->dbhr, $this->dbhm, 62381003);
+//        error_log(
+//            var_export($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()), TRUE)
+//        );
+//    }
 }
-
-
