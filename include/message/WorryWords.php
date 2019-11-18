@@ -12,6 +12,7 @@ class WorryWords {
     CONST TYPE_REPORTABLE = 'Reportable';   // UK reportable substance
     CONST TYPE_MEDICINE = 'Medicine';       // Medicines/supplements.
     CONST TYPE_REVIEW = 'Review';           // Just needs looking at.
+    CONST TYPE_ALLOWED = 'Allowed';           // Just needs looking at.
 
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
@@ -37,8 +38,19 @@ class WorryWords {
 
             foreach ($words as $word) {
                 foreach ($this->words as $worryword) {
+                    if ($worryword['type'] === WorryWords::TYPE_ALLOWED && strcmp(strtolower($worryword['keyword']), strtolower($word)) === 0) {
+                        # This word is fine.
+                        break 2;
+                    }
+                }
+
+                foreach ($this->words as $worryword) {
+                    # Check that words are roughly the same length, and allow more fuzziness as the word length increases.
                     $ratio = strlen($word) / strlen($worryword['keyword']);
-                    if (($ratio >= 0.75 && $ratio <= 1.25) && @levenshtein(strtolower($worryword['keyword']), strtolower($word)) < 2) {
+                    $len = strlen($word);
+                    $threshold =  ($len > 7) ? 3 : ($len > 3 ? 2 : 1);
+
+                    if (($ratio >= 0.75 && $ratio <= 1.25) && @levenshtein(strtolower($worryword['keyword']), strtolower($word)) < $threshold) {
                         # Close enough to be worrying.
                         if ($log) {
                             $this->log->log([

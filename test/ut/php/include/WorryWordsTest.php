@@ -26,7 +26,7 @@ class worryWordsTest extends IznikTestCase
         $dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");
     }
 
-    public function testGroup()
+    public function testBasic()
     {
         $this->dbhm->preExec("INSERT INTO worrywords (keyword, type) VALUES (?, ?);", [
             'UTtest1',
@@ -66,6 +66,26 @@ class worryWordsTest extends IznikTestCase
         $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_WORRYWORDS, $logs);
         error_log("Found log " . var_export($log, TRUE));
     }
+
+    public function testAllowed()
+    {
+        $this->dbhm->preExec("INSERT INTO worrywords (keyword, type) VALUES (?, ?);", [
+            'UTtest1',
+            WorryWords::TYPE_ALLOWED
+        ]);
+
+        $w = new WorryWords($this->dbhr, $this->dbhm);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $mid = $m->createDraft();
+        $m = new Message($this->dbhr, $this->dbhm);
+        $mid = $m->createDraft();
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $m->setPrivate('subject', 'OFFER: UTtest1 (Somewhere)');
+        $m->setPrivate('textbody', 'A body');
+        assertNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+    }
+
 //
 //    public function testEH()
 //    {
