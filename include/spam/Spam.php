@@ -302,7 +302,7 @@ class Spam {
                 $w = $word['type'] == 'Literal' ? preg_quote($word['word']) : $word['word'];
 
                 if ($word['action'] == 'Review' &&
-                    preg_match('/\b' . $w . '\b/', $message) &&
+                    preg_match('/\b' . $w . '\b/i', $message) &&
                     (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                     #error_log("Spam keyword {$word['word']}");
                     $check = TRUE;
