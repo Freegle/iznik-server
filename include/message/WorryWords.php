@@ -34,16 +34,15 @@ class WorryWords {
         $ret = NULL;
 
         foreach ([ $subject, $textbody ] as $scan) {
+            foreach ($this->words as $worryword) {
+                if ($worryword['type'] === WorryWords::TYPE_ALLOWED) {
+                    $scan = str_ireplace($worryword['keyword'], '', $scan);
+                }
+            }
+
             $words = preg_split("/[\s,]+/", $scan);
 
             foreach ($words as $word) {
-                foreach ($this->words as $worryword) {
-                    if ($worryword['type'] === WorryWords::TYPE_ALLOWED && strcmp(strtolower($worryword['keyword']), strtolower($word)) === 0) {
-                        # This word is fine.
-                        break 2;
-                    }
-                }
-
                 foreach ($this->words as $worryword) {
                     # Check that words are roughly the same length, and allow more fuzziness as the word length increases.
                     $ratio = strlen($word) / strlen($worryword['keyword']);
