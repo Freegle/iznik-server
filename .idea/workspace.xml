@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/scripts/cli/authority_proportion.php" afterDir="false" />
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Don't return newsfeed entries for events if the event contains no groups and is therefore invalid">
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dbnavigator.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dbnavigator.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/WorryWords.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -109,15 +109,20 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.worryWordsTest.testBasic">
+  <component name="RunManager" selected="PHPUnit.chatMessagesAPITest.testEH">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatRoomsAPITest.testNudge" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="chatMessagesAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatRoomsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" method="testNudge" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="chatMessagesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="worryWordsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="worryWordsTest.testAllowed" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -130,30 +135,25 @@
       <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="worryWordsTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <configuration name="worryWordsTest.testGroup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testGroup" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.worryWordsTest.testEH" />
-      <item itemvalue="PHPUnit.chatRoomsAPITest.testNudge" />
       <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
       <item itemvalue="PHPUnit.worryWordsTest.testAllowed" />
       <item itemvalue="PHPUnit.worryWordsTest.testBasic" />
+      <item itemvalue="PHPUnit.worryWordsTest" />
+      <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="PHPUnit.worryWordsTest.testBasic" />
+        <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
+        <item itemvalue="PHPUnit.worryWordsTest" />
         <item itemvalue="PHPUnit.worryWordsTest.testAllowed" />
+        <item itemvalue="PHPUnit.worryWordsTest.testBasic" />
         <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
-        <item itemvalue="PHPUnit.worryWordsTest.testEH" />
-        <item itemvalue="PHPUnit.chatRoomsAPITest.testNudge" />
       </list>
     </recent_temporary>
   </component>
@@ -224,20 +224,6 @@
       <workItem from="1572871158327" duration="26018000" />
       <workItem from="1573490489986" duration="23434000" />
       <workItem from="1574020625439" duration="6381000" />
-    </task>
-    <task id="LOCAL-00250" summary="Bumping when last active on users migrated from Yahoo">
-      <created>1571570039407</created>
-      <option name="number" value="00250" />
-      <option name="presentableId" value="LOCAL-00250" />
-      <option name="project" value="LOCAL" />
-      <updated>1571570039407</updated>
-    </task>
-    <task id="LOCAL-00251" summary="Return Discourse info for MT">
-      <created>1571642362685</created>
-      <option name="number" value="00251" />
-      <option name="presentableId" value="LOCAL-00251" />
-      <option name="project" value="LOCAL" />
-      <updated>1571642362685</updated>
     </task>
     <task id="LOCAL-00252" summary="Return URL for community events">
       <created>1571681175257</created>
@@ -568,7 +554,21 @@
       <option name="project" value="LOCAL" />
       <updated>1574065886766</updated>
     </task>
-    <option name="localTasksCounter" value="299" />
+    <task id="LOCAL-00299" summary="Worry word whitelisting not working">
+      <created>1574158668613</created>
+      <option name="number" value="00299" />
+      <option name="presentableId" value="LOCAL-00299" />
+      <option name="project" value="LOCAL" />
+      <updated>1574158668613</updated>
+    </task>
+    <task id="LOCAL-00300" summary="Spam keyword checking should be case insensitive">
+      <created>1574158681848</created>
+      <option name="number" value="00300" />
+      <option name="presentableId" value="LOCAL-00300" />
+      <option name="project" value="LOCAL" />
+      <updated>1574158681848</updated>
+    </task>
+    <option name="localTasksCounter" value="301" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -601,8 +601,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="More on identifying active mods." />
-    <MESSAGE value="Randomise order of job ads to liven things up" />
     <MESSAGE value="Add a type of worry word for things that just need reviewing." />
     <MESSAGE value="levenshtein call can output loads of text causing API call to fail" />
     <MESSAGE value="Fix bad HTML in email" />
@@ -626,6 +624,8 @@
     <MESSAGE value="Don't mail out very old chat messages" />
     <MESSAGE value="When someone reports chitchat threads, ask Support to take a look" />
     <MESSAGE value="False positive worry word with ridiculous length difference" />
-    <option name="LAST_COMMIT_MESSAGE" value="False positive worry word with ridiculous length difference" />
+    <MESSAGE value="Worry word whitelisting not working" />
+    <MESSAGE value="Spam keyword checking should be case insensitive" />
+    <option name="LAST_COMMIT_MESSAGE" value="Spam keyword checking should be case insensitive" />
   </component>
 </project>

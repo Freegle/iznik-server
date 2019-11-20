@@ -294,8 +294,13 @@ class Newsfeed extends Entity
                         $use = FALSE;
                         #error_log("Consider event " . $e->getPrivate('pending') . ", " . $e->getPrivate('deleted'));
                         if (!$e->getPrivate('pending') && !$e->getPrivate('deleted')) {
-                            $use = TRUE;
-                            $entries[$entindex]['communityevent'] = $e->getPublic();
+                            $atts = $e->getPublic();
+
+                            # Events must contain a group.
+                            if (pres('groups', $atts) && count($atts['groups'])) {
+                                $use = TRUE;
+                                $entries[$entindex]['communityevent'] = $atts;
+                            }
                         }
                     }
 
