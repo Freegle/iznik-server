@@ -44,31 +44,33 @@ class WorryWords {
 
             foreach ($words as $word) {
                 foreach ($this->words as $worryword) {
-                    # Check that words are roughly the same length, and allow more fuzziness as the word length increases.
-                    $ratio = strlen($word) / strlen($worryword['keyword']);
-                    $len = strlen($word);
-                    $threshold =  ($len > 7) ? 3 : ($len > 3 ? 2 : 1);
+                    if ($worryword['type'] !== WorryWords::TYPE_ALLOWED) {
+                        # Check that words are roughly the same length, and allow more fuzziness as the word length increases.
+                        $ratio = strlen($word) / strlen($worryword['keyword']);
+                        $len = strlen($word);
+                        $threshold =  ($len > 7) ? 3 : ($len > 3 ? 2 : 1);
 
-                    if (($ratio >= 0.75 && $ratio <= 1.25) && @levenshtein(strtolower($worryword['keyword']), strtolower($word)) < $threshold) {
-                        # Close enough to be worrying.
-                        if ($log) {
-                            $this->log->log([
-                                'type' => Log::TYPE_MESSAGE,
-                                'subtype' => Log::SUBTYPE_WORRYWORDS,
-                                'user' => $fromuser,
-                                'msgid' => $id,
-                                'text' => "Found {$worryword['keyword']} type {$worryword['type']} in $word"
-                            ]);
+                        if (($ratio >= 0.75 && $ratio <= 1.25) && @levenshtein(strtolower($worryword['keyword']), strtolower($word)) < $threshold) {
+                            # Close enough to be worrying.
+                            if ($log) {
+                                $this->log->log([
+                                    'type' => Log::TYPE_MESSAGE,
+                                    'subtype' => Log::SUBTYPE_WORRYWORDS,
+                                    'user' => $fromuser,
+                                    'msgid' => $id,
+                                    'text' => "Found {$worryword['keyword']} type {$worryword['type']} in $word"
+                                ]);
+                            }
+
+                            if ($ret === NULL) {
+                                $ret = [];
+                            }
+
+                            $ret[] = [
+                                'word' => $word,
+                                'worryword' => $worryword,
+                            ];
                         }
-
-                        if ($ret === NULL) {
-                            $ret = [];
-                        }
-
-                        $ret[] = [
-                            'word' => $word,
-                            'worryword' => $worryword,
-                        ];
                     }
                 }
             }
