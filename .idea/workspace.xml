@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/scripts/cli/authority_top.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/group/Facebook.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/group/Facebook.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -222,13 +222,6 @@
       <workItem from="1572871158327" duration="26018000" />
       <workItem from="1573490489986" duration="23434000" />
       <workItem from="1574020625439" duration="6381000" />
-    </task>
-    <task id="LOCAL-00253" summary="Can't rotate images unless they are message ones.">
-      <created>1571738510530</created>
-      <option name="number" value="00253" />
-      <option name="presentableId" value="LOCAL-00253" />
-      <option name="project" value="LOCAL" />
-      <updated>1571738510530</updated>
     </task>
     <task id="LOCAL-00254" summary="Remove temp files after message parsing">
       <created>1571808623943</created>
@@ -566,7 +559,14 @@
       <option name="project" value="LOCAL" />
       <updated>1574332680888</updated>
     </task>
-    <option name="localTasksCounter" value="302" />
+    <task id="LOCAL-00302" summary="Facebook sharing in MT quietly failing">
+      <created>1574333468832</created>
+      <option name="number" value="00302" />
+      <option name="presentableId" value="LOCAL-00302" />
+      <option name="project" value="LOCAL" />
+      <updated>1574333468832</updated>
+    </task>
+    <option name="localTasksCounter" value="303" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -599,7 +599,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="levenshtein call can output loads of text causing API call to fail" />
     <MESSAGE value="Fix bad HTML in email" />
     <MESSAGE value="Don't return 0 groupid in stats" />
     <MESSAGE value="Edit failing in MT" />
@@ -624,6 +623,7 @@
     <MESSAGE value="Worry word whitelisting not working" />
     <MESSAGE value="Spam keyword checking should be case insensitive" />
     <MESSAGE value="Worry word bug in allowed word checking" />
-    <option name="LAST_COMMIT_MESSAGE" value="Worry word bug in allowed word checking" />
+    <MESSAGE value="Facebook sharing in MT quietly failing" />
+    <option name="LAST_COMMIT_MESSAGE" value="Facebook sharing in MT quietly failing" />
   </component>
 </project>
