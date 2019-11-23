@@ -2139,7 +2139,7 @@ class User extends Entity
         }
     }
 
-    public function getPublicHistory($me, &$rets, $users, $groupids, $msgcoll, $historyfull, $systemrole) {
+    public function getPublicHistory($me, &$rets, $users, $groupids, $historyfull, $systemrole) {
         $userids = array_keys($rets);
 
         foreach ($rets as &$atts) {
@@ -2150,7 +2150,7 @@ class User extends Entity
         #
         # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
         $sql = NULL;
-        $collq = $msgcoll && count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ") : '';
+        $collq = " AND messages_groups.collection IN ('" . implode("','", [ MessageCollection::APPROVED, MessageCollection::PENDING]) . "') ";
         $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
 
         if ($groupids && count($groupids) > 0) {
@@ -2163,6 +2163,7 @@ class User extends Entity
         }
 
         if ($sql) {
+            error_log("Get history $sql, $earliest");
              $histories = $this->dbhr->preQuery($sql, [
                 $earliest
              ]);
@@ -2644,7 +2645,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         if ($history) {
-            $this->getPublicHistory($me, $rets, $users, $groupids, $msgcoll, $historyfull, $systemrole);
+            $this->getPublicHistory($me, $rets, $users, $groupids, $historyfull, $systemrole);
         }
 
         if ($logs) {
