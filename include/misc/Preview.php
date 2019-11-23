@@ -24,6 +24,12 @@ class Preview extends Entity
             ]);
         } else {
             try {
+                # We should fetch the HTTPS variant even if asked for the HTTP one.  This is because when we later
+                # display the preview, we will have to fetch the image, and if we have an HTTP link then it will
+                # be blocked on our page for being insecure.
+                #
+                # Any sites which don't support HTTPS won't get previews.  Or much traffic either, nowadays.
+                $url = str_replace('http://', 'https://', $url);
                 $linkPreview = new LinkPreview($url);
                 $parsed = $linkPreview->getParsed();
                 $rc = NULL;
