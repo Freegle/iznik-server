@@ -4,7 +4,8 @@
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/misc/Preview.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Preview.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -108,7 +109,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.PreviewTest">
+  <component name="RunManager" selected="PHPUnit.userTest.testNativeWelcome">
     <configuration name="PreviewTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="PreviewTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" scope="Class" use_alternative_configuration_file="true" />
@@ -129,30 +130,30 @@
       <TestRunner class="chatMessagesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="userTest.testNativeWelcome" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testNativeWelcome" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="worryWordsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="worryWordsTest.testAllowed" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testAllowed" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <list>
-      <item itemvalue="PHPUnit.worryWordsTest.testAllowed" />
       <item itemvalue="PHPUnit.worryWordsTest" />
       <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
       <item itemvalue="PHPUnit.PreviewTest.testBasic" />
       <item itemvalue="PHPUnit.PreviewTest" />
+      <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
         <item itemvalue="PHPUnit.PreviewTest" />
         <item itemvalue="PHPUnit.PreviewTest.testBasic" />
         <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
         <item itemvalue="PHPUnit.worryWordsTest" />
-        <item itemvalue="PHPUnit.worryWordsTest.testAllowed" />
       </list>
     </recent_temporary>
   </component>
@@ -223,13 +224,6 @@
       <workItem from="1572871158327" duration="26018000" />
       <workItem from="1573490489986" duration="23434000" />
       <workItem from="1574020625439" duration="6381000" />
-    </task>
-    <task id="LOCAL-00258" summary="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups">
-      <created>1572340383395</created>
-      <option name="number" value="00258" />
-      <option name="presentableId" value="LOCAL-00258" />
-      <option name="project" value="LOCAL" />
-      <updated>1572340383395</updated>
     </task>
     <task id="LOCAL-00259" summary="Yahoo Announcement mails flooding our system">
       <created>1572341317856</created>
@@ -567,7 +561,14 @@
       <option name="project" value="LOCAL" />
       <updated>1574505865690</updated>
     </task>
-    <option name="localTasksCounter" value="307" />
+    <task id="LOCAL-00307" summary="Link preview does not handle relative paths for link images">
+      <created>1574506019489</created>
+      <option name="number" value="00307" />
+      <option name="presentableId" value="LOCAL-00307" />
+      <option name="project" value="LOCAL" />
+      <updated>1574506019489</updated>
+    </task>
+    <option name="localTasksCounter" value="308" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -600,7 +601,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Job ad shuffing not working" />
     <MESSAGE value="Capture error output from database connection proxying" />
     <MESSAGE value="Fix stats gap" />
     <MESSAGE value="Fix a couple of old references to hhvm" />
@@ -625,6 +625,7 @@
     <MESSAGE value="Don't do worry word fuzzy matches on 4 letter words - too many false ones." />
     <MESSAGE value="User message history should include pending messages, mostly to give the right results when messages are reposted." />
     <MESSAGE value="Script to find most active local authorities" />
-    <option name="LAST_COMMIT_MESSAGE" value="Script to find most active local authorities" />
+    <MESSAGE value="Link preview does not handle relative paths for link images" />
+    <option name="LAST_COMMIT_MESSAGE" value="Link preview does not handle relative paths for link images" />
   </component>
 </project>

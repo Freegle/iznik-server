@@ -15,7 +15,11 @@ require_once IZNIK_BASE . '/include/mail/MailRouter.php';
  * @backupStaticAttributes disabled
  */
 class userTest extends IznikTestCase {
-    private $dbhr, $dbhm;
+    private $dbhr, $dbhm, $msgsSent;
+
+    public function sendMock($mailer, $message) {
+        $this->msgsSent[] = $message->toString();
+    }
 
     protected function setUp() {
         parent::setUp ();
@@ -23,6 +27,7 @@ class userTest extends IznikTestCase {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->msgsSent = [];
 
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email IN ('test@test.com', 'test2@test.com');");
         $dbhm->preExec("DELETE users, users_logins FROM users INNER JOIN users_logins ON users.id = users_logins.userid WHERE uid IN ('testid', '1234');");
@@ -881,6 +886,61 @@ class userTest extends IznikTestCase {
         $u->thankDonation();
 
         }
+
+    public function testNativeWelcome() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+
+        $g->setPrivate('welcomemail', "Test welcome");
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+
+        $s = $this->getMockBuilder('User')
+            ->setConstructorArgs([ $this->dbhr, $this->dbhm, $uid ])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $s->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        # Welcome mail sent on application.
+        $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+        assertEquals(1, count($this->msgsSent));
+    }
+
+    public function testNativeWelcomeApproved() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+
+        $g->setPrivate('welcomemail', "Test welcome");
+        $g->setSettings([
+            'approvemembers' => TRUE
+        ]);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+
+        $s = $this->getMockBuilder('User')
+            ->setConstructorArgs([ $this->dbhr, $this->dbhm, $uid ])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $s->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        # No welcome mail sent on application.
+        $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING);
+        assertEquals(0, count($this->msgsSent));
+
+        # Welcome mail is sent on approve.
+        $s->approve($gid, NULL, NULL, NULL);
+        assertEquals(1, count($this->msgsSent));
+    }
 
     public function testInvite() {
         $s = $this->getMockBuilder('User')
