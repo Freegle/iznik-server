@@ -39,6 +39,13 @@ class Preview extends Entity
                         $desc = $link->getDescription();
                         $desc = preg_replace('/[[:^print:]]/', '', $desc);
                         $pic = $link->getImage();
+                        $realurl = $link->getRealUrl();
+
+                        if (stripos($pic, 'http') === FALSE) {
+                            # We have a relative URL.
+                            $pic = $realurl . $pic;
+                        }
+
                         $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `title`, `description`, `image`) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
                             $url,
                             $title ? $title : NULL,
