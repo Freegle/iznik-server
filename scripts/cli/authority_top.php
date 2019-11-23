@@ -7,7 +7,8 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once IZNIK_BASE . '/include/misc/Authority.php';
 require_once IZNIK_BASE . '/include/misc/Stats.php';
 
-$auths = $dbhr->preQuery("SELECT * FROM authorities WHERE area_code IN ('CTY', 'DIS', 'MTD', 'UTA') ORDER BY LOWER(name);");
+#$auths = $dbhr->preQuery("SELECT * FROM authorities WHERE area_code IN ('CTY', 'GLA', 'LGD', 'UTA') ORDER BY LOWER(name);");
+$auths = $dbhr->preQuery("SELECT * FROM authorities WHERE area_code IN ('DIS', 'LBR', 'MTD') ORDER BY LOWER(name);");
 
 $weights = [];
 $today = date ("Y-m-d", strtotime("today"));
