@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/misc/Preview.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Preview.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cron/status.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/status.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -224,20 +222,6 @@
       <workItem from="1572871158327" duration="26018000" />
       <workItem from="1573490489986" duration="23434000" />
       <workItem from="1574020625439" duration="6381000" />
-    </task>
-    <task id="LOCAL-00259" summary="Yahoo Announcement mails flooding our system">
-      <created>1572341317856</created>
-      <option name="number" value="00259" />
-      <option name="presentableId" value="LOCAL-00259" />
-      <option name="project" value="LOCAL" />
-      <updated>1572341317856</updated>
-    </task>
-    <task id="LOCAL-00260" summary="Add link to other donation mechanisms">
-      <created>1572347527313</created>
-      <option name="number" value="00260" />
-      <option name="presentableId" value="LOCAL-00260" />
-      <option name="project" value="LOCAL" />
-      <updated>1572347527313</updated>
     </task>
     <task id="LOCAL-00261" summary="WorryWords">
       <created>1572452224121</created>
@@ -568,7 +552,21 @@
       <option name="project" value="LOCAL" />
       <updated>1574506019489</updated>
     </task>
-    <option name="localTasksCounter" value="308" />
+    <task id="LOCAL-00308" summary="Link preview does not handle preview images served of http rather than https">
+      <created>1574550132651</created>
+      <option name="number" value="00308" />
+      <option name="presentableId" value="LOCAL-00308" />
+      <option name="project" value="LOCAL" />
+      <updated>1574550132651</updated>
+    </task>
+    <task id="LOCAL-00309" summary="Not sending welcome messages when memberships are approved">
+      <created>1574550157982</created>
+      <option name="number" value="00309" />
+      <option name="presentableId" value="LOCAL-00309" />
+      <option name="project" value="LOCAL" />
+      <updated>1574550157982</updated>
+    </task>
+    <option name="localTasksCounter" value="310" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -601,8 +599,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Capture error output from database connection proxying" />
-    <MESSAGE value="Fix stats gap" />
     <MESSAGE value="Fix a couple of old references to hhvm" />
     <MESSAGE value="Allow force verification of email" />
     <MESSAGE value="Newsletter story created with wrong type" />
@@ -626,6 +622,8 @@
     <MESSAGE value="User message history should include pending messages, mostly to give the right results when messages are reposted." />
     <MESSAGE value="Script to find most active local authorities" />
     <MESSAGE value="Link preview does not handle relative paths for link images" />
-    <option name="LAST_COMMIT_MESSAGE" value="Link preview does not handle relative paths for link images" />
+    <MESSAGE value="Link preview does not handle preview images served of http rather than https" />
+    <MESSAGE value="Not sending welcome messages when memberships are approved" />
+    <option name="LAST_COMMIT_MESSAGE" value="Not sending welcome messages when memberships are approved" />
   </component>
 </project>
