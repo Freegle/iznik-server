@@ -92,6 +92,11 @@ class Preview extends Entity
         # Make any relative urls absolute to help app.
         $this->link['url'] = substr($this->link['url'], 0, 1) == '/' ? ('https://' . HTTP_HOST . "/$this->link['url']") :  $this->link['url'];
 
+        # Ensure title is not numeric
+        if (pres('title', $this->link) && is_numeric($this->link['title'])) {
+            $this->link['title'] .= '...';
+        }
+
         return($id);
     }
 }
