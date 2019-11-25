@@ -3335,7 +3335,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if ($g->getSetting('approvemembers', FALSE)) {
             # Let the user know.
             $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_APPROVED, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
+            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_APPROVED, NULL, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
         }
 
         # We might have messages awaiting this membership.  Move them to pending - we always moderate new members.
