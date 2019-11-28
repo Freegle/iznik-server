@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Don't return newsfeed entries for events if the event contains no groups and is therefore invalid">
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dbnavigator.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dbnavigator.xml" afterDir="false" />
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -224,13 +222,7 @@
       <workItem from="1572871158327" duration="26018000" />
       <workItem from="1573490489986" duration="23434000" />
       <workItem from="1574020625439" duration="6381000" />
-    </task>
-    <task id="LOCAL-00252" summary="Return URL for community events">
-      <created>1571681175257</created>
-      <option name="number" value="00252" />
-      <option name="presentableId" value="LOCAL-00252" />
-      <option name="project" value="LOCAL" />
-      <updated>1571681175258</updated>
+      <workItem from="1574873598194" duration="2151000" />
     </task>
     <task id="LOCAL-00253" summary="Can't rotate images unless they are message ones.">
       <created>1571738510530</created>
@@ -568,7 +560,14 @@
       <option name="project" value="LOCAL" />
       <updated>1574158681848</updated>
     </task>
-    <option name="localTasksCounter" value="301" />
+    <task id="LOCAL-00301" summary="Don't return newsfeed entries for events if the event contains no groups and is therefore invalid">
+      <created>1574259434068</created>
+      <option name="number" value="00301" />
+      <option name="presentableId" value="LOCAL-00301" />
+      <option name="project" value="LOCAL" />
+      <updated>1574259434068</updated>
+    </task>
+    <option name="localTasksCounter" value="302" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -601,7 +600,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Add a type of worry word for things that just need reviewing." />
     <MESSAGE value="levenshtein call can output loads of text causing API call to fail" />
     <MESSAGE value="Fix bad HTML in email" />
     <MESSAGE value="Don't return 0 groupid in stats" />
@@ -626,6 +624,7 @@
     <MESSAGE value="False positive worry word with ridiculous length difference" />
     <MESSAGE value="Worry word whitelisting not working" />
     <MESSAGE value="Spam keyword checking should be case insensitive" />
-    <option name="LAST_COMMIT_MESSAGE" value="Spam keyword checking should be case insensitive" />
+    <MESSAGE value="Don't return newsfeed entries for events if the event contains no groups and is therefore invalid" />
+    <option name="LAST_COMMIT_MESSAGE" value="Don't return newsfeed entries for events if the event contains no groups and is therefore invalid" />
   </component>
 </project>
