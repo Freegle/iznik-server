@@ -28,6 +28,26 @@ function status()
         $warningtext = NULL;
         $errortext = NULL;
 
+        # Check for security patches
+        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' "apt-get upgrade -s | grep -i security"';
+        $op = shell_exec($cmd);
+
+        if (strpos($op, 'security') !== FALSE) {
+            $warning = TRUE;
+            $overallwarning = TRUE;
+            $warningtext = "Security patches to apply";
+        }
+
+        # Check for reboot required
+        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' cat /var/run/reboot-required';
+        $op = shell_exec($cmd);
+
+        if (strpos($op, 'required') !== FALSE) {
+            $warning = TRUE;
+            $overallwarning = TRUE;
+            $warningtext = "Server reboot required";
+        }
+
         # Get beanstalk queue length.
         $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' "echo -e \"stats\\\\\\\\r\\\\\\\\nquit\\\\\\\\r\\\\\\\\n\" | nc localhost 11300 | grep current-jobs-ready 2>&1"';
         $op = shell_exec($cmd);

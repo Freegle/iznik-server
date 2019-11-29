@@ -24,6 +24,12 @@ class Preview extends Entity
             ]);
         } else {
             try {
+                # We should fetch the HTTPS variant even if asked for the HTTP one.  This is because when we later
+                # display the preview, we will have to fetch the image, and if we have an HTTP link then it will
+                # be blocked on our page for being insecure.
+                #
+                # Any sites which don't support HTTPS won't get previews.  Or much traffic either, nowadays.
+                $url = str_replace('http://', 'https://', $url);
                 $linkPreview = new LinkPreview($url);
                 $parsed = $linkPreview->getParsed();
                 $rc = NULL;
@@ -39,6 +45,13 @@ class Preview extends Entity
                         $desc = $link->getDescription();
                         $desc = preg_replace('/[[:^print:]]/', '', $desc);
                         $pic = $link->getImage();
+                        $realurl = $link->getRealUrl();
+
+                        if (stripos($pic, 'http') === FALSE) {
+                            # We have a relative URL.
+                            $pic = $realurl . $pic;
+                        }
+
                         $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `title`, `description`, `image`) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
                             $url,
                             $title ? $title : NULL,
@@ -78,6 +91,11 @@ class Preview extends Entity
 
         # Make any relative urls absolute to help app.
         $this->link['url'] = substr($this->link['url'], 0, 1) == '/' ? ('https://' . HTTP_HOST . "/$this->link['url']") :  $this->link['url'];
+
+        # Ensure title is not numeric
+        if (pres('title', $this->link) && is_numeric($this->link['title'])) {
+            $this->link['title'] .= '...';
+        }
 
         return($id);
     }

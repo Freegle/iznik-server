@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cron/status.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/status.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -107,7 +107,17 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.chatMessagesAPITest.testEH">
+  <component name="RunManager" selected="PHPUnit.userTest.testNativeWelcome">
+    <configuration name="PreviewTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="PreviewTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" scope="Class" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="PreviewTest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="PreviewTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -118,40 +128,30 @@
       <TestRunner class="chatMessagesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="userTest.testNativeWelcome" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testNativeWelcome" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="worryWordsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="worryWordsTest.testAllowed" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testAllowed" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="worryWordsTest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="worryWordsTest.testGroup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" method="testGroup" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <list>
-      <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
-      <item itemvalue="PHPUnit.worryWordsTest.testAllowed" />
-      <item itemvalue="PHPUnit.worryWordsTest.testBasic" />
       <item itemvalue="PHPUnit.worryWordsTest" />
       <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
+      <item itemvalue="PHPUnit.PreviewTest.testBasic" />
+      <item itemvalue="PHPUnit.PreviewTest" />
+      <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
+        <item itemvalue="PHPUnit.PreviewTest" />
+        <item itemvalue="PHPUnit.PreviewTest.testBasic" />
         <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
         <item itemvalue="PHPUnit.worryWordsTest" />
-        <item itemvalue="PHPUnit.worryWordsTest.testAllowed" />
-        <item itemvalue="PHPUnit.worryWordsTest.testBasic" />
-        <item itemvalue="PHPUnit.worryWordsTest.testGroup" />
       </list>
     </recent_temporary>
   </component>
@@ -222,63 +222,6 @@
       <workItem from="1572871158327" duration="26018000" />
       <workItem from="1573490489986" duration="23434000" />
       <workItem from="1574020625439" duration="6381000" />
-      <workItem from="1574873598194" duration="2151000" />
-    </task>
-    <task id="LOCAL-00253" summary="Can't rotate images unless they are message ones.">
-      <created>1571738510530</created>
-      <option name="number" value="00253" />
-      <option name="presentableId" value="LOCAL-00253" />
-      <option name="project" value="LOCAL" />
-      <updated>1571738510530</updated>
-    </task>
-    <task id="LOCAL-00254" summary="Remove temp files after message parsing">
-      <created>1571808623943</created>
-      <option name="number" value="00254" />
-      <option name="presentableId" value="LOCAL-00254" />
-      <option name="project" value="LOCAL" />
-      <updated>1571808623943</updated>
-    </task>
-    <task id="LOCAL-00255" summary="UT fixes">
-      <created>1571813876873</created>
-      <option name="number" value="00255" />
-      <option name="presentableId" value="LOCAL-00255" />
-      <option name="project" value="LOCAL" />
-      <updated>1571813876873</updated>
-    </task>
-    <task id="LOCAL-00256" summary="Fix warning">
-      <created>1571822776222</created>
-      <option name="number" value="00256" />
-      <option name="presentableId" value="LOCAL-00256" />
-      <option name="project" value="LOCAL" />
-      <updated>1571822776222</updated>
-    </task>
-    <task id="LOCAL-00257" summary="Add URL for volunteer opportunities">
-      <created>1571823365396</created>
-      <option name="number" value="00257" />
-      <option name="presentableId" value="LOCAL-00257" />
-      <option name="project" value="LOCAL" />
-      <updated>1571823365397</updated>
-    </task>
-    <task id="LOCAL-00258" summary="Script to gracefully delete a group, which we will use as part of tidying up old Yahoo groups">
-      <created>1572340383395</created>
-      <option name="number" value="00258" />
-      <option name="presentableId" value="LOCAL-00258" />
-      <option name="project" value="LOCAL" />
-      <updated>1572340383395</updated>
-    </task>
-    <task id="LOCAL-00259" summary="Yahoo Announcement mails flooding our system">
-      <created>1572341317856</created>
-      <option name="number" value="00259" />
-      <option name="presentableId" value="LOCAL-00259" />
-      <option name="project" value="LOCAL" />
-      <updated>1572341317856</updated>
-    </task>
-    <task id="LOCAL-00260" summary="Add link to other donation mechanisms">
-      <created>1572347527313</created>
-      <option name="number" value="00260" />
-      <option name="presentableId" value="LOCAL-00260" />
-      <option name="project" value="LOCAL" />
-      <updated>1572347527313</updated>
     </task>
     <task id="LOCAL-00261" summary="WorryWords">
       <created>1572452224121</created>
@@ -560,14 +503,70 @@
       <option name="project" value="LOCAL" />
       <updated>1574158681848</updated>
     </task>
-    <task id="LOCAL-00301" summary="Don't return newsfeed entries for events if the event contains no groups and is therefore invalid">
-      <created>1574259434068</created>
+    <task id="LOCAL-00301" summary="Worry word bug in allowed word checking">
+      <created>1574332680888</created>
       <option name="number" value="00301" />
       <option name="presentableId" value="LOCAL-00301" />
       <option name="project" value="LOCAL" />
-      <updated>1574259434068</updated>
+      <updated>1574332680888</updated>
     </task>
-    <option name="localTasksCounter" value="302" />
+    <task id="LOCAL-00302" summary="Facebook sharing in MT quietly failing">
+      <created>1574333468832</created>
+      <option name="number" value="00302" />
+      <option name="presentableId" value="LOCAL-00302" />
+      <option name="project" value="LOCAL" />
+      <updated>1574333468832</updated>
+    </task>
+    <task id="LOCAL-00303" summary="Script to find most active local authorities">
+      <created>1574348280116</created>
+      <option name="number" value="00303" />
+      <option name="presentableId" value="LOCAL-00303" />
+      <option name="project" value="LOCAL" />
+      <updated>1574348280116</updated>
+    </task>
+    <task id="LOCAL-00304" summary="Don't do worry word fuzzy matches on 4 letter words - too many false ones.">
+      <created>1574425177481</created>
+      <option name="number" value="00304" />
+      <option name="presentableId" value="LOCAL-00304" />
+      <option name="project" value="LOCAL" />
+      <updated>1574425177482</updated>
+    </task>
+    <task id="LOCAL-00305" summary="User message history should include pending messages, mostly to give the right results when messages are reposted.">
+      <created>1574504756209</created>
+      <option name="number" value="00305" />
+      <option name="presentableId" value="LOCAL-00305" />
+      <option name="project" value="LOCAL" />
+      <updated>1574504756209</updated>
+    </task>
+    <task id="LOCAL-00306" summary="Script to find most active local authorities">
+      <created>1574505865690</created>
+      <option name="number" value="00306" />
+      <option name="presentableId" value="LOCAL-00306" />
+      <option name="project" value="LOCAL" />
+      <updated>1574505865690</updated>
+    </task>
+    <task id="LOCAL-00307" summary="Link preview does not handle relative paths for link images">
+      <created>1574506019489</created>
+      <option name="number" value="00307" />
+      <option name="presentableId" value="LOCAL-00307" />
+      <option name="project" value="LOCAL" />
+      <updated>1574506019489</updated>
+    </task>
+    <task id="LOCAL-00308" summary="Link preview does not handle preview images served of http rather than https">
+      <created>1574550132651</created>
+      <option name="number" value="00308" />
+      <option name="presentableId" value="LOCAL-00308" />
+      <option name="project" value="LOCAL" />
+      <updated>1574550132651</updated>
+    </task>
+    <task id="LOCAL-00309" summary="Not sending welcome messages when memberships are approved">
+      <created>1574550157982</created>
+      <option name="number" value="00309" />
+      <option name="presentableId" value="LOCAL-00309" />
+      <option name="project" value="LOCAL" />
+      <updated>1574550157982</updated>
+    </task>
+    <option name="localTasksCounter" value="310" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -600,13 +599,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="levenshtein call can output loads of text causing API call to fail" />
-    <MESSAGE value="Fix bad HTML in email" />
-    <MESSAGE value="Don't return 0 groupid in stats" />
-    <MESSAGE value="Edit failing in MT" />
-    <MESSAGE value="Job ad shuffing not working" />
-    <MESSAGE value="Capture error output from database connection proxying" />
-    <MESSAGE value="Fix stats gap" />
     <MESSAGE value="Fix a couple of old references to hhvm" />
     <MESSAGE value="Allow force verification of email" />
     <MESSAGE value="Newsletter story created with wrong type" />
@@ -624,7 +616,14 @@
     <MESSAGE value="False positive worry word with ridiculous length difference" />
     <MESSAGE value="Worry word whitelisting not working" />
     <MESSAGE value="Spam keyword checking should be case insensitive" />
-    <MESSAGE value="Don't return newsfeed entries for events if the event contains no groups and is therefore invalid" />
-    <option name="LAST_COMMIT_MESSAGE" value="Don't return newsfeed entries for events if the event contains no groups and is therefore invalid" />
+    <MESSAGE value="Worry word bug in allowed word checking" />
+    <MESSAGE value="Facebook sharing in MT quietly failing" />
+    <MESSAGE value="Don't do worry word fuzzy matches on 4 letter words - too many false ones." />
+    <MESSAGE value="User message history should include pending messages, mostly to give the right results when messages are reposted." />
+    <MESSAGE value="Script to find most active local authorities" />
+    <MESSAGE value="Link preview does not handle relative paths for link images" />
+    <MESSAGE value="Link preview does not handle preview images served of http rather than https" />
+    <MESSAGE value="Not sending welcome messages when memberships are approved" />
+    <option name="LAST_COMMIT_MESSAGE" value="Not sending welcome messages when memberships are approved" />
   </component>
 </project>

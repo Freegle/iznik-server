@@ -284,12 +284,12 @@ ORDER BY groups_facebook_toshare.id DESC;";
                             # These numbers come from FacebookResponseException.
                             #
                             # Code 100 can be returned for some posts which are not visible.
-//                            if ($code == 100 || $code == 102 || $code == 190) {
-//                                $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE uid = ?;", [
-//                                    $e->getMessage(),
-//                                    $this->uid
-//                                ]);
-//                            }
+                            if ($code == 100 || $code == 102 || $code == 190) {
+                                $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE uid = ?;", [
+                                    $e->getMessage(),
+                                    $this->uid
+                                ]);
+                            }
                         }
                     }
                 }

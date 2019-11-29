@@ -862,33 +862,7 @@ class User extends Entity
 
             if (($addedhere) && ($atts['welcomemail'] || $message) && $collection == MembershipCollection::APPROVED) {
                 # They are now approved.  We need to send a per-group welcome mail.
-                $to = $this->getEmailPreferred();
-
-                if ($to) {
-                    $welcome = $message ? $message : $atts['welcomemail'];
-                    $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($welcome));
-                    list ($transport, $mailer) = getMailer();
-                    $message = Swift_Message::newInstance()
-                        ->setSubject("Welcome to " . $atts['namedisplay'])
-                        ->setFrom([$g->getAutoEmail() => $atts['namedisplay'] . ' Volunteers'])
-                        ->setReplyTo([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
-                        ->setTo($to)
-                        ->setDate(time())
-                        ->setBody($welcome);
-
-                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                    # Outlook.
-                    $htmlPart = Swift_MimePart::newInstance();
-                    $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                    $htmlPart->setContentType('text/html');
-                    $htmlPart->setBody($html);
-                    $message->attach($htmlPart);
-
-                    Mail::addHeaders($message, Mail::WELCOME, $this->getId());
-
-                    $this->sendIt($mailer, $message);
-                }
+                $this->sendWelcome($message ? $message : $atts['welcomemail'], $groupid, $g, $atts);
             }
 
             $l = new Log($this->dbhr, $this->dbhm);
@@ -912,6 +886,38 @@ class User extends Entity
         }
 
         return ($rc);
+    }
+
+    private function sendWelcome($welcome, $gid, $g = NULL, $atts = NULL) {
+        $g = $g ? $g : Group::get($this->dbhr, $this->dbhm, $gid);
+        $atts = $atts ? $atts : $g->getPublic();
+
+        $to = $this->getEmailPreferred();
+
+        if ($to) {
+            $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($welcome));
+            list ($transport, $mailer) = getMailer();
+            $message = Swift_Message::newInstance()
+                ->setSubject("Welcome to " . $atts['namedisplay'])
+                ->setFrom([$g->getAutoEmail() => $atts['namedisplay'] . ' Volunteers'])
+                ->setReplyTo([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
+                ->setTo($to)
+                ->setDate(time())
+                ->setBody($welcome);
+
+            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+            # Outlook.
+            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart->setCharset('utf-8');
+            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setContentType('text/html');
+            $htmlPart->setBody($html);
+            $message->attach($htmlPart);
+
+            Mail::addHeaders($message, Mail::WELCOME, $this->getId());
+
+            $this->sendIt($mailer, $message);
+        }
     }
 
     public function isRejected($groupid)
@@ -2139,7 +2145,7 @@ class User extends Entity
         }
     }
 
-    public function getPublicHistory($me, &$rets, $users, $groupids, $msgcoll, $historyfull, $systemrole) {
+    public function getPublicHistory($me, &$rets, $users, $groupids, $historyfull, $systemrole) {
         $userids = array_keys($rets);
 
         foreach ($rets as &$atts) {
@@ -2150,7 +2156,7 @@ class User extends Entity
         #
         # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
         $sql = NULL;
-        $collq = $msgcoll && count($msgcoll) ? (" AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ") : '';
+        $collq = " AND messages_groups.collection IN ('" . implode("','", [ MessageCollection::APPROVED, MessageCollection::PENDING]) . "') ";
         $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
 
         if ($groupids && count($groupids) > 0) {
@@ -2163,6 +2169,7 @@ class User extends Entity
         }
 
         if ($sql) {
+            error_log("Get history $sql, $earliest");
              $histories = $this->dbhr->preQuery($sql, [
                 $earliest
              ]);
@@ -2644,7 +2651,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         if ($history) {
-            $this->getPublicHistory($me, $rets, $users, $groupids, $msgcoll, $historyfull, $systemrole);
+            $this->getPublicHistory($me, $rets, $users, $groupids, $historyfull, $systemrole);
         }
 
         if ($logs) {
@@ -3320,12 +3327,15 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         $this->maybeMail($groupid, $subject, $body, 'Approve Member');
 
-        # Let the user know.
+        # Send any welcome message - we didn't send it when they were pending.
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+        $this->sendWelcome($g->getPrivate('welcomemail'), $groupid, $g);
+
+        # Let the user know.
         if ($g->getSetting('approvemembers', FALSE)) {
             # Let the user know.
             $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_APPROVED, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
+            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_APPROVED, NULL, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
         }
 
         # We might have messages awaiting this membership.  Move them to pending - we always moderate new members.
