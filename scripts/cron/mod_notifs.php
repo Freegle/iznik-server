@@ -158,17 +158,15 @@ foreach ($mail as $id => $work) {
         $id
     ]);
 
+    $age = NULL;
+
     foreach ($ms as $m) {
         $last = $m['data'];
+        $age = time() - strtotime($m['timestamp']);
     }
 
-    if (!$last || strcmp($textsumm, $last) !== 0) {
-        # This isn't quite right.  It means that if (say) we have 1 item of work, send a notification, mod, get
-        # another item of work, then we won't send another notification until the next one comes in and it differs.
-        # That's more likely to occur if you have it set to immediate.  Deleting this when we do a relevant mod op
-        # wouldn't be ideal either, as we might then get notifs for the work we'd already had a chance to see.  So
-        # really we ought to keep track of the latest item of work that we have notified for.
-        # TODO
+    if (!$last || strcmp($textsumm, $last) !== 0 || ($age !== NULL && $age > 24 * 60 * 60)) {
+        # We send a notification if the info has changed, or it's the first, or it's been more than a day.
         $dbhm->preExec("REPLACE INTO modnotifs (userid, data) VALUES (?, ?);", [
             $id,
             $textsumm
