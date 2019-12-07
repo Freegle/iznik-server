@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cron/mod_notifs.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/mod_notifs.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -44,6 +45,9 @@
   <component name="Git.Settings">
     <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubDefaultAccount">
+    <option name="defaultAccountId" value="43d9226f-05c5-46e7-a690-1ce1a01c4980" />
   </component>
   <component name="JsFlowSettings">
     <service-enabled>true</service-enabled>
@@ -224,13 +228,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00265" summary="Reposting messages not showing in message history">
-      <created>1572615064729</created>
-      <option name="number" value="00265" />
-      <option name="presentableId" value="LOCAL-00265" />
-      <option name="project" value="LOCAL" />
-      <updated>1572615064729</updated>
     </task>
     <task id="LOCAL-00266" summary="Add URL to story">
       <created>1572631220962</created>
@@ -568,7 +565,14 @@
       <option name="project" value="LOCAL" />
       <updated>1574790208331</updated>
     </task>
-    <option name="localTasksCounter" value="314" />
+    <task id="LOCAL-00314" summary="Volunteer op renew mails don't give long enough to react">
+      <created>1575399024654</created>
+      <option name="number" value="00314" />
+      <option name="presentableId" value="LOCAL-00314" />
+      <option name="project" value="LOCAL" />
+      <updated>1575399024654</updated>
+    </task>
+    <option name="localTasksCounter" value="315" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -601,7 +605,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="ModMails to TN users don't show up in chat" />
     <MESSAGE value="Avoid returning DB error" />
     <MESSAGE value="Don't return messages in changes call while they are still in Pending" />
     <MESSAGE value="Back out previous change" />
@@ -626,6 +629,7 @@
     <MESSAGE value="Short numeric titles break link preview code" />
     <MESSAGE value="Notification for group membership approval is missing group name" />
     <MESSAGE value="Fix DWP email domain change" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix DWP email domain change" />
+    <MESSAGE value="Volunteer op renew mails don't give long enough to react" />
+    <option name="LAST_COMMIT_MESSAGE" value="Volunteer op renew mails don't give long enough to react" />
   </component>
 </project>
