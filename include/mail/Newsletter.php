@@ -64,39 +64,41 @@ class Newsletter extends Entity
     public function off($uid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-        if ($u->getPrivate('newslettersallowed')) {
-            $u->setPrivate('newslettersallowed', 0);
+        if ($u->getId() === $uid) {
+            if ($u->getPrivate('newslettersallowed')) {
+                $u->setPrivate('newslettersallowed', 0);
 
-            $this->log->log([
-                'type' => Log::TYPE_USER,
-                'subtype' => Log::SUBTYPE_NEWSLETTERSOFF,
-                'user' => $uid
-            ]);
+                $this->log->log([
+                    'type' => Log::TYPE_USER,
+                    'subtype' => Log::SUBTYPE_NEWSLETTERSOFF,
+                    'user' => $uid
+                ]);
 
-            $email = $u->getEmailPreferred();
-            if ($email) {
-                list ($transport, $mailer) = getMailer();
-                $html = newsletters_off(USER_SITE, USERLOGO);
+                $email = $u->getEmailPreferred();
+                if ($email) {
+                    list ($transport, $mailer) = getMailer();
+                    $html = newsletters_off(USER_SITE, USERLOGO);
 
-                $message = Swift_Message::newInstance()
-                    ->setSubject("Email Change Confirmation")
-                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                    ->setReturnPath($u->getBounce())
-                    ->setTo([ $email => $u->getName() ])
-                    ->setBody("We've turned your newsletters off.");
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("Email Change Confirmation")
+                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setReturnPath($u->getBounce())
+                        ->setTo([$email => $u->getName()])
+                        ->setBody("We've turned your newsletters off.");
 
-                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                # Outlook.
-                $htmlPart = Swift_MimePart::newInstance();
-                $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                $htmlPart->setContentType('text/html');
-                $htmlPart->setBody($html);
-                $message->attach($htmlPart);
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
 
-                Mail::addHeaders($message, Mail::NEWSLETTER_OFF, $u->getId());
+                    Mail::addHeaders($message, Mail::NEWSLETTER_OFF, $u->getId());
 
-                $this->sendOne($mailer, $message);
+                    $this->sendOne($mailer, $message);
+                }
             }
         }
     }

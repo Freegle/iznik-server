@@ -24,38 +24,41 @@ class Relevant {
 
     public function off($uid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->setPrivate('relevantallowed', 0);
 
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_RELEVANTOFF,
-            'user' => $uid
-        ]);
+        if ($u->getId() === $uid) {
+            $u->setPrivate('relevantallowed', 0);
 
-        $email = $u->getEmailPreferred();
-        if ($email) {
-            list ($transport, $mailer) = getMailer();
-            $html = relevant_off(USER_SITE, USERLOGO);
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_RELEVANTOFF,
+                'user' => $uid
+            ]);
 
-            $message = Swift_Message::newInstance()
-                ->setSubject("Email Change Confirmation")
-                ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                ->setReturnPath($u->getBounce())
-                ->setTo([ $email => $u->getName() ])
-                ->setBody("Thanks - we've turned off the mails of posts you might be interested in.");
+            $email = $u->getEmailPreferred();
+            if ($email) {
+                list ($transport, $mailer) = getMailer();
+                $html = relevant_off(USER_SITE, USERLOGO);
 
-            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-            # Outlook.
-            $htmlPart = Swift_MimePart::newInstance();
-            $htmlPart->setCharset('utf-8');
-            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-            $htmlPart->setContentType('text/html');
-            $htmlPart->setBody($html);
-            $message->attach($htmlPart);
+                $message = Swift_Message::newInstance()
+                    ->setSubject("Email Change Confirmation")
+                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                    ->setReturnPath($u->getBounce())
+                    ->setTo([$email => $u->getName()])
+                    ->setBody("Thanks - we've turned off the mails of posts you might be interested in.");
 
-            Mail::addHeaders($message, Mail::RELEVANT_OFF, $u->getId());
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
 
-            $this->sendOne($mailer, $message);
+                Mail::addHeaders($message, Mail::RELEVANT_OFF, $u->getId());
+
+                $this->sendOne($mailer, $message);
+            }
         }
     }
 

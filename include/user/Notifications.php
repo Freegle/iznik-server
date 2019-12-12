@@ -160,45 +160,48 @@ class Notifications
     public function off($uid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-        $settings = json_decode($u->getPrivate('settings'), TRUE);
+        # The user might not still exist.
+        if ($u->getId() === $uid) {
+            $settings = json_decode($u->getPrivate('settings'), TRUE);
 
-        if (presdef('notificationmails', $settings, TRUE)) {
-            $settings['notificationmails'] = FALSE;
-            $u->setPrivate('settings', json_encode($settings));
+            if (presdef('notificationmails', $settings, TRUE)) {
+                $settings['notificationmails'] = FALSE;
+                $u->setPrivate('settings', json_encode($settings));
 
-            $this->log->log([
-                'type' => Log::TYPE_USER,
-                'subtype' => Log::SUBTYPE_NOTIFICATIONOFF,
-                'user' => $uid
-            ]);
+                $this->log->log([
+                    'type' => Log::TYPE_USER,
+                    'subtype' => Log::SUBTYPE_NOTIFICATIONOFF,
+                    'user' => $uid
+                ]);
 
-            $email = $u->getEmailPreferred();
+                $email = $u->getEmailPreferred();
 
-            if ($email) {
-                list ($transport, $mailer) = getMailer();
-                $html = notifications_off(USER_SITE, USERLOGO);
+                if ($email) {
+                    list ($transport, $mailer) = getMailer();
+                    $html = notifications_off(USER_SITE, USERLOGO);
 
-                $message = Swift_Message::newInstance()
-                    ->setSubject("Email Change Confirmation")
-                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                    ->setReturnPath($u->getBounce())
-                    ->setTo([ $email => $u->getName() ])
-                    ->setBody("Thanks - we've turned off the mails for notifications.");
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("Email Change Confirmation")
+                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setReturnPath($u->getBounce())
+                        ->setTo([ $email => $u->getName() ])
+                        ->setBody("Thanks - we've turned off the mails for notifications.");
 
-                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                # Outlook.
-                $htmlPart = Swift_MimePart::newInstance();
-                $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                $htmlPart->setContentType('text/html');
-                $htmlPart->setBody($html);
-                $message->attach($htmlPart);
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
 
-                $headers = $message->getHeaders();
-                Mail::addHeaders($message, Mail::NOTIFICATIONS_OFF, $u->getId());
-                $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $u->getId(), User::SRC_NOTIFICATIONS_EMAIL));
+                    $headers = $message->getHeaders();
+                    Mail::addHeaders($message, Mail::NOTIFICATIONS_OFF, $u->getId());
+                    $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $u->getId(), User::SRC_NOTIFICATIONS_EMAIL));
 
-                $this->sendIt($mailer, $message);
+                    $this->sendIt($mailer, $message);
+                }
             }
         }
     }

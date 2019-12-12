@@ -32,7 +32,7 @@ class VolunteeringDigest
     public function off($uid, $groupid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-        if ($u->isApprovedMember($groupid)) {
+        if ($u->getId() === $uid && $u->isApprovedMember($groupid)) {
             $u->setMembershipAtt($groupid, 'volunteeringallowed', 0);
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
