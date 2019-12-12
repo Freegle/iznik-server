@@ -1978,8 +1978,16 @@ ORDER BY lastdate DESC;";
 
         # We save the attachments to a temp directory.  This is tidied up on destruction or save.
         $this->attach_dir = tmpdir();
-        $this->attach_files = $Parser->saveAttachments($this->attach_dir . DIRECTORY_SEPARATOR);
-        $this->attachments = $Parser->getAttachments();
+        try {
+            $this->attach_files = $Parser->saveAttachments($this->attach_dir . DIRECTORY_SEPARATOR);
+            $this->attachments = $Parser->getAttachments();
+        } catch (Exception $e) {
+            # We've seen this error when some of the attachments have weird non-relative filenames, which may be
+            # a hack attempt.
+            error_log("Parse of attachments failed " . $e->getMessage());
+            $this->attachments = [];
+        }
+
         $this->yahooapprove = NULL;
         $this->yahooreject = NULL;
 

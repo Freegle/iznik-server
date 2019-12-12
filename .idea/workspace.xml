@@ -4,7 +4,7 @@
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -143,11 +143,11 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.worryWordsTest" />
-      <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
-      <item itemvalue="PHPUnit.PreviewTest.testBasic" />
       <item itemvalue="PHPUnit.PreviewTest" />
+      <item itemvalue="PHPUnit.PreviewTest.testBasic" />
+      <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
       <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
+      <item itemvalue="PHPUnit.worryWordsTest" />
     </list>
     <recent_temporary>
       <list>
