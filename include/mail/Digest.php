@@ -66,7 +66,7 @@ class Digest
     public function off($uid, $groupid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-        if ($u->getId() === $uid) {
+        if ($u->getId() == $uid) {
             if ($u->isApprovedMember($groupid)) {
                 $u->setMembershipAtt($groupid, 'emailfrequency', 0);
                 $g = Group::get($this->dbhr, $this->dbhm, $groupid);

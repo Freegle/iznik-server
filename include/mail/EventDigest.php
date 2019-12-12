@@ -32,7 +32,7 @@ class EventDigest
     public function off($uid, $groupid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-        if ($u->getId() === $uid && $u->isApprovedMember($groupid)) {
+        if ($u->getId() == $uid && $u->isApprovedMember($groupid)) {
             $u->setMembershipAtt($groupid, 'eventsallowed', 0);
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 

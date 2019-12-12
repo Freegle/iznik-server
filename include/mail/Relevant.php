@@ -25,7 +25,7 @@ class Relevant {
     public function off($uid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-        if ($u->getId() === $uid) {
+        if ($u->getId() == $uid) {
             $u->setPrivate('relevantallowed', 0);
 
             $this->log->log([

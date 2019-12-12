@@ -161,7 +161,7 @@ class Notifications
         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
         # The user might not still exist.
-        if ($u->getId() === $uid) {
+        if ($u->getId() == $uid) {
             $settings = json_decode($u->getPrivate('settings'), TRUE);
 
             if (presdef('notificationmails', $settings, TRUE)) {

@@ -2,9 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/Digest.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/Digest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/EventDigest.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/EventDigest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/Newsletter.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/Newsletter.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/Relevant.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/Relevant.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/VolunteeringDigest.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/VolunteeringDigest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/Notifications.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/Notifications.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -111,7 +115,12 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.userTest.testNativeWelcome">
+  <component name="RunManager" selected="PHPUnit.MailRouterTest.testNotificationOff">
+    <configuration name="MailRouterTest.testNotificationOff" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testNotificationOff" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="PreviewTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="PreviewTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" scope="Class" use_alternative_configuration_file="true" />
@@ -137,25 +146,20 @@
       <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testNativeWelcome" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="worryWordsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="worryWordsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" scope="Class" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <list>
-      <item itemvalue="PHPUnit.PreviewTest" />
-      <item itemvalue="PHPUnit.PreviewTest.testBasic" />
       <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
+      <item itemvalue="PHPUnit.PreviewTest.testBasic" />
+      <item itemvalue="PHPUnit.PreviewTest" />
       <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
-      <item itemvalue="PHPUnit.worryWordsTest" />
+      <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
         <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
         <item itemvalue="PHPUnit.PreviewTest" />
         <item itemvalue="PHPUnit.PreviewTest.testBasic" />
         <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
-        <item itemvalue="PHPUnit.worryWordsTest" />
       </list>
     </recent_temporary>
   </component>
@@ -228,13 +232,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00266" summary="Add URL to story">
-      <created>1572631220962</created>
-      <option name="number" value="00266" />
-      <option name="presentableId" value="LOCAL-00266" />
-      <option name="project" value="LOCAL" />
-      <updated>1572631220962</updated>
     </task>
     <task id="LOCAL-00267" summary="UT fixes">
       <created>1572636752221</created>
@@ -572,7 +569,14 @@
       <option name="project" value="LOCAL" />
       <updated>1575399024654</updated>
     </task>
-    <option name="localTasksCounter" value="315" />
+    <task id="LOCAL-00315" summary="Message gets stuck because it has weirdly named attachments.">
+      <created>1576141185294</created>
+      <option name="number" value="00315" />
+      <option name="presentableId" value="LOCAL-00315" />
+      <option name="project" value="LOCAL" />
+      <updated>1576141185294</updated>
+    </task>
+    <option name="localTasksCounter" value="316" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -605,7 +609,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Avoid returning DB error" />
     <MESSAGE value="Don't return messages in changes call while they are still in Pending" />
     <MESSAGE value="Back out previous change" />
     <MESSAGE value="Missing username in chat list on MT" />
@@ -630,6 +633,7 @@
     <MESSAGE value="Notification for group membership approval is missing group name" />
     <MESSAGE value="Fix DWP email domain change" />
     <MESSAGE value="Volunteer op renew mails don't give long enough to react" />
-    <option name="LAST_COMMIT_MESSAGE" value="Volunteer op renew mails don't give long enough to react" />
+    <MESSAGE value="Message gets stuck because it has weirdly named attachments." />
+    <option name="LAST_COMMIT_MESSAGE" value="Message gets stuck because it has weirdly named attachments." />
   </component>
 </project>

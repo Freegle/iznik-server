@@ -64,7 +64,7 @@ class Newsletter extends Entity
     public function off($uid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-        if ($u->getId() === $uid) {
+        if ($u->getId() == $uid) {
             if ($u->getPrivate('newslettersallowed')) {
                 $u->setPrivate('newslettersallowed', 0);
 
