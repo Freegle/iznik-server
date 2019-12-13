@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer/composer.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/api.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cli/user_export.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer/composer.lock" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -229,13 +227,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00270" summary="&quot;provide&quot; isn't &quot;peroxide&quot;">
-      <created>1572884733746</created>
-      <option name="number" value="00270" />
-      <option name="presentableId" value="LOCAL-00270" />
-      <option name="project" value="LOCAL" />
-      <updated>1572884733746</updated>
     </task>
     <task id="LOCAL-00271" summary="More on identifying active mods.">
       <created>1572884743344</created>
@@ -573,7 +564,14 @@
       <option name="project" value="LOCAL" />
       <updated>1576240704000</updated>
     </task>
-    <option name="localTasksCounter" value="319" />
+    <task id="LOCAL-00319" summary="Use a streaming JSON encoder for memory reasons - large export of user data fails.">
+      <created>1576254212998</created>
+      <option name="number" value="00319" />
+      <option name="presentableId" value="LOCAL-00319" />
+      <option name="project" value="LOCAL" />
+      <updated>1576254212998</updated>
+    </task>
+    <option name="localTasksCounter" value="320" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -606,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Back out previous change" />
     <MESSAGE value="Missing username in chat list on MT" />
     <MESSAGE value="Add check for beanstalk queue length" />
     <MESSAGE value="User location wrong on chitchat" />
@@ -631,6 +628,7 @@
     <MESSAGE value="Message gets stuck because it has weirdly named attachments." />
     <MESSAGE value="Ensure notification settings are defaulted" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Use a streaming JSON encoder for memory reasons - large export of user data fails." />
+    <option name="LAST_COMMIT_MESSAGE" value="Use a streaming JSON encoder for memory reasons - large export of user data fails." />
   </component>
 </project>
