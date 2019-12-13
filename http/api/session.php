@@ -51,10 +51,18 @@ function session() {
                 $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
 
                 if (!$components || in_array('notifications', $components)) {
+                    $settings = $me->getPrivate('settings');
+                    $settings = $settings ? $settings : [];
+                    $ret['me']['notifications'] = array_merge([
+                        'email' => TRUE,
+                        'emailmine' => FALSE,
+                        'push' => TRUE,
+                        'facebook' => TRUE,
+                        'app' => TRUE
+                    ], presdef('notifications', $settings, []));
+
                     $n = new PushNotifications($dbhr, $dbhm);
-                    $ret['me']['notifications'] = [
-                        'push' => $n->get($ret['me']['id'])
-                    ];
+                    $ret['me']['notifications']['push'] = $n->get($ret['me']['id']);
                 }
 
                 if (MODTOOLS) {
