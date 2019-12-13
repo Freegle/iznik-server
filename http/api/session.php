@@ -52,7 +52,7 @@ function session() {
 
                 if (!$components || in_array('notifications', $components)) {
                     $settings = $me->getPrivate('settings');
-                    $settings = $settings ? $settings : [];
+                    $settings = $settings ? json_decode($settings, TRUE) : [];
                     $ret['me']['notifications'] = array_merge([
                         'email' => TRUE,
                         'emailmine' => FALSE,
