@@ -3,12 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/mail/Digest.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/Digest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/mail/EventDigest.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/EventDigest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/mail/Newsletter.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/Newsletter.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/mail/Relevant.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/Relevant.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/mail/VolunteeringDigest.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/VolunteeringDigest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/Notifications.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/Notifications.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer/composer.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/api.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cli/user_export.php" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -115,7 +112,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.MailRouterTest.testNotificationOff">
+  <component name="RunManager" selected="PHPUnit.storiesAPITest">
     <configuration name="MailRouterTest.testNotificationOff" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testNotificationOff" scope="Method" use_alternative_configuration_file="true" />
@@ -126,19 +123,19 @@
       <TestRunner class="PreviewTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="PreviewTest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="PreviewTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatMessagesAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="sessionTest.testNative" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatMessagesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testNative" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="storiesAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="storiesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/storiesTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="userTest.testNativeWelcome" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -147,19 +144,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
-      <item itemvalue="PHPUnit.PreviewTest.testBasic" />
       <item itemvalue="PHPUnit.PreviewTest" />
       <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
       <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
+      <item itemvalue="PHPUnit.sessionTest.testNative" />
+      <item itemvalue="PHPUnit.storiesAPITest" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.storiesAPITest" />
+        <item itemvalue="PHPUnit.sessionTest.testNative" />
         <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
         <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
         <item itemvalue="PHPUnit.PreviewTest" />
-        <item itemvalue="PHPUnit.PreviewTest.testBasic" />
-        <item itemvalue="PHPUnit.chatMessagesAPITest.testEH" />
       </list>
     </recent_temporary>
   </component>
@@ -232,27 +229,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00267" summary="UT fixes">
-      <created>1572636752221</created>
-      <option name="number" value="00267" />
-      <option name="presentableId" value="LOCAL-00267" />
-      <option name="project" value="LOCAL" />
-      <updated>1572636752221</updated>
-    </task>
-    <task id="LOCAL-00268" summary="UT fixes">
-      <created>1572648015317</created>
-      <option name="number" value="00268" />
-      <option name="presentableId" value="LOCAL-00268" />
-      <option name="project" value="LOCAL" />
-      <updated>1572648015317</updated>
-    </task>
-    <task id="LOCAL-00269" summary="Your thumbs up/down of someone should expire, just like other people's ratings do.">
-      <created>1572884708587</created>
-      <option name="number" value="00269" />
-      <option name="presentableId" value="LOCAL-00269" />
-      <option name="project" value="LOCAL" />
-      <updated>1572884708587</updated>
     </task>
     <task id="LOCAL-00270" summary="&quot;provide&quot; isn't &quot;peroxide&quot;">
       <created>1572884733746</created>
@@ -576,7 +552,28 @@
       <option name="project" value="LOCAL" />
       <updated>1576141185294</updated>
     </task>
-    <option name="localTasksCounter" value="316" />
+    <task id="LOCAL-00316" summary="UT fixes">
+      <created>1576142156965</created>
+      <option name="number" value="00316" />
+      <option name="presentableId" value="LOCAL-00316" />
+      <option name="project" value="LOCAL" />
+      <updated>1576142156965</updated>
+    </task>
+    <task id="LOCAL-00317" summary="Ensure notification settings are defaulted">
+      <created>1576239428424</created>
+      <option name="number" value="00317" />
+      <option name="presentableId" value="LOCAL-00317" />
+      <option name="project" value="LOCAL" />
+      <updated>1576239428424</updated>
+    </task>
+    <task id="LOCAL-00318" summary="UT fixes">
+      <created>1576240703999</created>
+      <option name="number" value="00318" />
+      <option name="presentableId" value="LOCAL-00318" />
+      <option name="project" value="LOCAL" />
+      <updated>1576240704000</updated>
+    </task>
+    <option name="localTasksCounter" value="319" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -609,12 +606,10 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Don't return messages in changes call while they are still in Pending" />
     <MESSAGE value="Back out previous change" />
     <MESSAGE value="Missing username in chat list on MT" />
     <MESSAGE value="Add check for beanstalk queue length" />
     <MESSAGE value="User location wrong on chitchat" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Don't mail out very old chat messages" />
     <MESSAGE value="When someone reports chitchat threads, ask Support to take a look" />
     <MESSAGE value="False positive worry word with ridiculous length difference" />
@@ -634,6 +629,8 @@
     <MESSAGE value="Fix DWP email domain change" />
     <MESSAGE value="Volunteer op renew mails don't give long enough to react" />
     <MESSAGE value="Message gets stuck because it has weirdly named attachments." />
-    <option name="LAST_COMMIT_MESSAGE" value="Message gets stuck because it has weirdly named attachments." />
+    <MESSAGE value="Ensure notification settings are defaulted" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>

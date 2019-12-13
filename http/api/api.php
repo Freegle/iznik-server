@@ -486,8 +486,11 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                 $ret['cachehits'] = $dbhr->getCacheHits();
 
                 filterResult($ret);
-                $str = json_encode($ret);
-                echo $str;
+
+                # We use a streaming encoder rather than json_encode because we can run out of memory encoding
+                # large results such as exports
+                $encoder = new \Violet\StreamingJsonEncoder\StreamJsonEncoder($ret);
+                $encoder->encode();
 
                 if ($duration > 1000) {
                     # Slow call.
