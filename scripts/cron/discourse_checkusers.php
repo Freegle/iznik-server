@@ -1,6 +1,9 @@
 <?php
 
 // hub/archive scripts/cron/discourse_checkusers.php
+//
+// 2019-12-13 Use header auth not query params
+// 2019-12-13 Add bounce reporting
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/utils.php');
@@ -27,14 +30,18 @@ define('GEEKSALERTS_ADDR','geek-alerts@ilovefreegle.org');
 
 function GetAllUsers(){
   global $api_username;
-  $q = '?api_key='.DISCOURSE_APIKEY."&api_username=$api_username";
-  $q .= "&limit=1000&offset=0";
+  $q = "?limit=1000&offset=0";
   $url = 'https://discourse.ilovefreegle.org/groups/trust_level_0/members.json'.$q;
 
   $ch = curl_init();
   curl_setopt( $ch, CURLOPT_URL, $url );
   curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
   curl_setopt( $ch, CURLOPT_USERAGENT, 'Freegle' );
+  curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
+    'Api-Key: '.DISCOURSE_APIKEY,
+    'Api-Username: '.$api_username
+  ));
+
 
   $result = curl_exec( $ch );
 
@@ -61,13 +68,16 @@ function GetAllUsers(){
 
 function GetUser($id,$username){
   global $api_username;
-  $q = '?api_key='.DISCOURSE_APIKEY."&api_username=$api_username";
-  $url = 'https://discourse.ilovefreegle.org/admin/users/'.$id.'/'.$username.'.json'.$q;
+  $url = 'https://discourse.ilovefreegle.org/admin/users/'.$id.'/'.$username.'.json';
 
   $ch = curl_init();
   curl_setopt( $ch, CURLOPT_URL, $url );
   curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
   curl_setopt( $ch, CURLOPT_USERAGENT, 'Freegle' );
+  curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
+    'Api-Key: '.DISCOURSE_APIKEY,
+    'Api-Username: '.$api_username
+  ));
 
   $result = curl_exec( $ch );
 
@@ -94,13 +104,16 @@ function GetUser($id,$username){
 
 function GetUserEmail($username){
   global $api_username;
-  $q = '?api_key='.DISCOURSE_APIKEY."&api_username=$api_username";
-  $url = 'https://discourse.ilovefreegle.org/users/'.$username.'/emails.json'.$q;
+  $url = 'https://discourse.ilovefreegle.org/users/'.$username.'/emails.json';
 
   $ch = curl_init();
   curl_setopt( $ch, CURLOPT_URL, $url );
   curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
   curl_setopt( $ch, CURLOPT_USERAGENT, 'Freegle' );
+  curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
+    'Api-Key: '.DISCOURSE_APIKEY,
+    'Api-Username: '.$api_username
+  ));
 
   $result = curl_exec( $ch );
 
@@ -148,6 +161,10 @@ try{
   $seeninlastweek = 0;
   $evermailed = 0;
   $mailedinlastweek = 0;
+  $anybounces = 0;
+  $anybouncers = '';
+  $bouncestopped = 0;
+  $bouncestoppers = '';
   foreach ($allusers as $user) {
     usleep(250000);
     $count++;
@@ -180,6 +197,15 @@ try{
     // Get external_id from Discourse ie MT user id - and last_emailed_at 
     $external_id = false;
     $fulluser = GetUser($user->id,$user->username);
+    //echo "fulluser: ".print_r($fulluser)."\r\n";
+    if( $fulluser->bounce_score>0) {
+      $anybounces++;
+      $anybouncers .= $user->username.', ';
+    }
+    if( $fulluser->bounce_score>=400) {
+      $bouncestopped++;
+      $bouncestoppers .= $user->username.', ';
+    }
     if (property_exists($fulluser, 'single_sign_on_record')){
       $external_id  = $fulluser->single_sign_on_record->external_id;
     }
@@ -216,7 +242,7 @@ try{
         $report .= 'Not a MT user: Discourse username: '.$user->username.', email: '.$useremail."\r\n";
       }
     }
-    //if( $ismod>50) break;
+    //if( $count>50) break;
   }
 
   $report .= "\r\n";
@@ -233,6 +259,12 @@ try{
   $report .= "\r\n";
   $report .= "evermailed: $evermailed\r\n";
   $report .= "mailedinlastweek: $mailedinlastweek\r\n";
+  $report .= "\r\n";
+  $report .= "anybounces: $anybounces ($anybouncers)\r\n";
+  $report .= "bouncestopped: $bouncestopped ($bouncestoppers)\r\n";
+  if( $bouncestopped>0){
+    $report .= "Check users with stopped mails here:  https://discourse.ilovefreegle.org/admin/logs/staff_action_logs\r\n";
+  }
 
   echo $report;
   echo "\r\n";
