@@ -4538,12 +4538,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function listInvitations()
+    public function listInvitations($since = "30 days ago")
     {
         $ret = [];
 
         # Don't show old invitations - unaccepted ones could languish for ages.
-        $mysqltime = date('Y-m-d', strtotime("30 days ago"));
+        $mysqltime = date('Y-m-d', strtotime($since));
         $invites = $this->dbhr->preQuery("SELECT id, email, date, outcome, outcometimestamp FROM users_invitations WHERE userid = ? AND date > '$mysqltime';", [
             $this->id
         ]);
@@ -5069,7 +5069,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         # Invitations.  Only show what we sent; the outcome is not this user's business.
         error_log("...invitations");
-        $invites = $this->listInvitations();
+        $invites = $this->listInvitations("1970-01-01");
         $d['invitations'] = [];
 
         foreach ($invites as $invite) {
@@ -5187,17 +5187,25 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         error_log("...images");
-        $images = $this->dbhr->preQuery("SELECT id FROM users_images WHERE userid = ?;", [
+        $images = $this->dbhr->preQuery("SELECT id, url FROM users_images WHERE userid = ?;", [
             $this->id
         ]);
 
         $d['images'] = [];
 
         foreach ($images as $image) {
-            $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_USER);
-            $d['images'][] = [
-                'thumb' => $a->getPath(TRUE, $image['id'])
-            ];
+            if (pres('url', $image)) {
+                $d['images'][] = [
+                    'id' => $image['id'],
+                    'thumb' => $image['url']
+                ];
+            } else {
+                $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_USER);
+                $d['images'][] = [
+                    'id' => $image['id'],
+                    'thumb' => $a->getPath(TRUE, $image['id'])
+                ];
+            }
         }
 
         error_log("...notifications");

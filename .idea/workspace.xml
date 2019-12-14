@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer/composer.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -227,13 +227,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00271" summary="More on identifying active mods.">
-      <created>1572884743344</created>
-      <option name="number" value="00271" />
-      <option name="presentableId" value="LOCAL-00271" />
-      <option name="project" value="LOCAL" />
-      <updated>1572884743344</updated>
     </task>
     <task id="LOCAL-00272" summary="Randomise order of job ads to liven things up">
       <created>1572951100994</created>
@@ -571,7 +564,14 @@
       <option name="project" value="LOCAL" />
       <updated>1576254212998</updated>
     </task>
-    <option name="localTasksCounter" value="320" />
+    <task id="LOCAL-00320" summary="UT fixes">
+      <created>1576255395198</created>
+      <option name="number" value="00320" />
+      <option name="presentableId" value="LOCAL-00320" />
+      <option name="project" value="LOCAL" />
+      <updated>1576255395198</updated>
+    </task>
+    <option name="localTasksCounter" value="321" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -627,8 +627,8 @@
     <MESSAGE value="Volunteer op renew mails don't give long enough to react" />
     <MESSAGE value="Message gets stuck because it has weirdly named attachments." />
     <MESSAGE value="Ensure notification settings are defaulted" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Use a streaming JSON encoder for memory reasons - large export of user data fails." />
-    <option name="LAST_COMMIT_MESSAGE" value="Use a streaming JSON encoder for memory reasons - large export of user data fails." />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>
