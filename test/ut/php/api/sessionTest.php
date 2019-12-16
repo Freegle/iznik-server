@@ -275,6 +275,7 @@ class sessionTest extends IznikAPITestCase
                 'k' => $key
             ]);
 
+            assertEquals(0, $ret['ret']);
             assertEquals($id, $ret['user']['id']);
 
         } else {

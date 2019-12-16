@@ -4,6 +4,7 @@
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -228,20 +229,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00275" summary="levenshtein call can output loads of text causing API call to fail">
-      <created>1573056902786</created>
-      <option name="number" value="00275" />
-      <option name="presentableId" value="LOCAL-00275" />
-      <option name="project" value="LOCAL" />
-      <updated>1573056902786</updated>
-    </task>
-    <task id="LOCAL-00276" summary="Fix bad HTML in email">
-      <created>1573056933093</created>
-      <option name="number" value="00276" />
-      <option name="presentableId" value="LOCAL-00276" />
-      <option name="project" value="LOCAL" />
-      <updated>1573056933093</updated>
     </task>
     <task id="LOCAL-00277" summary="Don't return 0 groupid in stats">
       <created>1573057998292</created>
@@ -572,7 +559,21 @@
       <option name="project" value="LOCAL" />
       <updated>1576494333613</updated>
     </task>
-    <option name="localTasksCounter" value="324" />
+    <task id="LOCAL-00324" summary="Expose UID and key login over API for use in new client">
+      <created>1576507149648</created>
+      <option name="number" value="00324" />
+      <option name="presentableId" value="LOCAL-00324" />
+      <option name="project" value="LOCAL" />
+      <updated>1576507149648</updated>
+    </task>
+    <task id="LOCAL-00325" summary="UID/key login returning failure when it succeeds">
+      <created>1576509757790</created>
+      <option name="number" value="00325" />
+      <option name="presentableId" value="LOCAL-00325" />
+      <option name="project" value="LOCAL" />
+      <updated>1576509757791</updated>
+    </task>
+    <option name="localTasksCounter" value="326" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -605,8 +606,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Don't mail out very old chat messages" />
-    <MESSAGE value="When someone reports chitchat threads, ask Support to take a look" />
     <MESSAGE value="False positive worry word with ridiculous length difference" />
     <MESSAGE value="Worry word whitelisting not working" />
     <MESSAGE value="Spam keyword checking should be case insensitive" />
@@ -630,6 +629,8 @@
     <MESSAGE value="Fix profile images and invitations in data export" />
     <MESSAGE value="Change status alert message so that it says it's ok for security patch warnings to show for a bit." />
     <MESSAGE value="When including previous message in chat emails, don't include really old ones" />
-    <option name="LAST_COMMIT_MESSAGE" value="When including previous message in chat emails, don't include really old ones" />
+    <MESSAGE value="Expose UID and key login over API for use in new client" />
+    <MESSAGE value="UID/key login returning failure when it succeeds" />
+    <option name="LAST_COMMIT_MESSAGE" value="UID/key login returning failure when it succeeds" />
   </component>
 </project>
