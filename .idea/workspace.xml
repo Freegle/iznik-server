@@ -4,8 +4,6 @@
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -229,13 +227,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00277" summary="Don't return 0 groupid in stats">
-      <created>1573057998292</created>
-      <option name="number" value="00277" />
-      <option name="presentableId" value="LOCAL-00277" />
-      <option name="project" value="LOCAL" />
-      <updated>1573057998292</updated>
     </task>
     <task id="LOCAL-00278" summary="Edit failing in MT">
       <created>1573127540684</created>
@@ -573,7 +564,14 @@
       <option name="project" value="LOCAL" />
       <updated>1576509757791</updated>
     </task>
-    <option name="localTasksCounter" value="326" />
+    <task id="LOCAL-00326" summary="More UID/key login fixes">
+      <created>1576512879758</created>
+      <option name="number" value="00326" />
+      <option name="presentableId" value="LOCAL-00326" />
+      <option name="project" value="LOCAL" />
+      <updated>1576512879758</updated>
+    </task>
+    <option name="localTasksCounter" value="327" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -606,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="False positive worry word with ridiculous length difference" />
     <MESSAGE value="Worry word whitelisting not working" />
     <MESSAGE value="Spam keyword checking should be case insensitive" />
     <MESSAGE value="Worry word bug in allowed word checking" />
@@ -631,6 +628,7 @@
     <MESSAGE value="When including previous message in chat emails, don't include really old ones" />
     <MESSAGE value="Expose UID and key login over API for use in new client" />
     <MESSAGE value="UID/key login returning failure when it succeeds" />
-    <option name="LAST_COMMIT_MESSAGE" value="UID/key login returning failure when it succeeds" />
+    <MESSAGE value="More UID/key login fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="More UID/key login fixes" />
   </component>
 </project>

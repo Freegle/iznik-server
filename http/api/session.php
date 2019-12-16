@@ -243,9 +243,9 @@ function session() {
 
                                 if (pres('users', $users) && count($users['users'])) {
                                     $name = $users['users'][0]['username'];
-                                    $news = @file_get_contents(DISCOURSE_API . '/new.json?api_key=' . DISCOURSE_APIKEY . '&api_username=' . $name, FALSE, $ctx);
-                                    $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json?api_key=' . DISCOURSE_APIKEY . '&api_username=' . $name, FALSE, $ctx);
-                                    $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json?api_key=' . DISCOURSE_APIKEY . '&api_username=' . $name, FALSE, $ctx);
+                                    $news = @file_get_contents(DISCOURSE_API . '/new.json?Api-Key=' . DISCOURSE_APIKEY . '&Api-Username=' . $name, FALSE, $ctx);
+                                    $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json?Api-Key=' . DISCOURSE_APIKEY . '&Api-Username=' . $name, FALSE, $ctx);
+                                    $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json?Api-Key=' . DISCOURSE_APIKEY . '&Api-Username=' . $name, FALSE, $ctx);
 
                                     if ($news && $unreads && $notifs) {
                                         $topics = json_decode($news, TRUE);
