@@ -317,6 +317,8 @@ function session() {
                 $u = new User($dbhr, $dbhm, intval($keyu));
                 if ($u->linkLogin($keyk)) {
                     $id = $keyu;
+
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
                 }
             } else if ($fblogin) {
                 # We've been asked to log in via Facebook.
