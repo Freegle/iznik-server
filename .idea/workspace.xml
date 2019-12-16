@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cron/status.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/status.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -227,13 +227,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00272" summary="Randomise order of job ads to liven things up">
-      <created>1572951100994</created>
-      <option name="number" value="00272" />
-      <option name="presentableId" value="LOCAL-00272" />
-      <option name="project" value="LOCAL" />
-      <updated>1572951100994</updated>
     </task>
     <task id="LOCAL-00273" summary="Add a type of worry word for things that just need reviewing.">
       <created>1572951123851</created>
@@ -571,7 +564,14 @@
       <option name="project" value="LOCAL" />
       <updated>1576255395198</updated>
     </task>
-    <option name="localTasksCounter" value="321" />
+    <task id="LOCAL-00321" summary="Fix profile images and invitations in data export">
+      <created>1576343006736</created>
+      <option name="number" value="00321" />
+      <option name="presentableId" value="LOCAL-00321" />
+      <option name="project" value="LOCAL" />
+      <updated>1576343006736</updated>
+    </task>
+    <option name="localTasksCounter" value="322" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Missing username in chat list on MT" />
     <MESSAGE value="Add check for beanstalk queue length" />
     <MESSAGE value="User location wrong on chitchat" />
     <MESSAGE value="Don't mail out very old chat messages" />
@@ -629,6 +628,7 @@
     <MESSAGE value="Ensure notification settings are defaulted" />
     <MESSAGE value="Use a streaming JSON encoder for memory reasons - large export of user data fails." />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Fix profile images and invitations in data export" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix profile images and invitations in data export" />
   </component>
 </project>
