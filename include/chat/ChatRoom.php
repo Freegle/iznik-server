@@ -1785,8 +1785,9 @@ WHERE chat_rooms.id IN $idlist;";
                             $prevmsg = "";
 
                             if ($firstid) {
-                                # Get the last substantive message in the chat before this one, if any.
-                                $prevmsgs = $this->dbhr->preQuery("SELECT chat_messages.* FROM chat_messages WHERE chatid = ? AND id < ? AND message IS NOT NULL ORDER BY id DESC LIMIT 1;", [
+                                # Get the last substantive message in the chat before this one, if any are recent.
+                                $earliest = date("Y-m-d", strtotime("Midnight 90 days ago"));
+                                $prevmsgs = $this->dbhr->preQuery("SELECT chat_messages.* FROM chat_messages WHERE chatid = ? AND id < ? AND message IS NOT NULL AND date >= '$earliest' ORDER BY id DESC LIMIT 1;", [
                                     $chat['chatid'],
                                     $firstid
                                 ]);
