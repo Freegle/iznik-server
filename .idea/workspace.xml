@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -110,15 +111,10 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.storiesAPITest">
+  <component name="RunManager" selected="PHPUnit.sessionTest.testUidAndKey">
     <configuration name="MailRouterTest.testNotificationOff" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testNotificationOff" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="PreviewTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="PreviewTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
@@ -129,6 +125,11 @@
     <configuration name="sessionTest.testNative" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testNative" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="sessionTest.testUidAndKey" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testUidAndKey" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="storiesAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -142,19 +143,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.PreviewTest" />
       <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
       <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
       <item itemvalue="PHPUnit.sessionTest.testNative" />
       <item itemvalue="PHPUnit.storiesAPITest" />
+      <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
         <item itemvalue="PHPUnit.storiesAPITest" />
         <item itemvalue="PHPUnit.sessionTest.testNative" />
         <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
         <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
-        <item itemvalue="PHPUnit.PreviewTest" />
       </list>
     </recent_temporary>
   </component>
@@ -227,13 +228,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00274" summary="Add a type of worry word for things that just need reviewing.">
-      <created>1572951238728</created>
-      <option name="number" value="00274" />
-      <option name="presentableId" value="LOCAL-00274" />
-      <option name="project" value="LOCAL" />
-      <updated>1572951238728</updated>
     </task>
     <task id="LOCAL-00275" summary="levenshtein call can output loads of text causing API call to fail">
       <created>1573056902786</created>
@@ -571,7 +565,14 @@
       <option name="project" value="LOCAL" />
       <updated>1576483817920</updated>
     </task>
-    <option name="localTasksCounter" value="323" />
+    <task id="LOCAL-00323" summary="When including previous message in chat emails, don't include really old ones">
+      <created>1576494333612</created>
+      <option name="number" value="00323" />
+      <option name="presentableId" value="LOCAL-00323" />
+      <option name="project" value="LOCAL" />
+      <updated>1576494333613</updated>
+    </task>
+    <option name="localTasksCounter" value="324" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +605,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="User location wrong on chitchat" />
     <MESSAGE value="Don't mail out very old chat messages" />
     <MESSAGE value="When someone reports chitchat threads, ask Support to take a look" />
     <MESSAGE value="False positive worry word with ridiculous length difference" />
@@ -629,6 +629,7 @@
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Fix profile images and invitations in data export" />
     <MESSAGE value="Change status alert message so that it says it's ok for security patch warnings to show for a bit." />
-    <option name="LAST_COMMIT_MESSAGE" value="Change status alert message so that it says it's ok for security patch warnings to show for a bit." />
+    <MESSAGE value="When including previous message in chat emails, don't include really old ones" />
+    <option name="LAST_COMMIT_MESSAGE" value="When including previous message in chat emails, don't include really old ones" />
   </component>
 </project>

@@ -253,6 +253,35 @@ class sessionTest extends IznikAPITestCase
 
         }
 
+    public function testUidAndKey()
+    {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $l = $u->loginLink(USER_SITE, $id, '/', 'test', TRUE);
+
+        if (preg_match('/.*k=(.*)\&/', $l, $matches)) {
+            $key = $matches[1];
+
+            # Test with wrong key.
+            $ret = $this->call('session', 'POST', [
+                'u' => $id,
+                'k' => '1'
+            ]);
+
+            assertEquals(1, $ret['ret']);
+
+            $ret = $this->call('session', 'POST', [
+                'u' => $id,
+                'k' => $key
+            ]);
+
+            assertEquals($id, $ret['user']['id']);
+
+        } else {
+            assertFalse(TRUE);
+        }
+    }
+
     public function testPatch()
     {
         $u = User::get($this->dbhm, $this->dbhm);
