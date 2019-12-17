@@ -304,13 +304,24 @@ function session() {
             $returnto = array_key_exists('returnto', $_REQUEST) ? $_REQUEST['returnto'] : NULL;
             $action = presdef('action', $_REQUEST, NULL);
             $host = presdef('host', $_REQUEST, NULL);
+            $keyu = intval(presdef('u', $_REQUEST, NULL));
+            $keyk = presdef('k', $_REQUEST, NULL);
 
             $id = NULL;
             $user = User::get($dbhr, $dbhm);
             $f = NULL;
-            $ret = array('ret' => 1, 'status' => 'Invalid login details');
+            $ret = array('ret' => 1, 'status' => 'Invalid login details', 'req' => $_REQUEST);
 
-            if ($fblogin) {
+            if ($keyu && $keyk) {
+                # uid and key login, used in email links and impersonation.
+                $u = new User($dbhr, $dbhm, $keyu);
+
+                if (presdef('id', $_SESSION, NULL) === $keyu || $u->linkLogin($keyk)) {
+                    $id = $keyu;
+
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                }
+            } else if ($fblogin) {
                 # We've been asked to log in via Facebook.
                 $f = new Facebook($dbhr, $dbhm);
                 list ($session, $ret) = $f->login($fbaccesstoken);

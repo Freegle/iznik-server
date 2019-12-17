@@ -3,7 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer/composer.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -110,15 +112,10 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.storiesAPITest">
+  <component name="RunManager" selected="PHPUnit.sessionTest.testUidAndKey">
     <configuration name="MailRouterTest.testNotificationOff" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testNotificationOff" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="PreviewTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="PreviewTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/PreviewTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
@@ -129,6 +126,11 @@
     <configuration name="sessionTest.testNative" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testNative" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="sessionTest.testUidAndKey" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testUidAndKey" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="storiesAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -142,19 +144,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.PreviewTest" />
       <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
       <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
       <item itemvalue="PHPUnit.sessionTest.testNative" />
       <item itemvalue="PHPUnit.storiesAPITest" />
+      <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
         <item itemvalue="PHPUnit.storiesAPITest" />
         <item itemvalue="PHPUnit.sessionTest.testNative" />
         <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
         <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
-        <item itemvalue="PHPUnit.PreviewTest" />
       </list>
     </recent_temporary>
   </component>
@@ -227,48 +229,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00271" summary="More on identifying active mods.">
-      <created>1572884743344</created>
-      <option name="number" value="00271" />
-      <option name="presentableId" value="LOCAL-00271" />
-      <option name="project" value="LOCAL" />
-      <updated>1572884743344</updated>
-    </task>
-    <task id="LOCAL-00272" summary="Randomise order of job ads to liven things up">
-      <created>1572951100994</created>
-      <option name="number" value="00272" />
-      <option name="presentableId" value="LOCAL-00272" />
-      <option name="project" value="LOCAL" />
-      <updated>1572951100994</updated>
-    </task>
-    <task id="LOCAL-00273" summary="Add a type of worry word for things that just need reviewing.">
-      <created>1572951123851</created>
-      <option name="number" value="00273" />
-      <option name="presentableId" value="LOCAL-00273" />
-      <option name="project" value="LOCAL" />
-      <updated>1572951123851</updated>
-    </task>
-    <task id="LOCAL-00274" summary="Add a type of worry word for things that just need reviewing.">
-      <created>1572951238728</created>
-      <option name="number" value="00274" />
-      <option name="presentableId" value="LOCAL-00274" />
-      <option name="project" value="LOCAL" />
-      <updated>1572951238728</updated>
-    </task>
-    <task id="LOCAL-00275" summary="levenshtein call can output loads of text causing API call to fail">
-      <created>1573056902786</created>
-      <option name="number" value="00275" />
-      <option name="presentableId" value="LOCAL-00275" />
-      <option name="project" value="LOCAL" />
-      <updated>1573056902786</updated>
-    </task>
-    <task id="LOCAL-00276" summary="Fix bad HTML in email">
-      <created>1573056933093</created>
-      <option name="number" value="00276" />
-      <option name="presentableId" value="LOCAL-00276" />
-      <option name="project" value="LOCAL" />
-      <updated>1573056933093</updated>
     </task>
     <task id="LOCAL-00277" summary="Don't return 0 groupid in stats">
       <created>1573057998292</created>
@@ -571,7 +531,49 @@
       <option name="project" value="LOCAL" />
       <updated>1576254212998</updated>
     </task>
-    <option name="localTasksCounter" value="320" />
+    <task id="LOCAL-00320" summary="UT fixes">
+      <created>1576255395198</created>
+      <option name="number" value="00320" />
+      <option name="presentableId" value="LOCAL-00320" />
+      <option name="project" value="LOCAL" />
+      <updated>1576255395198</updated>
+    </task>
+    <task id="LOCAL-00321" summary="Fix profile images and invitations in data export">
+      <created>1576343006736</created>
+      <option name="number" value="00321" />
+      <option name="presentableId" value="LOCAL-00321" />
+      <option name="project" value="LOCAL" />
+      <updated>1576343006736</updated>
+    </task>
+    <task id="LOCAL-00322" summary="Change status alert message so that it says it's ok for security patch warnings to show for a bit.">
+      <created>1576483817920</created>
+      <option name="number" value="00322" />
+      <option name="presentableId" value="LOCAL-00322" />
+      <option name="project" value="LOCAL" />
+      <updated>1576483817920</updated>
+    </task>
+    <task id="LOCAL-00323" summary="When including previous message in chat emails, don't include really old ones">
+      <created>1576494333612</created>
+      <option name="number" value="00323" />
+      <option name="presentableId" value="LOCAL-00323" />
+      <option name="project" value="LOCAL" />
+      <updated>1576494333613</updated>
+    </task>
+    <task id="LOCAL-00324" summary="Expose UID and key login over API for use in new client">
+      <created>1576507149648</created>
+      <option name="number" value="00324" />
+      <option name="presentableId" value="LOCAL-00324" />
+      <option name="project" value="LOCAL" />
+      <updated>1576507149648</updated>
+    </task>
+    <task id="LOCAL-00325" summary="UID/key login returning failure when it succeeds">
+      <created>1576509757790</created>
+      <option name="number" value="00325" />
+      <option name="presentableId" value="LOCAL-00325" />
+      <option name="project" value="LOCAL" />
+      <updated>1576509757791</updated>
+    </task>
+    <option name="localTasksCounter" value="326" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,11 +606,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Missing username in chat list on MT" />
-    <MESSAGE value="Add check for beanstalk queue length" />
-    <MESSAGE value="User location wrong on chitchat" />
-    <MESSAGE value="Don't mail out very old chat messages" />
-    <MESSAGE value="When someone reports chitchat threads, ask Support to take a look" />
     <MESSAGE value="False positive worry word with ridiculous length difference" />
     <MESSAGE value="Worry word whitelisting not working" />
     <MESSAGE value="Spam keyword checking should be case insensitive" />
@@ -627,8 +624,13 @@
     <MESSAGE value="Volunteer op renew mails don't give long enough to react" />
     <MESSAGE value="Message gets stuck because it has weirdly named attachments." />
     <MESSAGE value="Ensure notification settings are defaulted" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Use a streaming JSON encoder for memory reasons - large export of user data fails." />
-    <option name="LAST_COMMIT_MESSAGE" value="Use a streaming JSON encoder for memory reasons - large export of user data fails." />
+    <MESSAGE value="UT fixes" />
+    <MESSAGE value="Fix profile images and invitations in data export" />
+    <MESSAGE value="Change status alert message so that it says it's ok for security patch warnings to show for a bit." />
+    <MESSAGE value="When including previous message in chat emails, don't include really old ones" />
+    <MESSAGE value="Expose UID and key login over API for use in new client" />
+    <MESSAGE value="UID/key login returning failure when it succeeds" />
+    <option name="LAST_COMMIT_MESSAGE" value="UID/key login returning failure when it succeeds" />
   </component>
 </project>
