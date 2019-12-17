@@ -198,13 +198,12 @@ try{
     $external_id = false;
     $fulluser = GetUser($user->id,$user->username);
     //echo "fulluser: ".print_r($fulluser)."\r\n";
-    if( $fulluser->bounce_score>0) {
-      $anybounces++;
-      $anybouncers .= $user->username.', ';
-    }
     if( $fulluser->bounce_score>=400) {
       $bouncestopped++;
-      $bouncestoppers .= $user->username.', ';
+      $bouncestoppers .= $user->username.'-'.$fulluser->bounce_score.', ';
+    } else if( $fulluser->bounce_score>0) {
+      $anybounces++;
+      $anybouncers .= $user->username.'-'.$fulluser->bounce_score.', ';
     }
     if (property_exists($fulluser, 'single_sign_on_record')){
       $external_id  = $fulluser->single_sign_on_record->external_id;
@@ -263,7 +262,7 @@ try{
   $report .= "anybounces: $anybounces ($anybouncers)\r\n";
   $report .= "bouncestopped: $bouncestopped ($bouncestoppers)\r\n";
   if( $bouncestopped>0){
-    $report .= "Check users with stopped mails here:  https://discourse.ilovefreegle.org/admin/logs/staff_action_logs\r\n";
+    $report .= "Check users with stopped mails here:  https://discourse.ilovefreegle.org/admin/logs/staff_action_logs - action 'revoke email'\r\n";
   }
 
   echo $report;
