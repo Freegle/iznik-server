@@ -239,7 +239,7 @@ function session() {
                             ]));
 
                             # Have to look up the name we need for other API calls by user id.
-                            $username = file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json', FALSE, $ctx);
+                            $username = @file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json', FALSE, $ctx);
 
                             if ($username) {
                                 $users = json_decode($username, TRUE);
@@ -255,9 +255,9 @@ function session() {
                                             "Api-Username: $name\r\n"
                                     ]));
 
-                                    $news = file_get_contents(DISCOURSE_API . '/new.json', FALSE, $ctx);
-                                    $unreads  = file_get_contents(DISCOURSE_API . '/unread.json', FALSE, $ctx);
-                                    $notifs = file_get_contents(DISCOURSE_API . '/session/current.json', FALSE, $ctx);
+                                    $news = @file_get_contents(DISCOURSE_API . '/new.json', FALSE, $ctx);
+                                    $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json', FALSE, $ctx);
+                                    $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json', FALSE, $ctx);
 
                                     if ($news && $unreads && $notifs) {
                                         $topics = json_decode($news, TRUE);
