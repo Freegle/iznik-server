@@ -224,28 +224,40 @@ function session() {
 
                         # Get Discourse notifications and unread topics, to drive mods through to that site.
                         if ($me->isFreegleMod()) {
-                            # We need this quick or not at all.
-                            $ctx = stream_context_create(array('http'=>
-                                array(
-                                    'timeout' => 1,
-                                )
-                            ));
-
                             $unreadcount = 0;
                             $notifcount = 0;
                             $newcount = 0;
 
+                            # We need this quick or not at all.  Also need to pass authentication in headers rather
+                            # than URL parameters.
+                            $ctx = stream_context_create(array('http'=> [
+                                'timeout' => 1,
+                                "method" => "GET",
+                                "header" => "Accept-language: en\r\n" .
+                                    "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
+                                    "Api-Username: system\r\n"
+                            ]));
+
                             # Have to look up the name we need for other API calls by user id.
-                            $username = @file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json?api_username=system&Api-Key=' . DISCOURSE_APIKEY, FALSE, $ctx);
+                            $username = file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json', FALSE, $ctx);
 
                             if ($username) {
                                 $users = json_decode($username, TRUE);
 
                                 if (pres('users', $users) && count($users['users'])) {
                                     $name = $users['users'][0]['username'];
-                                    $news = @file_get_contents(DISCOURSE_API . '/new.json?Api-Key=' . DISCOURSE_APIKEY . '&Api-Username=' . $name, FALSE, $ctx);
-                                    $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json?Api-Key=' . DISCOURSE_APIKEY . '&Api-Username=' . $name, FALSE, $ctx);
-                                    $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json?Api-Key=' . DISCOURSE_APIKEY . '&Api-Username=' . $name, FALSE, $ctx);
+
+                                    $ctx = stream_context_create(array('http'=> [
+                                        'timeout' => 1,
+                                        "method" => "GET",
+                                        "header" => "Accept-language: en\r\n" .
+                                            "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
+                                            "Api-Username: $name\r\n"
+                                    ]));
+
+                                    $news = file_get_contents(DISCOURSE_API . '/new.json', FALSE, $ctx);
+                                    $unreads  = file_get_contents(DISCOURSE_API . '/unread.json', FALSE, $ctx);
+                                    $notifs = file_get_contents(DISCOURSE_API . '/session/current.json', FALSE, $ctx);
 
                                     if ($news && $unreads && $notifs) {
                                         $topics = json_decode($news, TRUE);
