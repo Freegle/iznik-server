@@ -489,8 +489,11 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
 
                 # We use a streaming encoder rather than json_encode because we can run out of memory encoding
                 # large results such as exports
-                $encoder = new \Violet\StreamingJsonEncoder\StreamJsonEncoder($ret);
-                $encoder->encode();
+                # Don't - this seems to break the heatmap by returning truncated data.
+//                $encoder = new \Violet\StreamingJsonEncoder\StreamJsonEncoder($ret);
+//                $encoder->encode();
+                $str = json_encode($ret);
+                echo $str;
 
                 if ($duration > 1000) {
                     # Slow call.
