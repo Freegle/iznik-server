@@ -1,7 +1,5 @@
 <?php
 
-// Keep in sync with scripts/cron/discourse_cache_session.php
-
 define( 'BASE_DIR', dirname(__FILE__) . '/..' );
 require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
@@ -47,11 +45,11 @@ if (($sso->validatePayload($payload,$signature))) {
 
                     if (count($memberships) === 0) {
                         # Not a Freegle mod.
+                        error_log('discourse_sso - Not a Freegle mod');
                         exit(0);
                     }
 
                     $grouplist = [];
-
                     foreach ($memberships as $membership) {
                         $grouplist[] = $membership['namedisplay'];
                     }
@@ -62,10 +60,12 @@ if (($sso->validatePayload($payload,$signature))) {
                     $session['admin'] = $u->isAdmin();
                     $session['email'] = $u->getEmailPreferred();
                     $session['grouplist'] = substr(implode(',', $grouplist),0,1000);  // Actual max is 3000 but 1000 is enough
+                } else {
+                  error_log('discourse_sso - Not a mod: '.$u->getEmailPreferred());
                 }
             }
         } catch (Exception $e) {
-            error_log("DB failed with " . $e->getMessage());
+            error_log("discourse_sso - DB failed with " . $e->getMessage());
 
             # Instead try in our flat file.  We use a flat file so that we can sign in if the DB is unavailable.
             $sessions = json_decode(file_get_contents('/var/www/iznik/iznik_sessions'), TRUE);
@@ -91,11 +91,14 @@ if (($sso->validatePayload($payload,$signature))) {
 //                }
                 $query = $sso->getSignInString($nonce, $session['userid'], $session['email'], $extraParameters);
                 header('Location: ' . $refer . '/session/sso_login?' . $query);
+                error_log('discourse_sso - logged in '.$session['name']);
                 exit(0);
             }
         }
+      error_log('discourse_sso - dropped out');
     }
 }
+error_log('discourse_sso - redirect to MT login');
 
 // Redirect.  This will force sign-in, which will set up the cookie, then redirect back here so that
 // we then successfully log in.
