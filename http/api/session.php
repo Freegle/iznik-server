@@ -53,7 +53,7 @@ function session() {
                 if (!$components || in_array('notifications', $components)) {
                     $settings = $me->getPrivate('settings');
                     $settings = $settings ? json_decode($settings, TRUE) : [];
-                    $ret['me']['notifications'] = array_merge([
+                    $ret['me']['settings']['notifications'] = array_merge([
                         'email' => TRUE,
                         'emailmine' => FALSE,
                         'push' => TRUE,
@@ -236,16 +236,16 @@ function session() {
                             $newcount = 0;
 
                             # Have to look up the name we need for other API calls by user id.
-                            $username = @file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json?api_username=system&api_key=' . DISCOURSE_APIKEY, FALSE, $ctx);
+                            $username = @file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json?api_username=system&Api-Key=' . DISCOURSE_APIKEY, FALSE, $ctx);
 
                             if ($username) {
                                 $users = json_decode($username, TRUE);
 
                                 if (pres('users', $users) && count($users['users'])) {
                                     $name = $users['users'][0]['username'];
-                                    $news = @file_get_contents(DISCOURSE_API . '/new.json?api_key=' . DISCOURSE_APIKEY . '&api_username=' . $name, FALSE, $ctx);
-                                    $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json?api_key=' . DISCOURSE_APIKEY . '&api_username=' . $name, FALSE, $ctx);
-                                    $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json?api_key=' . DISCOURSE_APIKEY . '&api_username=' . $name, FALSE, $ctx);
+                                    $news = @file_get_contents(DISCOURSE_API . '/new.json?Api-Key=' . DISCOURSE_APIKEY . '&Api-Username=' . $name, FALSE, $ctx);
+                                    $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json?Api-Key=' . DISCOURSE_APIKEY . '&Api-Username=' . $name, FALSE, $ctx);
+                                    $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json?Api-Key=' . DISCOURSE_APIKEY . '&Api-Username=' . $name, FALSE, $ctx);
 
                                     if ($news && $unreads && $notifs) {
                                         $topics = json_decode($news, TRUE);

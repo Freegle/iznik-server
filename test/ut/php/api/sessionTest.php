@@ -195,7 +195,14 @@ class sessionTest extends IznikAPITestCase
             "test" => 1,
             'notificationmails' => true,
             'modnotifs' => 4,
-            'backupmodnotifs' => 12
+            'backupmodnotifs' => 12,
+            'notifications' => [
+                'email' => TRUE,
+                'emailmine' => FALSE,
+                'push' => TRUE,
+                'facebook' => TRUE,
+                'app' => TRUE
+            ]
         ], $ret['me']['settings']);
         assertEquals('Testing User', $ret['me']['displayname']);
         assertEquals('test@test.com', $ret['me']['email']);
