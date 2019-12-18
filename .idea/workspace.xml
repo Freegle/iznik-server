@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -110,7 +110,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.sessionTest.testUidAndKey">
+  <component name="RunManager" selected="PHPUnit.sessionTest.testNative">
     <configuration name="MailRouterTest.testNotificationOff" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testNotificationOff" scope="Method" use_alternative_configuration_file="true" />
@@ -150,9 +150,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.sessionTest.testNative" />
         <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
         <item itemvalue="PHPUnit.storiesAPITest" />
-        <item itemvalue="PHPUnit.sessionTest.testNative" />
         <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
         <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
       </list>
@@ -227,13 +227,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00279" summary="Job ad shuffing not working">
-      <created>1573379892251</created>
-      <option name="number" value="00279" />
-      <option name="presentableId" value="LOCAL-00279" />
-      <option name="project" value="LOCAL" />
-      <updated>1573379892251</updated>
     </task>
     <task id="LOCAL-00280" summary="Capture error output from database connection proxying">
       <created>1573379905943</created>
@@ -571,7 +564,14 @@
       <option name="project" value="LOCAL" />
       <updated>1576534097822</updated>
     </task>
-    <option name="localTasksCounter" value="328" />
+    <task id="LOCAL-00328" summary="Still using old Discourse key format">
+      <created>1576670659447</created>
+      <option name="number" value="00328" />
+      <option name="presentableId" value="LOCAL-00328" />
+      <option name="project" value="LOCAL" />
+      <updated>1576670659447</updated>
+    </task>
+    <option name="localTasksCounter" value="329" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Spam keyword checking should be case insensitive" />
     <MESSAGE value="Worry word bug in allowed word checking" />
     <MESSAGE value="Facebook sharing in MT quietly failing" />
     <MESSAGE value="Don't do worry word fuzzy matches on 4 letter words - too many false ones." />
@@ -629,6 +628,7 @@
     <MESSAGE value="UID/key login returning failure when it succeeds" />
     <MESSAGE value="More UID/key login fixes" />
     <MESSAGE value="Change Discourse API parameters" />
-    <option name="LAST_COMMIT_MESSAGE" value="Change Discourse API parameters" />
+    <MESSAGE value="Still using old Discourse key format" />
+    <option name="LAST_COMMIT_MESSAGE" value="Still using old Discourse key format" />
   </component>
 </project>
