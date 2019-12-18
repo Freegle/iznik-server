@@ -34,6 +34,11 @@ if (($sso->validatePayload($payload,$signature))) {
                 $persistent['token']
             ], FALSE, FALSE);
 
+            if( count($sessions)==0){
+              error_log('discourse_sso - no login sessions');
+              echo "You have no MT login sessions. This might mean that you aren't the moderator of a Freegle group yet. Please check at <a href='https://modtools.org/' target='_blank'>https://modtools.org</a>.";
+              exit(0);
+            }
             foreach ($sessions as &$session) {
                 $u = new User($dbhr, $dbhm, $session['userid']);
 
@@ -46,6 +51,7 @@ if (($sso->validatePayload($payload,$signature))) {
                     if (count($memberships) === 0) {
                         # Not a Freegle mod.
                         error_log('discourse_sso - Not a Freegle mod');
+                        echo "You are not a moderator of a Freegle group";
                         exit(0);
                     }
 
@@ -62,6 +68,8 @@ if (($sso->validatePayload($payload,$signature))) {
                     $session['grouplist'] = substr(implode(',', $grouplist),0,1000);  // Actual max is 3000 but 1000 is enough
                 } else {
                   error_log('discourse_sso - Not a mod: '.$u->getEmailPreferred());
+                  echo "You are not a moderator";
+                  exit(0);
                 }
             }
         } catch (Exception $e) {
