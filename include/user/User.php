@@ -2169,7 +2169,6 @@ class User extends Entity
         }
 
         if ($sql) {
-            error_log("Get history $sql, $earliest");
              $histories = $this->dbhr->preQuery($sql, [
                 $earliest
              ]);

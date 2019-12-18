@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/api.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -227,27 +226,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00280" summary="Capture error output from database connection proxying">
-      <created>1573379905943</created>
-      <option name="number" value="00280" />
-      <option name="presentableId" value="LOCAL-00280" />
-      <option name="project" value="LOCAL" />
-      <updated>1573379905943</updated>
-    </task>
-    <task id="LOCAL-00281" summary="Fix stats gap">
-      <created>1573379932048</created>
-      <option name="number" value="00281" />
-      <option name="presentableId" value="LOCAL-00281" />
-      <option name="project" value="LOCAL" />
-      <updated>1573379932048</updated>
-    </task>
-    <task id="LOCAL-00282" summary="Fix a couple of old references to hhvm">
-      <created>1573380863726</created>
-      <option name="number" value="00282" />
-      <option name="presentableId" value="LOCAL-00282" />
-      <option name="project" value="LOCAL" />
-      <updated>1573380863726</updated>
     </task>
     <task id="LOCAL-00283" summary="Allow force verification of email">
       <created>1573464445142</created>
@@ -571,7 +549,28 @@
       <option name="project" value="LOCAL" />
       <updated>1576670659447</updated>
     </task>
-    <option name="localTasksCounter" value="329" />
+    <task id="LOCAL-00329" summary="UT fixes">
+      <created>1576671924949</created>
+      <option name="number" value="00329" />
+      <option name="presentableId" value="LOCAL-00329" />
+      <option name="project" value="LOCAL" />
+      <updated>1576671924949</updated>
+    </task>
+    <task id="LOCAL-00330" summary="Nit for Wanda">
+      <created>1576673752319</created>
+      <option name="number" value="00330" />
+      <option name="presentableId" value="LOCAL-00330" />
+      <option name="project" value="LOCAL" />
+      <updated>1576673752319</updated>
+    </task>
+    <task id="LOCAL-00331" summary="Change to Discourse new API...properly, this time.">
+      <created>1576681578243</created>
+      <option name="number" value="00331" />
+      <option name="presentableId" value="LOCAL-00331" />
+      <option name="project" value="LOCAL" />
+      <updated>1576681578243</updated>
+    </task>
+    <option name="localTasksCounter" value="332" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,8 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Worry word bug in allowed word checking" />
-    <MESSAGE value="Facebook sharing in MT quietly failing" />
     <MESSAGE value="Don't do worry word fuzzy matches on 4 letter words - too many false ones." />
     <MESSAGE value="User message history should include pending messages, mostly to give the right results when messages are reposted." />
     <MESSAGE value="Script to find most active local authorities" />
@@ -620,7 +617,6 @@
     <MESSAGE value="Message gets stuck because it has weirdly named attachments." />
     <MESSAGE value="Ensure notification settings are defaulted" />
     <MESSAGE value="Use a streaming JSON encoder for memory reasons - large export of user data fails." />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Fix profile images and invitations in data export" />
     <MESSAGE value="Change status alert message so that it says it's ok for security patch warnings to show for a bit." />
     <MESSAGE value="When including previous message in chat emails, don't include really old ones" />
@@ -629,6 +625,9 @@
     <MESSAGE value="More UID/key login fixes" />
     <MESSAGE value="Change Discourse API parameters" />
     <MESSAGE value="Still using old Discourse key format" />
-    <option name="LAST_COMMIT_MESSAGE" value="Still using old Discourse key format" />
+    <MESSAGE value="UT fixes" />
+    <MESSAGE value="Nit for Wanda" />
+    <MESSAGE value="Change to Discourse new API...properly, this time." />
+    <option name="LAST_COMMIT_MESSAGE" value="Change to Discourse new API...properly, this time." />
   </component>
 </project>
