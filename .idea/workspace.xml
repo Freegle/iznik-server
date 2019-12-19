@@ -2,7 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/http/api/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/api.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/logo.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/logo.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/profile.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -109,7 +114,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.sessionTest.testNative">
+  <component name="RunManager" selected="PHPUnit.messageAPITest.testEditAsMember">
     <configuration name="MailRouterTest.testNotificationOff" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testNotificationOff" scope="Method" use_alternative_configuration_file="true" />
@@ -118,6 +123,11 @@
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="messageAPITest.testEditAsMember" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testEditAsMember" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="sessionTest.testNative" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -135,25 +145,20 @@
       <TestRunner class="storiesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/storiesTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="userTest.testNativeWelcome" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testNativeWelcome" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <list>
-      <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
       <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
       <item itemvalue="PHPUnit.sessionTest.testNative" />
       <item itemvalue="PHPUnit.storiesAPITest" />
       <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
+      <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
         <item itemvalue="PHPUnit.sessionTest.testNative" />
         <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
         <item itemvalue="PHPUnit.storiesAPITest" />
         <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
-        <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
       </list>
     </recent_temporary>
   </component>
@@ -226,20 +231,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00283" summary="Allow force verification of email">
-      <created>1573464445142</created>
-      <option name="number" value="00283" />
-      <option name="presentableId" value="LOCAL-00283" />
-      <option name="project" value="LOCAL" />
-      <updated>1573464445142</updated>
-    </task>
-    <task id="LOCAL-00284" summary="Newsletter story created with wrong type">
-      <created>1573474776634</created>
-      <option name="number" value="00284" />
-      <option name="presentableId" value="LOCAL-00284" />
-      <option name="project" value="LOCAL" />
-      <updated>1573474776634</updated>
     </task>
     <task id="LOCAL-00285" summary="Events showing as editable which shouldn't be.">
       <created>1573482433057</created>
@@ -570,7 +561,21 @@
       <option name="project" value="LOCAL" />
       <updated>1576681578243</updated>
     </task>
-    <option name="localTasksCounter" value="332" />
+    <task id="LOCAL-00332" summary="Back out use of streaming encoder as breaks heatmap">
+      <created>1576682757327</created>
+      <option name="number" value="00332" />
+      <option name="presentableId" value="LOCAL-00332" />
+      <option name="project" value="LOCAL" />
+      <updated>1576682757327</updated>
+    </task>
+    <task id="LOCAL-00333" summary="UT fixes">
+      <created>1576683063827</created>
+      <option name="number" value="00333" />
+      <option name="presentableId" value="LOCAL-00333" />
+      <option name="project" value="LOCAL" />
+      <updated>1576683063827</updated>
+    </task>
+    <option name="localTasksCounter" value="334" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,7 +608,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Don't do worry word fuzzy matches on 4 letter words - too many false ones." />
     <MESSAGE value="User message history should include pending messages, mostly to give the right results when messages are reposted." />
     <MESSAGE value="Script to find most active local authorities" />
     <MESSAGE value="Link preview does not handle relative paths for link images" />
@@ -625,9 +629,10 @@
     <MESSAGE value="More UID/key login fixes" />
     <MESSAGE value="Change Discourse API parameters" />
     <MESSAGE value="Still using old Discourse key format" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Nit for Wanda" />
     <MESSAGE value="Change to Discourse new API...properly, this time." />
-    <option name="LAST_COMMIT_MESSAGE" value="Change to Discourse new API...properly, this time." />
+    <MESSAGE value="Back out use of streaming encoder as breaks heatmap" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
 </project>

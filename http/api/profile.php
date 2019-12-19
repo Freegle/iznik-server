@@ -4,7 +4,7 @@ function profile() {
 
     $id = intval(presdef('id', $_REQUEST, 0));
     $hash = presdef('hash', $_REQUEST, NULL);
-    $def = presdef('d', $_REQUEST, 'https://' . USER_SITE . '/images/defaultprofile.png');
+    $def = presdef('d', $_REQUEST, 'https://' . IMAGE_SITE . '/images/defaultprofile.png');
     $ut = array_key_exists('ut', $_REQUEST) ? filter_var($_REQUEST['ut'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $u = new User($dbhr, $dbhm);

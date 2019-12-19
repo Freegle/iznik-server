@@ -51,6 +51,20 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="IZNIK FD API DBG app1">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/var/www/iznik.fdapi.dbg" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="IZNIK FD API DBG app4">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/var/www/iznik.fdapi.dbg" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="IZNIK FD DBG app1">
         <serverdata>
           <mappings>

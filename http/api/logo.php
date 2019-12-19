@@ -16,7 +16,7 @@ function logo() {
                 $ret['logo'] = $logo;
 
                 # Return full path for the mobile app.
-                $ret['logo']['path'] = "https://" . USER_SITE . $ret['logo']['path'];
+                $ret['logo']['path'] = "https://" . IMAGE_SITE . $ret['logo']['path'];
             }
 
             break;
