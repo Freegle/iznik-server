@@ -1932,7 +1932,7 @@ class User extends Entity
                     }
                 } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
                     # TrashNothing has an API we can use.
-                    $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . IMAGE_SITE . '/images/defaultprofile.png');
+                    $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . IMAGE_DOMAIN . '/images/defaultprofile.png');
                     $atts['profile'] = [
                         'url' => $url,
                         'turl' => $url,
@@ -2021,8 +2021,8 @@ class User extends Entity
             $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash == 'c0c0e070e0603100' ||
             $hash == 'f0f0316870f07130' || $hash == '242e070e060b0d24') {
             # This is a default profile - replace it with ours.
-            $profile['url'] = 'https://' . IMAGE_SITE . '/images/defaultprofile.png';
-            $profile['turl'] = 'https://' . IMAGE_SITE . '/images/defaultprofile.png';
+            $profile['url'] = 'https://' . IMAGE_DOMAIN . '/images/defaultprofile.png';
+            $profile['turl'] = 'https://' . IMAGE_DOMAIN . '/images/defaultprofile.png';
             $profile['default'] = TRUE;
             $hash = NULL;
         }
@@ -2113,8 +2113,8 @@ class User extends Entity
         if ($userids && count($userids)) {
             foreach ($rets as &$ret) {
                 $ret['profile'] = [
-                    'url' => 'https://' . IMAGE_SITE . '/images/defaultprofile.png',
-                    'turl' => 'https://' . IMAGE_SITE . '/images/defaultprofile.png',
+                    'url' => 'https://' . IMAGE_DOMAIN . '/images/defaultprofile.png',
+                    'turl' => 'https://' . IMAGE_DOMAIN . '/images/defaultprofile.png',
                     'default' => TRUE
                 ];
             }

@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/http/api/logo.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/logo.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/http/api/profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/profile.php" afterDir="false" />
@@ -231,13 +230,6 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
-    </task>
-    <task id="LOCAL-00285" summary="Events showing as editable which shouldn't be.">
-      <created>1573482433057</created>
-      <option name="number" value="00285" />
-      <option name="presentableId" value="LOCAL-00285" />
-      <option name="project" value="LOCAL" />
-      <updated>1573482433057</updated>
     </task>
     <task id="LOCAL-00286" summary="ModMails to TN users don't show up in chat">
       <created>1573491821074</created>
@@ -575,7 +567,14 @@
       <option name="project" value="LOCAL" />
       <updated>1576683063827</updated>
     </task>
-    <option name="localTasksCounter" value="334" />
+    <task id="LOCAL-00334" summary="Some images are wrongly served from the user site rather than the image site.">
+      <created>1576748085725</created>
+      <option name="number" value="00334" />
+      <option name="presentableId" value="LOCAL-00334" />
+      <option name="project" value="LOCAL" />
+      <updated>1576748085725</updated>
+    </task>
+    <option name="localTasksCounter" value="335" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -608,7 +607,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="User message history should include pending messages, mostly to give the right results when messages are reposted." />
     <MESSAGE value="Script to find most active local authorities" />
     <MESSAGE value="Link preview does not handle relative paths for link images" />
     <MESSAGE value="Link preview does not handle preview images served of http rather than https" />
@@ -633,6 +631,7 @@
     <MESSAGE value="Change to Discourse new API...properly, this time." />
     <MESSAGE value="Back out use of streaming encoder as breaks heatmap" />
     <MESSAGE value="UT fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
+    <MESSAGE value="Some images are wrongly served from the user site rather than the image site." />
+    <option name="LAST_COMMIT_MESSAGE" value="Some images are wrongly served from the user site rather than the image site." />
   </component>
 </project>

@@ -137,12 +137,12 @@ WHERE chat_rooms.id IN $idlist;";
                 $u2settings = pres('u2settings', $room) ? json_decode($room['u2settings'], TRUE) : NULL;
 
                 if ($u1settings !== NULL && !pres('useprofile', $u1settings)) {
-                    $room['u1imageurl'] = 'https://' . IMAGE_SITE . '/images/defaultprofile.png';
+                    $room['u1imageurl'] = 'https://' . IMAGE_DOMAIN . '/images/defaultprofile.png';
                     unset($room['u1imagedata']);
                 }
 
                 if ($u2settings !== NULL && !pres('useprofile', $u2settings)) {
-                    $room['u2imageurl'] = 'https://' . IMAGE_SITE . '/images/defaultprofile.png';
+                    $room['u2imageurl'] = 'https://' . IMAGE_DOMAIN . '/images/defaultprofile.png';
                     unset($room['u2imagedata']);
                 }
             }
