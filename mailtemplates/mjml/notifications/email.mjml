@@ -55,7 +55,9 @@
               </mj-raw>
               <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>{{ notification.fromname }}</b> <font color="grey"> loved your post:</font>
+                  {% if (notification.newsfeed.type !== 'Noticeboard' %>
                   <br /><br /><em>{{ notification.newsfeed.message }}</em>
+                  {% endif %}
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'LovedComment' %}

@@ -333,7 +333,7 @@ class Notifications
                 
                 $shortmsg = NULL;
                 
-                if (pres('newsfeed', $notif) && pres('message', $notif['newsfeed'])) {
+                if (pres('newsfeed', $notif) && pres('message', $notif['newsfeed']) && pres('type', $notif['newsfeed'] !== Newsfeed::TYPE_NOTICEBOARD)) {
                     $notifmsg = $notif['newsfeed']['message'];
                     $shortmsg = strlen($notifmsg > 30) ? (substr($notifmsg, 0, 30) . "...") : $notifmsg;
                 }

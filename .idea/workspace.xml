@@ -2,13 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/logo.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/logo.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/profile.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/profile.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/Notifications.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/Notifications.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/notifications/email.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/notifications/email.html" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -70,6 +70,11 @@
     <ConfirmationsSetting value="2" id="Add" />
     <ConfirmationsSetting value="2" id="Remove" />
   </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent">
     <property name="DatabaseDriversLRU" value="mysql" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
@@ -100,18 +105,6 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
     </key>
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
   </component>
   <component name="RunManager" selected="PHPUnit.messageAPITest.testEditAsMember">
     <configuration name="MailRouterTest.testNotificationOff" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -146,10 +139,10 @@
     </configuration>
     <list>
       <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
-      <item itemvalue="PHPUnit.sessionTest.testNative" />
-      <item itemvalue="PHPUnit.storiesAPITest" />
-      <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
       <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
+      <item itemvalue="PHPUnit.sessionTest.testNative" />
+      <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
+      <item itemvalue="PHPUnit.storiesAPITest" />
     </list>
     <recent_temporary>
       <list>
@@ -162,13 +155,15 @@
     </recent_temporary>
   </component>
   <component name="ServiceViewManager">
-    <option name="allServicesViewState">
-      <serviceView>
-        <treeState>
-          <expand />
-          <select />
-        </treeState>
-      </serviceView>
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
     </option>
   </component>
   <component name="SvnConfiguration">
@@ -230,6 +225,8 @@
       <workItem from="1574020625439" duration="6381000" />
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
+      <workItem from="1576874088867" duration="139000" />
+      <workItem from="1576874394510" duration="202000" />
     </task>
     <task id="LOCAL-00286" summary="ModMails to TN users don't show up in chat">
       <created>1573491821074</created>
@@ -633,5 +630,23 @@
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Some images are wrongly served from the user site rather than the image site." />
     <option name="LAST_COMMIT_MESSAGE" value="Some images are wrongly served from the user site rather than the image site." />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="446" y="123" key="#Deployment" timestamp="1576874224110">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state x="446" y="123" key="#Deployment/0.0.1707.920@0.0.1707.920" timestamp="1576874224110" />
+    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1576874612289">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1576874612289" />
+    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1576874491187">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1576874491187" />
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1576874591709">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1576874591709" />
   </component>
 </project>

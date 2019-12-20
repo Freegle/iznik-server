@@ -23,6 +23,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="Docker">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="FreegleWebpack">
         <serverdata>
           <mappings>
@@ -41,13 +48,6 @@
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="IZNIK Docker">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/var/www/iznik" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
