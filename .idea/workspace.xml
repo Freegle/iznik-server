@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/Notifications.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/Notifications.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mailtemplates/twig/notifications/email.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/notifications/email.html" afterDir="false" />
     </list>
@@ -106,12 +103,7 @@
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.messageAPITest.testEditAsMember">
-    <configuration name="MailRouterTest.testNotificationOff" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testNotificationOff" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="PHPUnit.notificationsTest.testEmail">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -120,6 +112,16 @@
     <configuration name="messageAPITest.testEditAsMember" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testEditAsMember" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="newsfeedAPITest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="notificationsTest.testEmail" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="notificationsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/NotificationsTest.php" method="testEmail" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="sessionTest.testNative" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -132,25 +134,20 @@
       <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testUidAndKey" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="storiesAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="storiesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/storiesTest.php" scope="Class" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <list>
-      <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
       <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
       <item itemvalue="PHPUnit.sessionTest.testNative" />
       <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
-      <item itemvalue="PHPUnit.storiesAPITest" />
+      <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
+      <item itemvalue="PHPUnit.notificationsTest.testEmail" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.notificationsTest.testEmail" />
+        <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
         <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
         <item itemvalue="PHPUnit.sessionTest.testNative" />
         <item itemvalue="PHPUnit.sessionTest.testUidAndKey" />
-        <item itemvalue="PHPUnit.storiesAPITest" />
-        <item itemvalue="PHPUnit.MailRouterTest.testNotificationOff" />
       </list>
     </recent_temporary>
   </component>
@@ -226,21 +223,7 @@
       <workItem from="1574695448545" duration="2281000" />
       <workItem from="1574789953695" duration="2001000" />
       <workItem from="1576874088867" duration="139000" />
-      <workItem from="1576874394510" duration="202000" />
-    </task>
-    <task id="LOCAL-00286" summary="ModMails to TN users don't show up in chat">
-      <created>1573491821074</created>
-      <option name="number" value="00286" />
-      <option name="presentableId" value="LOCAL-00286" />
-      <option name="project" value="LOCAL" />
-      <updated>1573491821074</updated>
-    </task>
-    <task id="LOCAL-00287" summary="Avoid returning DB error">
-      <created>1573572607395</created>
-      <option name="number" value="00287" />
-      <option name="presentableId" value="LOCAL-00287" />
-      <option name="project" value="LOCAL" />
-      <updated>1573572607395</updated>
+      <workItem from="1576874394510" duration="2455000" />
     </task>
     <task id="LOCAL-00288" summary="UT fixes">
       <created>1573574148795</created>
@@ -571,7 +554,21 @@
       <option name="project" value="LOCAL" />
       <updated>1576748085725</updated>
     </task>
-    <option name="localTasksCounter" value="335" />
+    <task id="LOCAL-00335" summary="Notification by email for love of noticeboard post contains internal info">
+      <created>1576874633592</created>
+      <option name="number" value="00335" />
+      <option name="presentableId" value="LOCAL-00335" />
+      <option name="project" value="LOCAL" />
+      <updated>1576874633594</updated>
+    </task>
+    <task id="LOCAL-00336" summary="UT fixes">
+      <created>1576876510542</created>
+      <option name="number" value="00336" />
+      <option name="presentableId" value="LOCAL-00336" />
+      <option name="project" value="LOCAL" />
+      <updated>1576876510542</updated>
+    </task>
+    <option name="localTasksCounter" value="337" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +601,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Script to find most active local authorities" />
     <MESSAGE value="Link preview does not handle relative paths for link images" />
     <MESSAGE value="Link preview does not handle preview images served of http rather than https" />
     <MESSAGE value="Not sending welcome messages when memberships are approved" />
@@ -627,26 +623,51 @@
     <MESSAGE value="Nit for Wanda" />
     <MESSAGE value="Change to Discourse new API...properly, this time." />
     <MESSAGE value="Back out use of streaming encoder as breaks heatmap" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Some images are wrongly served from the user site rather than the image site." />
-    <option name="LAST_COMMIT_MESSAGE" value="Some images are wrongly served from the user site rather than the image site." />
+    <MESSAGE value="Notification by email for love of noticeboard post contains internal info" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
   <component name="WindowStateProjectService">
     <state x="446" y="123" key="#Deployment" timestamp="1576874224110">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="446" y="123" key="#Deployment/0.0.1707.920@0.0.1707.920" timestamp="1576874224110" />
-    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1576874612289">
+    <state x="385" y="62" key="CommitChangelistDialog2" timestamp="1576876509726">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1576874612289" />
-    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1576874491187">
+    <state x="385" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1576876509726" />
+    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1576878519149">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1576874491187" />
-    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1576874591709">
+    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1576878519149" />
+    <state width="1663" height="309" key="GridCell.Tab.0.bottom" timestamp="1576878694470">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1576874591709" />
+    <state width="1663" height="309" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1576878694470" />
+    <state width="1663" height="309" key="GridCell.Tab.0.center" timestamp="1576878694470">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state width="1663" height="309" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1576878694470" />
+    <state width="1663" height="309" key="GridCell.Tab.0.left" timestamp="1576878694470">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state width="1663" height="309" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1576878694470" />
+    <state width="1663" height="309" key="GridCell.Tab.0.right" timestamp="1576878694470">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state width="1663" height="309" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1576878694470" />
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1576877880706">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1576877880706" />
+    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1576878287594">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1576878287594" />
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1576878260973">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1576878260973" />
   </component>
 </project>
