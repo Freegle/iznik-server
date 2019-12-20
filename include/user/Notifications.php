@@ -332,8 +332,9 @@ class Notifications
                 $twignotifs[] = $notif;
                 
                 $shortmsg = NULL;
-                
-                if (pres('newsfeed', $notif) && pres('message', $notif['newsfeed']) && pres('type', $notif['newsfeed'] !== Newsfeed::TYPE_NOTICEBOARD)) {
+
+                if (pres('newsfeed', $notif) && pres('message', $notif['newsfeed']) && pres('type', $notif['newsfeed']) !== Newsfeed::TYPE_NOTICEBOARD) {
+                    error_log("Get message");
                     $notifmsg = $notif['newsfeed']['message'];
                     $shortmsg = strlen($notifmsg > 30) ? (substr($notifmsg, 0, 30) . "...") : $notifmsg;
                 }
