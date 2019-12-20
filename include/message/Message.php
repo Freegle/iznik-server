@@ -1629,7 +1629,7 @@ ORDER BY lastdate DESC;";
            $w = new WorryWords($this->dbhr, $this->dbhm);
 
            foreach ($msgs as $msgind => $msg) {
-               $msgs[$msgind]['worry'] = $w->checkMessage($msg['id'], pres('fromuser', $msg) ? $msg['fromuser']['id'] : NULL, $msg['subject'], $msg['textbody']);
+               $msgs[$msgind]['worry'] = $w->checkMessage($msg['id'], pres('fromuser', $msg) ? $msg['fromuser']['id'] : NULL, $msg['subject'], $msg['textbody'], FALSE);
            }
        }
     }
