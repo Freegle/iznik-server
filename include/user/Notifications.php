@@ -210,7 +210,7 @@ class Notifications
         $mailer->send($message);
     }
 
-    public function sendEmails($userid = NULL, $before = '24 hours ago', $since = '7 days ago', $unseen = TRUE) {
+    public function sendEmails($userid = NULL, $before = '24 hours ago', $since = '7 days ago', $unseen = TRUE, $mailed = TRUE) {
         $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new Twig_Environment($loader);
 
@@ -219,7 +219,8 @@ class Notifications
         $mysqltime = date("Y-m-d H:i:s", strtotime($before));
         $mysqltime2 = date("Y-m-d H:i:s", strtotime($since));
         $seenq = $unseen ? " AND seen = 0 ": '';
-        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq AND mailed = 0 AND `type` NOT IN (?, ?, ?) $userq;";
+        $mailq = $mailed ? " AND mailed = 0 " : '';
+        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq $mailq AND `type` NOT IN (?, ?, ?) $userq;";
         $users = $this->dbhr->preQuery($sql, [
             Notifications::TYPE_TRY_FEED,
             Notifications::TYPE_EXHORT,
