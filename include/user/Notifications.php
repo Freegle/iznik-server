@@ -253,7 +253,7 @@ class Notifications
                         $twignotifs[] = $notif;
                     }
 
-                    if (pres('newsfeed', $notif) && pres('replyto', $notif['newsfeed'])) {
+                    if (pres('newsfeed', $notif) && pres('replyto', $notif['newsfeed']) && pres('message', $notif['newsfeed']['replyto'])) {
                         $this->snip($notif['newsfeed']['replyto']['message']);
                     }
                 }
@@ -334,7 +334,6 @@ class Notifications
                 $shortmsg = NULL;
 
                 if (pres('newsfeed', $notif) && pres('message', $notif['newsfeed']) && pres('type', $notif['newsfeed']) !== Newsfeed::TYPE_NOTICEBOARD) {
-                    error_log("Get message");
                     $notifmsg = $notif['newsfeed']['message'];
                     $shortmsg = strlen($notifmsg > 30) ? (substr($notifmsg, 0, 30) . "...") : $notifmsg;
                 }
