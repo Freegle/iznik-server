@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/Notifications.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/Notifications.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/notifications/email.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/notifications/email.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/restartapp" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/restartapp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -675,13 +674,16 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1576945050330" />
-    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1576948670225">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="629" y="244" width="662" height="552" key="find.popup" timestamp="1577029494918">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1576948670225" />
-    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1576928795545">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="629" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577029494918" />
+    <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1577138097114">
+      <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1576928795545" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577043280819" />
+    <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
