@@ -5983,7 +5983,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     public function getJobAds() {
         # We want to show a few job ads from nearby.
         $search = NULL;
-        $ret = '';
+        $ret = '<span class="jobads">';
 
         $search = $this->getCity();
 
@@ -6017,6 +6017,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 }
             }
         }
+
+        $ret .= '</span>';
 
         return([
             'location' => $search,

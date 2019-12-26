@@ -252,6 +252,29 @@ class chatMessagesTest extends IznikTestCase {
 
         }
 
+    public function testReplyJobSpam() {
+        # Put a valid message on a group.
+        $this->log("Put valid message on");
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Now reply to it with spam that is marked as to be junked (weight loss in spam_keywords).
+        $this->log("Reply with spam");
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replyjobspam'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+    }
+
     public function testPairing() {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);

@@ -1,0 +1,992 @@
+Delivered-To: test@test.com
+Received: by 2002:a02:b183:0:0:0:0:0 with SMTP id t3csp6037322jah; Sun, 22 Dec
+ 2019 08:50:00 -0800 (PST)
+X-Google-Smtp-Source: APXvYqxue+7zXDpD2KyjQWQLjsaSaqE4fCwR58wowmvWLI/B3RhjEPXz92SYQqcDo4SyPs8quI5D
+X-Received: by 2002:a05:600c:cd:: with SMTP id
+ u13mr27528439wmm.24.1577033400324; Sun, 22 Dec 2019 08:50:00 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1577033400; cv=none; d=google.com;
+ s=arc-20160816;
+ b=zWOCN8vkPLuerk8dZGU4057ej08APYPwKDZm44GgmGsQcZYcgfdTlUhcvct8w1kNdu
+ 7LYZYKUhKI8rnFNzMLgislka+5KI+agsWlbIUUSaPjIHXfgIJOyXpiI2mHYOR+IfHZW0
+ SN61lhBCoPQgu1EjcL9x2GNwCv6wxbye4eImwGhpW+zrzH06hkPEx/XY18BPvAN3xFw1
+ p4/9cZ/OKrn1c83TWZ5i4hrSd9Qb01HUm2XfjTbY29roPj9CJYsNYoIu1JH1Wwo0l7RH
+ DwcMvOOd/68JHbPmdSrO6Ni+EIio3c/RpwD3CFl1r1waZKAMBn/g/WjY4xvsnIt3W+7E Jb3w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+ h=thread-index:mime-version:message-id:date:subject:in-reply-to
+ :references:to:from:dkim-signature;
+ bh=KsOexTz47kuVMyPpsx/P0l7aIbpotsApcpf3FV+d5KI=;
+ b=G7HFC3TtqSa0HH6CuvO1Xo0DA8BAyveW7K1zMCXQ1+wYTLZDzJZBiKI+S3zGzVGZDD
+ PJEr4s84OxrcUSAPP6SHWpNAl2kKcM/+4v3H+it645bANxFHBBHqAI39B+HS1rOehFAu
+ NPdVq1uQwyBLOfBSAagXe7ww86i5DFabmT6ROi2a757rhhbfjT79zX7bb1U3qmqBncs2
+ b2bkL/PITozoR+wws+wM47glHEpeXJQHQ+WKgpLvvJPWI6Oqi0PHoAYVwXj6dZHNvSje
+ W9E8xaSznvI0G7wXiSMCKYvC/s3PEnKGPyPQ5MVA7H4wQYYpHT49xX5ewq09o56LYY5o f1XQ==
+ARC-Authentication-Results: i=1; mx.google.com; dkim=pass
+ header.i=@yahoo.co.uk header.s=s2048 header.b=C+sUN7T9; spf=pass (google.com:
+ domain of xxxx@xxx.com designates 77.238.176.163 as permitted
+ sender) smtp.mailfrom=xxxx@xxx.com; dmarc=pass (p=REJECT
+ sp=REJECT dis=NONE) header.from=yahoo.co.uk
+Return-Path: <xxxx@xxx.com>
+Received: from sonic311-31.consmr.mail.ir2.yahoo.com
+ (sonic311-31.consmr.mail.ir2.yahoo.com. [77.238.176.163]) by mx.google.com
+ with ESMTPS id j8si15010791wru.145.2019.12.22.08.50.00 for
+ <test@test.com> (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256
+ bits=128/128); Sun, 22 Dec 2019 08:50:00 -0800 (PST)
+Received-SPF: pass (google.com: domain of xxxx@xxx.com designates
+ 77.238.176.163 as permitted sender) client-ip=77.238.176.163;
+Authentication-Results: mx.google.com; dkim=pass header.i=@yahoo.co.uk
+ header.s=s2048 header.b=C+sUN7T9; spf=pass (google.com: domain of
+ xxxx@xxx.com designates 77.238.176.163 as permitted sender)
+ smtp.mailfrom=xxxx@xxx.com; dmarc=pass (p=REJECT sp=REJECT
+ dis=NONE) header.from=yahoo.co.uk
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.co.uk; s=s2048;
+ t=1577033399; bh=KsOexTz47kuVMyPpsx/P0l7aIbpotsApcpf3FV+d5KI=;
+ h=From:To:References:In-Reply-To:Subject:Date:From:Subject;
+ b=C+sUN7T9p19zirF9eknaFhvYWTOsPa+IEihzz0rcWVr9Sw/qDEA7u42yxuRx0u00BIfFcjCK+bX8o6YQndRt6WgH55lSmS/NGZdyhbcIlIfNuduMGwrIuyyqa7xAv6Zwy+SJwJxFXTKxv+NBtC0zHh0fi54XzcBzxZ6S4wjGWmGHfvcyO2BnrynnctL1g7gCQBUWWI6StRCgDoaW0rCD9lMOUiTZwosj1OwoaeeZVSTD/HTY3Ldfhr4fMLshJYeNYXIFLBVQODWOpSF2QK8g/ycGJ1I2pmgP+l9lwk+PQbsyMnX0ik5nLMgcCHegJ6Vwueg6WfE9unCz7FSwQ4SClQ==
+X-YMail-OSG: ceSOko8VM1nzZCVn_aKUImsQ5oIcN5tdo7vbc4q2B7bNdYYEYiDvOY9CMcqPUiB
+ 7xaSmoE1AVBoPRNOLs480CqzOpr48Fz9bFDy9yibV5gIhTDYGvyC5nJ4ukr1fW_GREJNOk.bGcfj
+ rDtXdCWAkCFXTpbnklUvhEmPfaJxLWtMdCI6iaVsZ0PoQJcQQoSCOcSSY3kfBdS_qOklpe1IbmN3
+ lzqQDue9yLoAn209yJxcHd2iPDRXtPbxUmIW.T6WtT72pgkQR2D.l0.2iR82BRXigFW7ipBTlCYV
+ 4Q0VoVFyZtmkdg0hfPnii7ljfhyOjwLMwVJkSIlLi0f.FeAVwL_TDkBG75b_UJy0pEK6WTNu8e3B
+ .86qj1crXX1LGx.HTnEV3DcnT_ih5oNgUoqAik0KOKcA63iPfKh__._IORuyJ0IbmZqyOegveKXV
+ ywxxOa2.DzjjVgOat5L.EUoBRwFGbtT6e.RBVTTtwPjQMoG1GVZPEtMIn.EEoqegq.ZbozdkprLh
+ PUXhRldKrAketV8LeNaOJhvQY4QAntvzh3tJsM6Z0_nIqHPMu4hmsSGe.1zsaAFChgzQXD_KN6G7
+ HwqCR9HWRFVWGz.HPpuDnrlKgAvZ7P_x6Oav4UnjEVHtTPa66ITNOq29Vmd3I_8R4N02P1_sXTp8
+ nvlZPhSjizYRqBgMCvdgl8RiSh6T2qDaQVW2JXkeJt8lqglmlyN1fXiaqCV3X5a_30dHWZLKAP3o
+ osGxFDc6Ys8qk7VaKwpn7nyJHYvsiyjlLVeXnvh0hnt8AOvmVT2RxHs5NA6rmfXt95le7_gUIcb6
+ cPqYGTRuGnES4lbYmj1XhRwRCRObfYc5GwmDIFJ9aE.MSnJQCexpOMrOmSJid4.Cj62KC1Un3zoO
+ 1.osAcDm.JNo8lwBnzdUSUOedL.4Dg6N05JXjscCNgdGxLXB3h0b147SvZsBhynTErXo19wKO3Xs
+ sx7FYJs3.4L2kmyxo2h_orPTw0iVbLocZoAOg.DUNjy3xNBoTvzGYAGNA5UbxnNO4oWylueHiiPv
+ EuVsWu23gmuQihggk2V9NBJKv6PgPdE8SNthL3UybYnU2NwrjQl7YSY2_UiHd.jHEqJPiR4apRfx
+ 0ul47n7pQLhvpy4W9Yy.G8elMG.ROyp0NvONDMNEzs6FJygCJIg.b71IwXOgUTVnBJd6jinPccuw
+ xuwyYdfsup4bOsn3Z18UyLmSt41juL67dqQ1W.6vpfl314uWHNPjU2YYUZ7VmSVY_fG56PNajpzq
+ sztO75haS6RufOpP9XpqsIY95hsb5FYZIPcDA4bGl2ILZyBqacx3RihyxHpaNF2velsNmZSjVDdt
+ scqMPEf_N61pOLdpAGYxVX__taT0gCFXRxiCtK1S6a0Vme.obJO.eZy.VQz9t69hWTnvwsTYAQdi
+ 9wMrO8NHK
+Received: from sonic.gate.mail.ne1.yahoo.com by
+ sonic311.consmr.mail.ir2.yahoo.com with HTTP; Sun, 22 Dec 2019 16:49:59 +0000
+Received: by smtp423.mail.ir2.yahoo.com (Oath Hermes SMTP Server) with ESMTPA
+ ID 5ba9adda1500eb7c03c2a983f8d72aea; Sun, 22 Dec 2019 16:49:57 +0000 (UTC)
+From: "Someone Tall" <xxxx@xxx.com>
+To: "'Edward Hibbert'" <test@test.com>
+References: <3b3280a205b21778d0b46608ab050155@users.ilovefreegle.org>
+In-Reply-To: <3b3280a205b21778d0b46608ab050155@users.ilovefreegle.org>
+Subject: RE: Member conversation on WelwynGardenCityFreegle with xxxxxxx xxxxxxx
+ (xxxxxxx.xxxxxxx@btinternet.com)
+Date: Sun, 22 Dec 2019 16:49:56 -0000
+Message-ID: <E008B2AD067A44ED81249B9FA58B61D4@WonderPC>
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="----=_NextPart_000_0500_01D5B8E7.D7C1DBE0"
+X-Mailer: Microsoft Office Outlook 11
+Thread-Index: AdW4qTGxlZu1KwRLQLSHpCubFOfyDwAPovaA
+X-MimeOLE: Produced By Microsoft MimeOLE V6.1.7601.24158
+Content-Length: 32178
+
+------=_NextPart_000_0500_01D5B8E7.D7C1DBE0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Replying to message notification but sending to you as requested=20
+
+=20
+
+Wonder
+
+=20
+
+  _____ =20
+
+From: Reply All [mailto:notify-5381010-13249495@users.ilovefreegle.org]=20
+Sent: 22 December 2019 09:21
+To: Wonder
+Subject: Member conversation on WelwynGardenCityFreegle with xxxxxxx xxxxxxx =
+(xxxxxxx.xxxxxxx@btinternet.com)
+
+=20
+
+
+
+
+
+
+
+
+
+xxxxxxx xxxxxxx wrote:=20
+
+
+Hello, I can't find my offers aunder 'my posts' at all now. Only old =
+offers. Can what has gone wrong please?=20
+
+
+
+ =
+<https://modtools.org/modtools/chat/5381010?u=3D11111111&src=3Dchatnotif>=
+ Reply=20
+
+
+  _____ =20
+
+> Aha
+
+  _____ =20
+
+
+You can respond by just replying to this email - but it works better if =
+you reply on the site using the button.=20
+
+
+This message is sent to all volunteers on the group. If you need help =
+dealing with this query, you can mail  <mailto:support@ilovefreegle.org> =
+support@ilovefreegle.org.=20
+
+
+
+
+
+
+Jobs near you
+
+
+If you click through to view these then it will raise a little to help =
+keep Freegle running and free to use.
+
+
+
+ <https://www.ilovefreegle.org/jobs/Luton> View more jobs=20
+
+
+
+ <https://freegle.in/paypalfundraiser> Donating helps too!=20
+
+
+
+
+
+
+ <https://www.ilovefreegle.org/jobs/Luton> Counterbxxxxxxxce Forklift =
+Driver (Dunstable Bedfordshire LU6)
+ <https://www.ilovefreegle.org/jobs/Luton> Nightshift Production =
+Operatives x 50 (Dunstable Bedfordshire LU6)
+ <https://www.ilovefreegle.org/jobs/Luton> Viagra and Protection =
+Advisor (Luton Bedfordshire LU1)
+ <https://www.ilovefreegle.org/jobs/Luton> Viagra Lodge Host (Dunstable =
+Bedfordshire LU6)
+
+
+
+
+
+
+You've received this mail because you're a member of Freegle.  =
+<https://modtools.org/unsubscribe/13249495?u=3D11111111&src=3Dchatnotif> =
+Unsubscribe.=20
+
+This message was from user #2057960, and this mail was sent to =
+xxxx@xxx.com.=20
+
+  _____ =20
+
+Freegle is registered as a charity with HMRC (ref. XT32865) and is run =
+by volunteers. Which is nice.=20
+
+=20
+
+
+ =
+<http://www.avg.com/email-signature?utm_medium=3Demail&utm_source=3Dlink&=
+utm_campaign=3Dsig-email&utm_content=3Demailclient>=20
+
+Virus-free.  =
+<http://www.avg.com/email-signature?utm_medium=3Demail&utm_source=3Dlink&=
+utm_campaign=3Dsig-email&utm_content=3Demailclient> www.avg.com=20
+
+
+
+
+------=_NextPart_000_0500_01D5B8E7.D7C1DBE0
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
+osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word"=
+ xmlns=3D"http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=3DContent-Type content=3D"text/html; charset=3Dutf-8">
+<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered medium)">
+<!--[if !mso]>
+<style>
+v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+w\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style>
+<![endif]-->
+<style>
+<!--
+@media only screen and (max-width:480px){@-ms-viewport{width: 320px;}@viewp=
+ort{width: 320px;}}
+@media only screen and (min-width:480px){.mj-column-per-100{width: 100% !im=
+portant; max-width: 100%;}.mj-column-per-50{width: 50% !important; max-widt=
+h: 50%;}}
+@media only screen and (max-width:480px){table.full-width-mobile{width: 100=
+% !important;}td.full-width-mobile{width: auto !important;}}
+@media only screen and (max-width: 480px){*[class~=3Dhide_on_mobile]{displa=
+y: none !important;}*[class~=3Dshow_on_mobile]{display: block !important;}}
+@media only screen and (min-width: 480px){*[class~=3Dhide_on_mobile]{displa=
+y: block !important;}*[class~=3Dshow_on_mobile]{display: none !important;}}
+.ExternalClass *{line-height: 100%;}
+body
+	{-webkit-text-size-adjust: 100%;
+	-ms-text-size-adjust: 100%;}
+img
+	{outline: none;
+	-ms-interpolation-mode: bicubic;}
+
+ /* Font Definitions */
+ @font-face
+	{font-family:Helvetica;
+	panose-1:2 11 6 4 2 2 2 2 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+@font-face
+	{font-family:"Trebuchet MS";
+	panose-1:2 11 6 3 2 2 2 2 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:#288C0A;
+	font-weight:bold;
+	text-decoration:none none;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#288C0A;
+	font-weight:bold;
+	text-decoration:none none;}
+p
+	{margin-top:9.75pt;
+	margin-right:0cm;
+	margin-bottom:9.75pt;
+	margin-left:0cm;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+p.readmsgbody, li.readmsgbody, div.readmsgbody
+	{margin-top:9.75pt;
+	margin-right:0cm;
+	margin-bottom:9.75pt;
+	margin-left:0cm;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+p.externalclass, li.externalclass, div.externalclass
+	{margin-top:9.75pt;
+	margin-right:0cm;
+	margin-bottom:9.75pt;
+	margin-left:0cm;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+p.outlook-group-fix, li.outlook-group-fix, div.outlook-group-fix
+	{margin-top:9.75pt;
+	margin-right:0cm;
+	margin-bottom:9.75pt;
+	margin-left:0cm;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+span.EmailStyle22
+	{mso-style-type:personal-reply;
+	font-family:Arial;
+	color:blue;
+	font-weight:normal;
+	font-style:normal;
+	text-decoration:none none;}
+@page Section1
+	{size:595.3pt 841.9pt;
+	margin:2.0cm 2.0cm 2.0cm 2.0cm;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+
+<meta http-equiv=3DX-UA-Compatible content=3D"IE=3Dedge">
+<meta name=3Dviewport content=3D"width=3Ddevice-width, initial-scale=3D1">
+</head>
+
+<body lang=3DEN-GB link=3D"#288C0A" vlink=3D"#288C0A">
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal><font size=3D3 color=3Dblue face=3DArial><span style=
+=3D'font-size:
+12.0pt;font-family:Arial;color:blue'>Replying to message notification but
+sending to you as requested <o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 color=3Dblue face=3DArial><span style=
+=3D'font-size:
+12.0pt;font-family:Arial;color:blue'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 color=3Dblue face=3DArial><span style=
+=3D'font-size:
+12.0pt;font-family:Arial;color:blue'>Wonder<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 color=3Dblue face=3DArial><span style=
+=3D'font-size:
+12.0pt;font-family:Arial;color:blue'><o:p>&nbsp;</o:p></span></font></p>
+
+<div>
+
+<div class=3DMsoNormal align=3Dcenter style=3D'text-align:center'><font siz=
+e=3D3
+face=3D"Times New Roman"><span lang=3DEN-US style=3D'font-size:12.0pt'>
+
+<hr size=3D2 width=3D"100%" align=3Dcenter tabindex=3D-1>
+
+</span></font></div>
+
+<p class=3DMsoNormal><b><font size=3D2 face=3DTahoma><span lang=3DEN-US
+style=3D'font-size:10.0pt;font-family:Tahoma;font-weight:bold'>From:</span>=
+</font></b><font
+size=3D2 face=3DTahoma><span lang=3DEN-US style=3D'font-size:10.0pt;font-fa=
+mily:Tahoma'>
+Reply All [mailto:notify-5381010-13249495@users.ilovefreegle.org] <br>
+<b><span style=3D'font-weight:bold'>Sent:</span></b> 22 December 2019 09:21=
+<br>
+<b><span style=3D'font-weight:bold'>To:</span></b> Wonder<br>
+<b><span style=3D'font-weight:bold'>Subject:</span></b> Member conversation =
+on
+WelwynGardenCityFreegle with xxxxxxx xxxxxxx (xxxxxxx.xxxxxxx@btinternet.com)</span=
+></font><span
+lang=3DEN-US><o:p></o:p></span></p>
+
+</div>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span style=3D=
+'font-size:
+12.0pt'><o:p>&nbsp;</o:p></span></font></p>
+
+<div>
+
+<div align=3Dcenter>
+
+<table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpadding=3D0 wi=
+dth=3D"100%"
+ style=3D'width:100.0%;border-collapse:collapse'>
+ <tr>
+  <td style=3D'padding:0cm 0cm 0cm 0cm'>
+  <div align=3Dcenter>
+  <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpadding=3D0=
+ width=3D600
+   style=3D'width:450.0pt;border-collapse:collapse'>
+   <tr>
+    <td style=3D'padding:0cm 0cm 0cm 0cm'>
+    <div style=3D'max-width:600px'>
+    <div align=3Dcenter>
+    <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpadding=3D=
+0
+     width=3D"100%" style=3D'width:100.0%;border-collapse:collapse'>
+     <tr>
+      <td valign=3Dtop style=3D'padding:0cm 0cm 0cm 0cm'>
+      <div align=3Dcenter>
+      <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpadding=
+=3D0
+       style=3D'border-collapse:collapse'>
+       <tr>
+        <td style=3D'padding:0cm 0cm 0cm 0cm'>
+        <div align=3Dcenter>
+        <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpaddin=
+g=3D0
+         width=3D600 style=3D'width:450.0pt;border-collapse:collapse'>
+         <tr>
+          <td style=3D'padding:0cm 0cm 0cm 0cm'>
+          <div style=3D'max-width:600px'>
+          <div align=3Dcenter>
+          <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpadd=
+ing=3D0
+           width=3D"100%" bgcolor=3D"#E8FEFB" style=3D'width:100.0%;backgro=
+und:#E8FEFB;
+           border-collapse:collapse'>
+           <tr>
+            <td valign=3Dtop style=3D'padding:15.0pt 0cm 15.0pt 0cm'>
+            <div align=3Dcenter>
+            <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpa=
+dding=3D0
+             style=3D'border-collapse:collapse'>
+             <tr>
+              <td width=3D600 valign=3Dtop style=3D'width:450.0pt;padding:0=
+cm 0cm 0cm 0cm'>
+              <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cell=
+padding=3D0
+               width=3D"100%" style=3D'width:100.0%;border-collapse:collaps=
+e'>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt'>
+                <p class=3DMsoNormal><em><i><font size=3D2 face=3D"Trebuche=
+t MS"><span
+                style=3D'font-size:10.0pt;font-family:"Trebuchet MS"'>xxxxxxx
+                xxxxxxx&nbsp;wrote:</span></font></i></em><font size=3D2
+                face=3D"Trebuchet MS"><span style=3D'font-size:10.0pt;font-=
+family:
+                "Trebuchet MS"'> <o:p></o:p></span></font></p>
+                </td>
+               </tr>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt;word-break=
+:break-word'>
+                <p class=3DMsoNormal><b><font size=3D2 color=3Dblue
+                face=3D"Trebuchet MS"><span style=3D'font-size:10.0pt;font-=
+family:
+                "Trebuchet MS";color:blue;font-weight:bold'>Hello, I can't=
+ find
+                my offers aunder 'my posts' at all now. Only old offers. Ca=
+n
+                what has gone wrong please?</span></font></b><font size=3D2
+                color=3Dblue face=3D"Trebuchet MS"><span style=3D'font-size=
+:10.0pt;
+                font-family:"Trebuchet MS";color:blue'> <o:p></o:p></span><=
+/font></p>
+                </td>
+               </tr>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt;word-break=
+:break-word'
+                vertical-align=3Dmiddle>
+                <table class=3DMsoNormalTable border=3D0 cellspacing=3D0
+                 cellpadding=3D0 style=3D'border-collapse:collapse'
+                 role=3Dpresentation>
+                 <tr>
+                  <td bgcolor=3Ddarkgreen style=3D'background:darkgreen;pad=
+ding:
+                  7.5pt 18.75pt 7.5pt 18.75pt' role=3Dpresentation>
+                  <p class=3DMsoNormal align=3Dcenter style=3D'text-align:c=
+enter'><font
+                  size=3D3 face=3D"Times New Roman"><span style=3D'font-siz=
+e:12.0pt'><a
+                  href=3D"https://modtools.org/modtools/chat/5381010?u=3D13=
+249495&amp;src=3Dchatnotif"
+                  target=3D"_blank"><font size=3D2 color=3Dwhite face=3DHel=
+vetica><span
+                  style=3D'font-size:10.0pt;font-family:Helvetica;color:whi=
+te;
+                  background:darkgreen'>Reply </span></font></a><o:p></o:p>=
+</span></font></p>
+                  </td>
+                 </tr>
+                </table>
+                <p class=3DMsoNormal><font size=3D1 face=3D"Times New Roman=
+"><span
+                style=3D'font-size:1.0pt'><o:p></o:p></span></font></p>
+                </td>
+               </tr>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt;word-break=
+:break-word'>
+                <div class=3DMsoNormal align=3Dcenter style=3D'text-align:c=
+enter'><font
+                size=3D2 color=3Dblack face=3D"Trebuchet MS"><span style=3D=
+'font-size:
+                10.0pt;font-family:"Trebuchet MS";color:black'>
+                <hr size=3D2 width=3D"100%" align=3Dcenter>
+                </span></font></div>
+                <p class=3DMsoNormal><b><font size=3D2 color=3Dblack
+                face=3D"Trebuchet MS"><span style=3D'font-size:10.0pt;font-=
+family:
+                "Trebuchet MS";color:black;font-weight:bold'>&gt; Aha - I
+                didn't see that bit of my settings because I<br>
+                &gt; thought that j had scrolled to the bottom. Many thanks =
+for<br>
+                &gt; your help &amp; fast response. I have a number of item=
+s to<br>
+                &gt; give away so your help is very valuable.</span></font>=
+</b><font
+                size=3D2 color=3Dblack face=3D"Trebuchet MS"><span style=3D=
+'font-size:
+                10.0pt;font-family:"Trebuchet MS";color:black'> <o:p></o:p>=
+</span></font></p>
+                <div class=3DMsoNormal align=3Dcenter style=3D'text-align:c=
+enter'><font
+                size=3D2 color=3Dblack face=3D"Trebuchet MS"><span style=3D=
+'font-size:
+                10.0pt;font-family:"Trebuchet MS";color:black'>
+                <hr size=3D2 width=3D"100%" align=3Dcenter>
+                </span></font></div>
+                <p class=3DMsoNormal><font size=3D2 color=3Dblack face=3D"T=
+rebuchet MS"><span
+                style=3D'font-size:10.0pt;font-family:"Trebuchet MS";color:=
+black'><o:p></o:p></span></font></p>
+                </td>
+               </tr>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt;word-break=
+:break-word'>
+                <p class=3DMsoNormal><font size=3D2 face=3D"Trebuchet MS"><=
+span
+                style=3D'font-size:10.0pt;font-family:"Trebuchet MS"'>You c=
+an
+                respond by just replying to this email - but it works bette=
+r if
+                you reply on the site using the button. <o:p></o:p></span><=
+/font></p>
+                </td>
+               </tr>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt;word-break=
+:break-word'>
+                <p class=3DMsoNormal><font size=3D2 face=3D"Trebuchet MS"><=
+span
+                style=3D'font-size:10.0pt;font-family:"Trebuchet MS"'>This
+                message is sent to all volunteers on the group. If you need
+                help dealing with this query, you can mail <a
+                href=3D"mailto:support@ilovefreegle.org"><b><span
+                style=3D'font-weight:bold'>support@ilovefreegle.org</span><=
+/b></a>.
+                <o:p></o:p></span></font></p>
+                </td>
+               </tr>
+              </table>
+              <p class=3DMsoNormal style=3D'vertical-align:top'><font size=
+=3D2
+              face=3D"Times New Roman"><span style=3D'font-size:10.0pt'><o:=
+p></o:p></span></font></p>
+              </td>
+             </tr>
+            </table>
+            </div>
+            <p class=3DMsoNormal align=3Dcenter style=3D'text-align:center'=
+><font
+            size=3D1 face=3D"Times New Roman"><span style=3D'font-size:1.0p=
+t'><o:p></o:p></span></font></p>
+            </td>
+           </tr>
+          </table>
+          </div>
+          </div>
+          <p class=3DMsoNormal style=3D'background:#E8FEFB'><font size=3D1
+          face=3D"Times New Roman"><span style=3D'font-size:1.0pt'><o:p></o=
+:p></span></font></p>
+          </td>
+         </tr>
+        </table>
+        </div>
+        <p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span
+        style=3D'font-size:12.0pt'><o:p></o:p></span></font></p>
+        </td>
+       </tr>
+       <tr>
+        <td style=3D'padding:0cm 0cm 0cm 0cm;word-break:break-word'>
+        <div align=3Dcenter>
+        <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpaddin=
+g=3D0
+         width=3D600 style=3D'width:450.0pt;border-collapse:collapse'
+         role=3Dpresentation>
+         <tr>
+          <td style=3D'padding:0cm 0cm 0cm 0cm'>
+          <div style=3D'max-width:600px'>
+          <div align=3Dcenter>
+          <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpadd=
+ing=3D0
+           width=3D"100%" bgcolor=3D"#F7F6EC" style=3D'width:100.0%;backgro=
+und:#F7F6EC;
+           border-collapse:collapse'>
+           <tr>
+            <td valign=3Dtop style=3D'padding:0cm 0cm 0cm 0cm'>
+            <div align=3Dcenter>
+            <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpa=
+dding=3D0
+             style=3D'border-collapse:collapse'>
+             <tr>
+              <td width=3D300 valign=3Dtop style=3D'width:225.0pt;padding:0=
+cm 0cm 0cm 0cm'>
+              <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cell=
+padding=3D0
+               width=3D"100%" style=3D'width:100.0%;border-collapse:collaps=
+e'>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 0cm 18.75pt'>
+                <p class=3DMsoNormal style=3D'line-height:15.0pt'><font siz=
+e=3D5
+                color=3D"#1d6607" face=3D"Trebuchet MS"><span style=3D'font=
+-size:
+                20.0pt;font-family:"Trebuchet MS";color:#1D6607'>Jobs near=
+ you<o:p></o:p></span></font></p>
+                </td>
+               </tr>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt;word-break=
+:break-word'>
+                <p class=3DMsoNormal><font size=3D2 color=3Dblack face=3D"T=
+rebuchet MS"><span
+                style=3D'font-size:10.0pt;font-family:"Trebuchet MS";color:=
+black'>If
+                you click through to view these then it will raise a little =
+to
+                help keep Freegle running and free to use.<o:p></o:p></span=
+></font></p>
+                </td>
+               </tr>
+              </table>
+              <p class=3DMsoNormal style=3D'vertical-align:top'><font size=
+=3D2
+              face=3D"Times New Roman"><span style=3D'font-size:10.0pt'><o:=
+p></o:p></span></font></p>
+              </td>
+              <td width=3D300 valign=3Dtop style=3D'width:225.0pt;padding:0=
+cm 0cm 0cm 0cm;
+              word-break:break-word' vertical-align=3Dmiddle>
+              <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cell=
+padding=3D0
+               width=3D"100%" style=3D'width:100.0%;border-collapse:collaps=
+e'
+               role=3Dpresentation>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt'
+                role=3Dpresentation>
+                <div align=3Dright>
+                <table class=3DMsoNormalTable border=3D0 cellspacing=3D0
+                 cellpadding=3D0 style=3D'border-collapse:collapse;word-bre=
+ak:break-word'
+                 role=3Dpresentation>
+                 <tr>
+                  <td bgcolor=3Ddarkblue style=3D'background:darkblue;paddi=
+ng:7.5pt 18.75pt 7.5pt 18.75pt'>
+                  <p class=3DMsoNormal align=3Dcenter style=3D'text-align:c=
+enter'><font
+                  size=3D3 face=3D"Times New Roman"><span style=3D'font-siz=
+e:12.0pt'><a
+                  href=3D"https://www.ilovefreegle.org/jobs/Luton" target=
+=3D"_blank"><font
+                  size=3D2 color=3Dwhite face=3DHelvetica><span style=3D'fo=
+nt-size:
+                  10.0pt;font-family:Helvetica;color:white;background:darkb=
+lue'>View
+                  more jobs </span></font></a><o:p></o:p></span></font></p>
+                  </td>
+                 </tr>
+                </table>
+                </div>
+                <p class=3DMsoNormal align=3Dright style=3D'text-align:righ=
+t'><font
+                size=3D1 face=3D"Times New Roman"><span style=3D'font-size:=
+1.0pt'><o:p></o:p></span></font></p>
+                </td>
+               </tr>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt;word-break=
+:break-word'
+                vertical-align=3Dmiddle>
+                <div align=3Dright>
+                <table class=3DMsoNormalTable border=3D0 cellspacing=3D0
+                 cellpadding=3D0 style=3D'border-collapse:collapse'
+                 role=3Dpresentation>
+                 <tr>
+                  <td bgcolor=3Ddarkgreen style=3D'background:darkgreen;pad=
+ding:
+                  7.5pt 18.75pt 7.5pt 18.75pt' role=3Dpresentation>
+                  <p class=3DMsoNormal align=3Dcenter style=3D'text-align:c=
+enter'><font
+                  size=3D3 face=3D"Times New Roman"><span style=3D'font-siz=
+e:12.0pt'><a
+                  href=3D"https://freegle.in/paypalfundraiser" target=3D"_b=
+lank"><font
+                  size=3D2 color=3Dwhite face=3DHelvetica><span style=3D'fo=
+nt-size:
+                  10.0pt;font-family:Helvetica;color:white;background:darkg=
+reen'>Donating
+                  helps too! </span></font></a><o:p></o:p></span></font></p=
+>
+                  </td>
+                 </tr>
+                </table>
+                </div>
+                <p class=3DMsoNormal align=3Dright style=3D'text-align:righ=
+t'><font
+                size=3D1 face=3D"Times New Roman"><span style=3D'font-size:=
+1.0pt'><o:p></o:p></span></font></p>
+                </td>
+               </tr>
+              </table>
+              <p class=3DMsoNormal style=3D'vertical-align:top'><font size=
+=3D2
+              face=3D"Times New Roman"><span style=3D'font-size:10.0pt'><o:=
+p></o:p></span></font></p>
+              </td>
+             </tr>
+            </table>
+            </div>
+            <p class=3DMsoNormal align=3Dcenter style=3D'text-align:center'=
+><font
+            size=3D1 face=3D"Times New Roman"><span style=3D'font-size:1.0p=
+t'><o:p></o:p></span></font></p>
+            </td>
+           </tr>
+          </table>
+          </div>
+          </div>
+          <p class=3DMsoNormal style=3D'background:#F7F6EC'><font size=3D1
+          face=3D"Times New Roman"><span style=3D'font-size:1.0pt'><o:p></o=
+:p></span></font></p>
+          </td>
+         </tr>
+        </table>
+        </div>
+        <p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span
+        style=3D'font-size:12.0pt'><o:p></o:p></span></font></p>
+        </td>
+       </tr>
+       <tr>
+        <td style=3D'padding:0cm 0cm 0cm 0cm;word-break:break-word'>
+        <div align=3Dcenter>
+        <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpaddin=
+g=3D0
+         width=3D600 style=3D'width:450.0pt;border-collapse:collapse'
+         role=3Dpresentation>
+         <tr>
+          <td style=3D'padding:0cm 0cm 0cm 0cm'>
+          <div style=3D'max-width:600px'>
+          <div align=3Dcenter>
+          <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpadd=
+ing=3D0
+           width=3D"100%" bgcolor=3D"#F7F6EC" style=3D'width:100.0%;backgro=
+und:#F7F6EC;
+           border-collapse:collapse'>
+           <tr>
+            <td valign=3Dtop style=3D'padding:0cm 0cm 0cm 0cm'>
+            <div align=3Dcenter>
+            <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpa=
+dding=3D0
+             style=3D'border-collapse:collapse'>
+             <tr>
+              <td width=3D600 valign=3Dtop style=3D'width:450.0pt;padding:0=
+cm 0cm 0cm 0cm'>
+              <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cell=
+padding=3D0
+               width=3D"100%" style=3D'width:100.0%;border-collapse:collaps=
+e'>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt'>
+                <p class=3DMsoNormal><font size=3D2 color=3Dblack face=3D"T=
+rebuchet MS"><span
+                style=3D'font-size:10.0pt;font-family:"Trebuchet MS";color:=
+black'><a
+                href=3D"https://www.ilovefreegle.org/jobs/Luton" target=3D"=
+_blank"><b><span
+                style=3D'font-weight:bold'>Counterbxxxxxxxce Forklift Driver
+                (Dunstable Bedfordshire LU6)</span></b></a><br>
+                <a href=3D"https://www.ilovefreegle.org/jobs/Luton"
+                target=3D"_blank"><b><span style=3D'font-weight:bold'>Night=
+shift
+                Production Operatives x 50 (Dunstable Bedfordshire LU6)</sp=
+an></b></a><br>
+                <a href=3D"https://www.ilovefreegle.org/jobs/Luton"
+                target=3D"_blank"><b><span style=3D'font-weight:bold'>Mortg=
+age and
+                Protection Advisor (Luton Bedfordshire LU1)</span></b></a><=
+br>
+                <a href=3D"https://www.ilovefreegle.org/jobs/Luton"
+                target=3D"_blank"><b><span style=3D'font-weight:bold'>Looko=
+ut Lodge
+                Host (Dunstable Bedfordshire LU6)</span></b></a><o:p></o:p>=
+</span></font></p>
+                </td>
+               </tr>
+              </table>
+              <p class=3DMsoNormal style=3D'vertical-align:top'><font size=
+=3D2
+              face=3D"Times New Roman"><span style=3D'font-size:10.0pt'><o:=
+p></o:p></span></font></p>
+              </td>
+             </tr>
+            </table>
+            </div>
+            <p class=3DMsoNormal align=3Dcenter style=3D'text-align:center'=
+><font
+            size=3D1 face=3D"Times New Roman"><span style=3D'font-size:1.0p=
+t'><o:p></o:p></span></font></p>
+            </td>
+           </tr>
+          </table>
+          </div>
+          </div>
+          <p class=3DMsoNormal style=3D'background:#F7F6EC'><font size=3D1
+          face=3D"Times New Roman"><span style=3D'font-size:1.0pt'><o:p></o=
+:p></span></font></p>
+          </td>
+         </tr>
+        </table>
+        </div>
+        <p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span
+        style=3D'font-size:12.0pt'><o:p></o:p></span></font></p>
+        </td>
+       </tr>
+       <tr>
+        <td style=3D'padding:0cm 0cm 0cm 0cm;word-break:break-word'>
+        <div align=3Dcenter>
+        <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpaddin=
+g=3D0
+         width=3D600 style=3D'width:450.0pt;border-collapse:collapse'
+         role=3Dpresentation>
+         <tr>
+          <td style=3D'padding:0cm 0cm 0cm 0cm'>
+          <div style=3D'max-width:600px'>
+          <div align=3Dcenter>
+          <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpadd=
+ing=3D0
+           width=3D"100%" bgcolor=3D"#E0E0E0" style=3D'width:100.0%;backgro=
+und:#E0E0E0;
+           border-collapse:collapse'>
+           <tr>
+            <td valign=3Dtop style=3D'padding:15.0pt 0cm 15.0pt 0cm'>
+            <div align=3Dcenter>
+            <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cellpa=
+dding=3D0
+             style=3D'border-collapse:collapse'>
+             <tr>
+              <td width=3D600 valign=3Dtop style=3D'width:450.0pt;padding:0=
+cm 0cm 0cm 0cm'>
+              <table class=3DMsoNormalTable border=3D0 cellspacing=3D0 cell=
+padding=3D0
+               width=3D"100%" style=3D'width:100.0%;border-collapse:collaps=
+e'>
+               <tr>
+                <td style=3D'padding:7.5pt 18.75pt 7.5pt 18.75pt'>
+                <p class=3DMsoNormal><font size=3D1 color=3D"#707070"
+                face=3D"Trebuchet MS"><span style=3D'font-size:9.0pt;font-f=
+amily:
+                "Trebuchet MS";color:#707070'>You've received this mail bec=
+ause
+                you're a member of Freegle. <a
+                href=3D"https://modtools.org/unsubscribe/13249495?u=3D13249=
+495&amp;src=3Dchatnotif"><b><span
+                style=3D'font-weight:bold'>Unsubscribe</span></b></a>. <br>
+                <br>
+                This message was from user #2057960, and this mail was sent
+                to&nbsp;xxxx@xxx.com. <o:p></o:p></span></font>=
+</p>
+                <div class=3DMsoNormal align=3Dcenter style=3D'text-align:c=
+enter'><font
+                size=3D1 color=3D"#707070" face=3D"Trebuchet MS"><span
+                style=3D'font-size:9.0pt;font-family:"Trebuchet MS";color:#=
+707070'>
+                <hr size=3D2 width=3D"100%" align=3Dcenter>
+                </span></font></div>
+                <p class=3DMsoNormal><font size=3D1 color=3D"#707070"
+                face=3D"Trebuchet MS"><span style=3D'font-size:9.0pt;font-f=
+amily:
+                "Trebuchet MS";color:#707070'>Freegle is registered as a
+                charity with HMRC (ref. XT32865) and is run by volunteers.
+                Which is nice. <o:p></o:p></span></font></p>
+                </td>
+               </tr>
+              </table>
+              <p class=3DMsoNormal style=3D'vertical-align:top'><font size=
+=3D2
+              face=3D"Times New Roman"><span style=3D'font-size:10.0pt'><o:=
+p></o:p></span></font></p>
+              </td>
+             </tr>
+            </table>
+            </div>
+            <p class=3DMsoNormal align=3Dcenter style=3D'text-align:center'=
+><font
+            size=3D1 face=3D"Times New Roman"><span style=3D'font-size:1.0p=
+t'><o:p></o:p></span></font></p>
+            </td>
+           </tr>
+          </table>
+          </div>
+          </div>
+          <p class=3DMsoNormal style=3D'background:#E0E0E0'><font size=3D1
+          face=3D"Times New Roman"><span style=3D'font-size:1.0pt'><o:p></o=
+:p></span></font></p>
+          </td>
+         </tr>
+        </table>
+        </div>
+        <p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span
+        style=3D'font-size:12.0pt'><o:p></o:p></span></font></p>
+        </td>
+       </tr>
+      </table>
+      </div>
+      <p class=3DMsoNormal align=3Dcenter style=3D'text-align:center'><font =
+size=3D1
+      face=3D"Times New Roman"><span style=3D'font-size:1.0pt'><o:p></o:p><=
+/span></font></p>
+      </td>
+     </tr>
+    </table>
+    </div>
+    </div>
+    <p class=3DMsoNormal><font size=3D1 face=3D"Times New Roman"><span
+    style=3D'font-size:1.0pt'><o:p></o:p></span></font></p>
+    </td>
+   </tr>
+  </table>
+  </div>
+  <p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span
+  style=3D'font-size:12.0pt'><o:p></o:p></span></font></p>
+  </td>
+ </tr>
+</table>
+
+</div>
+
+</div>
+
+<div id=3DDAB4FAD8-2DD7-40BB-A1B8-4E2AA1F9FDF2>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span style=3D=
+'font-size:
+12.0pt'><o:p>&nbsp;</o:p></span></font></p>
+
+<table class=3DMsoNormalTable border=3D1 cellspacing=3D0 cellpadding=3D0
+ style=3D'border-collapse:collapse;border:none'>
+ <tr>
+  <td width=3D55 style=3D'width:41.25pt;border:none;border-top:solid #D3D4D=
+E 1.0pt;
+  padding:9.75pt .75pt .75pt .75pt'>
+  <p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span
+  style=3D'font-size:12.0pt'><a
+  href=3D"http://www.avg.com/email-signature?utm_medium=3Demail&amp;utm_sou=
+rce=3Dlink&amp;utm_campaign=3Dsig-email&amp;utm_content=3Demailclient"
+  target=3D"_blank"><b><span style=3D'font-weight:bold'><img border=3D0 wid=
+th=3D46
+  height=3D29 id=3D"_x0000_i1028"
+  src=3D"https://ipmcdn.avast.com/images/icons/icon-envelope-tick-green-avg=
+-v1.png"></span></b></a><o:p></o:p></span></font></p>
+  </td>
+  <td width=3D470 style=3D'width:352.5pt;border:none;border-top:solid #D3D4=
+DE 1.0pt;
+  padding:9.0pt .75pt .75pt .75pt'>
+  <p class=3DMsoNormal style=3D'line-height:13.5pt'><font size=3D2 color=3D=
+"#41424e"
+  face=3DArial><span style=3D'font-size:10.0pt;font-family:Arial;color:#414=
+24E'>Virus-free.
+  <a
+  href=3D"http://www.avg.com/email-signature?utm_medium=3Demail&amp;utm_sou=
+rce=3Dlink&amp;utm_campaign=3Dsig-email&amp;utm_content=3Demailclient"
+  target=3D"_blank"><b><font color=3D"#4453ea"><span style=3D'color:#4453EA=
+;
+  font-weight:bold'>www.avg.com</span></font></b></a> <o:p></o:p></span></f=
+ont></p>
+  </td>
+ </tr>
+</table>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span style=3D=
+'font-size:
+12.0pt'><a href=3D"#DAB4FAD8-2DD7-40BB-A1B8-4E2AA1F9FDF2" width=3D1 height=
+=3D1></a><o:p></o:p></span></font></p>
+
+</div>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_0500_01D5B8E7.D7C1DBE0--
