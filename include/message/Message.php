@@ -141,7 +141,8 @@ class Message
         "away from the office",
         "I won't be able to check any emails until after",
         "I'm on leave at the moment",
-        "We'll get back to you as soon as possible"
+        "We'll get back to you as soon as possible",
+        'currently on leave'
     ];
 
     private $autoreply_text_start = [
