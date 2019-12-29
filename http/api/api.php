@@ -143,6 +143,7 @@ require_once(IZNIK_BASE . '/http/api/logo.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/profile.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
+require_once(IZNIK_BASE . '/http/api/src.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
 require_once(IZNIK_BASE . '/http/api/request.php');
 require_once(IZNIK_BASE . '/http/api/schedule.php');
@@ -434,6 +435,9 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     break;
                 case 'team':
                     $ret = team();
+                    break;
+                case 'src':
+                    $ret = src();
                     break;
                 case 'stroll':
                     $ret = stroll();
