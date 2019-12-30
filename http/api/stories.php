@@ -21,7 +21,7 @@ function stories() {
             if ($id) {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                if ($s->canSee()) {
+                if ($s->canSee() && $s->getId()) {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
