@@ -36,13 +36,10 @@ before_install:
   - sudo service spamassassin start
 
   # GeoIP
-  - travis_retry wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz
+  - travis_retry wget https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&suffix=tar.gz&license_key=$MAXMIND_KEY
   - gzip -d GeoLite2-Country.mmdb.gz
   - sudo mv GeoLite2-Country.mmdb /usr/share/GeoIP
   - sudo apt-get install php-geoip
-  - echo AccountID $MAXMIND_ACCOUNT > /etc/GeoIP.conf
-  - echo LicenseKey $MAXMIND_KEY >> /etc/GeoIP.conf
-  - echo EditionIDs GeoLite2-Country GeoLite2-City >> /etc/GeoIP.conf
 
   # Having installed MySQL 5.7 we need to reset the password.
   - sudo systemctl unmask mysql
