@@ -39,9 +39,9 @@ before_install:
   - sudo apt-get install php-geoip
   - sudo add-apt-repository ppa:maxmind/ppa -y
   - sudo apt-get install geoipupdate
-  - echo AccountID $MAXMIND_ACCOUNT > /etc/GeoIP.conf
-  - echo LicenseKey $MAXMIND_KEY >> /etc/GeoIP.conf
-  - echo EditionIDs GeoLite2-Country GeoLite2-City >> /etc/GeoIP.conf
+  - sudo echo AccountID $MAXMIND_ACCOUNT > /etc/GeoIP.conf
+  - sudo echo LicenseKey $MAXMIND_KEY >> /etc/GeoIP.conf
+  - sudo echo EditionIDs GeoLite2-Country GeoLite2-City >> /etc/GeoIP.conf
   - sudo geoipupdate
 
   # Having installed MySQL 5.7 we need to reset the password.
