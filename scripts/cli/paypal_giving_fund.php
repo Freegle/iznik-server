@@ -31,11 +31,15 @@ if (count($opts) != 1) {
             $date = $fields[0];
             $name = $fields[1];
             $email = $fields[2];
-            $amount = $fields[7];
             $program = $fields[3];
+            $campaign = $fields[4];
+            $ebayId = $fields[5];
+            $amount = $fields[7];
 
-            # Invent a unique transaction ID because we might rerun on the same data.
-            $txid = $date . $email . count($donations);
+            # Invent a unique transaction ID because we might rerun on the same data.  This isn't perfect - anonymous
+            # donations on the same date from PayPal will lead to the same id, and therefore get undercounted.  But
+            # undercounting is probably better than overcounting for soliciting donations...
+            $txid = $date . $email . $program . $campaign . $ebayId . $amount;
 
             error_log("$date email $email amount $amount");
 
@@ -51,7 +55,9 @@ if (count($opts) != 1) {
                 'date' => $date,
                 'txid' => $txid,
                 'amount' => $amount,
-                'program' => $program
+                'program' => $program,
+                'campaign' => $campaign,
+                'ebayId' => $ebayId
             ];
             
             $epoch = strtotime($date);
@@ -68,8 +74,9 @@ if (count($opts) != 1) {
 
         error_log("CSV covers $mindate");
 
-        # Save off the thanks
-        $dbhm->preExec("DELETE FROM users_donations WHERE timestamp >= ? AND source = 'PayPalGivingFund';", [
+        # Delete the donations we're about to reprocess.  This is all of them except DonateWithPayPal, which come via IPN hooks rather
+        # than this export.
+        $dbhm->preExec("DELETE FROM users_donations WHERE timestamp >= ? AND source IN ('PayPalGivingFund', 'eBay', 'Facebook');", [
             $mindate
         ]);
         error_log("Deleted " . $dbhm->rowsAffected());
@@ -82,7 +89,7 @@ if (count($opts) != 1) {
                 default: $source = 'PayPalGivingFund'; break;
             }
 
-            $rc = $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, source) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?, source = ?;", [
+            $rc = $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, source) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?, source = ?, GrossAmount = ?;", [
                 $donation['eid'],
                 $donation['email'],
                 $donation['name'],
@@ -92,7 +99,8 @@ if (count($opts) != 1) {
                 $source,
                 $donation['eid'],
                 $donation['date'],
-                $source
+                $source,
+                $donation['amount']
             ]);
 
 //            if ($dbhm->rowsAffected() > 0 && $amount >= 20) {
