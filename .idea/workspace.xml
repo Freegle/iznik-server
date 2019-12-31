@@ -134,10 +134,10 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="PHPUnit.chatMessagesTest.testReplyJobSpam" />
       <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
       <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
       <item itemvalue="PHPUnit.notificationsTest.testEmail" />
-      <item itemvalue="PHPUnit.chatMessagesTest.testReplyJobSpam" />
       <item itemvalue="PHPUnit.srcAPITest.testBasic" />
     </list>
     <recent_temporary>
@@ -225,14 +225,7 @@
       <workItem from="1576874394510" duration="3266000" />
       <workItem from="1576925317477" duration="2284000" />
       <workItem from="1577742797257" duration="1910000" />
-      <workItem from="1577804437647" duration="5260000" />
-    </task>
-    <task id="LOCAL-00301" summary="Worry word bug in allowed word checking">
-      <created>1574332680888</created>
-      <option name="number" value="00301" />
-      <option name="presentableId" value="LOCAL-00301" />
-      <option name="project" value="LOCAL" />
-      <updated>1574332680888</updated>
+      <workItem from="1577804437647" duration="5992000" />
     </task>
     <task id="LOCAL-00302" summary="Facebook sharing in MT quietly failing">
       <created>1574333468832</created>
@@ -570,7 +563,14 @@
       <option name="project" value="LOCAL" />
       <updated>1577818075436</updated>
     </task>
-    <option name="localTasksCounter" value="350" />
+    <task id="LOCAL-00350" summary="More on maxmind">
+      <created>1577818404330</created>
+      <option name="number" value="00350" />
+      <option name="presentableId" value="LOCAL-00350" />
+      <option name="project" value="LOCAL" />
+      <updated>1577818404330</updated>
+    </task>
+    <option name="localTasksCounter" value="351" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
