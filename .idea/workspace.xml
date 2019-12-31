@@ -225,14 +225,7 @@
       <workItem from="1576874394510" duration="3266000" />
       <workItem from="1576925317477" duration="2284000" />
       <workItem from="1577742797257" duration="1910000" />
-      <workItem from="1577804437647" duration="2029000" />
-    </task>
-    <task id="LOCAL-00297" summary="When someone reports chitchat threads, ask Support to take a look">
-      <created>1573814555239</created>
-      <option name="number" value="00297" />
-      <option name="presentableId" value="LOCAL-00297" />
-      <option name="project" value="LOCAL" />
-      <updated>1573814555239</updated>
+      <workItem from="1577804437647" duration="2734000" />
     </task>
     <task id="LOCAL-00298" summary="False positive worry word with ridiculous length difference">
       <created>1574065886765</created>
@@ -570,7 +563,14 @@
       <option name="project" value="LOCAL" />
       <updated>1577807795174</updated>
     </task>
-    <option name="localTasksCounter" value="346" />
+    <task id="LOCAL-00346" summary="More on maxmind">
+      <created>1577808033918</created>
+      <option name="number" value="00346" />
+      <option name="presentableId" value="LOCAL-00346" />
+      <option name="project" value="LOCAL" />
+      <updated>1577808033918</updated>
+    </task>
+    <option name="localTasksCounter" value="347" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -643,11 +643,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1577807794692">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1577808033409">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="385" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1576945047611" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577807794692" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577808033409" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1577805105992">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -685,11 +685,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="357" y="107" key="SettingsEditor/0.0.1707.920@0.0.1707.920" timestamp="1576948592209" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1577807796743">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1577808238545">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1576945050330" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577807796743" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577808238545" />
     <state x="629" y="244" width="662" height="552" key="find.popup" timestamp="1577743365289">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
