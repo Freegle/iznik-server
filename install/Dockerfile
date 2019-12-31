@@ -49,14 +49,12 @@ RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libs
 	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git \
 	&& apt-get remove -y apache2* sendmail* mlocate
 
-# GeoIP	
+# GeoIP
+#
 RUN	apt-get install -y php-pear \
-	&& wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz \
-    && gzip -d GeoLite2-Country.mmdb.gz \
-    && mv GeoLite2-Country.mmdb /usr/share/GeoIP \
+# Can no longer install GeoLite2-Country.mmdb as not exposed without account/key.
     && apt-get install -y php-dev libgeoip-dev libcurl4-openssl-dev wget golang-go \
     && pecl install geoip-1.1.1 \
-    && go get -u github.com/maxmind/geoipupdate/cmd/geoipupdate
 
 # Mailparse
 RUN apt-get install -y php-mbstring php-mailparse 

@@ -56,7 +56,7 @@ class Spam {
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
-        $this->reader = new Reader('/usr/share/GeoIP/GeoLite2-Country.mmdb');
+        $this->reader = new Reader(MMDB);
         $this->log = new Log($this->dbhr, $this->dbhm);
     }
 

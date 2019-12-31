@@ -13,7 +13,7 @@ if (count($opts) < 1) {
 } else {
     $ip = $opts['i'];
 
-    $reader = new Reader('/usr/share/GeoIP/GeoLite2-Country.mmdb');
+    $reader = new Reader(MMDB);
     $record = $reader->country($ip);
 
     error_log("Returned " . var_export($record, TRUE));

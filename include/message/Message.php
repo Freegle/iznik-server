@@ -4012,7 +4012,7 @@ ORDER BY lastdate DESC;";
                 $this->setPrivate('fromip', $ip);
 
                 try {
-                    $reader = new Reader('/usr/share/GeoIP/GeoLite2-Country.mmdb');
+                    $reader = new Reader(MMDB);
                     $record = $reader->country($ip);
                     $this->setPrivate('fromcountry', $record->country->isoCode);
                 } catch (Exception $e) {

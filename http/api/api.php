@@ -206,7 +206,7 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
         if (presdef('type', $_REQUEST, NULL) != 'GET') {
             # Check that we're not posting from a blocked country.
             try {
-                $reader = new Reader('/usr/share/GeoIP/GeoLite2-Country.mmdb');
+                $reader = new Reader(MMDB);
                 $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
                 $record = $reader->country($ip);
                 $country = $record->country->name;
