@@ -37,7 +37,7 @@ before_install:
 
   # GeoIP
   - sudo apt-get install php-geoip
-  - sudo add-apt-repository ppa:maxmind/ppa
+  - sudo add-apt-repository ppa:maxmind/ppa -y
   - sudo apt-get install geoipupdate
   - echo AccountID $MAXMIND_ACCOUNT > /etc/GeoIP.conf
   - echo LicenseKey $MAXMIND_KEY >> /etc/GeoIP.conf
