@@ -382,7 +382,8 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             # Get a restricted set of stats for performance.
             $types = [
                 Stats::ACTIVITY,
-                Stats::WEIGHT
+                Stats::WEIGHT,
+                Stats::APPROVED_MEMBER_COUNT,
             ];
         } else {
             $types = [
