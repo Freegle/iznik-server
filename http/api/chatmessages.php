@@ -11,6 +11,7 @@ function chatmessages() {
     $reportreason = presdef('reportreason', $_REQUEST, NULL);
     $refmsgsummary = array_key_exists('refmsgsummary', $_REQUEST) ? filter_var($_REQUEST['refmsgsummary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ctx = presdef('context', $_REQUEST, NULL);
+    $ctx = (isset($ctx) && $ctx !== 'undefined') ? $ctx : NULL;
     $limit = array_key_exists('limit', $_REQUEST) ? intval($_REQUEST['limit']) : 100;
 
     $r = new ChatRoom($dbhr, $dbhm, $roomid);

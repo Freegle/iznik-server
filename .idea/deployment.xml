@@ -23,13 +23,6 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="Docker">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="FreegleWebpack">
         <serverdata>
           <mappings>
@@ -51,6 +44,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="IZNIK Docker">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="IZNIK FD API DBG app1">
         <serverdata>
           <mappings>
@@ -62,6 +62,34 @@
         <serverdata>
           <mappings>
             <mapping deploy="/var/www/iznik.fdapi.dbg" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="IZNIK FD API DEV app1">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/var/www/iznik.fdapi.dev" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="IZNIK FD API DEV app4">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/var/www/iznik.fdapi.dev" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="IZNIK FD API LIVE app1">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/var/www/iznik.fdapi.live" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="IZNIK FD API LIVE app4">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/var/www/iznik.fdapi.live" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
