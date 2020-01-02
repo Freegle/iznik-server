@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/chatmessages.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/chatmessages.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -226,14 +224,7 @@
       <workItem from="1576874394510" duration="3266000" />
       <workItem from="1576925317477" duration="2284000" />
       <workItem from="1577742797257" duration="1910000" />
-      <workItem from="1577804437647" duration="12628000" />
-    </task>
-    <task id="LOCAL-00308" summary="Link preview does not handle preview images served of http rather than https">
-      <created>1574550132651</created>
-      <option name="number" value="00308" />
-      <option name="presentableId" value="LOCAL-00308" />
-      <option name="project" value="LOCAL" />
-      <updated>1574550132651</updated>
+      <workItem from="1577804437647" duration="13287000" />
     </task>
     <task id="LOCAL-00309" summary="Not sending welcome messages when memberships are approved">
       <created>1574550157982</created>
@@ -571,7 +562,14 @@
       <option name="project" value="LOCAL" />
       <updated>1577896105872</updated>
     </task>
-    <option name="localTasksCounter" value="357" />
+    <task id="LOCAL-00357" summary="Handle undefined context due to client bug">
+      <created>1577904891397</created>
+      <option name="number" value="00357" />
+      <option name="presentableId" value="LOCAL-00357" />
+      <option name="project" value="LOCAL" />
+      <updated>1577904891397</updated>
+    </task>
+    <option name="localTasksCounter" value="358" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +602,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Ensure notification settings are defaulted" />
     <MESSAGE value="Use a streaming JSON encoder for memory reasons - large export of user data fails." />
     <MESSAGE value="Fix profile images and invitations in data export" />
     <MESSAGE value="Change status alert message so that it says it's ok for security patch warnings to show for a bit." />
@@ -629,7 +626,8 @@
     <MESSAGE value="More on maxmind" />
     <MESSAGE value="Tweak PM2 restart approach" />
     <MESSAGE value="Need to include member count in stats on user site" />
-    <option name="LAST_COMMIT_MESSAGE" value="Need to include member count in stats on user site" />
+    <MESSAGE value="Handle undefined context due to client bug" />
+    <option name="LAST_COMMIT_MESSAGE" value="Handle undefined context due to client bug" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1577879790677">
@@ -645,11 +643,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1577896105307">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1577904890873">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="385" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1576945047611" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577896105307" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577904890873" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1577896093505">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -687,16 +685,16 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="357" y="107" key="SettingsEditor/0.0.1707.920@0.0.1707.920" timestamp="1576948592209" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1577896109836">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1577904892301">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1576945050330" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577896109836" />
-    <state x="629" y="244" width="662" height="552" key="find.popup" timestamp="1577895887039">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577904892301" />
+    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1577978214568">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1577390149053" />
-    <state x="629" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577895887039" />
+    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577978214568" />
     <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1577904060726">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

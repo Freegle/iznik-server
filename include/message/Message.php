@@ -1127,10 +1127,14 @@ class Message
                         $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
                         $interval = $msg['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                         $arrival = strtotime($rets[$msg['id']]['groups'][$groupind]['arrival']);
-                        $rets[$msg['id']]['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
 
-                        if ($rets[$msg['id']]['groups'][$groupind]['hoursago'] > $interval * 24) {
-                            $rets[$msg['id']]['canrepost'] = TRUE;
+                        if ($interval < 365) {
+                            # Some groups set very high values as a way of turning this off.
+                            $rets[$msg['id']]['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
+
+                            if ($rets[$msg['id']]['groups'][$groupind]['hoursago'] > $interval * 24) {
+                                $rets[$msg['id']]['canrepost'] = TRUE;
+                            }
                         }
                     }
                 }
