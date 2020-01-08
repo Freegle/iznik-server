@@ -3,11 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/chatmessages.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/chatmessages.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatMessage.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatMessage.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/adview.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/adview.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -229,21 +226,7 @@
       <workItem from="1576874394510" duration="3266000" />
       <workItem from="1576925317477" duration="2284000" />
       <workItem from="1577742797257" duration="1910000" />
-      <workItem from="1577804437647" duration="17422000" />
-    </task>
-    <task id="LOCAL-00312" summary="Notification for group membership approval is missing group name">
-      <created>1574715947042</created>
-      <option name="number" value="00312" />
-      <option name="presentableId" value="LOCAL-00312" />
-      <option name="project" value="LOCAL" />
-      <updated>1574715947042</updated>
-    </task>
-    <task id="LOCAL-00313" summary="Fix DWP email domain change">
-      <created>1574790208330</created>
-      <option name="number" value="00313" />
-      <option name="presentableId" value="LOCAL-00313" />
-      <option name="project" value="LOCAL" />
-      <updated>1574790208331</updated>
+      <workItem from="1577804437647" duration="18740000" />
     </task>
     <task id="LOCAL-00314" summary="Volunteer op renew mails don't give long enough to react">
       <created>1575399024654</created>
@@ -574,7 +557,21 @@
       <option name="project" value="LOCAL" />
       <updated>1578498019946</updated>
     </task>
-    <option name="localTasksCounter" value="361" />
+    <task id="LOCAL-00361" summary="Speed-ups: fetching chat messages isn't as efficient as it could be in providing user details">
+      <created>1578499608770</created>
+      <option name="number" value="00361" />
+      <option name="presentableId" value="LOCAL-00361" />
+      <option name="project" value="LOCAL" />
+      <updated>1578499608770</updated>
+    </task>
+    <task id="LOCAL-00362" summary="UT fixes">
+      <created>1578501126281</created>
+      <option name="number" value="00362" />
+      <option name="presentableId" value="LOCAL-00362" />
+      <option name="project" value="LOCAL" />
+      <updated>1578501126281</updated>
+    </task>
+    <option name="localTasksCounter" value="363" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -607,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="When including previous message in chat emails, don't include really old ones" />
     <MESSAGE value="Expose UID and key login over API for use in new client" />
     <MESSAGE value="UID/key login returning failure when it succeeds" />
     <MESSAGE value="More UID/key login fixes" />
@@ -618,7 +614,6 @@
     <MESSAGE value="Back out use of streaming encoder as breaks heatmap" />
     <MESSAGE value="Some images are wrongly served from the user site rather than the image site." />
     <MESSAGE value="Notification by email for love of noticeboard post contains internal info" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Add another OOF option" />
     <MESSAGE value="Add API call to record src references" />
     <MESSAGE value="Return error for get of invalid story id" />
@@ -632,7 +627,9 @@
     <MESSAGE value="Don't show repost dates stupidly far into the future" />
     <MESSAGE value="Add more info to chitchat reports" />
     <MESSAGE value="Notification email for groups which require membership approval is bugged." />
-    <option name="LAST_COMMIT_MESSAGE" value="Notification email for groups which require membership approval is bugged." />
+    <MESSAGE value="Speed-ups: fetching chat messages isn't as efficient as it could be in providing user details" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1577879790677">
@@ -648,11 +645,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1578498019174">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1578501125788">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="385" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1576945047611" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578498019174" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578501125788" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1578499272536">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -690,21 +687,21 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="357" y="107" key="SettingsEditor/0.0.1707.920@0.0.1707.920" timestamp="1576948592209" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1578498021151">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1578501127535">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1576945050330" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578498021151" />
-    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1578499426939">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578501127535" />
+    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1578507537494">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1577390149053" />
-    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578499426939" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1578498359178">
+    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578507537494" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1578507511839">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1577390172180" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578498359178" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578507511839" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
