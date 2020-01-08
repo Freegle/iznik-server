@@ -5343,9 +5343,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $this->id
             ]);
 
+            $userlist = NULL;
+
             foreach ($msgs as $msg) {
                 $cm = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
-                $thismsg = $cm->getPublic();
+                $thismsg = $cm->getPublic(FALSE, $userlist);
 
                 # Strip out most of the refmsg detail - it's not ours and we need to save volume of data.
                 $refmsg = pres('refmsg', $thismsg);

@@ -249,7 +249,7 @@ class ChatMessage extends Entity
         }
     }
 
-    public function getPublic($refmsgsummary = FALSE) {
+    public function getPublic($refmsgsummary = FALSE, &$userlist = NULL) {
         $ret = $this->getAtts($this->publicatts);
 
         if (pres('refmsgid', $ret)) {
@@ -257,7 +257,6 @@ class ChatMessage extends Entity
             #
             # Get full message if promised, to pick up promise details.  perf could be improved here.
             $locationlist = [];
-            $userlist = NULL;
             $m = new Message($this->dbhr, $this->dbhm , $ret['refmsgid']);
             $ret['refmsg'] = $m->getPublic(FALSE,
                 FALSE,

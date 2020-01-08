@@ -1209,6 +1209,7 @@ WHERE chat_rooms.id IN $idlist;";
         $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, memberships.groupid, chat_messages_held.userid AS heldby, chat_messages_held.timestamp FROM chat_messages LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'))  INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' ORDER BY chat_messages.id ASC;";
         $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid]);
         $ret = [];
+        $userlist = NULL;
 
         $ctx = $ctx ? $ctx : [];
 
@@ -1216,7 +1217,7 @@ WHERE chat_rooms.id IN $idlist;";
             # This might be for a group which we are a mod on but don't actually want to see.
             if ($user->activeModForGroup($msg['groupid'])) {
                 $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
-                $thisone = $m->getPublic();
+                $thisone = $m->getPublic(FALSE, $userlist);
 
                 if (pres('heldby', $msg)) {
                     $u = User::get($this->dbhr, $this->dbhm, $msg['heldby']);
@@ -1352,16 +1353,20 @@ WHERE chat_rooms.id IN $idlist;";
                     }
 
                     if ($msg['type'] == ChatMessage::TYPE_INTERESTED) {
-                        # Find any "about me" info.
-                        $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
-                        $users[$msg['userid']]['aboutme'] = $u->getAboutMe();
+                        if (!pres('aboutme', $users[$msg['userid']])) {
+                            # Find any "about me" info.
+                            $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
+                            $users[$msg['userid']]['aboutme'] = $u->getAboutMe();
+                        }
 
-                        # Also any prediction about this user.
-                        $predictions = $this->dbhr->preQuery("SELECT * FROM predictions WHERE userid = ?;", [
-                            $msg['userid']
-                        ], FALSE, FALSE);
+                        if (!pres('prediction', $users[$msg['userid']])) {
+                            # Also any prediction about this user.
+                            $predictions = $this->dbhr->preQuery("SELECT * FROM predictions WHERE userid = ?;", [
+                                $msg['userid']
+                            ], FALSE, FALSE);
 
-                        $users[$msg['userid']]['prediction'] = count($predictions) == 0 ? User::RATING_UNKNOWN : $predictions[0]['prediction'];
+                            $users[$msg['userid']]['prediction'] = count($predictions) == 0 ? User::RATING_UNKNOWN : $predictions[0]['prediction'];
+                        }
                     }
 
                     $ret[] = $atts;

@@ -29,10 +29,12 @@ function chatmessages() {
                 $ret = ['ret' => 2, 'status' => "$roomid Not visible to you"];
                 if ($roomid && $r->canSee($me->getId())) {
                     if ($id) {
+                        $userlist = NULL;
+
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'chatmessage' => $m->getPublic()
+                            'chatmessage' => $m->getPublic(FALSE, $userlist)
                         ];
 
                         # We don't want to show someone whether their messages are held for review.
