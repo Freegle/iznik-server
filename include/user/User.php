@@ -882,7 +882,7 @@ class User extends Entity
         if ($rc && $collection == MembershipCollection::PENDING && $g->getSetting('approvemembers', FALSE)) {
             # Let the user know that they need to wait.
             $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_PENDING, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
+            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_PENDING, NULL, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
         }
 
         return ($rc);
@@ -3247,7 +3247,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if ($g->getSetting('approvemembers', FALSE)) {
             # Let the user know.
             $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_REJECTED, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
+            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_REJECTED, NULL,  NULL,'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
         }
 
         # We might have messages which are awaiting this membership.  Reject them.

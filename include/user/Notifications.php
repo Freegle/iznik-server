@@ -363,7 +363,7 @@ class Notifications
                          break;
                     case Notifications::TYPE_MEMBERSHIP_PENDING:
                         if (!$title) {
-                            $title = $fromname . " your application to {$notif['url']} requires approval; we'll let you know soon.";
+                            $title = "Your application to {$notif['url']} requires approval; we'll let you know soon.";
                         }
                         $count++;
                         break;

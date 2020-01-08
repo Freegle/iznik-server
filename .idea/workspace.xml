@@ -3,7 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/Notifications.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/Notifications.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/mjml/notifications/email.mjml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/twig/notifications/email.html" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/twig/notifications/email.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -225,14 +228,7 @@
       <workItem from="1576874394510" duration="3266000" />
       <workItem from="1576925317477" duration="2284000" />
       <workItem from="1577742797257" duration="1910000" />
-      <workItem from="1577804437647" duration="14140000" />
-    </task>
-    <task id="LOCAL-00310" summary="Alert geeks when servers need security patches applying or require a reboot">
-      <created>1574592142880</created>
-      <option name="number" value="00310" />
-      <option name="presentableId" value="LOCAL-00310" />
-      <option name="project" value="LOCAL" />
-      <updated>1574592142880</updated>
+      <workItem from="1577804437647" duration="15816000" />
     </task>
     <task id="LOCAL-00311" summary="Short numeric titles break link preview code">
       <created>1574637044663</created>
@@ -570,7 +566,14 @@
       <option name="project" value="LOCAL" />
       <updated>1577978376221</updated>
     </task>
-    <option name="localTasksCounter" value="359" />
+    <task id="LOCAL-00359" summary="Add more info to chitchat reports">
+      <created>1578477813420</created>
+      <option name="number" value="00359" />
+      <option name="presentableId" value="LOCAL-00359" />
+      <option name="project" value="LOCAL" />
+      <updated>1578477813421</updated>
+    </task>
+    <option name="localTasksCounter" value="360" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,7 +606,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Fix profile images and invitations in data export" />
     <MESSAGE value="Change status alert message so that it says it's ok for security patch warnings to show for a bit." />
     <MESSAGE value="When including previous message in chat emails, don't include really old ones" />
     <MESSAGE value="Expose UID and key login over API for use in new client" />
@@ -628,7 +630,8 @@
     <MESSAGE value="Need to include member count in stats on user site" />
     <MESSAGE value="Handle undefined context due to client bug" />
     <MESSAGE value="Don't show repost dates stupidly far into the future" />
-    <option name="LAST_COMMIT_MESSAGE" value="Don't show repost dates stupidly far into the future" />
+    <MESSAGE value="Add more info to chitchat reports" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add more info to chitchat reports" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1577879790677">
@@ -644,11 +647,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1577978375572">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1578477812656">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="385" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1576945047611" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577978375572" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578477812656" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1577896093505">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -686,21 +689,21 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="357" y="107" key="SettingsEditor/0.0.1707.920@0.0.1707.920" timestamp="1576948592209" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1577978377410">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1578477814512">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1576945050330" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577978377410" />
-    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1578477778644">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578477814512" />
+    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1578497583589">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1577390149053" />
-    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578477778644" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1577904060726">
+    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578497583589" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1578497977578">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1577390172180" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1577904060726" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578497977578" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
