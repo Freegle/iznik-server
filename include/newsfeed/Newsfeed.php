@@ -674,7 +674,7 @@ class Newsfeed extends Entity
 
             # Ask someone to take a look.
             $message = Swift_Message::newInstance()
-                ->setSubject($me->getName() . " has reported a ChitChat thread")
+                ->setSubject($me->getName() . " #" . $me->getId() . "(" . $me->getEmailPreferred() . ") has reported a ChitChat thread")
                 ->setFrom([GEEKS_ADDR])
                 ->setTo([SUPPORT_ADDR => 'Freegle'])
                 ->setBody("They reported this thread\r\n\r\nhttps://" . USER_SITE . "/chitchat/{$this->id}\r\n\r\n...with this message:\r\n\r\n$reason");
