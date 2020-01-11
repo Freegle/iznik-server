@@ -244,10 +244,12 @@ class User extends Entity
 
     public function linkLogin($key)
     {
-        $ret = FALSE;
+        $ret = TRUE;
 
         if (presdef('id', $_SESSION, NULL) != $this->id) {
             # We're not already logged in as this user.
+            $ret = FALSE;
+
             $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ? AND credentials = ?;";
             $logins = $this->dbhr->preQuery($sql, [$this->id, User::LOGIN_LINK, $key], FALSE, FALSE);
             foreach ($logins as $login) {
