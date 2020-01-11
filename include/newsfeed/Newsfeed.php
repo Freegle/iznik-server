@@ -146,6 +146,17 @@ class Newsfeed extends Entity
         return($engageds);
     }
 
+    private function setThreadHead(&$entries, $threadhead) {
+        # Ensure the thread head is rippled down to all replies.
+        for ($entindex = 0; $entindex < count($entries); $entindex++) {
+            $entries[$entindex]['threadhead'] = $threadhead;
+
+            if (pres('replies', $entries[$entindex])) {
+                $this->setThreadHead($entries[$entindex]['replies'], $threadhead);
+            }
+        }
+    }
+
     public function getPublic($lovelist = FALSE, $unfollowed = TRUE, $allreplies = FALSE, $anyreplies = TRUE) {
         $atts = parent::getPublic();
         $users = [];
@@ -181,6 +192,8 @@ class Newsfeed extends Entity
                 }
             }
         }
+
+        $this->setThreadHead($atts['replies'], $threadhead);
 
         if ($lovelist) {
             $atts['lovelist'] = [];
@@ -389,9 +402,6 @@ class Newsfeed extends Entity
                                 # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
                                 # are there but nobody else sees them.
                                 if (!$hidden || $myid == $entries[$entindex]['userid']) {
-                                    # Replies can themselves contain replies.  Preserve the thread head as we recurse.
-                                    $reply['threadhead'] = pres('threadhead', $entries[$entindex]) ? $entries[$entindex]['threadhead'] : $entries[$entindex]['id'];
-
                                     if ($reply['visible'] &&
                                         $last['userid'] == $reply['userid'] &&
                                         $last['type'] == $reply['type'] &&

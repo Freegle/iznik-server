@@ -706,7 +706,50 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->user2->setSetting('modnotifnewsfeed', TRUE);
         assertEquals(1, $n->modnotif($this->uid2));
 
-        }
+    }
+
+    public function testReplyToReply() {
+        assertTrue($this->user->login('testpw'));
+
+        # Post something.
+        $this->log("Post something as {$this->uid}");
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test - please ignore'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $this->log("Created feed {$ret['id']}");
+        $threadhead = $ret['id'];
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test reply',
+            'replyto' => $threadhead
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $replyid = $ret['id'];
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test reply to reply',
+            'replyto' => $replyid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Get it to check thread structure
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $threadhead
+        ]);
+
+        #error_log(var_export($ret, TRUE));
+        assertEquals($threadhead, $ret['newsfeed']['id']);
+
+        assertEquals($threadhead, $ret['newsfeed']['replies'][0]['replyto']);
+        assertEquals($threadhead, $ret['newsfeed']['replies'][0]['threadhead']);
+
+        assertEquals($replyid, $ret['newsfeed']['replies'][0]['replies'][0]['replyto']);
+        assertEquals($threadhead, $ret['newsfeed']['replies'][0]['replies'][0]['threadhead']);
+    }
 
 //    public function testEH() {
 //        $this->dbhr->errorLog = TRUE;
