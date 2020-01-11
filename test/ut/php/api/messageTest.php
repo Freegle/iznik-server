@@ -1260,6 +1260,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $mid
         ]);
         assertEquals(TRUE, $ret['message']['canedit']);
+        assertEquals(MessageCollection::PENDING, $ret['message']['groups'][0]['collection']);
 
         # Disable edits for moderated members.
         $settings = json_decode($g->getPrivate('settings'), TRUE);
@@ -1369,6 +1370,63 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals('OFFER: a thing (TV1)', $ret['message']['subject']);
         assertEquals('Text body', $ret['message']['textbody']);
+    }
+
+    public function testEditAsMemberPending()
+    {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onyahoo', 0);
+
+        # Create member and mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+
+        $this->log("Created member $memberid");
+
+        # Submit a message from the member, who will be moderated as new members are.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $gid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        # Now log in as the member and edit the message in Pending.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'groupid' => $gid,
+            'item' => 'Edited',
+            'textbody' => 'Another text body'
+        ]);
+        assertEquals(0, $ret['ret']);
     }
 
     public function testDraft()
