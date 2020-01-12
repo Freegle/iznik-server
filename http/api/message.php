@@ -603,6 +603,7 @@ function message() {
                             $outcome = presdef('outcome', $_REQUEST, NULL);
                             $m->intendedOutcome($outcome);
                         }
+                        $ret = ['ret' => 0, 'status' => 'Success'];
                         break;
                     case 'Outcome':
                         # Ignore duplicate attempts by user to supply an outcome.
