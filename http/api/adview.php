@@ -28,12 +28,10 @@ function adview() {
                         shuffle($d['data']);
                     }
 
-                    $data = json_encode($d);
-
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'adview' => $data
+                        'adview' => $d
                     ];
                 } else {
                     $ret = [

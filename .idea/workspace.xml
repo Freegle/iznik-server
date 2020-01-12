@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/http/api/adview.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/adview.php" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/api.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/adview.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/adview.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -227,14 +225,7 @@
       <workItem from="1576874394510" duration="3266000" />
       <workItem from="1576925317477" duration="2284000" />
       <workItem from="1577742797257" duration="1910000" />
-      <workItem from="1577804437647" duration="35836000" />
-    </task>
-    <task id="LOCAL-00322" summary="Change status alert message so that it says it's ok for security patch warnings to show for a bit.">
-      <created>1576483817920</created>
-      <option name="number" value="00322" />
-      <option name="presentableId" value="LOCAL-00322" />
-      <option name="project" value="LOCAL" />
-      <updated>1576483817920</updated>
+      <workItem from="1577804437647" duration="36123000" />
     </task>
     <task id="LOCAL-00323" summary="When including previous message in chat emails, don't include really old ones">
       <created>1576494333612</created>
@@ -572,7 +563,14 @@
       <option name="project" value="LOCAL" />
       <updated>1578819358361</updated>
     </task>
-    <option name="localTasksCounter" value="371" />
+    <task id="LOCAL-00371" summary="Move AdView into the API.">
+      <created>1578820532838</created>
+      <option name="number" value="00371" />
+      <option name="presentableId" value="LOCAL-00371" />
+      <option name="project" value="LOCAL" />
+      <updated>1578820532838</updated>
+    </task>
+    <option name="localTasksCounter" value="372" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -605,7 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Some images are wrongly served from the user site rather than the image site." />
     <MESSAGE value="Notification by email for love of noticeboard post contains internal info" />
     <MESSAGE value="Add another OOF option" />
     <MESSAGE value="Add API call to record src references" />
@@ -630,7 +627,8 @@
     <MESSAGE value="User/key login fails if called twice" />
     <MESSAGE value="Add extra UT to test can edit in pending" />
     <MESSAGE value="Messages calls for intended outcome appearing to fail when they're not really." />
-    <option name="LAST_COMMIT_MESSAGE" value="Messages calls for intended outcome appearing to fail when they're not really." />
+    <MESSAGE value="Move AdView into the API." />
+    <option name="LAST_COMMIT_MESSAGE" value="Move AdView into the API." />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1577879790677">
@@ -646,11 +644,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1578819357718">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1578820532216">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="385" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1576945047611" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578819357718" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578820532216" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1578819962628">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -689,11 +687,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="357" y="107" key="SettingsEditor/0.0.1707.920@0.0.1707.920" timestamp="1576948592209" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1578819359942">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1578820533910">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1576945050330" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578819359942" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578820533910" />
     <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1578819984056">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
