@@ -106,6 +106,7 @@ require_once(IZNIK_BASE . '/include/user/Team.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/abtest.php');
+require_once(IZNIK_BASE . '/http/api/adview.php');
 require_once(IZNIK_BASE . '/http/api/authority.php');
 require_once(IZNIK_BASE . '/http/api/activity.php');
 require_once(IZNIK_BASE . '/http/api/alert.php');
@@ -285,6 +286,9 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
             switch ($call) {
                 case 'abtest':
                     $ret = abtest();
+                    break;
+                case 'adview':
+                    $ret = adview();
                     break;
                 case 'activity':
                     $ret = activity();
