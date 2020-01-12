@@ -26,13 +26,17 @@ function adview() {
                     $d = json_decode($data, TRUE);
                     if (array_key_exists('data', $d)) {
                         shuffle($d['data']);
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'adview' => $d
+                        ];
+                    } else {
+                        $ret = [
+                            'ret' => 4,
+                            'status' => 'Data returned has unexpected format.'
+                        ];
                     }
-
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'adview' => $d
-                    ];
                 } else {
                     $ret = [
                         'ret' => 3,
