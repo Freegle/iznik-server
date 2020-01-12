@@ -664,6 +664,8 @@ function message() {
                                     break;
                                 }
                             }
+                        } else {
+                            $ret = ['ret' => 0, 'status' => 'Success'];
                         }
                         break;
                 }
