@@ -349,6 +349,7 @@ function message() {
                         $drafts = $dbhr->preQuery($sql, [$id, session_id(), $myid]);
                         $newuser = NULL;
                         $pw = NULL;
+                        $hitwindow = FALSE;
                         #error_log("$sql, $id, " . session_id() . ", $myid");
 
                         foreach ($drafts as $draft) {
@@ -391,8 +392,31 @@ function message() {
                                     $pw = $u->inventPassword();
                                     $u->addLogin(User::LOGIN_NATIVE, $newuser, $pw);
                                     $eid = $u->addEmail($email, 1);
-                                    $u->login($pw);
-                                    $u->welcome($email, $pw);
+
+                                    if (!$eid) {
+                                        # There's a timing window where a parallel request could have added this
+                                        # email.  Check.
+                                        $uid2 = $u->findByEmail($email);
+
+                                        if ($uid2) {
+                                            # That has happened.  Delete the user we created and use the other.
+                                            $u->delete();
+                                            $newuser = NULL;
+                                            $pw = NULL;
+                                            $hitwindow = TRUE;
+
+                                            $u = User::get($dbhr, $dbhm, $uid2);
+                                            $eid = $u->getIdForEmail($email)['id'];
+
+                                            if ($u->getEmailPreferred() != $email) {
+                                                # The email specified is the one they currently want to use - make sure it's
+                                                $u->addEmail($email, 1, TRUE);
+                                            }
+                                        }
+                                    } else {
+                                        $u->login($pw);
+                                        $u->welcome($email, $pw);
+                                    }
                                 } else {
                                     $u = User::get($dbhr, $dbhm, $uid);
                                     $eid = $u->getIdForEmail($email)['id'];
@@ -533,6 +557,7 @@ function message() {
 
                         $ret['newuser'] = $newuser;
                         $ret['newpassword'] = $pw;
+                        $ret['hitwindow'] = $hitwindow;
 
                         break;
                     case 'BackToDraft':
