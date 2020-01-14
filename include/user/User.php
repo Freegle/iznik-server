@@ -3771,7 +3771,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if (!$handled) {
             # This email is new to this user.  It may or may not currently be in use for another user.  Either
             # way we want to send a verification mail.
-            $usersite = strpos($_SERVER['HTTP_HOST'], USER_SITE) !== FALSE;
+            $usersite = strpos($_SERVER['HTTP_HOST'], USER_SITE) !== FALSE || strpos($_SERVER['HTTP_HOST'], 'fdapi') !== FALSE;
             $headers = "From: " . SITE_NAME . " <" . NOREPLY_ADDR . ">\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
             $canon = User::canonMail($email);
 
@@ -3783,7 +3783,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     [$email, $canon, $key, strrev($canon), $key]);
             } while (!$this->dbhm->rowsAffected());
 
-            $confirm = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
+            $confirm = $this->loginLink($usersite ? USER_SITE : MOD_SITE, $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
 
             list ($transport, $mailer) = getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);

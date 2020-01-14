@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/message.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -226,14 +226,7 @@
       <workItem from="1576925317477" duration="2284000" />
       <workItem from="1577742797257" duration="1910000" />
       <workItem from="1577804437647" duration="36123000" />
-      <workItem from="1578953484687" duration="10222000" />
-    </task>
-    <task id="LOCAL-00328" summary="Still using old Discourse key format">
-      <created>1576670659447</created>
-      <option name="number" value="00328" />
-      <option name="presentableId" value="LOCAL-00328" />
-      <option name="project" value="LOCAL" />
-      <updated>1576670659447</updated>
+      <workItem from="1578953484687" duration="11550000" />
     </task>
     <task id="LOCAL-00329" summary="UT fixes">
       <created>1576671924949</created>
@@ -571,7 +564,14 @@
       <option name="project" value="LOCAL" />
       <updated>1579009359595</updated>
     </task>
-    <option name="localTasksCounter" value="377" />
+    <task id="LOCAL-00377" summary="Add more debug for message permission errors">
+      <created>1579038035307</created>
+      <option name="number" value="00377" />
+      <option name="presentableId" value="LOCAL-00377" />
+      <option name="project" value="LOCAL" />
+      <updated>1579038035307</updated>
+    </task>
+    <option name="localTasksCounter" value="378" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Return error for get of invalid story id" />
     <MESSAGE value="CORS changes for new API hosts" />
     <MESSAGE value="Fix donations, which are over-estimating.  The messages for this checkin and the previous one are the wrong way round." />
     <MESSAGE value="Changes to travis builds for Maxmind account ids" />
@@ -629,7 +628,8 @@
     <MESSAGE value="Need to set threadhead in fetch of newsfeed." />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Add percent sign to spam checks for current elusive medical spam." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add percent sign to spam checks for current elusive medical spam." />
+    <MESSAGE value="Add more debug for message permission errors" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add more debug for message permission errors" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1577879790677">
@@ -645,10 +645,10 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="236" y="62" key="CommitChangelistDialog2" timestamp="1579009358956">
+    <state x="236" y="62" key="CommitChangelistDialog2" timestamp="1579038034429">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579009358956" />
+    <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579038034429" />
     <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578820532216" />
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1579037935344">
       <screen x="0" y="0" width="1707" height="920" />
@@ -693,15 +693,15 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1579009360980">
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1579038037417">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579009360980" />
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579038037417" />
     <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578820533910" />
-    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1579032963654">
+    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1579041386295">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579032963654" />
+    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579041386295" />
     <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578819984056" />
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1579032598713">
       <screen x="0" y="0" width="1707" height="920" />
