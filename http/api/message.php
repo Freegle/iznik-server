@@ -240,32 +240,29 @@ function message() {
             if ($m->getID()) {
                 $atts = $m->getPublic();
 
-                # We might still have permissions to modify this message if we created it in this session..
-                if (!$atts['canedit'] && $id != presdef('lastmessage', $_SESSION, NULL)) {
-                    $ret = ['ret' => 2, 'status' => 'Permission denied'];
-                } else {
-                    $subject = presdef('subject', $_REQUEST, NULL);
-                    $msgtype = presdef('msgtype', $_REQUEST, NULL);
-                    $item = presdef('item', $_REQUEST, NULL);
-                    $location = presdef('location', $_REQUEST, NULL);
-                    $textbody = presdef('textbody', $_REQUEST, NULL);
-                    $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
-                    $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
-                    $attachments = array_key_exists('attachments', $_REQUEST) ? $_REQUEST['attachments'] : NULL;
+                # Ignore the canedit flag here - the client will either show or not show the edit button on this
+                # basis but editing is part of the repost flow and therefore needs to work.
+                $subject = presdef('subject', $_REQUEST, NULL);
+                $msgtype = presdef('msgtype', $_REQUEST, NULL);
+                $item = presdef('item', $_REQUEST, NULL);
+                $location = presdef('location', $_REQUEST, NULL);
+                $textbody = presdef('textbody', $_REQUEST, NULL);
+                $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
+                $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
+                $attachments = array_key_exists('attachments', $_REQUEST) ? $_REQUEST['attachments'] : NULL;
 
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
 
-                    if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments) {
-                        $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments);
-                        $ret = $rc ? $ret : [ 'ret' => 2, 'status' => 'Edit failed' ];
-                    }
+                if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments) {
+                    $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments);
+                    $ret = $rc ? $ret : [ 'ret' => 2, 'status' => 'Edit failed' ];
+                }
 
-                    if ($fop !== NULL) {
-                        $m->setFOP($fop);
-                    }
+                if ($fop !== NULL) {
+                    $m->setFOP($fop);
                 }
             }
         }
