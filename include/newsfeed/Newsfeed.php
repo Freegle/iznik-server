@@ -535,7 +535,7 @@ class Newsfeed extends Entity
                     }
                 }
 
-                $this->setThreadHead($entry['replies'], $filtered['id']);
+                $this->setThreadHead($entry['replies'], $entry['id']);
 
                 if (count($topitems) < 2 && ($entry['pinned'] || $entry['type'] !=  Newsfeed::TYPE_ALERT)) {
                     # We want to return pinned items at the top, and also the first non-alert one, so that
