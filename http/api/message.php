@@ -239,8 +239,15 @@ function message() {
 
             if ($m->getID()) {
                 # We can edit this if we're logged in and a mod or the sender.
-                if (!$me || (!$me->isModerator() && $m->getFromuser() !== $me->getId())) {
-                    $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                if (!$me || (!$me->isModerator() && $m->getFromuser() != $me->getId())) {
+                    $ret = ['ret' => 2,
+                        'status' => 'Permission denied',
+                        'fromuser' => $m->getFromuser(),
+                        'me' => $me ? $me->getId() : 'no me',
+                        'ismod' => $me ? !$me->isModerator() : 'no me',
+                        'usermatch' => $me ? ($m->getFromuser() != $me->getId()) : 'no me',
+                        'allgood' => $me ? (!$me->isModerator() && $m->getFromuser() != $me->getId()) : 'no me'
+                    ];
                 } else {
                     $atts = $m->getPublic();
 
