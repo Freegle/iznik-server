@@ -441,7 +441,7 @@ class Message
                 $oldattachments != $newattachments ? $newattachments : NULL,
                 $oldlocation != $newlocation ? $oldlocation : NULL,
                 $oldlocation != $newlocation ? $newlocation : NULL,
-                $me->getId(),
+                $me ? $me->getId() : NULL,
                 $reviewrequired
             ];
 

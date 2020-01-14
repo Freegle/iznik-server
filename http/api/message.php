@@ -238,31 +238,36 @@ function message() {
             $ret = ['ret' => 3, 'status' => 'Message does not exist'];
 
             if ($m->getID()) {
-                $atts = $m->getPublic();
+                # We can edit this if we're logged in and a mod or the sender.
+                if (!$me || (!$me->isModerator() && $m->getFromuser() !== $me->getId())) {
+                    $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                } else {
+                    $atts = $m->getPublic();
 
-                # Ignore the canedit flag here - the client will either show or not show the edit button on this
-                # basis but editing is part of the repost flow and therefore needs to work.
-                $subject = presdef('subject', $_REQUEST, NULL);
-                $msgtype = presdef('msgtype', $_REQUEST, NULL);
-                $item = presdef('item', $_REQUEST, NULL);
-                $location = presdef('location', $_REQUEST, NULL);
-                $textbody = presdef('textbody', $_REQUEST, NULL);
-                $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
-                $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
-                $attachments = array_key_exists('attachments', $_REQUEST) ? $_REQUEST['attachments'] : NULL;
+                    # Ignore the canedit flag here - the client will either show or not show the edit button on this
+                    # basis but editing is part of the repost flow and therefore needs to work.
+                    $subject = presdef('subject', $_REQUEST, NULL);
+                    $msgtype = presdef('msgtype', $_REQUEST, NULL);
+                    $item = presdef('item', $_REQUEST, NULL);
+                    $location = presdef('location', $_REQUEST, NULL);
+                    $textbody = presdef('textbody', $_REQUEST, NULL);
+                    $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
+                    $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
+                    $attachments = array_key_exists('attachments', $_REQUEST) ? $_REQUEST['attachments'] : NULL;
 
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success'
-                ];
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
 
-                if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments) {
-                    $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments);
-                    $ret = $rc ? $ret : [ 'ret' => 2, 'status' => 'Edit failed' ];
-                }
+                    if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments) {
+                        $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments);
+                        $ret = $rc ? $ret : ['ret' => 2, 'status' => 'Edit failed'];
+                    }
 
-                if ($fop !== NULL) {
-                    $m->setFOP($fop);
+                    if ($fop !== NULL) {
+                        $m->setFOP($fop);
+                    }
                 }
             }
         }
