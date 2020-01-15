@@ -17,9 +17,23 @@ function adview() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $data = NULL;
+            $loc = NULL;
 
             if ($ip && $location) {
-                $url = "https://adview.online/api/v1/jobs.json?publisher=2053&channel=web&limit=50&radius=5&user_ip=$ip&location=" . urlencode($_REQUEST['location']);
+                # We might have a postcode search.  The AdView postcode search is unreliable, so we need to find
+                # the nearest city.
+                $me = whoAmI($dbhr, $dbhm);
+
+                if ($me) {
+                    list ($lat, $lng, $loc) = $me->getLatLng();
+
+                    if ($loc == $location) {
+                        # We are searching on our own location.
+                        $location = $me->getCity();
+                    }
+                }
+
+                $url = "https://adview.online/api/v1/jobs.json?publisher=2053&channel=web&limit=50&radius=5&user_ip=$ip&location=" . urlencode($location);
 
                 $ctx = stream_context_create(array('http'=> [
                     'timeout' => 10,
@@ -36,9 +50,11 @@ function adview() {
                             'ret' => 0,
                             'status' => 'Success',
                             'adview' => $d,
-//                            'ip' => $ip,
-//                            'req' => $_REQUEST,
-//                            'srv' => $_SERVER,
+                            'url' => $url,
+                            'ip' => $ip,
+                            'user_agent' => presdef('User-Agent', $hdrs, NULL),
+                            'searchedloc' => $location,
+                            'ownlocation' => $loc
 //                            'headers' => getallheaders()
                         ];
                     } else {
