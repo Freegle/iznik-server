@@ -622,9 +622,12 @@ function message() {
 
                 switch ($action) {
                     case 'Promise':
-                        $m->promise($userid);
-                        $mid = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
-                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
+                        $ret = ['ret' => 2, 'status' => "Can't promise to nobody"];
+                        if ($userid) {
+                            $m->promise($userid);
+                            $mid = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
+                            $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
+                        }
                         break;
                     case 'Renege':
                         $m->renege($userid);
