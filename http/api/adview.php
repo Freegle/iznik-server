@@ -4,6 +4,12 @@ function adview() {
     global $dbhr, $dbhm;
 
     $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
+    $hdrs = getallheaders();
+    if (pres('X-Real-Ip', $hdrs)) {
+        // Passed using proxy protocol
+        $ip = $hdrs['X-Real-Ip'];
+    }
+
     $location = presdef('location', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -29,7 +35,11 @@ function adview() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'adview' => $d
+                            'adview' => $d,
+//                            'ip' => $ip,
+//                            'req' => $_REQUEST,
+//                            'srv' => $_SERVER,
+//                            'headers' => getallheaders()
                         ];
                     } else {
                         $ret = [
