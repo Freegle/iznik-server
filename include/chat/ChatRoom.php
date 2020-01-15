@@ -955,9 +955,9 @@ WHERE chat_rooms.id IN $idlist;";
         $chatids = $this->listForUser($myid);
 
         # Find current values.  This allows us to filter out many updates.
-        $currents = $this->dbhr->preQuery("SELECT chatid, lastmsgseen, (SELECT MAX(id) AS max FROM chat_messages WHERE chatid = chat_roster.chatid) AS maxmsg FROM chat_roster WHERE userid = ? AND chatid IN (" . implode(',', $chatids) . ");", [
+        $currents = count($chatids) ? $this->dbhr->preQuery("SELECT chatid, lastmsgseen, (SELECT MAX(id) AS max FROM chat_messages WHERE chatid = chat_roster.chatid) AS maxmsg FROM chat_roster WHERE userid = ? AND chatid IN (" . implode(',', $chatids) . ");", [
             $myid
-        ]);
+        ]) : [];
 
         foreach ($chatids as $chatid) {
             $found = FALSE;
