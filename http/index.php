@@ -138,7 +138,7 @@ try {
 
     $inspectlet = '';
 
-    if (!pres('nocache', $_REQUEST) && INSPECTLET) {
+    if (!pres('nocache', $_REQUEST) && INSPECTLET && !MODTOOLS) {
         $inspectlet = <<<EOF
 <!-- Begin Inspectlet Asynchronous Code -->
 <script type="text/javascript">
