@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/api.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/index.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -138,10 +135,10 @@
     </configuration>
     <list>
       <item itemvalue="PHPUnit.messageAPITest.testEditAsMemberPending" />
-      <item itemvalue="PHPUnit.messageAPITest.testEditAsMod" />
       <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
-      <item itemvalue="PHPUnit.spammersAPITest" />
+      <item itemvalue="PHPUnit.messageAPITest.testEditAsMod" />
       <item itemvalue="PHPUnit.userAPITest.testEH" />
+      <item itemvalue="PHPUnit.spammersAPITest" />
     </list>
     <recent_temporary>
       <list>
@@ -230,13 +227,6 @@
       <workItem from="1577742797257" duration="1910000" />
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
-    </task>
-    <task id="LOCAL-00331" summary="Change to Discourse new API...properly, this time.">
-      <created>1576681578243</created>
-      <option name="number" value="00331" />
-      <option name="presentableId" value="LOCAL-00331" />
-      <option name="project" value="LOCAL" />
-      <updated>1576681578243</updated>
     </task>
     <task id="LOCAL-00332" summary="Back out use of streaming encoder as breaks heatmap">
       <created>1576682757327</created>
@@ -574,7 +564,14 @@
       <option name="project" value="LOCAL" />
       <updated>1579068364516</updated>
     </task>
-    <option name="localTasksCounter" value="380" />
+    <task id="LOCAL-00380" summary="Don't use Inspectlet on MT">
+      <created>1579182433769</created>
+      <option name="number" value="00380" />
+      <option name="presentableId" value="LOCAL-00380" />
+      <option name="project" value="LOCAL" />
+      <updated>1579182433769</updated>
+    </task>
+    <option name="localTasksCounter" value="381" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -607,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Changes to travis builds for Maxmind account ids" />
     <MESSAGE value="More on maxmind" />
     <MESSAGE value="Tweak PM2 restart approach" />
     <MESSAGE value="Need to include member count in stats on user site" />
@@ -632,7 +628,8 @@
     <MESSAGE value="Add more debug for message permission errors" />
     <MESSAGE value="Verify email has bad link now." />
     <MESSAGE value="AdView API call not using client IP" />
-    <option name="LAST_COMMIT_MESSAGE" value="AdView API call not using client IP" />
+    <MESSAGE value="Don't use Inspectlet on MT" />
+    <option name="LAST_COMMIT_MESSAGE" value="Don't use Inspectlet on MT" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1579168606800">
@@ -648,11 +645,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="236" y="62" key="CommitChangelistDialog2" timestamp="1579068363510">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579186276074">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579068363510" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578820532216" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579186276074" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579182424903">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -696,16 +693,16 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1579068366297">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579182434928">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579068366297" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578820533910" />
-    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579181780076">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579182434928" />
+    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579186247287">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579113263038" />
-    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579181780076" />
+    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579186247287" />
     <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579168484831">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

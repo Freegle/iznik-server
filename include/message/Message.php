@@ -863,7 +863,7 @@ class Message
             // console.log("Strip photo", text);
             // Strip photo links - we should have those as attachments.
             $text = preg_replace('/You can see a photo[\s\S]*?jpg/', '', $text);
-            $text = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/', '', $text);
+            $text = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $text);
             $text = preg_replace('/You can see photos here[\s\S]*jpg/m', '', $text);
             $text = preg_replace('/https:\/\/direct.*jpg/m', '', $text);
             $text = preg_replace('/Photos\:[\s\S]*?jpg/', '', $text);
