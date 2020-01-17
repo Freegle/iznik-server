@@ -47,6 +47,156 @@ class Yahoo
         $this->openid = $openid;
     }
 
+    function loginWithCode($code) {
+        # New style Yahoo login as of 2020.  The client has obtained an authorization code from Yahoo using the flow
+        # in https://developer.yahoo.com/oauth2/guide/flows_authcode/.  We now try to convert that code to an Access
+        # Token which we can use to obtain the user info.
+        #
+        # We do not have an interest in the Refresh Token, because our own sessions are long-lived and we don't
+        # access Yahoo after login has completed.
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.login.yahoo.com/oauth2/get_token');
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            "Authorization: Basic " . base64_encode(YAHOO_CLIENT_ID . ':' . YAHOO_CLIENT_SECRET),
+            "Content-type: application/x-www-form-urlencoded"
+        ]);
+        $params = 'client_id=' . urlencode(YAHOO_CLIENT_ID) . '&client_secret=' . urlencode(YAHOO_CLIENT_SECRET) . '&redirect_uri=oob&code=' . $code . '&grant_type=authorization_code';
+        error_log("Login with code $code params $params");
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+        $json_response = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        if ($status == 200) {
+            $json = json_decode($json_response, TRUE);
+            $token = $json['access_token'];
+
+            if ($token) {
+                # We have an access token.  Success.  Now get the user info.
+                $curl = curl_init();
+                curl_setopt($curl, CURLOPT_URL, 'https://social.yahooapis.com/v1/me/guid');
+                curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl, CURLOPT_HTTPHEADER, [
+                    "Authorization: Bearer $token"
+                ]);
+
+                $guid_response = curl_exec($curl);
+                $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                error_log("Get GUID $status $guid_response");
+
+                if (preg_match('/.*\<value\>(.*)\<\/value\>/', $guid_response, $matches)) {
+                    error_log("Got matches " . var_export($matches, TRUE));
+                    $guid = $matches[1];
+
+                    $curl = curl_init();
+                    curl_setopt($curl, CURLOPT_URL, 'https://social.yahooapis.com/v1/user/' . $guid . '/profile?format=json');
+                    curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+                        "Authorization: Bearer $token"
+                    ]);
+
+                    $json_response = curl_exec($curl);
+                    $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                }
+
+                if ($status == 200) {
+                    $attrs = json_decode($json_response, TRUE);
+
+                    if (pres('profile', $attrs)) {
+                        $attrs = $attrs['profile'];
+                        $givenName = presdef('givenName', $attrs, NULL);
+                        $familyName = presdef('familyName', $attrs, NULL);
+                        $email = NULL;
+
+                        foreach (presdef('emails', $attrs, []) as $e) {
+                            if (!$email || pres('primary', $e)) {
+                                $email = $e['handle'];
+                            }
+                        }
+
+                        error_log("$givenName, $familyName, $email");
+                    }
+
+                    if ($email) {
+                        # We're in.
+                        #
+                        # See if we know this user already.  We might have an entry for them by email, or by their
+                        # Yahoo ID (which in this method we are assuming is the returned preferred_username).
+                        $u = User::get($this->dbhr, $this->dbhm);
+                        $id = $email ? $u->findByEmail($email) : NULL;
+                        error_log("Found $id for $email");
+
+                        if (!$id) {
+                            # We don't know them.  Create a user.
+                            #
+                            # There's a timing window here, where if we had two first-time logins for the same user,
+                            # one would fail.  Bigger fish to fry.
+                            $id = $u->create($givenName, $familyName, NULL, "Yahoo new-style login from $email");
+
+                            if ($id) {
+                                $u = User::get($this->dbhr, $this->dbhm, $id);
+
+                                if ($email) {
+                                    $u->addEmail($email, 1, TRUE);
+                                }
+
+                                # Now Set up a login entry.
+                                $rc = $this->dbhm->preExec(
+                                    "INSERT INTO users_logins (userid, type, uid) VALUES (?,'Yahoo',?);",
+                                    [
+                                        $id,
+                                        $email
+                                    ]
+                                );
+
+                                $id = $rc ? $id : NULL;
+                            }
+                        }
+
+                        $u = User::get($this->dbhr, $this->dbhm, $id);
+
+                        # We have publish permissions for users who login via our platform.
+                        $u->setPrivate('publishconsent', 1);
+
+                        $this->dbhm->preExec("UPDATE users_logins SET lastaccess = NOW() WHERE userid = ? AND type = 'Yahoo';",
+                            [
+                                $id
+                            ]);
+
+                        if ($id) {
+                            error_log("Logged in");
+                            # We are logged in.
+                            $s = new Session($this->dbhr, $this->dbhm);
+                            $s->create($id);
+
+                            # Anyone who has logged in to our site has given RIPA consent.
+                            $this->dbhm->preExec("UPDATE users SET ripaconsent = 1 WHERE id = ?;",
+                                [
+                                    $id
+                                ]);
+                            User::clearCache($id);
+
+                            $l = new Log($this->dbhr, $this->dbhm);
+                            $l->log([
+                                'type' => Log::TYPE_USER,
+                                'subtype' => Log::SUBTYPE_LOGIN,
+                                'byuser' => $id,
+                                'text' => 'Using Yahoo ' . var_export($attrs, TRUE)
+                            ]);
+
+                            error_log("Returning success");
+                            return ([$s, ['ret' => 0, 'status' => 'Success']]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     function login($returnto = '/')
     {
         try
@@ -158,9 +308,13 @@ class Yahoo
             } else if (!$this->openid->mode) {
                 # We're not logged in.  Redirect to Yahoo to authorise.
                 $this->openid->identity = 'https://me.yahoo.com';
+//                $this->openid->identity = 'https://api.login.yahoo.com/';
                 $this->openid->required = array('contact/email', 'namePerson', 'namePerson/first', 'namePerson/last');
                 $this->openid->redirect_uri = $returnto;
-                $url = $this->openid->authUrl() . "&key=Iznik";
+                error_log("Get redirect");
+                $url = "https://api.login.yahoo.com/oauth2/request_auth?client_id=dj0yJmk9TVo4T1dYYXc5WnJSJmQ9WVdrOVdYTkVWVFF5TjJjbWNHbzlNVFF3T1RBeE1UUTJNZy0tJnM9Y29uc3VtZXJzZWNyZXQmeD1hNw--&redirect_uri=" . urlencode($returnto) . "&response_type=code&language=en-us&scope=openid,sdps-r";
+//                $url = $this->openid->authUrl() . "&key=Iznik";
+                error_log("Redirect to $url");
                 return [NULL, ['ret' => 1, 'redirect' => $url]];
             }
         }

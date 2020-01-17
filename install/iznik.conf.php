@@ -27,6 +27,11 @@ define('GOOGLE_CLIENT_SECRET', 'zzz');
 define('GOOGLE_APP_NAME', 'zzz');
 define('GOOGLE_SITE_VERIFICATION', 'zzz');
 
+# Yahoo App keys
+define('YAHOO_APPID', 'zzz');
+define('YAHOO_CLIENT_ID', 'zzz');
+define('YAHOO_CLIENT_SECRET', 'zzz');
+
 # For website analysis.
 define('INSPECTLET', 'zzz');
 

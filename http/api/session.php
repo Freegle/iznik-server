@@ -309,6 +309,7 @@ function session() {
             $fbaccesstoken = presdef('fbaccesstoken', $_REQUEST, NULL);
             $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+            $yahoocodelogin = presdef('yahoocodelogin', $_REQUEST, NULL);
             $googleauthcode = array_key_exists('googleauthcode', $_REQUEST) ? $_REQUEST['googleauthcode'] : NULL;
             $mobile = array_key_exists('mobile', $_REQUEST) ? filter_var($_REQUEST['mobile'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : NULL;
@@ -339,8 +340,15 @@ function session() {
                 list ($session, $ret) = $f->login($fbaccesstoken);
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;
+            } else if ($yahoocodelogin) {
+                $y = Yahoo::getInstance($dbhr, $dbhm, $host);
+                list ($session, $ret) = $y->loginWithCode($yahoocodelogin);
+                error_log("Yahoo code login returned " . var_export($ret, TRUE));
+                /** @var Session $session */
+                $id = $session ? $session->getUserId() : NULL;
+                error_log("User id from session $id");
             } else if ($yahoologin) {
-                # Yahoo.
+                # Yahoo old-style.  This is no longer used by FD, and as of Jan 2020 didn't work.
                 $y = Yahoo::getInstance($dbhr, $dbhm, $host);
                 list ($session, $ret) = $y->login($returnto);
                 /** @var Session $session */
