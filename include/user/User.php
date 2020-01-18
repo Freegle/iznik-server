@@ -3879,7 +3879,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 if ($email) {
                     # We have an email which is fairly anonymous.  Use the LHS.
                     $p = strpos($email, '@');
-                    $email = ($p > 0 ? substr($email, 0, $p) : $email) . '-' . $this->id . '@' . USER_DOMAIN;
+                    $email = str_replace(' ', '', $p > 0 ? substr($email, 0, $p) : $email) . '-' . $this->id . '@' . USER_DOMAIN;
                 } else {
                     # We can't make up something similar to their existing email address so invent from scratch.
                     $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
@@ -6015,7 +6015,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     foreach ($jobs as $job) {
                         $loc = presdef('location', $job, '') . ' ' . presdef('postcode', $job, '');
                         $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
-                        $url = 'https://' . USER_SITE . '/jobs/' . urlencode($search);
+                        # Direct link to job to increase click conversions.
+                        #$url = 'https://' . USER_SITE . '/jobs/' . urlencode($search);
+                        $url = $job['url'];
                         $ret .= '<a href="' . $url . '" target="_blank">' . htmlentities($title) . '</a><br />';
                     }
                 }
