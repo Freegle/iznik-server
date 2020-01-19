@@ -49,8 +49,8 @@ function user() {
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            if ($u && $me) {
-                if ($export) {
+            if ($u) {
+                if ($me && $export) {
                     # Can export our own entry, or any for admin/support.
                     if ($u->getId() == $me->getId() || $me->isAdminOrSupport()) {
                         $data = $u->export();
@@ -61,7 +61,7 @@ function user() {
                             'export' => $data
                         ];
                     }
-                } else if ($search) {
+                } else if ($me && $search) {
                     # Admin or support can search users.
                     if ($me->isAdminOrSupport()) {
                         $users = $u->search($search, $ctx);

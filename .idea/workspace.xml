@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/session/Yahoo.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/session/Yahoo.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install/iznik.conf.php" beforeDir="false" afterPath="$PROJECT_DIR$/install/iznik.conf.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/user.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/user.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -229,28 +227,7 @@
       <workItem from="1577742797257" duration="1910000" />
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
-      <workItem from="1579245581582" duration="13262000" />
-    </task>
-    <task id="LOCAL-00333" summary="UT fixes">
-      <created>1576683063827</created>
-      <option name="number" value="00333" />
-      <option name="presentableId" value="LOCAL-00333" />
-      <option name="project" value="LOCAL" />
-      <updated>1576683063827</updated>
-    </task>
-    <task id="LOCAL-00334" summary="Some images are wrongly served from the user site rather than the image site.">
-      <created>1576748085725</created>
-      <option name="number" value="00334" />
-      <option name="presentableId" value="LOCAL-00334" />
-      <option name="project" value="LOCAL" />
-      <updated>1576748085725</updated>
-    </task>
-    <task id="LOCAL-00335" summary="Notification by email for love of noticeboard post contains internal info">
-      <created>1576874633592</created>
-      <option name="number" value="00335" />
-      <option name="presentableId" value="LOCAL-00335" />
-      <option name="project" value="LOCAL" />
-      <updated>1576874633594</updated>
+      <workItem from="1579245581582" duration="19910000" />
     </task>
     <task id="LOCAL-00336" summary="UT fixes">
       <created>1576876510542</created>
@@ -574,7 +551,28 @@
       <option name="project" value="LOCAL" />
       <updated>1579186293119</updated>
     </task>
-    <option name="localTasksCounter" value="382" />
+    <task id="LOCAL-00382" summary="Find a way to make Yahoo login work again">
+      <created>1579291910230</created>
+      <option name="number" value="00382" />
+      <option name="presentableId" value="LOCAL-00382" />
+      <option name="project" value="LOCAL" />
+      <updated>1579291910230</updated>
+    </task>
+    <task id="LOCAL-00383" summary="Ensure no spaces in emails">
+      <created>1579364388169</created>
+      <option name="number" value="00383" />
+      <option name="presentableId" value="LOCAL-00383" />
+      <option name="project" value="LOCAL" />
+      <updated>1579364388169</updated>
+    </task>
+    <task id="LOCAL-00384" summary="Ensure we don't end up with emails but no userid blocking future activity.">
+      <created>1579428278576</created>
+      <option name="number" value="00384" />
+      <option name="presentableId" value="LOCAL-00384" />
+      <option name="project" value="LOCAL" />
+      <updated>1579428278576</updated>
+    </task>
+    <option name="localTasksCounter" value="385" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -607,9 +605,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Tweak PM2 restart approach" />
-    <MESSAGE value="Need to include member count in stats on user site" />
-    <MESSAGE value="Handle undefined context due to client bug" />
     <MESSAGE value="Don't show repost dates stupidly far into the future" />
     <MESSAGE value="Add more info to chitchat reports" />
     <MESSAGE value="Notification email for groups which require membership approval is bugged." />
@@ -632,7 +627,10 @@
     <MESSAGE value="AdView API call not using client IP" />
     <MESSAGE value="Don't use Inspectlet on MT" />
     <MESSAGE value="Not removing TN pics properly." />
-    <option name="LAST_COMMIT_MESSAGE" value="Not removing TN pics properly." />
+    <MESSAGE value="Find a way to make Yahoo login work again" />
+    <MESSAGE value="Ensure no spaces in emails" />
+    <MESSAGE value="Ensure we don't end up with emails but no userid blocking future activity." />
+    <option name="LAST_COMMIT_MESSAGE" value="Ensure we don't end up with emails but no userid blocking future activity." />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1579168606800">
@@ -648,11 +646,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579186292517">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579428277891">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579068363510" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579186292517" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579428277891" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579284356067">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -696,25 +694,25 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579186294467">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579428279767">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579068366297" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579186294467" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579428279767" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579285427665">
+    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579428181472">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579113263038" />
-    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579285427665" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579284488376">
+    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579428181472" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579432527803">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579113602769" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579284488376" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579432527803" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
