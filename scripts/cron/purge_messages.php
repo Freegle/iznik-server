@@ -236,6 +236,10 @@ try {
     } while (count($msgs) > 0);
 
     error_log("Deleted $total");
+
+    # This shouldn't happen due to delete cascading...but we've seen 7 such emails exist, and one caused future
+    # problems.  So zap 'em.
+    $dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL");
 } catch (Exception $e) {
     error_log("Failed with " . $e->getMessage());
     mail(GEEKS_ADDR, "Daily message purge failed", $e->getMessage());
