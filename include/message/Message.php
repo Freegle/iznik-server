@@ -1245,7 +1245,7 @@ class Message
                 # We set this when constructing from MessageCollection.
                 $rets[$msg['id']]['replycount'] = presdef('replycount', $msg, 0);
             } else if (!$summary) {
-                if ($allreplies === NULL && $me) {
+                if ($allreplies === NULL) {
                     # Get all the replies for these messages.
                     $msgids = array_filter(array_column($msgs, 'id'));
                     $allreplies = [];
@@ -1255,11 +1255,11 @@ class Message
 SELECT chat_messages.id, chat_messages.refmsgid, chat_roster.status , chat_messages.userid, chat_messages.chatid, MAX(chat_messages.date) AS lastdate FROM chat_messages 
 LEFT JOIN chat_roster ON chat_messages.chatid = chat_roster.chatid AND chat_roster.userid = chat_messages.userid
 INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid 
-WHERE refmsgid IN (" . implode(',', $msgids) . ") AND chat_rooms.user2 = ? AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid, chat_messages.refmsgid) t 
+INNER JOIN messages ON messages.id = chat_messages.refmsgid
+WHERE refmsgid IN (" . implode(',', $msgids) . ") AND messages.fromuser = chat_rooms.user2 AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.type = ? GROUP BY chat_messages.userid, chat_messages.chatid, chat_messages.refmsgid) t 
 ORDER BY lastdate DESC;";
 
                         $res = $this->dbhr->preQuery($sql, [
-                            $me->getId(),
                             ChatMessage::TYPE_INTERESTED
                         ], NULL, FALSE);
 
