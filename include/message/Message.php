@@ -1245,7 +1245,7 @@ class Message
                 # We set this when constructing from MessageCollection.
                 $rets[$msg['id']]['replycount'] = presdef('replycount', $msg, 0);
             } else if (!$summary) {
-                if ($allreplies === NULL) {
+                if ($allreplies === NULL && $me) {
                     # Get all the replies for these messages.
                     $msgids = array_filter(array_column($msgs, 'id'));
                     $allreplies = [];
