@@ -6016,8 +6016,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         $loc = presdef('location', $job, '') . ' ' . presdef('postcode', $job, '');
                         $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
                         # Direct link to job to increase click conversions.
-                        #$url = 'https://' . USER_SITE . '/jobs/' . urlencode($search);
-                        $url = $job['url'];
+                        $url = 'https://' . USER_SITE . '/jobs/' . urlencode($search);
+                        #$url = $job['url'];
                         $ret .= '<a href="' . $url . '" target="_blank">' . htmlentities($title) . '</a><br />';
                     }
                 }
