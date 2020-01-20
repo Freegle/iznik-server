@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/user.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/user.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,20 +105,20 @@
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.sessionTest.testYahoo">
+  <component name="RunManager" selected="PHPUnit.chatMessagesTest.testPairing">
+    <configuration name="MailRouterTest.testReply" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testReply" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageAPITest.testEditAsMod" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="chatMessagesTest.testPairing" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testEditAsMod" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="newsfeedAPITest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="chatMessagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" method="testPairing" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="sessionTest.testYahoo" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -134,19 +137,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
-      <item itemvalue="PHPUnit.messageAPITest.testEditAsMod" />
       <item itemvalue="PHPUnit.userAPITest.testEH" />
       <item itemvalue="PHPUnit.spammersAPITest" />
       <item itemvalue="PHPUnit.sessionTest.testYahoo" />
+      <item itemvalue="PHPUnit.MailRouterTest.testReply" />
+      <item itemvalue="PHPUnit.chatMessagesTest.testPairing" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.chatMessagesTest.testPairing" />
+        <item itemvalue="PHPUnit.MailRouterTest.testReply" />
         <item itemvalue="PHPUnit.sessionTest.testYahoo" />
         <item itemvalue="PHPUnit.spammersAPITest" />
         <item itemvalue="PHPUnit.userAPITest.testEH" />
-        <item itemvalue="PHPUnit.messageAPITest.testEditAsMod" />
-        <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
       </list>
     </recent_temporary>
   </component>
@@ -228,27 +231,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00336" summary="UT fixes">
-      <created>1576876510542</created>
-      <option name="number" value="00336" />
-      <option name="presentableId" value="LOCAL-00336" />
-      <option name="project" value="LOCAL" />
-      <updated>1576876510542</updated>
-    </task>
-    <task id="LOCAL-00337" summary="UT fixes">
-      <created>1576878707888</created>
-      <option name="number" value="00337" />
-      <option name="presentableId" value="LOCAL-00337" />
-      <option name="project" value="LOCAL" />
-      <updated>1576878707888</updated>
-    </task>
-    <task id="LOCAL-00338" summary="UT fixes">
-      <created>1576945048627</created>
-      <option name="number" value="00338" />
-      <option name="presentableId" value="LOCAL-00338" />
-      <option name="project" value="LOCAL" />
-      <updated>1576945048627</updated>
     </task>
     <task id="LOCAL-00339" summary="Add another OOF option">
       <created>1577605990849</created>
@@ -572,7 +554,28 @@
       <option name="project" value="LOCAL" />
       <updated>1579428278576</updated>
     </task>
-    <option name="localTasksCounter" value="385" />
+    <task id="LOCAL-00385" summary="Chats referencing a message should only appear for a user if they were the recipient.">
+      <created>1579510212545</created>
+      <option name="number" value="00385" />
+      <option name="presentableId" value="LOCAL-00385" />
+      <option name="project" value="LOCAL" />
+      <updated>1579510212545</updated>
+    </task>
+    <task id="LOCAL-00386" summary="Direct job links from emails don't seem to result in payments, so revert back to the site ones.">
+      <created>1579511892283</created>
+      <option name="number" value="00386" />
+      <option name="presentableId" value="LOCAL-00386" />
+      <option name="project" value="LOCAL" />
+      <updated>1579511892283</updated>
+    </task>
+    <task id="LOCAL-00387" summary="UT fixes">
+      <created>1579512010592</created>
+      <option name="number" value="00387" />
+      <option name="presentableId" value="LOCAL-00387" />
+      <option name="project" value="LOCAL" />
+      <updated>1579512010592</updated>
+    </task>
+    <option name="localTasksCounter" value="388" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -605,8 +608,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Don't show repost dates stupidly far into the future" />
-    <MESSAGE value="Add more info to chitchat reports" />
     <MESSAGE value="Notification email for groups which require membership approval is bugged." />
     <MESSAGE value="Speed-ups: fetching chat messages isn't as efficient as it could be in providing user details" />
     <MESSAGE value="Add channels for job ads so we can distinguish web and email clicks" />
@@ -620,7 +621,6 @@
     <MESSAGE value="Move AdView into the API." />
     <MESSAGE value="Always allow edits on the server because they are required for the repost flow.  The client is responsible for showing or not showing the Edit button." />
     <MESSAGE value="Need to set threadhead in fetch of newsfeed." />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Add percent sign to spam checks for current elusive medical spam." />
     <MESSAGE value="Add more debug for message permission errors" />
     <MESSAGE value="Verify email has bad link now." />
@@ -630,13 +630,16 @@
     <MESSAGE value="Find a way to make Yahoo login work again" />
     <MESSAGE value="Ensure no spaces in emails" />
     <MESSAGE value="Ensure we don't end up with emails but no userid blocking future activity." />
-    <option name="LAST_COMMIT_MESSAGE" value="Ensure we don't end up with emails but no userid blocking future activity." />
+    <MESSAGE value="Chats referencing a message should only appear for a user if they were the recipient." />
+    <MESSAGE value="Direct job links from emails don't seem to result in payments, so revert back to the site ones." />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="502" y="139" key="#Deployment" timestamp="1579168606800">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="446" y="123" key="#Deployment" timestamp="1579508715035">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="446" y="123" key="#Deployment/0.0.1707.920@0.0.1707.920" timestamp="1576874224110" />
+    <state x="446" y="123" key="#Deployment/0.0.1707.920@0.0.1707.920" timestamp="1579508715035" />
     <state x="502" y="139" key="#Deployment/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579168606800" />
     <state x="309" y="120" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1576948582337">
       <screen x="0" y="0" width="1707" height="920" />
@@ -646,40 +649,40 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579428277891">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="236" y="62" key="CommitChangelistDialog2" timestamp="1579512009929">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579068363510" />
+    <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579512009929" />
     <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579428277891" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579284356067">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1579511843325">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1579068351060" />
+    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1579511843325" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579284356067" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog/0.0.1707.920@0.0.1707.920" timestamp="1579012863721" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578730503242" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1579253767690">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1663" height="237" key="GridCell.Tab.0.bottom" timestamp="1579515170246">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state width="1663" height="309" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1579113340649" />
+    <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1579515170246" />
     <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579253767690" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1579253767690">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1663" height="237" key="GridCell.Tab.0.center" timestamp="1579515170246">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state width="1663" height="309" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1579113340649" />
+    <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1579515170246" />
     <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579253767690" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1579253767689">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1663" height="237" key="GridCell.Tab.0.left" timestamp="1579515170246">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state width="1663" height="309" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1579113340644" />
+    <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1579515170246" />
     <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579253767689" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1579253767690">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1663" height="237" key="GridCell.Tab.0.right" timestamp="1579515170246">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state width="1663" height="309" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1579113340649" />
+    <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1579515170246" />
     <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579253767690" />
     <state x="760" y="233" key="RollbackChangesDialog" timestamp="1579246182302">
       <screen x="0" y="0" width="1920" height="1040" />
@@ -694,24 +697,24 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579428279767">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1579512012353">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579068366297" />
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579512012353" />
     <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579428279767" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579428181472">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1579515005446">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579113263038" />
+    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
     <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579428181472" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579432527803">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1579514674238">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579113602769" />
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579514674238" />
     <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579432527803" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>

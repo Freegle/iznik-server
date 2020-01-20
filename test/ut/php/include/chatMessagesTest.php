@@ -303,14 +303,20 @@ class chatMessagesTest extends IznikTestCase {
         assertEquals(MailRouter::TO_USER, $rc);
 
         $m = new Message($this->dbhm, $this->dbhm, $refmsgid1);
+
+        # Can only see replies logged in.
+        $fromu = $m->getFromuser();
+        $u = new User($this->dbhr, $this->dbhm, $fromu);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
         $atts = $m->getPublic(FALSE, TRUE, TRUE);
         $this->log("Message 1 " . var_export($atts, TRUE));
         assertEquals(1, count($atts['replies']));
         $m = new Message($this->dbhm, $this->dbhm, $refmsgid2);
         $atts = $m->getPublic(FALSE, TRUE, TRUE);
         assertEquals(0, count($atts['replies']));
-
-        }
+    }
 
     public function testError() {
         $dbconfig = array (

@@ -1097,6 +1097,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Created user $uid");
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -1154,7 +1155,11 @@ class MailRouterTest extends IznikTestCase {
             }
         }
 
-        # The reply should be visible in the message.
+        # The reply should be visible in the message, but only when logged in as the recipient.
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
+        $atts = $m->getPublic(FALSE, FALSE, TRUE);
+        assertEquals(0, count($atts['replies']));
+        assertTrue($u->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm, $origid);
         $atts = $m->getPublic(FALSE, FALSE, TRUE);
         assertEquals(1, count($atts['replies']));
