@@ -1157,11 +1157,11 @@ class MailRouterTest extends IznikTestCase {
 
         # The reply should be visible in the message, but only when logged in as the recipient.
         $m = new Message($this->dbhr, $this->dbhm, $origid);
-        $atts = $m->getPublic(FALSE, FALSE, TRUE);
+        $atts = $m->getPublic(FALSE, FALSE, FALSE);
         assertEquals(0, count($atts['replies']));
         assertTrue($u->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm, $origid);
-        $atts = $m->getPublic(FALSE, FALSE, TRUE);
+        $atts = $m->getPublic(FALSE, FALSE, FALSE);
         assertEquals(1, count($atts['replies']));
 
         # Now send another reply, but in HTML with no text body.
