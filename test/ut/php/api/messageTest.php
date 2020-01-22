@@ -2933,4 +2933,106 @@ class messageAPITest extends IznikAPITestCase
         self::assertEquals($id, $msgs[0]['id']);
         self::assertTrue(array_key_exists('worry', $msgs[0]));
     }
+
+    public function testLikes() {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        list($id, $already) = $m->save();
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
+        assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
+        assertEquals(0, $m->getLikes(Message::LIKE_VIEW));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Love'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        assertEquals(1, $m->getLikes(Message::LIKE_LOVE));
+        assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
+        assertEquals(0, $m->getLikes(Message::LIKE_VIEW));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Unlove'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
+        assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
+        assertEquals(0, $m->getLikes(Message::LIKE_VIEW));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Laugh'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
+        assertEquals(1, $m->getLikes(Message::LIKE_LAUGH));
+        assertEquals(0, $m->getLikes(Message::LIKE_VIEW));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Unlaugh'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
+        assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
+        assertEquals(0, $m->getLikes(Message::LIKE_VIEW));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'View'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
+        assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
+        assertEquals(1, $m->getLikes(Message::LIKE_VIEW));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'View',
+            'dup' => 1
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
+        assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
+        assertEquals(1, $m->getLikes(Message::LIKE_VIEW));
+
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'View',
+            'dup' => 2
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
+        assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
+        assertEquals(2, $m->getLikes(Message::LIKE_VIEW));
+    }
 }

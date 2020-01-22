@@ -43,6 +43,7 @@ class Message
 
     const LIKE_LOVE = 'Love';
     const LIKE_LAUGH = 'Laugh';
+    const LIKE_VIEW = 'View';
 
     const EMAIL_REGEXP = '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i';
 
@@ -4812,5 +4813,29 @@ ORDER BY lastdate DESC;";
         
         $this->dbhm->preExec("DELETE FROM messages WHERE id = $id;", NULL, FALSE);
         $this->dbhm->preExec("SET FOREIGN_KEY_CHECKS=1;", NULL, FALSE);
+    }
+
+    public function like($userid, $type) {
+        $this->dbhm->preExec("INSERT INTO messages_likes (msgid, userid, type) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE timestamp = NOW();", [
+            $this->id,
+            $userid,
+            $type
+        ]);
+        error_log("INSERT INTO messages_likes (msgid, userid, type) VALUES ({$this->id}, $userid, '$type') ON DUPLICATE KEY UPDATE timestamp = NOW();");
+    }
+
+    public function unlike($userid, $type) {
+        $this->dbhm->preExec("DELETE FROM messages_likes WHERE msgid = ? AND userid = ? AND type = ?;", [
+            $this->id,
+            $userid,
+            $type
+        ]);
+    }
+
+    public function getLikes($type) {
+        return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_likes WHERE msgid = ? AND type = ?;", [
+            $this->id,
+            $type
+        ], FALSE, FALSE)[0]['count'];
     }
 }

@@ -285,6 +285,26 @@ function message() {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $m ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
+            if ($me) {
+                # These actions don't require permission.
+                if ($action =='Love') {
+                    $m->like($myid, Message::LIKE_LOVE);
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                } else if ($action == 'Unlove') {
+                    $m->unlike($myid, Message::LIKE_LOVE);
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                } else if ($action == 'Laugh') {
+                    $m->like($myid, Message::LIKE_LAUGH);
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                } else if ($action == 'Unlaugh') {
+                    $m->unlike($myid, Message::LIKE_LAUGH);
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                } else if ($action == 'View') {
+                    $m->like($myid, Message::LIKE_VIEW);
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                }
+            }
+
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
@@ -323,18 +343,6 @@ function message() {
                             # We no longer want this message - for example because they're no longer a member.
                             $m->delete("Not spam but no longer a member", $groupid);
                         }
-                        break;
-                    case 'Love':
-                        $m->like(Message::LIKE_LOVE);
-                        break;
-                    case 'Unlove':
-                        $m->unlike(Message::LIKE_LOVE);
-                        break;
-                    case 'Laugh':
-                        $m->like(Message::LIKE_LAUGH);
-                        break;
-                    case 'Unlaugh':
-                        $m->unlike(Message::LIKE_LAUGH);
                         break;
                     case 'Spam':
                         # Don't trust normal mods to categorise this correctly.  Often they will mark a message from
