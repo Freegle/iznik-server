@@ -370,7 +370,7 @@ class Spam {
 
         # Some elusive spam has percent signs.
         if (strpos($message, '%') !== FALSE) {
-            $ret = [ TRUE, 'Has percent sign - possible medication spam' ];
+            $ret = [ TRUE, Spam::REASON_KNOWN_KEYWORD, 'Has percent sign - possible medication spam' ];
         }
 
         # Check keywords which are known as spam.
