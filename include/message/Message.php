@@ -4821,7 +4821,6 @@ ORDER BY lastdate DESC;";
             $userid,
             $type
         ]);
-        error_log("INSERT INTO messages_likes (msgid, userid, type) VALUES ({$this->id}, $userid, '$type') ON DUPLICATE KEY UPDATE timestamp = NOW();");
     }
 
     public function unlike($userid, $type) {
