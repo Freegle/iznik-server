@@ -180,8 +180,10 @@ class Spam {
             }
         }
 
+        # Get the text to scan.  No point in scanning any text we would strip before passing it on.
+        $text = $msg->stripQuoted();
+
         # Check if this is a greetings spam.
-        $text = $msg->getTextbody();
         if (stripos($text, 'http') || stripos($text, '.php')) {
             $p = strpos($text, "\n");
             $q = strpos($text, "\n", $p + 1);
