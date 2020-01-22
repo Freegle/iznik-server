@@ -46,7 +46,7 @@ if (($sso->validatePayload($payload,$signature))) {
                     $ctx = NULL;
                     $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
 
-                    $memberships = $u->getMemberships(TRUE, Group::GROUP_FREEGLE);
+                    $memberships = $u->getModGroupsByActivity();
 
                     if (count($memberships) === 0) {
                         # Not a Freegle mod.
@@ -66,6 +66,7 @@ if (($sso->validatePayload($payload,$signature))) {
                     $session['admin'] = $u->isAdmin();
                     $session['email'] = $u->getEmailPreferred();
                     $session['grouplist'] = substr(implode(',', $grouplist),0,1000);  // Actual max is 3000 but 1000 is enough
+                    error_log("Group list is {$session['grouplist']}");
                 } else {
                   error_log('discourse_sso - Not a mod: '.$u->getEmailPreferred());
                   echo "You are not a moderator";

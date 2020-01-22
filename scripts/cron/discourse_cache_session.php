@@ -20,7 +20,7 @@ try {
             $ctx = NULL;
             $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
 
-            $memberships = $u->getMemberships(TRUE, Group::GROUP_FREEGLE);
+            $memberships = $u->getModGroupsByActivity();
 
             if (count($memberships) === 0) {
               # Not a Freegle mod.
