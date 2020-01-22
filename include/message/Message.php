@@ -2162,14 +2162,8 @@ ORDER BY lastdate DESC;";
         $this->messageid = str_replace('>', '', $this->messageid);
         $this->tnpostid = $Parser->getHeader('x-trash-nothing-post-id');
 
-        $this->textbody = NULL;
-        $this->htmlbody = NULL;
-
-        # The parser returns junk on messages with no bodies.
-        if (strpos($msg, "\r\n\r\n") !== FALSE) {
-            $this->textbody = $Parser->getMessageBody('text');
-            $this->htmlbody = $Parser->getMessageBody('html');
-        }
+        $this->textbody = $Parser->getMessageBody('text');
+        $this->htmlbody = $Parser->getMessageBody('html');
 
         if ($this->htmlbody) {
             # The HTML body might contain images as img tags, rather than actual attachments.  Extract these too.

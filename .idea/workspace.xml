@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,10 +102,20 @@
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.MailRouterTest.testReply">
-    <configuration name="MailRouterTest.testReply" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+  <component name="RunManager" selected="PHPUnit.chatMessagesTest.testPairing">
+    <configuration name="MailRouterTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testReply" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" scope="Class" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="MailRouterTest.testSpecial" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testSpecial" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="MailRouterTest.testWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" method="testWorry" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
@@ -118,35 +128,25 @@
       <TestRunner class="chatMessagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" method="testPairing" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="sessionTest.testYahoo" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="messageAPITest.testHold" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testYahoo" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="spammersAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="spammersAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/spammersTest.php" scope="Class" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="userAPITest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="userAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/userTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testHold" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.userAPITest.testEH" />
-      <item itemvalue="PHPUnit.spammersAPITest" />
-      <item itemvalue="PHPUnit.sessionTest.testYahoo" />
-      <item itemvalue="PHPUnit.MailRouterTest.testReply" />
+      <item itemvalue="PHPUnit.MailRouterTest.testSpecial" />
+      <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
+      <item itemvalue="PHPUnit.MailRouterTest" />
+      <item itemvalue="PHPUnit.messageAPITest.testHold" />
       <item itemvalue="PHPUnit.chatMessagesTest.testPairing" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="PHPUnit.MailRouterTest.testReply" />
         <item itemvalue="PHPUnit.chatMessagesTest.testPairing" />
-        <item itemvalue="PHPUnit.sessionTest.testYahoo" />
-        <item itemvalue="PHPUnit.spammersAPITest" />
-        <item itemvalue="PHPUnit.userAPITest.testEH" />
+        <item itemvalue="PHPUnit.messageAPITest.testHold" />
+        <item itemvalue="PHPUnit.MailRouterTest.testSpecial" />
+        <item itemvalue="PHPUnit.MailRouterTest" />
+        <item itemvalue="PHPUnit.MailRouterTest.testWorry" />
       </list>
     </recent_temporary>
   </component>
@@ -228,20 +228,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00341" summary="Return error for get of invalid story id">
-      <created>1577702617840</created>
-      <option name="number" value="00341" />
-      <option name="presentableId" value="LOCAL-00341" />
-      <option name="project" value="LOCAL" />
-      <updated>1577702617840</updated>
-    </task>
-    <task id="LOCAL-00342" summary="CORS changes for new API hosts">
-      <created>1577805115152</created>
-      <option name="number" value="00342" />
-      <option name="presentableId" value="LOCAL-00342" />
-      <option name="project" value="LOCAL" />
-      <updated>1577805115152</updated>
     </task>
     <task id="LOCAL-00343" summary="Fix donations, which are over-estimating.  The messages for this checkin and the previous one are the wrong way round.">
       <created>1577805142984</created>
@@ -572,7 +558,21 @@
       <option name="project" value="LOCAL" />
       <updated>1579539340441</updated>
     </task>
-    <option name="localTasksCounter" value="390" />
+    <task id="LOCAL-00390" summary="% test returns wrong info">
+      <created>1579689938824</created>
+      <option name="number" value="00390" />
+      <option name="presentableId" value="LOCAL-00390" />
+      <option name="project" value="LOCAL" />
+      <updated>1579689938824</updated>
+    </task>
+    <task id="LOCAL-00391" summary="MIME parser returns junk if used on a message with no body, such as a TAKEN message.  This causes false positive spam warnings for TAKENs.">
+      <created>1579689992925</created>
+      <option name="number" value="00391" />
+      <option name="presentableId" value="LOCAL-00391" />
+      <option name="project" value="LOCAL" />
+      <updated>1579689992925</updated>
+    </task>
+    <option name="localTasksCounter" value="392" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -605,8 +605,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Speed-ups: fetching chat messages isn't as efficient as it could be in providing user details" />
-    <MESSAGE value="Add channels for job ads so we can distinguish web and email clicks" />
     <MESSAGE value="Change commit mails to Tech to reflect nuxt version now live." />
     <MESSAGE value="No need to return prerender info now that SSR is in place" />
     <MESSAGE value="Working on replies" />
@@ -630,7 +628,9 @@
     <MESSAGE value="Direct job links from emails don't seem to result in payments, so revert back to the site ones." />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="Previous fix lost count of replies" />
-    <option name="LAST_COMMIT_MESSAGE" value="Previous fix lost count of replies" />
+    <MESSAGE value="% test returns wrong info" />
+    <MESSAGE value="MIME parser returns junk if used on a message with no body, such as a TAKEN message.  This causes false positive spam warnings for TAKENs." />
+    <option name="LAST_COMMIT_MESSAGE" value="MIME parser returns junk if used on a message with no body, such as a TAKEN message.  This causes false positive spam warnings for TAKENs." />
   </component>
   <component name="WindowStateProjectService">
     <state x="446" y="123" key="#Deployment" timestamp="1579508715035">
@@ -646,46 +646,46 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
-    <state x="236" y="62" key="CommitChangelistDialog2" timestamp="1579539339449">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579689992049">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579539339449" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579428277891" />
-    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1579543533230">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579689992049" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579689965978">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1579543533230" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579284356067" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579689965978" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog/0.0.1707.920@0.0.1707.920" timestamp="1579012863721" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578730503242" />
-    <state width="1663" height="237" key="GridCell.Tab.0.bottom" timestamp="1579543525059">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1579691360546">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1579543525059" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579253767690" />
-    <state width="1663" height="237" key="GridCell.Tab.0.center" timestamp="1579543525058">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579691360546" />
+    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1579691360546">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579253767690" />
-    <state width="1663" height="237" key="GridCell.Tab.0.left" timestamp="1579543525058">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579691360546" />
+    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1579691360546">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579253767689" />
-    <state width="1663" height="237" key="GridCell.Tab.0.right" timestamp="1579543525058">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579691360546" />
+    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1579691360546">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579253767690" />
-    <state x="760" y="233" key="RollbackChangesDialog" timestamp="1579246182302">
+    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579691360546" />
+    <state x="760" y="233" key="RollbackChangesDialog" timestamp="1579689962368">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="676" y="206" key="RollbackChangesDialog/0.0.1707.920@0.0.1707.920" timestamp="1579068348841" />
-    <state x="760" y="233" key="RollbackChangesDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579246182302" />
+    <state x="760" y="233" key="RollbackChangesDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579689962368" />
     <state x="357" y="107" key="SettingsEditor" timestamp="1576948592209">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -694,25 +694,25 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1579539341892">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579689994454">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579539341892" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579428279767" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579689994454" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1579515005446">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579692454618">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
-    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579428181472" />
-    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1579539090895">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579692454618" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579687622843">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579539090895" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579432527803" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579687622843" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
