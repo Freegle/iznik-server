@@ -815,6 +815,8 @@ WHERE chat_rooms.id IN $idlist;";
             # We only need a few attributes, and this speeds it up.  No really, I've measured it.
             $atts = 'chat_rooms.id, chat_rooms.chattype, chat_rooms.groupid';
 
+            error_log("Types " . var_export($chattypes, TRUE));
+
             if (!$chattypes || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
                 # We want chats marked by groupid for which we are an active mod.
                 $thissql = "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE $chatq t1.role IN ('Moderator', 'Owner') $activeq AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq";
@@ -907,29 +909,34 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function canSee($userid)
     {
-        if ($userid == $this->chatroom['user1'] || $userid == $this->chatroom['user2']) {
-            # It's one of ours - so we can see it.
-            $cansee = TRUE;
+        if (!$this->id) {
+            # It's an invalid id.
+            $cansee = FALSE;
         } else {
-            # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
-            # but using a specific chatid to save time.
-            $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL, $this->id);
-            #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
-            $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
-        }
+            if ($userid == $this->chatroom['user1'] || $userid == $this->chatroom['user2']) {
+                # It's one of ours - so we can see it.
+                $cansee = TRUE;
+            } else {
+                # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
+                # but using a specific chatid to save time.
+                $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL, $this->id);
+                #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
+                $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
+            }
 
-        if (!$cansee) {
-            # If we can't see it by right, but we are a mod for the users in the chat, then we can see it.
-            #error_log("$userid can't see {$this->id} of type {$this->chatroom['chattype']}");
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            if (!$cansee) {
+                # If we can't see it by right, but we are a mod for the users in the chat, then we can see it.
+                #error_log("$userid can't see {$this->id} of type {$this->chatroom['chattype']}");
+                $me = whoAmI($this->dbhr, $this->dbhm);
 
-            if ($me) {
-                if ($me->isAdminOrSupport() ||
-                    ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
-                        ($me->moderatorForUser($this->chatroom['user1']) ||
-                            $me->moderatorForUser($this->chatroom['user2'])))
-                ) {
-                    $cansee = TRUE;
+                if ($me) {
+                    if ($me->isAdminOrSupport() ||
+                        ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
+                            ($me->moderatorForUser($this->chatroom['user1']) ||
+                                $me->moderatorForUser($this->chatroom['user2'])))
+                    ) {
+                        $cansee = TRUE;
+                    }
                 }
             }
         }

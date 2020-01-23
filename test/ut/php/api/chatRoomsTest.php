@@ -338,7 +338,28 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals(1, $ret['user']['info']['nudges']['sent']);
         assertEquals(1, $ret['user']['info']['nudges']['responded']);
 
-        }
+    }
+
+    public function testInvalidId() {
+        $u = User::get($this->dbhr, $this->dbhr);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($uid);
+        assertNotNull($this->uid);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        # Create an unseen message
+        $c = new ChatRoom($this->dbhr, $this->dbhr);
+        $rid = $c->createConversation($this->uid, $uid);
+        $this->log("Created room $rid between {$this->uid} and $uid");
+
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'id' => -$rid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertFalse(array_key_exists('chatroom', $ret));
+    }
 
 //    public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);
