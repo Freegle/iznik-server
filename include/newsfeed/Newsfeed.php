@@ -185,6 +185,7 @@ class Newsfeed extends Entity
                         $ctx = NULL;
                         $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
                         $reply['user']['activecounts'] = $u->getActiveCounts();
+                        $reply['user']['publiclocation'] = $u->getPublicLocation();
                         $users[$reply['userid']] = $reply['user'];
                     } else {
                         $reply['user'] = $users[$reply['userid']];
