@@ -40,7 +40,7 @@ function adview() {
                     "method" => "GET"
                 ]));
 
-                $data = file_get_contents($url, FALSE, $ctx);
+                $data = @file_get_contents($url, FALSE, $ctx);
 
                 if ($data) {
                     $d = json_decode($data, TRUE);
@@ -58,12 +58,14 @@ function adview() {
 //                            'headers' => getallheaders()
                         ];
                     } else {
+                        error_log("AdView data unexpected format for $location");
                         $ret = [
                             'ret' => 4,
                             'status' => 'Data returned has unexpected format.'
                         ];
                     }
                 } else {
+                    error_log("AdView no data for $location");
                     $ret = [
                         'ret' => 3,
                         'status' => 'No data returned'
