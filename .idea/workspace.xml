@@ -3,10 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/discourse_sso.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/discourse_sso.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/discourse_cache_session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/newsfeed/Newsfeed.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -231,20 +228,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00346" summary="More on maxmind">
-      <created>1577808033918</created>
-      <option name="number" value="00346" />
-      <option name="presentableId" value="LOCAL-00346" />
-      <option name="project" value="LOCAL" />
-      <updated>1577808033918</updated>
-    </task>
-    <task id="LOCAL-00347" summary="More on maxmind">
-      <created>1577808738741</created>
-      <option name="number" value="00347" />
-      <option name="presentableId" value="LOCAL-00347" />
-      <option name="project" value="LOCAL" />
-      <updated>1577808738741</updated>
     </task>
     <task id="LOCAL-00348" summary="More on maxmind">
       <created>1577809644001</created>
@@ -575,7 +558,21 @@
       <option name="project" value="LOCAL" />
       <updated>1579705379849</updated>
     </task>
-    <option name="localTasksCounter" value="395" />
+    <task id="LOCAL-00395" summary="Remove error log">
+      <created>1579721875937</created>
+      <option name="number" value="00395" />
+      <option name="presentableId" value="LOCAL-00395" />
+      <option name="project" value="LOCAL" />
+      <updated>1579721875937</updated>
+    </task>
+    <task id="LOCAL-00396" summary="Return better description of mod groups for Discourse">
+      <created>1579721889765</created>
+      <option name="number" value="00396" />
+      <option name="presentableId" value="LOCAL-00396" />
+      <option name="project" value="LOCAL" />
+      <updated>1579721889765</updated>
+    </task>
+    <option name="localTasksCounter" value="397" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -608,8 +605,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Thread head not set correctly in chitchat, causing nested threads to be created." />
-    <MESSAGE value="User/key login fails if called twice" />
     <MESSAGE value="Add extra UT to test can edit in pending" />
     <MESSAGE value="Messages calls for intended outcome appearing to fail when they're not really." />
     <MESSAGE value="Move AdView into the API." />
@@ -633,7 +628,9 @@
     <MESSAGE value="Back out previous fix." />
     <MESSAGE value="Record views of messages" />
     <MESSAGE value="Email reply to message with a mortage job ad being blocked as spam." />
-    <option name="LAST_COMMIT_MESSAGE" value="Email reply to message with a mortage job ad being blocked as spam." />
+    <MESSAGE value="Remove error log" />
+    <MESSAGE value="Return better description of mod groups for Discourse" />
+    <option name="LAST_COMMIT_MESSAGE" value="Return better description of mod groups for Discourse" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1579703058860">
@@ -650,11 +647,11 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579721875255">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579721889166">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579539339449" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579721875255" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579721889166" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579721871884">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -698,11 +695,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579705380808">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579721891307">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579539341892" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579705380808" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579721891307" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -712,11 +709,11 @@
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
     <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579719918913" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579721724781">
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579758843726">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579539090895" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579721724781" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579758843726" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
