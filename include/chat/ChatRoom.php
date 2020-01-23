@@ -815,8 +815,6 @@ WHERE chat_rooms.id IN $idlist;";
             # We only need a few attributes, and this speeds it up.  No really, I've measured it.
             $atts = 'chat_rooms.id, chat_rooms.chattype, chat_rooms.groupid';
 
-            error_log("Types " . var_export($chattypes, TRUE));
-
             if (!$chattypes || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
                 # We want chats marked by groupid for which we are an active mod.
                 $thissql = "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE $chatq t1.role IN ('Moderator', 'Owner') $activeq AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq";

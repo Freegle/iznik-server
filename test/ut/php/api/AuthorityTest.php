@@ -85,7 +85,11 @@ class authorityAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('locationid', $fullpcid);
 
-        # Add a search.
+        # Add a search.  Need to be logged in.
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm);
         $ctx = NULL;
         $m->search("Test", $ctx, Search::Limit, NULL, NULL, $fullpcid, FALSE);
