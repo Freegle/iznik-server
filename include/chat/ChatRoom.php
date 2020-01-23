@@ -49,7 +49,6 @@ class ChatRoom extends Entity
         $this->dbhm = $dbhm;
         $this->name = 'chatroom';
         $this->chatroom = NULL;
-        $this->id = $id;
         $this->table = 'chat_rooms';
 
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -61,10 +60,13 @@ class ChatRoom extends Entity
     }
 
     private function ourFetch($id, $myid) {
-        $this->id = $id;
+        if ($id) {
+            $rooms = $this->fetchRooms([ $id ], $myid, FALSE);
 
-        if ($this->id) {
-            $this->chatroom = $this->fetchRooms([ $id ], $myid, FALSE)[0];
+            if (count($rooms)) {
+                $this->id = $id;
+                $this->chatroom = $rooms[0];
+            }
         }
     }
 

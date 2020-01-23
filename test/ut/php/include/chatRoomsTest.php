@@ -687,6 +687,11 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals("> Testing Testing Testing Testing Testing Testing Testing\r\n> Testing Testing Testing Testing Testing Testing Testing\r\n> Testing Testing Testing Testing", $r->splitAndQuote("Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing"));
         assertEquals("> TestingTestingTestingTestingTestingTestingTestingTestingTest\r\n> ingTestingTestingTestingTestingTestingTestingTestingTestingT\r\n> esting", $r->splitAndQuote("TestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTestingTesting"));
     }
+
+    public function testInvalidId() {
+        $r = new ChatRoom($this->dbhr, $this->dbhm, -1);
+        assertEquals(NULL, $r->getId());
+    }
 }
 
 

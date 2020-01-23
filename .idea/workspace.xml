@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Remove err">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/adview.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/adview.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/index.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,7 +103,7 @@
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.chatMessagesTest.testSpamReply5">
+  <component name="RunManager" selected="PHPUnit.chatRoomsTest.testInvalidId">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -124,9 +124,9 @@
       <TestRunner class="chatMessagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" method="testSpamReply5" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageAPITest.testHold" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="chatRoomsTest.testInvalidId" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testHold" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="chatRoomsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" method="testInvalidId" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="messageAPITest.testLikes" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -135,19 +135,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.messageAPITest.testHold" />
       <item itemvalue="PHPUnit.chatMessagesTest.testPairing" />
       <item itemvalue="PHPUnit.messageAPITest.testLikes" />
       <item itemvalue="PHPUnit.chatMessagesTest.testSpamReply4" />
       <item itemvalue="PHPUnit.chatMessagesTest.testSpamReply5" />
+      <item itemvalue="PHPUnit.chatRoomsTest.testInvalidId" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.chatRoomsTest.testInvalidId" />
         <item itemvalue="PHPUnit.chatMessagesTest.testSpamReply5" />
         <item itemvalue="PHPUnit.chatMessagesTest.testSpamReply4" />
         <item itemvalue="PHPUnit.messageAPITest.testLikes" />
         <item itemvalue="PHPUnit.chatMessagesTest.testPairing" />
-        <item itemvalue="PHPUnit.messageAPITest.testHold" />
       </list>
     </recent_temporary>
   </component>
@@ -229,27 +229,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00352" summary="More on maxmind">
-      <created>1577819846698</created>
-      <option name="number" value="00352" />
-      <option name="presentableId" value="LOCAL-00352" />
-      <option name="project" value="LOCAL" />
-      <updated>1577819846698</updated>
-    </task>
-    <task id="LOCAL-00353" summary="More on maxmind">
-      <created>1577824215666</created>
-      <option name="number" value="00353" />
-      <option name="presentableId" value="LOCAL-00353" />
-      <option name="project" value="LOCAL" />
-      <updated>1577824215666</updated>
-    </task>
-    <task id="LOCAL-00354" summary="More on maxmind">
-      <created>1577825452012</created>
-      <option name="number" value="00354" />
-      <option name="presentableId" value="LOCAL-00354" />
-      <option name="project" value="LOCAL" />
-      <updated>1577825452012</updated>
     </task>
     <task id="LOCAL-00355" summary="Tweak PM2 restart approach">
       <created>1577876635668</created>
@@ -573,7 +552,28 @@
       <option name="project" value="LOCAL" />
       <updated>1579770467729</updated>
     </task>
-    <option name="localTasksCounter" value="401" />
+    <task id="LOCAL-00401" summary="Remove error logs">
+      <created>1579785536923</created>
+      <option name="number" value="00401" />
+      <option name="presentableId" value="LOCAL-00401" />
+      <option name="project" value="LOCAL" />
+      <updated>1579785536923</updated>
+    </task>
+    <task id="LOCAL-00402" summary="Remove error">
+      <created>1579786937539</created>
+      <option name="number" value="00402" />
+      <option name="presentableId" value="LOCAL-00402" />
+      <option name="project" value="LOCAL" />
+      <updated>1579786937539</updated>
+    </task>
+    <task id="LOCAL-00403" summary="Better error logging for adview issues">
+      <created>1579786967323</created>
+      <option name="number" value="00403" />
+      <option name="presentableId" value="LOCAL-00403" />
+      <option name="project" value="LOCAL" />
+      <updated>1579786967323</updated>
+    </task>
+    <option name="localTasksCounter" value="404" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -606,9 +606,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Need to set threadhead in fetch of newsfeed." />
-    <MESSAGE value="Add percent sign to spam checks for current elusive medical spam." />
-    <MESSAGE value="Add more debug for message permission errors" />
     <MESSAGE value="Verify email has bad link now." />
     <MESSAGE value="AdView API call not using client IP" />
     <MESSAGE value="Don't use Inspectlet on MT" />
@@ -631,7 +628,10 @@
     <MESSAGE value="Update schema.sql" />
     <MESSAGE value="Not returning public location for replies." />
     <MESSAGE value="Remove Outlook IOS footer" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove Outlook IOS footer" />
+    <MESSAGE value="Remove error logs" />
+    <MESSAGE value="Remove error" />
+    <MESSAGE value="Better error logging for adview issues" />
+    <option name="LAST_COMMIT_MESSAGE" value="Better error logging for adview issues" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1579703058860">
@@ -643,51 +643,55 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="309" y="120" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1707.920@0.0.1707.920" timestamp="1576948582337" />
+    <state x="92" y="92" width="1736" height="856" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog" timestamp="1579790870886">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="92" y="92" width="1736" height="856" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579790870886" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1579704609715">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579785526171">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579786966624">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579539339449" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579785526171" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579769577729">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579786966624" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579786956830">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1579543533230" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579769577729" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579786956830" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog/0.0.1707.920@0.0.1707.920" timestamp="1579012863721" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578730503242" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1579705298824">
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1579790971813">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1579543525059" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579705298824" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1579705298824">
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579790971813" />
+    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1579790971813">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579705298824" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1579705298824">
+    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579790971813" />
+    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1579790971813">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579705298824" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1579705298824">
+    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579790971813" />
+    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1579790971813">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579705298824" />
-    <state x="760" y="233" key="RollbackChangesDialog" timestamp="1579689962368">
+    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579790971813" />
+    <state x="760" y="233" key="RollbackChangesDialog" timestamp="1579790979487">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="676" y="206" key="RollbackChangesDialog/0.0.1707.920@0.0.1707.920" timestamp="1579068348841" />
-    <state x="760" y="233" key="RollbackChangesDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579689962368" />
+    <state x="760" y="233" key="RollbackChangesDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579790979487" />
     <state x="357" y="107" key="SettingsEditor" timestamp="1576948592209">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -696,11 +700,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579769706813">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579786968424">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579539341892" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579769706813" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579786968424" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -710,11 +714,11 @@
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
     <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579785506290" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579785447350">
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579790925009">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579539090895" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579785447350" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579790925009" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
