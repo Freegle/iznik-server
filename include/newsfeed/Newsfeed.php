@@ -536,7 +536,7 @@ class Newsfeed extends Entity
                     }
                 }
 
-                if ($entry['replies']) {
+                if (pres('replies', $entry)) {
                     $this->setThreadHead($entry['replies'], $entry['id']);
                 }
 
