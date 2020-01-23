@@ -3886,12 +3886,14 @@ ORDER BY lastdate DESC;";
             $s->create($myid, $maxid, $string, $locationid);
         }
 
-        $this->dbhm->preExec("INSERT INTO search_history (userid, term, locationid, groups) VALUES (?, ?, ?, ?);", [
-            $myid,
-            $string,
-            $locationid,
-            $groups ? implode(',', $groups) : NULL
-        ]);
+        if ($myid) {
+            $this->dbhm->preExec("INSERT INTO search_history (userid, term, locationid, groups) VALUES (?, ?, ?, ?);", [
+                $myid,
+                $string,
+                $locationid,
+                $groups ? implode(',', $groups) : NULL
+            ]);
+        }
 
         return($ret);
     }
