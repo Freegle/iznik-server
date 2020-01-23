@@ -3518,6 +3518,7 @@ ORDER BY lastdate DESC;";
 
     public function stripSigs($textbody) {
         $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Get Outlook for IOS.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my Xperia.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my BlueMail/ms', '', $textbody);
         $textbody = preg_replace('/^Sent using the mail.com mail app.*/ms', '', $textbody);
