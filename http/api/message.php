@@ -64,7 +64,7 @@ function message() {
                         } else {
                             $groups = $m->getGroups();
                             if (count($groups) == 0 || !$groupid || ($me && !$me->isModOrOwner($groups[0]))) {
-                                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                                $ret = ['ret' => 2, 'status' => 'Permission denied 1'];
                                 $m = NULL;
                             }
                         }
@@ -76,7 +76,7 @@ function message() {
                         } else {
                             $groups = $m->getGroups();
                             if (count($groups) == 0 || !$groupid || !$me->isModOrOwner($groups[0])) {
-                                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                                $ret = ['ret' => 2, 'status' => 'Permission denied 2'];
                                 $m = NULL;
                             }
                         }
@@ -85,7 +85,7 @@ function message() {
                         # We can see the original message for a chat if we're a mod.  This is used in chat
                         # message review when we want to show the source.
                         if (!$me || !$me->isModerator() || !$m->isChatByEmail()) {
-                            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                            $ret = ['ret' => 2, 'status' => 'Permission denied 3'];
                             $m = NULL;
                         } else {
                             $ischat = TRUE;
@@ -114,7 +114,7 @@ function message() {
                     # which group to join.
                     $ret = [
                         'ret' => 2,
-                        'status' => 'Permission denied',
+                        'status' => 'Permission denied 4',
                         'groups' => []
                     ];
 
@@ -220,7 +220,7 @@ function message() {
                 } else if ($_REQUEST['type'] == 'DELETE') {
                     $role = $m->getRoleForMessage()[0];
                     if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
-                        $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                        $ret = ['ret' => 2, 'status' => 'Permission denied 5'];
                     } else {
                         $m->delete($reason, NULL, NULL, NULL, NULL, $localonly);
                         $ret = [
@@ -241,7 +241,7 @@ function message() {
                 # We can edit this if we're logged in and a mod or the sender.
                 if (!$me || (!$me->isModerator() && $m->getFromuser() != $me->getId())) {
                     $ret = ['ret' => 2,
-                        'status' => 'Permission denied',
+                        'status' => 'Permission denied 6',
                         'fromuser' => $m->getFromuser(),
                         'me' => $me ? $me->getId() : 'no me',
                         'ismod' => $me ? !$me->isModerator() : 'no me',
@@ -282,26 +282,30 @@ function message() {
 
         case 'POST': {
             $m = new Message($dbhr, $dbhm, $id);
-            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+            $ret = ['ret' => 2, 'status' => 'Permission denied 7 ' . var_export($_REQUEST, TRUE)];
             $role = $m ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
-            if ($me && $m->getID() === $id) {
-                # These actions don't require permission.
-                if ($action =='Love') {
-                    $m->like($myid, Message::LIKE_LOVE);
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                } else if ($action == 'Unlove') {
-                    $m->unlike($myid, Message::LIKE_LOVE);
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                } else if ($action == 'Laugh') {
-                    $m->like($myid, Message::LIKE_LAUGH);
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                } else if ($action == 'Unlaugh') {
-                    $m->unlike($myid, Message::LIKE_LAUGH);
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                } else if ($action == 'View') {
-                    $m->like($myid, Message::LIKE_VIEW);
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+            if ($m->getID() == $id) {
+                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+
+                # Ignore for logged out.
+                if ($me) {
+                    # These actions don't require permission.
+                    if ($action =='Love') {
+                        $m->like($myid, Message::LIKE_LOVE);
+                    } else if ($action == 'Unlove') {
+                        $m->unlike($myid, Message::LIKE_LOVE);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    } else if ($action == 'Laugh') {
+                        $m->like($myid, Message::LIKE_LAUGH);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    } else if ($action == 'Unlaugh') {
+                        $m->unlike($myid, Message::LIKE_LAUGH);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    } else if ($action == 'View') {
+                        $m->like($myid, Message::LIKE_VIEW);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    }
                 }
             }
 
@@ -716,6 +720,10 @@ function message() {
                 }
             }
         }
+    }
+
+    if ($ret['ret'] == 2) {
+        error_log("Message permission issue " . var_export($_REQUEST, TRUE));
     }
 
     return($ret);
