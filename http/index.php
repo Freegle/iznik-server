@@ -179,7 +179,7 @@ EOF;
         echo $indexhtml;
     } else {
         #error_log("No pre-render");
-        $indexhtml = file_get_contents('./index.html');
+        $indexhtml = @file_get_contents('./index.html');
 
         # We need to put in og: tags.
         $title = SITE_NAME;

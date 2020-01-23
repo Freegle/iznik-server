@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/adview.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/adview.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/index.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -228,27 +229,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00349" summary="More on maxmind">
-      <created>1577818075436</created>
-      <option name="number" value="00349" />
-      <option name="presentableId" value="LOCAL-00349" />
-      <option name="project" value="LOCAL" />
-      <updated>1577818075436</updated>
-    </task>
-    <task id="LOCAL-00350" summary="More on maxmind">
-      <created>1577818404330</created>
-      <option name="number" value="00350" />
-      <option name="presentableId" value="LOCAL-00350" />
-      <option name="project" value="LOCAL" />
-      <updated>1577818404330</updated>
-    </task>
-    <task id="LOCAL-00351" summary="More on maxmind">
-      <created>1577819551497</created>
-      <option name="number" value="00351" />
-      <option name="presentableId" value="LOCAL-00351" />
-      <option name="project" value="LOCAL" />
-      <updated>1577819551498</updated>
     </task>
     <task id="LOCAL-00352" summary="More on maxmind">
       <created>1577819846698</created>
@@ -572,7 +552,28 @@
       <option name="project" value="LOCAL" />
       <updated>1579758951825</updated>
     </task>
-    <option name="localTasksCounter" value="398" />
+    <task id="LOCAL-00398" summary="Update schema.sql">
+      <created>1579761514052</created>
+      <option name="number" value="00398" />
+      <option name="presentableId" value="LOCAL-00398" />
+      <option name="project" value="LOCAL" />
+      <updated>1579761514052</updated>
+    </task>
+    <task id="LOCAL-00399" summary="Not returning public location for replies.">
+      <created>1579769705624</created>
+      <option name="number" value="00399" />
+      <option name="presentableId" value="LOCAL-00399" />
+      <option name="project" value="LOCAL" />
+      <updated>1579769705624</updated>
+    </task>
+    <task id="LOCAL-00400" summary="Remove Outlook IOS footer">
+      <created>1579770467729</created>
+      <option name="number" value="00400" />
+      <option name="presentableId" value="LOCAL-00400" />
+      <option name="project" value="LOCAL" />
+      <updated>1579770467729</updated>
+    </task>
+    <option name="localTasksCounter" value="401" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -605,9 +606,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Messages calls for intended outcome appearing to fail when they're not really." />
-    <MESSAGE value="Move AdView into the API." />
-    <MESSAGE value="Always allow edits on the server because they are required for the repost flow.  The client is responsible for showing or not showing the Edit button." />
     <MESSAGE value="Need to set threadhead in fetch of newsfeed." />
     <MESSAGE value="Add percent sign to spam checks for current elusive medical spam." />
     <MESSAGE value="Add more debug for message permission errors" />
@@ -630,7 +628,10 @@
     <MESSAGE value="Remove error log" />
     <MESSAGE value="Return better description of mod groups for Discourse" />
     <MESSAGE value="Fix error log" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix error log" />
+    <MESSAGE value="Update schema.sql" />
+    <MESSAGE value="Not returning public location for replies." />
+    <MESSAGE value="Remove Outlook IOS footer" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove Outlook IOS footer" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1579703058860">
@@ -647,16 +648,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579758951098">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579785526171">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579539339449" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579758951098" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579721871884">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579785526171" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579769577729">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1579543533230" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579721871884" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579769577729" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -695,25 +696,25 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579758952933">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579769706813">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579539341892" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579758952933" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579769706813" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579719918913">
+    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579785506290">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
-    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579719918913" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579761491392">
+    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579785506290" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579785447350">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579539090895" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579761491392" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579785447350" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>

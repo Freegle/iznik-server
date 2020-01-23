@@ -367,7 +367,7 @@ class PushNotifications
             $settings = $u->getGroupSettings($groupid);
 
             if (!array_key_exists('pushnotify', $settings) || $settings['pushnotify']) {
-                error_log("Notify {$mod['userid']} for $groupid notify " . presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
+                #error_log("Notify {$mod['userid']} for $groupid notify " . presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
                 $count += $this->notify($mod['userid'], TRUE);
             }
         }
