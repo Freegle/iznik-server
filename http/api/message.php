@@ -285,7 +285,7 @@ function message() {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $m ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
-            if ($me) {
+            if ($me && $m->getID() === $id) {
                 # These actions don't require permission.
                 if ($action =='Love') {
                     $m->like($myid, Message::LIKE_LOVE);
