@@ -91,8 +91,6 @@ class MessageCollection
             $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
             $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR (messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ")) ");
 
-            error_log("Get entry " . var_export($this->collection, TRUE));
-
             if ($ctx === NULL && in_array(MessageCollection::DRAFT, $this->collection)) {
                 # Draft messages are handled differently, as they're not attached to any group.  Only show
                 # recent drafts - if they've not completed within a reasonable time they're probably stuck.
@@ -117,15 +115,19 @@ class MessageCollection
             } else if (in_array(MessageCollection::VIEWED, $this->collection)) {
                 # We want to return the most recent messages we have viewed.  We don't support this query in
                 # combination with others, and we return an abbreviated set of message info.
-                $start = date('Y-m-d', strtotime("30 days ago"));
-                $sql = "SELECT messages.id, messages.arrival, messages.type, messages.subject, messages_likes.timestamp AS viewedat, messages_likes.count, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid FROM messages_likes INNER JOIN messages ON messages.id = messages_likes.msgid WHERE userid = ? AND messages_likes.type = 'View' AND messages_likes.timestamp >= '$start' HAVING outcomeid IS NULL ORDER BY messages_likes.timestamp DESC LIMIT 5;";
-                $msgs = $this->dbhr->preQuery($sql, [
-                    $me->getId()
-                ]);
+                $msgs = [];
 
-                foreach ($msgs as &$msg) {
-                    $msg['arrival'] = ISODate($msg['arrival']);
-                    $msg['viewedat'] = ISODate($msg['viewedat']);
+                if ($me) {
+                    $start = date('Y-m-d', strtotime("30 days ago"));
+                    $sql = "SELECT messages.id, messages.arrival, messages.type, messages.subject, messages_likes.timestamp AS viewedat, messages_likes.count, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid FROM messages_likes INNER JOIN messages ON messages.id = messages_likes.msgid WHERE userid = ? AND messages_likes.type = 'View' AND messages_likes.timestamp >= '$start' HAVING outcomeid IS NULL ORDER BY messages_likes.timestamp DESC LIMIT 5;";
+                    $msgs = $this->dbhr->preQuery($sql, [
+                        $me->getId()
+                    ]);
+
+                    foreach ($msgs as &$msg) {
+                        $msg['arrival'] = ISODate($msg['arrival']);
+                        $msg['viewedat'] = ISODate($msg['viewedat']);
+                    }
                 }
 
                 return([ [], $msgs ]);
