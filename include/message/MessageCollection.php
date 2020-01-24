@@ -118,7 +118,7 @@ class MessageCollection
                 # We want to return the most recent messages we have viewed.  We don't support this query in
                 # combination with others, and we return an abbreviated set of message info.
                 $start = date('Y-m-d', strtotime("30 days ago"));
-                $sql = "SELECT messages.id, messages.arrival, messages.type, messages.subject, messages_likes.timestamp AS viewedat, messages_likes.count, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid FROM messages_likes INNER JOIN messages ON messages.id = messages_likes.msgid WHERE userid = ? AND messages_likes.type = 'View' AND messages_likes.timestamp >= '$start' HAVING outcomeid IS NULL ORDER BY messages_likes.count DESC LIMIT 5;";
+                $sql = "SELECT messages.id, messages.arrival, messages.type, messages.subject, messages_likes.timestamp AS viewedat, messages_likes.count, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid FROM messages_likes INNER JOIN messages ON messages.id = messages_likes.msgid WHERE userid = ? AND messages_likes.type = 'View' AND messages_likes.timestamp >= '$start' HAVING outcomeid IS NULL ORDER BY messages_likes.timestamp DESC LIMIT 5;";
                 $msgs = $this->dbhr->preQuery($sql, [
                     $me->getId()
                 ]);
