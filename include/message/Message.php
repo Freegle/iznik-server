@@ -453,7 +453,7 @@ class Message
                 }
             }
 
-            if ($changes > 2) {
+            if ($changes > 3) {
                 $this->dbhm->preExec("INSERT INTO messages_edits (msgid, oldtext, newtext, oldsubject, newsubject, 
               oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation, byuser, reviewrequired) 
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", $data);

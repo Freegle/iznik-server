@@ -1302,6 +1302,15 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Again but with no actual change
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'groupid' => $gid,
+            'item' => 'Edited',
+            'textbody' => 'Another text body'
+        ]);
+        assertEquals(0, $ret['ret']);
+
         # Now back as the mod and check the edit history.
         assertTrue($mod->login('testpw'));
         $ret = $this->call('message', 'GET', [
@@ -1309,6 +1318,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         # Check edit history.  Edit should show as needing approval.
+        assertEquals(1, count($ret['message']['edits']));
         assertEquals('Text body', $ret['message']['edits'][0]['oldtext']);
         assertEquals('Another text body', $ret['message']['edits'][0]['newtext']);
         assertEquals(TRUE, $ret['message']['edits'][0]['reviewrequired']);
