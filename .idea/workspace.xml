@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/message.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/messageTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -225,13 +226,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00367" summary="Thread head not set correctly in chitchat, causing nested threads to be created.">
-      <created>1578749106001</created>
-      <option name="number" value="00367" />
-      <option name="presentableId" value="LOCAL-00367" />
-      <option name="project" value="LOCAL" />
-      <updated>1578749106001</updated>
     </task>
     <task id="LOCAL-00368" summary="User/key login fails if called twice">
       <created>1578767646358</created>
@@ -569,7 +563,14 @@
       <option name="project" value="LOCAL" />
       <updated>1579879117554</updated>
     </task>
-    <option name="localTasksCounter" value="416" />
+    <task id="LOCAL-00416" summary="Error when recently viewed messages called logged out">
+      <created>1579884294408</created>
+      <option name="number" value="00416" />
+      <option name="presentableId" value="LOCAL-00416" />
+      <option name="project" value="LOCAL" />
+      <updated>1579884294408</updated>
+    </task>
+    <option name="localTasksCounter" value="417" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -602,7 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Direct job links from emails don't seem to result in payments, so revert back to the site ones." />
     <MESSAGE value="Previous fix lost count of replies" />
     <MESSAGE value="% test returns wrong info" />
     <MESSAGE value="MIME parser returns junk if used on a message with no body, such as a TAKEN message.  This causes false positive spam warnings for TAKENs." />
@@ -627,7 +627,8 @@
     <MESSAGE value="Record how many times someone has viewed a message" />
     <MESSAGE value="Allow retrieve of recently viewed messages" />
     <MESSAGE value="Return most recently viewed messages first" />
-    <option name="LAST_COMMIT_MESSAGE" value="Return most recently viewed messages first" />
+    <MESSAGE value="Error when recently viewed messages called logged out" />
+    <option name="LAST_COMMIT_MESSAGE" value="Error when recently viewed messages called logged out" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1579703058860">
@@ -648,11 +649,11 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579879116992">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579884293775">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579539339449" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579879116992" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579884293775" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579875193948">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -663,26 +664,26 @@
     </state>
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog/0.0.1707.920@0.0.1707.920" timestamp="1579012863721" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578730503242" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1579876364976">
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1579885026941">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1579543525059" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579876364976" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1579876364976">
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579885026941" />
+    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1579885026941">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579876364976" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1579876364976">
+    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579885026941" />
+    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1579885026941">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579876364976" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1579876364976">
+    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579885026941" />
+    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1579885026941">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579876364976" />
+    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579885026941" />
     <state width="1877" height="348" key="GridCell.Tab.1.bottom" timestamp="1579875775272">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -712,25 +713,25 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579879118868">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579884295226">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579539341892" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579879118868" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579884295226" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579884187420">
+    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579884968070">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
-    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579884187420" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579880032710">
+    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579884968070" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579884799684">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579539090895" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579880032710" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579884799684" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>

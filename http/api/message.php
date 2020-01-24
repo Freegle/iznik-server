@@ -285,22 +285,27 @@ function message() {
             $ret = ['ret' => 2, 'status' => 'Permission denied 7 '];
             $role = $m ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
-            if ($m->getID() == $id && $me) {
+            if ($m->getID() == $id) {
                 # These actions don't require permission, but they do need to be logged in as they record the userid.
-                if ($action =='Love') {
-                    $m->like($myid, Message::LIKE_LOVE);
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                } else if ($action == 'Unlove') {
-                    $m->unlike($myid, Message::LIKE_LOVE);
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                } else if ($action == 'Laugh') {
-                    $m->like($myid, Message::LIKE_LAUGH);
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                } else if ($action == 'Unlaugh') {
-                    $m->unlike($myid, Message::LIKE_LAUGH);
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                if ($me) {
+                    if ($action =='Love') {
+                        $m->like($myid, Message::LIKE_LOVE);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    } else if ($action == 'Unlove') {
+                        $m->unlike($myid, Message::LIKE_LOVE);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    } else if ($action == 'Laugh') {
+                        $m->like($myid, Message::LIKE_LAUGH);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    } else if ($action == 'Unlaugh') {
+                        $m->unlike($myid, Message::LIKE_LAUGH);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    } else if ($action == 'View') {
+                        $m->like($myid, Message::LIKE_VIEW);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    }
                 } else if ($action == 'View') {
-                    $m->like($myid, Message::LIKE_VIEW);
+                    // We don't currently record logged out views.
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
                 }
             }

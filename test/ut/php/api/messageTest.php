@@ -3019,6 +3019,17 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
         assertEquals(1, $m->getLikes(Message::LIKE_VIEW));
 
+        # Can pass View logged out and get back success.
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'View',
+            'dup' => 3
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertTrue($u->login('testpw'));
+
         # Check this shows up in our list of viewed messages.
         $ret = $this->call('messages', 'GET', [
             'collection' => MessageCollection::VIEWED,
