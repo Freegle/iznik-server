@@ -20,6 +20,7 @@ class MessageCollection
     const REJECTED = 'Rejected'; # Rejected by mod; user can see and resend.
     const ALLUSER = 'AllUser';
     const CHAT = 'Chat'; # Chat message
+    const VIEWED = 'Viewed';
     const OWNPOSTS = 120;
 
     /** @var  $dbhr LoggedPDO */
@@ -56,6 +57,7 @@ class MessageCollection
             case MessageCollection::QUEUED_YAHOO_USER:
             case MessageCollection::QUEUED_USER:
             case MessageCollection::REJECTED:
+            case MessageCollection::VIEWED:
                 $this->collection = [$collection];
                 break;
             case MessageCollection::ALLUSER:
@@ -82,12 +84,14 @@ class MessageCollection
 
         do {
             $tofill = [];
-            $me = NULL;
+            $me = whoAmI($this->dbhr, $this->dbhm);
 
             # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
             # message arrived for the very first time, or when it was reposted.
             $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
             $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR (messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ")) ");
+
+            error_log("Get entry " . var_export($this->collection, TRUE));
 
             if ($ctx === NULL && in_array(MessageCollection::DRAFT, $this->collection)) {
                 # Draft messages are handled differently, as they're not attached to any group.  Only show
@@ -96,7 +100,6 @@ class MessageCollection
                 $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
                 $oldest = " AND timestamp >= '$mysqltime' ";
 
-                $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
                 $userids = $userids ? $userids : ($me ? [$me->getId()] : NULL);
 
                 $summjoin = $summary ? ", messages.subject, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
@@ -111,6 +114,21 @@ class MessageCollection
                     $fill['replycount'] = 0;
                     $fill['collection'] = MessageCollection::DRAFT;
                 }
+            } else if (in_array(MessageCollection::VIEWED, $this->collection)) {
+                # We want to return the most recent messages we have viewed.  We don't support this query in
+                # combination with others, and we return an abbreviated set of message info.
+                $start = date('Y-m-d', strtotime("30 days ago"));
+                $sql = "SELECT messages.id, messages.arrival, messages.type, messages.subject, messages_likes.timestamp AS viewedat, messages_likes.count, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid FROM messages_likes INNER JOIN messages ON messages.id = messages_likes.msgid WHERE userid = ? AND messages_likes.type = 'View' AND messages_likes.timestamp >= '$start' HAVING outcomeid IS NULL ORDER BY messages_likes.count DESC LIMIT 5;";
+                $msgs = $this->dbhr->preQuery($sql, [
+                    $me->getId()
+                ]);
+
+                foreach ($msgs as &$msg) {
+                    $msg['arrival'] = ISODate($msg['arrival']);
+                    $msg['viewedat'] = ISODate($msg['viewedat']);
+                }
+
+                return([ [], $msgs ]);
             }
 
             $collection = array_filter($this->collection, function ($val) {

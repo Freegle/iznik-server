@@ -3019,6 +3019,15 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
         assertEquals(1, $m->getLikes(Message::LIKE_VIEW));
 
+        # Check this shows up in our list of viewed messages.
+        $ret = $this->call('messages', 'GET', [
+            'collection' => MessageCollection::VIEWED,
+            'fromuser' => $u->getId()
+        ]);
+
+        assertEquals(1, count($ret['messages']));
+        assertEquals($id, $ret['messages'][0]['id']);
+
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));

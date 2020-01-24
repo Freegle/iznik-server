@@ -171,7 +171,6 @@ function messages() {
                     }
                 }
             } else {
-                # Drafts as handled differently as we are returning the messages outstanding to post.
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success'
