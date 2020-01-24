@@ -4819,7 +4819,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function like($userid, $type) {
-        $this->dbhm->preExec("INSERT INTO messages_likes (msgid, userid, type) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE timestamp = NOW();", [
+        $this->dbhm->preExec("INSERT INTO messages_likes (msgid, userid, type) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE timestamp = NOW(), count = count + 1 ;", [
             $this->id,
             $userid,
             $type

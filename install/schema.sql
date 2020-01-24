@@ -1738,6 +1738,7 @@ CREATE TABLE `messages_likes` (
   `userid` bigint(20) unsigned NOT NULL,
   `type` enum('Love','Laugh','View') COLLATE utf8mb4_unicode_ci NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `count` INT NOT NULL DEFAULT '1',
   UNIQUE KEY `msgid_2` (`msgid`,`userid`,`type`),
   KEY `userid` (`userid`),
   KEY `msgid` (`msgid`,`type`),
