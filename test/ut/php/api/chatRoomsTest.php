@@ -275,6 +275,12 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals($rid, $ret['chatrooms'][0]['id']);
         assertEquals(1, $ret['chatrooms'][0]['unseen']);
 
+        $ret = $this->call('chatrooms', 'GET', [
+            'count' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['count']);
+
         # Mark all seen - twice for coverage;
         for ($i = 0; $i < 2; $i++) {
             $ret = $this->call('chatrooms', 'POST', [
@@ -290,7 +296,12 @@ class chatRoomsAPITest extends IznikAPITestCase
             assertEquals(0, $ret['chatrooms'][0]['unseen']);
         }
 
-        }
+        $ret = $this->call('chatrooms', 'GET', [
+            'count' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['count']);
+    }
 
     public function testNudge() {
         $u = User::get($this->dbhr, $this->dbhr);

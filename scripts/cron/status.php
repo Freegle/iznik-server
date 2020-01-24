@@ -29,7 +29,7 @@ function status()
         $errortext = NULL;
 
         # Check for security patches
-        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' "apt-get upgrade -s | grep -i security"';
+        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' "nice apt-get upgrade -s | grep -i security"';
         $op = shell_exec($cmd);
 
         if (strpos($op, 'security') !== FALSE) {

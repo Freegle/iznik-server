@@ -744,6 +744,21 @@ WHERE chat_rooms.id IN $idlist;";
         return ($ret);
     }
 
+    public function countAllUnseenForUser($userid, $chattypes, $modtools = FALSE)
+    {
+        $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
+
+        $ret = 0;
+
+        if ($chatids) {
+            $idq = implode(',', $chatids);
+            $sql = "SELECT COUNT(chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0);";
+            $ret = $this->dbhr->preQuery($sql, [ $userid, $userid ], FALSE, FALSE)[0]['count'];
+        }
+
+        return ($ret);
+    }
+
     public function updateMessageCounts() {
         # We store some information about the messages in the room itself.  We try to avoid duplicating information
         # like this, because it's asking for it to get out of step, but it means we can efficiently find the chat

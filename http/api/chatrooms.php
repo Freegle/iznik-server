@@ -13,12 +13,18 @@ function chatrooms() {
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $search = presdef('search', $_REQUEST, NULL);
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $count = array_key_exists('count', $_REQUEST) ? filter_var($_REQUEST['count'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            if ($id) {
+            if ($count) {
+                $ret = ['ret' => 1, 'status' => 'Not logged in'];
+                if ($me) {
+                    $ret = ['ret' => 0, 'status' => 'Success', 'count' => $r->countAllUnseenForUser($myid, $chattypes, MODTOOLS) ];
+                }
+            } else  if ($id) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
                 $ret['chatroom'] = NULL;
 

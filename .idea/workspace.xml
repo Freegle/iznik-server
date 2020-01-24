@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="U">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/chatrooms.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/chatrooms.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cron/status.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/status.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -103,51 +105,51 @@
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.chatRoomsAPITest.testInvalidId">
+  <component name="RunManager" selected="PHPUnit.chatRoomsAPITest.testAllSeen">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatMessagesTest.testSpamReply4" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="authorityAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatMessagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" method="testSpamReply4" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="authorityAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/AuthorityTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatMessagesTest.testSpamReply5" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="authorityAPITest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatMessagesTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" method="testSpamReply5" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="authorityAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/AuthorityTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatRoomsAPITest.testInvalidId" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="chatRoomsAPITest.testAllSeen" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatRoomsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" method="testInvalidId" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="chatRoomsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" method="testAllSeen" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatRoomsTest.testInvalidId" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="messageAPITest.testApproved" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatRoomsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" method="testInvalidId" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testApproved" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageAPITest.testLikes" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="messageAPITest.testNativeWorry" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testLikes" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testNativeWorry" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.messageAPITest.testLikes" />
-      <item itemvalue="PHPUnit.chatMessagesTest.testSpamReply4" />
-      <item itemvalue="PHPUnit.chatMessagesTest.testSpamReply5" />
-      <item itemvalue="PHPUnit.chatRoomsTest.testInvalidId" />
-      <item itemvalue="PHPUnit.chatRoomsAPITest.testInvalidId" />
+      <item itemvalue="PHPUnit.authorityAPITest" />
+      <item itemvalue="PHPUnit.authorityAPITest.testBasic" />
+      <item itemvalue="PHPUnit.messageAPITest.testApproved" />
+      <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
+      <item itemvalue="PHPUnit.chatRoomsAPITest.testAllSeen" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="PHPUnit.chatRoomsAPITest.testInvalidId" />
-        <item itemvalue="PHPUnit.chatRoomsTest.testInvalidId" />
-        <item itemvalue="PHPUnit.chatMessagesTest.testSpamReply5" />
-        <item itemvalue="PHPUnit.chatMessagesTest.testSpamReply4" />
-        <item itemvalue="PHPUnit.messageAPITest.testLikes" />
+        <item itemvalue="PHPUnit.chatRoomsAPITest.testAllSeen" />
+        <item itemvalue="PHPUnit.messageAPITest.testApproved" />
+        <item itemvalue="PHPUnit.messageAPITest.testNativeWorry" />
+        <item itemvalue="PHPUnit.authorityAPITest.testBasic" />
+        <item itemvalue="PHPUnit.authorityAPITest" />
       </list>
     </recent_temporary>
   </component>
@@ -229,55 +231,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00356" summary="Need to include member count in stats on user site">
-      <created>1577896105872</created>
-      <option name="number" value="00356" />
-      <option name="presentableId" value="LOCAL-00356" />
-      <option name="project" value="LOCAL" />
-      <updated>1577896105872</updated>
-    </task>
-    <task id="LOCAL-00357" summary="Handle undefined context due to client bug">
-      <created>1577904891397</created>
-      <option name="number" value="00357" />
-      <option name="presentableId" value="LOCAL-00357" />
-      <option name="project" value="LOCAL" />
-      <updated>1577904891397</updated>
-    </task>
-    <task id="LOCAL-00358" summary="Don't show repost dates stupidly far into the future">
-      <created>1577978376220</created>
-      <option name="number" value="00358" />
-      <option name="presentableId" value="LOCAL-00358" />
-      <option name="project" value="LOCAL" />
-      <updated>1577978376221</updated>
-    </task>
-    <task id="LOCAL-00359" summary="Add more info to chitchat reports">
-      <created>1578477813420</created>
-      <option name="number" value="00359" />
-      <option name="presentableId" value="LOCAL-00359" />
-      <option name="project" value="LOCAL" />
-      <updated>1578477813421</updated>
-    </task>
-    <task id="LOCAL-00360" summary="Notification email for groups which require membership approval is bugged.">
-      <created>1578498019946</created>
-      <option name="number" value="00360" />
-      <option name="presentableId" value="LOCAL-00360" />
-      <option name="project" value="LOCAL" />
-      <updated>1578498019946</updated>
-    </task>
-    <task id="LOCAL-00361" summary="Speed-ups: fetching chat messages isn't as efficient as it could be in providing user details">
-      <created>1578499608770</created>
-      <option name="number" value="00361" />
-      <option name="presentableId" value="LOCAL-00361" />
-      <option name="project" value="LOCAL" />
-      <updated>1578499608770</updated>
-    </task>
-    <task id="LOCAL-00362" summary="UT fixes">
-      <created>1578501126281</created>
-      <option name="number" value="00362" />
-      <option name="presentableId" value="LOCAL-00362" />
-      <option name="project" value="LOCAL" />
-      <updated>1578501126281</updated>
     </task>
     <task id="LOCAL-00363" summary="Add channels for job ads so we can distinguish web and email clicks">
       <created>1578507715864</created>
@@ -573,7 +526,56 @@
       <option name="project" value="LOCAL" />
       <updated>1579791005486</updated>
     </task>
-    <option name="localTasksCounter" value="405" />
+    <task id="LOCAL-00405" summary="Fix error if we try to access an invalid chat id">
+      <created>1579791338967</created>
+      <option name="number" value="00405" />
+      <option name="presentableId" value="LOCAL-00405" />
+      <option name="project" value="LOCAL" />
+      <updated>1579791338967</updated>
+    </task>
+    <task id="LOCAL-00406" summary="Fix error when searching logged out">
+      <created>1579795490532</created>
+      <option name="number" value="00406" />
+      <option name="presentableId" value="LOCAL-00406" />
+      <option name="project" value="LOCAL" />
+      <updated>1579795490532</updated>
+    </task>
+    <task id="LOCAL-00407" summary="Error introduced when go to an invalid URL.">
+      <created>1579795693013</created>
+      <option name="number" value="00407" />
+      <option name="presentableId" value="LOCAL-00407" />
+      <option name="project" value="LOCAL" />
+      <updated>1579795693013</updated>
+    </task>
+    <task id="LOCAL-00408" summary="UT fixes">
+      <created>1579796826533</created>
+      <option name="number" value="00408" />
+      <option name="presentableId" value="LOCAL-00408" />
+      <option name="project" value="LOCAL" />
+      <updated>1579796826533</updated>
+    </task>
+    <task id="LOCAL-00409" summary="Add more specific diags for a sentry problem we're seeing">
+      <created>1579797846617</created>
+      <option name="number" value="00409" />
+      <option name="presentableId" value="LOCAL-00409" />
+      <option name="project" value="LOCAL" />
+      <updated>1579797846617</updated>
+    </task>
+    <task id="LOCAL-00410" summary="UT fixes">
+      <created>1579799062427</created>
+      <option name="number" value="00410" />
+      <option name="presentableId" value="LOCAL-00410" />
+      <option name="project" value="LOCAL" />
+      <updated>1579799062427</updated>
+    </task>
+    <task id="LOCAL-00411" summary="UT fixes">
+      <created>1579800415836</created>
+      <option name="number" value="00411" />
+      <option name="presentableId" value="LOCAL-00411" />
+      <option name="project" value="LOCAL" />
+      <updated>1579800415836</updated>
+    </task>
+    <option name="localTasksCounter" value="412" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -606,15 +608,11 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="AdView API call not using client IP" />
-    <MESSAGE value="Don't use Inspectlet on MT" />
-    <MESSAGE value="Not removing TN pics properly." />
     <MESSAGE value="Find a way to make Yahoo login work again" />
     <MESSAGE value="Ensure no spaces in emails" />
     <MESSAGE value="Ensure we don't end up with emails but no userid blocking future activity." />
     <MESSAGE value="Chats referencing a message should only appear for a user if they were the recipient." />
     <MESSAGE value="Direct job links from emails don't seem to result in payments, so revert back to the site ones." />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Previous fix lost count of replies" />
     <MESSAGE value="% test returns wrong info" />
     <MESSAGE value="MIME parser returns junk if used on a message with no body, such as a TAKEN message.  This causes false positive spam warnings for TAKENs." />
@@ -631,7 +629,11 @@
     <MESSAGE value="Remove error" />
     <MESSAGE value="Better error logging for adview issues" />
     <MESSAGE value="Fix error if we try to access an invalid chat id" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix error if we try to access an invalid chat id" />
+    <MESSAGE value="Fix error when searching logged out" />
+    <MESSAGE value="Error introduced when go to an invalid URL." />
+    <MESSAGE value="Add more specific diags for a sentry problem we're seeing" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1579703058860">
@@ -652,41 +654,41 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579791004881">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1579800415314">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579539339449" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579791004881" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579786956830">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579800415314" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579800406841">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1579543533230" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579786956830" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579800406841" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog/0.0.1707.920@0.0.1707.920" timestamp="1579012863721" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578730503242" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1579791316734">
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1579855128146">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1579543525059" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579791316734" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1579791316733">
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579855128146" />
+    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1579855128145">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579791316733" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1579791316733">
+    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579855128145" />
+    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1579855128145">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579791316733" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1579791316734">
+    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579855128145" />
+    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1579855128146">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579791316734" />
+    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579855128146" />
     <state x="760" y="233" key="RollbackChangesDialog" timestamp="1579790979487">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -700,25 +702,25 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579791006542">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1579800417138">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579539341892" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579791006542" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579800417138" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579785506290">
+    <state x="628" y="244" width="662" height="552" key="find.popup" timestamp="1579854876140">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
-    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579785506290" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579791190482">
+    <state x="628" y="244" width="662" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579854876140" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1579854705678">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579539090895" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579791190482" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579854705678" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
