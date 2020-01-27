@@ -194,7 +194,9 @@ class Newsfeed extends Entity
             }
         }
 
-        $this->setThreadHead($atts['replies'], $threadhead);
+        if (pres('replies', $atts)) {
+            $this->setThreadHead($atts['replies'], $threadhead);
+        }
 
         if ($lovelist) {
             $atts['lovelist'] = [];
