@@ -18,7 +18,7 @@ function item() {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'items' => $i->typeahead($typeahead)
+                        'items' => $i->typeahead(trim($typeahead))
                     ];
                 } else {
                     $ret = [
@@ -51,6 +51,8 @@ function item() {
                             'status' => 'Don\t have rights to create items'
                         ];
                     } else {
+                        $name = trim($name);
+
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
