@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailtemplates/donations/thank.php" beforeDir="false" afterPath="$PROJECT_DIR$/mailtemplates/donations/thank.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -225,13 +225,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00372" summary="Always allow edits on the server because they are required for the repost flow.  The client is responsible for showing or not showing the Edit button.">
-      <created>1578992964907</created>
-      <option name="number" value="00372" />
-      <option name="presentableId" value="LOCAL-00372" />
-      <option name="project" value="LOCAL" />
-      <updated>1578992964907</updated>
     </task>
     <task id="LOCAL-00373" summary="Need to set threadhead in fetch of newsfeed.">
       <created>1578993008179</created>
@@ -569,7 +562,14 @@
       <option name="project" value="LOCAL" />
       <updated>1580124325980</updated>
     </task>
-    <option name="localTasksCounter" value="421" />
+    <task id="LOCAL-00421" summary="Creating a chat fails occasionally due to timing windows.">
+      <created>1580124711855</created>
+      <option name="number" value="00421" />
+      <option name="presentableId" value="LOCAL-00421" />
+      <option name="project" value="LOCAL" />
+      <updated>1580124711855</updated>
+    </task>
+    <option name="localTasksCounter" value="422" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -602,7 +602,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Back out previous fix." />
     <MESSAGE value="Record views of messages" />
     <MESSAGE value="Email reply to message with a mortage job ad being blocked as spam." />
     <MESSAGE value="Remove error log" />
@@ -627,7 +626,8 @@
     <MESSAGE value="Make postcode typeahead match even if you omit the space." />
     <MESSAGE value="False edits being recorded" />
     <MESSAGE value="Fix error log" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix error log" />
+    <MESSAGE value="Creating a chat fails occasionally due to timing windows." />
+    <option name="LAST_COMMIT_MESSAGE" value="Creating a chat fails occasionally due to timing windows." />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1579703058860">
@@ -648,11 +648,11 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580124325338">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580124711270">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579539339449" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580124325338" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580124711270" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579901450289">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -712,20 +712,20 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1580124326814">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1580124713159">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579539341892" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580124326814" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580124713159" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580124690556">
+    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580126146131">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580124690556" />
+    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580126146131" />
     <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1580124603588">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
