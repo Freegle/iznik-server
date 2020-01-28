@@ -575,6 +575,18 @@ class sessionTest extends IznikAPITestCase
         self::assertEquals('Something about me', $ret['user']['info']['aboutme']['text']);
 
         }
+
+    public function testAppVersion()
+    {
+        $ret = $this->call('session', 'GET', [
+            'appversion' => 2
+        ]);
+        assertEquals(123, $ret['ret']);
+        $ret = $this->call('session', 'GET', [
+            'appversion' => 3
+        ]);
+        assertEquals(1, $ret['ret']);
+    }
 //
 //    public function testSheila() {
 //        $_SESSION['id'] = 25880780;

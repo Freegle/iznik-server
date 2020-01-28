@@ -2,10 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/scripts/cli/views_in_common.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/misc/Stats.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Stats.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats2.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats2.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -101,7 +102,7 @@
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.statsTest">
+  <component name="RunManager" selected="PHPUnit.sessionTest.testAppVersion">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -117,9 +118,9 @@
       <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testEditAsMember" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageAPITest.testLikes" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="sessionTest.testAppVersion" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testLikes" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testAppVersion" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="statsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -133,19 +134,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.messageAPITest.testLikes" />
       <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
       <item itemvalue="PHPUnit.userSearchAPITest" />
       <item itemvalue="PHPUnit.locationTest.testSearch" />
       <item itemvalue="PHPUnit.statsTest" />
+      <item itemvalue="PHPUnit.sessionTest.testAppVersion" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.sessionTest.testAppVersion" />
         <item itemvalue="PHPUnit.statsTest" />
         <item itemvalue="PHPUnit.locationTest.testSearch" />
         <item itemvalue="PHPUnit.userSearchAPITest" />
         <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
-        <item itemvalue="PHPUnit.messageAPITest.testLikes" />
       </list>
     </recent_temporary>
   </component>
@@ -227,13 +228,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00376" summary="Add percent sign to spam checks for current elusive medical spam.">
-      <created>1579009359595</created>
-      <option name="number" value="00376" />
-      <option name="presentableId" value="LOCAL-00376" />
-      <option name="project" value="LOCAL" />
-      <updated>1579009359595</updated>
     </task>
     <task id="LOCAL-00377" summary="Add more debug for message permission errors">
       <created>1579038035307</created>
@@ -571,7 +565,14 @@
       <option name="project" value="LOCAL" />
       <updated>1580190708939</updated>
     </task>
-    <option name="localTasksCounter" value="425" />
+    <task id="LOCAL-00425" summary="More whitespace fixes for edits">
+      <created>1580211109449</created>
+      <option name="number" value="00425" />
+      <option name="presentableId" value="LOCAL-00425" />
+      <option name="project" value="LOCAL" />
+      <updated>1580211109449</updated>
+    </task>
+    <option name="localTasksCounter" value="426" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -604,7 +605,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Return better description of mod groups for Discourse" />
     <MESSAGE value="Update schema.sql" />
     <MESSAGE value="Not returning public location for replies." />
     <MESSAGE value="Remove Outlook IOS footer" />
@@ -629,13 +629,14 @@
     <MESSAGE value="Using wrong link in thank you for regular donations" />
     <MESSAGE value="Don't create new items which only differ by whitespace" />
     <MESSAGE value="Record logged out searches" />
-    <option name="LAST_COMMIT_MESSAGE" value="Record logged out searches" />
+    <MESSAGE value="More whitespace fixes for edits" />
+    <option name="LAST_COMMIT_MESSAGE" value="More whitespace fixes for edits" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="502" y="139" key="#Deployment" timestamp="1579703058860">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="446" y="123" key="#Deployment" timestamp="1580225328936">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="446" y="123" key="#Deployment/0.0.1707.920@0.0.1707.920" timestamp="1579508715035" />
+    <state x="446" y="123" key="#Deployment/0.0.1707.920@0.0.1707.920" timestamp="1580225328936" />
     <state x="502" y="139" key="#Deployment/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579703058860" />
     <state x="309" y="120" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1576948582337">
       <screen x="0" y="0" width="1707" height="920" />
@@ -650,10 +651,10 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580192777621">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="236" y="62" key="CommitChangelistDialog2" timestamp="1580211108612">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579539339449" />
+    <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580211108612" />
     <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192777621" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1580192827228">
       <screen x="0" y="0" width="1920" height="1040" />
@@ -714,24 +715,24 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1580190710050">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1580211135601">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579539341892" />
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580211135601" />
     <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190710050" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580191781058">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1580211283668">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
+    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580211283668" />
     <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580191781058" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1580192668908">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1580225186112">
+      <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579539090895" />
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580225186112" />
     <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192668908" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>

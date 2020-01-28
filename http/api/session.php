@@ -30,271 +30,278 @@ function session() {
             # the PHP session.
             $me = whoAmI($dbhm, $dbhm);
 
-            if (pres('id', $_SESSION)) {
-                $components = presdef('components', $_REQUEST, ['all']);
-                if ($components === ['all']) {
-                    // Get all
-                    $components = NULL;
-                }
+            # Mobile app can send its version number, which we can use to determine if it is out of date.
+            $appversion = presdef('appversion', $_REQUEST, NULL);
 
-                $ret = [ 'ret' => 0, 'status' => 'Success', 'myid' => presdef('id', $_SESSION, NULL) ];
-
-                if (!$components || (gettype($components) == 'array' && in_array('me', $components))) {
-                    # Don't want to use cached information when looking at our own session.
-                    $ret['me'] = $me->getPublic();
-                    $ret['me']['city'] = $me->getCity();
-
-                    # Don't need to return this, and it might be large.
-                    $ret['me']['messagehistory'] = NULL;
-                }
-
-                $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
-
-                if (!$components || in_array('notifications', $components)) {
-                    $settings = $me->getPrivate('settings');
-                    $settings = $settings ? json_decode($settings, TRUE) : [];
-                    $ret['me']['settings']['notifications'] = array_merge([
-                        'email' => TRUE,
-                        'emailmine' => FALSE,
-                        'push' => TRUE,
-                        'facebook' => TRUE,
-                        'app' => TRUE
-                    ], presdef('notifications', $settings, []));
-
-                    $n = new PushNotifications($dbhr, $dbhm);
-                    $ret['me']['notifications']['push'] = $n->get($ret['me']['id']);
-                }
-
-                if (MODTOOLS) {
-                    if (!$components || in_array('allconfigs', $components)) {
-                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
-                        $ret['configs'] = $me->getConfigs(TRUE);
-                    } else if (in_array('configs', $components)) {
-                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
-                        $ret['configs'] = $me->getConfigs(FALSE);
-                    }
-                }
-
-                if (!$components || in_array('emails', $components)) {
-                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
-                    $ret['emails'] = $me->getEmails();
-                }
-
-                if (!$components || in_array('phone', $components)) {
-                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
-                    $ret['me']['phone'] = $me->getPhone();
-                }
-
-                if (!$components || in_array('aboutme', $components)) {
-                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
-                    $ret['me']['aboutme'] = $me->getAboutMe();
-                }
-
-                if (!$components || in_array('newsfeed', $components)) {
-                    # Newsfeed count.  We return this in the session to avoid getting it on each page transition
-                    # in the client.
-                    $n = new Newsfeed($dbhr, $dbhm);
-                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
-                    $ret['newsfeedcount'] = $n->getUnseen($me->getId());
-                }
-
-                if (!$components || in_array('logins', $components)) {
-                    $me = $me ? $me : whoAmI($dbhm, $dbhm);
-                    $ret['logins'] = $me->getLogins(FALSE);
-                }
-
-                if (!$components || in_array('groups', $components) || in_array('work', $components)) {
-                    # Get groups including work when we're on ModTools; don't need that on the user site.
-                    $u = new User($dbhr, $dbhm);
-                    $ret['groups'] = $u->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $_SESSION['id']);
-
-                    $gids = [];
-
-                    foreach ($ret['groups'] as &$group) {
-                        $gids[] = $group['id'];
-
-                        # Remove large attributes we don't need in session.
-                        unset($group['welcomemail']);
-                        unset($group['description']);
-                        unset($group['settings']['chaseups']['idle']);
-                        unset($group['settings']['branding']);
+            if ($appversion == '2') {
+                $ret = array('ret' => 123, 'status' => 'App is out of date');
+            } else {
+                if (pres('id', $_SESSION)) {
+                    $components = presdef('components', $_REQUEST, ['all']);
+                    if ($components === ['all']) {
+                        // Get all
+                        $components = NULL;
                     }
 
-                    # We should always return complete groups objects because they are stored in the client session.
-                    #
-                    # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
-                    # Facebook, even though that makes the code hackier.
-                    $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
-                    $twitters = [];
+                    $ret = [ 'ret' => 0, 'status' => 'Success', 'myid' => presdef('id', $_SESSION, NULL) ];
 
-                    if (count($gids) > 0) {
-                        # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
-                        $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
-                        foreach ($tws as $tw) {
-                            $twitters[$tw['groupid']] = $tw;
-                        }
+                    if (!$components || (gettype($components) == 'array' && in_array('me', $components))) {
+                        # Don't want to use cached information when looking at our own session.
+                        $ret['me'] = $me->getPublic();
+                        $ret['me']['city'] = $me->getCity();
+
+                        # Don't need to return this, and it might be large.
+                        $ret['me']['messagehistory'] = NULL;
                     }
 
-                    foreach ($ret['groups'] as &$group) {
-                        if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
-                            # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
-                            # in here - but it's of no interest to members so there's no point delaying them by
-                            # fetching it.
-                            #
-                            # Similar code in group.php.
-                            if (array_key_exists($group['id'], $twitters)) {
-                                $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
-                                $atts = $t->getPublic();
-                                unset($atts['token']);
-                                unset($atts['secret']);
-                                $atts['authdate'] = ISODate($atts['authdate']);
-                                $group['twitter'] = $atts;
-                            }
+                    $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
 
-                            # Ditto Facebook.
-                            if (array_key_exists($group['id'], $facebooks)) {
-                                $group['facebook'] = [];
+                    if (!$components || in_array('notifications', $components)) {
+                        $settings = $me->getPrivate('settings');
+                        $settings = $settings ? json_decode($settings, TRUE) : [];
+                        $ret['me']['settings']['notifications'] = array_merge([
+                            'email' => TRUE,
+                            'emailmine' => FALSE,
+                            'push' => TRUE,
+                            'facebook' => TRUE,
+                            'app' => TRUE
+                        ], presdef('notifications', $settings, []));
 
-                                foreach ($facebooks[$group['id']] as $atts) {
-                                    $group['facebook'][] = $atts;
-                                }
-                            }
-                        }
+                        $n = new PushNotifications($dbhr, $dbhm);
+                        $ret['me']['notifications']['push'] = $n->get($ret['me']['id']);
                     }
 
                     if (MODTOOLS) {
-                        if (!$components || in_array('work', $components)) {
-                            # Tell them what mod work there is.  Similar code in Notifications.
-                            $ret['work'] = [];
-                            $national = FALSE;
+                        if (!$components || in_array('allconfigs', $components)) {
+                            $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                            $ret['configs'] = $me->getConfigs(TRUE);
+                        } else if (in_array('configs', $components)) {
+                            $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                            $ret['configs'] = $me->getConfigs(FALSE);
+                        }
+                    }
 
-                            if (!$me) {
-                                # When getting work we want to avoid instantiating the full User object.  But
-                                # we need the memberships.  So work around that.  Bit hacky but saves ops in a
-                                # perf critical path.
-                                $me = new User($dbhr, $dbhm);
-                                $me->cacheMemberships($_SESSION['id']);
-                                $perms = $dbhr->preQuery("SELECT permissions FROM users WHERE id = ?;", [
-                                    $_SESSION['id']
-                                ]);
+                    if (!$components || in_array('emails', $components)) {
+                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $ret['emails'] = $me->getEmails();
+                    }
 
-                                foreach ($perms as $perm) {
-                                    $national = stripos($perm['permissions'], User::PERM_NATIONAL_VOLUNTEERS) !== FALSE;
-                                }
-                            } else {
-                                $national = $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS);
+                    if (!$components || in_array('phone', $components)) {
+                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $ret['me']['phone'] = $me->getPhone();
+                    }
+
+                    if (!$components || in_array('aboutme', $components)) {
+                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $ret['me']['aboutme'] = $me->getAboutMe();
+                    }
+
+                    if (!$components || in_array('newsfeed', $components)) {
+                        # Newsfeed count.  We return this in the session to avoid getting it on each page transition
+                        # in the client.
+                        $n = new Newsfeed($dbhr, $dbhm);
+                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $ret['newsfeedcount'] = $n->getUnseen($me->getId());
+                    }
+
+                    if (!$components || in_array('logins', $components)) {
+                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $ret['logins'] = $me->getLogins(FALSE);
+                    }
+
+                    if (!$components || in_array('groups', $components) || in_array('work', $components)) {
+                        # Get groups including work when we're on ModTools; don't need that on the user site.
+                        $u = new User($dbhr, $dbhm);
+                        $ret['groups'] = $u->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $_SESSION['id']);
+
+                        $gids = [];
+
+                        foreach ($ret['groups'] as &$group) {
+                            $gids[] = $group['id'];
+
+                            # Remove large attributes we don't need in session.
+                            unset($group['welcomemail']);
+                            unset($group['description']);
+                            unset($group['settings']['chaseups']['idle']);
+                            unset($group['settings']['branding']);
+                        }
+
+                        # We should always return complete groups objects because they are stored in the client session.
+                        #
+                        # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
+                        # Facebook, even though that makes the code hackier.
+                        $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
+                        $twitters = [];
+
+                        if (count($gids) > 0) {
+                            # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
+                            $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
+                            foreach ($tws as $tw) {
+                                $twitters[$tw['groupid']] = $tw;
                             }
-
-                            if ($national) {
-                                $v = new Volunteering($dbhr, $dbhm);
-                                $ret['work']['pendingvolunteering'] = $v->systemWideCount();
-                            }
-
-                            $s = new Spam($dbhr, $dbhm);
-                            $spamcounts = $s->collectionCounts();
-                            $ret['work']['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];
-                            $ret['work']['spammerpendingremove'] = $spamcounts[Spam::TYPE_PENDING_REMOVE];
-
-                            # Show social actions from last 4 days.
-                            $ctx = NULL;
-                            $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
-                            $f = new GroupFacebook($dbhr, $dbhm);
-                            $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
-
-                            $c = new ChatMessage($dbhr, $dbhm);
-
-                            $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
-
-                            $s = new Story($dbhr, $dbhm);
-                            $ret['work']['stories'] = $s->getReviewCount(FALSE);
-                            $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
                         }
 
                         foreach ($ret['groups'] as &$group) {
-                            if (pres('work', $group)) {
-                                foreach ($group['work'] as $key => $work) {
-                                    if (pres('work', $ret) && pres($key, $ret['work'])) {
-                                        $ret['work'][$key] += $work;
-                                    } else {
-                                        $ret['work'][$key] = $work;
+                            if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
+                                # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                                # in here - but it's of no interest to members so there's no point delaying them by
+                                # fetching it.
+                                #
+                                # Similar code in group.php.
+                                if (array_key_exists($group['id'], $twitters)) {
+                                    $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
+                                    $atts = $t->getPublic();
+                                    unset($atts['token']);
+                                    unset($atts['secret']);
+                                    $atts['authdate'] = ISODate($atts['authdate']);
+                                    $group['twitter'] = $atts;
+                                }
+
+                                # Ditto Facebook.
+                                if (array_key_exists($group['id'], $facebooks)) {
+                                    $group['facebook'] = [];
+
+                                    foreach ($facebooks[$group['id']] as $atts) {
+                                        $group['facebook'][] = $atts;
                                     }
                                 }
                             }
                         }
 
-                        # Get Discourse notifications and unread topics, to drive mods through to that site.
-                        if ($me->isFreegleMod()) {
-                            $unreadcount = 0;
-                            $notifcount = 0;
-                            $newcount = 0;
+                        if (MODTOOLS) {
+                            if (!$components || in_array('work', $components)) {
+                                # Tell them what mod work there is.  Similar code in Notifications.
+                                $ret['work'] = [];
+                                $national = FALSE;
 
-                            # We need this quick or not at all.  Also need to pass authentication in headers rather
-                            # than URL parameters.
-                            $ctx = stream_context_create(array('http'=> [
-                                'timeout' => 1,
-                                "method" => "GET",
-                                "header" => "Accept-language: en\r\n" .
-                                    "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
-                                    "Api-Username: system\r\n"
-                            ]));
+                                if (!$me) {
+                                    # When getting work we want to avoid instantiating the full User object.  But
+                                    # we need the memberships.  So work around that.  Bit hacky but saves ops in a
+                                    # perf critical path.
+                                    $me = new User($dbhr, $dbhm);
+                                    $me->cacheMemberships($_SESSION['id']);
+                                    $perms = $dbhr->preQuery("SELECT permissions FROM users WHERE id = ?;", [
+                                        $_SESSION['id']
+                                    ]);
 
-                            # Have to look up the name we need for other API calls by user id.
-                            $username = @file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json', FALSE, $ctx);
-
-                            if ($username) {
-                                $users = json_decode($username, TRUE);
-
-                                if (pres('users', $users) && count($users['users'])) {
-                                    $name = $users['users'][0]['username'];
-
-                                    $ctx = stream_context_create(array('http'=> [
-                                        'timeout' => 1,
-                                        "method" => "GET",
-                                        "header" => "Accept-language: en\r\n" .
-                                            "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
-                                            "Api-Username: $name\r\n"
-                                    ]));
-
-                                    $news = @file_get_contents(DISCOURSE_API . '/new.json', FALSE, $ctx);
-                                    $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json', FALSE, $ctx);
-                                    $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json', FALSE, $ctx);
-
-                                    if ($news && $unreads && $notifs) {
-                                        $topics = json_decode($news, TRUE);
-
-                                        if (pres('topic_list', $topics)) {
-                                            $newcount = count($topics['topic_list']['topics']);
-                                        }
-
-                                        $topics = json_decode($unreads, TRUE);
-
-                                        if (pres('topic_list', $topics)) {
-                                            $unreadcount = count($topics['topic_list']['topics']);
-                                        }
-
-                                        $notifs = json_decode($notifs, TRUE);
-                                        if (pres('unread_notifications', $notifs)) {
-                                            $notifcount = intval($notifs['unread_notifications']);
-                                        }
-
-                                        $_SESSION['discourse'] = [
-                                            'notifications' => $notifcount,
-                                            'unreadtopics' => $unreadcount,
-                                            'newtopics' => $newcount
-                                        ];
+                                    foreach ($perms as $perm) {
+                                        $national = stripos($perm['permissions'], User::PERM_NATIONAL_VOLUNTEERS) !== FALSE;
                                     }
-                                    #error_log("$name notifs $notifcount new topics $newcount unread topics $unreadcount");
+                                } else {
+                                    $national = $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS);
+                                }
+
+                                if ($national) {
+                                    $v = new Volunteering($dbhr, $dbhm);
+                                    $ret['work']['pendingvolunteering'] = $v->systemWideCount();
+                                }
+
+                                $s = new Spam($dbhr, $dbhm);
+                                $spamcounts = $s->collectionCounts();
+                                $ret['work']['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];
+                                $ret['work']['spammerpendingremove'] = $spamcounts[Spam::TYPE_PENDING_REMOVE];
+
+                                # Show social actions from last 4 days.
+                                $ctx = NULL;
+                                $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
+                                $f = new GroupFacebook($dbhr, $dbhm);
+                                $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
+
+                                $c = new ChatMessage($dbhr, $dbhm);
+
+                                $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
+
+                                $s = new Story($dbhr, $dbhm);
+                                $ret['work']['stories'] = $s->getReviewCount(FALSE);
+                                $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
+                            }
+
+                            foreach ($ret['groups'] as &$group) {
+                                if (pres('work', $group)) {
+                                    foreach ($group['work'] as $key => $work) {
+                                        if (pres('work', $ret) && pres($key, $ret['work'])) {
+                                            $ret['work'][$key] += $work;
+                                        } else {
+                                            $ret['work'][$key] = $work;
+                                        }
+                                    }
                                 }
                             }
-                        }
 
-                        # Using the value from session means we fall back to an old value if we can't get it, e.g.
-                        # for rate-limiting.
-                        $ret['discourse'] = presdef('discourse', $_SESSION, NULL);
+                            # Get Discourse notifications and unread topics, to drive mods through to that site.
+                            if ($me->isFreegleMod()) {
+                                $unreadcount = 0;
+                                $notifcount = 0;
+                                $newcount = 0;
+
+                                # We need this quick or not at all.  Also need to pass authentication in headers rather
+                                # than URL parameters.
+                                $ctx = stream_context_create(array('http'=> [
+                                    'timeout' => 1,
+                                    "method" => "GET",
+                                    "header" => "Accept-language: en\r\n" .
+                                        "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
+                                        "Api-Username: system\r\n"
+                                ]));
+
+                                # Have to look up the name we need for other API calls by user id.
+                                $username = @file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json', FALSE, $ctx);
+
+                                if ($username) {
+                                    $users = json_decode($username, TRUE);
+
+                                    if (pres('users', $users) && count($users['users'])) {
+                                        $name = $users['users'][0]['username'];
+
+                                        $ctx = stream_context_create(array('http'=> [
+                                            'timeout' => 1,
+                                            "method" => "GET",
+                                            "header" => "Accept-language: en\r\n" .
+                                                "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
+                                                "Api-Username: $name\r\n"
+                                        ]));
+
+                                        $news = @file_get_contents(DISCOURSE_API . '/new.json', FALSE, $ctx);
+                                        $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json', FALSE, $ctx);
+                                        $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json', FALSE, $ctx);
+
+                                        if ($news && $unreads && $notifs) {
+                                            $topics = json_decode($news, TRUE);
+
+                                            if (pres('topic_list', $topics)) {
+                                                $newcount = count($topics['topic_list']['topics']);
+                                            }
+
+                                            $topics = json_decode($unreads, TRUE);
+
+                                            if (pres('topic_list', $topics)) {
+                                                $unreadcount = count($topics['topic_list']['topics']);
+                                            }
+
+                                            $notifs = json_decode($notifs, TRUE);
+                                            if (pres('unread_notifications', $notifs)) {
+                                                $notifcount = intval($notifs['unread_notifications']);
+                                            }
+
+                                            $_SESSION['discourse'] = [
+                                                'notifications' => $notifcount,
+                                                'unreadtopics' => $unreadcount,
+                                                'newtopics' => $newcount
+                                            ];
+                                        }
+                                        #error_log("$name notifs $notifcount new topics $newcount unread topics $unreadcount");
+                                    }
+                                }
+                            }
+
+                            # Using the value from session means we fall back to an old value if we can't get it, e.g.
+                            # for rate-limiting.
+                            $ret['discourse'] = presdef('discourse', $_SESSION, NULL);
+                        }
                     }
+                } else {
+                    $ret = array('ret' => 1, 'status' => 'Not logged in');
                 }
-            } else {
-                $ret = array('ret' => 1, 'status' => 'Not logged in');
             }
 
             break;
