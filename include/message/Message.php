@@ -3880,7 +3880,7 @@ ORDER BY lastdate DESC;";
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        if (count($ret) > 0 && $myid) {
+        if (count($ret) > 0) {
             $maxid = $ret[0]['id'];
             $s = new UserSearch($this->dbhr, $this->dbhm);
             $s->create($myid, $maxid, $string, $locationid);

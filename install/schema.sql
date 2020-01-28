@@ -3752,7 +3752,7 @@ DROP TABLE IF EXISTS `users_searches`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `users_searches` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `userid` bigint(20) unsigned NOT NULL,
+  `userid` bigint(20) unsigned DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `term` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   `maxmsg` bigint(20) unsigned DEFAULT NULL,
