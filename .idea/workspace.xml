@@ -3,10 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/MessageCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/MessageCollection.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/Search.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/Search.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/misc/Stats.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Stats.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats2.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats2.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,15 +101,10 @@
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.locationTest.testSearch">
+  <component name="RunManager" selected="PHPUnit.statsTest">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="chatRoomsAPITest.testAllSeen" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatRoomsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" method="testAllSeen" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="locationTest.testSearch" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -128,25 +122,30 @@
       <TestRunner class="messageAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/messageTest.php" method="testLikes" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="statsTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="statsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/StatsTest.php" scope="Class" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="userSearchAPITest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="userSearchAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/userSearchTest.php" scope="Class" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.chatRoomsAPITest.testAllSeen" />
       <item itemvalue="PHPUnit.messageAPITest.testLikes" />
       <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
       <item itemvalue="PHPUnit.userSearchAPITest" />
       <item itemvalue="PHPUnit.locationTest.testSearch" />
+      <item itemvalue="PHPUnit.statsTest" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.statsTest" />
         <item itemvalue="PHPUnit.locationTest.testSearch" />
         <item itemvalue="PHPUnit.userSearchAPITest" />
         <item itemvalue="PHPUnit.messageAPITest.testEditAsMember" />
         <item itemvalue="PHPUnit.messageAPITest.testLikes" />
-        <item itemvalue="PHPUnit.chatRoomsAPITest.testAllSeen" />
       </list>
     </recent_temporary>
   </component>
@@ -228,13 +227,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00375" summary="UT fixes">
-      <created>1578997508723</created>
-      <option name="number" value="00375" />
-      <option name="presentableId" value="LOCAL-00375" />
-      <option name="project" value="LOCAL" />
-      <updated>1578997508723</updated>
     </task>
     <task id="LOCAL-00376" summary="Add percent sign to spam checks for current elusive medical spam.">
       <created>1579009359595</created>
@@ -572,7 +564,14 @@
       <option name="project" value="LOCAL" />
       <updated>1580146293821</updated>
     </task>
-    <option name="localTasksCounter" value="424" />
+    <task id="LOCAL-00424" summary="Record logged out searches">
+      <created>1580190708939</created>
+      <option name="number" value="00424" />
+      <option name="presentableId" value="LOCAL-00424" />
+      <option name="project" value="LOCAL" />
+      <updated>1580190708939</updated>
+    </task>
+    <option name="localTasksCounter" value="425" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -605,7 +604,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Remove error log" />
     <MESSAGE value="Return better description of mod groups for Discourse" />
     <MESSAGE value="Update schema.sql" />
     <MESSAGE value="Not returning public location for replies." />
@@ -630,7 +628,8 @@
     <MESSAGE value="Creating a chat fails occasionally due to timing windows." />
     <MESSAGE value="Using wrong link in thank you for regular donations" />
     <MESSAGE value="Don't create new items which only differ by whitespace" />
-    <option name="LAST_COMMIT_MESSAGE" value="Don't create new items which only differ by whitespace" />
+    <MESSAGE value="Record logged out searches" />
+    <option name="LAST_COMMIT_MESSAGE" value="Record logged out searches" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1579703058860">
@@ -651,41 +650,41 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580146293194">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580192777621">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1579539339449" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580146293194" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1579901450289">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192777621" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1580192827228">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1579543533230" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579901450289" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192827228" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog/0.0.1707.920@0.0.1707.920" timestamp="1579012863721" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578730503242" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1580190570899">
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom" timestamp="1580192653219">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1579543525059" />
-    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190570899" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1580190570899">
+    <state width="1877" height="307" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192653219" />
+    <state width="1877" height="307" key="GridCell.Tab.0.center" timestamp="1580192653219">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190570899" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1580190570899">
+    <state width="1877" height="307" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192653219" />
+    <state width="1877" height="307" key="GridCell.Tab.0.left" timestamp="1580192653219">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190570899" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1580190570899">
+    <state width="1877" height="307" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192653219" />
+    <state width="1877" height="307" key="GridCell.Tab.0.right" timestamp="1580192653219">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1579543525058" />
-    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190570899" />
+    <state width="1877" height="307" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192653219" />
     <state width="1877" height="348" key="GridCell.Tab.1.bottom" timestamp="1579875775272">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -715,25 +714,25 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1580146295007">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1580190710050">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1579539341892" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580146295007" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190710050" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580190503461">
+    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580191781058">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1579515005446" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190503461" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1580190314522">
+    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580191781058" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1580192668908">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1579539090895" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190314522" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192668908" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>

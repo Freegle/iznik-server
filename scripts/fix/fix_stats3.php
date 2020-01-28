@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
-for ($i = 13; $i < 19; $i++) {
+for ($i = 1; $i < 1620; $i++) {
     $date = date('Y-m-d', strtotime("$i days ago"));
     error_log($date);
 

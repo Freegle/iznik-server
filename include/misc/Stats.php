@@ -29,6 +29,7 @@ class Stats
     CONST ACTIVITY = 'Activity';
     CONST WEIGHT = 'Weight';
     CONST OUTCOMES = 'Outcomes';
+    CONST REPLIES = 'Replies';
 
     CONST TYPE_COUNT = 1;
     CONST TYPE_BREAKDOWN = 2;
@@ -67,6 +68,8 @@ class Stats
 
     public function generate($date, $type = NULL)
     {
+        $activity = 0;
+
         if ($type === NULL || in_array(Stats::OUTCOMES, $type)) {
             $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_outcomes.msgid = messages_groups.msgid WHERE groupid = ? AND messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND messages_outcomes.outcome IN (?, ?);", [
                 $this->groupid,
@@ -80,7 +83,6 @@ class Stats
 
         if ($type === NULL || in_array(Stats::APPROVED_MESSAGE_COUNT, $type)) {
             # Counts are a specific day
-            $activity = 0;
             $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messageid)) AS count FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE groupid = ? AND messages.arrival >= ? AND DATE(messages.arrival) = ? AND collection = ?;",
                 [
                     $this->groupid,
@@ -270,14 +272,30 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             foreach ($searches as $search) {
                 if ($search['groups']) {
                     $groups = explode(',', $search['groups']);
-                    if (in_array($this->groupid, $groups, $type)) {
+                    if (in_array($this->groupid, $groups)) {
                         $count++;
                     }
                 }
             }
     
-            $activity += $count;
             $this->setCount($date, Stats::SEARCHES, $count);
+        }
+
+        if ($type === NULL || in_array(Stats::REPLIES, $type)) {
+            # Any "Interested In" messages referring to messages on this group.
+            #error_log("Generate searches SELECT COUNT(*) as count FROM chat_messages INNER JOIN messages_groups ON chat_messages.refmsgid = messages_groups.msgid WHERE chat_messages.date >= '$date' AND DATE(chat_messages.date) = '$date' AND chat_messages.type = 'Interested' AND groupid = {$this->groupid};");
+            $replies = $this->dbhr->preQuery("SELECT COUNT(*) as count FROM chat_messages INNER JOIN messages_groups ON chat_messages.refmsgid = messages_groups.msgid WHERE chat_messages.date >= ? AND DATE(chat_messages.date) = ? AND chat_messages.type = ? AND groupid = ?;", [
+                $date,
+                $date,
+                ChatMessage::TYPE_INTERESTED,
+                $this->groupid
+            ]);
+
+            foreach ($replies as $reply) {
+                $count = $reply['count'];
+                $activity += $count;
+                $this->setCount($date, Stats::REPLIES, $count);
+            }
         }
 
         if ($type === NULL || in_array(Stats::WEIGHT, $type)) {
@@ -327,6 +345,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                 Stats::SEARCHES => 0,
                 Stats::ACTIVITY => 0,
                 Stats::WEIGHT => 0,
+                Stats::REPLIES => 0,
                 Stats::MESSAGE_BREAKDOWN => [],
                 Stats::POST_METHOD_BREAKDOWN => [],
                 Stats::YAHOO_DELIVERY_BREAKDOWN => [],
@@ -346,6 +365,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                 case Stats::SEARCHES:
                 case Stats::WEIGHT:
                 case Stats::ACTIVITY:
+                case Stats::REPLIES:
                     $ret[$stat['type']] = $stat['count'];
                     break;
                 case Stats::MESSAGE_BREAKDOWN:
@@ -383,6 +403,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $types = [
                 Stats::ACTIVITY,
                 Stats::WEIGHT,
+                Stats::REPLIES,
                 Stats::APPROVED_MEMBER_COUNT,
             ];
         } else {
@@ -391,7 +412,8 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                 Stats::APPROVED_MEMBER_COUNT,
                 Stats::SEARCHES,
                 Stats::ACTIVITY,
-                Stats::WEIGHT
+                Stats::WEIGHT,
+                Stats::REPLIES
             ];
 
             if ($me && ($me->isModerator() || $me->isAdmin())) {
@@ -407,7 +429,8 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                     Stats::FEEDBACK_UNHAPPY,
                     Stats::SEARCHES,
                     Stats::ACTIVITY,
-                    Stats::WEIGHT
+                    Stats::WEIGHT,
+                    Stats::REPLIES
                 ];
             }
         }
@@ -500,7 +523,8 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             Message::TYPE_OFFER => 0,
             Message::TYPE_WANTED => 0,
             Stats::SEARCHES => 0,
-            Stats::WEIGHT => 0
+            Stats::WEIGHT => 0,
+            Stats::REPLIES => 0
         ];
 
         # Cover the last year.
@@ -524,6 +548,29 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                 }
 
                 $ret[$pc][$type] += $stat['count'];
+            }
+        }
+
+        # Get the replies to which we can identify as being within each of these postcodes.
+        foreach([ Message::TYPE_OFFER, Message::TYPE_WANTED] as $type) {
+            $stats = $this->dbhm->preQuery("SELECT SUBSTRING(locations.name, 1, LENGTH(locations.name) - 2) AS PartialPostcode, COUNT(*) as count FROM pc 
+                  INNER JOIN messages ON messages.locationid = pc.locationid INNER JOIN locations on messages.locationid = locations.id 
+                  INNER JOIN chat_messages cm on messages.id = cm.refmsgid AND cm.type = ?
+                  WHERE locations.type = 'Postcode' AND LOCATE(' ', locations.name) > 0
+                  AND messages.type = ? AND messages.arrival >= '$start'
+                  GROUP BY PartialPostcode order by locations.name;", [
+                ChatMessage::TYPE_INTERESTED,
+                $type
+            ]);
+
+            foreach ($stats as $stat) {
+                $pc = $stat['PartialPostcode'];
+
+                if (!array_key_exists($pc, $ret)) {
+                    $ret[$pc] = $emptyStats;
+                }
+
+                $ret[$pc][Stats::REPLIES] += $stat['count'];
             }
         }
 
