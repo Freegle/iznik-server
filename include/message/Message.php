@@ -264,9 +264,10 @@ class Message
     
     public function edit($subject, $textbody, $htmlbody, $type, $item, $location, $attachments, $checkreview = TRUE) {
         $ret = TRUE;
+        $textbody = trim($textbody);
 
         # Get old values for edit history.  We put NULL if there is no edit.
-        $oldtext = ($textbody || $htmlbody) ? $this->getPrivate('textbody') : NULL;
+        $oldtext = ($textbody || $htmlbody) ? trim($this->getPrivate('textbody')) : NULL;
         $oldsubject = ($type || $item || $location) ? $this->getPrivate('subject') : NULL;
         $oldtype = $type ? $this->getPrivate('type') : NULL;
         $oldlocation = $location ? $this->getPrivate('locationid') : NULL;
@@ -301,7 +302,7 @@ class Message
         if ($htmlbody && !$textbody) {
             # In the interests of accessibility, let's create a text version of the HTML
             $html = new \Html2Text\Html2Text($htmlbody);
-            $textbody = $html->getText();
+            $textbody = trim($html->getText());
 
             # Make sure we have a text value, otherwise we might return a missing body.
             $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
