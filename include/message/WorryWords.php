@@ -48,7 +48,10 @@ class WorryWords {
                         # Check that words are roughly the same length, and allow more fuzziness as the word length increases.
                         $ratio = strlen($word) / strlen($worryword['keyword']);
                         $len = strlen($word);
-                        $threshold =  ($len > 7) ? 3 : ($len > 4 ? 2 : 1);
+
+                        # Fuzzy matching is causing more problems than it's worth.
+                        # $threshold =  ($len > 7) ? 3 : ($len > 4 ? 2 : 1);
+                        $threshold = 1;
 
                         if (($ratio >= 0.75 && $ratio <= 1.25) && @levenshtein(strtolower($worryword['keyword']), strtolower($word)) < $threshold) {
                             # Close enough to be worrying.

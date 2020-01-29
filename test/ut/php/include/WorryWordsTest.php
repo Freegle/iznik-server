@@ -54,17 +54,17 @@ class worryWordsTest extends IznikTestCase
         $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_WORRYWORDS, $logs);
         error_log("Found log " . var_export($log, TRUE));
 
-        $m = new Message($this->dbhr, $this->dbhm);
-        $mid = $m->createDraft();
-        $m = new Message($this->dbhr, $this->dbhm, $mid);
-        $m->setPrivate('subject', 'OFFER: fine (Somewhere)');
-        $m->setPrivate('textbody', "Some text uttest2\r\nMore text");
-        assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
-
-        $this->waitBackground();
-        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid], FALSE, FALSE);
-        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_WORRYWORDS, $logs);
-        error_log("Found log " . var_export($log, TRUE));
+//        $m = new Message($this->dbhr, $this->dbhm);
+//        $mid = $m->createDraft();
+//        $m = new Message($this->dbhr, $this->dbhm, $mid);
+//        $m->setPrivate('subject', 'OFFER: fine (Somewhere)');
+//        $m->setPrivate('textbody', "Some text uttest2\r\nMore text");
+//        assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+//
+//        $this->waitBackground();
+//        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid], FALSE, FALSE);
+//        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_WORRYWORDS, $logs);
+//        error_log("Found log " . var_export($log, TRUE));
     }
 
     public function testAllowed()
