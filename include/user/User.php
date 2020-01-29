@@ -4073,12 +4073,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE)
     {
-        # We don't want to send emails to people who haven't been active for more than a year.  This improves
+        # We don't want to send emails to people who haven't been active for more than six months.  This improves
         # our spam reputation, by avoiding honeytraps.
         $sendit = FALSE;
         $lastaccess = strtotime($this->getPrivate('lastaccess'));
 
-        if (time() - $lastaccess <= 365 * 24 * 60 * 60) {
+        if (time() - $lastaccess <= 365 * 24 * 60 * 60 / 2) {
             $sendit = TRUE;
 
             if ($g) {
