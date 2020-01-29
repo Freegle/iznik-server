@@ -1132,7 +1132,15 @@ class Message
 
                         if ($interval < 365) {
                             # Some groups set very high values as a way of turning this off.
-                            $rets[$msg['id']]['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
+                            $repostat = $arrival + $interval * 3600 * 24;
+
+                            if ($repostat < time()) {
+                                # Hit max number of autoreposts.
+                                $repostat = time();
+                                $rets[$msg['id']]['willautorepost'] = FALSE;
+                            }
+
+                            $rets[$msg['id']]['canrepostat'] = ISODate("@$repostat");
 
                             if ($rets[$msg['id']]['groups'][$groupind]['hoursago'] > $interval * 24) {
                                 $rets[$msg['id']]['canrepost'] = TRUE;
@@ -1667,8 +1675,8 @@ ORDER BY lastdate DESC;";
         # these return their info in an array indexed by message id.
         $roles = $this->getRolesForMessages($me, $msgs);
         $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary);
-        $this->getPublicGroups($me, $myid, $userlist, $rets, $msgs, $roles, $summary, $seeall);
         $this->getPublicReplies($me, $myid, $rets, $msgs, $summary, $roles, $seeall, FALSE);
+        $this->getPublicGroups($me, $myid, $userlist, $rets, $msgs, $roles, $summary, $seeall);
         $this->getPublicOutcomes($me, $myid, $rets, $msgs, $summary, $roles, $seeall);
         $this->getPublicAttachments($rets, $msgs, $summary);
 

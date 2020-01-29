@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/WorryWords.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/WorryWordsTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -226,13 +226,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00379" summary="AdView API call not using client IP">
-      <created>1579068364515</created>
-      <option name="number" value="00379" />
-      <option name="presentableId" value="LOCAL-00379" />
-      <option name="project" value="LOCAL" />
-      <updated>1579068364516</updated>
     </task>
     <task id="LOCAL-00380" summary="Don't use Inspectlet on MT">
       <created>1579182433769</created>
@@ -570,7 +563,14 @@
       <option name="project" value="LOCAL" />
       <updated>1580225407234</updated>
     </task>
-    <option name="localTasksCounter" value="428" />
+    <task id="LOCAL-00428" summary="Don't do fuzzy matching on worry words - it's more annoying than worthwhile.">
+      <created>1580281841031</created>
+      <option name="number" value="00428" />
+      <option name="presentableId" value="LOCAL-00428" />
+      <option name="project" value="LOCAL" />
+      <updated>1580281841031</updated>
+    </task>
+    <option name="localTasksCounter" value="429" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -603,7 +603,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Remove Outlook IOS footer" />
     <MESSAGE value="Remove error logs" />
     <MESSAGE value="Remove error" />
     <MESSAGE value="Better error logging for adview issues" />
@@ -628,14 +627,19 @@
     <MESSAGE value="More whitespace fixes for edits" />
     <MESSAGE value="Add app version to session call for finding out of date app installs." />
     <MESSAGE value="WIP on finding more relevant messages" />
-    <option name="LAST_COMMIT_MESSAGE" value="WIP on finding more relevant messages" />
+    <MESSAGE value="Don't do fuzzy matching on worry words - it's more annoying than worthwhile." />
+    <option name="LAST_COMMIT_MESSAGE" value="Don't do fuzzy matching on worry words - it's more annoying than worthwhile." />
   </component>
   <component name="WindowStateProjectService">
-    <state x="446" y="123" key="#Deployment" timestamp="1580225328936">
+    <state x="446" y="123" key="#Deployment" timestamp="1580282050563">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="446" y="123" key="#Deployment/0.0.1707.920@0.0.1707.920" timestamp="1580225328936" />
+    <state x="446" y="123" key="#Deployment/0.0.1707.920@0.0.1707.920" timestamp="1580282050563" />
     <state x="502" y="139" key="#Deployment/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579703058860" />
+    <state x="446" y="123" key="#Options" timestamp="1580282033213">
+      <screen x="0" y="0" width="1707" height="920" />
+    </state>
+    <state x="446" y="123" key="#Options/0.0.1707.920@0.0.1707.920" timestamp="1580282033213" />
     <state x="309" y="120" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1576948582337">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -649,10 +653,10 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="236" y="62" key="CommitChangelistDialog2" timestamp="1580225406165">
+    <state x="236" y="62" key="CommitChangelistDialog2" timestamp="1580281840351">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580225406165" />
+    <state x="236" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580281840351" />
     <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192777621" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1580192827228">
       <screen x="0" y="0" width="1920" height="1040" />
@@ -664,10 +668,10 @@
     </state>
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog/0.0.1707.920@0.0.1707.920" timestamp="1579012863721" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1578730503242" />
-    <state x="717" y="359" key="Github.Dialog.Accounts.Choose" timestamp="1580225418977">
+    <state x="717" y="359" key="Github.Dialog.Accounts.Choose" timestamp="1580281847581">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="717" y="359" key="Github.Dialog.Accounts.Choose/0.0.1707.920@0.0.1707.920" timestamp="1580225418977" />
+    <state x="717" y="359" key="Github.Dialog.Accounts.Choose/0.0.1707.920@0.0.1707.920" timestamp="1580281847581" />
     <state width="1663" height="237" key="GridCell.Tab.0.bottom" timestamp="1580280126366">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -717,19 +721,19 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1580225410438">
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1580281842806">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580225410438" />
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580281842806" />
     <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190710050" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1580281815828">
+    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1580282362412">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580281815828" />
+    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580282362412" />
     <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580191781058" />
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1580280047477">
       <screen x="0" y="0" width="1707" height="920" />
