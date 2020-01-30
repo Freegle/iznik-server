@@ -37,6 +37,15 @@ function session() {
                 $ret = array('ret' => 123, 'status' => 'App is out of date');
             } else {
                 if (pres('id', $_SESSION)) {
+                    # We're logged in.
+                    if (!MODTOOLS) {
+                        # ...but we are running an old version of the code, probably the app, because we have
+                        # not indicated which version we have.
+                        $builddate = presdef('builddate', $_REQUEST, NULL);
+                        $appversion = presdef('appversion', $_REQUEST, NULL);
+                        $dbhm->background("INSERT INTO users_builddates (userid, builddate, appversion) VALUES ({$_SESSION['id']}, '$builddate', '$appversion') ON DUPLICATE KEY UPDATE timestamp = NOW(), builddate = '$builddate', appversion = '$appversion';");
+                    }
+
                     $components = presdef('components', $_REQUEST, ['all']);
                     if ($components === ['all']) {
                         // Get all
