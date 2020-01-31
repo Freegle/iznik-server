@@ -127,6 +127,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_IMAGE, $msgid, TRUE, NULL, NULL, NULL, $attid);
+        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_INTERESTED, $msgid, TRUE, NULL, NULL, NULL, $attid);
         $this->log("Created chat message $cm");
 
         assertNull($r->replyTime($u1));

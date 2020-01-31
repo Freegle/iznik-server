@@ -782,6 +782,20 @@ class User extends Entity
         ]);
     }
 
+    public function isBanned($groupid) {
+        $sql = "SELECT * FROM users_banned WHERE userid = ? AND groupid = ?;";
+        $banneds = $this->dbhr->preQuery($sql, [
+            $this->id,
+            $groupid
+        ]);
+
+        foreach ($banneds as $banned) {
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
     public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE)
     {
         $this->memberships = NULL;
@@ -791,15 +805,8 @@ class User extends Entity
         Session::clearSessionCache();
 
         # Check if we're banned
-        $sql = "SELECT * FROM users_banned WHERE userid = ? AND groupid = ?;";
-        $banneds = $this->dbhr->preQuery($sql, [
-            $this->id,
-            $groupid
-        ]);
-
-        foreach ($banneds as $banned) {
-            error_log("{$this->id} on $groupid is banned");
-            return (FALSE);
+        if ($this->isBanned($groupid)) {
+            return FALSE;
         }
 
         # We don't want to use REPLACE INTO because the membershipid is a foreign key in some tables (such as

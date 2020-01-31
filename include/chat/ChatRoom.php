@@ -1766,11 +1766,13 @@ WHERE chat_rooms.id IN $idlist;";
                     #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
                     if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
                         if (count($twigmessages)) {
-                            # As a subject, we should use the last referenced message in this chat.
-                            $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+                            # As a subject, we should use the last "interested in" message in this chat - this is the
+                            # most likely thing they are talking about.
+                            $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.type = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                             #error_log($sql . $chat['chatid']);
                             $subjs = $this->dbhr->preQuery($sql, [
-                                $chat['chatid']
+                                $chat['chatid'],
+                                ChatMessage::TYPE_INTERESTED
                             ]);
                             #error_log(var_export($subjs, TRUE));
 
