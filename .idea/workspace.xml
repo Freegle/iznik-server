@@ -3,9 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -230,20 +227,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00386" summary="Direct job links from emails don't seem to result in payments, so revert back to the site ones.">
-      <created>1579511892283</created>
-      <option name="number" value="00386" />
-      <option name="presentableId" value="LOCAL-00386" />
-      <option name="project" value="LOCAL" />
-      <updated>1579511892283</updated>
-    </task>
-    <task id="LOCAL-00387" summary="UT fixes">
-      <created>1579512010592</created>
-      <option name="number" value="00387" />
-      <option name="presentableId" value="LOCAL-00387" />
-      <option name="project" value="LOCAL" />
-      <updated>1579512010592</updated>
     </task>
     <task id="LOCAL-00388" summary="UT fixes">
       <created>1579515182087</created>
@@ -574,7 +557,21 @@
       <option name="project" value="LOCAL" />
       <updated>1580417738782</updated>
     </task>
-    <option name="localTasksCounter" value="435" />
+    <task id="LOCAL-00435" summary="Subject line for chat notifications is confused by the message that is generated to tell someone that an item is taken.  Refer to the last &quot;interested in&quot; message where possible.">
+      <created>1580480187543</created>
+      <option name="number" value="00435" />
+      <option name="presentableId" value="LOCAL-00435" />
+      <option name="project" value="LOCAL" />
+      <updated>1580480187543</updated>
+    </task>
+    <task id="LOCAL-00436" summary="Revert &quot;ChitChat emails are being sent even though Settings says they shouldn't be.&quot;&#10;&#10;This reverts commit 1d1bbbc5">
+      <created>1580516438015</created>
+      <option name="number" value="00436" />
+      <option name="presentableId" value="LOCAL-00436" />
+      <option name="project" value="LOCAL" />
+      <updated>1580516438016</updated>
+    </task>
+    <option name="localTasksCounter" value="437" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -593,6 +590,31 @@
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
+        <entry key="1">
+          <value>
+            <State>
+              <option name="SHOW_ONLY_AFFECTED_CHANGES" value="true" />
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="roots">
+                    <value>
+                      <list>
+                        <option value="$PROJECT_DIR$" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
         <entry key="MAIN">
           <value>
             <State>
@@ -602,13 +624,16 @@
         </entry>
       </map>
     </option>
+    <option name="OPEN_TABS">
+      <set>
+        <option value="1" />
+      </set>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Fix error when searching logged out" />
-    <MESSAGE value="Error introduced when go to an invalid URL." />
     <MESSAGE value="Add more specific diags for a sentry problem we're seeing" />
     <MESSAGE value="Add call to get unread chat message count" />
     <MESSAGE value="Record how many times someone has viewed a message" />
@@ -632,7 +657,9 @@
     <MESSAGE value="We only send mail to people who've been active within the last year.  Reduce this to six months, as we've seen complaints in ReturnPath from users who have been inactive for a few months." />
     <MESSAGE value="ChitChat emails are being sent even though Settings says they shouldn't be." />
     <MESSAGE value="Record web build date / app version to spot old clients" />
-    <option name="LAST_COMMIT_MESSAGE" value="Record web build date / app version to spot old clients" />
+    <MESSAGE value="Subject line for chat notifications is confused by the message that is generated to tell someone that an item is taken.  Refer to the last &quot;interested in&quot; message where possible." />
+    <MESSAGE value="Revert &quot;ChitChat emails are being sent even though Settings says they shouldn't be.&quot;&#10;&#10;This reverts commit 1d1bbbc5" />
+    <option name="LAST_COMMIT_MESSAGE" value="Revert &quot;ChitChat emails are being sent even though Settings says they shouldn't be.&quot;&#10;&#10;This reverts commit 1d1bbbc5" />
   </component>
   <component name="WindowStateProjectService">
     <state x="446" y="123" key="#Deployment" timestamp="1580282050563">
@@ -657,15 +684,15 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="0" y="62" key="CommitChangelistDialog2" timestamp="1580417737964">
+    <state x="0" y="62" key="CommitChangelistDialog2" timestamp="1580516437065">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580417737964" />
+    <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
     <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192777621" />
-    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1580417731052">
+    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1580516459203">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580417731052" />
+    <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192827228" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
@@ -725,24 +752,24 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1580417740532">
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1580516439904">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580417740532" />
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
     <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190710050" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1580479890635">
+    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1580545204547">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580479890635" />
+    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
     <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580191781058" />
-    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1580479897521">
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1580545385023">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580479897521" />
+    <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545385023" />
     <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580192668908" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
