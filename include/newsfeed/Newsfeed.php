@@ -726,7 +726,7 @@ class Newsfeed extends Entity
 
         $latlng = $u->getLatLng(FALSE);
 
-        if ($u->sendOurMails() && ($latlng[0] || $latlng[1]) && $u->getSetting('relevantallowed', TRUE)) {
+        if ($u->sendOurMails() && ($latlng[0] || $latlng[1]) && $u->getSetting('notificationmails', TRUE)) {
             # We have a location for them.
             # Find the last one we saw.  Use master as we might have updated this for a previous group.
             $seens = $this->dbhm->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
@@ -836,7 +836,7 @@ class Newsfeed extends Entity
                 # Got some to send
                 $u = new User($this->dbhr, $this->dbhm, $userid);
                 $url = $u->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
-                $noemail = 'relevantoff-' . $userid . "@" . USER_DOMAIN;
+                $noemail = 'notificationmailsoff-' . $userid . "@" . USER_DOMAIN;
 
                 $html = $twig->render('newsfeed/digest.html', [
                     'items' => $twigitems,
