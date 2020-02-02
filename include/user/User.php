@@ -1873,8 +1873,8 @@ class User extends Entity
         # Now randomise the distance a bit each time we get it, so that anyone attempting repeated measurements
         # will get conflicting results around the precise location that isn't actually theirs.  But still close
         # enough to be useful for our purposes.
-        $tlat += mt_rand(-500, 500) / 20000;
-        $tlng += mt_rand(-500, 500) / 20000;
+        $tlat += mt_rand(-100, 100) / 20000;
+        $tlng += mt_rand(-100, 100) / 20000;
 
         $p2 = new POI($tlat, $tlng);
         $metres = $p1->getDistanceInMetersTo($p2);
@@ -4725,6 +4725,21 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         return $id !== $att['id'];
                     });
                 }
+            }
+        }
+
+        if ($userids && count($userids) && $usegroup) {
+            # Still some we haven't handled.  Get the last message posted on a group.
+            $membs = $this->dbhr->preQuery("SELECT fromuser AS userid, lat, lng FROM messages WHERE fromuser IN (" . implode(',', $userids) . ") ORDER BY arrival ASC;", NULL, FALSE, FALSE);
+            foreach ($membs as $memb) {
+                $ret[$memb['userid']] = [
+                    'lat' => $memb['lat'],
+                    'lng' => $memb['lng']
+                ];
+
+                $userids = array_filter($userids, function($id) use ($memb) {
+                    return $id !== $memb['userid'];
+                });
             }
         }
 

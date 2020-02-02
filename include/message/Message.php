@@ -1471,14 +1471,6 @@ ORDER BY lastdate DESC;";
             $ctx = NULL;
             $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, [ MessageCollection::APPROVED ], FALSE);
             $u->getInfos($fromusers);
-            $latlngs = $u->getLatLngs($fromusers, $usedef = TRUE, $usegroup = TRUE, $needgroup = FALSE, $atts = NULL);
-
-            if ($me) {
-                list ($mylat, $mylng) = $me->getLatLng();
-                foreach ($latlngs as $uid => &$pos) {
-                    $pos['milesaway'] = $u->getDistanceBetween($mylat, $mylng, $pos['lat'], $pos['lng']);
-                }
-            }
         }
 
         foreach ($msgs as $msg) {
@@ -1710,6 +1702,15 @@ ORDER BY lastdate DESC;";
     public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = [], $summary = FALSE) {
         $msgs = $this->getThisAsArray();
         $rets = $this->getPublics($msgs, $messagehistory, $related, $seeall, $userlist, $locationlist, $summary);
+
+        # When getting an individual message we return an approx distance.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            $u = new User($this->dbhr, $this->dbhm);
+            list ($mylat, $mylng) = $me->getLatLng();
+            $rets[$this->id]['milesaway'] = $u->getDistanceBetween($mylat, $mylng, $this->lat, $this->lng);
+        }
+
         $ret = $rets[$this->id];
         return($ret);
     }

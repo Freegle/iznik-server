@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
@@ -227,20 +226,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00389" summary="Previous fix lost count of replies">
-      <created>1579539340441</created>
-      <option name="number" value="00389" />
-      <option name="presentableId" value="LOCAL-00389" />
-      <option name="project" value="LOCAL" />
-      <updated>1579539340441</updated>
-    </task>
-    <task id="LOCAL-00390" summary="% test returns wrong info">
-      <created>1579689938824</created>
-      <option name="number" value="00390" />
-      <option name="presentableId" value="LOCAL-00390" />
-      <option name="project" value="LOCAL" />
-      <updated>1579689938824</updated>
     </task>
     <task id="LOCAL-00391" summary="MIME parser returns junk if used on a message with no body, such as a TAKEN message.  This causes false positive spam warnings for TAKENs.">
       <created>1579689992925</created>
@@ -571,7 +556,21 @@
       <option name="project" value="LOCAL" />
       <updated>1580643259803</updated>
     </task>
-    <option name="localTasksCounter" value="438" />
+    <task id="LOCAL-00438" summary="Return approximate distance away">
+      <created>1580643533185</created>
+      <option name="number" value="00438" />
+      <option name="presentableId" value="LOCAL-00438" />
+      <option name="project" value="LOCAL" />
+      <updated>1580643533185</updated>
+    </task>
+    <task id="LOCAL-00439" summary="Tweak approx distance rounding">
+      <created>1580643762372</created>
+      <option name="number" value="00439" />
+      <option name="presentableId" value="LOCAL-00439" />
+      <option name="project" value="LOCAL" />
+      <updated>1580643762372</updated>
+    </task>
+    <option name="localTasksCounter" value="440" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -634,8 +633,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Add call to get unread chat message count" />
-    <MESSAGE value="Record how many times someone has viewed a message" />
     <MESSAGE value="Allow retrieve of recently viewed messages" />
     <MESSAGE value="Return most recently viewed messages first" />
     <MESSAGE value="Error when recently viewed messages called logged out" />
@@ -659,7 +656,9 @@
     <MESSAGE value="Subject line for chat notifications is confused by the message that is generated to tell someone that an item is taken.  Refer to the last &quot;interested in&quot; message where possible." />
     <MESSAGE value="Revert &quot;ChitChat emails are being sent even though Settings says they shouldn't be.&quot;&#10;&#10;This reverts commit 1d1bbbc5" />
     <MESSAGE value="Improving activity stats" />
-    <option name="LAST_COMMIT_MESSAGE" value="Improving activity stats" />
+    <MESSAGE value="Return approximate distance away" />
+    <MESSAGE value="Tweak approx distance rounding" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tweak approx distance rounding" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1580643311321">
@@ -684,16 +683,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580643258110">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580643761754">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580643258110" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1580643272855">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580643761754" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1580645205689">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580643272855" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580645205689" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -753,20 +752,20 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1580516439904">
-      <screen x="0" y="0" width="1707" height="920" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1580643763636">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580190710050" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580643763636" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580642837967">
+    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580643707765">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580642837967" />
+    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580643707765" />
     <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1580643007554">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
