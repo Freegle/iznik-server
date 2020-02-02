@@ -1879,7 +1879,7 @@ class User extends Entity
         $p2 = new POI($tlat, $tlng);
         $metres = $p1->getDistanceInMetersTo($p2);
         $miles = $metres / 1609.344;
-        $miles = $miles > 10 ? round($miles) : round($miles, 1);
+        $miles = $miles > 2 ? round($miles) : round($miles, 1);
         return ($miles);
     }
 
