@@ -1581,7 +1581,6 @@ WHERE chat_rooms.id IN $idlist;";
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
-                $aboutu = NULL;
 
                 # We email them if they have mails turned on, and even if they don't have any current memberships.
                 # Although that runs the risk of annoying them if they've left, we also have to be able to handle
@@ -1738,11 +1737,6 @@ WHERE chat_rooms.id IN $idlist;";
                                     }
                                 }
 
-                                if ($unmailedmsg['type'] == ChatMessage::TYPE_INTERESTED) {
-                                    # Add any "about me" info.
-                                    $aboutu = $otheru;
-                                }
-
                                 $lastfrom = $unmailedmsg['userid'];
 
                                 if ($unmailedmsg['imageid']) {
@@ -1842,12 +1836,12 @@ WHERE chat_rooms.id IN $idlist;";
                                         $html = $twig->render('chat_notify.html', [
                                             'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
                                             'fromid' => $otheru->getId(),
-                                            'name' => $fromname,
+                                            'name' => $otheru->getName(),
                                             'reply' => $url,
                                             'messages' => $twigmessages,
                                             'backcolour' => '#FFF8DC',
                                             'email' => $to,
-                                            'aboutme' => $aboutu ? $aboutu->getAboutMe()['text'] : NULL,
+                                            'aboutme' => $otheru->getAboutMe()['text'],
                                             'prevmsg' => $prevmsg,
                                             'jobads' => $jobads['jobs'],
                                             'joblocation' => $jobads['location']
