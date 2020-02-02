@@ -1079,7 +1079,9 @@ class MailRouter
                                     $cm = new ChatMessage($this->dbhr, $this->dbhm);
                                     $mid = $cm->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
 
-                                    $cm->chatByEmail($mid, $this->msg->getID());
+                                    if ($mid) {
+                                        $cm->chatByEmail($mid, $this->msg->getID());
+                                    }
                                 }
 
                                 # Add any photos.

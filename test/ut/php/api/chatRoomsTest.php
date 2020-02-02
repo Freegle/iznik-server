@@ -7,6 +7,7 @@ require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
@@ -370,6 +371,43 @@ class chatRoomsAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertFalse(array_key_exists('chatroom', $ret));
+    }
+
+    public function testBanned() {
+        $u1 = User::get($this->dbhr, $this->dbhr);
+        $uid1 = $u1->create(NULL, NULL, 'Test User');
+        assertNotNull($uid1);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u2 = User::get($this->dbhr, $this->dbhr);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        assertNotNull($uid2);
+        assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        # Ban u1
+        $gid = $this->groupid;
+        $u1->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+        $u1->removeMembership($gid, TRUE);
+
+        # u2 a member on group
+        $u2->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+
+        # Put a message on the group.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # u1 should be able to open a chat to u2
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($uid1, $uid2);
+        assertNotNull($rid);
+
+        # But the interested-in message shouldn't get through.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $mid = $m->create($rid, $uid1, "Test", ChatMessage::TYPE_INTERESTED, $msgid);
+        assertNull($mid);
     }
 
 //    public function testEH() {

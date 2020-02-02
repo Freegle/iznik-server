@@ -131,6 +131,18 @@ class ChatMessage extends Entity
 
     public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL) {
         try {
+            if ($refmsgid) {
+                # If $userid is banned on the group that $refmsgid is on, then we shouldn't create a message.
+                $banned = $this->dbhr->preQuery("SELECT COUNT(*) FROM messages_groups INNER JOIN users_banned ON messages_groups.msgid = ? AND users_banned.userid = ?", [
+                    $refmsgid,
+                    $userid
+                ]);
+
+                if (count($banned) > 0) {
+                    return NULL;
+                }
+            }
+
             $review = 0;
             $spam = 0;
             $blocked = FALSE;
