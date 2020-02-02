@@ -14,6 +14,6 @@ for ($i = 1; $i < 1620; $i++) {
     foreach ($groups as $group) {
         #error_log("...{$group['nameshort']}");
         $s = new Stats($dbhr, $dbhm, $group['id']);
-        $s->generate($date);
+        $s->generate($date, [Stats::REPLIES, Stats::SEARCHES, Stats::ACTIVITY, Stats::APPROVED_MESSAGE_COUNT]);
     }
 }

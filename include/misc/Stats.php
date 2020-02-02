@@ -398,41 +398,31 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
         #error_log("Start at $start from $startdate to $end from $enddate");
 
-        if (!MODTOOLS && $systemwide) {
-            # Get a restricted set of stats for performance.
-            $types = [
-                Stats::ACTIVITY,
-                Stats::WEIGHT,
-                Stats::REPLIES,
-                Stats::APPROVED_MEMBER_COUNT,
-            ];
-        } else {
+        $types = [
+            Stats::APPROVED_MESSAGE_COUNT,
+            Stats::APPROVED_MEMBER_COUNT,
+            Stats::SEARCHES,
+            Stats::ACTIVITY,
+            Stats::WEIGHT,
+            Stats::REPLIES
+        ];
+
+        if ($me && ($me->isModerator() || $me->isAdmin())) {
+            # Mods can see more info.
             $types = [
                 Stats::APPROVED_MESSAGE_COUNT,
                 Stats::APPROVED_MEMBER_COUNT,
+                Stats::SPAM_MESSAGE_COUNT,
+                Stats::SPAM_MEMBER_COUNT,
+                Stats::SUPPORTQUERIES_COUNT,
+                Stats::FEEDBACK_HAPPY,
+                Stats::FEEDBACK_FINE,
+                Stats::FEEDBACK_UNHAPPY,
                 Stats::SEARCHES,
                 Stats::ACTIVITY,
                 Stats::WEIGHT,
                 Stats::REPLIES
             ];
-
-            if ($me && ($me->isModerator() || $me->isAdmin())) {
-                # Mods can see more info.
-                $types = [
-                    Stats::APPROVED_MESSAGE_COUNT,
-                    Stats::APPROVED_MEMBER_COUNT,
-                    Stats::SPAM_MESSAGE_COUNT,
-                    Stats::SPAM_MEMBER_COUNT,
-                    Stats::SUPPORTQUERIES_COUNT,
-                    Stats::FEEDBACK_HAPPY,
-                    Stats::FEEDBACK_FINE,
-                    Stats::FEEDBACK_UNHAPPY,
-                    Stats::SEARCHES,
-                    Stats::ACTIVITY,
-                    Stats::WEIGHT,
-                    Stats::REPLIES
-                ];
-            }
         }
 
         foreach ($types as $type) {

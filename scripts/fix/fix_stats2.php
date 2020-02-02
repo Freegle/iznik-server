@@ -11,10 +11,10 @@ foreach ($groups as $group) {
     error_log("...{$group['nameshort']}");
     $epoch = strtotime("today");
 
-    for ($i = 0; $i < 40; $i++) {
+    for ($i = 0; $i < 1620; $i++) {
         $date = date('Y-m-d', $epoch);
         $s = new Stats($dbhr, $dbhm, $group['id']);
-        $s->generate($date, [Stats::REPLIES, Stats::SEARCHES]);
+        $s->generate($date, [Stats::REPLIES, Stats::SEARCHES, Stats::ACTIVITY, Stats::APPROVED_MESSAGE_COUNT]);
         $epoch -= 24 * 60 * 60;
     }
 }
