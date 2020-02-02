@@ -682,6 +682,7 @@ class messageTest extends IznikTestCase {
 
         $c = new ChatMessage($this->dbhr, $this->dbhm);
         $cid = $c->create($rid, $uid, "Test reply", ChatMessage::TYPE_DEFAULT, $mid);
+        assertNotNull($cid);
 
         # Chaseup - expect none as too recent.
         $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $gid);

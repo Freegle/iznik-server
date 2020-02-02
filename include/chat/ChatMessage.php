@@ -133,7 +133,7 @@ class ChatMessage extends Entity
         try {
             if ($refmsgid) {
                 # If $userid is banned on the group that $refmsgid is on, then we shouldn't create a message.
-                $banned = $this->dbhr->preQuery("SELECT COUNT(*) FROM messages_groups INNER JOIN users_banned ON messages_groups.msgid = ? AND users_banned.userid = ?", [
+                $banned = $this->dbhr->preQuery("SELECT users_banned.* FROM messages_groups INNER JOIN users_banned ON messages_groups.msgid = ? AND users_banned.userid = ?", [
                     $refmsgid,
                     $userid
                 ]);
