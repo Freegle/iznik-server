@@ -1440,7 +1440,7 @@ ORDER BY lastdate DESC;";
         }
     }
 
-    public function getPublicFromUser(&$userlist, &$rets, $msgs, $roles, $messagehistory) {
+    public function getPublicFromUser(&$userlist, &$rets, $msgs, $roles, $messagehistory, $me, $myid) {
         # Get all the fromusers in a single call - saves on DB ops.
         $u = new User($this->dbhr, $this->dbhm);
         $fromuids = [];
@@ -1471,6 +1471,14 @@ ORDER BY lastdate DESC;";
             $ctx = NULL;
             $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, [ MessageCollection::APPROVED ], FALSE);
             $u->getInfos($fromusers);
+            $latlngs = $u->getLatLngs($fromusers, $usedef = TRUE, $usegroup = TRUE, $needgroup = FALSE, $atts = NULL);
+
+            if ($me) {
+                list ($mylat, $mylng) = $me->getLatLng();
+                foreach ($latlngs as $uid => &$pos) {
+                    $pos['milesaway'] = $u->getDistanceBetween($mylat, $mylng, $pos['lat'], $pos['lng']);
+                }
+            }
         }
 
         foreach ($msgs as $msg) {
@@ -1639,6 +1647,45 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function getPublicDistances(&$userlist, &$rets, $me, $myid) {
+        $msgids = array_filter(array_column($msgs, 'id'));
+
+        if (count($msgids)) {
+            if ($doit) {
+                # Return any edit history, most recent first.
+                $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;", [
+                    $this->id
+                ], FALSE, FALSE);
+            }
+
+            # We can't use foreach because then data is copied by reference.
+            foreach ($rets as $retind => $ret) {
+                $rets[$retind]['edits'] = [];
+
+                if ($doit) {
+                    for ($editind = 0; $editind < count($edits); $editind++) {
+                        if ($rets[$retind]['id'] == $edits[$editind]['msgid']) {
+                            $thisedit = $edits[$editind];
+                            $thisedit['timestamp'] = ISODate($thisedit['timestamp']);
+
+                            if (pres('byuser', $thisedit)) {
+                                $u = User::get($this->dbhr, $this->dbhm, $thisedit['byuser']);
+                                $ctx = NULL;
+                                $thisedit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+                            }
+
+                            $rets[$retind]['edits'][] = $thisedit;
+                        }
+                    }
+
+                    if (count($rets[$retind]['edits']) === 0) {
+                        $rets[$retind]['edits'] = NULL;
+                    }
+                }
+            }
+        }
+    }
+
     public function getWorry(&$msgs) {
        if (MODTOOLS) {
            # We check the messages again.  This means if something is added to worry words while our message is in
@@ -1683,7 +1730,7 @@ ORDER BY lastdate DESC;";
         if (!$summary) {
             $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall, $locationlist);
             $this->getPublicItem($rets, $msgs);
-            $this->getPublicFromUser($userlist, $rets, $msgs, $roles, $messagehistory);
+            $this->getPublicFromUser($userlist, $rets, $msgs, $roles, $messagehistory, $me, $myid);
             $this->getPublicHeld($userlist, $rets, $msgs, $messagehistory);
             $this->getPublicPostingHistory($rets, $msgs, $me, $myid);
             $this->getPublicEditHistory($userlist, $rets, $msgs, $me, $myid);

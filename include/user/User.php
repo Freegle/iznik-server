@@ -1705,10 +1705,13 @@ class User extends Entity
 
         if ($me) {
             list ($mylat, $mylng, $myloc) = $me->getLatLng();
-            $latlngs = $this->getLatLngs($users);
 
-            foreach ($latlngs as $userid => $latlng) {
-                $users[$userid]['milesaway'] = $this->getDistanceBetween($mylat, $mylng, $latlng['lat'], $latlng['lng']);
+            if ($myloc !== NULL) {
+                $latlngs = $this->getLatLngs($users);
+
+                foreach ($latlngs as $userid => $latlng) {
+                    $users[$userid]['milesaway'] = $this->getDistanceBetween($mylat, $mylng, $latlng['lat'], $latlng['lng']);
+                }
             }
 
             $ret['publiclocation'] = $this->getPublicLocations($users);
