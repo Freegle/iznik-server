@@ -198,6 +198,14 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $mid1 = $ret['id'];
 
+        # Should be able to set the replyexpected flag
+        $ret = $this->call('chatmessages', 'PATCH', [
+            'roomid' => $this->cid,
+            'id' => $mid1,
+            'replyexpected' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+
         # Duplicate
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
@@ -248,6 +256,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->log("Get message" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($mid1, $ret['chatmessage']['id']);
+        assertEquals(1, $ret['chatmessage']['replyexpected']);
 
         # Should be able to post
         $ret = $this->call('chatmessages', 'POST', [
@@ -573,8 +582,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         for ($i = 0; $i < 5; $i++) {
             assertEquals("Test message $i", $ret['chatmessages'][$i]['message']);
         }
-
-        }
+    }
 //
 //    public function testEH()
 //    {

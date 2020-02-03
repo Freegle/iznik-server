@@ -12,7 +12,7 @@ require_once(IZNIK_BASE . '/include/spam/Spam.php');
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid', 'replyexpected', 'replyreceived');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
