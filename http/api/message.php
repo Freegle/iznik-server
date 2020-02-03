@@ -638,13 +638,13 @@ function message() {
                         $ret = ['ret' => 2, 'status' => "Can't promise to nobody"];
                         if ($userid) {
                             $m->promise($userid);
-                            $mid = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
+                            list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
                             $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
                         }
                         break;
                     case 'Renege':
                         $m->renege($userid);
-                        $mid = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
+                        list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
                         $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
                         break;
                     case 'OutcomeIntended':

@@ -378,10 +378,10 @@ class userTest extends IznikTestCase {
         $this->log("Created to mods $cid3");
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         $str = "Test from $id1 to $id3 in $cid1";
-        $mid1 = $cm->create($cid1, $id1, $str);
+        list ($mid1, $banned) = $cm->create($cid1, $id1, $str);
         $this->log("Created $mid1 $str");
         $str = "Test from $id2 to $id3 in $cid2";
-        $mid2 = $cm->create($cid2, $id2, $str);
+        list ($mid2, $banned) = $cm->create($cid2, $id2, $str);
         $this->log("Created $mid2 $str");
 
         # Ensure we have a default config.
@@ -1171,7 +1171,7 @@ class userTest extends IznikTestCase {
         $cid1 = $c->createConversation($uid1, $uid1);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         $str = "Test";
-        $mid1 = $cm->create($cid1, $uid, $str);
+        list ($mid1, $banned) = $cm->create($cid1, $uid, $str);
 
         $u->forget('Test');
 

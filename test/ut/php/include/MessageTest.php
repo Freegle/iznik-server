@@ -681,7 +681,7 @@ class messageTest extends IznikTestCase {
         $rid = $r->createConversation($m->getFromuser(), $uid);
 
         $c = new ChatMessage($this->dbhr, $this->dbhm);
-        $cid = $c->create($rid, $uid, "Test reply", ChatMessage::TYPE_DEFAULT, $mid);
+        list ($cid, $banned) = $c->create($rid, $uid, "Test reply", ChatMessage::TYPE_DEFAULT, $mid);
         assertNotNull($cid);
 
         # Chaseup - expect none as too recent.

@@ -261,7 +261,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $rid = $c->createConversation($this->uid, $uid);
         $this->log("Created room $rid");
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $mid = $m->create($rid, $uid, 'Test');
+        list ($mid, $banned) = $m->create($rid, $uid, 'Test');
         $this->log("Created message $mid");
 
         assertTrue($this->user->login('testpw'));
@@ -406,8 +406,9 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # But the interested-in message shouldn't get through.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $mid = $m->create($rid, $uid1, "Test", ChatMessage::TYPE_INTERESTED, $msgid);
+        list ($mid, $banned) = $m->create($rid, $uid1, "Test", ChatMessage::TYPE_INTERESTED, $msgid);
         assertNull($mid);
+        assertTrue($banned);
     }
 
 //    public function testEH() {

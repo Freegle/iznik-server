@@ -67,7 +67,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertFalse(pres('chatmessages', $ret));
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);;
-        $mid = $m->create($this->cid, $this->uid, 'Test');
+        list ($mid, $banned) = $m->create($this->cid, $this->uid, 'Test');
         $this->log("Created chat message $mid");
 
         # Just because it exists, doesn't mean we should be able to see it.
@@ -530,7 +530,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         for ($i = 0; $i < 10; $i++) {
             $cm = new ChatMessage($this->dbhr, $this->dbhm);
-            $cid = $cm->create($rid, $this->uid, "Test message $i");
+            list ($cid, $banned) = $cm->create($rid, $this->uid, "Test message $i");
             $this->log("Created chat message $cid in $rid");
         }
 

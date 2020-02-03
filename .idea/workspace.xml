@@ -2,9 +2,22 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/scripts/cli/message_badreplies.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/chatmessages.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/chatmessages.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/message.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/schedule.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/schedule.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/chat/ChatMessage.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatMessage.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/group/Facebook.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/group/Facebook.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/mail/MailRouter.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/MailRouter.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_bt.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_bt.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/chatMessagesTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -226,13 +239,6 @@
       <workItem from="1577804437647" duration="36123000" />
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
-    </task>
-    <task id="LOCAL-00394" summary="Email reply to message with a mortage job ad being blocked as spam.">
-      <created>1579705379849</created>
-      <option name="number" value="00394" />
-      <option name="presentableId" value="LOCAL-00394" />
-      <option name="project" value="LOCAL" />
-      <updated>1579705379849</updated>
     </task>
     <task id="LOCAL-00395" summary="Remove error log">
       <created>1579721875937</created>
@@ -570,7 +576,14 @@
       <option name="project" value="LOCAL" />
       <updated>1580657551552</updated>
     </task>
-    <option name="localTasksCounter" value="443" />
+    <task id="LOCAL-00443" summary="UT fixes">
+      <created>1580658747355</created>
+      <option name="number" value="00443" />
+      <option name="presentableId" value="LOCAL-00443" />
+      <option name="project" value="LOCAL" />
+      <updated>1580658747356</updated>
+    </task>
+    <option name="localTasksCounter" value="444" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -646,7 +659,6 @@
     <MESSAGE value="WIP on finding more relevant messages" />
     <MESSAGE value="Don't do fuzzy matching on worry words - it's more annoying than worthwhile." />
     <MESSAGE value="Autorepost date showing in past." />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="We only send mail to people who've been active within the last year.  Reduce this to six months, as we've seen complaints in ReturnPath from users who have been inactive for a few months." />
     <MESSAGE value="ChitChat emails are being sent even though Settings says they shouldn't be." />
     <MESSAGE value="Record web build date / app version to spot old clients" />
@@ -658,7 +670,8 @@
     <MESSAGE value="Calculate approx distance from message not user" />
     <MESSAGE value="Chat notification including wrong name info" />
     <MESSAGE value="Don't allow users who are banned on a group to reply to messages on that group." />
-    <option name="LAST_COMMIT_MESSAGE" value="Don't allow users who are banned on a group to reply to messages on that group." />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1580643311321">
@@ -683,16 +696,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580658733734">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580658746785">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580658733734" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1580658741299">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580658746785" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1580726703603">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580658741299" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580726703603" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -752,25 +765,25 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1580657552752">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1580658748536">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580657552752" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580658748536" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1579245582878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579245582878" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580658606841">
+    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580721770918">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580658606841" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1580652472179">
+    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580721770918" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1580726651804">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545385023" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580652472179" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580726651804" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>

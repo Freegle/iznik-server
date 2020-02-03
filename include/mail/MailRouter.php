@@ -695,7 +695,7 @@ class MailRouter
 
                                         if (strlen($textbody)) {
                                             $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                            $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+                                            list ($mid, $banned) = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
                                             if ($this->log) {
                                                 error_log("Created message $mid");
                                             }
@@ -1077,7 +1077,7 @@ class MailRouter
                                     # create a blank chat message in that case, and such a message would get held
                                     # for review anyway.
                                     $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                                    $mid = $cm->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
+                                    list ($mid, $banned) = $cm->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
 
                                     if ($mid) {
                                         $cm->chatByEmail($mid, $this->msg->getID());
@@ -1140,7 +1140,7 @@ class MailRouter
                                         # create a blank chat message in that case, and such a message would get held
                                         # for review anyway.
                                         $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                                        $mid = $cm->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+                                        list ($mid, $banned) = $cm->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
 
                                         $cm->chatByEmail($mid, $this->msg->getID());
                                     }
@@ -1204,7 +1204,7 @@ class MailRouter
 
                                 # And now add our text into the chat room as a message.  This will notify them.
                                 $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                $mid = $m->create($rid,
+                                list ($mid, $banned) = $m->create($rid,
                                     $this->msg->getFromuser(),
                                     $textbody,
                                     $this->msg->getModmail() ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_INTERESTED,
@@ -1261,7 +1261,7 @@ class MailRouter
 
         $atts = $this->msg->getAttachments();
         foreach ($atts as $att) {
-            $aid = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
+            list ($aid, $banned) = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
             $data = $att->getData();
             $ct = $att->getContentType();
             $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);

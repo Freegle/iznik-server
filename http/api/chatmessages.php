@@ -142,7 +142,7 @@ function chatmessages() {
                     ];
 
                     if (!$id) {
-                        $id = $m->create($roomid,
+                        list ($id, $banned) = $m->create($roomid,
                             $me->getId(),
                             $message,
                             $type,
@@ -153,7 +153,7 @@ function chatmessages() {
                             $refchatid,
                             $imageid);
 
-                        $ret = ['ret' => 3, 'status' => 'Message create failed'];
+                        $ret = $banned ? ['ret' => 4, 'status' => 'Message create blocked'] : ['ret' => 3, 'status' => 'Message create failed'];
 
                         if ($id) {
                             if ($refmsgid) {

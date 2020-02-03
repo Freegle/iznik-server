@@ -2871,7 +2871,7 @@ ORDER BY lastdate DESC;";
 
             if ($rid) {
                 $m = new ChatMessage($this->dbhr, $this->dbhm);
-                $mid = $m->create($rid,
+                list ($mid, $banned) = $m->create($rid,
                     $myid,
                     "$subject\r\n\r\n$body",
                     ChatMessage::TYPE_MODMAIL,
@@ -4347,7 +4347,7 @@ ORDER BY lastdate DESC;";
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
         foreach ($replies as $reply) {
-            $mid = $cm->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
+            list ($mid, $banned) = $cm->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
 
             # Make sure this message is highlighted in chat/email.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);

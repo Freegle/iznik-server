@@ -45,7 +45,7 @@ class chatMessagesTest extends IznikTestCase {
         assertNotNull($id);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $mid = $m->create($id, $this->uid, 'Test');
+        list ($mid, $banned) = $m->create($id, $this->uid, 'Test');
         assertNotNull($mid);
 
         $atts = $m->getPublic();
@@ -53,7 +53,7 @@ class chatMessagesTest extends IznikTestCase {
         assertEquals('Test', $atts['message']);
         assertEquals($this->uid, $atts['userid']);
 
-        $mid2 = $m->create($id, $this->uid, 'Test2');
+        list ($mid2, $banned) = $m->create($id, $this->uid, 'Test2');
         assertNotNull($mid2);
         list($msgs, $users) = $r->getMessages();
         assertEquals(2, count($msgs));
@@ -365,10 +365,9 @@ class chatMessagesTest extends IznikTestCase {
         $mock->method('preExec')->willThrowException(new Exception());
         $m->setDbhm($mock);
 
-        $mid = $m->create(NULL, $this->uid, 'Test');
+        list ($mid, $banned) = $m->create(NULL, $this->uid, 'Test');
         assertNull($mid);
-
-        }
+    }
 
     public function testCheckReview() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
@@ -519,7 +518,7 @@ class chatMessagesTest extends IznikTestCase {
 
         # Add a spammy chat message
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $mid = $m->create($rid, $uid2, "<script");
+        list ($mid, $banned) = $m->create($rid, $uid2, "<script");
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
         $atts = $m->getPublic();
 

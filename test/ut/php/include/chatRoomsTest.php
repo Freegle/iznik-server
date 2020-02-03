@@ -126,8 +126,8 @@ class chatRoomsTest extends IznikTestCase {
         assertNotNull($attid);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_IMAGE, $msgid, TRUE, NULL, NULL, NULL, $attid);
-        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_INTERESTED, $msgid, TRUE, NULL, NULL, NULL, $attid);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_IMAGE, $msgid, TRUE, NULL, NULL, NULL, $attid);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_INTERESTED, $msgid, TRUE, NULL, NULL, NULL, $attid);
         $this->log("Created chat message $cm");
 
         assertNull($r->replyTime($u1));
@@ -241,13 +241,13 @@ class chatRoomsTest extends IznikTestCase {
 
         # Send a message from 1 -> 2
         # Notify - should be 1 (notification to u2, no copy required)
-        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email just $u2");
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
         # Reply from 2 -> 1
         # Notify - should be 1 (copy to u2 too soon, notification to u1 OK)
-        $cm = $m->create($id, $u2, "Testing 1", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u2, "Testing 1", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email just $u1");
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
@@ -260,13 +260,13 @@ class chatRoomsTest extends IznikTestCase {
 
         # Reply back from 1 -> 2
         # Notify - none (too soon)
-        $cm = $m->create($id, $u1, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email none");
         assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
         # Reply back from 2 -> 1
         # Notify - just 1 (notification to u1 OK, too soon for copy to u2)
-        $cm = $m->create($id, $u2, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u2, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email just $u1");
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
@@ -315,19 +315,19 @@ class chatRoomsTest extends IznikTestCase {
 
         # Send a message from 2 -> 1
         # Notify - should be 2 (notification to u1, copy required)
-        $cm = $m->create($id, $u2, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u2, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email both $u1 and $u2");
         assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
         # Reply from 1 -> 2
         # Notify - should be 0 (copy to u2 too soon, notification to u1 too soon)
-        $cm = $m->create($id, $u1, "Testing 1", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing 1", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email none");
         assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
         # Reply back from 2 -> 1
         # Notify - none (still too soon)
-        $cm = $m->create($id, $u2, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u2, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email none");
         assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
@@ -364,7 +364,7 @@ class chatRoomsTest extends IznikTestCase {
         assertNotNull($id);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $cm = $m->create($id, $u1, $aid, ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u1, $aid, ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("Created chat message $cm");
         $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
         assertNotFalse(pres('address', $m->getPublic()));
@@ -418,7 +418,7 @@ class chatRoomsTest extends IznikTestCase {
         assertNotNull($id);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $cm = $m->create($id, $u1, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u1, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("Created chat message $cm");
         $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
 
@@ -528,7 +528,7 @@ class chatRoomsTest extends IznikTestCase {
 
         # Create a query from the user to the mods
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $cm = $m->create($id, $u1, "Help me", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
+        list ($cm, $banned) = $m->create($id, $u1, "Help me", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
         $this->log("Created chat message $cm");
 
         # Mark the query as seen by one mod.
@@ -552,7 +552,7 @@ class chatRoomsTest extends IznikTestCase {
         self::assertEquals(1, count($r->chaseupMods($id, 0)));
 
         # Fake mod reply
-        $cm2 = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
+        list ($cm2, $banned) = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
 
         # Notify user; this won't copy the mod who replied by default..
         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NULL WHERE userid = ?;", [ $u1 ]);
@@ -604,7 +604,7 @@ class chatRoomsTest extends IznikTestCase {
 
         # Mow send a message from the second to the first.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $mid = $m->create($id, $u2, "Test");
+        list ($mid, $banned) = $m->create($id, $u2, "Test");
 
         # Check that this message doesn't get notified.
         $r = $this->getMockBuilder('ChatRoom')
@@ -651,7 +651,7 @@ class chatRoomsTest extends IznikTestCase {
         assertNull($r->replyTime($u2));
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("Created chat message $cm");
 
         $r = $this->getMockBuilder('ChatRoom')

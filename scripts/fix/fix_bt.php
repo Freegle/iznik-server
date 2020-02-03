@@ -18,7 +18,7 @@ error_log("Last mailed $lastmsg");
 
 //$dbhm->errorLog = TRUE;
 $cm = new ChatMessage($dbhm, $dbhm);
-$mid = $cm->create($chatid, $uid2,"Test - please ignore");
+list ($mid, $banned) = $cm->create($chatid, $uid2,"Test - please ignore");
 error_log("Created message $mid");
 $cm = new ChatMessage($dbhm, $dbhm, $mid);
 error_log("Start User2Mod");

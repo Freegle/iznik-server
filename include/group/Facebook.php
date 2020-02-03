@@ -422,7 +422,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
                                                                 error_log("Already referencing? $already");
                                                                 $type = $already ? ChatMessage::TYPE_DEFAULT : ChatMessage::TYPE_INTERESTED;
                                                                 $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                                                                $mid = $cm->create($rid, $cid, $comment['message'], $type, $already ? NULL : $msgid, FALSE, NULL, NULL, NULL, NULL, $comment['id']);
+                                                                list ($mid, $banned) = $cm->create($rid, $cid, $comment['message'], $type, $already ? NULL : $msgid, FALSE, NULL, NULL, NULL, NULL, $comment['id']);
                                                                 error_log("Created chat $mid");
 
                                                                 # Flag this conversation as being sync'd to Facebook.

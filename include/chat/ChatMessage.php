@@ -139,7 +139,7 @@ class ChatMessage extends Entity
                 ]);
 
                 if (count($banned) > 0) {
-                    return NULL;
+                    return [ NULL, TRUE] ;
                 }
             }
 
@@ -255,9 +255,9 @@ class ChatMessage extends Entity
 
         if ($rc && $id) {
             $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
-            return($id);
+            return([ $id, FALSE ]);
         } else {
-            return(NULL);
+            return([ NULL, FALSE ]);
         }
     }
 
