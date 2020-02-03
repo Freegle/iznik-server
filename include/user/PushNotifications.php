@@ -391,7 +391,7 @@ class PushNotifications
 
     public function fsockopen($host, $port, &$errno, &$errstr)
     {
-        $fp = fsockopen($host, $port, $errno, $errstr);
+        $fp = @fsockopen($host, $port, $errno, $errstr);
         return ($fp);
     }
 
@@ -457,9 +457,7 @@ class PushNotifications
                 #error_log("Connect to " . CHAT_HOST . " port " . CHAT_PORT);
                 $fp = $this->fsockopen('ssl://' . CHAT_HOST, CHAT_PORT, $errno, $errstr, 2);
 
-                if (!$fp) {
-                    error_log("Failed to get socket, $errstr ($errno)");
-                } else {
+                if ($fp) {
                     if (!$this->fputs($fp, "POST $service_uri  HTTP/1.1\r\n")) {
                         # This can happen if the socket is broken.  Just close it ready for next time.
                         fclose($fp);
