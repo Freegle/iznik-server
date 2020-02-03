@@ -41,9 +41,13 @@ function session() {
                     if (!MODTOOLS) {
                         # ...but we are running an old version of the code, probably the app, because we have
                         # not indicated which version we have.
-                        $webversion = presdef('webversion', $_REQUEST, NULL);
-                        $appversion = presdef('appversion', $_REQUEST, NULL);
-                        $dbhm->background("INSERT INTO users_builddates (userid, webversion, appversion) VALUES ({$_SESSION['id']}, '$webversion', '$appversion') ON DUPLICATE KEY UPDATE timestamp = NOW(), webversion = '$webversion', appversion = '$appversion';");
+                        $last = presdef('lastversiontime', $_REQUEST, NULL);
+
+                        if (!$last || time() - $last > 24 * 60 * 60) {
+                            $webversion = presdef('webversion', $_REQUEST, NULL);
+                            $appversion = presdef('appversion', $_REQUEST, NULL);
+                            $dbhm->background("INSERT INTO users_builddates (userid, webversion, appversion) VALUES ({$_SESSION['id']}, '$webversion', '$appversion') ON DUPLICATE KEY UPDATE timestamp = NOW(), webversion = '$webversion', appversion = '$appversion';");
+                        }
                     }
 
                     $components = presdef('components', $_REQUEST, ['all']);
