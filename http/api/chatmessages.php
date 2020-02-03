@@ -189,7 +189,7 @@ function chatmessages() {
                     $ret = ['ret' => 2, 'status' => "$roomid Not visible to you"];
                     if ($id && $roomid && $m->getPrivate('userid') == $me->getId()) {
                         foreach (['replyexpected'] as $attr) {
-                            if (array_key_exists('replyexpected', $_REQUEST)) {
+                            if (array_key_exists($attr, $_REQUEST)) {
                                 $m->setPrivate($attr, $_REQUEST[$attr]);
                             }
                         }
