@@ -208,13 +208,13 @@ class User extends Entity
         return sha1($pw . $salt);
     }
 
-    public function login($pw, $force = FALSE)
+    public function login($suppliedpw, $force = FALSE)
     {
         # TODO lockout
         if ($this->id) {
             $logins = $this->getLogins(TRUE);
             foreach ($logins as $login) {
-                $pw = $this->hashPassword($pw, presdef('salt', $login, PASSWORD_SALT));
+                $pw = $this->hashPassword($suppliedpw, presdef('salt', $login, PASSWORD_SALT));
 
                 if ($force || ($login['type'] == User::LOGIN_NATIVE && $login['uid'] == $this->id && strtolower($pw) == strtolower($login['credentials']))) {
                     $s = new Session($this->dbhr, $this->dbhm);
@@ -1350,6 +1350,7 @@ class User extends Entity
         if ($type == User::LOGIN_NATIVE) {
             # Native login - encrypt the password a bit.  The password salt is global in FD, but per-login for users
             # migrated from Norfolk.
+            error_log("Add login with $creds, $salt");
             $creds = $this->hashPassword($creds, $salt);
             $uid = $this->id;
         }
