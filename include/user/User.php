@@ -203,19 +203,20 @@ class User extends Entity
         }
     }
 
-    public function hashPassword($pw)
+    public function hashPassword($pw, $salt = PASSWORD_SALT)
     {
-        return sha1($pw . PASSWORD_SALT);
+        return sha1($pw . $salt);
     }
 
     public function login($pw, $force = FALSE)
     {
         # TODO lockout
         if ($this->id) {
-            $pw = $this->hashPassword($pw);
             $logins = $this->getLogins(TRUE);
             foreach ($logins as $login) {
-                if ($force || ($login['type'] == User::LOGIN_NATIVE && $login['uid'] == $this->id && $pw == $login['credentials'])) {
+                $pw = $this->hashPassword($pw, presdef('salt', $login, PASSWORD_SALT));
+
+                if ($force || ($login['type'] == User::LOGIN_NATIVE && $login['uid'] == $this->id && strtolower($pw) == strtolower($login['credentials']))) {
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($this->id);
 
@@ -1344,18 +1345,19 @@ class User extends Entity
         return (NULL);
     }
 
-    public function addLogin($type, $uid, $creds = NULL)
+    public function addLogin($type, $uid, $creds = NULL, $salt = PASSWORD_SALT)
     {
         if ($type == User::LOGIN_NATIVE) {
-            # Native login - the uid is the password encrypt the password a bit.
-            $creds = $this->hashPassword($creds);
+            # Native login - encrypt the password a bit.  The password salt is global in FD, but per-login for users
+            # migrated from Norfolk.
+            $creds = $this->hashPassword($creds, $salt);
             $uid = $this->id;
         }
 
         # If the login with this type already exists in the table, that's fine.
-        $sql = "INSERT INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE credentials = ?;";
+        $sql = "INSERT INTO users_logins (userid, uid, type, credentials, salt) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE credentials = ?, salt = ?;";
         $rc = $this->dbhm->preExec($sql,
-            [$this->id, $uid, $type, $creds, $creds]);
+            [$this->id, $uid, $type, $creds, $salt, $creds, $salt]);
 
         # If we add a login, we might be about to log in.
         # TODO This is a bit hacky.
