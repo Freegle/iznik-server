@@ -298,6 +298,8 @@ class User extends Entity
             $name = MODTOOLS ? 'Someone' : 'A freegler';
         }
 
+        $name = strlen($name) > 32 ? (substr($name, 0, 32) . '...') : $name;
+
         return ($name);
     }
 
