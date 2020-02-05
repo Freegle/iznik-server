@@ -284,7 +284,7 @@ class User extends Entity
 
         $name = NULL;
 
-        if ($this->id) {
+        if ($atts['id']) {
             # We may or may not have the knowledge about how the name is split out, depending
             # on the sign-in mechanism.
             if ($atts['fullname']) {
