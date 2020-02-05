@@ -82,8 +82,8 @@ class Mail {
 
     # This is the key control over how frequency we add Return Path seed lists to our mails.  0 will disable.
     const RETURNPATH_THRESHOLDS = [
-        Mail::DIGEST => 0,
-        Mail::CHAT => 1000,
+        Mail::DIGEST => 1000,
+        Mail::CHAT => 0,
         Mail::REMOVED => 0,
         Mail::THANK_DONATION => 0,
         Mail::INVITATION => 0,
@@ -126,7 +126,8 @@ class Mail {
     }
 
     public static function shouldSend($type) {
-        return(mt_rand(0, 1000) < Mail::RETURNPATH_THRESHOLDS[$type]);
+        $ret = mt_rand(0, 1000) < Mail::RETURNPATH_THRESHOLDS[$type];
+        return($ret);
     }
 
     public static function matchingId($type, $qualifier) {
