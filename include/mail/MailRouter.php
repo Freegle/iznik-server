@@ -399,6 +399,11 @@ class MailRouter
                         } else {
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
                             $emailid = $u->getIdForEmail($email)['id'];
+
+                            if ($u->getPrivate('inventedname') && $name && $u->getName(FALSE) !== $name && stripos('FBUser', $name) === FALSE) {
+                                # Names by email should overwrite anything we have invented.
+                                $u->setPrivate('fullname', $name);
+                            }
                         }
 
                         $notify = FALSE;

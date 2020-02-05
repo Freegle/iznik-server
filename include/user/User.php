@@ -304,7 +304,7 @@ class User extends Entity
             # - no name, or
             # - a name derived from a Yahoo ID which is a hex string, which looks silly
             # - A freegler, which was an old way of anonymising.
-            # - A very old FBUser name    
+            # - A very old FBUser name
             $email = $this->inventEmail();
             $name = substr($email, 0, strpos($email, '-'));
             $this->setPrivate('fullname', $name);

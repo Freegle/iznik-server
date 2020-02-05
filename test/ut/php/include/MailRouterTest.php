@@ -935,7 +935,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log(var_export($membs, true));
         assertEquals(1, count($membs));
         assertEquals('test@test.com', $membs[0]['email']);
-        assertNull($membs[0]['fullname']);
+        assertNotNull($membs[0]['fullname']);
 
         # And again.  Should work, but slightly different codepath.
         $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = $gid;");
@@ -947,9 +947,10 @@ class MailRouterTest extends IznikTestCase {
         $this->log(var_export($membs, true));
         assertEquals(1, count($membs));
         assertEquals('test@test.com', $membs[0]['email']);
-        assertNull($membs[0]['fullname']);
+        assertNotNull($membs[0]['fullname']);
 
         # And again with a friendly name.  The user exists and should have the name upgraded.
+        error_log("Upgrade");
         $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = $gid;");
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approvemember2');
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
