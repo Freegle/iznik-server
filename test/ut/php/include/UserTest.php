@@ -985,8 +985,9 @@ class userTest extends IznikTestCase {
 
     public function testBadYahooId() {
         $u = User::get($this->dbhr, $this->dbhm);
-        $u->create('Test', 'User', '42decfdc9afca38d682324e2e5a02123');
+        $uid = $u->create('Test', 'User', '42decfdc9afca38d682324e2e5a02123');
         $u->setPrivate('yahooid', '42decfdc9afca38d682324e2e5a02123');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
         self::assertLessThan(32, strlen($atts['fullname']));
 
@@ -994,7 +995,8 @@ class userTest extends IznikTestCase {
 
     public function testAFreegler() {
         $u = User::get($this->dbhr, $this->dbhm);
-        $u->create('Test', 'User', 'A freegler');
+        $uid = $u->create('Test', 'User', 'A freegler');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
         self::assertNotEquals('A freegler', $atts['fullname']);
      }
