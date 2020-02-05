@@ -206,8 +206,7 @@ class userTest extends IznikTestCase {
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         assertFalse($u->login('testpwbad'));
-
-        }
+    }
 
     public function testErrors() {
         $u = User::get($this->dbhr, $this->dbhm);
@@ -1388,6 +1387,16 @@ class userTest extends IznikTestCase {
         $u->setPrivate('settings', json_encode([]));
         $jobs = $u->getJobAds();
         assertEquals('Edinburgh', $jobs['location']);
+    }
+
+    public function testHide() {
+        $u = new User($this->dbhm, $this->dbhm);
+        $uid = $u->create("Test", "User", "A freegler");
+        $u = new User($this->dbhm, $this->dbhm, $uid);
+        $atts = $u->getPublic();
+        assertNotEquals('A freegler', $atts['fullname']);
+        $u = new User($this->dbhm, $this->dbhm, $uid);
+        assertEquals(1, $u->getPrivate('inventedname'));
     }
 }
 

@@ -399,11 +399,6 @@ class MailRouter
                         } else {
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
                             $emailid = $u->getIdForEmail($email)['id'];
-
-                            error_log("Consider upgrade " . $u->getName(FALSE) . " vs $name");
-                            if (!$u->getName(FALSE) && $name && stripos('FBUser', $name) === FALSE) {
-                                $u->setPrivate('fullname', $name);
-                            }
                         }
 
                         $notify = FALSE;

@@ -294,8 +294,21 @@ class User extends Entity
         # Make sure we don't return an email if somehow one has snuck in.
         $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
 
-        if ($default && strlen(trim($name)) === 0) {
-            $name = MODTOOLS ? 'Someone' : 'A freegler';
+        if ($default &&
+            (strlen(trim($name)) === 0 ||
+            $name == 'A freegler' ||
+            (strlen($name) == 32 && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $name)) ||
+            strpos($name, 'FBUser') !== FALSE)
+        ) {
+            # We have:
+            # - no name, or
+            # - a name derived from a Yahoo ID which is a hex string, which looks silly
+            # - A freegler, which was an old way of anonymising.
+            # - A very old FBUser name    
+            $email = $this->inventEmail();
+            $name = substr($email, 0, strpos($email, '-'));
+            $this->setPrivate('fullname', $name);
+            $this->setPrivate('inventedname', 1);
         }
 
         $name = strlen($name) > 32 ? (substr($name, 0, 32) . '...') : $name;
@@ -2079,17 +2092,6 @@ class User extends Entity
             $rets[$user['id']]['settings']['notificationmails'] = array_key_exists('notificationmails', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['notificationmails'] : TRUE;
             $rets[$user['id']]['settings']['modnotifs'] = array_key_exists('modnotifs', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['modnotifs'] : 4;
             $rets[$user['id']]['settings']['backupmodnotifs'] = array_key_exists('backupmodnotifs', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['backupmodnotifs'] : 12;
-
-            if ($rets[$user['id']]['id'] &&
-                (($rets[$user['id']]['fullname'] == 'A freegler') ||
-                    (strlen($rets[$user['id']]['fullname']) == 32 && $rets[$user['id']]['fullname'] == $rets[$user['id']]['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $rets[$user['id']]['fullname'])))) {
-                # We have some names derived from Yahoo IDs which are hex strings.  They look silly.  Replace them with
-                # something better.  Ditto "A freegler", which is a legacy way in which names were anonymised.
-                $u = new User($this->dbhr, $this->dbhm, $rets[$user['id']]['id']);
-                $email = $u->inventEmail();
-                $rets[$user['id']]['fullname'] = substr($email, 0, strpos($email, '-'));
-                $u->setPrivate('fullname', $user['fullname']);
-            }
 
             $rets[$user['id']]['displayname'] = $this->getName(TRUE, $user);
 
