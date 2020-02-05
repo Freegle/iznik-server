@@ -284,38 +284,37 @@ class User extends Entity
 
         $name = NULL;
 
-        if ($atts['id']) {
-            # We may or may not have the knowledge about how the name is split out, depending
-            # on the sign-in mechanism.
-            if ($atts['fullname']) {
-                $name = $atts['fullname'];
-            } else if ($atts['firstname'] || $atts['lastname']) {
-                $name = $atts['firstname'] . ' ' . $atts['lastname'];
-            }
-
-            # Make sure we don't return an email if somehow one has snuck in.
-            $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
-
-            if ($default &&
-                (strlen(trim($name)) === 0 ||
-                    $name == 'A freegler' ||
-                    (strlen($name) == 32 && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $name)) ||
-                    strpos($name, 'FBUser') !== FALSE)
-            ) {
-                # We have:
-                # - no name, or
-                # - a name derived from a Yahoo ID which is a hex string, which looks silly
-                # - A freegler, which was an old way of anonymising.
-                # - A very old FBUser name
-                $email = $this->inventEmail();
-                $name = substr($email, 0, strpos($email, '-'));
-                $this->setPrivate('fullname', $name);
-                $this->setPrivate('inventedname', 1);
-            }
-
-            # Stop silly long names.
-            $name = strlen($name) > 32 ? (substr($name, 0, 32) . '...') : $name;
+        # We may or may not have the knowledge about how the name is split out, depending
+        # on the sign-in mechanism.
+        if ($atts['fullname']) {
+            $name = $atts['fullname'];
+        } else if ($atts['firstname'] || $atts['lastname']) {
+            $name = $atts['firstname'] . ' ' . $atts['lastname'];
         }
+
+        # Make sure we don't return an email if somehow one has snuck in.
+        $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
+
+        if ($default &&
+            (strlen(trim($name)) === 0 ||
+                $name == 'A freegler' ||
+                (strlen($name) == 32 && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $name)) ||
+                strpos($name, 'FBUser') !== FALSE)
+        ) {
+            # We have:
+            # - no name, or
+            # - a name derived from a Yahoo ID which is a hex string, which looks silly
+            # - A freegler, which was an old way of anonymising.
+            # - A very old FBUser name
+            $u = new User($this->dbhr, $this->dbhm, $atts['id']);
+            $email = $u->inventEmail();
+            $name = substr($email, 0, strpos($email, '-'));
+            $u->setPrivate('fullname', $name);
+            $u->setPrivate('inventedname', 1);
+        }
+
+        # Stop silly long names.
+        $name = strlen($name) > 32 ? (substr($name, 0, 32) . '...') : $name;
 
         return ($name);
     }
