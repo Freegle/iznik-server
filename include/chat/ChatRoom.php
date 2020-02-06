@@ -348,6 +348,9 @@ WHERE chat_rooms.id IN $idlist;";
         $this->dbhm->preExec("UPDATE chat_rooms SET latestmessage = NOW() WHERE id = ?;", [
             $id
         ]);
+
+        # Also ensure it's not closed.
+        $me = whoAmI($this->dbhr, $this->dbhm);
     }
 
     public function createConversation($user1, $user2, $checkonly = FALSE)
@@ -1021,12 +1024,13 @@ WHERE chat_rooms.id IN $idlist;";
         # We have a unique key, and an update on current timestamp.
         #
         # Don't want to log these - lots of them.
-        $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?;",
+        $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?, status = ?;",
             [
                 $this->id,
                 $userid,
                 presdef('REMOTE_ADDR', $_SERVER, NULL),
-                presdef('REMOTE_ADDR', $_SERVER, NULL)
+                presdef('REMOTE_ADDR', $_SERVER, NULL),
+                $status
             ],
             FALSE);
 

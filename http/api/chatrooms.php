@@ -68,6 +68,10 @@ function chatrooms() {
                     case ChatRoom::TYPE_USER2USER:
                         if ($userid) {
                             $id = $r->createConversation($myid, $userid);
+                            $r = new ChatRoom($dbhr, $dbhm, $id);
+
+                            # Ensure the chat isn't blocked.
+                            $r->updateRoster($myid, NULL);
                         }
                         break;
                     case ChatRoom::TYPE_USER2MOD:
