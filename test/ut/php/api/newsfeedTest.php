@@ -242,6 +242,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $u = new User($this->dbhr, $this->dbhm, $this->user->getId());
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
         $this->log("Payload $title for $total");
+        assertEquals('/chitchat/' . $nid, $route);
         assertEquals(2, $total);
         assertEquals("Test User loved your post 'Test2 with url https://google.co.uk with some extra length...' +1 more...", $title);
 

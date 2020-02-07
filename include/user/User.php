@@ -4390,6 +4390,18 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $notifs = $n->get($this->id, $ctx);
                     $title = $n->getNotifTitle($notifs);
                     $route = '/';
+
+                    if (count($notifs) > 0) {
+                        # For newsfeed notifications sent a route to the right place.
+                        switch ($notifs[0]['type']) {
+                            case Notifications::TYPE_COMMENT_ON_COMMENT:
+                            case Notifications::TYPE_COMMENT_ON_YOUR_POST:
+                            case Notifications::TYPE_LOVED_COMMENT:
+                            case Notifications::TYPE_LOVED_POST:
+                                $route = '/chitchat/' . $notifs[0]['newsfeedid'];
+                                break;
+                        }
+                    }
                 }
             }
         } else {
