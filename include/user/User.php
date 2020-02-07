@@ -1368,7 +1368,6 @@ class User extends Entity
         if ($type == User::LOGIN_NATIVE) {
             # Native login - encrypt the password a bit.  The password salt is global in FD, but per-login for users
             # migrated from Norfolk.
-            error_log("Add login with $creds, $salt");
             $creds = $this->hashPassword($creds, $salt);
             $uid = $this->id;
         }
@@ -6108,5 +6107,26 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return $this->dbhr->preQuery($sql, [
             $this->id
         ]);
+    }
+
+    public function related($userlist) {
+        $userlist = array_unique($userlist);
+
+        foreach ($userlist as $user1) {
+            foreach ($userlist as $user2) {
+                if ($user1 !== $user2) {
+                    $this->dbhm->background("INSERT INTO users_related (user1, user2) VALUES ($user1, $user2) ON DUPLICATE KEY UPDATE timestamp = NOW();");
+                }
+            }
+        }
+    }
+
+    public function getRelated($userid, $since = "30 days ago") {
+        $starttime = date("Y-m-d H:i:s", strtotime($since));
+        $users = $this->dbhr->preQuery("SELECT * FROM users_related WHERE user1 = ? AND timestamp >= '$starttime';", [
+            $userid
+        ]);
+
+        return ($users);
     }
 }

@@ -573,8 +573,7 @@ class sessionTest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         self::assertEquals('Something about me', $ret['user']['info']['aboutme']['text']);
-
-        }
+    }
 
     public function testAppVersion()
     {
@@ -586,6 +585,29 @@ class sessionTest extends IznikAPITestCase
             'appversion' => 3
         ]);
         assertEquals(1, $ret['ret']);
+    }
+
+    public function testRelated() {
+        $u1 = User::get($this->dbhm, $this->dbhm);
+        $id1 = $u1->create('Test', 'User', NULL);
+        assertNotNull($u1->addEmail('test1@test.com'));
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u1->login('testpw'));
+
+        $u2 = User::get($this->dbhm, $this->dbhm);
+        $id2 = $u1->create('Test', 'User', NULL);
+
+        $ret = $this->call('session', 'POST', [
+            'action' => 'Related',
+            'userlist' => [ $id1, $id2 ]
+        ]);
+
+        $this->waitBackground();
+
+        $related = $u1->getRelated($id1);
+        assertEquals($id2, $related[0]['user2']);
+        $related = $u2->getRelated($id2);
+        assertEquals($id1, $related[0]['user2']);
     }
 //
 //    public function testSheila() {

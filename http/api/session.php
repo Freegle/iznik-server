@@ -418,6 +418,20 @@ function session() {
                         }
                         break;
                     }
+
+                    case 'Related': {
+                        $ret = array('ret' => 1, 'status' => 'Not logged in');
+
+                        if ($me) {
+                            $userlist = presdef('userlist', $_REQUEST, NULL);
+
+                            if (gettype($userlist) == 'array') {
+                                $me->related($userlist);
+                            }
+
+                            $ret = [ 'ret' => 0, 'status' => "Success" ];
+                        }
+                    }
                 }
             }
             else if ($password && $email) {
