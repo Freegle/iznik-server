@@ -1327,7 +1327,10 @@ ORDER BY lastdate DESC;";
                             foreach ($lastreplies as $lastreply) {
                                 if ($lastreply['chatid'] == $reply['chatid']) {
                                     $thisone['lastdate'] = ISODate($lastreply['date']);
-                                    $thisone['snippet'] = substr($lastreply['message'], 0, 30);
+                                    $thisone['lastuserid'] = $lastreply['userid'];
+
+                                    $r = new ChatRoom($this->dbhr, $this->dbhm);
+                                    $thisone['snippet'] = $r->getSnippet($lastreply['type'], $lastreply['message']);
                                 }
                             }
 

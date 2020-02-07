@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Mopre">
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cron/user_related.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/user_related.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -226,28 +227,7 @@
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
       <workItem from="1580820604867" duration="17907000" />
-      <workItem from="1580893378540" duration="25374000" />
-    </task>
-    <task id="LOCAL-00427" summary="WIP on finding more relevant messages">
-      <created>1580225407234</created>
-      <option name="number" value="00427" />
-      <option name="presentableId" value="LOCAL-00427" />
-      <option name="project" value="LOCAL" />
-      <updated>1580225407234</updated>
-    </task>
-    <task id="LOCAL-00428" summary="Don't do fuzzy matching on worry words - it's more annoying than worthwhile.">
-      <created>1580281841031</created>
-      <option name="number" value="00428" />
-      <option name="presentableId" value="LOCAL-00428" />
-      <option name="project" value="LOCAL" />
-      <updated>1580281841031</updated>
-    </task>
-    <task id="LOCAL-00429" summary="Autorepost date showing in past.">
-      <created>1580282454009</created>
-      <option name="number" value="00429" />
-      <option name="presentableId" value="LOCAL-00429" />
-      <option name="project" value="LOCAL" />
-      <updated>1580282454009</updated>
+      <workItem from="1580893378540" duration="28419000" />
     </task>
     <task id="LOCAL-00430" summary="UT fixes">
       <created>1580283335597</created>
@@ -571,7 +551,28 @@
       <option name="project" value="LOCAL" />
       <updated>1581098604150</updated>
     </task>
-    <option name="localTasksCounter" value="476" />
+    <task id="LOCAL-00476" summary="More on related users">
+      <created>1581099235074</created>
+      <option name="number" value="00476" />
+      <option name="presentableId" value="LOCAL-00476" />
+      <option name="project" value="LOCAL" />
+      <updated>1581099235074</updated>
+    </task>
+    <task id="LOCAL-00477" summary="Only notify on related users when there is an email to check">
+      <created>1581099436217</created>
+      <option name="number" value="00477" />
+      <option name="presentableId" value="LOCAL-00477" />
+      <option name="project" value="LOCAL" />
+      <updated>1581099436217</updated>
+    </task>
+    <task id="LOCAL-00478" summary="Rookie error nit">
+      <created>1581109371183</created>
+      <option name="number" value="00478" />
+      <option name="presentableId" value="LOCAL-00478" />
+      <option name="project" value="LOCAL" />
+      <updated>1581109371183</updated>
+    </task>
+    <option name="localTasksCounter" value="479" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -634,9 +635,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Nit" />
-    <MESSAGE value="Don't update web/app version too often" />
-    <MESSAGE value="Shhh for nchan errors" />
     <MESSAGE value="Background work speed-ups" />
     <MESSAGE value="Script to track who replies when expected to, and who doesn't." />
     <MESSAGE value="Don't return message miles away when we don't know it." />
@@ -659,7 +657,10 @@
     <MESSAGE value="WIP migration" />
     <MESSAGE value="Tweak expected chat threshold" />
     <MESSAGE value="Notifications not taking you to the right place in chitchat on the mobile app" />
-    <option name="LAST_COMMIT_MESSAGE" value="Notifications not taking you to the right place in chitchat on the mobile app" />
+    <MESSAGE value="More on related users" />
+    <MESSAGE value="Only notify on related users when there is an email to check" />
+    <MESSAGE value="Rookie error nit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Rookie error nit" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1580643311321">
@@ -684,16 +685,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1581098603570">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1581109370664">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098603570" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1581097493404">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581109370664" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1581111067226">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581097493404" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581111067226" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -753,11 +754,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1581098605189">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1581109372100">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098605189" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581109372100" />
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1580834615398">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -766,16 +767,16 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1581098962374">
+    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1581110396034">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098962374" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1581098129370">
+    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581110396034" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1581110239343">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545385023" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098129370" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581110239343" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>

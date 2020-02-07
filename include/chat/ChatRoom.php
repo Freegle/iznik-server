@@ -643,12 +643,16 @@ WHERE chat_rooms.id IN $idlist;";
         return ($ret);
     }
 
-    private function getSnippet($msgtype, $chatmsg) {
+    public function getSnippet($msgtype, $chatmsg) {
         switch ($msgtype) {
             case ChatMessage::TYPE_ADDRESS: $ret = 'Address sent...'; break;
             case ChatMessage::TYPE_NUDGE: $ret = 'Nudged'; break;
             case ChatMessage::TYPE_SCHEDULE: $ret = 'Availability updated...'; break;
             case ChatMessage::TYPE_SCHEDULE_UPDATED: $ret = 'Availability updated...'; break;
+            case ChatMessage::TYPE_COMPLETED: $ret = 'Item completed...'; break;
+            case ChatMessage::TYPE_PROMISED: $ret = 'Item promised...'; break;
+            case ChatMessage::TYPE_RENEGED: $ret = 'Promise cancelled...'; break;
+            case ChatMessage::TYPE_IMAGE: $ret = 'Image...'; break;
             default: {
                 # We don't want to land in the middle of an encoded emoji otherwise it will display
                 # wrongly.
