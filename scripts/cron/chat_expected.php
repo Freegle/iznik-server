@@ -57,17 +57,17 @@ foreach ($expecteds as $expected) {
 
 error_log("Received $received waiting $waiting");
 error_log("\nWorst:\n");
-$expectees = $dbhr->preQuery("SELECT SUM(value) AS net, expectee FROM `users_expected` GROUP BY expectee HAVING net < 0 ORDER BY net ASC LIMIT 10;");
+$expectees = $dbhr->preQuery("SELECT SUM(value) AS net, COUNT(*) AS count, expectee FROM `users_expected` GROUP BY expectee HAVING net < 0 ORDER BY net ASC LIMIT 10;");
 
 foreach ($expectees as $expectee) {
     $u = new User($dbhr, $dbhm, $expectee['expectee']);
-    error_log("#{$expectee['expectee']} " . $u->getEmailPreferred() . " net {$expectee['net']}");
+    error_log("#{$expectee['expectee']} " . $u->getEmailPreferred() . " net {$expectee['net']} of {$expectees['count']}");
 }
 
 error_log("\nBest:\n");
-$expectees = $dbhr->preQuery("SELECT SUM(value) AS net, expectee FROM `users_expected` GROUP BY expectee HAVING net > 0 ORDER BY net DESC LIMIT 10;");
+$expectees = $dbhr->preQuery("SELECT SUM(value) AS net, COUNT(*) AS count, expectee FROM `users_expected` GROUP BY expectee HAVING net > 0 ORDER BY net DESC LIMIT 10;");
 
 foreach ($expectees as $expectee) {
     $u = new User($dbhr, $dbhm, $expectee['expectee']);
-    error_log("#{$expectee['expectee']} " . $u->getEmailPreferred() . " net {$expectee['net']}");
+    error_log("#{$expectee['expectee']} " . $u->getEmailPreferred() . " net {$expectee['net']} of {$expectees['count']}");
 }
