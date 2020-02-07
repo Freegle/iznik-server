@@ -4266,6 +4266,15 @@ CREATE TABLE `worrywords` (
 ) ENGINE=InnoDB AUTO_INCREMENT=564 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+DROP TABLE IF EXISTS `users_related`;
+CREATE TABLE `users_related` (
+                                 `id` bigint(20) UNSIGNED NOT NULL,
+                                 `user1` bigint(20) UNSIGNED NOT NULL,
+                                 `user2` bigint(20) UNSIGNED NOT NULL,
+                                 `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                 `notified` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Final view structure for view `VW_Essex_Searches`
 --
