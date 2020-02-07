@@ -11,7 +11,7 @@ global $dbhr, $dbhm;
 $lockh = lockScript(basename(__FILE__));
 
 $oldest = date("Y-m-d", strtotime("Midnight 7 days ago"));
-$newest = date("Y-m-d H:i:s", strtotime("24 hours ago"));
+$newest = date("Y-m-d H:i:s", strtotime("48 hours ago"));
 $expecteds = $dbhr->preQuery("SELECT chat_messages.*, user1, user2 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_messages.date>= '$oldest' AND chat_messages.date <= '$newest' AND replyexpected = 1 AND replyreceived = 0;");
 $received = 0;
 $waiting = 0;
@@ -61,7 +61,7 @@ $expectees = $dbhr->preQuery("SELECT SUM(value) AS net, COUNT(*) AS count, expec
 
 foreach ($expectees as $expectee) {
     $u = new User($dbhr, $dbhm, $expectee['expectee']);
-    error_log("#{$expectee['expectee']} " . $u->getEmailPreferred() . " net {$expectee['net']} of {$expectees['count']}");
+    error_log("#{$expectee['expectee']} " . $u->getEmailPreferred() . " net {$expectee['net']} of {$expectee['count']}");
 }
 
 error_log("\nBest:\n");
@@ -69,5 +69,5 @@ $expectees = $dbhr->preQuery("SELECT SUM(value) AS net, COUNT(*) AS count, expec
 
 foreach ($expectees as $expectee) {
     $u = new User($dbhr, $dbhm, $expectee['expectee']);
-    error_log("#{$expectee['expectee']} " . $u->getEmailPreferred() . " net {$expectee['net']} of {$expectees['count']}");
+    error_log("#{$expectee['expectee']} " . $u->getEmailPreferred() . " net {$expectee['net']} of {$expectee['count']}");
 }
