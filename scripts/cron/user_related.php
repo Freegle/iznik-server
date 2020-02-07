@@ -18,14 +18,14 @@ foreach ($relateds as $related) {
     $email = $u->getEmailPreferred();
     $email = $email ? $email : 'email not known';
 
-    $str = "This is an automated mail.  We have detected users who may be the same real person.\n\n" +
-        "There are several possible reasons for this:\n" +
-        "1) They are confused.  You can merge accounts in ModTools from Members->Approved to help them.\n" +
-        "2) Multiple people are using the same physical device, e.g. in a family.  This is probably fine.\n" +
-        "3) They are trying to pretend to be multiple people.\n\n" +
-        "Please review their activity on your groups; if you think it's fine, then you don't need to do anything and we won't tell you about them again.\n\n" +
-        "Note that some of these emails might not be members of your group.  That would be common if they've just signed in using the wrong method.\n\n" +
-        "If you need more info, please reply to this mail and Support will help you.\n\n" +
+    $str = "This is an automated mail.  We have detected users who may be the same real person.\n\n" .
+        "There are several possible reasons for this:\n" .
+        "1) They are confused.  You can merge accounts in ModTools from Members->Approved to help them.\n" .
+        "2) Multiple people are using the same physical device, e.g. in a family.  This is probably fine.\n" .
+        "3) They are trying to pretend to be multiple people.\n\n" .
+        "Please review their activity on your groups; if you think it's fine, then you don't need to do anything and we won't tell you about them again.\n\n" .
+        "Note that some of these emails might not be members of your group.  That would be common if they've just signed in using the wrong method.\n\n" .
+        "If you need more info, please reply to this mail and Support will help you.\n\n" .
         "User #{$related['user1']} (" . $u->getName() . " $email, on " . implode(', ', $groups) . ") may be the same as:\n";
     $others = $dbhr->preQuery("SELECT * FROM users_related WHERE user1 = ?;", [
         $related['user1']
