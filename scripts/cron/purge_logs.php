@@ -108,9 +108,10 @@ error_log("Purge email logs");
 
 try {
     $start = date('Y-m-d', strtotime("25 hours ago"));
+    $end = date('Y-m-d');
     $total = 0;
     do {
-        $count = $dbhm->exec("DELETE FROM logs_emails WHERE `timestamp` < '$start' LIMIT 1000;");
+        $count = $dbhm->exec("DELETE FROM logs_emails WHERE `timestamp` < '$start' OR `timestamp` > '$end' LIMIT 1000;");
         $total += $count;
         error_log("...$total");
         set_time_limit(600);
