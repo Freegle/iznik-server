@@ -31,10 +31,17 @@ foreach ($relateds as $related) {
         $related['user1']
     ]);
 
+    $anemail = FALSE;
+
     foreach ($others as $other) {
         $u2 = new User($dbhr, $dbhm, $other['user2']);
         $groups = array_column($u2->getMemberships(), 'nameshort');
         $email = $u2->getEmailPreferred();
+
+        if ($email) {
+            $anemail = TRUE;
+        }
+
         $email = $email ? $email : 'email not known';
         $str .= "...#{$other['user2']} " . $u2->getName() . " $email, on " . implode(', ', $groups);
 
@@ -45,15 +52,18 @@ foreach ($relateds as $related) {
         $str .= "\n";
     }
 
-    $dbhm->preExec("UPDATE users_related SET notified = 1 WHERE user1 = ? AND user2 = ?;", [
-        $related['user1'],
-        $related['user2']
-    ]);
+    # Can only really notify if there is an email address for them to check.
+    if ($anemail) {
+        $dbhm->preExec("UPDATE users_related SET notified = 1 WHERE user1 = ? AND user2 = ?;", [
+            $related['user1'],
+            $related['user2']
+        ]);
 
-    $dbhm->preExec("UPDATE users_related SET notified = 1 WHERE user1 = ? AND user2 = ?;", [
-        $related['user2'],
-        $related['user1']
-    ]);
+        $dbhm->preExec("UPDATE users_related SET notified = 1 WHERE user1 = ? AND user2 = ?;", [
+            $related['user2'],
+            $related['user1']
+        ]);
 
-    mail("log@ehibbert.org.uk", "Possible related users {$related['user1']}", $str, [], '-f' . SUPPORT_ADDR);
+        mail("log@ehibbert.org.uk", "Possible related users {$related['user1']}", $str, [], '-f' . SUPPORT_ADDR);
+    }
 }
