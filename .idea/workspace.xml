@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Not setting">
-      <change afterPath="$PROJECT_DIR$/scripts/cli/message_badreplies.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/migrate/norfolk.php" afterDir="false" />
+    <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="Mopre">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/mail/MailRouter.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/mail/MailRouter.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cron/user_related.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/user_related.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,25 +99,30 @@
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.userTest.testHide">
+  <component name="RunManager" selected="PHPUnit.newsfeedAPITest.testBasic">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatMessagesAPITest.testConversation" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="newsfeedAPITest.testBasic" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatMessagesAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatMessagesTest.php" method="testConversation" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="newsfeedAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/newsfeedTest.php" method="testBasic" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="chatRoomsAPITest.testBanned" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="sessionTest.testRelated" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatRoomsAPITest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/chatRoomsTest.php" method="testBanned" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testRelated" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="messageTest.testChaseup" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+    <configuration name="userTest.testAFreegler" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" method="testChaseup" scope="Method" use_alternative_configuration_file="true" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testAFreegler" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="userTest.testBadYahooId" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testBadYahooId" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="userTest.testHide" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -130,25 +130,20 @@
       <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testHide" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
-    <configuration name="userTest.testLogins" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testLogins" scope="Method" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
     <list>
-      <item itemvalue="PHPUnit.chatRoomsAPITest.testBanned" />
-      <item itemvalue="PHPUnit.messageTest.testChaseup" />
-      <item itemvalue="PHPUnit.chatMessagesAPITest.testConversation" />
-      <item itemvalue="PHPUnit.userTest.testLogins" />
       <item itemvalue="PHPUnit.userTest.testHide" />
+      <item itemvalue="PHPUnit.userTest.testAFreegler" />
+      <item itemvalue="PHPUnit.userTest.testBadYahooId" />
+      <item itemvalue="PHPUnit.sessionTest.testRelated" />
+      <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.newsfeedAPITest.testBasic" />
+        <item itemvalue="PHPUnit.sessionTest.testRelated" />
+        <item itemvalue="PHPUnit.userTest.testBadYahooId" />
+        <item itemvalue="PHPUnit.userTest.testAFreegler" />
         <item itemvalue="PHPUnit.userTest.testHide" />
-        <item itemvalue="PHPUnit.userTest.testLogins" />
-        <item itemvalue="PHPUnit.chatMessagesAPITest.testConversation" />
-        <item itemvalue="PHPUnit.messageTest.testChaseup" />
-        <item itemvalue="PHPUnit.chatRoomsAPITest.testBanned" />
       </list>
     </recent_temporary>
   </component>
@@ -231,140 +226,7 @@
       <workItem from="1578953484687" duration="18515000" />
       <workItem from="1579245581582" duration="19910000" />
       <workItem from="1580820604867" duration="17907000" />
-      <workItem from="1580893378540" duration="1740000" />
-    </task>
-    <task id="LOCAL-00408" summary="UT fixes">
-      <created>1579796826533</created>
-      <option name="number" value="00408" />
-      <option name="presentableId" value="LOCAL-00408" />
-      <option name="project" value="LOCAL" />
-      <updated>1579796826533</updated>
-    </task>
-    <task id="LOCAL-00409" summary="Add more specific diags for a sentry problem we're seeing">
-      <created>1579797846617</created>
-      <option name="number" value="00409" />
-      <option name="presentableId" value="LOCAL-00409" />
-      <option name="project" value="LOCAL" />
-      <updated>1579797846617</updated>
-    </task>
-    <task id="LOCAL-00410" summary="UT fixes">
-      <created>1579799062427</created>
-      <option name="number" value="00410" />
-      <option name="presentableId" value="LOCAL-00410" />
-      <option name="project" value="LOCAL" />
-      <updated>1579799062427</updated>
-    </task>
-    <task id="LOCAL-00411" summary="UT fixes">
-      <created>1579800415836</created>
-      <option name="number" value="00411" />
-      <option name="presentableId" value="LOCAL-00411" />
-      <option name="project" value="LOCAL" />
-      <updated>1579800415836</updated>
-    </task>
-    <task id="LOCAL-00412" summary="Add call to get unread chat message count">
-      <created>1579855162651</created>
-      <option name="number" value="00412" />
-      <option name="presentableId" value="LOCAL-00412" />
-      <option name="project" value="LOCAL" />
-      <updated>1579855162651</updated>
-    </task>
-    <task id="LOCAL-00413" summary="Record how many times someone has viewed a message">
-      <created>1579874743956</created>
-      <option name="number" value="00413" />
-      <option name="presentableId" value="LOCAL-00413" />
-      <option name="project" value="LOCAL" />
-      <updated>1579874743956</updated>
-    </task>
-    <task id="LOCAL-00414" summary="Allow retrieve of recently viewed messages">
-      <created>1579876377626</created>
-      <option name="number" value="00414" />
-      <option name="presentableId" value="LOCAL-00414" />
-      <option name="project" value="LOCAL" />
-      <updated>1579876377626</updated>
-    </task>
-    <task id="LOCAL-00415" summary="Return most recently viewed messages first">
-      <created>1579879117554</created>
-      <option name="number" value="00415" />
-      <option name="presentableId" value="LOCAL-00415" />
-      <option name="project" value="LOCAL" />
-      <updated>1579879117554</updated>
-    </task>
-    <task id="LOCAL-00416" summary="Error when recently viewed messages called logged out">
-      <created>1579884294408</created>
-      <option name="number" value="00416" />
-      <option name="presentableId" value="LOCAL-00416" />
-      <option name="project" value="LOCAL" />
-      <updated>1579884294408</updated>
-    </task>
-    <task id="LOCAL-00417" summary="Don't return an error for logged out Views.">
-      <created>1579885054396</created>
-      <option name="number" value="00417" />
-      <option name="presentableId" value="LOCAL-00417" />
-      <option name="project" value="LOCAL" />
-      <updated>1579885054396</updated>
-    </task>
-    <task id="LOCAL-00418" summary="Make postcode typeahead match even if you omit the space.">
-      <created>1579888918482</created>
-      <option name="number" value="00418" />
-      <option name="presentableId" value="LOCAL-00418" />
-      <option name="project" value="LOCAL" />
-      <updated>1579888918482</updated>
-    </task>
-    <task id="LOCAL-00419" summary="False edits being recorded">
-      <created>1579901458183</created>
-      <option name="number" value="00419" />
-      <option name="presentableId" value="LOCAL-00419" />
-      <option name="project" value="LOCAL" />
-      <updated>1579901458183</updated>
-    </task>
-    <task id="LOCAL-00420" summary="Fix error log">
-      <created>1580124325980</created>
-      <option name="number" value="00420" />
-      <option name="presentableId" value="LOCAL-00420" />
-      <option name="project" value="LOCAL" />
-      <updated>1580124325980</updated>
-    </task>
-    <task id="LOCAL-00421" summary="Creating a chat fails occasionally due to timing windows.">
-      <created>1580124711855</created>
-      <option name="number" value="00421" />
-      <option name="presentableId" value="LOCAL-00421" />
-      <option name="project" value="LOCAL" />
-      <updated>1580124711855</updated>
-    </task>
-    <task id="LOCAL-00422" summary="Using wrong link in thank you for regular donations">
-      <created>1580126163135</created>
-      <option name="number" value="00422" />
-      <option name="presentableId" value="LOCAL-00422" />
-      <option name="project" value="LOCAL" />
-      <updated>1580126163135</updated>
-    </task>
-    <task id="LOCAL-00423" summary="Don't create new items which only differ by whitespace">
-      <created>1580146293821</created>
-      <option name="number" value="00423" />
-      <option name="presentableId" value="LOCAL-00423" />
-      <option name="project" value="LOCAL" />
-      <updated>1580146293821</updated>
-    </task>
-    <task id="LOCAL-00424" summary="Record logged out searches">
-      <created>1580190708939</created>
-      <option name="number" value="00424" />
-      <option name="presentableId" value="LOCAL-00424" />
-      <option name="project" value="LOCAL" />
-      <updated>1580190708939</updated>
-    </task>
-    <task id="LOCAL-00425" summary="More whitespace fixes for edits">
-      <created>1580211109449</created>
-      <option name="number" value="00425" />
-      <option name="presentableId" value="LOCAL-00425" />
-      <option name="project" value="LOCAL" />
-      <updated>1580211109449</updated>
-    </task>
-    <task id="LOCAL-00426" summary="Add app version to session call for finding out of date app installs.">
-      <created>1580225390964</created>
-      <option name="number" value="00426" />
-      <option name="presentableId" value="LOCAL-00426" />
-      <option name="project" value="LOCAL" />
-      <updated>1580225390964</updated>
+      <workItem from="1580893378540" duration="25374000" />
     </task>
     <task id="LOCAL-00427" summary="WIP on finding more relevant messages">
       <created>1580225407234</created>
@@ -576,7 +438,140 @@
       <option name="project" value="LOCAL" />
       <updated>1580845744047</updated>
     </task>
-    <option name="localTasksCounter" value="457" />
+    <task id="LOCAL-00457" summary="Finally kill off &quot;A freegler&quot; and replace it with a made up name">
+      <created>1580895333108</created>
+      <option name="number" value="00457" />
+      <option name="presentableId" value="LOCAL-00457" />
+      <option name="project" value="LOCAL" />
+      <updated>1580895333109</updated>
+    </task>
+    <task id="LOCAL-00458" summary="UT fixes">
+      <created>1580897051139</created>
+      <option name="number" value="00458" />
+      <option name="presentableId" value="LOCAL-00458" />
+      <option name="project" value="LOCAL" />
+      <updated>1580897051139</updated>
+    </task>
+    <task id="LOCAL-00459" summary="Bug in earlier fix causing blank chat messages">
+      <created>1580905139850</created>
+      <option name="number" value="00459" />
+      <option name="presentableId" value="LOCAL-00459" />
+      <option name="project" value="LOCAL" />
+      <updated>1580905139850</updated>
+    </task>
+    <task id="LOCAL-00460" summary="Tweak ReturnPath seed values">
+      <created>1580905168970</created>
+      <option name="number" value="00460" />
+      <option name="presentableId" value="LOCAL-00460" />
+      <option name="project" value="LOCAL" />
+      <updated>1580905168970</updated>
+    </task>
+    <task id="LOCAL-00461" summary="Name not appearing in message reply">
+      <created>1580912922751</created>
+      <option name="number" value="00461" />
+      <option name="presentableId" value="LOCAL-00461" />
+      <option name="project" value="LOCAL" />
+      <updated>1580912922751</updated>
+    </task>
+    <task id="LOCAL-00462" summary="UT fixes">
+      <created>1580914026888</created>
+      <option name="number" value="00462" />
+      <option name="presentableId" value="LOCAL-00462" />
+      <option name="project" value="LOCAL" />
+      <updated>1580914026888</updated>
+    </task>
+    <task id="LOCAL-00463" summary="UT fixes">
+      <created>1580915401457</created>
+      <option name="number" value="00463" />
+      <option name="presentableId" value="LOCAL-00463" />
+      <option name="project" value="LOCAL" />
+      <updated>1580915401457</updated>
+    </task>
+    <task id="LOCAL-00464" summary="Don't ask &quot;Could you help&quot; about deleted messages">
+      <created>1580922180506</created>
+      <option name="number" value="00464" />
+      <option name="presentableId" value="LOCAL-00464" />
+      <option name="project" value="LOCAL" />
+      <updated>1580922180506</updated>
+    </task>
+    <task id="LOCAL-00465" summary="Not able to reopen chats">
+      <created>1580980277391</created>
+      <option name="number" value="00465" />
+      <option name="presentableId" value="LOCAL-00465" />
+      <option name="project" value="LOCAL" />
+      <updated>1580980277391</updated>
+    </task>
+    <task id="LOCAL-00466" summary="Remove Huawei signature">
+      <created>1580981638010</created>
+      <option name="number" value="00466" />
+      <option name="presentableId" value="LOCAL-00466" />
+      <option name="project" value="LOCAL" />
+      <updated>1580981638010</updated>
+    </task>
+    <task id="LOCAL-00467" summary="Add call to identify related users">
+      <created>1581065407167</created>
+      <option name="number" value="00467" />
+      <option name="presentableId" value="LOCAL-00467" />
+      <option name="project" value="LOCAL" />
+      <updated>1581065407167</updated>
+    </task>
+    <task id="LOCAL-00468" summary="Cron job to alert if we find related users">
+      <created>1581070986462</created>
+      <option name="number" value="00468" />
+      <option name="presentableId" value="LOCAL-00468" />
+      <option name="project" value="LOCAL" />
+      <updated>1581070986462</updated>
+    </task>
+    <task id="LOCAL-00469" summary="Update schema.sql">
+      <created>1581073067391</created>
+      <option name="number" value="00469" />
+      <option name="presentableId" value="LOCAL-00469" />
+      <option name="project" value="LOCAL" />
+      <updated>1581073067391</updated>
+    </task>
+    <task id="LOCAL-00470" summary="Add name to related mail">
+      <created>1581073396837</created>
+      <option name="number" value="00470" />
+      <option name="presentableId" value="LOCAL-00470" />
+      <option name="project" value="LOCAL" />
+      <updated>1581073396837</updated>
+    </task>
+    <task id="LOCAL-00471" summary="Email logs from the future">
+      <created>1581092291136</created>
+      <option name="number" value="00471" />
+      <option name="presentableId" value="LOCAL-00471" />
+      <option name="project" value="LOCAL" />
+      <updated>1581092291136</updated>
+    </task>
+    <task id="LOCAL-00472" summary="More on expected">
+      <created>1581093621625</created>
+      <option name="number" value="00472" />
+      <option name="presentableId" value="LOCAL-00472" />
+      <option name="project" value="LOCAL" />
+      <updated>1581093621626</updated>
+    </task>
+    <task id="LOCAL-00473" summary="WIP migration">
+      <created>1581093653464</created>
+      <option name="number" value="00473" />
+      <option name="presentableId" value="LOCAL-00473" />
+      <option name="project" value="LOCAL" />
+      <updated>1581093653464</updated>
+    </task>
+    <task id="LOCAL-00474" summary="Tweak expected chat threshold">
+      <created>1581097503943</created>
+      <option name="number" value="00474" />
+      <option name="presentableId" value="LOCAL-00474" />
+      <option name="project" value="LOCAL" />
+      <updated>1581097503944</updated>
+    </task>
+    <task id="LOCAL-00475" summary="Notifications not taking you to the right place in chitchat on the mobile app">
+      <created>1581098604150</created>
+      <option name="number" value="00475" />
+      <option name="presentableId" value="LOCAL-00475" />
+      <option name="project" value="LOCAL" />
+      <updated>1581098604150</updated>
+    </task>
+    <option name="localTasksCounter" value="476" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -639,32 +634,32 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Autorepost date showing in past." />
-    <MESSAGE value="We only send mail to people who've been active within the last year.  Reduce this to six months, as we've seen complaints in ReturnPath from users who have been inactive for a few months." />
-    <MESSAGE value="ChitChat emails are being sent even though Settings says they shouldn't be." />
-    <MESSAGE value="Record web build date / app version to spot old clients" />
-    <MESSAGE value="Subject line for chat notifications is confused by the message that is generated to tell someone that an item is taken.  Refer to the last &quot;interested in&quot; message where possible." />
-    <MESSAGE value="Revert &quot;ChitChat emails are being sent even though Settings says they shouldn't be.&quot;&#10;&#10;This reverts commit 1d1bbbc5" />
-    <MESSAGE value="Improving activity stats" />
-    <MESSAGE value="Return approximate distance away" />
-    <MESSAGE value="Tweak approx distance rounding" />
-    <MESSAGE value="Calculate approx distance from message not user" />
-    <MESSAGE value="Chat notification including wrong name info" />
-    <MESSAGE value="Don't allow users who are banned on a group to reply to messages on that group." />
-    <MESSAGE value="Return a different error for banned users trying to reply" />
-    <MESSAGE value="Add server feature to let user indicate whether or not a reply is expected to a chat message" />
-    <MESSAGE value="Not setting 0 value correctly." />
     <MESSAGE value="Nit" />
-    <MESSAGE value="Update schema.sql" />
     <MESSAGE value="Don't update web/app version too often" />
     <MESSAGE value="Shhh for nchan errors" />
     <MESSAGE value="Background work speed-ups" />
     <MESSAGE value="Script to track who replies when expected to, and who doesn't." />
     <MESSAGE value="Don't return message miles away when we don't know it." />
     <MESSAGE value="Allow login with different password salt" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Don't allow silly long names." />
-    <option name="LAST_COMMIT_MESSAGE" value="Don't allow silly long names." />
+    <MESSAGE value="Finally kill off &quot;A freegler&quot; and replace it with a made up name" />
+    <MESSAGE value="Bug in earlier fix causing blank chat messages" />
+    <MESSAGE value="Tweak ReturnPath seed values" />
+    <MESSAGE value="Name not appearing in message reply" />
+    <MESSAGE value="UT fixes" />
+    <MESSAGE value="Don't ask &quot;Could you help&quot; about deleted messages" />
+    <MESSAGE value="Not able to reopen chats" />
+    <MESSAGE value="Remove Huawei signature" />
+    <MESSAGE value="Add call to identify related users" />
+    <MESSAGE value="Cron job to alert if we find related users" />
+    <MESSAGE value="Update schema.sql" />
+    <MESSAGE value="Add name to related mail" />
+    <MESSAGE value="Email logs from the future" />
+    <MESSAGE value="More on expected" />
+    <MESSAGE value="WIP migration" />
+    <MESSAGE value="Tweak expected chat threshold" />
+    <MESSAGE value="Notifications not taking you to the right place in chitchat on the mobile app" />
+    <option name="LAST_COMMIT_MESSAGE" value="Notifications not taking you to the right place in chitchat on the mobile app" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1580643311321">
@@ -689,16 +684,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1580895293827">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1581098603570">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580895293827" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1580894620053">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098603570" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1581097493404">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580894620053" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581097493404" />
     <state x="93" y="93" width="1521" height="735" key="DirDiffDialog" timestamp="1579012863721">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -708,26 +703,26 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="717" y="359" key="Github.Dialog.Accounts.Choose/0.0.1707.920@0.0.1707.920" timestamp="1580282462596" />
-    <state width="1877" height="225" key="GridCell.Tab.0.bottom" timestamp="1580895142414">
+    <state width="1877" height="225" key="GridCell.Tab.0.bottom" timestamp="1581098571877">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="225" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580895142414" />
-    <state width="1877" height="225" key="GridCell.Tab.0.center" timestamp="1580895142413">
+    <state width="1877" height="225" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098571877" />
+    <state width="1877" height="225" key="GridCell.Tab.0.center" timestamp="1581098571877">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="225" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580895142413" />
-    <state width="1877" height="225" key="GridCell.Tab.0.left" timestamp="1580895142413">
+    <state width="1877" height="225" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098571877" />
+    <state width="1877" height="225" key="GridCell.Tab.0.left" timestamp="1581098571877">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="225" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580895142413" />
-    <state width="1877" height="225" key="GridCell.Tab.0.right" timestamp="1580895142413">
+    <state width="1877" height="225" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098571877" />
+    <state width="1877" height="225" key="GridCell.Tab.0.right" timestamp="1581098571877">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="225" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580895142413" />
+    <state width="1877" height="225" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098571877" />
     <state width="1877" height="348" key="GridCell.Tab.1.bottom" timestamp="1580815370015">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -758,11 +753,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1580845745333">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1581098605189">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580845745333" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098605189" />
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1580834615398">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -771,16 +766,16 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1580895140644">
+    <state x="547" y="244" width="1373" height="552" key="find.popup" timestamp="1581098962374">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580895140644" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1580893673269">
+    <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098962374" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1581098129370">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545385023" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580893673269" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581098129370" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
