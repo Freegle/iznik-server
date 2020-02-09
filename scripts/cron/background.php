@@ -30,7 +30,6 @@ try {
         $events = [];
         $count = 0;
         $chatlistsqueued = 0;
-        $webpush = [];
 
         do {
             if ($job) {
@@ -54,7 +53,8 @@ try {
                             }
 
                             case 'webpush': {
-                                $webpush[$data['userid']] = $data;
+                                $n = new PushNotifications($dbhr, $dbhm);
+                                $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
                                 break;
                             }
 
@@ -151,17 +151,6 @@ try {
             #error_log(count($events) . " events");
 
             $dbhm->exec($sql, FALSE);
-        }
-
-        if (count($webpush) > 0) {
-            # This is used to suppress duplicates to the same user.
-            $n = new PushNotifications($dbhr, $dbhm);
-
-            foreach ($webpush as $userid => $data) {
-                $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
-            }
-
-            $webpush = [];
         }
     }
 } catch (Exception $e) {
