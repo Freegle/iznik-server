@@ -53,8 +53,8 @@ foreach ($relateds as $related) {
 
         $common = array_intersect(array_column($u1membs, 'id'), array_column($u2membs, 'id'));
 
-        # Can only really notify local groups if there is an email address for them to check.
-        if (count($common) && $anemail) {
+        # Can only really notify if there is an email address for them to check.
+        if (count($common) > 0) {
             $g = new Group($dbhr, $dbhm, $common[0]);
             mail($g->getModsEmail() . ", log@ehibbert.org.uk", "Possible related users {$related['user1']}",
                 "This is an automated mail.  We have detected users who may be the same real person.\n\n" .
