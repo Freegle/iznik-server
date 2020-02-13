@@ -22,4 +22,9 @@ foreach ($seeds as $seed) {
     } else {
         error_log("...found {$seed['email']} as $uid");
     }
+
+    $dbhm->preExec("UPDATE returnpath_seedlist SET userid = ? WHERE id = ?;", [
+        $uid,
+        $seed['id']
+    ]);
 }
