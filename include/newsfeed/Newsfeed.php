@@ -127,15 +127,17 @@ class Newsfeed extends Entity
 
                     do {
                         $oldcount = count($ids);
-                        #error_log("Example threads $oldcount " . json_encode($ids) . " count " . count($ids) . " contributors " . count($contributed));
-                        $replies = $this->dbhr->preQuery("SELECT id, userid, timestamp FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ");");
+                        # error_log("Example threads $oldcount " . json_encode($ids) . " count " . count($ids) . " contributors " . count($contributed));
+                        $replies = $this->dbhr->preQuery("SELECT id, userid, timestamp FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") OR id IN (" . implode(',', $ids) . ");");
 
                         # Repeat our widening search.
                         foreach ($replies as $reply) {
                             # See if any of these people have recently engaged.
                             $time = strtotime($reply['timestamp']);
 
+                            #error_log("Consider reply from {$reply['userid']} time $time vs $recent");
                             if ($time >= $recent) {
+                                #error_log("...add");
                                 $contributed[] = $reply['userid'];
                             }
 

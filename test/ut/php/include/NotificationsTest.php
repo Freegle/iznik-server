@@ -93,7 +93,7 @@ class notificationsTest extends IznikTestCase {
 
         $f = new Newsfeed($this->dbhm, $this->dbhm);
         $nid = $f->create(Newsfeed::TYPE_MESSAGE, $uid1, 'Test message');
-        $this->log("Original post $nid");
+        $this->log("Reply by $uid2 to $nid should notify $uid1");
         $rid = $f->create(Newsfeed::TYPE_MESSAGE, $uid2, 'Test reply', NULL, NULL, $nid);
         $this->log("Reply $rid");
         $n->add($uid2, $uid1, Notifications::TYPE_LOVED_POST, $nid);
