@@ -101,24 +101,59 @@ class Newsfeed extends Entity
                 $this->fetch($this->dbhm, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
 
                 if ($replyto && $hidden == 'NULL') {
-                    # Bump the thread.
-                    $this->dbhm->preExec("UPDATE newsfeed SET timestamp = NOW() WHERE id = ?;", [ $replyto ]);
+                    # Bump the thread all the way up to the thread head, so that it moves up the feed.
+                    $bump = $replyto;
 
-                    $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [ $replyto ]);
-                    foreach ($origs as $orig) {
+                    do {
+                        $parent = $this->dbhr->preQuery("SELECT replyto FROM newsfeed WHERE id = ?;", [
+                            $bump
+                        ], FALSE, FALSE);
+
+                        $this->dbhm->preExec("UPDATE newsfeed SET timestamp = NOW() WHERE id = ?;", [ $bump ]);
+
+                        $bump = count($parent) ? $parent[0]['replyto'] : NULL;
+                    } while ($bump);
+
+                    # Now work down from the thread head to find all the people who have contributed to a thread.
+                    # We don't necessarily want to notify all users who have commented on a thread - that would mean that you
+                    # got pestered for a thread you'd long since lost interest in, and many people won't work out how to unfollow.
+                    # So notify anyone who has commented in the last week.
+                    $recent = strtotime("midnight 7 days ago");
+
+                    $contributed = [];
+                    $ids = [
+                        $replyto
+                    ];
+
+                    do {
+                        $oldcount = count($ids);
+                        #error_log("Example threads $oldcount " . json_encode($ids) . " count " . count($ids) . " contributors " . count($contributed));
+                        $replies = $this->dbhr->preQuery("SELECT id, userid, timestamp FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ");");
+
+                        # Repeat our widening search.
+                        foreach ($replies as $reply) {
+                            # See if any of these people have recently engaged.
+                            $time = strtotime($reply['timestamp']);
+
+                            if ($time >= $recent) {
+                                $contributed[] = $reply['userid'];
+                            }
+
+                            $ids[] = $reply['id'];
+                        }
+
+                        # We don't want to alert the user who added this.
+                        $contributed = array_unique(array_filter($contributed, function ($id) use ($userid) {
+                            return $id !== $userid;
+                        }));
+
+                        $ids = array_unique($ids);
+                    } while (count($ids) !== $oldcount);
+
+                    # Now notify them, pointing at the part of the thread which has been replied to.
+                    foreach ($contributed as $contrib) {
                         $n = new Notifications($this->dbhr, $this->dbhm);
-
-                        if ($orig['userid']) {
-                            # Some posts don't have a userid, e.g. central publicity.  Otherwise assume the person
-                            # who started the thread always wants to know.
-                            $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id, $replyto);
-                        }
-
-                        $engageds = $this->engaged($replyto, [ $orig['userid'], $userid ]);
-
-                        foreach ($engageds as $engaged) {
-                            $rc = $n->add($userid, $engaged['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id, $replyto);
-                        }
+                        $n->add($userid, $contrib, Notifications::TYPE_COMMENT_ON_YOUR_POST, $id, $replyto);
                     }
 
                     # We might have notifications which refer to this thread.  But there's no need to show them
@@ -133,17 +168,6 @@ class Newsfeed extends Entity
         }
 
         return($id);
-    }
-
-    private function engaged($threadid, $excludes) {
-        # We don't necessarily want to notify all users who have commented on a thread - that would mean that you
-        # got pestered for a thread you'd long since lost interest in, and many people won't work out how to unfollow.
-        # So as a quick hack, notify anyone who has commented in the last week.
-        $excludes = array_filter($excludes, function($var){return !is_null($var);} );
-        $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
-        $sql = $excludes ? ("SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND userid NOT IN (" . implode(',', $excludes) . ") AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND userid NOT IN (" . implode(',', $excludes) . ") AND timestamp >= '$mysqltime';") : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND timestamp >= '$mysqltime';";
-        $engageds = $this->dbhr->preQuery($sql);
-        return($engageds);
     }
 
     private function setThreadHead(&$entries, $threadhead) {
