@@ -1487,7 +1487,9 @@ ORDER BY lastdate DESC;";
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                     # We can see their emails.
-                    $rets[$msg['id']]['fromuser']['emails'] = $emails[$msg['fromuser']];
+                    if (pres($msg['fromuser'], $emails)) {
+                        $rets[$msg['id']]['fromuser']['emails'] = $emails[$msg['fromuser']];
+                    }
                 } else if (pres('partner', $_SESSION)) {
                     # Partners can see emails which belong to us, for the purposes of replying.
                     $es = $emails[$msg['fromuser']];
