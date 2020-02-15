@@ -42,6 +42,10 @@ function abtest() {
             $shown = array_key_exists('shown', $_REQUEST) ? filter_var($_REQUEST['shown'], FILTER_VALIDATE_BOOLEAN) : NULL;
             $action = array_key_exists('action', $_REQUEST) ? filter_var($_REQUEST['action'], FILTER_VALIDATE_BOOLEAN) : NULL;
 
+            // The client can decide that an action is more valuable.  In this case we weight it, which will result in
+            // it getting a higher rate, and therefore being chosen more often.
+            $score = intval(presdef('score', $_REQUEST, 1));
+
             if ($uid && $variant) {
                 if ($shown !== NULL) {
                     $sql = "INSERT INTO abtest (uid, variant, shown) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1) ON DUPLICATE KEY UPDATE shown = shown + 1, rate = COALESCE(100 * action / shown, 0);";
@@ -49,7 +53,7 @@ function abtest() {
                 }
 
                 if ($action !== NULL) {
-                    $sql = "INSERT INTO abtest (uid, variant, action, rate) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1,0) ON DUPLICATE KEY UPDATE action = action + 1, rate = COALESCE(100 * action / shown, 0);";
+                    $sql = "INSERT INTO abtest (uid, variant, action, rate) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1,0) ON DUPLICATE KEY UPDATE action = action + $score, rate = COALESCE(100 * action / shown, 0);";
                     $dbhm->background($sql);
                 }
             }
