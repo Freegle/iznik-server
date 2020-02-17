@@ -370,12 +370,24 @@ class chatMessagesAPITest extends IznikAPITestCase
             'roomid' => $this->cid,
             'message' => 'Test with link http://ham.wherever '
         ]);
-        $this->log("Create message " . var_export($ret, TRUE));
+        $this->log("Create message with link" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid2 = $ret['id'];
 
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test without link'
+        ]);
+        $this->log("Create message with no link " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $mid3 = $ret['id'];
+
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
+        self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid3);
         self::assertEquals(1, $cm->getPrivate('reviewrequired'));
 
         # Now log in as the other user.
@@ -420,7 +432,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->log("Check can see for mod on {$this->groupid}");
         $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
-        assertEquals(2, $ret['work']['chatreview']);
+        assertEquals(3, $ret['work']['chatreview']);
 
         # Test the 'other' variant.
         $this->user2->setGroupSettings($this->groupid, [ 'active' => 0 ]);
@@ -432,10 +444,11 @@ class chatMessagesAPITest extends IznikAPITestCase
         $ret = $this->call('chatmessages', 'GET', []);
         assertEquals(0, $ret['ret']);
         $this->log("Messages for review " . var_export($ret, TRUE));
-        assertEquals(2, count($ret['chatmessages']));
+        assertEquals(3, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
         assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
         assertEquals($mid2, $ret['chatmessages'][1]['id']);
+        assertEquals($mid3, $ret['chatmessages'][2]['id']);
 
         # Test hold/unhold.
         $this->log("Hold");
@@ -468,7 +481,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'GET', []);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['chatmessages']));
+        assertEquals(2, count($ret['chatmessages']));
         assertEquals($mid2, $ret['chatmessages'][0]['id']);
 
         # Reject the second
@@ -480,19 +493,30 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'GET', []);
         assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatmessages']));
+
+        # Approve the third
+        $ret = $this->call('chatmessages', 'POST', [
+            'action' => 'Approve',
+            'id' => $mid3
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('chatmessages', 'GET', []);
+        assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['chatmessages']));
 
-        # Now log in as the recipient.  Should see the approved one.
+        # Now log in as the recipient.  Should see the approved ones.
         assertTrue($this->user2->login('testpw'));
 
         $ret = $this->call('chatmessages', 'GET', [
             'roomid' => $this->cid
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['chatmessages']));
+        assertEquals(2, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
-
-        }
+        assertEquals($mid3, $ret['chatmessages'][1]['id']);
+    }
 
     public function testReviewUnmod() {
         $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
