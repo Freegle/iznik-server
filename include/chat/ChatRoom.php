@@ -1737,7 +1737,7 @@ WHERE chat_rooms.id IN $idlist;";
                                         if ($unmailedmsg['userid'] == $thisu->getId()) {
                                             $thistwig['mine'] = TRUE;
                                             $thistwig['fromname'] = 'You';
-                                            $thistwig['toname'] = $otheru->getName();
+                                            $thistwig['toname'] = $otheru->getId() ? $otheru->getName() : NULL;
                                         } else {
                                             $thistwig['mine'] = FALSE;
                                             $thistwig['fromname'] = $fromname;
