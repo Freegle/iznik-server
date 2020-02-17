@@ -1266,12 +1266,12 @@ WHERE chat_rooms.id IN $idlist;";
 
                 $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                 $ctx = NULL;
-                $thisone['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $thisone['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
 
                 $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
                 $u = User::get($this->dbhr, $this->dbhm, $touserid);
                 $ctx = NULL;
-                $thisone['touser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $thisone['touser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
 
                 $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
                 $thisone['group'] = $g->getPublic();
