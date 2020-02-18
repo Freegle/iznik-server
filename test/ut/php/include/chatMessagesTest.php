@@ -498,12 +498,12 @@ class chatMessagesTest extends IznikTestCase {
         $msgs = $r->getMessages();
         self::assertEquals(2, count($msgs));
         $this->log("Chat messages " . var_export($msgs, TRUE));
-        self::assertEquals('', $msgs[0][0]['message']);
+        self::assertEquals('Hi there', $msgs[0][0]['message']);
 
         # Should be an image in the second one.
-        assertTrue(array_key_exists('image', $msgs[0][0]));
+        assertTrue(array_key_exists('image', $msgs[0][1]));
 
-        }
+    }
 
     public function testUser2ModSpam() {
         $gid = $this->groupid;

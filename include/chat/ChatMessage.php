@@ -151,19 +151,29 @@ class ChatMessage extends Entity
             $chattype = $r->getPrivate('chattype');
             $u = new User($this->dbhr, $this->dbhm, $userid);
 
-            # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
-            # include user text.
-            #
-            # We also don't want to check for spam in chats between users and mods.
-            if ($chattype != ChatRoom::TYPE_USER2MOD &&
-                !$u->isModerator() &&
-                $u->getPrivate('chatmodstatus') == User::CHAT_MODSTATUS_MODERATED &&
-                ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER)) {
-                $review = $this->checkReview($message, TRUE);
-                $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
+            # If the last message in this chat is held for review, then hold this one too.
+            $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? ORDER BY id DESC LIMIT 1;", [
+                $chatid,
+                $userid
+            ]);
 
-                # If we decided it was spam then it doesn't need reviewing.
-                $review = $spam ? 0 : $review;
+            if (count($last) && $last[0]['reviewrequired']) {
+                $review = 1;
+            } else {
+                # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
+                # include user text.
+                #
+                # We also don't want to check for spam in chats between users and mods.
+                if ($chattype != ChatRoom::TYPE_USER2MOD &&
+                    !$u->isModerator() &&
+                    $u->getPrivate('chatmodstatus') == User::CHAT_MODSTATUS_MODERATED &&
+                    ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
+                    $review = $this->checkReview($message, TRUE);
+                    $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
+
+                    # If we decided it was spam then it doesn't need reviewing.
+                    $review = $spam ? 0 : $review;
+                }
             }
 
             # Even if it's spam, we still create the message, so that if we later decide that it wasn't spam after all

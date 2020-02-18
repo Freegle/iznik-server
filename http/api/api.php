@@ -42,6 +42,13 @@ if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
     #error_log("Request method override to {$_REQUEST['type']}");
 }
 
+# The MODTOOLS constant is used in a log of places in the code.  We are moving away from this towards it being an
+# API parameter, but this is a slow migration.  If the parameter has been passed, then set it here, which will
+# then take priority over any later setting in /etc/iznik.conf based on the domain.
+if (array_key_exists('modtools', $_REQUEST)) {
+    define('MODTOOLS', filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN));
+}
+
 require_once('../../include/misc/apiheaders.php');
 require_once('../../include/config.php');
 

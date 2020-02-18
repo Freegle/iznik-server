@@ -91,7 +91,7 @@ if (($sso->validatePayload($payload,$signature))) {
                     'name' => $session['name'],
                     'avatar_url' => $session['avatar_url'],
                     'admin' => $session['admin'],
-                    'bio' => $session['email'] . "\r\n\r\nis a mod on " . $session['grouplist']
+                    'bio' => $session['email'] . " \r\n\r\nis a mod on " . $session['grouplist']
                 );
 
                 $refer = 'https://discourse.ilovefreegle.org';

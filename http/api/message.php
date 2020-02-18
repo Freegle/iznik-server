@@ -275,6 +275,10 @@ function message() {
                     if ($fop !== NULL) {
                         $m->setFOP($fop);
                     }
+
+                    if ($groupid) {
+                        $dbhm->preExec("UPDATE messages_drafts SET groupid = ? WHERE msgid = ?;", [$groupid, $m->getID()]);
+                    }
                 }
             }
         }

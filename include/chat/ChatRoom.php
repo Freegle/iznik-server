@@ -1237,16 +1237,29 @@ WHERE chat_rooms.id IN $idlist;";
         # a member.
         $userid = $user->getId();
         $msgid = $ctx ? $ctx['msgid'] : 0;
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, memberships.groupid, chat_messages_held.userid AS heldby, chat_messages_held.timestamp FROM chat_messages LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'))  INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' ORDER BY chat_messages.id ASC;";
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, memberships.groupid, chat_messages_held.userid AS heldby, chat_messages_held.timestamp 
+        FROM chat_messages 
+        LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid 
+        LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id 
+        INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid 
+        INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) 
+              AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) 
+        INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' 
+        ORDER BY chat_messages.id, memberships.added ASC;";
         $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid]);
         $ret = [];
         $userlist = NULL;
 
         $ctx = $ctx ? $ctx : [];
 
+        # We can get multiple copies of the same chat due to the join.
+        $processed = [];
+
         foreach ($msgs as $msg) {
             # This might be for a group which we are a mod on but don't actually want to see.
             if ($user->activeModForGroup($msg['groupid'])) {
+                $processed[$msg['id']] = TRUE;
+
                 $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
                 $thisone = $m->getPublic(FALSE, $userlist);
 
@@ -1260,18 +1273,18 @@ WHERE chat_rooms.id IN $idlist;";
 
                     unset($thisone['heldby']);
                 }
-                
+
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
                 $thisone['chatroom'] = $r->getPublic();
 
                 $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                 $ctx = NULL;
-                $thisone['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $thisone['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
 
                 $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
                 $u = User::get($this->dbhr, $this->dbhm, $touserid);
                 $ctx = NULL;
-                $thisone['touser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $thisone['touser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
 
                 $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
                 $thisone['group'] = $g->getPublic();
@@ -1481,7 +1494,7 @@ WHERE chat_rooms.id IN $idlist;";
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR lastemailed = '0000-00-00 00:00:00' OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > $delay);";
+            $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR lastemailed = '0000-00-00 00:00:00' OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) > $delay);";
             #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
 
@@ -1737,7 +1750,7 @@ WHERE chat_rooms.id IN $idlist;";
                                         if ($unmailedmsg['userid'] == $thisu->getId()) {
                                             $thistwig['mine'] = TRUE;
                                             $thistwig['fromname'] = 'You';
-                                            $thistwig['toname'] = $otheru->getName();
+                                            $thistwig['toname'] = $otheru->getId() ? $otheru->getName() : NULL;
                                         } else {
                                             $thistwig['mine'] = FALSE;
                                             $thistwig['fromname'] = $fromname;

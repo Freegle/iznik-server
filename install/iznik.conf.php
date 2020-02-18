@@ -102,7 +102,9 @@ switch($host) {
         define('FAVICON_HOME', 'modtools');
         define('MANIFEST_STARTURL', 'modtools');
         define('COOKIE_DOMAIN', 'modtools.org');
-        define('MODTOOLS', TRUE);
+        if (!defined('MODTOOLS')) {
+            define('MODTOOLS', TRUE);
+        }
         break;
     case 'dev.modtools.org':
     case 'modtools.org':
@@ -111,7 +113,9 @@ switch($host) {
         define('FAVICON_HOME', 'modtools');
         define('MANIFEST_STARTURL', 'modtools');
         define('COOKIE_DOMAIN', 'modtools.org');
-        define('MODTOOLS', TRUE);
+        if (!defined('MODTOOLS')) {
+            define('MODTOOLS', TRUE);
+        }
         break;
     case 'iznik.ilovefreegle.org':
         define('SITE_NAME', 'Freegle');
@@ -119,7 +123,9 @@ switch($host) {
         define('FAVICON_HOME', 'user');
         define('MANIFEST_STARTURL', '');
         define('COOKIE_DOMAIN', 'ilovefreegle.org');
-        define('MODTOOLS', FALSE);
+        if (!defined('MODTOOLS')) {
+            define('MODTOOLS', FALSE);
+        }
         break;
 }
 
