@@ -185,7 +185,7 @@ class Yahoo
                                 'type' => Log::TYPE_USER,
                                 'subtype' => Log::SUBTYPE_LOGIN,
                                 'byuser' => $id,
-                                'text' => 'Using Yahoo ' . var_export($attrs, TRUE)
+                                'text' => 'Using Yahoo'
                             ]);
 
                             error_log("Returning success");
@@ -300,7 +300,7 @@ class Yahoo
                         'type' => Log::TYPE_USER,
                         'subtype' => Log::SUBTYPE_LOGIN,
                         'byuser' => $id,
-                        'text' => 'Using Yahoo ' . var_export($attrs, TRUE)
+                        'text' => 'Using Yahoo'
                     ]);
 
                     return([ $s, [ 'ret' => 0, 'status' => 'Success']]);
