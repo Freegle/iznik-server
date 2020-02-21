@@ -6157,13 +6157,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     public function getExpectedReplies($uids, $since = "90 days ago", $grace = 30) {
         # We count replies where the user has been active since the reply was requested, which means they've had
         # a chance to reply, plus a grace period in minutes, so that if they're active right now we don't penalise them.
-        #
-        # Don't include Closed chats, as we won't see those to be able to reply to.
         $starttime = date("Y-m-d H:i:s", strtotime($since));
-        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, expectee FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid INNER JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = users_expected.expectee WHERE expectee IN (" . implode(',', $uids) . ") AND chat_messages.date >= '$starttime' AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) > ? AND chat_roster.status != ? AND chat_roster.status != ?;", [
-            $grace,
-            ChatRoom::STATUS_BLOCKED,
-            ChatRoom::STATUS_CLOSED
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, expectee FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee IN (" . implode(',', $uids) . ") AND chat_messages.date >= '$starttime' AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) > ?", [
+            $grace
         ]);
 
         return($replies);
