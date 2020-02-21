@@ -82,10 +82,12 @@ function adview() {
         }
 
         case 'POST': {
-            $this->background("INSERT INTO logs_jobs (userid, link) VALUES (?, ?);", [
+            $dbhm->preExec("INSERT INTO logs_jobs (userid, link) VALUES (?, ?);", [
                 $me ? $me->getId() : NULL,
                 $link
             ]);
+
+            $ret = [ 'ret' => 0, 'status' => 'Success' ];
             break;
         }
     }
