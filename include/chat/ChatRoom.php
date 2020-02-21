@@ -2247,6 +2247,7 @@ WHERE chat_rooms.id IN $idlist;";
         # Create a message in the chat.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $m->create($this->id, $myid, NULL, ChatMessage::TYPE_NUDGE);
+        $m->setPrivate('replyexpected', 1);
 
         # Also record the nudge so that we can see when it has been acted on
         $this->dbhm->preExec("INSERT INTO users_nudges (fromuser, touser) VALUES (?, ?);", [ $myid, $other ]);
