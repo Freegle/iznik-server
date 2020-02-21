@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 $keywords = [];
 
 $date = date('Y-m-d', strtotime("30 days ago"));
-$jobs = $dbhr->preQuery("SELECT * FROM logs_jobs WHERE timestamp > '$date';");
+$jobs = $dbhr->preQuery("SELECT DISTINCT userid, link FROM logs_jobs WHERE timestamp > '$date';");
 
 foreach ($jobs as $job) {
     if (preg_match('/.*\/(.*)\?/', $job['link'], $matches)) {
