@@ -11,6 +11,8 @@ function adview() {
     }
 
     $location = presdef('location', $_REQUEST, NULL);
+    $link = presdef('link', $_REQUEST, NULL);
+    $me = whoAmI($dbhr, $dbhm);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -22,7 +24,6 @@ function adview() {
             if ($ip && $location) {
                 # We might have a postcode search.  The AdView postcode search is unreliable, so we need to find
                 # the nearest city.
-                $me = whoAmI($dbhr, $dbhm);
 
                 if ($me) {
                     list ($lat, $lng, $loc) = $me->getLatLng();
@@ -77,6 +78,14 @@ function adview() {
                     'status' => 'Invalid parameters'
                 ];
             }
+            break;
+        }
+
+        case 'POST': {
+            $this->background("INSERT INTO logs_jobs (userid, link) VALUES (?, ?);", [
+                $me ? $me->getId() : NULL,
+                $link
+            ]);
             break;
         }
     }
