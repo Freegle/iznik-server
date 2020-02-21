@@ -4573,3 +4573,49 @@ CREATE TABLE `users_related` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2020-02-03 15:38:11
+
+--
+-- Table structure for table `users_expected`
+--
+
+CREATE TABLE `users_expected` (
+                                  `id` bigint(20) UNSIGNED NOT NULL,
+                                  `expecter` bigint(20) UNSIGNED NOT NULL,
+                                  `expectee` bigint(20) UNSIGNED NOT NULL,
+                                  `chatmsgid` bigint(20) UNSIGNED NOT NULL,
+                                  `value` int(11) NOT NULL COMMENT '1 means replied, -1 means hasn''t'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `users_expected`
+--
+ALTER TABLE `users_expected`
+    ADD PRIMARY KEY (`id`),
+    ADD UNIQUE KEY `chatmsgid` (`chatmsgid`) USING BTREE,
+    ADD KEY `expectee` (`expectee`),
+    ADD KEY `userid` (`expecter`) USING BTREE;
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `users_expected`
+--
+ALTER TABLE `users_expected`
+    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `users_expected`
+--
+ALTER TABLE `users_expected`
+    ADD CONSTRAINT `users_expected_ibfk_1` FOREIGN KEY (`expecter`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    ADD CONSTRAINT `users_expected_ibfk_2` FOREIGN KEY (`expectee`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    ADD CONSTRAINT `users_expected_ibfk_3` FOREIGN KEY (`chatmsgid`) REFERENCES `chat_messages` (`id`) ON DELETE CASCADE;
