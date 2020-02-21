@@ -122,6 +122,14 @@ function session() {
                         $ret['logins'] = $me->getLogins(FALSE);
                     }
 
+                    if (!$components || in_array('expectedreplies', $components)) {
+                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+
+                        if ($me) {
+                            $ret['me']['expectedreplies'] = $me->getExpectedReplies([ $me->getId() ])[0]['count'];
+                        }
+                    }
+
                     if (!$components || in_array('groups', $components) || in_array('work', $components)) {
                         # Get groups including work when we're on ModTools; don't need that on the user site.
                         $u = new User($dbhr, $dbhm);

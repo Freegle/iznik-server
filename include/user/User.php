@@ -1755,6 +1755,12 @@ class User extends Entity
         foreach ($ratings as $uid => $rating) {
             $users[$uid]['info']['ratings'] = $rating;
         }
+
+        $replies = $this->getExpectedReplies($uids);
+
+        foreach ($replies as $reply) {
+            $users[$reply['expectee']]['info']['expectedreply'] = $reply['count'];
+        }
     }
     
     public function getInfo()
@@ -1845,6 +1851,12 @@ class User extends Entity
         $ret['nudges'] = $r->nudgeCount($this->id);
 
         $ret['ratings'] = $this->getRating();
+
+        $replies = $this->getExpectedReplies([ $this->id ]);
+
+        foreach ($replies as $reply) {
+            $ret['expectedreply'] = $reply['count'];
+        }
 
         return ($ret);
     }
@@ -6140,5 +6152,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ]);
 
         return ($users);
+    }
+
+    public function getExpectedReplies($uids, $since = "90 days ago", $grace = 30) {
+        # We count replies where the user has been active since the reply was requested, which means they've had
+        # a chance to reply, plus a grace period in minutes, so that if they're active right now we don't penalise them.
+        $starttime = date("Y-m-d H:i:s", strtotime($since));
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, expectee FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee IN (" . implode(',', $uids) . ") AND chat_messages.date >= '$starttime' AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) > ?", [
+            $grace
+        ]);
+
+        return($replies);
     }
 }

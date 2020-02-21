@@ -77,6 +77,7 @@ class ChatRoom extends Entity
         # - gets user names for the users (if present), which we also use in naming the chat
         # - gets the most recent chat message (if any) which we need for getPublic()
         # - gets the count of unread messages for the logged in user.
+        # - gets the count of reply requested from other people
         # - gets the refmsgids for chats with unread messages
         # - gets any profiles for the users
         # - gets any most recent chat message info
@@ -93,6 +94,7 @@ u2.settings AS u2settings,
 (SELECT COUNT(*) AS count FROM chat_messages WHERE id > 
   COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = ? AND status != ? AND status != ?), 0) 
   AND chatid = chat_rooms.id AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS unseen,
+(SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = chat_rooms.id AND replyexpected = 1 AND replyreceived = 0 AND userid != ?) AS replyexpected,
 i1.url AS u1imageurl,
 i2.url AS u2imageurl,
 i1.data AS u1imagedata,
@@ -119,6 +121,7 @@ WHERE chat_rooms.id IN $idlist;";
             ChatRoom::STATUS_CLOSED,
             ChatRoom::STATUS_BLOCKED,
             $myid,
+            $myid
         ],FALSE,FALSE);
 
         $ret = [];
@@ -192,7 +195,8 @@ WHERE chat_rooms.id IN $idlist;";
                     'synctofacebook' => $room['synctofacebook'],
                     'unseen' => $room['unseen'],
                     'name' => $room['name'],
-                    'id' => $room['id']
+                    'id' => $room['id'],
+                    'replyexpected' => $room['replyexpected']
                 ];
                 
                 $thisone['snippet'] = $this->getSnippet($room['chatmsgtype'], $room['chatmsg']);
@@ -638,6 +642,14 @@ WHERE chat_rooms.id IN $idlist;";
             $ret['lastdate'] = $this->chatroom['lastdate'];
 
             $ret['snippet'] = $this->getSnippet($this->chatroom['chatmsgtype'], $this->chatroom['chatmsg']);
+        }
+
+        if (!$summary) {
+            # Count the expected replies.
+            $ret['replyexpected'] = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND replyexpected = 1 AND replyreceived = 0 AND userid != ?;", [
+                $this->chatroom['id'],
+                $myid
+            ], FALSE, FALSE)[0]['count'];
         }
 
         return ($ret);

@@ -3,8 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/session.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/chat/ChatRoom.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/chat/ChatRoom.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/misc/Mail.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Mail.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/session/Yahoo.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/session/Yahoo.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,11 +95,12 @@
     <property name="settings.editor.selected.configurable" value="settings.github" />
   </component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\test\ut\php\images" />
-    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\scripts\fix" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\edwar\PhpstormProjects\iznik-server\scripts\cron" />
+      <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\test\ut\php\images" />
     </key>
   </component>
   <component name="RunManager" selected="PHPUnit.chatMessagesTest.testReplyWithAttachment">
@@ -228,34 +231,7 @@
       <workItem from="1579245581582" duration="19910000" />
       <workItem from="1580820604867" duration="17907000" />
       <workItem from="1580893378540" duration="31294000" />
-    </task>
-    <task id="LOCAL-00453" summary="Don't return message miles away when we don't know it.">
-      <created>1580824539269</created>
-      <option name="number" value="00453" />
-      <option name="presentableId" value="LOCAL-00453" />
-      <option name="project" value="LOCAL" />
-      <updated>1580824539270</updated>
-    </task>
-    <task id="LOCAL-00454" summary="Allow login with different password salt">
-      <created>1580828806788</created>
-      <option name="number" value="00454" />
-      <option name="presentableId" value="LOCAL-00454" />
-      <option name="project" value="LOCAL" />
-      <updated>1580828806788</updated>
-    </task>
-    <task id="LOCAL-00455" summary="UT fixes">
-      <created>1580830580846</created>
-      <option name="number" value="00455" />
-      <option name="presentableId" value="LOCAL-00455" />
-      <option name="project" value="LOCAL" />
-      <updated>1580830580847</updated>
-    </task>
-    <task id="LOCAL-00456" summary="Don't allow silly long names.">
-      <created>1580845744047</created>
-      <option name="number" value="00456" />
-      <option name="presentableId" value="LOCAL-00456" />
-      <option name="project" value="LOCAL" />
-      <updated>1580845744047</updated>
+      <workItem from="1582270430690" duration="12469000" />
     </task>
     <task id="LOCAL-00457" summary="Finally kill off &quot;A freegler&quot; and replace it with a made up name">
       <created>1580895333108</created>
@@ -572,7 +548,35 @@
       <option name="project" value="LOCAL" />
       <updated>1581958874099</updated>
     </task>
-    <option name="localTasksCounter" value="502" />
+    <task id="LOCAL-00502" summary="Remove extra log info for Yahoo">
+      <created>1582051322469</created>
+      <option name="number" value="00502" />
+      <option name="presentableId" value="LOCAL-00502" />
+      <option name="project" value="LOCAL" />
+      <updated>1582051322470</updated>
+    </task>
+    <task id="LOCAL-00503" summary="Add log of which jobs are clicked">
+      <created>1582270562570</created>
+      <option name="number" value="00503" />
+      <option name="presentableId" value="LOCAL-00503" />
+      <option name="project" value="LOCAL" />
+      <updated>1582270562570</updated>
+    </task>
+    <task id="LOCAL-00504" summary="Add log of which jobs are clicked">
+      <created>1582270943271</created>
+      <option name="number" value="00504" />
+      <option name="presentableId" value="LOCAL-00504" />
+      <option name="project" value="LOCAL" />
+      <updated>1582270943271</updated>
+    </task>
+    <task id="LOCAL-00505" summary="Add cron script to keep track of jobs keywords clicked">
+      <created>1582273844546</created>
+      <option name="number" value="00505" />
+      <option name="presentableId" value="LOCAL-00505" />
+      <option name="project" value="LOCAL" />
+      <updated>1582273844546</updated>
+    </task>
+    <option name="localTasksCounter" value="506" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -635,9 +639,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Tweak expected chat threshold" />
-    <MESSAGE value="Notifications not taking you to the right place in chitchat on the mobile app" />
-    <MESSAGE value="More on related users" />
     <MESSAGE value="Only notify on related users when there is an email to check" />
     <MESSAGE value="Rookie error nit" />
     <MESSAGE value="Improve snippet for message replies" />
@@ -660,7 +661,10 @@
     <MESSAGE value="Crash in chat notify" />
     <MESSAGE value="Speed-up: minor speedup for chat review" />
     <MESSAGE value="Can't repost to a different group" />
-    <option name="LAST_COMMIT_MESSAGE" value="Can't repost to a different group" />
+    <MESSAGE value="Remove extra log info for Yahoo" />
+    <MESSAGE value="Add log of which jobs are clicked" />
+    <MESSAGE value="Add cron script to keep track of jobs keywords clicked" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add cron script to keep track of jobs keywords clicked" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1580643311321">
@@ -685,16 +689,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1581958873575">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1582273844030">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581958873575" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1581936947978">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582273844030" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1582278247610">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581936947978" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582278247610" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog" timestamp="1581784889298">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -704,26 +708,26 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="717" y="359" key="Github.Dialog.Accounts.Choose/0.0.1707.920@0.0.1707.920" timestamp="1580282462596" />
-    <state width="1877" height="297" key="GridCell.Tab.0.bottom" timestamp="1581938820555">
+    <state width="1877" height="297" key="GridCell.Tab.0.bottom" timestamp="1582218196626">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="297" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581938820555" />
-    <state width="1877" height="297" key="GridCell.Tab.0.center" timestamp="1581938820555">
+    <state width="1877" height="297" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582218196626" />
+    <state width="1877" height="297" key="GridCell.Tab.0.center" timestamp="1582218196626">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="297" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581938820555" />
-    <state width="1877" height="297" key="GridCell.Tab.0.left" timestamp="1581938820555">
+    <state width="1877" height="297" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582218196626" />
+    <state width="1877" height="297" key="GridCell.Tab.0.left" timestamp="1582218196625">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="297" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581938820555" />
-    <state width="1877" height="297" key="GridCell.Tab.0.right" timestamp="1581938820555">
+    <state width="1877" height="297" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582218196625" />
+    <state width="1877" height="297" key="GridCell.Tab.0.right" timestamp="1582218196626">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="297" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581938820555" />
+    <state width="1877" height="297" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582218196626" />
     <state width="1877" height="348" key="GridCell.Tab.1.bottom" timestamp="1580815370015">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -740,11 +744,11 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1877" height="348" key="GridCell.Tab.1.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580815370014" />
-    <state x="760" y="233" key="RollbackChangesDialog" timestamp="1581950320459">
+    <state x="760" y="233" key="RollbackChangesDialog" timestamp="1582278246271">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="676" y="206" key="RollbackChangesDialog/0.0.1707.920@0.0.1707.920" timestamp="1580479629661" />
-    <state x="760" y="233" key="RollbackChangesDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581950320459" />
+    <state x="760" y="233" key="RollbackChangesDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582278246271" />
     <state x="402" y="121" key="SettingsEditor" timestamp="1580636560902">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -754,11 +758,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1581958875255">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1582273845867">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581958875255" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582273845867" />
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1580834615398">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -767,16 +771,16 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="311" y="-1" width="1373" height="729" key="find.popup" timestamp="1582051296334">
+    <state x="311" y="-1" width="1373" height="812" key="find.popup" timestamp="1582284852530">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="311" y="-1" width="1373" height="729" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582051296334" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1581976261716">
+    <state x="311" y="-1" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582284852530" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1582281377117">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545385023" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581976261716" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582281377117" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>
