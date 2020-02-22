@@ -5,8 +5,6 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 
 # This is run from cron to check status, which can then be returned from the API.
-@unlink('/tmp/iznik.status');
-
 function status()
 {
     global $dbhr, $dbhm;
@@ -105,7 +103,7 @@ function status()
         }
 
         # Get the postfix mail count in case it's too large
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"/var/www/iznik/scripts/cli/qsize|grep Total\" 2>&1"));
+        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"bash /var/www/iznik/scripts/cli/qsize|grep Total\" 2>&1"));
         error_log("Postfix queue $queuesize");
 
         if (strpos($queuesize, "Total") === FALSE) {
@@ -224,3 +222,4 @@ ORDER BY backlog DESC LIMIT 1;";
 
 # Put into cache file for API call.
 file_put_contents('/tmp/iznik.status', json_encode(status()));
+chmod('/tmp/iznik.status', 755);
