@@ -186,6 +186,10 @@ class CommunityEvent extends Entity
         $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
         $atts['url'] = 'https://' . USER_SITE . '/communityevent/' . $atts['id'];
 
+        if (strpos($atts['contacturl'], 'http') === FALSE) {
+            $atts['contacturl'] = 'https://' . $atts['contacturl'];
+        }
+
         return($atts);
     }
 

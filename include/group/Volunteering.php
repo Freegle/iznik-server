@@ -207,6 +207,10 @@ class Volunteering extends Entity
         $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
         $atts['url'] = 'https://' . USER_SITE . '/volunteering/' . $atts['id'];
 
+        if (strpos($atts['contacturl'], 'http') === FALSE) {
+            $atts['contacturl'] = 'https://' . $atts['contacturl'];
+        }
+
         return($atts);
     }
 
