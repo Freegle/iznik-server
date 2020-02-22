@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/status.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/status.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/cron/status.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/status.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -229,14 +228,7 @@
       <workItem from="1579245581582" duration="19910000" />
       <workItem from="1580820604867" duration="17907000" />
       <workItem from="1580893378540" duration="31294000" />
-      <workItem from="1582270430690" duration="34008000" />
-    </task>
-    <task id="LOCAL-00470" summary="Add name to related mail">
-      <created>1581073396837</created>
-      <option name="number" value="00470" />
-      <option name="presentableId" value="LOCAL-00470" />
-      <option name="project" value="LOCAL" />
-      <updated>1581073396837</updated>
+      <workItem from="1582270430690" duration="35555000" />
     </task>
     <task id="LOCAL-00471" summary="Email logs from the future">
       <created>1581092291136</created>
@@ -574,7 +566,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582380258288</updated>
     </task>
-    <option name="localTasksCounter" value="519" />
+    <task id="LOCAL-00519" summary="Fixes to status checking">
+      <created>1582397227693</created>
+      <option name="number" value="00519" />
+      <option name="presentableId" value="LOCAL-00519" />
+      <option name="project" value="LOCAL" />
+      <updated>1582397227693</updated>
+    </task>
+    <option name="localTasksCounter" value="520" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -637,7 +636,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Chat messages from mods to members are not notified promptly" />
     <MESSAGE value="When a chat message is held for review, hold subsequent ones too." />
     <MESSAGE value="Fix spacing in Discourse SSO" />
     <MESSAGE value="UT fixes" />
@@ -662,7 +660,8 @@
     <MESSAGE value="Previous name fix can cause exception" />
     <MESSAGE value="Flag syntactically invalid emails as bouncing" />
     <MESSAGE value="Duplicate worry words showing." />
-    <option name="LAST_COMMIT_MESSAGE" value="Duplicate worry words showing." />
+    <MESSAGE value="Fixes to status checking" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixes to status checking" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1580643311321">
@@ -687,16 +686,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1582380257678">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1582397226965">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582380257678" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1582397198674">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582397226965" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1582407644419">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582397198674" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582407644419" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog" timestamp="1581784889298">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -756,11 +755,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1582380259167">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1582397228812">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582380259167" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582397228812" />
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1580834615398">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -769,11 +768,11 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="312" y="-1" width="1373" height="812" key="find.popup" timestamp="1582397193783">
+    <state x="312" y="-1" width="1373" height="812" key="find.popup" timestamp="1582407576889">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="312" y="-1" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582397193783" />
+    <state x="312" y="-1" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582407576889" />
     <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1582396584494">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

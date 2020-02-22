@@ -222,4 +222,4 @@ ORDER BY backlog DESC LIMIT 1;";
 
 # Put into cache file for API call.
 file_put_contents('/tmp/iznik.status', json_encode(status()));
-chmod('/tmp/iznik.status', 755);
+chmod('/tmp/iznik.status', 0644);
