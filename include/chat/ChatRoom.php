@@ -1,6 +1,8 @@
 <?php
 
 use Pheanstalk\Pheanstalk;
+use Egulias\EmailValidator\EmailValidator;
+use Egulias\EmailValidator\Validation\RFCValidation;
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Mail.php');
@@ -263,33 +265,41 @@ WHERE chat_rooms.id IN $idlist;";
         $message = Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
-            ->setTo([$to => $toname])
 #            ->setBcc('log@ehibbert.org.uk')
             ->setBody($text);
 
-        if ($html) {
-            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-            # Outlook.
-            $htmlPart = Swift_MimePart::newInstance();
-            $htmlPart->setCharset('utf-8');
-            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-            $htmlPart->setContentType('text/html');
-            $htmlPart->setBody($html);
-            $message->attach($htmlPart);
-        }
+        try {
+            $message->setTo([$to => $toname]);
 
-        $headers = $message->getHeaders();
+            if ($html) {
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
+            }
 
-        $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id, User::SRC_CHATNOTIF));
+            $headers = $message->getHeaders();
 
-        if ($fromuid) {
-            $headers->addTextHeader('X-Freegle-From-UID', $fromuid);
+            $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id, User::SRC_CHATNOTIF));
+
+            if ($fromuid) {
+                $headers->addTextHeader('X-Freegle-From-UID', $fromuid);
+            }
+        } catch (Exception $e) {
+            # Flag the email as bouncing.
+            error_log("Email $to for member #$id invalid, flag as bouncing");
+            $this->dbhm->preExec("UPDATE users SET bouncing = 1 WHERE id = ?;", [  $id ]);
+            $message = NULL;
         }
 
         return ($message);
     }
 
-    public function mailer($message)
+    public function mailer($message, $recip = NULL)
     {
         list ($transport, $mailer) = getMailer();
 
@@ -1613,6 +1623,7 @@ WHERE chat_rooms.id IN $idlist;";
                 #error_log("{$chat['chatid']} Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
+
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
 
                 # We email them if they have mails turned on, and even if they don't have any current memberships.
@@ -1922,7 +1933,11 @@ WHERE chat_rooms.id IN $idlist;";
                             } catch (Exception $e) { $html = ''; error_log("Twig failed with " . $e->getMessage()); }
 
                             # We ask them to reply to an email address which will direct us back to this chat.
-                            $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
+                            #
+                            # Use a special user for yahoo.co.uk to work around deliverability issues.
+                            $domain = USER_DOMAIN;
+                            #$domain = 'users2.ilovefreegle.org';
+                            $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . $domain;
 
                             # ModTools users should never get notified.
                             if ($to && strpos($to, MOD_SITE) === FALSE) {
@@ -1956,33 +1971,35 @@ WHERE chat_rooms.id IN $idlist;";
                                         $includehtml ? $html : NULL,
                                         $fromuid);
 
-                                    if ($chattype == ChatRoom::TYPE_USER2USER) {
-                                        # Request read receipt.  We will often not get these for privacy reasons, but if
-                                        # we do, it's useful to have to that we can display feedback to the sender.
-                                        $headers = $message->getHeaders();
-                                        $headers->addTextHeader('Disposition-Notification-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
-                                        $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
-                                    }
-
-                                    Mail::addHeaders($message, Mail::CHAT, $thisu->getId());
-
-                                    $this->mailer($message);
-
-                                    $sentsome = TRUE;
-
-                                    if (!RETURN_PATH || !pres('seed', $member)) {
-                                        $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
-                                            $lastmsgemailed,
-                                            $member['userid'],
-                                            $chat['chatid']
-                                        ]);
-
-                                        if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
-                                            # Send any SMS, but not if we're only mailing our own messages
-                                            $thisu->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid'] . '?src=sms');
+                                    if ($message) {
+                                        if ($chattype == ChatRoom::TYPE_USER2USER) {
+                                            # Request read receipt.  We will often not get these for privacy reasons, but if
+                                            # we do, it's useful to have to that we can display feedback to the sender.
+                                            $headers = $message->getHeaders();
+                                            $headers->addTextHeader('Disposition-Notification-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
+                                            $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
                                         }
 
-                                        $notified++;
+                                        Mail::addHeaders($message, Mail::CHAT, $thisu->getId());
+
+                                        $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
+
+                                        $sentsome = TRUE;
+
+                                        if (!RETURN_PATH || !pres('seed', $member)) {
+                                            $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
+                                                $lastmsgemailed,
+                                                $member['userid'],
+                                                $chat['chatid']
+                                            ]);
+
+                                            if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
+                                                # Send any SMS, but not if we're only mailing our own messages
+                                                $thisu->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid'] . '?src=sms');
+                                            }
+
+                                            $notified++;
+                                        }
                                     }
                                 } catch (Exception $e) {
                                     error_log("Send to {$member['userid']} failed with " . $e->getMessage());
