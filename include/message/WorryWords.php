@@ -77,6 +77,10 @@ class WorryWords {
                     }
                 }
             }
+
+            if ($ret) {
+                $ret = array_unique($ret);
+            }
         }
 
         return($ret);
