@@ -10,6 +10,15 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
+# Tidy up any expected replies from deleted users, which shouldn't count.
+$ids = $dbhr->preQuery("SELECT chat_messages.id FROM users INNER JOIN chat_messages ON chat_messages.userid = users.id WHERE chat_messages.date >= '2020-01-01' AND users.deleted IS NOT NULL AND chat_messages.replyexpected = 1 AND chat_messages.replyreceived = 0;");
+
+foreach ($ids as $id) {
+    $dbhm->preExec("UPDATE chat_messages SET replyexpected = 0 WHERE id = ?;", [
+        $id['id']
+    ]);
+}
+
 $oldest = date("Y-m-d", strtotime("Midnight 31 days ago"));
 $expecteds = $dbhr->preQuery("SELECT chat_messages.*, user1, user2 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_messages.date>= '$oldest' AND replyexpected = 1 AND replyreceived = 0 AND chat_rooms.chattype = 'User2User';");
 $received = 0;
