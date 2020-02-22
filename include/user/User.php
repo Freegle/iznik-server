@@ -296,6 +296,7 @@ class User extends Entity
         $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
 
         if ($default &&
+            $this->id &&
             (strlen(trim($name)) === 0 ||
                 $name == 'A freegler' ||
                 (strlen($name) == 32 && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $name)) ||
