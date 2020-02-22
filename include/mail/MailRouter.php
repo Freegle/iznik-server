@@ -1103,7 +1103,7 @@ class MailRouter
                                 $ret = MailRouter::TO_USER;
                             }
                         }
-                    } else if (preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
+                    } else if (preg_match('/notify-(.*)-(.*)@/', $to, $matches)) {
                         # It's a reply to an email notification.
                         if (stripos($this->msg->getSubject(), 'Read report') === 0 ||
                             stripos($this->msg->getSubject(), 'Checked') === 0) {
