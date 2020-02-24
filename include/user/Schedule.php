@@ -34,12 +34,15 @@ class Schedule extends Entity
         $sched = $schedule;
 
         if (!$this->allowpast && $schedule) {
+            error_log("Filter");
             $sched = [];
             $today = strtotime('midnight today');
 
             foreach ($schedule as $s) {
                 if (strtotime($s['date']) >= $today) {
                     $sched[] = $s;
+                } else {
+                    error_log("Filter out {$s['date']}");
                 }
             }
         }

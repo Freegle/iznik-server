@@ -1586,7 +1586,7 @@ WHERE chat_rooms.id IN $idlist;";
         return ($ret);
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 600)
+    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 600, $allowpastschedules = FALSE)
     {
         # We want to find chatrooms with messages which haven't been mailed to people.  We always email messages,
         # even if they are seen online.
@@ -1735,7 +1735,7 @@ WHERE chat_rooms.id IN $idlist;";
 
                                 case ChatMessage::TYPE_SCHEDULE:
                                 case ChatMessage::TYPE_SCHEDULE_UPDATED: {
-                                    $s = new Schedule($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
+                                    $s = new Schedule($this->dbhr, $this->dbhm, $unmailedmsg['userid'], $allowpastschedules);
                                     $summ = $s->getSummary();
                                     $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your availability: $summ") : ($otheru->getName() . " has updated when they may be available: $summ");
 

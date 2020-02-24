@@ -403,7 +403,7 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@' . USER_DOMAIN);
 
         $this->log("Schedule for $u1");
-        $s = new Schedule($this->dbhr, $this->dbhm);
+        $s = new Schedule($this->dbhr, $this->dbhm, NULL, TRUE);
         $s->create($u1, [
             [
                 "hour" => 0,
@@ -435,7 +435,7 @@ class chatRoomsTest extends IznikTestCase {
 
         # Notify - will email just one.
         $this->log("Will email justone");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0, TRUE));
 
         $this->log("Mailed " . var_export($this->msgsSent, TRUE));
         self::assertEquals("Test User 1 has updated when they may be available: Wednesday morning\r\n\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n", $this->msgsSent[0]['body']);
