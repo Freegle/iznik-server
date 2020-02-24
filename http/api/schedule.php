@@ -7,6 +7,7 @@ function schedule() {
     $myid = $me ? $me->getId() : NULL;
     $userid = intval(presdef('userid', $_REQUEST, NULL));
     $chatuserid = intval(presdef('chatuserid', $_REQUEST, NULL));
+    $allowpast = array_key_exists('allowpast', $_REQUEST) ? filter_var($_REQUEST['allowpast'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
@@ -14,7 +15,7 @@ function schedule() {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 # Once you're logged in, you can see other user's schedules.
-                $s = new Schedule($dbhr, $dbhm, $userid ? $userid : $myid);
+                $s = new Schedule($dbhr, $dbhm, $userid ? $userid : $myid, $allowpast);
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
@@ -25,7 +26,7 @@ function schedule() {
             }
 
             case 'POST':
-                $s = new Schedule($dbhr, $dbhm, $myid);
+                $s = new Schedule($dbhr, $dbhm, $myid, $allowpast);
                 $id = $s->create($me->getId(), presdef('schedule', $_REQUEST, NULL));
 
                 if ($chatuserid) {
@@ -46,7 +47,7 @@ function schedule() {
 
             case 'PATCH':
             case 'PUT': {
-                $s = new Schedule($dbhr, $dbhm, $myid);
+                $s = new Schedule($dbhr, $dbhm, $myid, $allowpast);
                 $s->setSchedule(presdef('schedule', $_REQUEST, NULL));
 
                 if ($chatuserid) {

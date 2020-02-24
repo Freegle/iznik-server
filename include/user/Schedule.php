@@ -10,11 +10,13 @@ class Schedule extends Entity
     var $publicatts = array('id', 'created', 'schedule', 'userid');
     var $settableatts = array('created', 'schedule');
     protected $schedule = NULL;
+    protected $allowpast = FALSE;
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $userid = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $userid = NULL, $allowpast = false)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->allowpast = $allowpast;
         $this->fetch($dbhr, $dbhm, NULL, 'users_schedules', 'schedule', $this->publicatts);
 
         if ($userid) {
@@ -28,12 +30,29 @@ class Schedule extends Entity
         }
     }
 
+    private function filterPast($schedule) {
+        $sched = $schedule;
+
+        if (!$this->allowpast && $schedule) {
+            $sched = [];
+            $today = strtotime('midnight today');
+
+            foreach ($schedule as $s) {
+                if (strtotime($s['date']) >= $today) {
+                    $sched[] = $s;
+                }
+            }
+        }
+
+        return $sched;
+    }
+
     public function create($userid, $schedule) {
         $id = NULL;
 
         $rc = $this->dbhm->preExec("REPLACE INTO users_schedules (userid, schedule) VALUES (?, ?);", [
             $userid,
-            json_encode($schedule)
+            json_encode($this->filterPast($schedule))
         ]);
 
         if ($rc) {
@@ -58,7 +77,7 @@ class Schedule extends Entity
     }
 
     public function setSchedule($schedule) {
-        $this->setPrivate('schedule', json_encode($schedule));
+        $this->setPrivate('schedule', json_encode($this->filterPast($schedule)));
     }
 
     public function match($user1, $user2) {
@@ -98,7 +117,7 @@ class Schedule extends Entity
 
     public function getSummary() {
         # Get human readable version of a schedule.
-        $schedule = json_decode($this->schedule['schedule'], TRUE);
+        $schedule = $this->filterPast(json_decode($this->schedule['schedule'], TRUE));
 
         $slots = [];
 

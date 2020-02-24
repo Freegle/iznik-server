@@ -39,7 +39,8 @@ class scheduleAPITest extends IznikAPITestCase {
         # Create logged out - should fail
         $ret = $this->call('schedule', 'POST', [
             'schedule' => [
-                'test' => 1
+                'test' => 1,
+                'allowpast' => TRUE
             ]
         ]);
         assertEquals(1, $ret['ret']);
@@ -47,7 +48,7 @@ class scheduleAPITest extends IznikAPITestCase {
         $schedule = [
             [
                 "hour" => 0,
-                "date" => "2018-05-24T00:00:00+01:00",
+                "date" => "2028-05-24T00:00:00+01:00",
                 "available" => 1
             ]
         ];
@@ -74,14 +75,17 @@ class scheduleAPITest extends IznikAPITestCase {
         $ret = $this->call('schedule', 'POST', [
             'dup' => 1,
             'schedule' => $schedule,
-            'userid' => $uid2
+            'userid' => $uid2,
+            'allowpast' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
 
         $id = $ret['id'];
         assertNotNull($id);
 
-        $ret = $this->call('schedule', 'GET', []);
+        $ret = $this->call('schedule', 'GET', [
+            'allowpast' => TRUE
+        ]);
         $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['schedule']['id']);
@@ -90,12 +94,15 @@ class scheduleAPITest extends IznikAPITestCase {
         # Edit
         $ret = $this->call('schedule', 'PATCH', [
             'schedule' => $schedule2,
-            'userid' => $uid2
+            'userid' => $uid2,
+            'allowpast' => TRUE
         ]);
 
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('schedule', 'GET', []);
+        $ret = $this->call('schedule', 'GET', [
+            'allowpast' => TRUE
+        ]);
         self::assertEquals($schedule2, $ret['schedule']['schedule']);
         self::assertEquals('Wednesday afternoon, Thursday morning', $ret['schedule']['textversion']);
 
@@ -116,7 +123,8 @@ class scheduleAPITest extends IznikAPITestCase {
         assertTrue($u2->login('testpw'));
         $ret = $this->call('schedule', 'POST', [
             'schedule' => $schedule2,
-            'userid' => $uid1
+            'userid' => $uid1,
+            'allowpast' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
 
