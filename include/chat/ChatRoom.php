@@ -20,6 +20,7 @@ class ChatRoom extends Entity
     var $publicatts = array('id', 'name', 'chattype', 'groupid', 'description', 'user1', 'user2', 'synctofacebook');
     var $settableatts = array('name', 'description');
 
+    const ACTIVELIM = "31 days ago";
     const TYPE_MOD2MOD = 'Mod2Mod';
     const TYPE_USER2MOD = 'User2Mod';
     const TYPE_USER2USER = 'User2User';
@@ -823,7 +824,7 @@ WHERE chat_rooms.id IN $idlist;";
         return($key);
     }
 
-    public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS, $chatid = NULL, $activelim = "31 days ago")
+    public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS, $chatid = NULL, $activelim = ChatRoom::ACTIVELIM)
     {
         $ret = [];
         $chatq = $chatid ? "chat_rooms.id = $chatid AND " : '';

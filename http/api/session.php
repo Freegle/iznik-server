@@ -126,7 +126,9 @@ function session() {
                         $me = $me ? $me : whoAmI($dbhm, $dbhm);
 
                         if ($me) {
-                            $ret['me']['expectedreplies'] = $me->getExpectedReplies([ $me->getId() ])[0]['count'];
+                            $expecteds = $me->listExpectedReplies($me->getId());
+                            $ret['me']['expectedreplies'] = count($expecteds);
+                            $ret['me']['expectedchats'] = $expecteds;
                         }
                     }
 

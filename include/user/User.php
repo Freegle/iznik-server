@@ -6155,14 +6155,44 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($users);
     }
 
-    public function getExpectedReplies($uids, $since = "90 days ago", $grace = 30) {
+    public function getExpectedReplies($uids, $since = ChatRoom::ACTIVELIM, $grace = 30) {
         # We count replies where the user has been active since the reply was requested, which means they've had
         # a chance to reply, plus a grace period in minutes, so that if they're active right now we don't penalise them.
+        #
+        # $since here has to match the value in ChatRoom::
         $starttime = date("Y-m-d H:i:s", strtotime($since));
         $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, expectee FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee IN (" . implode(',', $uids) . ") AND chat_messages.date >= '$starttime' AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) > ?", [
             $grace
         ]);
 
         return($replies);
+    }
+
+    public function listExpectedReplies($uid, $since = ChatRoom::ACTIVELIM, $grace = '1 minute ago') {
+        # We count replies where the user has been active since the reply was requested, which means they've had
+        # a chance to reply, plus a grace period in minutes, so that if they're active right now we don't penalise them.
+        #
+        # $since here has to match the value in ChatRoom::
+        $starttime = date("Y-m-d H:i:s", strtotime($since));
+        $replies = $this->dbhr->preQuery("SELECT chatid FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee = ? AND chat_messages.date >= '$starttime' AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) > ?", [
+            $uid,
+            $grace
+        ]);
+
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        $ret = [];
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rooms = $r->fetchRooms(array_column($replies, 'chatid'), $myid, TRUE);
+
+        foreach ($rooms as $room) {
+            $ret[] = [
+                'id' => $room['id'],
+                'name' => $room['name']
+            ];
+        }
+
+        return $ret;
     }
 }
