@@ -6168,7 +6168,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return($replies);
     }
 
-    public function listExpectedReplies($uid, $since = ChatRoom::ACTIVELIM, $grace = '1 minute ago') {
+    public function listExpectedReplies($uid, $since = ChatRoom::ACTIVELIM, $grace = 30) {
         # We count replies where the user has been active since the reply was requested, which means they've had
         # a chance to reply, plus a grace period in minutes, so that if they're active right now we don't penalise them.
         #
