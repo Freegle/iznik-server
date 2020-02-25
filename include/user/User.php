@@ -6179,18 +6179,21 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $grace
         ]);
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
-
         $ret = [];
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rooms = $r->fetchRooms(array_column($replies, 'chatid'), $myid, TRUE);
 
-        foreach ($rooms as $room) {
-            $ret[] = [
-                'id' => $room['id'],
-                'name' => $room['name']
-            ];
+        if (count($replies)) {
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
+
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            $rooms = $r->fetchRooms(array_column($replies, 'chatid'), $myid, TRUE);
+
+            foreach ($rooms as $room) {
+                $ret[] = [
+                    'id' => $room['id'],
+                    'name' => $room['name']
+                ];
+            }
         }
 
         return $ret;
