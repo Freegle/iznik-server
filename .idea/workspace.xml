@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/include/misc/AdView.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/adview.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/adview.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/api.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -231,21 +227,7 @@
       <workItem from="1579245581582" duration="19910000" />
       <workItem from="1580820604867" duration="17907000" />
       <workItem from="1580893378540" duration="31294000" />
-      <workItem from="1582663736399" duration="996000" />
-    </task>
-    <task id="LOCAL-00431" summary="We only send mail to people who've been active within the last year.  Reduce this to six months, as we've seen complaints in ReturnPath from users who have been inactive for a few months.">
-      <created>1580287152500</created>
-      <option name="number" value="00431" />
-      <option name="presentableId" value="LOCAL-00431" />
-      <option name="project" value="LOCAL" />
-      <updated>1580287152500</updated>
-    </task>
-    <task id="LOCAL-00432" summary="ChitChat emails are being sent even though Settings says they shouldn't be.">
-      <created>1580411887548</created>
-      <option name="number" value="00432" />
-      <option name="presentableId" value="LOCAL-00432" />
-      <option name="project" value="LOCAL" />
-      <updated>1580411887548</updated>
+      <workItem from="1582663736399" duration="1934000" />
     </task>
     <task id="LOCAL-00433" summary="Record web build date / app version to spot old clients">
       <created>1580417220956</created>
@@ -576,7 +558,21 @@
       <option name="project" value="LOCAL" />
       <updated>1581111077860</updated>
     </task>
-    <option name="localTasksCounter" value="480" />
+    <task id="LOCAL-00480" summary="Move AdView sort logic into class">
+      <created>1582705677864</created>
+      <option name="number" value="00480" />
+      <option name="presentableId" value="LOCAL-00480" />
+      <option name="project" value="LOCAL" />
+      <updated>1582705677866</updated>
+    </task>
+    <task id="LOCAL-00481" summary="Use AdView job sorting in email notifications.">
+      <created>1582705786295</created>
+      <option name="number" value="00481" />
+      <option name="presentableId" value="LOCAL-00481" />
+      <option name="project" value="LOCAL" />
+      <updated>1582705786295</updated>
+    </task>
+    <option name="localTasksCounter" value="482" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -639,8 +635,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
-    <MESSAGE value="Don't return message miles away when we don't know it." />
-    <MESSAGE value="Allow login with different password salt" />
     <MESSAGE value="Don't allow silly long names." />
     <MESSAGE value="Finally kill off &quot;A freegler&quot; and replace it with a made up name" />
     <MESSAGE value="Bug in earlier fix causing blank chat messages" />
@@ -664,7 +658,9 @@
     <MESSAGE value="Rookie error nit" />
     <MESSAGE value="Improve snippet for message replies" />
     <MESSAGE value="Add apology for false spam addition" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add apology for false spam addition" />
+    <MESSAGE value="Move AdView sort logic into class" />
+    <MESSAGE value="Use AdView job sorting in email notifications." />
+    <option name="LAST_COMMIT_MESSAGE" value="Use AdView job sorting in email notifications." />
   </component>
   <component name="WindowStateProjectService">
     <state x="446" y="123" key="#Deployment" timestamp="1582705559955">
@@ -690,10 +686,10 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="0" y="62" key="CommitChangelistDialog2" timestamp="1582537527643">
+    <state x="0" y="62" key="CommitChangelistDialog2" timestamp="1582706790316">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1582537527643" />
+    <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1582706790316" />
     <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581583567829" />
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1582537240294">
       <screen x="0" y="0" width="1707" height="920" />
@@ -776,10 +772,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1582537180483">
+    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1582705982369">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1582537180483" />
+    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1582705982369" />
     <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581583716973" />
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1582705601229">
       <screen x="0" y="0" width="1707" height="920" />
