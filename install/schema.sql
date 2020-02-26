@@ -4619,3 +4619,30 @@ ALTER TABLE `users_expected`
     ADD CONSTRAINT `users_expected_ibfk_1` FOREIGN KEY (`expecter`) REFERENCES `users` (`id`) ON DELETE CASCADE,
     ADD CONSTRAINT `users_expected_ibfk_2` FOREIGN KEY (`expectee`) REFERENCES `users` (`id`) ON DELETE CASCADE,
     ADD CONSTRAINT `users_expected_ibfk_3` FOREIGN KEY (`chatmsgid`) REFERENCES `chat_messages` (`id`) ON DELETE CASCADE;
+
+CREATE TABLE `jobs_keywords` (
+                                 `id` bigint(20) UNSIGNED NOT NULL,
+                                 `keyword` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                 `count` bigint(20) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `jobs_keywords`
+--
+ALTER TABLE `jobs_keywords`
+    ADD PRIMARY KEY (`id`),
+    ADD UNIQUE KEY `keyword` (`keyword`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `jobs_keywords`
+--
+ALTER TABLE `jobs_keywords`
+    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
