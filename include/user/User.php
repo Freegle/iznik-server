@@ -6066,9 +6066,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             if ($data) {
                 $data = json_decode($data, TRUE);
                 if ($data && $data['data'] && count($data['data'])) {
-                    # Randomise a bit so people don't see the same ones if they're getting multiple mails per day.
-                    $jobs = $data['data'];
-                    shuffle($jobs);
+                    $a = new AdView($this->dbhr, $this->dbhm);
+                    $jobs = $a->sortJobs($data['data'], $this->id);
                     $jobs = array_slice($jobs, 0, 4);
 
                     foreach ($jobs as $job) {
