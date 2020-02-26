@@ -98,6 +98,7 @@ require_once(IZNIK_BASE . '/include/group/Twitter.php');
 require_once(IZNIK_BASE . '/include/group/Facebook.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
+require_once(IZNIK_BASE . '/include/misc/AdView.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
 require_once(IZNIK_BASE . '/include/misc/Polls.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
