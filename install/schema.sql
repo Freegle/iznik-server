@@ -4646,3 +4646,32 @@ ALTER TABLE `jobs_keywords`
 --
 ALTER TABLE `jobs_keywords`
     MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+
+CREATE TABLE `logs_jobs` (
+                             `id` bigint(20) UNSIGNED NOT NULL,
+                             `userid` bigint(20) UNSIGNED DEFAULT NULL,
+                             `link` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+                             `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `logs_jobs`
+--
+ALTER TABLE `logs_jobs`
+    ADD PRIMARY KEY (`id`),
+    ADD KEY `timestamp` (`timestamp`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `logs_jobs`
+--
+ALTER TABLE `logs_jobs`
+    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
