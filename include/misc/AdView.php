@@ -46,12 +46,14 @@ class AdView
             $scores[$row['keyword']] = $row['count'];
         }
 
-        $max = max($scores);
+        if (count($scores)) {
+            $max = max($scores);
 
-        # Normalise to less than 100.  This hides the click numbers and also allows us to score
-        # our own clicks higher.
-        foreach ($scores as $keyword => $score) {
-            $scores[$keyword] = 100 * $scores[$keyword] / $max;
+            # Normalise to less than 100.  This hides the click numbers and also allows us to score
+            # our own clicks higher.
+            foreach ($scores as $keyword => $score) {
+                $scores[$keyword] = 100 * $scores[$keyword] / $max;
+            }
         }
 
         $mykeywords = [];
