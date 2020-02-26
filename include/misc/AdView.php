@@ -46,6 +46,8 @@ class AdView
             $scores[$row['keyword']] = $row['count'];
         }
 
+        $max = 1;
+
         if (count($scores)) {
             $max = max($scores);
 
