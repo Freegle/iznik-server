@@ -240,8 +240,8 @@ class Location extends Entity
         $gridids = [];
         $ret = [];
 
-        # We want to exclude some locations on a per group basis
-        $exclgroup = " LEFT JOIN locations_excluded ON locations.id = locations_excluded.locationid AND locations_excluded.groupid = " . intval($groupid) . " ";
+        # We want to exclude some locations.
+        $exclgroup = " LEFT JOIN locations_excluded ON locations.id = locations_excluded.locationid ";
 
         # Exclude all numeric locations (there are some in OSM).  Also exclude amenities and shops, otherwise we get
         # some silly mappings (e.g. London).
