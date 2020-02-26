@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/Schedule.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/Schedule.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -227,14 +227,7 @@
       <workItem from="1579245581582" duration="19910000" />
       <workItem from="1580820604867" duration="17907000" />
       <workItem from="1580893378540" duration="31294000" />
-      <workItem from="1582663736399" duration="1934000" />
-    </task>
-    <task id="LOCAL-00433" summary="Record web build date / app version to spot old clients">
-      <created>1580417220956</created>
-      <option name="number" value="00433" />
-      <option name="presentableId" value="LOCAL-00433" />
-      <option name="project" value="LOCAL" />
-      <updated>1580417220956</updated>
+      <workItem from="1582663736399" duration="2464000" />
     </task>
     <task id="LOCAL-00434" summary="Record web build date / app version to spot old clients">
       <created>1580417738782</created>
@@ -572,7 +565,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582705786295</updated>
     </task>
-    <option name="localTasksCounter" value="482" />
+    <task id="LOCAL-00482" summary="Use AdView job sorting in email notifications.">
+      <created>1582706800549</created>
+      <option name="number" value="00482" />
+      <option name="presentableId" value="LOCAL-00482" />
+      <option name="project" value="LOCAL" />
+      <updated>1582706800550</updated>
+    </task>
+    <option name="localTasksCounter" value="483" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -686,10 +686,10 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="0" y="62" key="CommitChangelistDialog2" timestamp="1582706790316">
+    <state x="0" y="62" key="CommitChangelistDialog2" timestamp="1582706799797">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1582706790316" />
+    <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1582706799797" />
     <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581583567829" />
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog" timestamp="1582537240294">
       <screen x="0" y="0" width="1707" height="920" />
@@ -759,10 +759,10 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1582537530615">
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2" timestamp="1582706802488">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1582537530615" />
+    <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1582706802488" />
     <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581111079038" />
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1580834615398">
       <screen x="0" y="0" width="1920" height="1040" />
@@ -772,10 +772,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1582705982369">
+    <state x="559" y="216" width="588" height="488" key="find.popup" timestamp="1582707287846">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
-    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1582705982369" />
+    <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1582707287846" />
     <state x="547" y="244" width="1373" height="552" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1581583716973" />
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup" timestamp="1582705601229">
       <screen x="0" y="0" width="1707" height="920" />
