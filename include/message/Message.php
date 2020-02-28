@@ -352,6 +352,10 @@ class Message
         if ($ret && ($type || $item || $location)) {
             # Construct a new subject from the edited values.
             $groupids = $this->getGroups();
+            if (!count($groupids)) {
+                return FALSE;
+            }
+
             $this->constructSubject($groupids[0]);
             $this->setPrivate('subject', $this->subject);
             $this->setPrivate('suggestedsubject', $this->subject);
