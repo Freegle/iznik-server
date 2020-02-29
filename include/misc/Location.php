@@ -160,7 +160,7 @@ class Location extends Entity
             if (!$areaid) {
                 if ($loc['areaid']) {
                     # See if the existing area is correct.
-                    $sql = "SELECT GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS max, ST_Contains(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS within FROM locations LEFT OUTER JOIN locations_excluded ON locations.id = locations_excluded.locationid WHERE id = ? AND locations_excluded.locationid IS NULL;";
+                    $sql = "SELECT GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS max, ST_Contains(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS within FROM locations LEFT OUTER JOIN locations_excluded ON locations.id = locations_excluded.locationid WHERE locations.id = ? AND locations_excluded.locationid IS NULL;";
                     $withins = $this->dbhr->preQuery($sql, [
                         $loc['geometry'],
                         $loc['areaid']

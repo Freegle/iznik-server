@@ -890,6 +890,7 @@ class userTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
+        $g->setPrivate('onhere', TRUE);
 
         $g->setPrivate('welcomemail', "Test welcome");
 

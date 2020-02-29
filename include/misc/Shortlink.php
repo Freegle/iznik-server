@@ -48,7 +48,13 @@ class Shortlink extends Entity
                 $g = new Group($this->dbhr, $this->dbhm, $link['groupid']);
 
                 # Where we redirect to depends on the group settings.
-                $url = $g->getPrivate('onhere') ? ('https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort')) : ('https://groups.yahoo.com/' . $g->getPrivate('nameshort'));
+                $external = $g->getPrivate('external');
+
+                if ($external) {
+                    $url = $external;
+                } else {
+                    $url = $g->getPrivate('onhere') ? ('https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort')) : ('https://groups.yahoo.com/' . $g->getPrivate('nameshort'));
+                }
             } else {
                 $url = $link['url'];
 

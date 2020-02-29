@@ -2013,6 +2013,7 @@ ORDER BY lastdate DESC;";
             Message::PLATFORM,
             presdef('REMOTE_ADDR', $_SERVER, NULL)
         ]);
+
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
 
         if ($id) {
