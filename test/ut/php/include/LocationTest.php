@@ -218,7 +218,13 @@ class locationTest extends IznikTestCase {
         $this->log("Shouldn't find groups near " . var_export($groups, TRUE));
         assertFalse(in_array($gid, $groups));
 
-        }
+    }
+
+    public function testEH() {
+        $l = new Location($this->dbhr, $this->dbhm, 5503182);
+        $near = $l->groupsNear();
+        error_log(var_export($near, TRUE));
+    }
 }
 
 
