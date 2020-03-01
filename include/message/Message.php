@@ -4429,7 +4429,7 @@ ORDER BY lastdate DESC;";
         $msgq = $msgid ? " AND messages_groups.msgid = $msgid " : "";
 
         # Randomise the order to give all groups a chance if the script gets killed or something.
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? AND onhere = 1 $groupq ORDER BY RAND();", [ $type ]);
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
