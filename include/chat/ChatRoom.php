@@ -87,6 +87,7 @@ class ChatRoom extends Entity
         # - gets the last seen for this user.
         #
         # We do this because chat rooms are performance critical, especially for people with many chats.
+        $oldest = date("Y-m-d", strtotime("Midnight 31 days ago"));
         $idlist = "(" . implode(',', $ids) . ")";
         $sql = "
 SELECT chat_rooms.*, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname, 
@@ -97,7 +98,7 @@ u2.settings AS u2settings,
 (SELECT COUNT(*) AS count FROM chat_messages WHERE id > 
   COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = ? AND status != ? AND status != ?), 0) 
   AND chatid = chat_rooms.id AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS unseen,
-(SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = chat_rooms.id AND replyexpected = 1 AND replyreceived = 0 AND userid != ?) AS replyexpected,
+(SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = chat_rooms.id AND replyexpected = 1 AND replyreceived = 0 AND userid != ? AND chat_messages.date >= '$oldest') AS replyexpected,
 i1.url AS u1imageurl,
 i2.url AS u2imageurl,
 i1.data AS u1imagedata,
@@ -657,7 +658,9 @@ WHERE chat_rooms.id IN $idlist;";
 
         if (!$summary) {
             # Count the expected replies.
-            $ret['replyexpected'] = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND replyexpected = 1 AND replyreceived = 0 AND userid != ?;", [
+            $oldest = date("Y-m-d", strtotime("Midnight 31 days ago"));
+
+            $ret['replyexpected'] = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND replyexpected = 1 AND replyreceived = 0 AND userid != ? AND chat_messages.date >= '$oldest';", [
                 $this->chatroom['id'],
                 $myid
             ], FALSE, FALSE)[0]['count'];
