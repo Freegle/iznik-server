@@ -79,7 +79,7 @@ class WorryWords {
             }
 
             if ($ret) {
-                $ret = array_unique($ret);
+                $ret = array_unique($ret, SORT_REGULAR);
             }
         }
 

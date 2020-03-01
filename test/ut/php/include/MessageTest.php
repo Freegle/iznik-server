@@ -569,6 +569,7 @@ class messageTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onyahoo', 1);
+        $g->setPrivate('onhere', 1);
 
         $m = new Message($this->dbhr, $this->dbhm);
 
