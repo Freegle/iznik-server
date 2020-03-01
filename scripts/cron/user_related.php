@@ -68,8 +68,8 @@ foreach ($relateds as $related) {
                 $str,
                 [], '-f' . SUPPORT_ADDR);
         } else {
-            mail(SUPPORT_ADDR . ", log@ehibbert.org.uk", "Possible related users {$related['user1']}",
-                "We've mailed support about this either because there is no email for one of the users, or there are no groups in common.  That means local volunteers couldn't contact or merge them.\n\n" .
+            mail("log@ehibbert.org.uk", "Possible related users {$related['user1']}",
+                "We've mailed you about this either because there is no email for one of the users, or there are no groups in common.  That means local volunteers couldn't contact or merge them.\n\n" .
                 $str,
                 [], '-f' . SUPPORT_ADDR);
         }

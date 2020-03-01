@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/scripts/fix/fix_norfolk_apology.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/WorryWords.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/migrate/norfolk.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/migrate/norfolk.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/group/Group.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/group/Group.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cron/user_related.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/user_related.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -239,21 +236,7 @@
       <workItem from="1580820604867" duration="17907000" />
       <workItem from="1580893378540" duration="31294000" />
       <workItem from="1582270430690" duration="49877000" />
-      <workItem from="1582966922464" duration="33826000" />
-    </task>
-    <task id="LOCAL-00483" summary="UT fixes">
-      <created>1581632837159</created>
-      <option name="number" value="00483" />
-      <option name="presentableId" value="LOCAL-00483" />
-      <option name="project" value="LOCAL" />
-      <updated>1581632837159</updated>
-    </task>
-    <task id="LOCAL-00484" summary="Stats by month script">
-      <created>1581693168922</created>
-      <option name="number" value="00484" />
-      <option name="presentableId" value="LOCAL-00484" />
-      <option name="project" value="LOCAL" />
-      <updated>1581693168922</updated>
+      <workItem from="1582966922464" duration="37383000" />
     </task>
     <task id="LOCAL-00485" summary="Stats by month script">
       <created>1581757749711</created>
@@ -584,7 +567,21 @@
       <option name="project" value="LOCAL" />
       <updated>1583067031353</updated>
     </task>
-    <option name="localTasksCounter" value="532" />
+    <task id="LOCAL-00532" summary="UT fixes">
+      <created>1583068112218</created>
+      <option name="number" value="00532" />
+      <option name="presentableId" value="LOCAL-00532" />
+      <option name="project" value="LOCAL" />
+      <updated>1583068112218</updated>
+    </task>
+    <task id="LOCAL-00533" summary="More work on Norfolk migration">
+      <created>1583068129382</created>
+      <option name="number" value="00533" />
+      <option name="presentableId" value="LOCAL-00533" />
+      <option name="project" value="LOCAL" />
+      <updated>1583068129382</updated>
+    </task>
+    <option name="localTasksCounter" value="534" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -648,7 +645,6 @@
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Can't repost to a different group" />
     <MESSAGE value="Remove extra log info for Yahoo" />
     <MESSAGE value="Add log of which jobs are clicked" />
     <MESSAGE value="Add cron script to keep track of jobs keywords clicked" />
@@ -670,10 +666,11 @@
     <MESSAGE value="List chats for which replies are expected." />
     <MESSAGE value="Don't send welcome mails for adds to external groups" />
     <MESSAGE value="Work on Norfolk migration" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="RSVP sticking too long" />
     <MESSAGE value="Don't autorepost for groups not on the platform" />
-    <option name="LAST_COMMIT_MESSAGE" value="Don't autorepost for groups not on the platform" />
+    <MESSAGE value="UT fixes" />
+    <MESSAGE value="More work on Norfolk migration" />
+    <option name="LAST_COMMIT_MESSAGE" value="More work on Norfolk migration" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1583061186724">
@@ -698,16 +695,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583068111512">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583068128832">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068111512" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1583067023505">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068128832" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1583099259858">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583067023505" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583099259858" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog" timestamp="1581784889298">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -771,11 +768,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583067038168">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583068130758">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583067038168" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068130758" />
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1583057941944">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -784,20 +781,20 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="2436" y="228" width="1373" height="812" key="find.popup" timestamp="1583067975127">
-      <screen x="1920" y="0" width="1920" height="1040" />
+    <state x="443" y="41" width="1373" height="812" key="find.popup" timestamp="1583098215692">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="2436" y="228" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583067975127" />
+    <state x="443" y="41" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583098215692" />
     <state x="616" y="240" width="672" height="677" key="run.anything.popup" timestamp="1583066899617">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="616" y="240" width="672" height="677" key="run.anything.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583066899617" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1583066540207">
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1583097884406">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545385023" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583066540207" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583097884406" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>

@@ -309,9 +309,9 @@ class Group extends Entity
 
     public function getModsEmail() {
         # This is an address used when we are sending to volunteers, or in response to an action by a volunteer.
-        if ($this->group['contactmail']) {
+        if (pres('contactmail', $this->group)) {
             $ret = $this->group['contactmail'];
-        } else if ($this->group['onyahoo']) {
+        } else if (pres('onyahoo', $this->group)) {
             $ret = $this->group['nameshort'] . "-owner@yahoogroups.com";
         } else {
             $ret = $this->group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
