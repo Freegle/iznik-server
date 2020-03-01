@@ -2,19 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/scripts/cli/group_copy.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/fix/fix_norfolk_createareas.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/fix/norfolkareas.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/fix/fix_norfolk_apology.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/message/Message.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/Message.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/misc/Location.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Location.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/misc/Shortlink.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Shortlink.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_parents.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_parents.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/message/WorryWords.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/message/WorryWords.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/migrate/norfolk.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/migrate/norfolk.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/LocationTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/LocationTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/UserTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,12 +105,12 @@
       <recent name="C:\Users\Edward\PhpstormProjects\iznik-server\test\ut\php\images" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.sessionTest.testNative">
-    <configuration name="MailRouterTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="MailRouterTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MailRouterTest.php" scope="Class" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="176" />
+    </option>
+  </component>
+  <component name="RunManager" selected="PHPUnit.messageTest.testAutoRepost">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
@@ -133,6 +126,11 @@
       <TestRunner class="locationTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/LocationTest.php" method="testEH" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="messageTest.testAutoRepost" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="messageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/MessageTest.php" method="testAutoRepost" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="sessionTest.testNative" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testNative" scope="Method" use_alternative_configuration_file="true" />
@@ -144,19 +142,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.MailRouterTest" />
       <item itemvalue="PHPUnit.chatRoomsTest.testNotifyAvailability" />
       <item itemvalue="PHPUnit.locationTest.testEH" />
       <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
       <item itemvalue="PHPUnit.sessionTest.testNative" />
+      <item itemvalue="PHPUnit.messageTest.testAutoRepost" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.messageTest.testAutoRepost" />
         <item itemvalue="PHPUnit.sessionTest.testNative" />
         <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
         <item itemvalue="PHPUnit.locationTest.testEH" />
         <item itemvalue="PHPUnit.chatRoomsTest.testNotifyAvailability" />
-        <item itemvalue="PHPUnit.MailRouterTest" />
       </list>
     </recent_temporary>
   </component>
@@ -241,42 +239,7 @@
       <workItem from="1580820604867" duration="17907000" />
       <workItem from="1580893378540" duration="31294000" />
       <workItem from="1582270430690" duration="49877000" />
-      <workItem from="1582966922464" duration="21735000" />
-    </task>
-    <task id="LOCAL-00478" summary="Rookie error nit">
-      <created>1581109371183</created>
-      <option name="number" value="00478" />
-      <option name="presentableId" value="LOCAL-00478" />
-      <option name="project" value="LOCAL" />
-      <updated>1581109371183</updated>
-    </task>
-    <task id="LOCAL-00479" summary="Improve snippet for message replies">
-      <created>1581111077860</created>
-      <option name="number" value="00479" />
-      <option name="presentableId" value="LOCAL-00479" />
-      <option name="project" value="LOCAL" />
-      <updated>1581111077860</updated>
-    </task>
-    <task id="LOCAL-00480" summary="Make the MODTOOLS constant an API parameter as baby steps towards sharing the same API backend between FD and MT, which is part of the MT rewrite.">
-      <created>1581584079579</created>
-      <option name="number" value="00480" />
-      <option name="presentableId" value="LOCAL-00480" />
-      <option name="project" value="LOCAL" />
-      <updated>1581584079579</updated>
-    </task>
-    <task id="LOCAL-00481" summary="Replies on chitchat are not notifying all the right people, and don't bump the thread.">
-      <created>1581631024729</created>
-      <option name="number" value="00481" />
-      <option name="presentableId" value="LOCAL-00481" />
-      <option name="project" value="LOCAL" />
-      <updated>1581631024729</updated>
-    </task>
-    <task id="LOCAL-00482" summary="Fix script to set up ReturnPath seeds">
-      <created>1581632028291</created>
-      <option name="number" value="00482" />
-      <option name="presentableId" value="LOCAL-00482" />
-      <option name="project" value="LOCAL" />
-      <updated>1581632028291</updated>
+      <workItem from="1582966922464" duration="33826000" />
     </task>
     <task id="LOCAL-00483" summary="UT fixes">
       <created>1581632837159</created>
@@ -586,7 +549,42 @@
       <option name="project" value="LOCAL" />
       <updated>1583006033143</updated>
     </task>
-    <option name="localTasksCounter" value="527" />
+    <task id="LOCAL-00527" summary="UT fixes">
+      <created>1583007294172</created>
+      <option name="number" value="00527" />
+      <option name="presentableId" value="LOCAL-00527" />
+      <option name="project" value="LOCAL" />
+      <updated>1583007294172</updated>
+    </task>
+    <task id="LOCAL-00528" summary="Work on Norfolk migration">
+      <created>1583007305165</created>
+      <option name="number" value="00528" />
+      <option name="presentableId" value="LOCAL-00528" />
+      <option name="project" value="LOCAL" />
+      <updated>1583007305165</updated>
+    </task>
+    <task id="LOCAL-00529" summary="UT fixes">
+      <created>1583054994665</created>
+      <option name="number" value="00529" />
+      <option name="presentableId" value="LOCAL-00529" />
+      <option name="project" value="LOCAL" />
+      <updated>1583054994665</updated>
+    </task>
+    <task id="LOCAL-00530" summary="RSVP sticking too long">
+      <created>1583061276299</created>
+      <option name="number" value="00530" />
+      <option name="presentableId" value="LOCAL-00530" />
+      <option name="project" value="LOCAL" />
+      <updated>1583061276300</updated>
+    </task>
+    <task id="LOCAL-00531" summary="Don't autorepost for groups not on the platform">
+      <created>1583067031353</created>
+      <option name="number" value="00531" />
+      <option name="presentableId" value="LOCAL-00531" />
+      <option name="project" value="LOCAL" />
+      <updated>1583067031353</updated>
+    </task>
+    <option name="localTasksCounter" value="532" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -650,9 +648,6 @@
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Return user comments for chat review" />
-    <MESSAGE value="Crash in chat notify" />
-    <MESSAGE value="Speed-up: minor speedup for chat review" />
     <MESSAGE value="Can't repost to a different group" />
     <MESSAGE value="Remove extra log info for Yahoo" />
     <MESSAGE value="Add log of which jobs are clicked" />
@@ -671,18 +666,21 @@
     <MESSAGE value="Flag syntactically invalid emails as bouncing" />
     <MESSAGE value="Duplicate worry words showing." />
     <MESSAGE value="Fixes to status checking" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="Adapt order of returned job ads to which ones generate clicks" />
     <MESSAGE value="List chats for which replies are expected." />
     <MESSAGE value="Don't send welcome mails for adds to external groups" />
-    <option name="LAST_COMMIT_MESSAGE" value="Don't send welcome mails for adds to external groups" />
+    <MESSAGE value="Work on Norfolk migration" />
+    <MESSAGE value="UT fixes" />
+    <MESSAGE value="RSVP sticking too long" />
+    <MESSAGE value="Don't autorepost for groups not on the platform" />
+    <option name="LAST_COMMIT_MESSAGE" value="Don't autorepost for groups not on the platform" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="502" y="139" key="#Deployment" timestamp="1582649237155">
+    <state x="502" y="139" key="#Deployment" timestamp="1583061186724">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="123" key="#Deployment/0.0.1707.920@0.0.1707.920" timestamp="1580282050563" />
-    <state x="502" y="139" key="#Deployment/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582649237155" />
+    <state x="502" y="139" key="#Deployment/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583061186724" />
     <state x="446" y="123" key="#Options" timestamp="1580282033213">
       <screen x="0" y="0" width="1707" height="920" />
     </state>
@@ -700,16 +698,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583007293455">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583068111512">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583007293455" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1583007260425">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068111512" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1583067023505">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583007260425" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583067023505" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog" timestamp="1581784889298">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -719,26 +717,26 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="717" y="359" key="Github.Dialog.Accounts.Choose/0.0.1707.920@0.0.1707.920" timestamp="1580282462596" />
-    <state width="1877" height="250" key="GridCell.Tab.0.bottom" timestamp="1583007286315">
+    <state width="1877" height="250" key="GridCell.Tab.0.bottom" timestamp="1583068101416">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="250" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583007286315" />
-    <state width="1877" height="250" key="GridCell.Tab.0.center" timestamp="1583007286315">
+    <state width="1877" height="250" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068101416" />
+    <state width="1877" height="250" key="GridCell.Tab.0.center" timestamp="1583068101416">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="250" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583007286315" />
-    <state width="1877" height="250" key="GridCell.Tab.0.left" timestamp="1583007286315">
+    <state width="1877" height="250" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068101416" />
+    <state width="1877" height="250" key="GridCell.Tab.0.left" timestamp="1583068101416">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="250" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583007286315" />
-    <state width="1877" height="250" key="GridCell.Tab.0.right" timestamp="1583007286315">
+    <state width="1877" height="250" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068101416" />
+    <state width="1877" height="250" key="GridCell.Tab.0.right" timestamp="1583068101416">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="250" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583007286315" />
+    <state width="1877" height="250" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068101416" />
     <state width="1877" height="348" key="GridCell.Tab.1.bottom" timestamp="1580815370015">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -773,33 +771,33 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583006034588">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583067038168">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583006034588" />
-    <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1580834615398">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583067038168" />
+    <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1583057941944">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580834615398" />
+    <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583057941944" />
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog" timestamp="1580820604874">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="312" y="-1" width="1373" height="812" key="find.popup" timestamp="1583007203576">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="2436" y="228" width="1373" height="812" key="find.popup" timestamp="1583067975127">
+      <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="312" y="-1" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583007203576" />
-    <state x="616" y="240" key="run.anything.popup" timestamp="1582664741498">
+    <state x="2436" y="228" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583067975127" />
+    <state x="616" y="240" width="672" height="677" key="run.anything.popup" timestamp="1583066899617">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="616" y="240" key="run.anything.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582664741498" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1583007267478">
+    <state x="616" y="240" width="672" height="677" key="run.anything.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583066899617" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1583066540207">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545385023" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583007267478" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583066540207" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>

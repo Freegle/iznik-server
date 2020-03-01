@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
+require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/misc/PAF.php');
 
@@ -26,7 +27,7 @@ $posts = 0;
 # User filter for testing this before we go live.
 $userfilt = " AND u_Id IN (9, 11, 54) ";
 $userfilt = " AND u_Moderator = 1 ";
-$userfilt = "";
+#$userfilt = "";
 
 # Whether we're doing a test migration i.e. no actual data change.
 $test = FALSE;
@@ -39,13 +40,15 @@ $dbhn = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 ));
 
 # Look for users active in the last 3 years.
+# TODO Need to use u_DontDelete
 $start = date('Y-m-d', strtotime("3 years ago"));
-$alluserssql = "SELECT u_User.*, MAX(p_DatePosted, pr_LastUpdatedDt, u_CreatedDt) AS lastaccess FROM u_User
+$alluserssql = "SELECT * FROM u_User
               WHERE u_Id IN
    (SELECT DISTINCT u_Id FROM u_User
        LEFT JOIN pr_PostResponder ON pr_PostResponder.pr_u_Id_Responder = u_User.u_Id
        LEFT JOIN p_Post ON p_Post.p_u_Id = u_User.u_Id
    WHERE u_IsActive = 1 AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpdatedDt >= '$start' OR u_CreatedDt >= '$start'));";
+
 $users = $dbhn->preQuery($alluserssql);
 $total = count($users);
 $count = 0;
@@ -56,7 +59,7 @@ error_log("Migrate $total users\n");
 # First migrate across all the users.
 foreach ($users as $user) {
     if ($user['u_NickName'] != 'System') {
-        error_log("{$user['u_NickName']}");
+        error_log("{$user['u_Id']} {$user['u_NickName']}");
 
         # Get email.  Use the most recent.
         $sql = "SELECT * FROM ue_UserEmail WHERE ue_u_Id = ? AND ue_IsLogon = 1 AND ue_IsActivated = 1 AND ue_AddressProblem = 0 ORDER BY ue_ModifiedDt DESC LIMIT 1;";
@@ -67,6 +70,7 @@ foreach ($users as $user) {
 
         if (count($emails)) {
             $uid = NULL;
+
             foreach ($emails as $email) {
                 $e = str_replace('.NERFED', '', $email['ue_EmailAddress']);
                 $uid = $u->findByEmail($e);
@@ -156,7 +160,20 @@ foreach ($users as $user) {
                                 $u->setPrivate('added', $user['u_CreatedDt']);
                             }
 
-                            $u->setPrivate('lastaccess', $user['lastaccess']);
+                            # Get last access
+                            $sql = "SELECT MAX(GREATEST(p_DatePosted, pr_LastUpdatedDt, u_CreatedDt)) AS lastaccess 
+    FROM u_User
+    LEFT JOIN p_Post ON p_Post.p_u_Id = u_User.u_Id
+    LEFT JOIN pr_PostResponder ON pr_PostResponder.pr_u_Id_Responder = u_User.u_Id 
+    WHERE u_Id = ? AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpdatedDt >= '$start' OR u_CreatedDt >= '$start');";
+                            $lasts = $dbhn->preQuery($sql, [
+                                $user['u_Id']
+                            ]);
+
+                            $lastaccess = $lasts[0]['lastaccess'];
+                            error_log("...last access $lastaccess");
+
+                            $u->setPrivate('lastaccess', $lastaccess);
 
                             $settings = $u->getPrivate('settings');
                             $settings = json_decode($settings, TRUE);
@@ -215,10 +232,11 @@ foreach ($users as $user) {
 
                                 $emailnever++;
 
-                                if (!$test) {
-                                    $u->setMembershipAtt($gid, 'eventsallowed', 0);
-                                    $u->setMembershipAtt($gid, 'volunteeringallowed', 0);
-                                }
+                                # We are leaving event/volops on to re-engage.
+//                                if (!$test) {
+//                                    $u->setMembershipAtt($gid, 'eventsallowed', 0);
+//                                    $u->setMembershipAtt($gid, 'volunteeringallowed', 0);
+//                                }
                             } else if ($user['u_DailyAlerts']) {
                                 $emailfreq = 24;
                                 error_log("...email frequency Daily");
@@ -337,11 +355,11 @@ foreach ($users as $user) {
 }
 
 # Get the posts, including by users we're not migrating, for stats purposes.
-$posts = $dbhn->preQuery("SELECT ue_EmailAddress, p_Post.p_Id, p_Post.p_DatePosted, p_Post.p_u_Id, mp_PostStatus.mp_Status, mp_PostStatus.mp_Desc, 
+$posts = $dbhn->preQuery("SELECT DISTINCT ue_EmailAddress, p_Post.p_Id, p_Post.p_DatePosted, p_Post.p_u_Id, mp_PostStatus.mp_Status, mp_PostStatus.mp_Desc, 
        mc_Condition.mc_Desc, p_Post.p_ShortDesc, p_Post.p_Description, mt_PostType.mt_Type,
        ul_PostCode, ul_Longitude, ul_Latitude
 FROM p_Post 
-INNER JOIN u_User ON u_User.u_Id = p_Post.p_u_Id
+INNER JOIN u_User ON u_User.u_Id = p_Post.p_u_Id $userfilt
 INNER JOIN mt_PostType ON mt_PostType.mt_Id = p_Post.p_mt_PostType
 INNER JOIN mp_PostStatus ON mp_PostStatus.mp_Id = p_Post.p_mp_Id
 LEFT JOIN mc_Condition ON mc_Condition.mc_Condition = p_Post.p_mc_Condition
@@ -349,26 +367,30 @@ LEFT JOIN ue_UserEmail ON ue_UserEmail.ue_u_Id = p_Post.p_u_Id
 LEFT JOIN pl_PostLocation ON pl_PostLocation.pl_p_Id = p_Post.p_Id    
 LEFT JOIN ul_UserLocation ON pl_PostLocation.pl_ul_Id = ul_UserLocation.ul_Id
 WHERE mp_PostStatus.mp_Status IN ('o', 'a', 'c')
-ORDER BY p_DatePosted DESC
-LIMIT 10");
+ORDER BY p_DatePosted DESC");
 
 $postcount = 0;
 $photocount = 0;
 $postfail = 0;
+$withdrawn = 0;
+$taken = 0;
+$received = 0;
 
 $u = new User($dbhr, $dbhm);
 
 foreach ($posts as $post) {
-    error_log("{$post['ue_EmailAddress']} {$post['p_ShortDesc']}");
+    error_log("{$post['p_Id']} {$post['ue_EmailAddress']} {$post['p_ShortDesc']}");
+    $mid = NULL;
     $postcount++;
 
     # See if we've migrated already.
-    $msgs = $dbhr->preQuery("SELECT id FROM messages WHERE messageid = ?;", [
+    $msgs = $dbhm->preQuery("SELECT id FROM messages WHERE messageid = ?;", [
         "Norfolk-{$post['p_Id']}"
     ]);
 
     if (count($msgs)) {
         error_log("...already migrated");
+        $mid = $msgs[0]['id'];
     } else {
         error_log("...new message");
         $uid = $u->findByEmail($post['ue_EmailAddress']);
@@ -401,16 +423,16 @@ foreach ($posts as $post) {
                 error_log("...on {$groups[0]['nameshort']}");
                 $gid = $groups[0]['id'];
 
-                if (!$test && FALSE) {
+                if (!$test) {
                     # Create a message.
-                    $rc = $dbhm->preExec("INSERT INTO messages (messageid, arrival, date, fromuser, fromaddr, subject, textbody, type) VALUES(?,?, NOW(), ?, '');", [
+                    $rc = $dbhm->preExec("INSERT INTO messages (messageid, arrival, date, fromuser, fromaddr, subject, textbody, type) VALUES(?, ?, ?, ?, ?, ?, ?, ?);", [
                         "Norfolk-{$post['p_Id']}",
                         $post['p_DatePosted'],
                         $post['p_DatePosted'],
                         $uid,
                         $post['ue_EmailAddress'],
                         $subj,
-                        $post['p_Description'],
+                        $post['p_Description'] . ($post['mc_Desc'] ? "\n\n{$post['mc_Desc']}" : ''),
                         $post['mt_Type'] == 'Offer' ? Message::TYPE_OFFER : Message::TYPE_WANTED
                     ]);
 
@@ -425,6 +447,25 @@ foreach ($posts as $post) {
                         $post['mt_Type'] == 'Offer' ? Message::TYPE_OFFER : Message::TYPE_WANTED
                     ]);
 
+                    # Add any images.
+                    $images = $dbhn->preQuery("SELECT * FROM pi_PostImage WHERE pi_p_Id = ?;", [
+                        $post['p_Id']
+                    ]);
+
+                    foreach ($images as $image) {
+                        error_log("...image {$image['pi_Filename']}");
+                        $data = @file_get_contents('/tmp/PostImages/' . $image['pi_Filename']);
+
+                        if ($data) {
+                            $a = new Attachment($dbhr, $dbhm);
+                            $aid = $a->create($mid, 'image/jpg', $data);
+
+                            # Archive so we don't flood the DB.
+                            $a->archive();
+                        }
+
+                        exit(0);
+                    }
 
                 }
             } else {
@@ -437,8 +478,52 @@ foreach ($posts as $post) {
         }
     }
 
-    $m = new Message($dbhr, $dbhm);
-    
+    if ($mid) {
+        # Update any outcomes, including for existing messages.
+        $dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [
+            $mid
+        ]);
+
+        if ($post['mp_Status'] == 'W') {
+            // Withdrawn
+            error_log("...withdrawn");
+            $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
+                $mid,
+                Message::OUTCOME_WITHDRAWN,
+                NULL.
+                NULL
+            ]);
+            $withdrawn++;
+        } else if ($post['mp_Status'] == 'O') {
+            // Open - need to look at pr_PostResponder.
+            $prs = $dbhn->preQuery("SELECT * FROM pr_PostResponder INNER JOIN mpr_PostResponderStatus ON mpr_PostResponderStatus.mpr_Id = pr_PostResponder.pr_mpr_Id WHERE pr_p_Id = ?;", [
+                $post['p_Id']
+            ]);
+
+            $completed = FALSE;
+
+            foreach ($prs as $pr) {
+                if ($pr['mpr_Desc'] === 'Accepted' || $pr['mpr_Desc'] === 'Completed') {
+                    // Successful.
+                    $outcome = $post['mt_Type'] == 'Offer' ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
+                    error_log("...$outcome");
+
+                    if ($outcome == 'Taken') {
+                        $taken++;
+                    } else {
+                        $received++;
+                    }
+
+                    $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
+                        $mid,
+                        $outcome,
+                        NULL,
+                        NULL
+                    ]);
+                }
+            }
+        }
+    }
 }
 
 error_log("\n\nSummary:\n\n");
@@ -446,4 +531,4 @@ error_log("$users_new new users, $users_known already known.");
 error_log("$emaildaily daily emails, $emailimmediate immediate, $emailnever never");
 error_log("$postcode_mapped postcodes mapped, $postcode_failed postcodes failed to map, $postcode_untouched already different on FD");
 error_log("$address_mapped addresses mapped, $address_failed addresses failed to map");
-error_log("Posts migrated $postcount, photos $photocount, failed $postfail");
+error_log("Posts migrated $postcount, photos $photocount, failed $postfail, taken $taken, received $received, withdrawn $withdrawn");
