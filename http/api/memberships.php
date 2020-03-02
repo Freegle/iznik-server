@@ -114,7 +114,7 @@ function memberships() {
                                 $members = $groupid ? $u->mostActive($groupid) : NULL;
                             } else if ($collection == MembershipCollection::RELATED) {
                                 # So is this
-                                $members = $u->listRelated($groupid, $ctx, $limit);
+                                $members = $me->isAdminOrSupport() ? $u->listRelated($groupid, $ctx, $limit) : [];
                             } else {
                                 $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
                             }

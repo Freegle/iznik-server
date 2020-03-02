@@ -610,9 +610,11 @@ class sessionTest extends IznikAPITestCase
         $related = $u2->getRelated($id2);
         assertEquals($id1, $related[0]['user2']);
 
-        $u1->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
-        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u1->login('testpw'));
+        $u3 = User::get($this->dbhm, $this->dbhm);
+        $id3 = $u3->create('Test', 'User', NULL);
+        $u3->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        assertGreaterThan(0, $u3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u3->login('testpw'));
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::RELATED,
