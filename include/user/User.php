@@ -47,7 +47,7 @@ class User extends Entity
     const RATING_UNKNOWN = 'Unknown';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'deleted');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -2102,6 +2102,8 @@ class User extends Entity
                 # We have some extra attributes.
                 $atts[] = 'suspectcount';
                 $atts[] = 'suspectreason';
+                $atts[] = 'deleted';
+                $atts[] = 'lastaccess';
             }
 
             foreach ($atts as $att) {
@@ -2142,6 +2144,14 @@ class User extends Entity
                 $rets[$user['id']]['settings'] = ['showmod' => $showmod];
                 $rets[$user['id']]['yahooid'] = NULL;
                 $rets[$user['id']]['yahooUserId'] = NULL;
+            }
+
+            if (pres('deleted', $rets[$user['id']])) {
+                $rets[$user['id']]['deleted'] = ISODate($rets[$user['id']]['deleted']);
+            }
+
+            if (pres('lastaccess', $rets[$user['id']])) {
+                $rets[$user['id']]['lastaccess'] = ISODate($rets[$user['id']]['lastaccess']);
             }
         }
     }
@@ -6201,7 +6211,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         }
                     }
 
-                    if ($thisone['deleted'] || $thisone['relatedto']['deleted']) {
+                    if ($thisone['deleted'] ||
+                        $thisone['relatedto']['deleted'] ||
+                        $thisone['systemrole'] != User::SYSTEMROLE_USER ||
+                        $thisone['relatedto']['systemrole'] != User::SYSTEMROLE_USER) {
                         # No sense in telling people about these.
                         $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE user1 = ? AND user2 = ?;", [
                             $thisone['id'],
