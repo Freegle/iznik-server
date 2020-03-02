@@ -15,7 +15,7 @@ $relateds = $dbhr->preQuery("SELECT * FROM users_related WHERE notified = 0 AND 
 foreach ($relateds as $related) {
     $u = new User($dbhr, $dbhm, $related['user1']);
 
-    if (!$u->getPrivate('deleted')) {
+    if (!$u->getPrivate('deleted') && !$u->isModerator()) {
         $u1membs = $u->getMemberships();
         $groups = array_column($u1membs, 'nameshort');
         $email = $u->getEmailPreferred();
@@ -31,7 +31,7 @@ foreach ($relateds as $related) {
         foreach ($others as $other) {
             $u2 = new User($dbhr, $dbhm, $other['user2']);
 
-            if (!$u2->getPrivate('deleted')) {
+            if (!$u2->getPrivate('deleted') && !$u2->isModerator()) {
                 $u2membs = $u2->getMemberships();
                 $groups = array_column($u2membs, 'nameshort');
                 $email = $u2->getEmailPreferred();
@@ -56,7 +56,7 @@ foreach ($relateds as $related) {
         # Can only really notify if there is an email address for them to check.
         if (count($common) > 0) {
             $g = new Group($dbhr, $dbhm, $common[0]);
-            mail($g->getModsEmail() . ", log@ehibbert.org.uk", "Possible related users {$related['user1']}",
+            mail($g->getModsEmail() . ", log@ehibbert.org.uk", "Possible related users #{$related['user1']} and #{$related['user2']} on your group",
                 "This is an automated mail.  We have detected users who may be the same real person.\n\n" .
                 "There are several possible reasons for this:\n" .
                 "1) They are confused.  You can merge accounts in ModTools from Members->Approved to help them.\n" .
@@ -68,7 +68,7 @@ foreach ($relateds as $related) {
                 $str,
                 [], '-f' . SUPPORT_ADDR);
         } else {
-            mail("log@ehibbert.org.uk", "Possible related users {$related['user1']}",
+            mail("log@ehibbert.org.uk", "Possible related users #{$related['user1']} and #{$related['user2']}",
                 "We've mailed you about this either because there is no email for one of the users, or there are no groups in common.  That means local volunteers couldn't contact or merge them.\n\n" .
                 $str,
                 [], '-f' . SUPPORT_ADDR);
