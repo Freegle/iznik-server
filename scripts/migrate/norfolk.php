@@ -542,7 +542,7 @@ foreach ($posts as $post) {
 }
 
 # Migrate recently active messages into Chat
-$messages = $dbhn->preQuery("SELECT g_Message.*, p_Post.p_u_Id FROM pr_PostResponder LEFT JOIN p_Post ON pr_PostResponder.pr_p_Id = p_Post.p_Id INNER JOIN g_Message ON g_Message.g_pr_Id = pr_PostResponder.pr_Id WHERE pr_PostResponder.pr_CreatedDt BETWEEN '2020-02-01' AND NOW() ORDER BY g_Message.g_Id DESC;");
+$messages = $dbhn->preQuery("SELECT g_Message.*, p_Post.p_u_Id FROM pr_PostResponder LEFT JOIN p_Post ON pr_PostResponder.pr_p_Id = p_Post.p_Id INNER JOIN g_Message ON g_Message.g_pr_Id = pr_PostResponder.pr_Id WHERE pr_PostResponder.pr_CreatedDt BETWEEN '2020-02-01' AND NOW() ORDER BY g_Message.g_Id ASC;");
 $u = new User($dbhr, $dbhm);
 
 foreach ($messages as $message) {
@@ -628,6 +628,7 @@ foreach ($messages as $message) {
             # Ensure we're up to date.
             $r->upToDate($fromuid);
             $r->upToDate($touid);
+            $r->replyTimes([$fromuid, $touid], TRUE);
         }
     } else {
         error_log("...message {$message['g_Id']} can't find users, to #$touid from #$fromuid");
