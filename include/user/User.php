@@ -1339,10 +1339,10 @@ class User extends Entity
         }
     }
 
-    public function getLogins($credentials = TRUE)
+    public function getLogins($credentials = TRUE, $id = NULL)
     {
-        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
-            [$this->id]);
+        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ? ORDER BY lastaccess DESC;",
+            [$id ? $id : $this->id]);
 
         foreach ($logins as &$login) {
             if (!$credentials) {
@@ -6222,18 +6222,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         ]);
                     } else {
                         $thisone['userid'] = $thisone['id'];
-
-                        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
-                            [ $thisone['id'] ]);
-
-                        foreach ($logins as &$login) {
-                            unset($login['credentials']);
-                            $login['added'] = ISODate($login['added']);
-                            $login['lastaccess'] = ISODate($login['lastaccess']);
-                            $login['uid'] = '' . $login['uid'];
-                        }
-
-                        $thisone['logins'] = $logins;
+                        $thisone['logins'] = $this->getLogins(FALSE, $thisone['id']);
+                        $thisone['relatedto']['logins'] = $this->getLogins(FALSE, $thisone['relatedto']['id']);
 
                         $ret[] = $thisone;
                     }
