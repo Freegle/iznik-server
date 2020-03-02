@@ -451,6 +451,7 @@ class LoggedPDO {
                     ) {
                         # Try re-opening the connection.
                         $try++;
+                        sleep(1);
                         $this->_db = NULL;
                         $this->_db = new PDO($this->dsn, $this->username, $this->password);
                     } else {
