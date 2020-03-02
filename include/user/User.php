@@ -47,7 +47,7 @@ class User extends Entity
     const RATING_UNKNOWN = 'Unknown';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'deleted');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -6161,43 +6161,61 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function listRelated($groupid, &$ctx, $limit = 10) {
         # The < condition ensures we don't duplicate during a single run.
-        $ctxq = $ctx ? (" AND user1.id < " . intval($ctx['userid'])) : '';
-
-        if ($groupid) {
-            $sql = "SELECT DISTINCT user1, user2 FROM users_related INNER JOIN memberships ON memberships.userid = users_related.user1 AND memberships.groupid = ? WHERE notified = 0 AND user1 < user2 $ctxq LIMIT $limit;";
-            $members = $this->dbhr->preQuery($sql, [
-                $groupid
-            ]);
-        } else {
-            $sql = "SELECT DISTINCT user1, user2 FROM users_related WHERE notified = 0 AND user1 < user2 $ctxq LIMIT $limit;";
-            $members = $this->dbhr->preQuery($sql);
-        }
-
-        $uids1 = array_column($members, 'user1');
-        $uids2 = array_column($members, 'user2');
-
-        $related = [];
-        foreach ($members as $member) {
-            $related[$member['user1']] = $member['user2'];
-        }
-
-        $users = $this->getPublicsById(array_merge($uids1, $uids2));
         $ret = [];
+        $backstop = 100;
 
-        foreach ($users as &$user1) {
-            if (pres($user1['id'], $related)) {
-                $thisone = $user1;
+        do {
+            $ctxq = $ctx ? (" AND id < " . intval($ctx['id'])) : '';
+            $ctx = $ctx ? $ctx : [ 'id'  => NULL ];
 
-                foreach ($users as $user2) {
-                    if ($user2['id'] == $related[$user1['id']]) {
-                        $thisone['relatedto'] = $user2;
-                        break;
+            if ($groupid) {
+                $sql = "SELECT DISTINCT users_related.id, user1, user2 FROM users_related INNER JOIN memberships ON memberships.userid = users_related.user1 AND memberships.groupid = ? WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY users_related.id DESC LIMIT $limit;";
+                $members = $this->dbhr->preQuery($sql, [
+                    $groupid
+                ]);
+            } else {
+                $sql = "SELECT DISTINCT id, user1, user2 FROM users_related WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY id DESC LIMIT $limit;";
+                $members = $this->dbhr->preQuery($sql);
+            }
+
+            $uids1 = array_column($members, 'user1');
+            $uids2 = array_column($members, 'user2');
+
+            $related = [];
+            foreach ($members as $member) {
+                $related[$member['user1']] = $member['user2'];
+                $ctx['id'] = $member['id'];
+            }
+
+            $users = $this->getPublicsById(array_merge($uids1, $uids2));
+
+            foreach ($users as &$user1) {
+                if (pres($user1['id'], $related)) {
+                    $thisone = $user1;
+
+                    foreach ($users as $user2) {
+                        if ($user2['id'] == $related[$user1['id']]) {
+                            $user2['userid'] = $user2['id'];
+                            $thisone['relatedto'] = $user2;
+                            break;
+                        }
+                    }
+
+                    if ($thisone['deleted'] || $thisone['relatedto']['deleted']) {
+                        # No sense in telling people about these.
+                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE user1 = ? AND user2 = ?;", [
+                            $thisone['id'],
+                            $thisone['relatedto']['id']
+                        ]);
+                    } else {
+                        $thisone['userid'] = $thisone['id'];
+                        $ret[] = $thisone;
                     }
                 }
-
-                $ret[] = $thisone;
             }
-        }
+
+            $backstop--;
+        } while ($backstop > 0 && count($ret) < $limit && count($members));
 
         return $ret;
     }
