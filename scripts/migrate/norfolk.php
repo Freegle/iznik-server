@@ -5,6 +5,8 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
+require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
@@ -27,7 +29,7 @@ $posts = 0;
 # User filter for testing this before we go live.
 $userfilt = " AND u_Id IN (9, 11, 54) ";
 $userfilt = " AND u_Moderator = 1 ";
-#$userfilt = "";
+$userfilt = "";
 
 # Whether we're doing a test migration i.e. no actual data change.
 $test = FALSE;
@@ -39,9 +41,8 @@ $dbhn = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-# Look for users active in the last 3 years.
 # TODO Need to use u_DontDelete
-$start = date('Y-m-d', strtotime("3 years ago"));
+$start = date('Y-m-d', strtotime("30 years ago"));
 $alluserssql = "SELECT * FROM u_User
               WHERE u_Id IN
    (SELECT DISTINCT u_Id FROM u_User
@@ -463,8 +464,6 @@ foreach ($posts as $post) {
                             # Archive so we don't flood the DB.
                             $a->archive();
                         }
-
-                        exit(0);
                     }
 
                 }
@@ -490,10 +489,26 @@ foreach ($posts as $post) {
             $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
                 $mid,
                 Message::OUTCOME_WITHDRAWN,
-                NULL.
+                NULL .
                 NULL
             ]);
             $withdrawn++;
+        } else if ($post['mp_Status'] == 'C') {
+            // Complete
+            $outcome = $post['mt_Type'] == 'Offer' ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
+            error_log("...$outcome");
+            if ($outcome == 'Taken') {
+                $taken++;
+            } else {
+                $received++;
+            }
+
+            $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
+                $mid,
+                $outcome,
+                NULL,
+                NULL
+            ]);
         } else if ($post['mp_Status'] == 'O') {
             // Open - need to look at pr_PostResponder.
             $prs = $dbhn->preQuery("SELECT * FROM pr_PostResponder INNER JOIN mpr_PostResponderStatus ON mpr_PostResponderStatus.mpr_Id = pr_PostResponder.pr_mpr_Id WHERE pr_p_Id = ?;", [
@@ -523,6 +538,99 @@ foreach ($posts as $post) {
                 }
             }
         }
+    }
+}
+
+# Migrate recently active messages into Chat
+$messages = $dbhn->preQuery("SELECT g_Message.*, p_Post.p_u_Id FROM pr_PostResponder LEFT JOIN p_Post ON pr_PostResponder.pr_p_Id = p_Post.p_Id INNER JOIN g_Message ON g_Message.g_pr_Id = pr_PostResponder.pr_Id WHERE pr_PostResponder.pr_CreatedDt BETWEEN '2020-02-01' AND NOW() ORDER BY g_Message.g_Id DESC;");
+$u = new User($dbhr, $dbhm);
+
+foreach ($messages as $message) {
+    # Find email address of user this is to.
+    $touid = NULL;
+    $fromuid = NULL;
+
+    $tos = $dbhn->preQuery("SELECT ue_EmailAddress FROM ue_UserEmail WHERE ue_u_Id = ? AND ue_IsLogon = 1 AND ue_IsActivated = 1 AND ue_AddressProblem = 0;", [
+        $message['g_u_IdTo']
+    ], FALSE, FALSE);
+
+    foreach ($tos as $to) {
+        $touid = $u->findByEmail($to['ue_EmailAddress']);
+    }
+
+    if ($message['g_u_IdFrom']) {
+        $froms = $dbhn->preQuery("SELECT ue_EmailAddress FROM ue_UserEmail WHERE ue_u_Id = ? AND ue_IsLogon = 1 AND ue_IsActivated = 1 AND ue_AddressProblem = 0;", [
+            $message['g_u_IdFrom']
+        ], FALSE, FALSE);
+
+        foreach ($froms as $from) {
+            $fromuid = $u->findByEmail($from['ue_EmailAddress']);
+        }
+    } else if ($message['p_u_Id']) {
+        $froms = $dbhn->preQuery("SELECT ue_EmailAddress FROM ue_UserEmail WHERE ue_u_Id = ? AND ue_IsLogon = 1 AND ue_IsActivated = 1 AND ue_AddressProblem = 0;", [
+            $message['p_u_Id']
+        ], FALSE, FALSE);
+
+        foreach ($froms as $from) {
+            $fromuid = $u->findByEmail($from['ue_EmailAddress']);
+        }
+    }
+
+    if ($touid && $fromuid) {
+        error_log("...message {$message['g_Id']} to #$touid from #$fromuid");
+        $r = new ChatRoom($dbhr, $dbhm);
+        $rid = $r->createConversation($fromuid, $touid);
+        $r = new ChatRoom($dbhr, $dbhm, $rid);
+
+        if ($rid) {
+            $cm = new ChatMessage($dbhr, $dbhm);
+            $html = new \Html2Text\Html2Text($message['g_Content']);
+            $textbody = $html->getText();
+            #error_log($textbody);
+
+            if (preg_match('/(.|\n)*\_((.|\n)*)\_(.|\n)*/',$textbody, $matches)) {
+                #error_log("Matches " . var_export($matches, TRUE));
+                $textbody = $matches[2];
+            }
+
+            $textbody = preg_replace('/To enter your rating(.|\n)*\]/', '', $textbody);
+            $textbody = trim($textbody);
+
+            $already = $dbhr->preQuery("SELECT id FROM chat_messages WHERE norfolkmsgid = ?;", [
+                $message['g_Id']
+            ]);
+
+            if (count($already)) {
+                error_log("...already migrated, replace");
+                $mid = $already[0]['id'];
+                $dbhm->preExec("UPDATE chat_messages SET message = ? WHERE id = ?;", [
+                    $mid,
+                    $textbody
+                ]);
+
+
+            } else {
+                error_log("...new message");
+                $dbhm->preExec("INSERT INTO chat_messages (chatid, userid, type, date, message, seenbyall, mailedtoall, norfolkmsgid) VALUES (?, ?, ?, ?, ?, ?, ?, ?);", [
+                    $rid,
+                    $fromuid,
+                    ChatMessage::TYPE_DEFAULT,
+                    $message['g_Date'],
+                    $textbody,
+                    1,
+                    1,
+                    $message['g_Id']
+                ]);
+
+                $mid = $dbhm->lastInsertId();
+            }
+
+            # Ensure we're up to date.
+            $r->upToDate($fromuid);
+            $r->upToDate($touid);
+        }
+    } else {
+        error_log("...message {$message['g_Id']} can't find users, to #$touid from #$fromuid");
     }
 }
 
