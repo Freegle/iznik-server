@@ -3,8 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/memberships.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/memberships.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -236,14 +235,7 @@
       <workItem from="1580820604867" duration="17907000" />
       <workItem from="1580893378540" duration="31294000" />
       <workItem from="1582270430690" duration="49877000" />
-      <workItem from="1582966922464" duration="49604000" />
-    </task>
-    <task id="LOCAL-00491" summary="Delete non-Freegle groups from the platform now that Yahoo is dead.">
-      <created>1581858683314</created>
-      <option name="number" value="00491" />
-      <option name="presentableId" value="LOCAL-00491" />
-      <option name="project" value="LOCAL" />
-      <updated>1581858683314</updated>
+      <workItem from="1582966922464" duration="50337000" />
     </task>
     <task id="LOCAL-00492" summary="Chat messages from mods to members are not notified promptly">
       <created>1581893314663</created>
@@ -581,7 +573,14 @@
       <option name="project" value="LOCAL" />
       <updated>1583150345605</updated>
     </task>
-    <option name="localTasksCounter" value="540" />
+    <task id="LOCAL-00540" summary="UT fixes">
+      <created>1583153605675</created>
+      <option name="number" value="00540" />
+      <option name="presentableId" value="LOCAL-00540" />
+      <option name="project" value="LOCAL" />
+      <updated>1583153605675</updated>
+    </task>
+    <option name="localTasksCounter" value="541" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -663,14 +662,14 @@
     <MESSAGE value="Work on Norfolk migration" />
     <MESSAGE value="RSVP sticking too long" />
     <MESSAGE value="Don't autorepost for groups not on the platform" />
-    <MESSAGE value="UT fixes" />
     <MESSAGE value="More work on Norfolk migration" />
     <MESSAGE value="Fixes to related users" />
     <MESSAGE value="Don't flag mods as related" />
     <MESSAGE value="Allow return of related users" />
     <MESSAGE value="More related to fixes" />
     <MESSAGE value="More related fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="More related fixes" />
+    <MESSAGE value="UT fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="UT fixes" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1583061186724">
@@ -695,11 +694,11 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583150344952">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583153605045">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583150344952" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583153605045" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1583136992373">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -768,11 +767,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583150347156">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583153606956">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583150347156" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583153606956" />
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1583057941944">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -781,11 +780,11 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="443" y="41" width="1373" height="812" key="find.popup" timestamp="1583153452907">
+    <state x="443" y="41" width="1373" height="812" key="find.popup" timestamp="1583154474878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="443" y="41" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583153452907" />
+    <state x="443" y="41" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583154474878" />
     <state x="616" y="240" width="672" height="677" key="run.anything.popup" timestamp="1583066899617">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

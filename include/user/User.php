@@ -6222,6 +6222,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         ]);
                     } else {
                         $thisone['userid'] = $thisone['id'];
+
+                        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
+                            [ $thisone['id'] ]);
+
+                        foreach ($logins as &$login) {
+                            unset($login['credentials']);
+                            $login['added'] = ISODate($login['added']);
+                            $login['lastaccess'] = ISODate($login['lastaccess']);
+                            $login['uid'] = '' . $login['uid'];
+                        }
+
+                        $thisone['logins'] = $logins;
+
                         $ret[] = $thisone;
                     }
                 }
