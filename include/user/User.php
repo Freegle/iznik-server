@@ -6173,9 +6173,37 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $members = $this->dbhr->preQuery($sql);
         }
 
-        $uids = array_merge(array_column($members, 'user1'), array_column($members, 'user2'));
-        $users = $this->getPublicsById($uids);
-        return ($users);
+        $uids1 = array_column($members, 'user1');
+        $uids2 = array_column($members, 'user2');
+
+        $related = [];
+        foreach ($members as $member) {
+            $related[$member['user1']] = $member['user2'];
+        }
+
+        $users = $this->getPublicsById(array_merge($uids1, $uids2));
+        $ret = [];
+
+        foreach ($users as &$user1) {
+            if (pres($user1['id'], $related)) {
+                $thisone = $user1;
+
+                foreach ($users as $user2) {
+                    if ($user2['id'] == $related[$user1['id']]) {
+                        $thisone['relatedto'] = $user2;
+                        break;
+                    }
+                }
+
+                $ret[] = $thisone;
+            }
+        }
+
+        return $ret;
+    }
+
+    public function getRelatedReviewCount() {
+        return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related WHERE notified = 0;")[0]['count'];
     }
 
     public function getExpectedReplies($uids, $since = ChatRoom::ACTIVELIM, $grace = 30) {
