@@ -609,6 +609,25 @@ class sessionTest extends IznikAPITestCase
         assertEquals($id2, $related[0]['user2']);
         $related = $u2->getRelated($id2);
         assertEquals($id1, $related[0]['user2']);
+
+        $u1->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u1->login('testpw'));
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::RELATED,
+            'limit' => PHP_INT_MAX
+        ]);
+
+        $found = FALSE;
+
+        foreach ($ret['members'] as $member) {
+            if ($member['id'] == $id1) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
     }
 //
 //    public function testSheila() {

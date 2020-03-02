@@ -3,8 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/group/Group.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/group/Group.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cron/user_related.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cron/user_related.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/memberships.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/memberships.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/MembershipCollection.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/MembershipCollection.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/user/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/user/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,15 +109,10 @@
       <command value="176" />
     </option>
   </component>
-  <component name="RunManager" selected="PHPUnit.messageTest.testAutoRepost">
+  <component name="RunManager" selected="PHPUnit.sessionTest.testRelated">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-    <configuration name="chatRoomsTest.testNotifyAvailability" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
-      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
-      <TestRunner class="chatRoomsTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/chatRoomsTest.php" method="testNotifyAvailability" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <configuration name="locationTest.testEH" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
@@ -133,25 +130,30 @@
       <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testNative" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
+    <configuration name="sessionTest.testRelated" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
+      <TestRunner class="sessionTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/api/sessionTest.php" method="testRelated" scope="Method" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
     <configuration name="userTest.testNativeWelcome" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <CommandLine workingDirectory="$PROJECT_DIR$/http/api" />
       <TestRunner class="userTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/UserTest.php" method="testNativeWelcome" scope="Method" use_alternative_configuration_file="true" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="PHPUnit.chatRoomsTest.testNotifyAvailability" />
       <item itemvalue="PHPUnit.locationTest.testEH" />
       <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
       <item itemvalue="PHPUnit.sessionTest.testNative" />
       <item itemvalue="PHPUnit.messageTest.testAutoRepost" />
+      <item itemvalue="PHPUnit.sessionTest.testRelated" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="PHPUnit.sessionTest.testRelated" />
         <item itemvalue="PHPUnit.messageTest.testAutoRepost" />
         <item itemvalue="PHPUnit.sessionTest.testNative" />
         <item itemvalue="PHPUnit.userTest.testNativeWelcome" />
         <item itemvalue="PHPUnit.locationTest.testEH" />
-        <item itemvalue="PHPUnit.chatRoomsTest.testNotifyAvailability" />
       </list>
     </recent_temporary>
   </component>
@@ -236,21 +238,7 @@
       <workItem from="1580820604867" duration="17907000" />
       <workItem from="1580893378540" duration="31294000" />
       <workItem from="1582270430690" duration="49877000" />
-      <workItem from="1582966922464" duration="37383000" />
-    </task>
-    <task id="LOCAL-00485" summary="Stats by month script">
-      <created>1581757749711</created>
-      <option name="number" value="00485" />
-      <option name="presentableId" value="LOCAL-00485" />
-      <option name="project" value="LOCAL" />
-      <updated>1581757749712</updated>
-    </task>
-    <task id="LOCAL-00486" summary="Allow weighting of actions in bandit test">
-      <created>1581761336933</created>
-      <option name="number" value="00486" />
-      <option name="presentableId" value="LOCAL-00486" />
-      <option name="project" value="LOCAL" />
-      <updated>1581761336933</updated>
+      <workItem from="1582966922464" duration="42503000" />
     </task>
     <task id="LOCAL-00487" summary="Fix warning">
       <created>1581765868626</created>
@@ -581,7 +569,21 @@
       <option name="project" value="LOCAL" />
       <updated>1583068129382</updated>
     </task>
-    <option name="localTasksCounter" value="534" />
+    <task id="LOCAL-00534" summary="Fixes to related users">
+      <created>1583099267391</created>
+      <option name="number" value="00534" />
+      <option name="presentableId" value="LOCAL-00534" />
+      <option name="project" value="LOCAL" />
+      <updated>1583099267392</updated>
+    </task>
+    <task id="LOCAL-00535" summary="Don't flag mods as related">
+      <created>1583136999654</created>
+      <option name="number" value="00535" />
+      <option name="presentableId" value="LOCAL-00535" />
+      <option name="project" value="LOCAL" />
+      <updated>1583136999654</updated>
+    </task>
+    <option name="localTasksCounter" value="536" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -645,8 +647,6 @@
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Remove extra log info for Yahoo" />
-    <MESSAGE value="Add log of which jobs are clicked" />
     <MESSAGE value="Add cron script to keep track of jobs keywords clicked" />
     <MESSAGE value="Add info about expected replies for user" />
     <MESSAGE value="UT Fixes" />
@@ -670,7 +670,9 @@
     <MESSAGE value="Don't autorepost for groups not on the platform" />
     <MESSAGE value="UT fixes" />
     <MESSAGE value="More work on Norfolk migration" />
-    <option name="LAST_COMMIT_MESSAGE" value="More work on Norfolk migration" />
+    <MESSAGE value="Fixes to related users" />
+    <MESSAGE value="Don't flag mods as related" />
+    <option name="LAST_COMMIT_MESSAGE" value="Don't flag mods as related" />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1583061186724">
@@ -695,16 +697,16 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583068128832">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583136999020">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068128832" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1583099259858">
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583136999020" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1583136992373">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="93" y="93" width="1521" height="735" key="DiffContextDialog/0.0.1707.920@0.0.1707.920" timestamp="1580516459203" />
-    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583099259858" />
+    <state x="105" y="105" width="1711" height="831" key="DiffContextDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583136992373" />
     <state x="105" y="105" width="1711" height="831" key="DirDiffDialog" timestamp="1581784889298">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -714,26 +716,26 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="717" y="359" key="Github.Dialog.Accounts.Choose/0.0.1707.920@0.0.1707.920" timestamp="1580282462596" />
-    <state width="1877" height="250" key="GridCell.Tab.0.bottom" timestamp="1583068101416">
+    <state width="1877" height="250" key="GridCell.Tab.0.bottom" timestamp="1583138425809">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.bottom/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="250" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068101416" />
-    <state width="1877" height="250" key="GridCell.Tab.0.center" timestamp="1583068101416">
+    <state width="1877" height="250" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583138425809" />
+    <state width="1877" height="250" key="GridCell.Tab.0.center" timestamp="1583138425809">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.center/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="250" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068101416" />
-    <state width="1877" height="250" key="GridCell.Tab.0.left" timestamp="1583068101416">
+    <state width="1877" height="250" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583138425809" />
+    <state width="1877" height="250" key="GridCell.Tab.0.left" timestamp="1583138425809">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.left/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="250" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068101416" />
-    <state width="1877" height="250" key="GridCell.Tab.0.right" timestamp="1583068101416">
+    <state width="1877" height="250" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583138425809" />
+    <state width="1877" height="250" key="GridCell.Tab.0.right" timestamp="1583138425809">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1663" height="237" key="GridCell.Tab.0.right/0.0.1707.920@0.0.1707.920" timestamp="1580480132892" />
-    <state width="1877" height="250" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068101416" />
+    <state width="1877" height="250" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583138425809" />
     <state width="1877" height="348" key="GridCell.Tab.1.bottom" timestamp="1580815370015">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -768,11 +770,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583068130758">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583099268493">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583068130758" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583099268493" />
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1583057941944">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -781,20 +783,20 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="347" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1580820604874" />
-    <state x="443" y="41" width="1373" height="812" key="find.popup" timestamp="1583098215692">
+    <state x="443" y="41" width="1373" height="812" key="find.popup" timestamp="1583138238861">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="559" y="216" width="588" height="488" key="find.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545204547" />
-    <state x="443" y="41" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583098215692" />
+    <state x="443" y="41" width="1373" height="812" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583138238861" />
     <state x="616" y="240" width="672" height="677" key="run.anything.popup" timestamp="1583066899617">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="616" y="240" width="672" height="677" key="run.anything.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583066899617" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1583097884406">
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1583137118962">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545385023" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583097884406" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583137118962" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>

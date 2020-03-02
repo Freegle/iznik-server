@@ -46,6 +46,7 @@ function memberships() {
         case MembershipCollection::BANNED:
         case MembershipCollection::SPAM:
         case MembershipCollection::HAPPINESS:
+        case MembershipCollection::RELATED:
             break;
         default:
             $collection = NULL;
@@ -73,7 +74,7 @@ function memberships() {
                     }
                 } else if ($me) {
                     $groupids = [];
-                    $proceed = FALSE;
+                    $proceed = $collection === MembershipCollection::RELATED;
 
                     if ($groupid && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
                         # Get just one.  We can get this if we're a mod or it's our own.
@@ -111,6 +112,9 @@ function memberships() {
                             } else if ($filter == Group::FILTER_MOSTACTIVE) {
                                 # So is this
                                 $members = $groupid ? $u->mostActive($groupid) : NULL;
+                            } else if ($collection == MembershipCollection::RELATED) {
+                                # So is this
+                                $members = $u->listRelated($groupid, $ctx, $limit);
                             } else {
                                 $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
                             }
@@ -141,9 +145,11 @@ function memberships() {
                                 ];
 
                                 foreach ($members as $m) {
-                                    if (!pres($m['groupid'], $ret['groups'])) {
-                                        $g = Group::get($dbhr, $dbhm, $m['groupid']);
-                                        $ret['groups'][$m['groupid']] = $g->getPublic();
+                                    if (pres('groupid', $m)) {
+                                        if (!pres($m['groupid'], $ret['groups'])) {
+                                            $g = Group::get($dbhr, $dbhm, $m['groupid']);
+                                            $ret['groups'][$m['groupid']] = $g->getPublic();
+                                        }
                                     }
                                 }
                             }

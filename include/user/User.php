@@ -287,10 +287,13 @@ class User extends Entity
 
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.
-        if ($atts['fullname']) {
+        if (pres('fullname', $atts)) {
             $name = $atts['fullname'];
-        } else if ($atts['firstname'] || $atts['lastname']) {
-            $name = $atts['firstname'] . ' ' . $atts['lastname'];
+        } else if (pres('firstname', $atts) || pres('lastname', $atts)) {
+            $first = pres('firstname', $atts);
+            $last = pres('lastname', $atts);
+
+            $name = $first && $last ? "$first $last" : ($first ? $first : $last);
         }
 
         # Make sure we don't return an email if somehow one has snuck in.
@@ -2092,6 +2095,7 @@ class User extends Entity
             if (!array_key_exists($user['id'], $rets)) {
                 $rets[$user['id']] = [];
             }
+
             $atts = $this->publicatts;
 
             if (MODTOOLS) {
@@ -6152,6 +6156,25 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $userid
         ]);
 
+        return ($users);
+    }
+
+    public function listRelated($groupid, &$ctx, $limit = 10) {
+        # The < condition ensures we don't duplicate during a single run.
+        $ctxq = $ctx ? (" AND user1.id < " . intval($ctx['userid'])) : '';
+
+        if ($groupid) {
+            $sql = "SELECT DISTINCT user1, user2 FROM users_related INNER JOIN memberships ON memberships.userid = users_related.user1 AND memberships.groupid = ? WHERE notified = 0 AND user1 < user2 $ctxq LIMIT $limit;";
+            $members = $this->dbhr->preQuery($sql, [
+                $groupid
+            ]);
+        } else {
+            $sql = "SELECT DISTINCT user1, user2 FROM users_related WHERE notified = 0 AND user1 < user2 $ctxq LIMIT $limit;";
+            $members = $this->dbhr->preQuery($sql);
+        }
+
+        $uids = array_merge(array_column($members, 'user1'), array_column($members, 'user2'));
+        $users = $this->getPublicsById($uids);
         return ($users);
     }
 
