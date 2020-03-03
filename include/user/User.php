@@ -1190,7 +1190,7 @@ class User extends Entity
             # If we don't have our own email on this group we won't be sending mails.  This is what affects what
             # gets shown on the Settings page for the user, and we only want to check this here
             # for performance reasons.
-            $one['mysettings']['emailfrequency'] = ($group['type'] === Group::GROUP_FREEGLE && ($pernickety || $this->sendOurMails($g, FALSE, FALSE))) ? $one['mysettings']['emailfrequency'] : 0;
+            $one['mysettings']['emailfrequency'] = ($group['type'] === Group::GROUP_FREEGLE && ($pernickety || $this->sendOurMails($g, FALSE, FALSE))) ? presdef('emailfrequency', $one['mysettings'], 24) : 0;
 
             $groupsettings[$group['groupid']] = $one['mysettings'];
 
@@ -6237,7 +6237,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     }
 
     public function getRelatedReviewCount() {
-        return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related WHERE notified = 0;")[0]['count'];
+        return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related WHERE notified = 0;", NULL, FALSE, FALSE)[0]['count'];
     }
 
     public function getExpectedReplies($uids, $since = ChatRoom::ACTIVELIM, $grace = 30) {
