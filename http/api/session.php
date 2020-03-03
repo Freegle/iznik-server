@@ -241,15 +241,15 @@ function session() {
                                 $s = new Story($dbhr, $dbhm);
                                 $ret['work']['stories'] = $s->getReviewCount(FALSE);
                                 $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
-                            }
 
-                            foreach ($ret['groups'] as &$group) {
-                                if (pres('work', $group)) {
-                                    foreach ($group['work'] as $key => $work) {
-                                        if (pres('work', $ret) && pres($key, $ret['work'])) {
-                                            $ret['work'][$key] += $work;
-                                        } else {
-                                            $ret['work'][$key] = $work;
+                                foreach ($ret['groups'] as &$group) {
+                                    if (pres('work', $group)) {
+                                        foreach ($group['work'] as $key => $work) {
+                                            if (pres('work', $ret) && pres($key, $ret['work'])) {
+                                                $ret['work'][$key] += $work;
+                                            } else {
+                                                $ret['work'][$key] = $work;
+                                            }
                                         }
                                     }
                                 }
