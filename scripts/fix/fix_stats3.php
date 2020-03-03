@@ -7,8 +7,13 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
 for ($i = 1; $i < 1620; $i++) {
-    $date = date('Y-m-d', strtotime("$i days ago"));
+    $epoch = strtotime("$i days ago");
+    $date = date('Y-m-d', $epoch);
     error_log($date);
+
+    if ($epoch < strtotime('2015-08-24')) {
+        break;
+    }
 
     $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' ORDER BY nameshort ASC;");
     foreach ($groups as $group) {

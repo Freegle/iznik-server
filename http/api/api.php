@@ -137,6 +137,7 @@ require_once(IZNIK_BASE . '/http/api/noticeboard.php');
 require_once(IZNIK_BASE . '/http/api/invitation.php');
 require_once(IZNIK_BASE . '/http/api/item.php');
 require_once(IZNIK_BASE . '/http/api/usersearch.php');
+require_once(IZNIK_BASE . '/http/api/merge.php');
 require_once(IZNIK_BASE . '/http/api/memberships.php');
 require_once(IZNIK_BASE . '/http/api/spammers.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
@@ -354,6 +355,9 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     break;
                 case 'memberships':
                     $ret = memberships();
+                    break;
+                case 'merge':
+                    $ret = merge();
                     break;
                 case 'spammers':
                     $ret = spammers();

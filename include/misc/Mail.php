@@ -39,6 +39,7 @@ class Mail {
     const BAD_SMS = 36;
     const SPAM_WARNING = 37;
     const NOTICEBOARD = 38;
+    const MERGE = 39;
 
     const DESCRIPTIONS = [
         Mail::DIGEST => 'Digest',

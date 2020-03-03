@@ -1,0 +1,74 @@
+<mjml>
+  <mj-head>
+    <mj-preview></mj-preview>
+      <mj-style>
+        a {
+          color: #288c0a;
+          text-decoration: none;
+          font-weight: bold
+        }
+        ol {
+          margin-top: 0; margin-bottom: 0;
+          /* margin-left: 2.2em; For Outlook */
+          padding-left: 2.4em; /* For the rest */
+        }
+        li {
+          margin: 0.5em 0;
+        }
+      </mj-style>
+      <mj-attributes>
+        <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
+      </mj-attributes>
+    </mj-head>
+  <mj-body>
+    <mj-container>
+      <mj-wrapper padding="0"  full-width="full-width">
+        <!-- header section -->
+        <mj-section background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+          <mj-group>
+          <mj-column vertical-align="middle" width="65%">
+            <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">Multiple accounts?</mj-text>
+          </mj-column>
+          <mj-column vertical-align="middle" width="35%">
+            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"/>
+          </mj-column>
+          </mj-group>
+        </mj-section>
+        <mj-section background-color="#F7F6EC">
+          <mj-column vertical-align="middle" width="100%">
+            <mj-text>
+              Hi there,
+            </mj-text>
+            <mj-text>
+              We think you might have two separate accounts on Freegle, perhaps by mistake?
+            </mj-text>
+            <mj-text>
+              <b>{{ name1 }} ({{ email1 }}</b>
+            </mj-text>
+            <mj-text>
+              <b>{{ name2 }} ({{ email2 }}</b>
+            </mj-text>
+            <mj-text>
+              You might miss replies or see other confusing things.  Shall we combine them for you?
+            </mj-text>
+            <mj-button width="200px" align="left" href="{{ url }}" font-family="Helvetica" background-color="darkgreen" color="white">
+              Click here to let us know
+            </mj-button>
+            <mj-text>
+              <p>Thanks,</p>
+              <p>Freegle</p>
+            </mj-text>
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#E0E0E0">
+          <mj-column>
+            <mj-text font-size="9pt" color="#707070">This mail was sent to&nbsp;{{ email1 }}  and {{ email2 because you have used Freegle recently.  You can leave Freegle from <a href="https://www.ilovefreegle.org/unsubscribe">here</a>.
+              <hr style="border: 0; border-top: 1px solid #AAA; "/>
+              Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+            </mj-text>
+            </mj-column>
+        </mj-section>
+      </mj-wrapper>
+    </mj-container>
+  </mj-body>
+</mjml>
