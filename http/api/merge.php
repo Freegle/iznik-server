@@ -24,6 +24,7 @@ function merge() {
                     # We found it.
                     $u1 = new User($dbhr, $dbhm, $merge['user1']);
                     $u2 = new User($dbhr, $dbhm, $merge['user2']);
+
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
@@ -31,12 +32,14 @@ function merge() {
                             'user1' => [
                                 'id' => $u1->getId(),
                                 'name' => $u1->getName(),
-                                'email'=> $u1->getEmailPreferred()
+                                'email'=> $u1->getEmailPreferred(),
+                                'logins' => $u1->getLogins(FALSE)
                             ],
                             'user2' => [
                                 'id' => $u2->getId(),
                                 'name' => $u2->getName(),
-                                'email'=> $u2->getEmailPreferred()
+                                'email'=> $u2->getEmailPreferred(),
+                                'logins' => $u2->getLogins(FALSE)
                             ]
                         ]
                     ];

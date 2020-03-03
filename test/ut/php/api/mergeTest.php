@@ -13,7 +13,7 @@ require_once IZNIK_BASE . '/include/message/MessageCollection.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class userAPITest extends IznikAPITestCase {
+class mergeAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
     protected function setUp() {
@@ -87,6 +87,24 @@ class userAPITest extends IznikAPITestCase {
         # Log out.
         $_SESSION['id'] = NULL;
         $_SESSION['logged_in'] = FALSE;
+
+        # Shouldn't be able to get without key.
+        $ret = $this->call('merge', 'GET', [
+            'id' => $mid,
+            'uid' => 'zzz'
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        # Should be able to get with key.
+        $ret = $this->call('merge', 'GET', [
+            'id' => $mid,
+            'uid' => $uid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals($id1, $ret['merge']['user1']['id']);
+        assertEquals($id2, $ret['merge']['user2']['id']);
 
         # Accept with invalid info
         $ret = $this->call('merge', 'POST', [
