@@ -94,6 +94,12 @@
                   <b>Your application to&nbsp;{{ notification.url }}&nbsp;has been approved!</b>
               </mj-text>
               <mj-raw>
+                {% elseif notification.type == 'AboutMe' %}
+              </mj-raw>
+              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+                  <b>Why not introduce yourself to other freeglers?</b>
+              </mj-text>
+              <mj-raw>
                 {% elseif notification.type == 'MembershipRejected' %}
               </mj-raw>
               <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
