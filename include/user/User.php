@@ -4125,6 +4125,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $sendit = FALSE;
         $lastaccess = strtotime($this->getPrivate('lastaccess'));
 
+        // This time is also present on the client in ModMember.
         if (time() - $lastaccess <= 365 * 24 * 60 * 60 / 2) {
             $sendit = TRUE;
 
