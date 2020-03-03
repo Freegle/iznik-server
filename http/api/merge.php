@@ -1,5 +1,5 @@
 <?php
-function mentions() {
+function merge() {
     global $dbhr, $dbhm;
 
     $me = whoAmI($dbhr, $dbhm);
