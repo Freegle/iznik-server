@@ -6176,11 +6176,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $backstop = 100;
 
         do {
-            $ctxq = $ctx ? (" AND id < " . intval($ctx['id'])) : '';
+            $ctxq = $ctx ? (" AND users_related.id < " . intval($ctx['id'])) : '';
             $ctx = $ctx ? $ctx : [ 'id'  => NULL ];
 
             if ($groupid) {
-                $sql = "SELECT DISTINCT users_related.id, user1, user2 FROM users_related INNER JOIN memberships ON memberships.userid = users_related.user1 AND memberships.groupid = ? WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY users_related.id DESC LIMIT $limit;";
+                $sql = "SELECT DISTINCT users_related.id, user1, user2 FROM users_related INNER JOIN memberships ON (memberships.userid = users_related.user1 OR memberships.userid = users_related.user2) AND memberships.groupid = ? WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY users_related.id DESC LIMIT $limit;";
                 $members = $this->dbhr->preQuery($sql, [
                     $groupid
                 ]);

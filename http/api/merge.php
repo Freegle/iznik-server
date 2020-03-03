@@ -29,6 +29,8 @@ function merge() {
                         'ret' => 0,
                         'status' => 'Success',
                         'merge' => [
+                            'id' => $id,
+                            'uid' => $uid,
                             'user1' => [
                                 'id' => $u1->getId(),
                                 'name' => $u1->getName(),
@@ -123,7 +125,7 @@ function merge() {
                 # Generate the message.
                 $u1 = new User($dbhr, $dbhm, $user1);
                 $u2 = new User($dbhr, $dbhm, $user2);
-                $url = 'https://' . USER_SITE . '/merge/' . $mid;
+                $url = 'https://' . USER_SITE . '/merge?id=' . $mid . '&uid=' . $uid;
                 $subj = "You have multiple Freegle accounts - please read";
                 $textbody = "We think you're using two different accounts on Freegle, perhaps by mistake.  Please let us know whether you'd like to combine them by going to $url";
 
@@ -134,7 +136,8 @@ function merge() {
                     'name1' => $u1->getName(),
                     'email1' => $u1->getEmailPreferred(),
                     'name2' => $u2->getName(),
-                    'email2' => $u2->getEmailPreferred()
+                    'email2' => $u2->getEmailPreferred(),
+                    'url' => $url
                 ]);
 
                 $u1mail = $u1->getEmailPreferred();
@@ -156,7 +159,7 @@ function merge() {
 
                 Mail::addHeaders($message, Mail::RELEVANT_OFF, $u1->getId());
 
-                $email ? $this->sendOne($mailer, $message) : 0;
+                $email ? $mailer->send($message) : 0;
 
                 $u2mail = $u2->getEmailPreferred();
 
@@ -177,7 +180,15 @@ function merge() {
 
                 Mail::addHeaders($message, Mail::RELEVANT_OFF, $u2->getId());
 
-                $email ? $this->sendOne($mailer, $message) : 0;
+                $email ? $mailer->send($message) : 0;
+
+                # Flag the related users as having been processed.
+                $dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
+                    $user1,
+                    $user2,
+                    $user2,
+                    $user1
+                ]);
 
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'id' => $mid, 'uid' => $uid ];
             }
