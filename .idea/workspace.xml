@@ -2,14 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b84d5370-eca7-4227-bb67-c110986b0b35" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/http/api/merge.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mailtemplates/mjml/merge.mjml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mailtemplates/twig/merge.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/fix/fix_norfolk_stats.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http/api/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/api.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/misc/Mail.php" beforeDir="false" afterPath="$PROJECT_DIR$/include/misc/Mail.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/fix/fix_stats3.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http/api/merge.php" beforeDir="false" afterPath="$PROJECT_DIR$/http/api/merge.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/install/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/install/schema.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -241,14 +236,7 @@
       <workItem from="1580820604867" duration="17907000" />
       <workItem from="1580893378540" duration="31294000" />
       <workItem from="1582270430690" duration="49877000" />
-      <workItem from="1582966922464" duration="70347000" />
-    </task>
-    <task id="LOCAL-00500" summary="Speed-up: minor speedup for chat review">
-      <created>1581952987207</created>
-      <option name="number" value="00500" />
-      <option name="presentableId" value="LOCAL-00500" />
-      <option name="project" value="LOCAL" />
-      <updated>1581952987207</updated>
+      <workItem from="1582966922464" duration="70693000" />
     </task>
     <task id="LOCAL-00501" summary="Can't repost to a different group">
       <created>1581958874099</created>
@@ -586,7 +574,14 @@
       <option name="project" value="LOCAL" />
       <updated>1583238662156</updated>
     </task>
-    <option name="localTasksCounter" value="549" />
+    <task id="LOCAL-00549" summary="WIP on merge API call, more Norfolk stats.">
+      <created>1583243291670</created>
+      <option name="number" value="00549" />
+      <option name="presentableId" value="LOCAL-00549" />
+      <option name="project" value="LOCAL" />
+      <updated>1583243291670</updated>
+    </task>
+    <option name="localTasksCounter" value="550" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -650,7 +645,6 @@
     <option name="CHECK_NEW_TODO" value="false" />
     <confirmRemoveEmptyChangelist value="2" />
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Suppress RSVPs from deleted users" />
     <MESSAGE value="Allow incoming notify messages to any domain for Return Path testing purposes" />
     <MESSAGE value="Previous name fix can cause exception" />
     <MESSAGE value="Flag syntactically invalid emails as bouncing" />
@@ -675,7 +669,8 @@
     <MESSAGE value="MT work counts flaky" />
     <MESSAGE value="Fix warning" />
     <MESSAGE value="Add comment" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add comment" />
+    <MESSAGE value="WIP on merge API call, more Norfolk stats." />
+    <option name="LAST_COMMIT_MESSAGE" value="WIP on merge API call, more Norfolk stats." />
   </component>
   <component name="WindowStateProjectService">
     <state x="502" y="139" key="#Deployment" timestamp="1583061186724">
@@ -700,11 +695,11 @@
     </state>
     <state x="603" y="272" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1707.920@0.0.1707.920" timestamp="1577389550050" />
     <state x="678" y="307" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1579704609715" />
-    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583238661377">
+    <state x="433" y="70" key="CommitChangelistDialog2" timestamp="1583243291060">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="0" y="62" key="CommitChangelistDialog2/0.0.1707.920@0.0.1707.920" timestamp="1580516437065" />
-    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583238661377" />
+    <state x="433" y="70" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583243291060" />
     <state x="105" y="105" width="1711" height="831" key="DiffContextDialog" timestamp="1583238658431">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -777,11 +772,11 @@
       <screen x="0" y="0" width="1707" height="920" />
     </state>
     <state x="703" y="385" key="VCS.ChangelistChooser/0.0.1707.920@0.0.1707.920" timestamp="1578997484206" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583171697515">
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2" timestamp="1583243293316">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="446" y="198" key="Vcs.Push.Dialog.v2/0.0.1707.920@0.0.1707.920" timestamp="1580516439904" />
-    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583171697515" />
+    <state x="502" y="224" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583243293316" />
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1583057941944">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -799,11 +794,11 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="616" y="240" width="672" height="677" key="run.anything.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583066899617" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1583238694740">
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup" timestamp="1583243604691">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="516" y="195" width="672" height="678" key="search.everywhere.popup/0.0.1707.920@0.0.1707.920" timestamp="1580545385023" />
-    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583238694740" />
+    <state x="580" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583243604691" />
     <state x="2500" y="220" width="756" height="767" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1577138097114" />
   </component>
 </project>

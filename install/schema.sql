@@ -4675,3 +4675,34 @@ ALTER TABLE `logs_jobs`
 --
 ALTER TABLE `logs_jobs`
     MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE `merges` (
+                          `id` bigint(20) UNSIGNED NOT NULL,
+                          `user1` bigint(20) UNSIGNED NOT NULL,
+                          `user2` bigint(20) UNSIGNED NOT NULL,
+                          `offered` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+                          `accepted` timestamp NULL DEFAULT NULL,
+                          `rejected` timestamp NULL DEFAULT NULL,
+                          `offeredby` bigint(20) UNSIGNED NOT NULL,
+                          `uid` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Offers of merges to members';
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `merges`
+--
+ALTER TABLE `merges`
+    ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `merges`
+--
+ALTER TABLE `merges`
+    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
