@@ -85,19 +85,19 @@
                 {% elseif notification.type == 'MembershipPending' %}
               </mj-raw>
               <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
-                  <b>Your application to {{ notification.url }} requires approval.  We'll let you know soon.</b>
+                  <b>Your application to&nbsp;{{ notification.url }}&nbsp;requires approval.  We'll let you know soon.</b>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'MembershipApproved' %}
               </mj-raw>
               <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
-                  <b>Your application to {{ notification.url }} has been approved!</b>
+                  <b>Your application to&nbsp;{{ notification.url }}&nbsp;has been approved!</b>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'MembershipRejected' %}
               </mj-raw>
               <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
-                  <b>Sorry, your application to {{ notification.url }} was rejected</b>
+                  <b>Sorry, your application to&nbsp;{{ notification.url }}&nbsp;was rejected</b>
               </mj-text>
               <mj-raw>
                 {% endif %}
