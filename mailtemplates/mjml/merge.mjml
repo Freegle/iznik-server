@@ -67,7 +67,10 @@
               </b>
             </mj-text>
             <mj-text>
-              You might miss replies or see other confusing things.  Shall we combine them for you?
+              If these are both you, then you might miss replies or see other confusing things.  Shall we combine them for you?
+            </mj-text>
+            <mj-text>
+              If you don't recognise one of them, just ignore this email.
             </mj-text>
             <mj-button width="200px" align="left" href="{{ url }}" font-family="Helvetica" background-color="darkgreen" color="white">
               Click here to let us know
