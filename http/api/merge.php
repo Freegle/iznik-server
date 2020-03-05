@@ -98,6 +98,8 @@ function merge() {
             $user2 = intval(presdef('user2', $_REQUEST, NULL));
             $email = array_key_exists('email', $_REQUEST) ? filter_var($_REQUEST['email'], FILTER_VALIDATE_BOOLEAN) : TRUE;
 
+            $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
+
             if ($me && $me->isModerator()) {
                 # We're allowed to offer a merge.
                 $uid = randstr(32);
@@ -191,6 +193,27 @@ function merge() {
                 ]);
 
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'id' => $mid, 'uid' => $uid ];
+            }
+
+            break;
+        }
+
+        case 'DELETE': {
+            # Flag not to offer these users for merge.
+            $user1 = intval(presdef('user1', $_REQUEST, NULL));
+            $user2 = intval(presdef('user2', $_REQUEST, NULL));
+
+            $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
+
+            if ($me && $me->isModerator()) {
+                $dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
+                    $user1,
+                    $user2,
+                    $user2,
+                    $user1
+                ]);
+
+                $ret = [ 'ret' => 0, 'status' => 'Success' ];
             }
 
             break;
