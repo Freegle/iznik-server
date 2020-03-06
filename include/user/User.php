@@ -1190,7 +1190,10 @@ class User extends Entity
             # If we don't have our own email on this group we won't be sending mails.  This is what affects what
             # gets shown on the Settings page for the user, and we only want to check this here
             # for performance reasons.
-            $one['mysettings']['emailfrequency'] = ($group['type'] === Group::GROUP_FREEGLE && ($pernickety || $this->sendOurMails($g, FALSE, FALSE))) ? presdef('emailfrequency', $one['mysettings'], 24) : 0;
+            $one['mysettings']['emailfrequency'] = ($group['type'] === Group::GROUP_FREEGLE &&
+                ($pernickety || $this->sendOurMails($g, FALSE, FALSE))) ?
+                (array_key_exists('emailfrequency', $one['mysettings']) ? $one['mysettings']['emailfrequency'] :  24)
+                : 0;
 
             $groupsettings[$group['groupid']] = $one['mysettings'];
 

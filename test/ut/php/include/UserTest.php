@@ -225,7 +225,7 @@ class userTest extends IznikTestCase {
 
     public function testMemberships() {
         $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $group1 = $g->create('testgroup1', Group::GROUP_FREEGLE);
         $g->setPrivate('onyahoo', 1);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
@@ -272,9 +272,13 @@ class userTest extends IznikTestCase {
         assertEquals(1, count($atts['applied']));
 
         $u->setRole(User::ROLE_MODERATOR, $group1);
+        # We had a problem preserving the emails off setting - test here.
+        $u->setMembershipAtt($group1, 'emailfrequency', 0);
         assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
         assertTrue($u->isModOrOwner($group1));
-        assertTrue(array_key_exists('work', $u->getMemberships(FALSE, NULL, TRUE)[0]));
+        $membs = $u->getMemberships(FALSE, NULL, TRUE, TRUE);
+        assertEquals(0, $membs[0]['mysettings']['emailfrequency']);
+        assertTrue(array_key_exists('work', $membs[0]));
         $modships = $u->getModeratorships();
         assertEquals(1, count($modships));
 
