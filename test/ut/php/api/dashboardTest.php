@@ -130,9 +130,9 @@ class dashboardTest extends IznikAPITestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'testgroup@groups.ilovefreegle.org', $msg, $gid);
-        assertNotNull($id);
-        $this->log("Created message $id");
+        $mid = $r->received(Message::EMAIL, 'from@test.com', 'testgroup@groups.ilovefreegle.org', $msg, $gid);
+        assertNotNull($mid);
+        $this->log("Created message $mid");
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -146,6 +146,31 @@ class dashboardTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(1, $ret['components']['RecentCounts']['newmembers']);
         assertEquals(1, $ret['components']['RecentCounts']['newmessages']);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENT_POPULAR_POSTS
+            ],
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['components']['PopularPosts']));
+
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $m->like($uid, Message::LIKE_VIEW);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENT_POPULAR_POSTS
+            ],
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components']['PopularPosts']));
+        assertEquals(1, $ret['components']['PopularPosts'][0]['views']);
+        assertEquals(0, $ret['components']['PopularPosts'][0]['replies']);
     }
 
 //

@@ -12,6 +12,7 @@ class Dashboard {
     private $stats;
 
     const COMPONENT_RECENT_COUNTS = 'RecentCounts';
+    const COMPONENT_POPULAR_POSTS = 'PopularPosts';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -207,6 +208,26 @@ class Dashboard {
                     'newmembers' => $this->getCount("SELECT COUNT(*) AS count FROM memberships WHERE added >= '$startq' AND added <= '$endq' AND $groupq"),
                     'newmessages' => $this->getCount("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages.arrival >= '$startq' AND messages.arrival <= '$endq' AND $groupq")
                 ];
+            }
+
+
+            if (in_array(Dashboard::COMPONENT_POPULAR_POSTS, $components)) {
+                $populars = $this->dbhr->preQuery("SELECT COUNT(*) AS views, messages.id, messages.subject FROM messages INNER JOIN messages_likes ON messages_likes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages_likes.type = 'View' GROUP BY messages.id HAVING views > 0 ORDER BY views DESC LIMIT 5", NULL, FALSE, FALSE);
+
+                if (count($populars)) {
+                    $msgids = array_column($populars, 'id');
+                    $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS replies, refmsgid FROM chat_messages WHERE refmsgid IN (" . implode(',', $msgids) . ") GROUP BY refmsgid;", NULL, FALSE, FALSE);
+
+                    foreach ($populars as &$popular) {
+                        foreach ($replies as $reply) {
+                            if ($reply['refmsgid'] == $popular['id']) {
+                                $popular['replies'] = $reply['replies'];
+                            }
+                        }
+                    }
+                }
+
+                $ret[Dashboard::COMPONENT_POPULAR_POSTS] = $populars;
             }
         }
 
