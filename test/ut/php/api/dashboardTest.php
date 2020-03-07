@@ -124,6 +124,8 @@ class dashboardTest extends IznikAPITestCase {
         assertNotNull($uid);
         assertTrue($u->addMembership($gid, User::ROLE_OWNER));
         $u->addEmail('test@test.com');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
@@ -179,6 +181,11 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENT_USERS_POSTING]));
+        assertEquals($uid, $ret['components'][Dashboard::COMPONENT_USERS_POSTING][0]['id']);
+        assertEquals(1, $ret['components'][Dashboard::COMPONENT_USERS_POSTING][0]['posts']);
+
         # Reply
         $u = new User($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
@@ -191,11 +198,6 @@ class dashboardTest extends IznikAPITestCase {
         list ($cmid, $banned) = $cm->create($rid, $uid2, "Test", ChatMessage::TYPE_INTERESTED, $mid);
         assertNotNull($cmid);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components']['UsersPosting']));
-        assertEquals($uid, $ret['components']['UsersPosting'][0]['id']);
-        assertEquals(1, $ret['components']['UsersPosting'][0]['posts']);
-
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
                 Dashboard::COMPONENT_USERS_REPLYING
@@ -204,9 +206,22 @@ class dashboardTest extends IznikAPITestCase {
         ]);
 
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components']['UsersReplying']));
-        assertEquals($uid2, $ret['components']['UsersReplying'][0]['id']);
-        assertEquals(1, $ret['components']['UsersReplying'][0]['replies']);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENT_USERS_REPLYING]));
+        assertEquals($uid2, $ret['components'][Dashboard::COMPONENT_USERS_REPLYING][0]['id']);
+        assertEquals(1, $ret['components'][Dashboard::COMPONENT_USERS_REPLYING][0]['replies']);
+
+        $this->waitBackground();
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENT_MODERATORS_ACTIVE
+            ],
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE]));
+        assertEquals($uid, $ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE][0]['id']);
     }
 
 //

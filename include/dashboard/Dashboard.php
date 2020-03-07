@@ -15,6 +15,7 @@ class Dashboard {
     const COMPONENT_POPULAR_POSTS = 'PopularPosts';
     const COMPONENT_USERS_POSTING = 'UsersPosting';
     const COMPONENT_USERS_REPLYING = 'UsersReplying';
+    const COMPONENT_MODERATORS_ACTIVE = 'ModeratorsActive';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -278,6 +279,29 @@ class Dashboard {
                         }
                     }
                 }
+            }
+
+            if (in_array(Dashboard::COMPONENT_MODERATORS_ACTIVE, $components) && count($groupids) == 1) {
+                $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner');", [ $groupids[0] ], FALSE, FALSE);
+
+                $logs = $this->dbhr->preQuery("SELECT byuser, MAX(timestamp) AS lastactive FROM logs WHERE groupid = ? AND byuser IN (" . implode(',', array_column($mods, 'userid')) . ") GROUP BY byuser;", [ $groupids[0] ], FALSE, FALSE);
+                $u = User::get($this->dbhr, $this->dbhm);
+
+                $users = $u->getPublicsById(array_column($logs, 'byuser'), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+
+                foreach ($users as &$user) {
+                    foreach ($logs as $log) {
+                        if ($log['byuser'] == $user['id']) {
+                            $user['lastactive'] = $log['lastactive'];
+                        }
+                    }
+                }
+
+                usort($users, function($mod1, $mod2) {
+                    return(strcmp($mod2['lastactive'], $mod1['lastactive']));
+                });
+
+                $ret[Dashboard::COMPONENT_MODERATORS_ACTIVE] = $users;
             }
         }
 
