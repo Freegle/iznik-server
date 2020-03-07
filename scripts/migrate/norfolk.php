@@ -162,10 +162,10 @@ foreach ($users as $user) {
                             }
 
                             # Get last access
-                            $sql = "SELECT MAX(GREATEST(p_DatePosted, pr_LastUpdatedDt, u_CreatedDt)) AS lastaccess 
+                            $sql = "SELECT MAX(GREATEST(p_DatePosted, pr_LastUpdatedDt, u_CreatedDt)) AS lastaccess
 FROM u_User
 LEFT JOIN p_Post ON p_Post.p_u_Id = u_User.u_Id
-LEFT JOIN pr_PostResponder ON pr_PostResponder.pr_u_Id_Responder = u_User.u_Id 
+LEFT JOIN pr_PostResponder ON pr_PostResponder.pr_u_Id_Responder = u_User.u_Id
 WHERE u_Id = ? AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpdatedDt >= '$start' OR u_CreatedDt >= '$start');";
                             $lasts = $dbhn->preQuery($sql, [
                                 $user['u_Id']
@@ -356,16 +356,16 @@ WHERE u_Id = ? AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpd
 }
 
 # Get the posts, including by users we're not migrating, for stats purposes.
-$posts = $dbhn->preQuery("SELECT DISTINCT ue_EmailAddress, p_Post.p_Id, p_Post.p_DatePosted, p_Post.p_DateClosed, p_Post.p_u_Id, mp_PostStatus.mp_Status, mp_PostStatus.mp_Desc, 
+$posts = $dbhn->preQuery("SELECT DISTINCT ue_EmailAddress, p_Post.p_Id, p_Post.p_DatePosted, p_Post.p_DateClosed, p_Post.p_u_Id, mp_PostStatus.mp_Status, mp_PostStatus.mp_Desc,
        mc_Condition.mc_Desc, p_Post.p_ShortDesc, p_Post.p_Description, mt_PostType.mt_Type,
        ul_PostCode, ul_Longitude, ul_Latitude
-FROM p_Post 
+FROM p_Post
 INNER JOIN u_User ON u_User.u_Id = p_Post.p_u_Id $userfilt
 INNER JOIN mt_PostType ON mt_PostType.mt_Id = p_Post.p_mt_PostType
 INNER JOIN mp_PostStatus ON mp_PostStatus.mp_Id = p_Post.p_mp_Id
 LEFT JOIN mc_Condition ON mc_Condition.mc_Condition = p_Post.p_mc_Condition
 LEFT JOIN ue_UserEmail ON ue_UserEmail.ue_u_Id = p_Post.p_u_Id
-LEFT JOIN pl_PostLocation ON pl_PostLocation.pl_p_Id = p_Post.p_Id    
+LEFT JOIN pl_PostLocation ON pl_PostLocation.pl_p_Id = p_Post.p_Id
 LEFT JOIN ul_UserLocation ON pl_PostLocation.pl_ul_Id = ul_UserLocation.ul_Id
 WHERE mp_PostStatus.mp_Status IN ('o', 'a', 'c')
 ORDER BY p_DatePosted DESC");
@@ -544,7 +544,44 @@ foreach ($posts as $post) {
     }
 }
 
-exit(0);
+# Message items, which we need to have set up for stats.  Look for any without items.
+$items  = $dbhr->preQuery("SELECT messages.subject, messages_groups.msgid FROM messages_groups LEFT JOIN messages_items ON messages_items.msgid = messages_groups.msgid INNER JOIN messages ON messages.id = messages_groups.msgid WHERE groupid IN (
+515504,
+515507,
+515510,
+515513,
+515516,
+515519,
+515522,
+515525,
+515528,
+515531,
+515534,
+515537,
+515540,
+515543,
+515546,
+515549,
+515552
+) AND messages_items.itemid IS NULL");
+$total = count($items);
+$count = 0;
+
+foreach ($items AS $item) {
+    if (preg_match("/(.+)\:(.+)\((.+)\)/", $item['subject'], $matches)) {
+        $itemname = trim($matches[2]);
+        error_log("...{$item['msgid']} $itemname");
+
+        if ($item) {
+            $i = new Item($dbhr, $dbhm);
+            $id = $i->create($itemname);
+            $dbhm->preExec("INSERT INTO messages_items (msgid, itemid) VALUES (?,?);", [
+                $item['msgid'],
+                $id
+            ]);
+        }
+    }
+}
 
 # Migrate recently active messages into Chat
 $messages = $dbhn->preQuery("SELECT g_Message.*, p_Post.p_u_Id FROM pr_PostResponder LEFT JOIN p_Post ON pr_PostResponder.pr_p_Id = p_Post.p_Id INNER JOIN g_Message ON g_Message.g_pr_Id = pr_PostResponder.pr_Id WHERE pr_PostResponder.pr_CreatedDt BETWEEN '2020-02-01' AND NOW() ORDER BY g_Message.g_Id ASC;");
