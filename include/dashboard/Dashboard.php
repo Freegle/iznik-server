@@ -13,6 +13,8 @@ class Dashboard {
 
     const COMPONENT_RECENT_COUNTS = 'RecentCounts';
     const COMPONENT_POPULAR_POSTS = 'PopularPosts';
+    const COMPONENT_USERS_POSTING = 'UsersPosting';
+    const COMPONENT_USERS_REPLYING = 'UsersReplying';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -205,11 +207,10 @@ class Dashboard {
 
             if (in_array(Dashboard::COMPONENT_RECENT_COUNTS, $components)) {
                 $ret[Dashboard::COMPONENT_RECENT_COUNTS] = [
-                    'newmembers' => $this->getCount("SELECT COUNT(*) AS count FROM memberships WHERE added >= '$startq' AND added <= '$endq' AND $groupq"),
-                    'newmessages' => $this->getCount("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages.arrival >= '$startq' AND messages.arrival <= '$endq' AND $groupq")
+                    'newmembers' => $this->getCount("SELECT COUNT(*) AS count FROM memberships WHERE $groupq AND added >= '$startq' AND added <= '$endq'"),
+                    'newmessages' => $this->getCount("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE $groupq AND messages.arrival >= '$startq' AND messages.arrival <= '$endq'")
                 ];
             }
-
 
             if (in_array(Dashboard::COMPONENT_POPULAR_POSTS, $components)) {
                 $populars = $this->dbhr->preQuery("SELECT COUNT(*) AS views, messages.id, messages.subject FROM messages INNER JOIN messages_likes ON messages_likes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages_likes.type = 'View' GROUP BY messages.id HAVING views > 0 ORDER BY views DESC LIMIT 5", NULL, FALSE, FALSE);
@@ -219,15 +220,64 @@ class Dashboard {
                     $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS replies, refmsgid FROM chat_messages WHERE refmsgid IN (" . implode(',', $msgids) . ") GROUP BY refmsgid;", NULL, FALSE, FALSE);
 
                     foreach ($populars as &$popular) {
+                        $popular['replies'] = 0;
+
                         foreach ($replies as $reply) {
                             if ($reply['refmsgid'] == $popular['id']) {
                                 $popular['replies'] = $reply['replies'];
                             }
                         }
+
+                        $popular['url'] = 'https://' . USER_SITE . '/message/' . $popular['id'];
                     }
                 }
 
                 $ret[Dashboard::COMPONENT_POPULAR_POSTS] = $populars;
+            }
+
+            if (in_array(Dashboard::COMPONENT_USERS_POSTING, $components)) {
+                $postings = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.fromuser FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages.arrival >= '$startq' AND messages.arrival <= '$endq' AND $groupq GROUP BY messages.fromuser ORDER BY count DESC LIMIT 5", NULL, FALSE, FALSE);
+                $ret[Dashboard::COMPONENT_USERS_POSTING] = [];
+
+                if (count($postings)) {
+                    $u = new User($this->dbhr, $this->dbhm);
+                    $ctx = NULL;
+                    $users = $u->getPublicsById(array_column($postings, 'fromuser'), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+
+                    foreach ($postings as $posting) {
+                        foreach ($users as $user) {
+                            if ($user['id'] == $posting['fromuser']) {
+                                $thisone = $user;
+                                $thisone['posts'] = $posting['count'];
+                                $ret[Dashboard::COMPONENT_USERS_POSTING][] = $thisone;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (in_array(Dashboard::COMPONENT_USERS_REPLYING, $components)) {
+                $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, chat_messages.userid FROM chat_messages INNER JOIN memberships ON memberships.userid = chat_messages.userid WHERE chat_messages.date >= '$startq' AND chat_messages.date <= '$endq' AND chat_messages.type = ? AND $groupq GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5", [
+                    ChatMessage::TYPE_INTERESTED
+                ], FALSE, FALSE);
+
+                $ret[Dashboard::COMPONENT_USERS_REPLYING] = [];
+
+                if (count($replies)) {
+                    $u = new User($this->dbhr, $this->dbhm);
+                    $ctx = NULL;
+                    $users = $u->getPublicsById(array_column($replies, 'userid'), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+
+                    foreach ($replies as $reply) {
+                        foreach ($users as $user) {
+                            if ($user['id'] == $reply['userid']) {
+                                $thisone = $user;
+                                $thisone['replies'] = $reply['count'];
+                                $ret[Dashboard::COMPONENT_USERS_REPLYING][] = $thisone;
+                            }
+                        }
+                    }
+                }
             }
         }
 

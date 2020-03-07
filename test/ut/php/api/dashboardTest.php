@@ -171,6 +171,42 @@ class dashboardTest extends IznikAPITestCase {
         assertEquals(1, count($ret['components']['PopularPosts']));
         assertEquals(1, $ret['components']['PopularPosts'][0]['views']);
         assertEquals(0, $ret['components']['PopularPosts'][0]['replies']);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENT_USERS_POSTING
+            ],
+            'group' => $gid
+        ]);
+
+        # Reply
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($uid2);
+        assertTrue($u->addMembership($gid, User::ROLE_MEMBER));
+
+        $cr = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $cr->createConversation($uid, $uid2);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cmid, $banned) = $cm->create($rid, $uid2, "Test", ChatMessage::TYPE_INTERESTED, $mid);
+        assertNotNull($cmid);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components']['UsersPosting']));
+        assertEquals($uid, $ret['components']['UsersPosting'][0]['id']);
+        assertEquals(1, $ret['components']['UsersPosting'][0]['posts']);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENT_USERS_REPLYING
+            ],
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components']['UsersReplying']));
+        assertEquals($uid2, $ret['components']['UsersReplying'][0]['id']);
+        assertEquals(1, $ret['components']['UsersReplying'][0]['replies']);
     }
 
 //
