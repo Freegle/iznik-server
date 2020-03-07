@@ -1,23 +1,17 @@
 <?php
-
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
 require_once UT_DIR . '/IznikAPITestCase.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
 class dashboardTest extends IznikAPITestCase {
-    public function testLoggedOut() {
-        $ret = $this->call('session', 'GET', []);
-        assertEquals(1, $ret['ret']);
-
-        }
-
     public function testAdmin() {
-        # Now log in
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u = User::get($this->dbhr, $this->dbhm, $id);
@@ -41,8 +35,7 @@ class dashboardTest extends IznikAPITestCase {
         $dash = $ret['dashboard'];
         #$this->log("Got dashboard " . var_export($ret, TRUE));
         assertGreaterThan(0, $dash['ApprovedMessageCount']);
-
-        }
+    }
 
     public function testGroups() {
         $u = User::get($this->dbhr, $this->dbhm);
@@ -103,8 +96,7 @@ class dashboardTest extends IznikAPITestCase {
         $dash = $ret['dashboard'];
         $this->log(var_export($dash, TRUE));
         assertEquals(0, count($dash['ApprovedMessageCount']));
-
-        }
+    }
 
     public function testRegion() {
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -118,8 +110,44 @@ class dashboardTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
         assertTrue(in_array($group1, $ret['dashboard']['groupids']));
+    }
 
-        }
+    public function testComponents() {
+        # Create a group with a message on it.
+        $g = Group::get($this->dbhm, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onhere', 1);
+        $g->setPrivate('onyahoo', 0);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($uid);
+        assertTrue($u->addMembership($gid, User::ROLE_OWNER));
+        $u->addEmail('test@test.com');
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'testgroup@groups.ilovefreegle.org', $msg, $gid);
+        assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENT_RECENT_COUNTS
+            ],
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['components']['RecentCounts']['newmembers']);
+        assertEquals(1, $ret['components']['RecentCounts']['newmessages']);
+    }
+
 //
 //    public function testEH() {
 //        //

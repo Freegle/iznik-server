@@ -11,6 +11,8 @@ class Dashboard {
     private $me;
     private $stats;
 
+    const COMPONENT_RECENT_COUNTS = 'RecentCounts';
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -18,9 +20,8 @@ class Dashboard {
         $this->stats = new Stats($dbhr, $dbhm);
     }
 
-    public function get($systemwide, $allgroups, $groupid, $region, $type, $start = '30 days ago', $end = 'today', $force = FALSE, $key = NULL) {
+    private function getGroups($systemwide, $allgroups, $groupid, $region, $type, $start) {
         $groupids = [];
-        $overlaps = [];
         $usecache = NULL;
         $typeq = $type ? " AND `type` = " . $this->dbhr->quote($type) : '';
         $startq = " AND start = " . $this->dbhr->quote($start);
@@ -31,7 +32,6 @@ class Dashboard {
             $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE publish = 1;");
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];
-                $overlaps[$group['id']] = 1;
             }
 
             $usecache = "SELECT * FROM users_dashboard WHERE $userq systemwide = 1 $typeq $startq;";
@@ -39,7 +39,6 @@ class Dashboard {
             $groups = $this->dbhr->preQuery("SELECT groups.id FROM groups WHERE region LIKE ?;", [ $region ]);
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];
-                $overlaps[$group['id']] = 1;
             }
         } else if ($groupid) {
             $groupids[] = $groupid;
@@ -62,7 +61,12 @@ class Dashboard {
             }
         }
 
+        return [$usecache, $groupids];
+    }
+
+    public function get($systemwide, $allgroups, $groupid, $region, $type, $start = '30 days ago', $end = 'today', $force = FALSE, $key = NULL) {
         $ret = NULL;
+        list ($usecache, $groupids) = $this->getGroups($systemwide, $allgroups, $groupid, $region, $type, $start);
 
         if ($usecache && !$force && $end === 'today') {
             $cached = $this->dbhr->preQuery($usecache);
@@ -178,26 +182,38 @@ class Dashboard {
             $ret['donationsthismonth'] = $donations[0]['total'];
         }
 
-        # eBay stats
-//        $ret['eBay'] = $this->dbhr->preQuery("SELECT * FROM ebay_favourites ORDER BY timestamp ASC;");
-//        foreach ($ret['eBay'] as &$e) {
-//            $e['timestamp'] = ISODate($e['timestamp']);
-//        }
+        return($ret);
+    }
 
-        # Aviva stats
-//        $top20 = $this->dbhr->preQuery("SELECT * FROM `aviva_votes` ORDER BY votes DESC LIMIT 20;");
-//        $history = $this->dbhr->preQuery("SELECT * FROM aviva_history ORDER BY timestamp ASC");
-//        $ours = $this->dbhr->preQuery("SELECT * FROM aviva_votes WHERE project = '17-1949';");
-//
-//        $ret['aviva'] = [
-//            'ourposition' => count($history) ? $history[count($history) - 1]['position'] : 0,
-//            'ourvotes' => count($history) ? $history[count($history) - 1]['votes'] : 0,
-//            'history' => $history,
-//            'top20' => $top20
-//        ];
+    private function getCount($sql) {
+        $res = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+        return $res[0]['count'];
+    }
 
-        #$ret['usecache'] = $usecache;
+    public function getComponents($components, $systemwide, $allgroups, $groupid, $region, $type, $start = '30 days ago', $end = 'today', $force = FALSE, $key = NULL) {
+        list ($usecache, $groupids) = $this->getGroups($systemwide, $allgroups, $groupid, $region, $type, $start);
+        $startq = date("Y-m-d", strtotime($start));
+
+        # End needs to be the next day.
+        $endq = date("Y-m-d", strtotime($end) + 24 * 60 * 60);
+
+        $ret = [];
+
+        if (count($groupids)) {
+            $groupq = " groupid IN (" . implode(', ', $groupids) . ") ";
+
+            if (in_array(Dashboard::COMPONENT_RECENT_COUNTS, $components)) {
+                $ret[Dashboard::COMPONENT_RECENT_COUNTS] = [
+                    'newmembers' => $this->getCount("SELECT COUNT(*) AS count FROM memberships WHERE added >= '$startq' AND added <= '$endq' AND $groupq"),
+                    'newmessages' => $this->getCount("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages.arrival >= '$startq' AND messages.arrival <= '$endq' AND $groupq")
+                ];
+            }
+        }
 
         return($ret);
+    }
+
+    public function tearDown() {
+
     }
 }
