@@ -163,10 +163,10 @@ foreach ($users as $user) {
 
                             # Get last access
                             $sql = "SELECT MAX(GREATEST(p_DatePosted, pr_LastUpdatedDt, u_CreatedDt)) AS lastaccess 
-    FROM u_User
-    LEFT JOIN p_Post ON p_Post.p_u_Id = u_User.u_Id
-    LEFT JOIN pr_PostResponder ON pr_PostResponder.pr_u_Id_Responder = u_User.u_Id 
-    WHERE u_Id = ? AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpdatedDt >= '$start' OR u_CreatedDt >= '$start');";
+FROM u_User
+LEFT JOIN p_Post ON p_Post.p_u_Id = u_User.u_Id
+LEFT JOIN pr_PostResponder ON pr_PostResponder.pr_u_Id_Responder = u_User.u_Id 
+WHERE u_Id = ? AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpdatedDt >= '$start' OR u_CreatedDt >= '$start');";
                             $lasts = $dbhn->preQuery($sql, [
                                 $user['u_Id']
                             ]);
@@ -356,7 +356,7 @@ foreach ($users as $user) {
 }
 
 # Get the posts, including by users we're not migrating, for stats purposes.
-$posts = $dbhn->preQuery("SELECT DISTINCT ue_EmailAddress, p_Post.p_Id, p_Post.p_DatePosted, p_Post.p_u_Id, mp_PostStatus.mp_Status, mp_PostStatus.mp_Desc, 
+$posts = $dbhn->preQuery("SELECT DISTINCT ue_EmailAddress, p_Post.p_Id, p_Post.p_DatePosted, p_Post.p_DateClosed, p_Post.p_u_Id, mp_PostStatus.mp_Status, mp_PostStatus.mp_Desc, 
        mc_Condition.mc_Desc, p_Post.p_ShortDesc, p_Post.p_Description, mt_PostType.mt_Type,
        ul_PostCode, ul_Longitude, ul_Latitude
 FROM p_Post 
@@ -486,11 +486,12 @@ foreach ($posts as $post) {
         if ($post['mp_Status'] == 'W') {
             // Withdrawn
             error_log("...withdrawn");
-            $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
+            $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments, timestamp) VALUES (?,?,?,?,?);", [
                 $mid,
                 Message::OUTCOME_WITHDRAWN,
-                NULL .
-                NULL
+                NULL,
+                NULL,
+                $post['p_DateClosed']
             ]);
             $withdrawn++;
         } else if ($post['mp_Status'] == 'C') {
@@ -503,11 +504,12 @@ foreach ($posts as $post) {
                 $received++;
             }
 
-            $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
+            $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments, timestamp) VALUES (?,?,?,?,?);", [
                 $mid,
                 $outcome,
                 NULL,
-                NULL
+                NULL,
+                $post['p_DateClosed']
             ]);
         } else if ($post['mp_Status'] == 'O') {
             // Open - need to look at pr_PostResponder.
@@ -529,17 +531,20 @@ foreach ($posts as $post) {
                         $received++;
                     }
 
-                    $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
+                    $dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments, timestamp) VALUES (?,?,?,?,?);", [
                         $mid,
                         $outcome,
                         NULL,
-                        NULL
+                        NULL,
+                        $pr['pr_LastUpdatedDt']
                     ]);
                 }
             }
         }
     }
 }
+
+exit(0);
 
 # Migrate recently active messages into Chat
 $messages = $dbhn->preQuery("SELECT g_Message.*, p_Post.p_u_Id FROM pr_PostResponder LEFT JOIN p_Post ON pr_PostResponder.pr_p_Id = p_Post.p_Id INNER JOIN g_Message ON g_Message.g_pr_Id = pr_PostResponder.pr_Id WHERE pr_PostResponder.pr_CreatedDt BETWEEN '2020-02-01' AND NOW() ORDER BY g_Message.g_Id ASC;");
