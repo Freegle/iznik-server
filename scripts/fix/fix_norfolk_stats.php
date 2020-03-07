@@ -40,3 +40,37 @@ foreach ($groups as $group) {
         $epoch -= 24 * 60 * 60;
     }
 }
+
+# Update outcomes stats
+$mysqltime = date("Y-m-01", strtotime("10 years ago"));
+$stats = $dbhr->preQuery("SELECT groupid, SUM(count) AS count, CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) AS date FROM stats WHERE type = ? AND date > ? AND groupd IN
+515504,
+515507,
+515510,
+515513,
+515516,
+515519,
+515522,
+515525,
+515528,
+515531,
+515534,
+515537,
+515540,
+515543,
+515546,
+515549,
+515552
+) GROUP BY groupid, YEAR(date), MONTH(date);", [
+    Stats::OUTCOMES,
+    $mysqltime
+]);
+
+foreach ($stats as $stat) {
+    $dbhm->preExec("REPLACE INTO stats_outcomes (groupid, count, date) VALUES (?, ?, ?);", [
+        $stat['groupid'],
+        $stat['count'],
+        $stat['date']
+    ]);
+}
+
