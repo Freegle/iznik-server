@@ -597,6 +597,7 @@ class sessionTest extends IznikAPITestCase
 
         $u2 = User::get($this->dbhm, $this->dbhm);
         $id2 = $u1->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $ret = $this->call('session', 'POST', [
             'action' => 'Related',
