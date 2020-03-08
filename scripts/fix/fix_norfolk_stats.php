@@ -43,7 +43,7 @@ foreach ($groups as $group) {
 
 # Update outcomes stats
 $mysqltime = date("Y-m-01", strtotime("10 years ago"));
-$stats = $dbhr->preQuery("SELECT groupid, SUM(count) AS count, CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) AS date FROM stats WHERE type = ? AND date > ? AND groupd IN
+$stats = $dbhr->preQuery("SELECT groupid, SUM(count) AS count, CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) AS date FROM stats WHERE type = ? AND date > ? AND groupd IN (
 515504,
 515507,
 515510,
