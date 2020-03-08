@@ -6225,15 +6225,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         $thisone['systemrole'] != User::SYSTEMROLE_USER ||
                         $thisone['relatedto']['systemrole'] != User::SYSTEMROLE_USER) {
                         # No sense in telling people about these.
-                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE user1 = ? AND user2 = ?;", [
+                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
                             $thisone['id'],
-                            $thisone['relatedto']['id']
+                            $thisone['relatedto']['id'],
+                            $thisone['relatedto']['id'],
+                            $thisone['id']
                         ]);
                     } elseif (!count($logins) || !count($rellogins)) {
                         # No valid login types for one of the users - no way they can log in again so no point notifying.
-                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE user1 = ? AND user2 = ?;", [
+                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
                             $thisone['id'],
-                            $thisone['relatedto']['id']
+                            $thisone['relatedto']['id'],
+                            $thisone['relatedto']['id'],
+                            $thisone['id']
                         ]);
                     } else {
                         $thisone['userid'] = $thisone['id'];
