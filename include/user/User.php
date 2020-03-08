@@ -6256,7 +6256,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     }
 
     public function getRelatedReviewCount() {
-        return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related WHERE notified = 0;", NULL, FALSE, FALSE)[0]['count'];
+        // Divide by 2 as every user appears two ways round.
+        return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related WHERE notified = 0;", NULL, FALSE, FALSE)[0]['count'] / 2;
     }
 
     public function getExpectedReplies($uids, $since = ChatRoom::ACTIVELIM, $grace = 30) {
