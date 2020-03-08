@@ -1342,9 +1342,11 @@ class User extends Entity
         }
     }
 
-    public function getLogins($credentials = TRUE, $id = NULL)
+    public function getLogins($credentials = TRUE, $id = NULL, $excludelink = FALSE)
     {
-        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ? ORDER BY lastaccess DESC;",
+        $excludelinkq = $excludelink ? (" AND type != '" . User::LOGIN_LINK . "'") : '';
+
+        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ? $excludelinkq ORDER BY lastaccess DESC;",
             [$id ? $id : $this->id]);
 
         foreach ($logins as &$login) {
@@ -6215,6 +6217,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         }
                     }
 
+                    $logins = $this->getLogins(FALSE, $thisone['id'], TRUE);
+                    $rellogins = $this->getLogins(FALSE, $thisone['relatedto']['id'], TRUE);
+
                     if ($thisone['deleted'] ||
                         $thisone['relatedto']['deleted'] ||
                         $thisone['systemrole'] != User::SYSTEMROLE_USER ||
@@ -6224,10 +6229,16 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                             $thisone['id'],
                             $thisone['relatedto']['id']
                         ]);
+                    } elseif (!count($logins) || !count($rellogins)) {
+                        # No valid login types for one of the users - no way they can log in again so no point notifying.
+                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE user1 = ? AND user2 = ?;", [
+                            $thisone['id'],
+                            $thisone['relatedto']['id']
+                        ]);
                     } else {
                         $thisone['userid'] = $thisone['id'];
-                        $thisone['logins'] = $this->getLogins(FALSE, $thisone['id']);
-                        $thisone['relatedto']['logins'] = $this->getLogins(FALSE, $thisone['relatedto']['id']);
+                        $thisone['logins'] = $logins;
+                        $thisone['relatedto']['logins'] = $rellogins;
 
                         $ret[] = $thisone;
                     }

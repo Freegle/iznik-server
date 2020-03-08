@@ -144,45 +144,49 @@ function merge() {
 
                 $u1mail = $u1->getEmailPreferred();
 
-                $message = Swift_Message::newInstance()
-                    ->setSubject($subj)
-                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                    ->setReturnPath($u1->getBounce())
-                    ->setBody($textbody);
+                if ($u1mail) {
+                    $message = Swift_Message::newInstance()
+                        ->setSubject($subj)
+                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setReturnPath($u1->getBounce())
+                        ->setBody($textbody);
 
-                $email ? $message->setTo([$u1mail => $u1->getName()]) : 0;
+                    $email ? $message->setTo([$u1mail => $u1->getName()]) : 0;
 
-                $htmlPart = Swift_MimePart::newInstance();
-                $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                $htmlPart->setContentType('text/html');
-                $htmlPart->setBody($html);
-                $message->attach($htmlPart);
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
 
-                Mail::addHeaders($message, Mail::RELEVANT_OFF, $u1->getId());
+                    Mail::addHeaders($message, Mail::RELEVANT_OFF, $u1->getId());
 
-                $email ? $mailer->send($message) : 0;
+                    $email ? $mailer->send($message) : 0;
+                }
 
                 $u2mail = $u2->getEmailPreferred();
 
-                $message = Swift_Message::newInstance()
-                    ->setSubject($subj)
-                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                    ->setReturnPath($u2->getBounce())
-                    ->setBody($textbody);
+                if ($u2mail) {
+                    $message = Swift_Message::newInstance()
+                        ->setSubject($subj)
+                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setReturnPath($u2->getBounce())
+                        ->setBody($textbody);
 
-                $email ? $message->setTo([$u2mail => $u2->getName()]) : 0;
+                    $email ? $message->setTo([$u2mail => $u2->getName()]) : 0;
 
-                $htmlPart = Swift_MimePart::newInstance();
-                $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                $htmlPart->setContentType('text/html');
-                $htmlPart->setBody($html);
-                $message->attach($htmlPart);
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
 
-                Mail::addHeaders($message, Mail::RELEVANT_OFF, $u2->getId());
+                    Mail::addHeaders($message, Mail::RELEVANT_OFF, $u2->getId());
 
-                $email ? $mailer->send($message) : 0;
+                    $email ? $mailer->send($message) : 0;
+                }
 
                 # Flag the related users as having been processed.
                 $dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
