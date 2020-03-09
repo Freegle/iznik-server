@@ -232,7 +232,7 @@ class Dashboard {
                 $populars = $this->dbhr->preQuery("SELECT COUNT(*) AS views, messages.id, messages.subject FROM messages INNER JOIN messages_likes ON messages_likes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages_likes.type = 'View' GROUP BY messages.id HAVING views > 0 ORDER BY views DESC LIMIT 5", NULL, FALSE, FALSE);
 
                 if (count($populars)) {
-                    $msgids = array_column($populars, 'id');
+                    $msgids = array_filter(array_column($populars, 'id'));
                     $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS replies, refmsgid FROM chat_messages WHERE refmsgid IN (" . implode(',', $msgids) . ") GROUP BY refmsgid;", NULL, FALSE, FALSE);
 
                     foreach ($populars as &$popular) {
@@ -260,7 +260,7 @@ class Dashboard {
                 if (count($postings)) {
                     $u = new User($this->dbhr, $this->dbhm);
                     $ctx = NULL;
-                    $users = $u->getPublicsById(array_column($postings, 'fromuser'), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+                    $users = $u->getPublicsById(array_filter(array_column($postings, 'fromuser')), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
 
                     foreach ($postings as $posting) {
                         foreach ($users as $user) {
@@ -293,7 +293,7 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 if (count($replies)) {
                     $u = new User($this->dbhr, $this->dbhm);
                     $ctx = NULL;
-                    $users = $u->getPublicsById(array_column($replies, 'userid'), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+                    $users = $u->getPublicsById(array_filter(array_column($replies, 'userid')), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
 
                     foreach ($replies as $reply) {
                         foreach ($users as $user) {
@@ -310,10 +310,10 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
             if (in_array(Dashboard::COMPONENT_MODERATORS_ACTIVE, $components) && count($groupids) == 1) {
                 $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner');", [ $groupids[0] ], FALSE, FALSE);
 
-                $logs = $this->dbhr->preQuery("SELECT byuser, MAX(timestamp) AS lastactive FROM logs WHERE groupid = ? AND byuser IN (" . implode(',', array_column($mods, 'userid')) . ") GROUP BY byuser;", [ $groupids[0] ], FALSE, FALSE);
+                $logs = $this->dbhr->preQuery("SELECT byuser, MAX(timestamp) AS lastactive FROM logs WHERE groupid = ? AND byuser IN (" . implode(',', array_filter(array_column($mods, 'userid'))) . ") GROUP BY byuser;", [ $groupids[0] ], FALSE, FALSE);
                 $u = User::get($this->dbhr, $this->dbhm);
 
-                $users = $u->getPublicsById(array_column($logs, 'byuser'), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+                $users = $u->getPublicsById(array_filter(array_column($logs, 'byuser')), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
 
                 foreach ($users as &$user) {
                     foreach ($logs as $log) {
