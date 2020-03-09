@@ -49,7 +49,15 @@ class Dashboard {
 
             $usecache = "SELECT * FROM users_dashboard WHERE $userq groupid = " . intval($groupid) . " $typeq $startq;";
         } else if ($this->me && $allgroups) {
-            $groupids = $this->me->getModeratorships();
+            $groupids1 = $this->me->getModeratorships();
+            $groupids = [];
+
+            # For the dashboard we only want to show the active groups.
+            foreach ($groupids1 as $groupid) {
+                if ($this->me->activeModForGroup($groupid)) {
+                    $groupids[] = $groupid;
+                }
+            }
 
             $usecache = "SELECT * FROM users_dashboard WHERE userid = " . $this->me->getId() . " $typeq $startq;";
         }
@@ -207,9 +215,16 @@ class Dashboard {
             $groupq = " groupid IN (" . implode(', ', $groupids) . ") ";
 
             if (in_array(Dashboard::COMPONENT_RECENT_COUNTS, $components)) {
+                # Use arrival on messages_groups as an initial filter, because it's better indexed, but we're interested
+                # in genuinely new messages so we need to check messages.arrival, which is the first time we saw
+                # the message.
+                $messsql = "SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages.arrival >= '$startq' AND messages.arrival <= '$endq'";
+                $membsql = "SELECT COUNT(*) AS count FROM memberships WHERE $groupq AND added >= '$startq' AND added <= '$endq'";
+
                 $ret[Dashboard::COMPONENT_RECENT_COUNTS] = [
-                    'newmembers' => $this->getCount("SELECT COUNT(*) AS count FROM memberships WHERE $groupq AND added >= '$startq' AND added <= '$endq'"),
-                    'newmessages' => $this->getCount("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE $groupq AND messages.arrival >= '$startq' AND messages.arrival <= '$endq'")
+                    'newmembers' => $this->getCount($membsql),
+                    'newmessages' => $this->getCount($messsql),
+                    'membsql' => $membsql
                 ];
             }
 
