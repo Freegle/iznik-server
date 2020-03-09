@@ -220,6 +220,8 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
+        sleep(1);
+
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE]));
         assertEquals($uid, $ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE][0]['id']);
@@ -272,7 +274,19 @@ class dashboardTest extends IznikAPITestCase {
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
-                Dashboard::MESSAGE_BREAKDOWN
+                Dashboard::COMPONENTS_MESSAGE_BREAKDOWN
+            ],
+            'start' => date('Y-m-d'),
+            'end' => date('Y-m-d', strtotime('tomorrow')),
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['components'][Dashboard::COMPONENTS_MESSAGE_BREAKDOWN][Message::TYPE_OFFER]);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENTS_WEIGHT
             ],
             'start' => date('Y-m-d'),
             'end' => date('Y-m-d', strtotime('tomorrow')),
@@ -281,7 +295,20 @@ class dashboardTest extends IznikAPITestCase {
 
         error_log("returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        assertEquals(1, $ret['components'][Dashboard::MESSAGE_BREAKDOWN][Message::TYPE_OFFER]);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_WEIGHT]));
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENTS_OUTCOMES
+            ],
+            'start' => date('Y-m-d'),
+            'end' => date('Y-m-d', strtotime('tomorrow')),
+            'group' => $gid
+        ]);
+
+        error_log("returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_OUTCOMES]));
     }
 
 //

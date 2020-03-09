@@ -19,7 +19,9 @@ class Dashboard {
     const COMPONENTS_ACTIVITY = 'Activity';
     const COMPONENTS_REPLIES = 'Replies';
     const COMPONENTS_APPROVED_MESSAGE_COUNT = 'ApprovedMessageCount';
-    const MESSAGE_BREAKDOWN = 'MessageBreakdown';
+    const COMPONENTS_MESSAGE_BREAKDOWN = 'MessageBreakdown';
+    const COMPONENTS_WEIGHT = 'Weight';
+    const COMPONENTS_OUTCOMES = 'Outcomes';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -348,9 +350,19 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 $ret[Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT] = $stats[ Stats::APPROVED_MESSAGE_COUNT ];
             }
 
-            if (in_array(Dashboard::MESSAGE_BREAKDOWN, $components)) {
+            if (in_array(Dashboard::COMPONENTS_MESSAGE_BREAKDOWN, $components)) {
                 $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::MESSAGE_BREAKDOWN]);
-                $ret[Dashboard::MESSAGE_BREAKDOWN] = $stats[ Stats::MESSAGE_BREAKDOWN ];
+                $ret[Dashboard::COMPONENTS_MESSAGE_BREAKDOWN] = $stats[ Stats::MESSAGE_BREAKDOWN ];
+            }
+
+            if (in_array(Dashboard::COMPONENTS_WEIGHT, $components)) {
+                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::WEIGHT]);
+                $ret[Dashboard::COMPONENTS_WEIGHT] = $stats[ Stats::WEIGHT ];
+            }
+
+            if (in_array(Dashboard::COMPONENTS_OUTCOMES, $components)) {
+                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::OUTCOMES]);
+                $ret[Dashboard::COMPONENTS_OUTCOMES] = $stats[ Stats::OUTCOMES ];
             }
         }
 
