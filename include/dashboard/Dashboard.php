@@ -16,6 +16,9 @@ class Dashboard {
     const COMPONENT_USERS_POSTING = 'UsersPosting';
     const COMPONENT_USERS_REPLYING = 'UsersReplying';
     const COMPONENT_MODERATORS_ACTIVE = 'ModeratorsActive';
+    const COMPONENTS_ACTIVITY = 'Activity';
+    const COMPONENTS_REPLIES = 'Replies';
+    const COMPONENTS_APPROVED_MESSAGE_COUNT = 'ApprovedMessageCount';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -328,6 +331,21 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 });
 
                 $ret[Dashboard::COMPONENT_MODERATORS_ACTIVE] = $users;
+            }
+
+            if (in_array(Dashboard::COMPONENTS_ACTIVITY, $components)) {
+                $ret = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::ACTIVITY ]);
+                $ret[Dashboard::COMPONENT_MODERATORS_ACTIVE] = $ret[ Stats::ACTIVITY ];
+            }
+
+            if (in_array(Dashboard::COMPONENTS_REPLIES, $components)) {
+                $ret = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::REPLIES ]);
+                $ret[Dashboard::COMPONENTS_REPLIES] = $ret[ Stats::REPLIES ];
+            }
+
+            if (in_array(Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT, $components)) {
+                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::APPROVED_MESSAGE_COUNT ]);
+                $ret[Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT] = $stats[ Stats::APPROVED_MESSAGE_COUNT ];
             }
         }
 

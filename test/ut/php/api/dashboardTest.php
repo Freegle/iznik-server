@@ -222,6 +222,52 @@ class dashboardTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE]));
         assertEquals($uid, $ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE][0]['id']);
+
+        # Move message to approved for stats.
+        $m->approve($gid);
+
+        # Generate stats so they exist to query.
+        $s = new Stats($this->dbhr, $this->dbhm, $gid);
+        $s->generate(date('Y-m-d'));
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT
+            ],
+            'start' => date('Y-m-d'),
+            'end' => date('Y-m-d', strtotime('tomorrow')),
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT]));
+        assertEquals(1, $ret['components'][Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT][0]['count']);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENTS_REPLIES
+            ],
+            'start' => date('Y-m-d'),
+            'end' => date('Y-m-d', strtotime('tomorrow')),
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_REPLIES]));
+        assertEquals(1, $ret['components'][Dashboard::COMPONENTS_REPLIES][0]['count']);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENTS_ACTIVITY
+            ],
+            'start' => date('Y-m-d'),
+            'end' => date('Y-m-d', strtotime('tomorrow')),
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_ACTIVITY]));
+        assertEquals(2, $ret['components'][Dashboard::COMPONENTS_ACTIVITY][0]['count']);
     }
 
 //

@@ -380,7 +380,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         return ($ret);
     }
 
-    function getMulti($date, $groupids, $startdate = "30 days ago", $enddate = "today", $systemwide = FALSE, $weightings = NULL) {
+    function getMulti($date, $groupids, $startdate = "30 days ago", $enddate = "today", $systemwide = FALSE, $types = NULL) {
         # Get stats across multiple groups.
         $me = whoAmI($this->dbhr, $this->dbhm);
 
@@ -398,31 +398,33 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
         #error_log("Start at $start from $startdate to $end from $enddate");
 
-        $types = [
-            Stats::APPROVED_MESSAGE_COUNT,
-            Stats::APPROVED_MEMBER_COUNT,
-            Stats::SEARCHES,
-            Stats::ACTIVITY,
-            Stats::WEIGHT,
-            Stats::REPLIES
-        ];
-
-        if ($me && ($me->isModerator() || $me->isAdmin())) {
-            # Mods can see more info.
+        if ($types === NULL) {
             $types = [
                 Stats::APPROVED_MESSAGE_COUNT,
                 Stats::APPROVED_MEMBER_COUNT,
-                Stats::SPAM_MESSAGE_COUNT,
-                Stats::SPAM_MEMBER_COUNT,
-                Stats::SUPPORTQUERIES_COUNT,
-                Stats::FEEDBACK_HAPPY,
-                Stats::FEEDBACK_FINE,
-                Stats::FEEDBACK_UNHAPPY,
                 Stats::SEARCHES,
                 Stats::ACTIVITY,
                 Stats::WEIGHT,
                 Stats::REPLIES
             ];
+
+            if ($me && ($me->isModerator() || $me->isAdmin())) {
+                # Mods can see more info.
+                $types = [
+                    Stats::APPROVED_MESSAGE_COUNT,
+                    Stats::APPROVED_MEMBER_COUNT,
+                    Stats::SPAM_MESSAGE_COUNT,
+                    Stats::SPAM_MEMBER_COUNT,
+                    Stats::SUPPORTQUERIES_COUNT,
+                    Stats::FEEDBACK_HAPPY,
+                    Stats::FEEDBACK_FINE,
+                    Stats::FEEDBACK_UNHAPPY,
+                    Stats::SEARCHES,
+                    Stats::ACTIVITY,
+                    Stats::WEIGHT,
+                    Stats::REPLIES
+                ];
+            }
         }
 
         foreach ($types as $type) {
