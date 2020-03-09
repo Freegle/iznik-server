@@ -460,7 +460,6 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $ret[$type] = [];
 
             $sql = "SELECT breakdown FROM stats WHERE type = ? AND date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ");";
-            file_put_contents('/tmp/sql', "$sql $start $end");
             #error_log("SELECT breakdown FROM stats WHERE type = '$type' AND date >= '$start' AND date < '$end' AND groupid IN (" . implode(',', $groupids) . ");");
 
             # We can't use our standard preQuery wrapper, because it runs out of memory on very large queries (it
@@ -482,7 +481,6 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
 
         if (MODTOOLS && $me && ($me->isModerator() || $me->isAdmin())) {
             $sql = "SELECT breakdown FROM stats WHERE type = ? AND date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC LIMIT 1;";
-            file_put_contents('/tmp/sql', "$sql $end");
 
             # We can't use our standard preQuery wrapper, because it runs out of memory on very large queries (it
             # does a fetchall under the covers).
