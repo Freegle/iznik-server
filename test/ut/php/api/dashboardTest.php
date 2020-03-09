@@ -160,6 +160,7 @@ class dashboardTest extends IznikAPITestCase {
         assertEquals(0, count($ret['components']['PopularPosts']));
 
         $m = new Message($this->dbhr, $this->dbhm, $mid);
+        assertEquals(Message::TYPE_OFFER, $m->getType());
         $m->like($uid, Message::LIKE_VIEW);
 
         $ret = $this->call('dashboard', 'GET', [
@@ -268,6 +269,19 @@ class dashboardTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_ACTIVITY]));
         assertEquals(2, $ret['components'][Dashboard::COMPONENTS_ACTIVITY][0]['count']);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::MESSAGE_BREAKDOWN
+            ],
+            'start' => date('Y-m-d'),
+            'end' => date('Y-m-d', strtotime('tomorrow')),
+            'group' => $gid
+        ]);
+
+        error_log("returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['components'][Dashboard::MESSAGE_BREAKDOWN][Message::TYPE_OFFER]);
     }
 
 //

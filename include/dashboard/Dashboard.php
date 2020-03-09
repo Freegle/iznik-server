@@ -19,6 +19,7 @@ class Dashboard {
     const COMPONENTS_ACTIVITY = 'Activity';
     const COMPONENTS_REPLIES = 'Replies';
     const COMPONENTS_APPROVED_MESSAGE_COUNT = 'ApprovedMessageCount';
+    const MESSAGE_BREAKDOWN = 'MessageBreakdown';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -226,8 +227,7 @@ class Dashboard {
 
                 $ret[Dashboard::COMPONENT_RECENT_COUNTS] = [
                     'newmembers' => $this->getCount($membsql),
-                    'newmessages' => $this->getCount($messsql),
-                    'membsql' => $membsql
+                    'newmessages' => $this->getCount($messsql)
                 ];
             }
 
@@ -346,6 +346,11 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
             if (in_array(Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT, $components)) {
                 $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::APPROVED_MESSAGE_COUNT ]);
                 $ret[Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT] = $stats[ Stats::APPROVED_MESSAGE_COUNT ];
+            }
+
+            if (in_array(Dashboard::MESSAGE_BREAKDOWN, $components)) {
+                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::MESSAGE_BREAKDOWN]);
+                $ret[Dashboard::MESSAGE_BREAKDOWN] = $stats[ Stats::MESSAGE_BREAKDOWN ];
             }
         }
 
