@@ -460,16 +460,19 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $ret[$type] = [];
 
             $sql = "SELECT breakdown FROM stats WHERE type = ? AND date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ");";
-            #error_log("$sql $start $end");
+            file_put_contents('/tmp/sql', "$sql $start $end");
             #error_log("SELECT breakdown FROM stats WHERE type = '$type' AND date >= '$start' AND date < '$end' AND groupid IN (" . implode(',', $groupids) . ");");
-            $breakdowns = $this->dbhr->preQuery($sql,
-                [
-                    $type,
-                    $start,
-                    $end
-                ]);
 
-            foreach ($breakdowns as $breakdown) {
+            # We can't use our standard preQuery wrapper, because it runs out of memory on very large queries (it
+            # does a fetchall under the covers).
+            $sth = $this->dbhr->_db->prepare($sql);
+            $sth->execute([
+                $type,
+                $start,
+                $end
+            ]);
+
+            while ($breakdown = $sth->fetch()) {
                 $b = json_decode($breakdown['breakdown'], TRUE);
                 foreach ($b as $key => $val) {
                     $ret[$type][$key] = !array_key_exists($key, $ret[$type]) ? $val : $ret[$type][$key] + $val;
@@ -478,15 +481,19 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         }
 
         if (MODTOOLS && $me && ($me->isModerator() || $me->isAdmin())) {
-            $sql = "SELECT breakdown FROM stats WHERE type = ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC LIMIT 1;";
-            #error_log("$sql $end");
-            $breakdowns = $this->dbhr->preQuery($sql,
-                [
-                    Stats::POST_METHOD_BREAKDOWN,
-                    $end
-                ]);
+            $sql = "SELECT breakdown FROM stats WHERE type = ? AND date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC LIMIT 1;";
+            file_put_contents('/tmp/sql', "$sql $end");
 
-            foreach ($breakdowns as $breakdown) {
+            # We can't use our standard preQuery wrapper, because it runs out of memory on very large queries (it
+            # does a fetchall under the covers).
+            $sth = $this->dbhr->_db->prepare($sql);
+            $sth->execute([
+                Stats::POST_METHOD_BREAKDOWN,
+                $start,
+                $end
+            ]);
+
+            while ($breakdown = $sth->fetch()) {
                 $b = json_decode($breakdown['breakdown'], TRUE);
                 foreach ($b as $key => $val) {
                     $ret[Stats::POST_METHOD_BREAKDOWN][$key] = !array_key_exists($key, $ret[$type]) ? $val : $ret[$type][$key] + $val;

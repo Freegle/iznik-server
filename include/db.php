@@ -118,7 +118,7 @@ class DBResults implements Iterator {
 
 class LoggedPDO {
 
-    protected $_db;
+    public $_db;
     private $inTransaction = FALSE;
     private $tries = 10;
     public  $errorLog = FALSE;
