@@ -252,7 +252,9 @@ class Dashboard {
             }
 
             if (in_array(Dashboard::COMPONENT_USERS_POSTING, $components)) {
-                $postings = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.fromuser FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages.arrival >= '$startq' AND messages.arrival <= '$endq' AND $groupq GROUP BY messages.fromuser ORDER BY count DESC LIMIT 5", NULL, FALSE, FALSE);
+                # Use arrival in messages_groups as a pre-filter since it's efficiently indexed as above.
+                $postsql = "SELECT COUNT(*) AS count, messages.fromuser FROM messages WHERE id IN (SELECT msgid FROM messages_groups WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq) AND messages.arrival >= '$startq' AND messages.arrival <= '$endq' GROUP BY messages.fromuser ORDER BY count DESC LIMIT 5";
+                $postings = $this->dbhr->preQuery($postsql, NULL, FALSE, FALSE);
                 $ret[Dashboard::COMPONENT_USERS_POSTING] = [];
 
                 if (count($postings)) {
@@ -265,6 +267,7 @@ class Dashboard {
                             if ($user['id'] == $posting['fromuser']) {
                                 $thisone = $user;
                                 $thisone['posts'] = $posting['count'];
+                                $thisone['postsql'] = $postsql;
                                 $ret[Dashboard::COMPONENT_USERS_POSTING][] = $thisone;
                             }
                         }
@@ -273,7 +276,15 @@ class Dashboard {
             }
 
             if (in_array(Dashboard::COMPONENT_USERS_REPLYING, $components)) {
-                $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, chat_messages.userid FROM chat_messages INNER JOIN memberships ON memberships.userid = chat_messages.userid WHERE chat_messages.date >= '$startq' AND chat_messages.date <= '$endq' AND chat_messages.type = ? AND $groupq GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5", [
+                # We look for users who are replying to messages on our groups.
+                $chatsql = "SELECT COUNT(*) AS count, chat_messages.userid 
+FROM chat_messages 
+INNER JOIN messages_groups ON messages_groups.msgid = chat_messages.refmsgid 
+WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND
+                $groupq
+                AND chat_messages.type = 'Interested' 
+GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
+                $replies = $this->dbhr->preQuery($chatsql, [
                     ChatMessage::TYPE_INTERESTED
                 ], FALSE, FALSE);
 
