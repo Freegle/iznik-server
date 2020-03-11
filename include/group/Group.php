@@ -618,8 +618,6 @@ GROUP BY memberships.groupid, held;
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
         $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
-        $ypsq = $yps ? (" AND memberships_yahoo.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
-        $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
         $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
         $modq = '';
         $bounceq = '';
@@ -682,10 +680,10 @@ GROUP BY memberships.groupid, held;
                 $namesearch
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)
               ) t) AND 
-              $groupq $collectionq $addq $ypsq $ydtq $opsq";
+              $groupq $collectionq $addq $opsq";
         } else {
-            $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : '';
-            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq $opsq $modq $bounceq";
+            $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq";
         }
 
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
@@ -717,22 +715,11 @@ GROUP BY memberships.groupid, held;
             $email = NULL;
             $others = [];
 
-            if ($member['onyahoo']) {
-                # Yahoo memberships can have any of our emailids.
-                foreach ($emails as $anemail) {
-                    if ($anemail['id'] == $member['emailid']) {
-                        $email = $anemail['email'];
-                    }
-
+            # Groups we host only use a single email.
+            $email = $u->getEmailPreferred();
+            foreach ($emails as $anemail) {
+                if ($anemail['email'] != $email) {
                     $others[] = $anemail;
-                }
-            } else {
-                # Groups we host only use a single email.
-                $email = $u->getEmailPreferred();
-                foreach ($emails as $anemail) {
-                    if ($anemail['email'] != $email) {
-                        $others[] = $anemail;
-                    }
                 }
             }
 
