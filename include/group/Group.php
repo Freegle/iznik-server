@@ -656,12 +656,7 @@ GROUP BY memberships.groupid, held;
             }
         }
 
-        $sqlpref = "SELECT DISTINCT memberships.*, groups.onyahoo, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, 
-              memberships_yahoo.yahooPostingStatus, memberships_yahoo.yahooDeliveryType, memberships_yahoo.yahooapprove, 
-              memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships 
-              LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid 
-              LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
-              INNER JOIN users ON users.id = memberships.userid 
+        $sqlpref = "SELECT DISTINCT memberships.*, groups.onyahoo FROM memberships 
               INNER JOIN groups ON groups.id = memberships.groupid
               $filterq";
 
@@ -673,6 +668,8 @@ GROUP BY memberships.groupid, held;
             $p = strpos($search, ' ');
             $namesearch = $p === FALSE ? '' : ("(SELECT id FROM users WHERE firstname LIKE " . $this->dbhr->quote(substr($search, 0, $p) . '%') . " AND lastname LIKE " . $this->dbhr->quote(substr($search, $p + 1) . '%')) . ') UNION';
             $sql = "$sqlpref 
+              INNER JOIN users ON users.id = memberships.userid 
+              LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
               WHERE users.id IN (SELECT * FROM (
                 (SELECT userid FROM users_emails WHERE email LIKE $q) UNION
                 (SELECT userid FROM users_emails WHERE backwards LIKE $bq) UNION
@@ -756,11 +753,7 @@ GROUP BY memberships.groupid, held;
             $thisone['email'] = $email;
             $thisone['groupid'] = $member['groupid'];
             $thisone['otheremails'] = $others;
-            $thisone['yahooDeliveryType'] = $member['yahooDeliveryType'];
-            $thisone['yahooPostingStatus'] = $member['yahooPostingStatus'];
-            $thisone['yahooAlias'] = $member['yahooAlias'];
             $thisone['role'] = $u->getRoleForGroup($member['groupid'], FALSE);
-            $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
             $thisone['eventsallowed'] = $member['eventsallowed'];
             $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
