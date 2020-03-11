@@ -312,10 +312,12 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 }
             }
 
-            if (in_array(Dashboard::COMPONENT_MODERATORS_ACTIVE, $components) && count($groupids) == 1) {
-                $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner');", [ $groupids[0] ], FALSE, FALSE);
+            if (in_array(Dashboard::COMPONENT_MODERATORS_ACTIVE, $components)) {
+                $modsql = "SELECT userid, groupid FROM memberships WHERE $groupq AND role IN ('Moderator', 'Owner');";
+                $mods = $this->dbhr->preQuery($modsql, NULL, FALSE, FALSE);
+                $logsql = "SELECT byuser, MAX(timestamp) AS lastactive FROM logs WHERE $groupq AND byuser IN (" . implode(',', array_unique(array_filter(array_column($mods, 'userid')))) . ") GROUP BY byuser;";
+                $logs = $this->dbhr->preQuery($logsql, NULL, FALSE, FALSE);
 
-                $logs = $this->dbhr->preQuery("SELECT byuser, MAX(timestamp) AS lastactive FROM logs WHERE groupid = ? AND byuser IN (" . implode(',', array_filter(array_column($mods, 'userid'))) . ") GROUP BY byuser;", [ $groupids[0] ], FALSE, FALSE);
                 $u = User::get($this->dbhr, $this->dbhm);
 
                 $users = $u->getPublicsById(array_filter(array_column($logs, 'byuser')), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
@@ -324,6 +326,12 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                     foreach ($logs as $log) {
                         if ($log['byuser'] == $user['id']) {
                             $user['lastactive'] = $log['lastactive'];
+                        }
+                    }
+
+                    foreach ($mods as $mod) {
+                        if ($mod['userid'] == $user['id']) {
+                            $user['groupid'][] = $mod['groupid'];
                         }
                     }
                 }
