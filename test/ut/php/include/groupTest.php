@@ -197,8 +197,8 @@ class groupTest extends IznikTestCase {
         $membs = $g->getMembers();
         $this->log(var_export($membs, TRUE));
         assertEquals('-testid1', $membs[0]['yahooUserId']);
-        assertEquals('test11@test.com', $membs[0]['email']);
-        assertEquals('test12@test.com', $membs[0]['otheremails'][1]['email']);
+        assertTrue('test11@test.com' == $membs[0]['email'] && 'test12@test.com' == $membs[0]['otheremails'][0]['email'] ||
+            'test12@test.com' == $membs[0]['email'] && 'test11@test.com' == $membs[0]['otheremails'][0]['email']);
 
         # Test that the merge history is there.
         $this->waitBackground();
@@ -291,7 +291,7 @@ class groupTest extends IznikTestCase {
         $members = $g->getMembers();
         assertEquals(1, count($members));
         $this->log("Members " . var_export($members, true));
-        assertEquals(1, count($members[0]['otheremails']));
+        assertEquals(0, count($members[0]['otheremails']));
 
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
@@ -314,7 +314,7 @@ class groupTest extends IznikTestCase {
 
         $members = $g->getMembers();
         assertEquals(1, count($members));
-        assertEquals(1, count($members[0]['otheremails']));
+        assertEquals(0, count($members[0]['otheremails']));
 
         }
 
