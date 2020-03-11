@@ -622,6 +622,7 @@ GROUP BY memberships.groupid, held;
         $modq = '';
         $bounceq = '';
         $filterq = '';
+        $uq = '';
 
         switch ($filter) {
             case Group::FILTER_WITHCOMMENTS:
@@ -634,6 +635,7 @@ GROUP BY memberships.groupid, held;
                 break;
             case Group::FILTER_BOUNCING:
                 $bounceq = ' AND users.bouncing = 1 ';
+                $uq = $uq ? $uq : ' INNER JOIN users ON users.id = memberships.userid ';
                 break;
             default:
                 $filterq = '';
@@ -642,7 +644,7 @@ GROUP BY memberships.groupid, held;
 
         # Collection filter.  If we're searching on a specific id then don't put it in.
         $collectionq = '';
-        $uq = '';
+
         if (!$searchid) {
             if ($collection == MembershipCollection::SPAM) {
                 # This collection is handled separately; we use the suspectcount field.
@@ -650,7 +652,7 @@ GROUP BY memberships.groupid, held;
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
                 $collectionq = " AND (suspectcount > 0 OR memberships.userid IN (SELECT userid FROM spam_users WHERE spam_users.collection = '" . Spam::TYPE_SPAMMER . "')) ";
-                $uq = ' INNER JOIN users ON users.id = memberships.userid ';
+                $uq = $uq ? $uq : ' INNER JOIN users ON users.id = memberships.userid ';
             } else if ($collection) {
                 $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
             }

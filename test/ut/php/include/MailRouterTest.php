@@ -976,9 +976,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(1, count($membs));
         assertEquals('test@test.com', $membs[0]['email']);
         assertEquals('Test User', $membs[0]['fullname']);
-        assertEquals("This is a comment.\r\nOn two lines.", $membs[0]['joincomment']);
-
-        }
+    }
 
     public function testMemberJoinedApplication() {
         $g = Group::get($this->dbhr, $this->dbhm);
