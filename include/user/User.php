@@ -6185,12 +6185,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ctx = $ctx ? $ctx : [ 'id'  => NULL ];
 
             if ($groupid) {
-                $sql = "SELECT DISTINCT users_related.id, user1, user2 FROM users_related INNER JOIN memberships ON (memberships.userid = users_related.user1 OR memberships.userid = users_related.user2) AND memberships.groupid = ? WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY users_related.id DESC LIMIT $limit;";
+                $sql = "SELECT DISTINCT users_related.id, user1, user2 FROM users_related INNER JOIN memberships ON (memberships.userid = users_related.user1 OR memberships.userid = users_related.user2) AND memberships.groupid = ? INNER JOIN users u1 ON u1.id = users_related.user1 AND u1.deleted IS NULL AND u1.systemrole = 'User' INNER JOIN users u2 ON u2.id = users_related.user2 AND u2.deleted IS NULL AND u2.systemrole = 'User' WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY users_related.id DESC LIMIT $limit;";
                 $members = $this->dbhr->preQuery($sql, [
                     $groupid
                 ]);
             } else {
-                $sql = "SELECT DISTINCT id, user1, user2 FROM users_related WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY id DESC LIMIT $limit;";
+                $sql = "SELECT DISTINCT users_related.id, user1, user2 FROM users_related INNER JOIN users u1 ON u1.id = users_related.user1 AND u1.deleted IS NULL AND u1.systemrole = 'User' INNER JOIN users u2 ON u2.id = users_related.user2 AND u2.deleted IS NULL AND u2.systemrole = 'User' WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY id DESC LIMIT $limit;";
                 $members = $this->dbhr->preQuery($sql);
             }
 
@@ -6220,32 +6220,32 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $logins = $this->getLogins(FALSE, $thisone['id'], TRUE);
                     $rellogins = $this->getLogins(FALSE, $thisone['relatedto']['id'], TRUE);
 
-//                    if ($thisone['deleted'] ||
-//                        $thisone['relatedto']['deleted'] ||
-//                        $thisone['systemrole'] != User::SYSTEMROLE_USER ||
-//                        $thisone['relatedto']['systemrole'] != User::SYSTEMROLE_USER) {
-//                        # No sense in telling people about these.
-//                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
-//                            $thisone['id'],
-//                            $thisone['relatedto']['id'],
-//                            $thisone['relatedto']['id'],
-//                            $thisone['id']
-//                        ]);
-//                    } elseif (!count($logins) || !count($rellogins)) {
-//                        # No valid login types for one of the users - no way they can log in again so no point notifying.
-//                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
-//                            $thisone['id'],
-//                            $thisone['relatedto']['id'],
-//                            $thisone['relatedto']['id'],
-//                            $thisone['id']
-//                        ]);
-//                    } else {
+                    if ($thisone['deleted'] ||
+                        $thisone['relatedto']['deleted'] ||
+                        $thisone['systemrole'] != User::SYSTEMROLE_USER ||
+                        $thisone['relatedto']['systemrole'] != User::SYSTEMROLE_USER) {
+                        # No sense in telling people about these.
+                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
+                            $thisone['id'],
+                            $thisone['relatedto']['id'],
+                            $thisone['relatedto']['id'],
+                            $thisone['id']
+                        ]);
+                    } elseif (!count($logins) || !count($rellogins)) {
+                        # No valid login types for one of the users - no way they can log in again so no point notifying.
+                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
+                            $thisone['id'],
+                            $thisone['relatedto']['id'],
+                            $thisone['relatedto']['id'],
+                            $thisone['id']
+                        ]);
+                    } else {
                         $thisone['userid'] = $thisone['id'];
                         $thisone['logins'] = $logins;
                         $thisone['relatedto']['logins'] = $rellogins;
 
                         $ret[] = $thisone;
-//                    }
+                    }
                 }
             }
 
