@@ -6220,32 +6220,32 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $logins = $this->getLogins(FALSE, $thisone['id'], TRUE);
                     $rellogins = $this->getLogins(FALSE, $thisone['relatedto']['id'], TRUE);
 
-                    if ($thisone['deleted'] ||
-                        $thisone['relatedto']['deleted'] ||
-                        $thisone['systemrole'] != User::SYSTEMROLE_USER ||
-                        $thisone['relatedto']['systemrole'] != User::SYSTEMROLE_USER) {
-                        # No sense in telling people about these.
-                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
-                            $thisone['id'],
-                            $thisone['relatedto']['id'],
-                            $thisone['relatedto']['id'],
-                            $thisone['id']
-                        ]);
-                    } elseif (!count($logins) || !count($rellogins)) {
-                        # No valid login types for one of the users - no way they can log in again so no point notifying.
-                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
-                            $thisone['id'],
-                            $thisone['relatedto']['id'],
-                            $thisone['relatedto']['id'],
-                            $thisone['id']
-                        ]);
-                    } else {
+//                    if ($thisone['deleted'] ||
+//                        $thisone['relatedto']['deleted'] ||
+//                        $thisone['systemrole'] != User::SYSTEMROLE_USER ||
+//                        $thisone['relatedto']['systemrole'] != User::SYSTEMROLE_USER) {
+//                        # No sense in telling people about these.
+//                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
+//                            $thisone['id'],
+//                            $thisone['relatedto']['id'],
+//                            $thisone['relatedto']['id'],
+//                            $thisone['id']
+//                        ]);
+//                    } elseif (!count($logins) || !count($rellogins)) {
+//                        # No valid login types for one of the users - no way they can log in again so no point notifying.
+//                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
+//                            $thisone['id'],
+//                            $thisone['relatedto']['id'],
+//                            $thisone['relatedto']['id'],
+//                            $thisone['id']
+//                        ]);
+//                    } else {
                         $thisone['userid'] = $thisone['id'];
                         $thisone['logins'] = $logins;
                         $thisone['relatedto']['logins'] = $rellogins;
 
                         $ret[] = $thisone;
-                    }
+//                    }
                 }
             }
 
@@ -6257,7 +6257,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function getRelatedReviewCount() {
         // Divide by 2 as every user appears two ways round.
-        return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related WHERE notified = 0;", NULL, FALSE, FALSE)[0]['count'] / 2;
+        return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related INNER JOIN users u1 ON u1.id = users_related.user1 INNER JOIN users u2 ON u2.id = users_related.user2 WHERE notified = 0 AND u1.deleted IS NULL AND u1.systemrole = 'User' AND u2.deleted IS NULL AND u2.systemrole = 'User';", NULL, FALSE, FALSE)[0]['count'] / 2;
     }
 
     public function getExpectedReplies($uids, $since = ChatRoom::ACTIVELIM, $grace = 30) {
