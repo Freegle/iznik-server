@@ -2530,7 +2530,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function getPublicLogs($me, &$rets, $modmailsonly, $ctx) {
+    public function getPublicLogs($me, &$rets, $modmailsonly, &$ctx) {
         # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
         # - creation - either of ourselves or others during syncing.
         # - deletion of users due to syncing
@@ -2553,7 +2553,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         foreach ($rets as $uid => $ret) {
             $rets[$uid]['logs'] = [];
-            $rets[$uid]['logsql'] = $sql;
 
             foreach ($logs as $log) {
                 if ($log['user'] == $ret['id'] || $log['byuser'] == $ret['id']) {
@@ -6257,7 +6256,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function getRelatedReviewCount() {
         // Divide by 2 as every user appears two ways round.
-        return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related INNER JOIN users u1 ON u1.id = users_related.user1 INNER JOIN users u2 ON u2.id = users_related.user2 WHERE notified = 0 AND u1.deleted IS NULL AND u1.systemrole = 'User' AND u2.deleted IS NULL AND u2.systemrole = 'User';", NULL, FALSE, FALSE)[0]['count'] / 2;
+        return round($this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related INNER JOIN users u1 ON u1.id = users_related.user1 INNER JOIN users u2 ON u2.id = users_related.user2 WHERE notified = 0 AND u1.deleted IS NULL AND u1.systemrole = 'User' AND u2.deleted IS NULL AND u2.systemrole = 'User';", NULL, FALSE, FALSE)[0]['count'] / 2);
     }
 
     public function getExpectedReplies($uids, $since = ChatRoom::ACTIVELIM, $grace = 30) {
