@@ -217,7 +217,7 @@ WHERE chat_rooms.id IN $idlist;";
                         if ($room['user1'] == $myid) {
                             $thisone['icon'] =  "https://" . IMAGE_DOMAIN . "/gimg_{$room['gimageid']}.jpg";
                         } else{
-                            $thisone['icon'] = $room['u1imageurl'] ? $room['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['user1'] . ".jpg");
+                            $thisone['icon'] = 'https://' . IMAGE_DOMAIN . "/tuimg_" . $room['user1'] . ".jpg";
                         }
                         break;
                     case ChatRoom::TYPE_MOD2MOD:
