@@ -152,6 +152,7 @@ require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/logo.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/profile.php');
+require_once(IZNIK_BASE . '/http/api/hash_to_id.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/src.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
@@ -334,6 +335,9 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     break;
                 case 'profile':
                     $ret = profile();
+                    break;
+                case 'hash-to-id':
+                    $ret = hash_to_id();
                     break;
                 case 'socialactions':
                     $ret = socialactions();
