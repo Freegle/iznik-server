@@ -22,7 +22,7 @@ function dashboard() {
             $ret = array('ret' => 0, 'status' => 'Success');
             $d = new Dashboard($dbhr, $dbhm, $me);
 
-            if ($components && $me && $me->isModerator()) {
+            if ($components) {
                 # Newer style dashboard has multiple components which we can request some or all of.
                 $ret['components'] = $d->getComponents($components, $systemwide, $allgroups, $groupid, $region, $type, $start, $end, $force);
             } else {

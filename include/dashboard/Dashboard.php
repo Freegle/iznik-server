@@ -215,6 +215,8 @@ class Dashboard {
         # End needs to be the next day.
         $endq = date("Y-m-d", strtotime($end) + 24 * 60 * 60);
 
+        $ismod = $this->me && $this->me->isModerator();
+
         $ret = [];
 
         if (count($groupids)) {
@@ -256,7 +258,7 @@ class Dashboard {
                 $ret[Dashboard::COMPONENT_POPULAR_POSTS] = $populars;
             }
 
-            if (in_array(Dashboard::COMPONENT_USERS_POSTING, $components)) {
+            if (in_array(Dashboard::COMPONENT_USERS_POSTING, $components) && $ismod) {
                 # Use arrival in messages_groups as a pre-filter since it's efficiently indexed as above.
                 $postsql = "SELECT COUNT(*) AS count, messages.fromuser FROM messages WHERE id IN (SELECT msgid FROM messages_groups WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq) AND messages.arrival >= '$startq' AND messages.arrival <= '$endq' GROUP BY messages.fromuser ORDER BY count DESC LIMIT 5";
                 $postings = $this->dbhr->preQuery($postsql, NULL, FALSE, FALSE);
@@ -280,7 +282,7 @@ class Dashboard {
                 }
             }
 
-            if (in_array(Dashboard::COMPONENT_USERS_REPLYING, $components)) {
+            if (in_array(Dashboard::COMPONENT_USERS_REPLYING, $components) && $ismod) {
                 # We look for users who are replying to messages on our groups.
                 $chatsql = "SELECT COUNT(*) AS count, chat_messages.userid 
 FROM chat_messages 
@@ -312,7 +314,7 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 }
             }
 
-            if (in_array(Dashboard::COMPONENT_MODERATORS_ACTIVE, $components)) {
+            if (in_array(Dashboard::COMPONENT_MODERATORS_ACTIVE, $components) && $ismod) {
                 $modsql = "SELECT userid, groupid FROM memberships WHERE $groupq AND role IN ('Moderator', 'Owner');";
                 $mods = $this->dbhr->preQuery($modsql, NULL, FALSE, FALSE);
                 $logsql = "SELECT byuser, MAX(timestamp) AS lastactive FROM logs WHERE $groupq AND byuser IN (" . implode(',', array_unique(array_filter(array_column($mods, 'userid')))) . ") GROUP BY byuser;";
