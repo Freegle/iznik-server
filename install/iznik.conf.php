@@ -10,7 +10,7 @@ define('PASSWORD_SALT', 'zzzz');
 define('MODERATOR_EMAIL', 'modtools@modtools.org');
 
 # Logos
-define('USERLOGO', 'https://www.ilovefreegle.org/images/user_logo.png');
+define('USERLOGO', 'https://www.ilovefreegle.org/icon.png');
 define('MODLOGO', 'https://modtools.org/images/modlogo-large.jpg');
 
 # We can query Trash Nothing to get real email addresses for their users.

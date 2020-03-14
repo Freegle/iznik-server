@@ -23,9 +23,9 @@
     <mj-container>
       <mj-wrapper full-width="full-width">
         <!-- header section -->
-        <mj-section css-class="hide_on_mobile" background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+        <mj-section css-class="hide_on_mobile" background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
           <mj-column>
-            <mj-image src="https://www.ilovefreegle.org/images/user_logo.png" alt="Logo" width="80px" align="left"> </mj-image>
+            <mj-image src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="left"> </mj-image>
           </mj-column>
           <mj-column>
             <mj-button href="https://www.ilovefreegle.org/volunteering" font-family="Helvetica" background-color="#377615" color="white">
@@ -44,7 +44,7 @@
             </mj-button>
           </mj-column>
         </mj-section>
-        <mj-section css-class="show_on_mobile" background-url="https://www.ilovefreegle.org/images/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+        <mj-section css-class="show_on_mobile" background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
           <mj-group>
             <mj-column>
               <mj-text align="center" css-class="show_on_mobile">
