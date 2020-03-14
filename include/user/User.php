@@ -3543,6 +3543,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if ($commentuids && count($commentuids)) {
             $ctx = NULL;
             $commentusers = $this->getPublicsById($commentuids, NULL, FALSE, FALSE, $ctx, FALSE);
+
+            foreach ($commentusers as &$commentuser) {
+                $commentuser['settings'] = NULL;
+            }
         }
 
 
@@ -4231,7 +4235,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $ret[] = [
                         'timestamp' => ISODate($log['timestamp']),
                         'type' => $thisone,
-                        'group' => $g->getPublic(),
+                        'group' => [
+                            'id' => $log['groupid'],
+                            'nameshort' => $g->getPrivate('nameshort'),
+                            'namedisplay' => $g->getName()
+                        ],
                         'text' => $log['text']
                     ];
                 }

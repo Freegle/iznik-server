@@ -128,6 +128,15 @@ WHERE chat_rooms.id IN $idlist;";
             $myid
         ],FALSE,FALSE);
 
+        # We might have duplicate rows due to image ids.  Newest wins.
+        $newroom = [];
+
+        foreach ($rooms as $room) {
+            $newroom[$room['id']] = $room;
+        }
+
+        $rooms = array_values($newroom);
+
         $ret = [];
         $refmsgids = [];
 
