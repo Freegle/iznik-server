@@ -14,7 +14,9 @@ if (!(($call == 'image' || $call == 'profile') && $type == 'GET')) {
 //$dom = array_key_exists('HTTP_ORIGIN', $_SERVER) ? $_SERVER['HTTP_ORIGIN'] : NULL;
 //$allow = $dom ? "$dom" : '*';
 //@header("Access-Control-Allow-Origin: $allow");
-@header('Access-Control-Allow-Headers: ' . array_key_exists('HTTP_ACCESS_CONTROL_REQUEST_HEADERS', $_SERVER) ? $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'] : "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+@header('Access-Control-Allow-Origin: *');
+//@header('Access-Control-Allow-Headers: ' . array_key_exists('HTTP_ACCESS_CONTROL_REQUEST_HEADERS', $_SERVER) ? $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'] : "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+@header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization, X-HTTP-Method-Override');
 @header('Access-Control-Allow-Credentials: true');
 @header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
 
