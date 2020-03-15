@@ -596,6 +596,17 @@ class userAPITest extends IznikAPITestCase {
         $this->log("Get most active " . var_export($ret, TRUE));
         self::assertEquals($this->user->getId(), $ret['members'][0]['id']);
 
+        # Ban them
+        $this->user->removeMembership($this->groupid, TRUE);
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::APPROVED,
+            'filter' => Group::FILTER_BANNED,
+            'groupid' => $this->groupid
+        ]);
+
+        $this->log("Get banned " . var_export($ret, TRUE));
+        self::assertEquals($this->user->getId(), $ret['members'][0]['id']);
     }
 
     public function  testGravatar() {

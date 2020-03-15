@@ -40,6 +40,7 @@ class Group extends Entity
     const FILTER_MODERATORS = 2;
     const FILTER_BOUNCING = 3;
     const FILTER_MOSTACTIVE = 4;
+    const FILTER_BANNED = 5;
 
     /** @var  $log Log */
     private $log;
@@ -622,7 +623,9 @@ GROUP BY memberships.groupid, held;
         $modq = '';
         $bounceq = '';
         $filterq = '';
+        $banq = '';
         $uq = '';
+        $attq = '';
 
         switch ($filter) {
             case Group::FILTER_WITHCOMMENTS:
@@ -637,6 +640,12 @@ GROUP BY memberships.groupid, held;
                 $bounceq = ' AND users.bouncing = 1 ';
                 $uq = $uq ? $uq : ' INNER JOIN users ON users.id = memberships.userid ';
                 break;
+            case Group::FILTER_BANNED:
+                # We don't want to look in the memberships table as we're not there.
+                $groupq = ' 1=1 ';
+                $attq = ', users_banned.date AS bandate, users_banned.byuser AS bannedby, users_banned.groupid AS groupid';
+                $banq = ' AND users_banned.userid IS NOT NULL';
+                $uq .= ' LEFT JOIN users_banned ON memberships.userid = users_banned.userid AND users_banned.groupid IN (' . implode(',', $groupids) . ')';
             default:
                 $filterq = '';
                 break;
@@ -658,7 +667,7 @@ GROUP BY memberships.groupid, held;
             }
         }
 
-        $sqlpref = "SELECT DISTINCT memberships.*, groups.onyahoo FROM memberships 
+        $sqlpref = "SELECT DISTINCT memberships.*, groups.onyahoo $attq FROM memberships 
               INNER JOIN groups ON groups.id = memberships.groupid
               $uq
               $filterq";
@@ -682,10 +691,10 @@ GROUP BY memberships.groupid, held;
                 $namesearch
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)
               ) t) AND 
-              $groupq $collectionq $addq $opsq";
+              $groupq $collectionq $addq $opsq $modq $bounceq $banq";
         } else {
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
-            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq";
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq $banq";
         }
 
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
@@ -749,6 +758,9 @@ GROUP BY memberships.groupid, held;
             $thisone['emailfrequency'] = $member['emailfrequency'];
             $thisone['eventsallowed'] = $member['eventsallowed'];
             $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
+            $thisone['bandate'] = array_key_exists('bandate', $member) ? ISODate($member['bandate']) : NULL;
+            $thisone['bannedby'] = presdef('bannedby', $member, NULL);
+            $thisone['bangroup'] = presdef('bangroup', $member, NULL);
 
             # Our posting status only applies for groups we host.  In that case, the default is moderated.
             $thisone['ourpostingstatus'] = presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
