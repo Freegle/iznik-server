@@ -274,7 +274,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
                                 # Now post it to this page.
                                 $result = $fb->post($this->id . '/photos', [
                                     'url' => $params['full_picture'],
-                                    'message' => $params['message']
+                                    'message' => presdef('message', $params, 'Check this out')
                                 ], $this->token);
                                 error_log("Photo post returned " . var_export($result, TRUE));
                             } else {
