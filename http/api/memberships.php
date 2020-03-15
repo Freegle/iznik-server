@@ -115,6 +115,9 @@ function memberships() {
                             } else if ($collection == MembershipCollection::RELATED) {
                                 # So is this
                                 $members = $me->isAdminOrSupport() ? $u->listRelated($groupid, $ctx, $limit) : [];
+                            } else if ($filter == Group::FILTER_BANNED) {
+                                # So is this
+                                $members = $groupid ? $g->getBanned($groupid, $ctx) : NULL;
                             } else {
                                 $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
                             }

@@ -623,9 +623,7 @@ GROUP BY memberships.groupid, held;
         $modq = '';
         $bounceq = '';
         $filterq = '';
-        $banq = '';
         $uq = '';
-        $attq = '';
 
         switch ($filter) {
             case Group::FILTER_WITHCOMMENTS:
@@ -640,12 +638,6 @@ GROUP BY memberships.groupid, held;
                 $bounceq = ' AND users.bouncing = 1 ';
                 $uq = $uq ? $uq : ' INNER JOIN users ON users.id = memberships.userid ';
                 break;
-            case Group::FILTER_BANNED:
-                # We don't want to look in the memberships table as we're not there.
-                $groupq = ' 1=1 ';
-                $attq = ', users_banned.date AS bandate, users_banned.byuser AS bannedby, users_banned.groupid AS groupid';
-                $banq = ' AND users_banned.userid IS NOT NULL';
-                $uq .= ' LEFT JOIN users_banned ON memberships.userid = users_banned.userid AND users_banned.groupid IN (' . implode(',', $groupids) . ')';
             default:
                 $filterq = '';
                 break;
@@ -667,7 +659,7 @@ GROUP BY memberships.groupid, held;
             }
         }
 
-        $sqlpref = "SELECT DISTINCT memberships.*, groups.onyahoo $attq FROM memberships 
+        $sqlpref = "SELECT DISTINCT memberships.*, groups.onyahoo FROM memberships 
               INNER JOIN groups ON groups.id = memberships.groupid
               $uq
               $filterq";
@@ -691,10 +683,10 @@ GROUP BY memberships.groupid, held;
                 $namesearch
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)
               ) t) AND 
-              $groupq $collectionq $addq $opsq $modq $bounceq $banq";
+              $groupq $collectionq $addq $opsq";
         } else {
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
-            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq $banq";
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq";
         }
 
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
@@ -758,9 +750,6 @@ GROUP BY memberships.groupid, held;
             $thisone['emailfrequency'] = $member['emailfrequency'];
             $thisone['eventsallowed'] = $member['eventsallowed'];
             $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
-            $thisone['bandate'] = array_key_exists('bandate', $member) ? ISODate($member['bandate']) : NULL;
-            $thisone['bannedby'] = presdef('bannedby', $member, NULL);
-            $thisone['bangroup'] = presdef('bangroup', $member, NULL);
 
             # Our posting status only applies for groups we host.  In that case, the default is moderated.
             $thisone['ourpostingstatus'] = presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
@@ -843,6 +832,35 @@ ORDER BY t.timestamp DESC, t.id DESC LIMIT 10
         }
 
         return($ret);
+    }
+
+    public function getBanned($groupid, &$ctx) {
+        $ctx = $ctx ? $ctx : [];
+
+        if (pres('date', $ctx)) {
+            $members = $this->dbhr->preQuery("SELECT date AS bandate, byuser AS bannedby, groupid, userid FROM users_banned WHERE groupid = ? AND date < ? ORDER BY date DESC;", [
+                $groupid,
+                $ctx['date']
+            ]);
+        } else {
+            $members = $this->dbhr->preQuery("SELECT date AS bandate, byuser AS bannedby, groupid, userid FROM users_banned WHERE groupid = ? ORDER BY date DESC;", [
+                $groupid
+            ]);
+        }
+
+        $ret = [];
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $users = $u->getPublicsById(array_column($members, 'userid'));
+
+        foreach ($members as $member) {
+            $thisone = array_merge($users[$member['userid']], $member);
+            $thisone['bandate'] = ISODate($thisone['bandate']);
+            $ret[] = $thisone;
+            $ctx['date'] = $member['bandate'];
+        }
+
+        return $ret;
     }
 
     private function getYahooRole($memb) {
