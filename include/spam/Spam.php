@@ -383,7 +383,7 @@ class Spam {
                 if (in_array($word['action'], $actions) &&
                     preg_match($exp, $message) &&
                     (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
-                    $ret = array(true, Spam::REASON_KNOWN_KEYWORD, "Refers to keyword {$word['word']}");
+                    $ret = array(true, Spam::REASON_KNOWN_KEYWORD, "Refers to keyword '{$word['word']}'");
                 }
             }
         }
