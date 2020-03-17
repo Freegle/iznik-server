@@ -4647,7 +4647,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     public function getPublicLocations(&$users, $atts = NULL)
     {
         $userids = array_filter(array_column($users, 'id'));
-        $ret = [];
         $areas = NULL;
         $groups = NULL;
         $membs = NULL;
