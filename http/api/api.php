@@ -126,6 +126,7 @@ require_once(IZNIK_BASE . '/http/api/modconfig.php');
 require_once(IZNIK_BASE . '/http/api/stdmsg.php');
 require_once(IZNIK_BASE . '/http/api/bulkop.php');
 require_once(IZNIK_BASE . '/http/api/comment.php');
+require_once(IZNIK_BASE . '/http/api/covid.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/donations.php');
 require_once(IZNIK_BASE . '/http/api/error.php');
@@ -316,6 +317,9 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     break;
                 case 'changes':
                     $ret = changes();
+                    break;
+                case 'covid':
+                    $ret = covid();
                     break;
                 case 'dashboard':
                     $ret = dashboard();
