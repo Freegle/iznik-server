@@ -262,7 +262,7 @@ class Message
         $this->dbhm->preExec("DELETE FROM messages_items WHERE msgid = ?;", [ $this->id ]);
     }
     
-    public function edit($subject, $textbody, $htmlbody, $type, $item, $location, $attachments, $checkreview = TRUE) {
+    public function edit($subject, $textbody, $htmlbody, $type, $item, $location, $attachments, $checkreview = TRUE, $groupid = NULL) {
         $ret = TRUE;
         $textbody = trim($textbody);
 
@@ -351,12 +351,15 @@ class Message
 
         if ($ret && ($type || $item || $location)) {
             # Construct a new subject from the edited values.
-            $groupids = $this->getGroups();
-            if (!count($groupids)) {
-                return FALSE;
+            if (!$groupid) {
+                $groups = $this->getGroups(FALSE, TRUE);
+
+                foreach ($groups as $group) {
+                    $groupid = $group;
+                }
             }
 
-            $this->constructSubject($groupids[0]);
+            $this->constructSubject($groupid);
             $this->setPrivate('subject', $this->subject);
             $this->setPrivate('suggestedsubject', $this->subject);
         } else if ($subject && strlen($subject) > 10) {
