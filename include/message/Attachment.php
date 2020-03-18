@@ -258,7 +258,16 @@ class Attachment
         $sql = "SELECT * FROM {$this->table} WHERE id = ?;";
         $datas = $this->dbhm->preQuery($sql, [$this->id]);
         foreach ($datas as $data) {
-            if ($data['archived']) {
+            # Apply a short timeout to avoid hanging the server if Azure is down.
+            $ctx = stream_context_create(array('http'=>
+                array(
+                    'timeout' => 2,
+                )
+            ));
+
+            if (pres('url', $data)) {
+                $ret = @file_get_contents($data['url'], false, $ctx);
+            } else if ($data['archived']) {
                 # This attachment has been archived out of our database, to a CDN.  Normally we would expect
                 # that we wouldn't come through here, because we'd serve up an image link directly to the CDN, but
                 # there is a timing window where we could archive after we've served up a link, so we have
@@ -274,13 +283,6 @@ class Attachment
                 }
 
                 $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
-
-                # Apply a short timeout to avoid hanging the server if Azure is down.
-                $ctx = stream_context_create(array('http'=>
-                    array(
-                        'timeout' => 2,
-                    )
-                ));
 
                 $ret = @file_get_contents($url, false, $ctx);
             } else {

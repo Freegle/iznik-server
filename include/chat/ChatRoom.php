@@ -99,10 +99,8 @@ u2.settings AS u2settings,
   COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = ? AND status != ? AND status != ?), 0) 
   AND chatid = chat_rooms.id AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS unseen,
 (SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = chat_rooms.id AND replyexpected = 1 AND replyreceived = 0 AND userid != ? AND chat_messages.date >= '$oldest') AS replyexpected,
-i1.url AS u1imageurl,
-i2.url AS u2imageurl,
-i1.data AS u1imagedata,
-i2.data AS u2imagedata,
+i1.id AS u1imageid,
+i2.id AS u2imageid,
 i3.id AS gimageid,
 chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.date AS lastdate, chat_messages.type AS chatmsgtype" .
             ($myid ?
@@ -155,26 +153,12 @@ WHERE chat_rooms.id IN $idlist;";
                 $u2settings = pres('u2settings', $room) ? json_decode($room['u2settings'], TRUE) : NULL;
 
                 if ($u1settings !== NULL && !pres('useprofile', $u1settings)) {
-                    $room['u1imageurl'] = 'https://' . IMAGE_DOMAIN . '/defaultprofile.png';
-                    unset($room['u1imagedata']);
+                    $room['u1defaultimage'] = TRUE;
                 }
 
                 if ($u2settings !== NULL && !pres('useprofile', $u2settings)) {
-                    $room['u2imageurl'] = 'https://' . IMAGE_DOMAIN . '/defaultprofile.png';
-                    unset($room['u2imagedata']);
+                    $room['u2defaultimage'] = TRUE;
                 }
-            }
-
-            if (!pres('u1imageurl', $room) && pres('u1imagedata', $room)) {
-                // This is an inline image, not an URL
-                $room['u1imageurl'] = 'data:image/png;base64,' . base64_encode($room['u1imagedata']);
-                unset($room['u1imagedata']);
-            }
-
-            if (!pres('u2imageurl', $room) && pres('u2imagedata', $room)) {
-                // This is an inline image, not an URL
-                $room['u2imageurl'] = 'data:image/png;base64,' . base64_encode($room['u2imagedata']);
-                unset($room['u2imagedata']);
             }
 
             switch ($room['chattype']) {
@@ -217,16 +201,16 @@ WHERE chat_rooms.id IN $idlist;";
                 switch ($room['chattype']) {
                     case ChatRoom::TYPE_USER2USER:
                         if ($room['user1'] == $myid) {
-                            $thisone['icon'] = $room['u2imageurl'] ? $room['u2imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['user2']  . ".jpg");
+                            $thisone['icon'] = $room['u2defaultimage'] ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u2imageid']  . ".jpg");
                         } else {
-                            $thisone['icon'] = $room['u1imageurl'] ? $room['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['user1'] . ".jpg");
+                            $thisone['icon'] = $room['u1defaultimage'] ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u1imageid'] . ".jpg");
                         }
                         break;
                     case ChatRoom::TYPE_USER2MOD:
                         if ($room['user1'] == $myid) {
                             $thisone['icon'] =  "https://" . IMAGE_DOMAIN . "/gimg_{$room['gimageid']}.jpg";
                         } else{
-                            $thisone['icon'] = 'https://' . IMAGE_DOMAIN . "/tuimg_" . $room['user1'] . ".jpg";
+                            $thisone['icon'] = 'https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u1imageid'] . ".jpg";
                         }
                         break;
                     case ChatRoom::TYPE_MOD2MOD:
