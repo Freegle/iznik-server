@@ -2199,7 +2199,7 @@ class User extends Entity
         }
     }
 
-    public function getPublicHistory($me, &$rets, $users, $groupids, $historyfull, $systemrole) {
+    public function getPublicHistory($me, &$rets, $users, $groupids, $historyfull, $systemrole, $msgcoll = [ MessageCollection::APPROVED ]) {
         $userids = array_keys($rets);
 
         foreach ($rets as &$atts) {
@@ -2210,7 +2210,7 @@ class User extends Entity
         #
         # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
         $sql = NULL;
-        $collq = " AND messages_groups.collection IN ('" . implode("','", [ MessageCollection::APPROVED ]) . "') ";
+        $collq = " AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ";
         $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
 
         if ($groupids && count($groupids) > 0) {
@@ -2703,7 +2703,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         if ($history) {
-            $this->getPublicHistory($me, $rets, $users, $groupids, $historyfull, $systemrole);
+            $this->getPublicHistory($me, $rets, $users, $groupids, $historyfull, $systemrole, $msgcoll);
         }
 
         if ($logs) {
@@ -4282,7 +4282,11 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
 
             $ctx = NULL;
-            $thisone = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE, [], TRUE);
+            $thisone = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE, [
+                MessageCollection::PENDING,
+                MessageCollection::APPROVED,
+                MessageCollection::SPAM
+            ], TRUE);
 
             # We might not have the emails.
             $thisone['email'] = $u->getEmailPreferred();
