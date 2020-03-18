@@ -201,9 +201,9 @@ WHERE chat_rooms.id IN $idlist;";
                 switch ($room['chattype']) {
                     case ChatRoom::TYPE_USER2USER:
                         if ($room['user1'] == $myid) {
-                            $thisone['icon'] = $room['u2defaultimage'] ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u2imageid']  . ".jpg");
+                            $thisone['icon'] = pres('u2defaultimage', $room) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u2imageid']  . ".jpg");
                         } else {
-                            $thisone['icon'] = $room['u1defaultimage'] ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u1imageid'] . ".jpg");
+                            $thisone['icon'] = pres('u1defaultimage', $room) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u1imageid'] . ".jpg");
                         }
                         break;
                     case ChatRoom::TYPE_USER2MOD:
@@ -575,17 +575,17 @@ WHERE chat_rooms.id IN $idlist;";
         # Icon for chat.  We assume that any user icons will have been created by this point.
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
-                if ($u1id == $myid) {
-                    $ret['icon'] = $this->chatroom['u2imageurl'] ? $this->chatroom['u2imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $u2id  . ".jpg");
+                if ($this->chatroom['user1'] == $myid) {
+                    $ret['icon'] = pres('u2defaultimage', $this->chatroom) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $this->chatroom['u2imageid']  . ".jpg");
                 } else {
-                    $ret['icon'] = $this->chatroom['u1imageurl'] ? $this->chatroom['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $u1id . ".jpg");
+                    $ret['icon'] = pres('u1defaultimage', $this->chatroom) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $this->chatroom['u1imageid'] . ".jpg");
                 }
                 break;
             case ChatRoom::TYPE_USER2MOD:
-                if ($u1id == $myid) {
+                if ($this->chatroom['user1'] == $myid) {
                     $ret['icon'] =  "https://" . IMAGE_DOMAIN . "/gimg_{$this->chatroom['gimageid']}.jpg";
                 } else{
-                    $ret['icon'] = $this->chatroom['u1imageurl'] ? $this->chatroom['u1imageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $u1id . ".jpg");
+                    $ret['icon'] = 'https://' . IMAGE_DOMAIN . "/tuimg_" . $this->chatroom['u1imageid'] . ".jpg";
                 }
                 break;
             case ChatRoom::TYPE_MOD2MOD:
