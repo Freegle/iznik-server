@@ -56,6 +56,26 @@ function covid() {
             }
             break;
         }
+
+        case 'PATCH': {
+            $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
+            $id = intval(presdef('id', $_REQUEST, 0));
+
+            if ($me && $me->isModerator() && $id) {
+                foreach ([ 'contacted', 'closed', 'comments' ] as $att) {
+                    if (array_key_exists($att, $_REQUEST)) {
+                        $dbhm->preExec("UPDATE covid SET $att = ? WHERE userid = ?", [
+                            $_REQUEST[$att],
+                            $id
+                        ]);
+                    }
+                }
+
+                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+            }
+
+            break;
+        }
     }
 
     return($ret);
