@@ -30,7 +30,7 @@ do {
             sleep(1);
         }
     } catch (Exception $e) {
-        error_log("Exception; sleep and retry");
+        error_log("Exception; sleep and retry " . $e->getMessage());
         sleep(1);
     }
 } while (true);
