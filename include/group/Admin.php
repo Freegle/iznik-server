@@ -61,6 +61,8 @@ class Admin extends Entity
         $visit = "https://" .  USER_SITE . "/mygroups";
 
         $text = str_replace('$groupname', $groupname, $text);
+        $subject = str_replace('ADMIN: ', '', $subject);
+        $subject = str_replace('ADMIN ', '', $subject);
 
         $html = admin_tpl($groupname, $toname, $to, 'https://' . USER_SITE, USERLOGO, $subject, nl2br($text), $post, $unsubscribe, $visit);
         $message = Swift_Message::newInstance()
