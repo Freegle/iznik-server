@@ -649,68 +649,74 @@ class MailRouter
                     #error_log("Spam reason " . var_export($reason, TRUE));
 
                     if (!$rc) {
-                        $ret = MailRouter::FAILURE;
+                        $ret = MailRouter::DROPPED;
 
-                        # It's not.  Find the group
-                        $g = new Group($this->dbhr, $this->dbhm);
-                        $sn = $matches[1];
+                        # Don't pass on automated mails from ADMINs - there might be loads.
+                        if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches) ||
+                            !$this->msg->isBounce() && !$this->msg->isAutoreply()) {
+                            $ret = MailRouter::FAILURE;
 
-                        $gid = $g->findByShortName($sn);
-                        if ($this->log) { error_log("Found $gid from $sn"); }
+                            # It's not.  Find the group
+                            $g = new Group($this->dbhr, $this->dbhm);
+                            $sn = $matches[1];
 
-                        if ($gid) {
-                            # It's one of our groups.  Find the user this is from.
-                            $envfrom = $this->msg->getFromaddr();
-                            $u = new User($this->dbhr, $this->dbhm);
-                            $uid = $u->findByEmail($envfrom);
-                            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
+                            $gid = $g->findByShortName($sn);
+                            if ($this->log) { error_log("Found $gid from $sn"); }
 
-                            if ($this->log) { error_log("Found $uid from $envfrom"); }
+                            if ($gid) {
+                                # It's one of our groups.  Find the user this is from.
+                                $envfrom = $this->msg->getFromaddr();
+                                $u = new User($this->dbhr, $this->dbhm);
+                                $uid = $u->findByEmail($envfrom);
+                                $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $uid;");
 
-                            # We should always find them as Message::parse should create them
-                            if ($uid) {
-                                if ($this->log) { error_log("From user $uid to group $gid"); }
-                                $u = User::get($this->dbhr, $this->dbhm, $uid);
-                                $s = new Spam($this->dbhr, $this->dbhm);
+                                if ($this->log) { error_log("Found $uid from $envfrom"); }
 
-                                # Filter out mail to volunteers from known spammers.
-                                $ret = MailRouter::INCOMING_SPAM;
-                                $spammers = $s->getSpammerByUserid($uid);
+                                # We should always find them as Message::parse should create them
+                                if ($uid) {
+                                    if ($this->log) { error_log("From user $uid to group $gid"); }
+                                    $u = User::get($this->dbhr, $this->dbhm, $uid);
+                                    $s = new Spam($this->dbhr, $this->dbhm);
 
-                                if (!$spammers) {
-                                    $ret = MailRouter::DROPPED;
+                                    # Filter out mail to volunteers from known spammers.
+                                    $ret = MailRouter::INCOMING_SPAM;
+                                    $spammers = $s->getSpammerByUserid($uid);
 
-                                    # Don't want to pass on OOF etc.
-                                    if (!$this->msg->isAutoreply()) {
-                                        # Create/get a chat between the sender and the group mods.
-                                        $r = new ChatRoom($this->dbhr, $this->dbhm);
-                                        $chatid = $r->createUser2Mod($uid, $gid);
-                                        if ($this->log) {
-                                            error_log("Chatid is $chatid");
-                                        }
+                                    if (!$spammers) {
+                                        $ret = MailRouter::DROPPED;
 
-                                        # Now add this message into the chat.  Don't strip quoted as it might be useful -
-                                        # one example is twitter email confirmations, where the URL is quoted (weirdly).
-                                        $textbody = $this->msg->getTextbody();
-
-                                        if (strlen($textbody)) {
-                                            $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                            list ($mid, $banned) = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+                                        # Don't want to pass on OOF etc.
+                                        if (!$this->msg->isAutoreply()) {
+                                            # Create/get a chat between the sender and the group mods.
+                                            $r = new ChatRoom($this->dbhr, $this->dbhm);
+                                            $chatid = $r->createUser2Mod($uid, $gid);
                                             if ($this->log) {
-                                                error_log("Created message $mid");
+                                                error_log("Chatid is $chatid");
                                             }
 
-                                            $m->chatByEmail($mid, $this->msg->getID());
+                                            # Now add this message into the chat.  Don't strip quoted as it might be useful -
+                                            # one example is twitter email confirmations, where the URL is quoted (weirdly).
+                                            $textbody = $this->msg->getTextbody();
+
+                                            if (strlen($textbody)) {
+                                                $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                                list ($mid, $banned) = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+                                                if ($this->log) {
+                                                    error_log("Created message $mid");
+                                                }
+
+                                                $m->chatByEmail($mid, $this->msg->getID());
+                                            }
+
+                                            # Add any photos.
+                                            $this->addPhotosToChat($chatid);
+
+                                            # The user sending this is up to date with this conversation.  This prevents us
+                                            # notifying her about other messages
+                                            $r->mailedLastForUser($uid);
+
+                                            $ret = MailRouter::TO_VOLUNTEERS;
                                         }
-
-                                        # Add any photos.
-                                        $this->addPhotosToChat($chatid);
-
-                                        # The user sending this is up to date with this conversation.  This prevents us
-                                        # notifying her about other messages
-                                        $r->mailedLastForUser($uid);
-
-                                        $ret = MailRouter::TO_VOLUNTEERS;
                                     }
                                 }
                             }
