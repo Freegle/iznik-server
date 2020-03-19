@@ -5,6 +5,8 @@ function covid() {
     $me = whoAmI($dbhr, $dbhm);
 
     $helptype = presdef('helptype', $_REQUEST, NULL);
+    $info = presdef('info', $_REQUEST, []);
+
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {
@@ -46,10 +48,12 @@ function covid() {
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
             if ($me && $helptype) {
-                $dbhm->preExec("INSERT INTO covid (userid, type) VALUES (?, ?) ON DUPLICATE KEY UPDATE type = ?;", [
+                $dbhm->preExec("INSERT INTO covid (userid, type, info) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE type = ?, info = ?;", [
                     $me->getId(),
                     $helptype,
-                    $helptype
+                    json_encode($info),
+                    $helptype,
+                    json_encode($info)
                 ]);
 
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
