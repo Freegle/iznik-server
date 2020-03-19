@@ -3563,7 +3563,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
-        $support = $me->isAdminOrSupport();
+        $support = $me && $me->isAdminOrSupport();
 
         foreach ($rets as $retind => $ret) {
             $rets[$retind]['comments'] = [];
