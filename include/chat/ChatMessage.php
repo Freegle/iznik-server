@@ -168,7 +168,7 @@ class ChatMessage extends Entity
                     !$u->isModerator() &&
                     $u->getPrivate('chatmodstatus') == User::CHAT_MODSTATUS_MODERATED &&
                     ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
-                    $review = $this->checkReview($message, TRUE);
+                    $review = TRUE;
                     $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
                     # If we decided it was spam then it doesn't need reviewing.
