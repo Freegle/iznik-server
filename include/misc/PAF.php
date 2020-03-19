@@ -285,7 +285,11 @@ class PAF
             foreach ($address as $key => $val) {
                 switch ($key) {
                     case 'postcode': $a->setPostcode($val); break;
-                    case 'buildingnumber': $a->setBuildingNumber($val); break;
+                    case 'buildingnumber':
+                        if ($val != presdef('buildingname', $address, NULL)) {
+                            $a->setBuildingNumber($val);
+                        }
+                        break;
                     case 'posttown': $a->setPostTown($val); break;
                     case 'dependentlocality': $a->setDependentLocality($val); break;
                     case 'doubledependentlocality': $a->setDoubleDependentLocality($val); break;
