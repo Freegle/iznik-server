@@ -108,6 +108,7 @@ class User extends Entity
     # Chat mod status
     const CHAT_MODSTATUS_MODERATED = 'Moderated';
     const CHAT_MODSTATUS_UNMODERATED = 'Unmoderated';
+    const CHAT_MODSTATUS_FULLY = 'Fully';
 
     /** @var  $log Log */
     private $log;

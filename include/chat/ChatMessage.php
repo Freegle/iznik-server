@@ -164,11 +164,12 @@ class ChatMessage extends Entity
                 # include user text.
                 #
                 # We also don't want to check for spam in chats between users and mods.
+                $modstatus = $u->getPrivate('chatmodstatus');
                 if ($chattype != ChatRoom::TYPE_USER2MOD &&
                     !$u->isModerator() &&
-                    $u->getPrivate('chatmodstatus') == User::CHAT_MODSTATUS_MODERATED &&
+                    ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) &&
                     ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
-                    $review = TRUE;
+                    $review = ($modstatus == User::CHAT_MODSTATUS_FULLY) || $this->checkReview($message, TRUE);
                     $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
                     # If we decided it was spam then it doesn't need reviewing.
