@@ -3517,6 +3517,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->notif->notifyGroupMods($groupid);
     }
 
+    public function getCommentsForSingleUser($userid) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $rets = [
+            $userid => [
+                'id' => $userid
+            ]
+        ];
+
+        $this->getComments($me, $rets);
+
+        return $rets[$userid]['comments'];
+    }
+
     public function getComments($me, &$rets)
     {
         $userids = array_keys($rets);
@@ -3550,13 +3563,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
+        $support = $me->isAdminOrSupport();
 
         foreach ($rets as $retind => $ret) {
             $rets[$retind]['comments'] = [];
 
             for ($commentind = 0; $commentind < count($comments); $commentind++) {
                 if ($comments[$commentind]['userid'] == $rets[$retind]['id']) {
-                    if (in_array($comments[$commentind]['groupid'], $groupids)) {
+                    if ($support || in_array($comments[$commentind]['groupid'], $groupids)) {
                         $comments[$commentind]['date'] = ISODate($comments[$commentind]['date']);
 
                         if (pres('byuserid', $comments[$commentind])) {
@@ -4336,6 +4350,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 'lng' => $latlng[1],
                 'name' => $latlng[2]
             ];
+
+            $thisone['comments'] = $this->getCommentsForSingleUser($user['userid']);
 
             $ret[] = $thisone;
         }
