@@ -13,7 +13,21 @@ function covid() {
         case 'GET': {
             $ret = [ 'ret' => 2, 'status' => 'Permission denied' ];
             if ($me && $me->isModerator()) {
-                $covids = $dbhr->preQuery("SELECT * FROM covid;");
+                $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+
+                if ($groupid < 0 && $me->isAdminOrSupport()) {
+                    $sql = "SELECT * FROM covid;";
+                } else {
+                    if (!$groupid) {
+                        $groupids = $me->getModeratorships();
+                    } else {
+                        $groupids = [$groupid];
+                    }
+
+                    $sql = "SELECT DISTINCT covid.* FROM covid INNER JOIN memberships ON covid.userid = memberships.userid WHERE groupid IN (" . implode(',', $groupids) . ");";
+                }
+
+                $covids = $dbhr->preQuery($sql);
                 $uids = array_column($covids, 'userid');
 
                 foreach ($covids as $key => $covid) {
@@ -21,7 +35,7 @@ function covid() {
                 }
 
                 $u = new User($dbhr, $dbhm);
-                $users = $u->getPublicsById($uids);
+                $users = $u->getPublicsById($uids, NULL, TRUE, FALSE, $ctx, FALSE, TRUE, FALSE, FALSE, FALSE, [MessageCollection::APPROVED], FALSE);
                 $u->getPublicLocations($users);
 
                 $locs = $u->getLatLngs($users, FALSE, FALSE, FALSE, NULL);
