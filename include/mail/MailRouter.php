@@ -652,7 +652,7 @@ class MailRouter
                         $ret = MailRouter::DROPPED;
 
                         # Don't pass on automated mails from ADMINs - there might be loads.
-                        if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches) ||
+                        if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to) ||
                             !$this->msg->isBounce() && !$this->msg->isAutoreply()) {
                             $ret = MailRouter::FAILURE;
 
