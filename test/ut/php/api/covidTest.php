@@ -28,22 +28,21 @@ class covidAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        $covids = $this->dbhr->preQuery("SELECT * FROM covid WHERE type = 'NeedHelp' AND info IS NOT NULL LIMIT 1");
-
-        foreach ($covids as $covid) {
-            $ret = $this->call('covid', 'GET', [
+//        $u = new User($this->dbhr, $this->dbhm);
+//        $this->uid = $u->create(NULL, NULL, 'Test User');
+//        $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
+//        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+//        assertTrue($u->login('testpw'));
+//
+//        $covids = $this->dbhr->preQuery("SELECT * FROM covid WHERE type = 'NeedHelp' AND info IS NOT NULL LIMIT 1");
+//
+//        foreach ($covids as $covid) {
+//            $ret = $this->call('covid', 'GET', [
 //                'id' => $covid['userid']
-                'id' => 38678104
-            ]);
-
-            error_log(var_export($ret, TRUE));
-        }
+//            ]);
+//
+//            error_log(var_export($ret, TRUE));
+//        }
         assertTRue(TRUE);
     }
 }
