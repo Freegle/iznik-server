@@ -1770,7 +1770,9 @@ class User extends Entity
         $replies = $this->getExpectedReplies($uids);
 
         foreach ($replies as $reply) {
-            $users[$reply['expectee']]['info']['expectedreply'] = $reply['count'];
+            if ($reply['expectee']) {
+                $users[$reply['expectee']]['info']['expectedreply'] = $reply['count'];
+            }
         }
     }
     
