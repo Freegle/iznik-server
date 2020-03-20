@@ -80,7 +80,7 @@ function covid() {
             $id = intval(presdef('id', $_REQUEST, 0));
 
             if ($me && $me->isModerator() && $id) {
-                foreach ([ 'contacted', 'closed', 'comments' ] as $att) {
+                foreach ([ 'contacted', 'closed', 'comments', 'phone', 'intro' ] as $att) {
                     if (array_key_exists($att, $_REQUEST)) {
                         $dbhm->preExec("UPDATE covid SET $att = ? WHERE userid = ?", [
                             $_REQUEST[$att],
