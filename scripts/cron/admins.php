@@ -15,7 +15,7 @@ $suggesteds = $dbhr->preQuery("SELECT * FROM admins WHERE groupid IS NULL AND co
 
 foreach ($suggesteds as $suggested) {
     # See if we have any groups who have not got a copy of this ADMIN.
-    $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = ? AND publish = 1;", [
+    $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = ? AND publish = 1 AND external IS NULL;", [
         Group::GROUP_FREEGLE
     ]);
 
