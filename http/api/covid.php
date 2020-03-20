@@ -138,6 +138,54 @@ function covid() {
             break;
         }
 
+        case 'POST': {
+            $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
+
+            if ($me && $me->isModerator()) {
+                $helper = intval(presdef('helper', $_REQUEST, NULL));
+                $helpee = intval(presdef('helpee', $_REQUEST, NULL));
+                $action = presdef('action', $_REQUEST, NULL);
+
+                switch ($action) {
+                    case 'Suggest': {
+                        $dbhm->preExec("INSERT IGNORE INTO covid_matches (helper, helpee, suggestedby) VALUES (?, ?, ?);", [
+                            $helper,
+                            $helpee,
+                            $me->getId()
+                        ]);
+
+                        return [
+                            'ret' => 0,
+                            'status' => 'Success',
+                        ];
+                        break;
+                    }
+                    case 'Remove': {
+                        $dbhm->preExec("DELETE FROM covid_matches WHERE helper = ? AND helpee = ?;", [
+                            $helper,
+                            $helpee
+                        ]);
+
+                        return [
+                            'ret' => 0,
+                            'status' => 'Success',
+                        ];
+                        break;
+                    }
+                    case 'Dispatch': {
+                        $dbhm->preExec("UPDATE covid SET dispatched = NOW() WHERE userid = ?;", [
+                            $helpee
+                        ]);
+
+                        return [
+                            'ret' => 0,
+                            'status' => 'Success',
+                        ];
+                    }
+                }
+            }
+        }
+
         case 'PUT': {
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
