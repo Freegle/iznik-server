@@ -12,6 +12,38 @@ require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/misc/Donations.php');
 
+# Fix phone numbers.
+$phones = $dbhr->preQuery("SELECT * FROM covid WHERE phone IS NOT NULL AND phone NOT LIKE '0%';");
+
+foreach ($phones as $phone) {
+    error_log($phone['phone']);
+    $newphone = $phone['phone'];
+
+    if (strpos($newphone, '+44') === 0) {
+        # Dialling codes unlikely to be understood, but otherwise will be a good number.
+        error_log("Dialing code");
+        $newphone = str_replace('+44', '0', $newphone);
+    } else {
+        if (strlen($newphone) > 6 && is_numeric(substr($newphone, 0, 1))) {
+            # Full phone number but without leading 0.
+            $newphone = "0$newphone";
+            error_log("Starts with digit $newphone");
+        } else  {
+            # Likely to be lacking area code - not much we can do.
+        }
+    }
+
+    if (strcmp($newphone, $phone['phone']) != 0) {
+        error_log("...{$phone['phone']} => $newphone");
+        $dbhm->preExec("UPDATE covid SET phone = ? WHERE id = ?;", [
+            $newphone,
+            $phone['id']
+        ]);
+    } else {
+//        error_log("...leave");
+    }
+}
+
 $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
 $twig = new Twig_Environment($loader);
 
