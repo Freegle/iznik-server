@@ -8,7 +8,7 @@ function covid() {
     $info = presdef('info', $_REQUEST, []);
     $id = intval(presdef('id', $_REQUEST, NULL));
     $userid = intval(presdef('userid', $_REQUEST, NULL));
-    $viewsuggestions = presdef('viewsuggestions', $_REQUEST, NULL);
+    $counts = presdef('counts', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -16,7 +16,47 @@ function covid() {
         case 'GET': {
             $ret = [ 'ret' => 2, 'status' => 'Permission denied' ];
             if ($me) {
-                if ($id || $userid) {
+                if ($counts) {
+                    # Just a summary
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'counts' => [
+                            'NeedHelp' => 0,
+                            'CanHelp' => 0
+                        ]
+                    ];
+
+                    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+
+                    if ($groupid < 0 && $me->isAdminOrSupport()) {
+                        $groupq = '';
+                    } else {
+                        if (!$groupid) {
+                            $groupids = $me->getModeratorships();
+                        } else {
+                            $groupids = [$groupid];
+                        }
+
+                        $groupq = " INNER JOIN memberships ON covid.userid = memberships.userid AND groupid IN (" . implode(',', $groupids) . ") ";
+                    }
+
+
+                    # Top-level by type
+                    $covids = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count, type FROM covid $groupq GROUP BY type;");
+
+                    foreach ($covids as $count) {
+                        $ret['counts'][$count['type']] = $count['count'];
+                    }
+
+                    # By status
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE closed IS NOT NULL;");
+                    $ret['counts']['closed'] = $counts[0]['count'];
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE dispatched IS NOT NULL AND viewedown >= dispatched;");
+                    $ret['counts']['viewedown'] = $counts[0]['count'];
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE dispatched IS NOT NULL AND (viewedown IS NULL OR viewedown < dispatched);");
+                    $ret['counts']['dispatched'] = $counts[0]['count'];
+                } else if ($id || $userid) {
                     if ($userid) {
                         $covids = $dbhr->preQuery("SELECT * FROM covid WHERE userid = ?;", [
                             $userid

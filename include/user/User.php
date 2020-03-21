@@ -4882,7 +4882,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         if ($blur) {
             foreach ($ret as &$memb) {
-                if ($memb['lat' || $memb['lng']]) {
+                if ($memb['lat'] || $memb['lng']) {
                     # 3 decimal places is roughl 100m
                     $memb['lat'] = round($memb['lat'], 3);
                     $memb['lng'] = round($memb['lng'], 3);
