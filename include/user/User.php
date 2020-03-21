@@ -2119,6 +2119,12 @@ class User extends Entity
             }
 
             $rets[$user['id']]['settings'] = presdef('settings', $user, NULL) ? json_decode($user['settings'], TRUE) : ['dummy' => TRUE];
+
+            if (pres('mylocation', $rets[$user['id']]['settings']) && pres('groupsnear', $rets[$user['id']]['settings']['mylocation'])) {
+                # This is large - no need for it.
+                $rets[$user['id']]['settings']['mylocation']['groupsnear'] = NULL;
+            }
+
             $rets[$user['id']]['settings']['notificationmails'] = array_key_exists('notificationmails', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['notificationmails'] : TRUE;
             $rets[$user['id']]['settings']['modnotifs'] = array_key_exists('modnotifs', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['modnotifs'] : 4;
             $rets[$user['id']]['settings']['backupmodnotifs'] = array_key_exists('backupmodnotifs', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['backupmodnotifs'] : 12;
@@ -4662,7 +4668,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $locs = $this->getLatLngs([ $this->user ], $usedef, $usegroup, FALSE, [ $this->user ]);
             $loc = $locs[$this->id];
 
-            if ($blur) {
+            if ($blur && ($loc['lat'] || $loc['lng'])) {
                 $loc['lat'] = round($loc['lat'], 1);
                 $loc['lng'] = round($loc['lng'], 1);
             }
@@ -4769,7 +4775,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function getLatLngs($users, $usedef = TRUE, $usegroup = TRUE, $needgroup = FALSE, $atts = NULL)
+    public function getLatLngs($users, $usedef = TRUE, $usegroup = TRUE, $needgroup = FALSE, $atts = NULL, $blur = FALSE)
     {
         $userids = array_filter(array_column($users, 'id'));
         $ret = [];
@@ -4870,6 +4876,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $ret[$memb['userid']] = [
                     'group' => presdef('namefull', $memb, $memb['nameshort'])
                 ];
+            }
+        }
+
+        if ($blur) {
+            foreach ($ret as &$memb) {
+                $memb['lat'] = round($memb['lat'], 1);
+                $memb['lng'] = round($memb['lng'], 1);
             }
         }
 
