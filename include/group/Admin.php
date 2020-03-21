@@ -90,9 +90,13 @@ class Admin extends Entity
         $admins = $this->dbhr->preQuery($sql);
 
         foreach ($admins as $admin) {
-            $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
-            $done += $a->mailMembers();
-            $this->dbhm->preExec("UPDATE admins SET complete = NOW() WHERE id = ?;", [ $admin['id'] ]);
+            $g = new Group($this->dbhr, $this->dbhm, $admin['groupid']);
+
+            if ($g->getPrivate('onhere') && $g->getPrivate('publish') && !$g->getPrivate('external')) {
+                $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
+                $done += $a->mailMembers();
+                $this->dbhm->preExec("UPDATE admins SET complete = NOW() WHERE id = ?;", [ $admin['id'] ]);
+            }
         }
 
         return($done);
