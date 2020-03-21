@@ -83,7 +83,7 @@ class Admin extends Entity
         return($message);
     }
 
-    public function process($id = NULL, $force = FALSE) {
+    public function process($id = NULL, $force = FALSE, $gently = FALSE) {
         $done = 0;
         $idq = $id ? " id = $id AND " : '';
         $sql = "SELECT * FROM admins WHERE $idq complete IS NULL AND pending = 0;";
@@ -94,7 +94,7 @@ class Admin extends Entity
 
             if ($force || ($g->getPrivate('onhere') && $g->getPrivate('publish') && !$g->getPrivate('external'))) {
                 $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
-                $done += $a->mailMembers();
+                $done += $a->mailMembers($gently);
                 $this->dbhm->preExec("UPDATE admins SET complete = NOW() WHERE id = ?;", [ $admin['id'] ]);
             }
         }
@@ -102,7 +102,7 @@ class Admin extends Entity
         return($done);
     }
 
-    public function mailMembers() {
+    public function mailMembers($gently) {
         list ($transport, $mailer) = getMailer();
         $done = 0;
         $groupid = $this->admin['groupid'];
@@ -159,6 +159,17 @@ class Admin extends Entity
                     }
 
                     $done++;
+
+                    if ($done % 1000 === 0 && $gently) {
+                        # TODO Make generic
+                        $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool | wc -l 2>&1"));
+
+                        while ($queuesize > 30000) {
+                            sleep(60);
+                            $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool | wc -l 2>&1"));
+                            error_log("...sleeping, spool queue $queuesize");
+                        }
+                    }
                 } catch (Exception $e) {
                     error_log("Failed with " . $e->getMessage());
                 }

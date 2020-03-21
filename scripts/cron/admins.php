@@ -45,6 +45,6 @@ foreach ($suggesteds as $suggested) {
     ]);
 }
 
-$a->process();
+$a->process(NULL, FALSE, TRUE);
 
 unlockScript($lockh);
