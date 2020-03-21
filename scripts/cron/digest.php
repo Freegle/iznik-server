@@ -38,7 +38,7 @@ if (count($opts) < 1) {
 
         # Check for queue size on our mail host
         # TODO Make generic.
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@bulk2 \"/var/www/iznik/scripts/cli/qsize|grep Total\" 2>&1"));
+        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@bulk2 \"/usr/sbin/postqueue -p | /usr/bin/tail -n1 | /usr/bin/gawk '{print $5}'\" 2>&1"));
 
         if (strpos($queuesize, "Total") !== FALSE) {
             $size = substr($queuesize, 6);

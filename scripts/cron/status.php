@@ -103,7 +103,7 @@ function status()
         }
 
         # Get the postfix mail count in case it's too large
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"bash /var/www/iznik/scripts/cli/qsize|grep Total\" 2>&1"));
+        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"/usr/sbin/postqueue -p | /usr/bin/tail -n1 | /usr/bin/gawk '{print $5}'\" 2>&1"));
         error_log("Postfix queue $queuesize");
 
         if (strpos($queuesize, "Total") === FALSE) {
@@ -117,6 +117,16 @@ function status()
                 $overallwarning = TRUE;
                 $warningtext = "postfix mail queue large on $host ($size)";
             }
+        }
+
+        # Get the spool folder count in case it's too large
+        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool | wc -l\" 2>&1"));
+        error_log("Spool queue $queuesize");
+
+        if (intval($queuesize) > 100000) {
+            $warning = TRUE;
+            $overallwarning = TRUE;
+            $warningtext = "Mail spool folder large ($queuesize)";
         }
 
         $info[$host]['error'] = $error;
