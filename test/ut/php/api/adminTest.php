@@ -97,7 +97,7 @@ class adminAPITest extends IznikAPITestCase
 
         # Now send - none to find, as we don't have an email on our domain.
         $a = new Admin($this->dbhr, $this->dbhm);
-        assertEquals(0, $a->process($id));
+        assertEquals(0, $a->process($id, TRUE));
         $this->dbhm->preExec("UPDATE admins SET complete = NULL WHERE id = $id");
 
         # Send again with an email present - still none as pending.
@@ -105,7 +105,7 @@ class adminAPITest extends IznikAPITestCase
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $eid = $this->user->addEmail($email, 0, FALSE);
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR, $eid);
-        assertEquals(0, $a->process($id));
+        assertEquals(0, $a->process($id, TRUE));
 
         # Check it shows as pending.
         $ret = $this->call('admin', 'GET', []);
@@ -124,12 +124,12 @@ class adminAPITest extends IznikAPITestCase
         # Now approve it and send
         $ret = $this->call('admin', 'PATCH', [ 'id' => $id, 'pending' => 0 ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, $a->process($id));
+        assertEquals(1, $a->process($id, TRUE));
 
         # Fake error for coverage
         $this->user->addEmail('testblackhole.io', 1, TRUE);
         $this->dbhm->preExec("UPDATE admins SET complete = NULL WHERE id = $id");
-        assertEquals(0, $a->process($id));
+        assertEquals(0, $a->process($id, TRUE));
 
         $ret = $this->call('admin', 'DELETE', [ 'id' => $id ]);
         assertEquals(0, $ret['ret']);
@@ -173,12 +173,12 @@ class adminAPITest extends IznikAPITestCase
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('admin', 'PATCH', [ 'id' => $pergroup1, 'pending' => 0 ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, $a->process($pergroup1));
+        assertEquals(1, $a->process($pergroup1, TRUE));
 
         # Now approve it on the second group and send - should go to user2 but not user.
         assertTrue($this->user2->login('testpw'));
         $ret = $this->call('admin', 'PATCH', [ 'id' => $pergroup2, 'pending' => 0 ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, $a->process($pergroup2));
+        assertEquals(1, $a->process($pergroup2, TRUE));
     }
 }

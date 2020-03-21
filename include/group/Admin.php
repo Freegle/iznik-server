@@ -83,7 +83,7 @@ class Admin extends Entity
         return($message);
     }
 
-    public function process($id = NULL) {
+    public function process($id = NULL, $force = FALSE) {
         $done = 0;
         $idq = $id ? " id = $id AND " : '';
         $sql = "SELECT * FROM admins WHERE $idq complete IS NULL AND pending = 0;";
@@ -92,7 +92,7 @@ class Admin extends Entity
         foreach ($admins as $admin) {
             $g = new Group($this->dbhr, $this->dbhm, $admin['groupid']);
 
-            if ($g->getPrivate('onhere') && $g->getPrivate('publish') && !$g->getPrivate('external')) {
+            if ($force || ($g->getPrivate('onhere') && $g->getPrivate('publish') && !$g->getPrivate('external'))) {
                 $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
                 $done += $a->mailMembers();
                 $this->dbhm->preExec("UPDATE admins SET complete = NOW() WHERE id = ?;", [ $admin['id'] ]);
