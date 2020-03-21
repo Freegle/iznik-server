@@ -52,6 +52,10 @@ function covid() {
                     # By status
                     $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE closed IS NOT NULL;");
                     $ret['counts']['closed'] = $counts[0]['count'];
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE closed IS NOT NULL AND type = 'NeedHelp';");
+                    $ret['counts']['closedNeedHelp'] = $counts[0]['count'];
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE closed IS NOT NULL AND type = 'CanHelp';");
+                    $ret['counts']['closedCanHelp'] = $counts[0]['count'];
                     $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE dispatched IS NOT NULL AND viewedown >= dispatched;");
                     $ret['counts']['viewedown'] = $counts[0]['count'];
                     $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE dispatched IS NOT NULL AND (viewedown IS NULL OR viewedown < dispatched);");
@@ -89,12 +93,14 @@ function covid() {
                                 foreach ($helpneeded as $need => $val) {
                                     if ($need != 'other' && $val) {
                                         if (!$helpq) {
-                                            $helpq = "WHERE JSON_EXTRACT(info, '\$.$need')";
+                                            $helpq = "AND (JSON_EXTRACT(info, '\$.$need')";
                                         } else {
                                             $helpq .= " OR JSON_EXTRACT(info, '\$.$need') ";
                                         }
                                     }
                                 }
+
+                                $helpq = $helpq ? "$helpq)" : '';
                             }
 
                             $ctx = NULL;
@@ -111,7 +117,7 @@ function covid() {
 INNER JOIN covid ON covid.userid = users.id AND covid.type = 'CanHelp' 
 INNER JOIN locations ON locations.id = users.lastlocation 
 LEFT JOIN users_kudos ON users.id = users_kudos.userid
-$helpq
+WHERE users.deleted IS NULL $helpq
 ORDER BY dist ASC LIMIT 10;";
 
                                 $helpers = $dbhr->preQuery($sql);
