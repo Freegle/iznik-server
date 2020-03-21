@@ -164,10 +164,12 @@ class Admin extends Entity
                         # TODO Make generic
                         $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool | wc -l 2>&1"));
 
-                        while ($queuesize > 30000) {
-                            sleep(60);
-                            $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool | wc -l 2>&1"));
-                            error_log("...sleeping, spool queue $queuesize");
+                        if ($queuesize > 30000) {
+                            while ($queuesize > 1000) {
+                                sleep(60);
+                                $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool | wc -l 2>&1"));
+                                error_log("...sleeping, spool queue $queuesize");
+                            }
                         }
                     }
                 } catch (Exception $e) {

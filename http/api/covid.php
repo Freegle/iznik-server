@@ -43,22 +43,22 @@ function covid() {
 
 
                     # Top-level by type
-                    $covids = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count, type FROM covid $groupq GROUP BY type;");
+                    $covids = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count, type FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL $groupq GROUP BY type;");
 
                     foreach ($covids as $count) {
                         $ret['counts'][$count['type']] = $count['count'];
                     }
 
                     # By status
-                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE closed IS NOT NULL;");
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL $groupq WHERE closed IS NOT NULL;");
                     $ret['counts']['closed'] = $counts[0]['count'];
-                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE closed IS NOT NULL AND type = 'NeedHelp';");
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL  $groupq WHERE closed IS NOT NULL AND type = 'NeedHelp';");
                     $ret['counts']['closedNeedHelp'] = $counts[0]['count'];
-                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE closed IS NOT NULL AND type = 'CanHelp';");
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL  $groupq WHERE closed IS NOT NULL AND type = 'CanHelp';");
                     $ret['counts']['closedCanHelp'] = $counts[0]['count'];
-                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE dispatched IS NOT NULL AND viewedown >= dispatched;");
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL  $groupq WHERE dispatched IS NOT NULL AND viewedown >= dispatched;");
                     $ret['counts']['viewedown'] = $counts[0]['count'];
-                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid $groupq WHERE dispatched IS NOT NULL AND (viewedown IS NULL OR viewedown < dispatched);");
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL  $groupq WHERE dispatched IS NOT NULL AND (viewedown IS NULL OR viewedown < dispatched);");
                     $ret['counts']['dispatched'] = $counts[0]['count'];
                 } else if ($id || $userid) {
                     if ($userid) {
@@ -107,7 +107,7 @@ function covid() {
                             $covid['user'] = $u->getPublic(NULL, TRUE, FALSE, $ctx, FALSE, TRUE, FALSE, FALSE, FALSE, [MessageCollection::APPROVED], FALSE);
                             $covid['user']['settings'] = NULL;
                             $covid['user']['publiclocation'] = $u->getPublicLocation();
-                            $covid['user']['privateposition'] = $u->getLatLng(TRUE, TRUE, TRUE);
+                            $covid['user']['privateposition'] = $u->getLatLng(FALSE, TRUE, TRUE);
 
                             $users = [];
 
@@ -187,7 +187,7 @@ ORDER BY dist ASC LIMIT 10;";
                     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
 
                     if ($groupid < 0 && $me->isAdminOrSupport()) {
-                        $sql = "SELECT * FROM covid WHERE covid.type = ?;";
+                        $sql = "SELECT covid.* FROM covid INNER JOIN users ON covid.userid = users.id WHERE covid.type = ? AND users.deleted IS NULL;";
                     } else {
                         if (!$groupid) {
                             $groupids = $me->getModeratorships();
