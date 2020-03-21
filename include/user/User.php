@@ -4669,8 +4669,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $loc = $locs[$this->id];
 
             if ($blur && ($loc['lat'] || $loc['lng'])) {
-                $loc['lat'] = round($loc['lat'], 1);
-                $loc['lng'] = round($loc['lng'], 1);
+                # 2 decimal places is roughly 1km.
+                $loc['lat'] = round($loc['lat'], 3);
+                $loc['lng'] = round($loc['lng'], 3);
             }
 
             $ret = [ $loc['lat'], $loc['lng'], presdef('loc', $loc, NULL) ];
@@ -4882,8 +4883,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if ($blur) {
             foreach ($ret as &$memb) {
                 if ($memb['lat' || $memb['lng']]) {
-                    $memb['lat'] = round($memb['lat'], 1);
-                    $memb['lng'] = round($memb['lng'], 1);
+                    # 3 decimal places is roughl 100m
+                    $memb['lat'] = round($memb['lat'], 3);
+                    $memb['lng'] = round($memb['lng'], 3);
                 }
             }
         }
