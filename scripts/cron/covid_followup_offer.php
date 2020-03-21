@@ -34,7 +34,7 @@ foreach ($users as $user) {
             ->setTo($u->getEmailPreferred())
             ->setBody("Hi there,
              
-             We'd like to get a contact phone number.  Please go tohttps://www.ilovefreegle.org/covid/followupoffer
+             We'd like to get a contact phone number.  Please go to https://www.ilovefreegle.org/covid/followupoffer
                   
                   Thanks,
                   

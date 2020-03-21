@@ -7,87 +7,118 @@ function covid() {
     $helptype = presdef('helptype', $_REQUEST, NULL);
     $info = presdef('info', $_REQUEST, []);
     $id = intval(presdef('id', $_REQUEST, NULL));
+    $userid = intval(presdef('userid', $_REQUEST, NULL));
+    $viewsuggestions = presdef('viewsuggestions', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {
         case 'GET': {
             $ret = [ 'ret' => 2, 'status' => 'Permission denied' ];
-            if ($me && $me->isModerator()) {
-                if ($id) {
-                    $covids = $dbhr->preQuery("SELECT * FROM covid WHERE userid = ?;", [
-                        $id
-                    ]);
+            if ($me) {
+                if ($id || $userid) {
+                    if ($userid) {
+                        $covids = $dbhr->preQuery("SELECT * FROM covid WHERE userid = ?;", [
+                            $userid
+                        ]);
+                    } else {
+                        $covids = $dbhr->preQuery("SELECT * FROM covid WHERE id = ?;", [
+                            $id
+                        ]);
+                    }
 
                     foreach ($covids as $covid) {
-                        $u = new User($dbhr, $dbhm, $covid['userid']);
+                        if ($me->isModerator() || $me->getId() == $covid['userid']) {
+                            if ($me->getId() == $covid['userid']) {
+                                # Viewing own suggestions - track.
+                                $dbhm->preExec("UPDATE covid SET viewedown = NOW() WHERE id = ?", [
+                                    $covid['id']
+                                ]);
+                            }
+                            $u = new User($dbhr, $dbhm, $covid['userid']);
 
-                        # Get best guess location.
-                        list ($lat, $lng) = $u->getLatLng();
+                            # Get best guess location.
+                            list ($lat, $lng) = $u->getLatLng();
 
-                        if ($lat || $lng) {
-                            $helpq = '';
+                            if ($lat || $lng) {
+                                $helpq = '';
 
-                            if ($covid['info']) {
-                                $helpneeded = json_decode($covid['info'], TRUE);
+                                if ($covid['info']) {
+                                    $helpneeded = json_decode($covid['info'], TRUE);
 
-                                foreach ($helpneeded as $need => $val) {
-                                    if ($need != 'other' && $val) {
-                                        if (!$helpq) {
-                                            $helpq = "WHERE JSON_EXTRACT(info, '\$.$need')";
-                                        } else {
-                                            $helpq .= " OR JSON_EXTRACT(info, '\$.$need') ";
+                                    foreach ($helpneeded as $need => $val) {
+                                        if ($need != 'other' && $val) {
+                                            if (!$helpq) {
+                                                $helpq = "WHERE JSON_EXTRACT(info, '\$.$need')";
+                                            } else {
+                                                $helpq .= " OR JSON_EXTRACT(info, '\$.$need') ";
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            # Find helpful users nearby.
-                            $sql = "SELECT users.id, locations.lat, locations.lng, haversine($lat, $lng, locations.lat, locations.lng) AS dist, users_kudos.kudos FROM users 
+                                $ctx = NULL;
+                                $covid['user'] = $u->getPublic(NULL, TRUE, FALSE, $ctx, FALSE, TRUE, FALSE, FALSE, FALSE, [MessageCollection::APPROVED], FALSE);
+                                $covid['user']['publiclocation'] = $u->getPublicLocation();
+                                $covid['user']['privateposition'] = $u->getLatLng();
+
+                                # Find helpful users nearby.
+                                $sql = "SELECT users.id, locations.lat, locations.lng, haversine($lat, $lng, locations.lat, locations.lng) AS dist, users_kudos.kudos FROM users 
     INNER JOIN covid ON covid.userid = users.id AND covid.type = 'CanHelp' 
     INNER JOIN locations ON locations.id = users.lastlocation 
     LEFT JOIN users_kudos ON users.id = users_kudos.userid
     $helpq
     ORDER BY dist ASC LIMIT 10;";
 
-                            $helpers = $dbhr->preQuery($sql);
+                                $helpers = $dbhr->preQuery($sql);
 
-                            # Get their info.
-                            $uids = array_column($helpers, 'id');
-                            $u = new User($dbhr, $dbhm);
-                            $users = $u->getPublicsById($uids, NULL, TRUE, FALSE, $ctx, FALSE, TRUE, FALSE, FALSE, FALSE, [MessageCollection::APPROVED], FALSE);
-                            $u->getPublicLocations($users);
-                            $locs = $u->getLatLngs($users, FALSE, FALSE, FALSE, NULL);
+                                # Get their info.
+                                $uids = array_column($helpers, 'id');
+                                $u = new User($dbhr, $dbhm);
+                                $users = $u->getPublicsById($uids, NULL, TRUE, FALSE, $ctx, FALSE, TRUE, FALSE, FALSE, FALSE, [MessageCollection::APPROVED], FALSE);
+                                $u->getPublicLocations($users);
+                                $locs = $u->getLatLngs($users, FALSE, FALSE, FALSE, NULL);
 
-                            foreach ($users as $userid => $user) {
-                                if (pres($userid, $locs)) {
-                                    $users[$userid]['privateposition'] = $locs[$userid];
+                                foreach ($users as $userid => $user) {
+                                    if (pres($userid, $locs)) {
+                                        $users[$userid]['privateposition'] = $locs[$userid];
+                                    }
                                 }
+
+                                # Add kudos for client sorting.
+                                foreach ($helpers as $helper) {
+                                    $users[$helper['id']]['kudos'] = $helper['kudos'];
+                                    $users[$helper['id']]['distance'] = $helper['dist'];
+
+                                    # Are they selected for this one?
+                                    $selected = $dbhr->preQuery("SELECT * FROM covid_matches WHERE helpee = ? AND helper = ?", [
+                                        $covid['userid'],
+                                        $helper['id']
+                                    ]);
+
+                                    foreach ($selected as $s) {
+                                        $users[$helper['id']]['selected'] = TRUE;
+                                    }
+                                }
+
+                                # Add the helper's covid info.
+                                $helpercovids = $dbhr->preQuery("SELECT * FROM covid WHERE userid IN (" . implode(', ', $uids) . ")");
+
+                                foreach ($helpercovids as $key => $t) {
+                                    $users[$t['userid']]['covid'] = $helpercovids[$key];
+                                }
+
+                                $u->getInfos($users);
+
+                                $covid['helpers'] = $users;
+
+                                return [
+                                    'ret' => 0,
+                                    'status' => 'Success',
+                                    'covid' => $covid,
+                                    'id' => $id
+                                ];
                             }
-
-                            # Add kudos for client sorting.
-                            foreach ($helpers as $helper) {
-                                $users[$helper['id']]['kudos'] = $helper['kudos'];
-                                $users[$helper['id']]['distance'] = $helper['dist'];
-                            }
-
-                            # Add the helper's covid info.
-                            $helpercovids = $dbhr->preQuery("SELECT * FROM covid WHERE userid IN (" . implode(', ', $uids) . ")");
-
-                            foreach ($helpercovids as $key => $t) {
-                                $users[$t['userid']]['covid'] = $helpercovids[$key];
-                            }
-
-                            $u->getInfos($users);
-
-                            $covid['helpers'] = $users;
-
-                            return [
-                                'ret' => 0,
-                                'status' => 'Success',
-                                'covid' => $covid,
-                                'id' => $id
-                            ];
                         }
                     }
                 } else {
@@ -108,19 +139,11 @@ function covid() {
                     $covids = $dbhr->preQuery($sql);
                     $uids = array_column($covids, 'userid');
 
-                    foreach ($covids as $key => $covid) {
-                        $covids[$key]['id'] = $covid['userid'];
-                    }
-
                     $u = new User($dbhr, $dbhm);
                     $users = $u->getPublicsById($uids, NULL, TRUE, FALSE, $ctx, FALSE, TRUE, FALSE, FALSE, FALSE, [MessageCollection::APPROVED], FALSE);
                     $u->getPublicLocations($users);
 
                     $locs = $u->getLatLngs($users, FALSE, FALSE, FALSE, NULL);
-
-                    foreach ($covids as $key => $covid) {
-                        $users[$covid['userid']]['covid'] = $covids[$key];
-                    }
 
                     foreach ($users as $userid => $user) {
                         if (pres($userid, $locs)) {
@@ -128,10 +151,14 @@ function covid() {
                         }
                     }
 
+                    foreach ($covids as $key => $covid) {
+                        $covids[$key]['user'] = $users[$covid['userid']];
+                    }
+
                     return [
                         'ret' => 0,
                         'status' => 'Success',
-                        'covids' => $users
+                        'covids' => $covids
                     ];
                 }
             }
@@ -180,6 +207,7 @@ function covid() {
                         return [
                             'ret' => 0,
                             'status' => 'Success',
+                            'dispatched' => TRUE
                         ];
                     }
                 }
@@ -207,10 +235,21 @@ function covid() {
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
             $id = intval(presdef('id', $_REQUEST, 0));
 
-            if ($me && $me->isModerator() && $id) {
-                foreach ([ 'contacted', 'closed', 'comments', 'phone', 'intro' ] as $att) {
+            if ($me) {
+                if ($me->isModerator()) {
+                    foreach ([ 'phone', 'intro' ] as $att) {
+                        if (array_key_exists($att, $_REQUEST)) {
+                            $dbhm->preExec("UPDATE covid SET $att = ? WHERE id = ?", [
+                                $_REQUEST[$att],
+                                $id
+                            ]);
+                        }
+                    }
+                }
+
+                foreach ([ 'phone', 'intro' ] as $att) {
                     if (array_key_exists($att, $_REQUEST)) {
-                        $dbhm->preExec("UPDATE covid SET $att = ? WHERE userid = ?", [
+                        $dbhm->preExec("UPDATE covid SET $att = ? WHERE id = ?", [
                             $_REQUEST[$att],
                             $id
                         ]);
