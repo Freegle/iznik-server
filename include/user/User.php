@@ -4881,8 +4881,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         if ($blur) {
             foreach ($ret as &$memb) {
-                $memb['lat'] = round($memb['lat'], 1);
-                $memb['lng'] = round($memb['lng'], 1);
+                if ($memb['lat' || $memb['lng']]) {
+                    $memb['lat'] = round($memb['lat'], 1);
+                    $memb['lng'] = round($memb['lng'], 1);
+                }
             }
         }
 
