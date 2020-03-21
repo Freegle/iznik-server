@@ -171,7 +171,7 @@ ORDER BY dist ASC LIMIT 10;";
                     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
 
                     if ($groupid < 0 && $me->isAdminOrSupport()) {
-                        $sql = "SELECT * FROM covid;";
+                        $sql = "SELECT * FROM covid WHERE covid.type = ?;";
                     } else {
                         if (!$groupid) {
                             $groupids = $me->getModeratorships();
@@ -179,10 +179,13 @@ ORDER BY dist ASC LIMIT 10;";
                             $groupids = [$groupid];
                         }
 
-                        $sql = "SELECT DISTINCT covid.* FROM covid INNER JOIN memberships ON covid.userid = memberships.userid WHERE groupid IN (" . implode(',', $groupids) . ");";
+                        $sql = "SELECT DISTINCT covid.* FROM covid INNER JOIN memberships ON covid.userid = memberships.userid WHERE groupid IN (" . implode(',', $groupids) . ") AND covid.type = ?;";
                     }
 
-                    $covids = $dbhr->preQuery($sql);
+                    $covids = $dbhr->preQuery($sql, [
+                        $helptype
+                    ]);
+
                     $uids = array_column($covids, 'userid');
 
                     $u = new User($dbhr, $dbhm);
