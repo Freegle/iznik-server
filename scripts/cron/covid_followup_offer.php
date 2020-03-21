@@ -62,7 +62,7 @@ foreach ($users as $user) {
         $m = Swift_Message::newInstance()
             ->setSubject('COVID-19 - Next Step')
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
-            ->setReplyTo(NOREPLY_ADDR)
+            ->setReplyTo('covid19@ilovefreegle.org')
             ->setTo($u->getEmailPreferred())
             ->setBody("Hi there,
              

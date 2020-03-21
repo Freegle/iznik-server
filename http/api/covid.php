@@ -60,7 +60,7 @@ function covid() {
                                 $ctx = NULL;
                                 $covid['user'] = $u->getPublic(NULL, TRUE, FALSE, $ctx, FALSE, TRUE, FALSE, FALSE, FALSE, [MessageCollection::APPROVED], FALSE);
                                 $covid['user']['publiclocation'] = $u->getPublicLocation();
-                                $covid['user']['privateposition'] = $u->getLatLng();
+                                $covid['user']['privateposition'] = $u->getLatLng(TRUE, TRUE, TRUE);
 
                                 # Find helpful users nearby.
                                 $sql = "SELECT users.id, locations.lat, locations.lng, haversine($lat, $lng, locations.lat, locations.lng) AS dist, users_kudos.kudos FROM users 
@@ -200,8 +200,8 @@ function covid() {
                         break;
                     }
                     case 'Dispatch': {
-                        $dbhm->preExec("UPDATE covid SET dispatched = NOW() WHERE userid = ?;", [
-                            $helpee
+                        $dbhm->preExec("UPDATE covid SET dispatched = NOW() WHERE id = ?;", [
+                            $id
                         ]);
 
                         return [

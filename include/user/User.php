@@ -4654,13 +4654,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($ret);
     }
 
-    public function getLatLng($usedef = TRUE, $usegroup = TRUE)
+    public function getLatLng($usedef = TRUE, $usegroup = TRUE, $blur = FALSE)
     {
         $ret = [ 0, 0, NULL ];
 
         if ($this->id) {
             $locs = $this->getLatLngs([ $this->user ], $usedef, $usegroup, FALSE, [ $this->user ]);
             $loc = $locs[$this->id];
+
+            if ($blur) {
+                $loc['lat'] = round($loc['lat'], 1);
+                $loc['lng'] = round($loc['lng'], 1);
+            }
+
             $ret = [ $loc['lat'], $loc['lng'], presdef('loc', $loc, NULL) ];
         }
 
