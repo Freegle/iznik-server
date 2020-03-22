@@ -812,7 +812,7 @@ class messageTest extends IznikTestCase {
 //        $this->log("IP " . $m->getFromIP());
 //        $s = new Spam($this->dbhr, $this->dbhm);
 //        $s->check($m);
-//
+        //
 //
 //        //    }
 

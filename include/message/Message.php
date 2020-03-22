@@ -3562,8 +3562,8 @@ ORDER BY lastdate DESC;";
 
         #error_log("Pruned text to $textbody");
 
-        // We might have links to our own site.  Strip these in case they contain login information.
-        $textbody = preg_replace('/https:\/\/' . USER_SITE . '\S*/', 'https://' . USER_SITE, $textbody);
+        // We might have links to our own site with login information.
+        $textbody = preg_replace('/(https:\/\/' . USER_SITE . '\S*)(k=\S*)/', '$1', $textbody);
 
         // Redundant line breaks.
         $textbody = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\r\n\r\n", $textbody);

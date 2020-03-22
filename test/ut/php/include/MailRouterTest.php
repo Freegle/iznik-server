@@ -1773,7 +1773,7 @@ class MailRouterTest extends IznikTestCase {
 //        $r = new MailRouter($this->dbhr, $this->dbhm);
 //        $m = new Message($this->dbhr, $this->dbhm, 25206247);
 //        $r->route($m);
-//        $id = $r->received(Message::EMAIL, 'j.mason11@ntlworld.com', "hertfordfreegle-volunteers@groups.ilovefreegle.org", $msg);
+//        $id = $r->received(Message::EMAIL, 'xxxxxxx@ntlworld.com', "hertfordfreegle-volunteers@groups.ilovefreegle.org", $msg);
 //        assertNotNull($id);
 //        $rc = $r->route();
 //        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
