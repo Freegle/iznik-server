@@ -208,7 +208,7 @@ ORDER BY dist ASC LIMIT 10;";
                     $users = $u->getPublicsById($uids, NULL, TRUE, FALSE, $ctx, FALSE, TRUE, FALSE, FALSE, FALSE, [MessageCollection::APPROVED], FALSE);
                     $u->getPublicLocations($users);
 
-                    $locs = $u->getLatLngs($users, FALSE, FALSE, FALSE, NULL, TRUE);
+                    $locs = $u->getLatLngs($users, FALSE, TRUE, FALSE, NULL, TRUE);
 
                     foreach ($users as $userid => $user) {
                         if (pres($userid, $locs)) {
@@ -273,8 +273,28 @@ ORDER BY dist ASC LIMIT 10;";
 
                         return [
                             'ret' => 0,
-                            'status' => 'Success',
-                            'dispatched' => TRUE
+                            'status' => 'Success'
+                        ];
+                    }
+                    case 'Hold': {
+                        $dbhm->preExec("UPDATE covid SET heldby = ? WHERE id = ?;", [
+                            $me->getId(),
+                            $id
+                        ]);
+
+                        return [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
+                    case 'Release': {
+                        $dbhm->preExec("UPDATE covid SET heldby = NULL WHERE id = ?;", [
+                            $id
+                        ]);
+
+                        return [
+                            'ret' => 0,
+                            'status' => 'Success'
                         ];
                     }
                 }
@@ -314,7 +334,7 @@ ORDER BY dist ASC LIMIT 10;";
                     }
                 }
 
-                foreach ([ 'phone', 'intro' ] as $att) {
+                foreach ([ 'phone', 'intro', 'closed', 'nolonger' ] as $att) {
                     if (array_key_exists($att, $_REQUEST)) {
                         $dbhm->preExec("UPDATE covid SET $att = ? WHERE id = ?", [
                             $_REQUEST[$att],
