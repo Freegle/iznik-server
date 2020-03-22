@@ -503,7 +503,23 @@ class Newsfeed extends Entity
             $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert')) AND $tq" : $tq;
             $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
-            $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL $typeq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
+            # We might have pinned some posts in a previous call.  Don't show them again.
+            $pinq = '';
+
+            if (pres('pinned', $ctx)) {
+                $pinq = " AND newsfeed.id NOT IN (";
+                $sep = '';
+
+                foreach (explode(',', $ctx['pinned']) as $id) {
+                    $pinq .= $sep . intval($id);
+                    $sep = ', ';
+                }
+
+                $pinq .= ")";
+            }
+
+
+            $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL $typeq $pinq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
             #error_log($sql);
             $entries = $this->dbhr->preQuery($sql);
             $last = NULL;
@@ -583,6 +599,8 @@ class Newsfeed extends Entity
 
                 $last = $entry;
             }
+
+            $ctx['pinned'] = array_column($topitems, 'id');
         }
 
         return([$users, array_merge($topitems, $bottomitems)]);
