@@ -14,6 +14,6 @@ Content-Type: multipart/alternative; boundary=001a11493718cc81e90532df7631
 --001a11493718cc81e90532df7631
 Content-Type: text/plain; charset=UTF-8
 
-Ok, here's a reply with https://USER_SITE?u=1234&k=5678 an url and https://USER_SITE/sub?a=1&u=1234&k=5678
+Ok, here's a reply with https://USER_SITE?u=1234&k=5678 an url and https://USER_SITE/sub?a=1&k=5678&u=1234
 
 --001a11493718cc81e90532df7631--
