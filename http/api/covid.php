@@ -162,11 +162,9 @@ ORDER BY dist ASC LIMIT 10;";
 
                                 # Add a count of how many matches we have, to avoid overloading.
                                 $sql = "SELECT COUNT(*) AS count, helper FROM covid_matches WHERE helper IN (" . implode(', ', $uids) . ") GROUP BY helper";
-                                error_log($sql);
                                 $matches = $dbhr->preQuery($sql);
 
                                 foreach ($matches as $key => $t) {
-                                    error_log("{$t['helper']} => {$t['count']}");
                                     $users[$t['helper']]['covid']['selectcount'] = $t['count'];
                                 }
 
