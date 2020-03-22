@@ -95,51 +95,7 @@ class Log
         $this->dbhm->background($sql);
     }
 
-    private $logUserCache = [];
-
-    private function getUserForLog($myid, $me, $uid, $groupid, $terse) {
-        if ($terse) {
-            # We don't want to get the user info - too slow.  Mock up enough to allow us to display a log.
-            $atts = [
-                'id' => $uid,
-                'displayname' => 'User #$uid'
-            ];
-        } else {
-            $u = $uid == $myid ? $me : User::get($this->dbhr, $this->dbhm, $uid);
-
-            # Have a simple array that we add to the start and remove from the end if full.  Frequently used entries
-            # will last a while in the array that way.  There are better algorithms, but Knuth isn't watching.
-            $atts = NULL;
-            foreach ($this->logUserCache as $entry) {
-                if ($entry['id'] == $uid) {
-                    $atts = $entry;
-                    break;
-                }
-            }
-
-            if (!$atts) {
-                $ctx = NULL;
-                $atts = $u->getPublic(FALSE, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-                $atts['email'] = $u->getEmailPreferred();
-
-                if (count($this->logUserCache) > Log::LOG_USER_CACHE_SIZE) {
-                    # Big - remove last.
-                    array_pop($this->logUserCache);
-                }
-
-                # Add to start.
-                array_unshift($this->logUserCache, $atts);
-            }
-
-            if ($groupid) {
-                $atts['email'] = $u->getEmailForYahooGroup($groupid, FALSE, FALSE)[1];
-            }
-        }
-
-        return($atts);
-    }
-
-    public function get($types, $subtypes, $groupid, $date, $search, $limit, &$ctx, $uid = NULL, $terse = FALSE) {
+    public function get($types, $subtypes, $groupid, $date, $search, $limit, &$ctx, $uid = NULL) {
         $groupq = $groupid ? " groupid = $groupid " : '1 = 1 ';
         $typeq = $types ? (" AND logs.type IN ('" . implode("','", $types) . "') ") : '';
         $subtypeq = $subtypes ? (" AND `subtype` IN ('" . implode("','", $subtypes) . "') ") : '';
@@ -197,6 +153,26 @@ class Log
         #error_log("...total logs $total");
         $count = 0;
 
+        $uids = array_filter(array_unique(array_merge(array_column($logs, 'user'), array_column($logs, 'byuser'))));
+        $u = new User($this->dbhr, $this->dbhm);
+        $ctx = NULL;
+        $users = [];
+        if (count($uids)) {
+            $users = $u->getPublicsById($uids, NULL, NULL, FALSE, $ctx, FALSE, TRUE, TRUE);
+        }
+
+        error_log("Fetchsed " . count($users) . " for " . json_encode($uids));
+
+        $mids = array_filter(array_column($logs, 'msgid'));
+        $msgs = [];
+
+        if (count($mids)) {
+            $ms = $this->dbhr->preQuery("SELECT id, subject, sourceheader, envelopeto FROM messages WHERE id IN (" . implode(',', $mids) .");");
+            foreach ($ms as $m) {
+                $msgs[$m['id']] = $m;
+            }
+        }
+
         foreach ($logs as &$log) {
             $count++;
 
@@ -207,28 +183,15 @@ class Log
             $log['timestamp'] = ISODate($log['timestamp']);
 
             if (pres('user', $log)) {
-                $log['user'] = $this->getUserForLog($myid, $me, $log['user'], $onyahoo ? $groupid : NULL, $terse);
+                $log['user'] = presdef($log['user'], $users, NULL);
             }
 
             if (pres('byuser', $log)) {
-                $log['byuser'] = $this->getUserForLog($myid, $me, $log['byuser'], $onyahoo ? $groupid : NULL, $terse);
+                $log['byuser'] = presdef($log['byuser'], $users, NULL);
             }
 
             if (pres('msgid', $log)) {
-                if ($terse) {
-                    # We don't want to get the full message - too slow.  Mock up enough to allow us to display a log.
-                    $log['message'] = [
-                        'id' => $log['msgid'],
-                        'subject' => "Message {$log['msgid']}"
-                    ];
-                } else {
-                    $m = pres($log['msgid'], $msgs) ? $msgs[$log['msgid']] : new Message($this->dbhr, $this->dbhm, $log['msgid']);
-                    $msgs[$log['msgid']] = $m;
-
-                    if ($m->getID() == $log['msgid']) {
-                        $log['message'] = $m->getPublic(FALSE, FALSE, FALSE);
-                    }
-                }
+                $log['message'] = presdef($log['msgid'], $msgs, NULL);
             }
 
             if ($log['subtype'] == Log::SUBTYPE_OUTCOME && $log['text']) {

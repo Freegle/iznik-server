@@ -5580,7 +5580,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         error_log("...logs");
         $l = new Log($this->dbhr, $this->dbhm);
         $ctx = NULL;
-        $d['logs'] = $l->get(NULL, NULL, NULL, NULL, NULL, PHP_INT_MAX, $ctx, $this->id, TRUE);
+        $d['logs'] = $l->get(NULL, NULL, NULL, NULL, NULL, PHP_INT_MAX, $ctx, $this->id);
 
         error_log("...add group to logs");
         $loggroups = [];
