@@ -23,7 +23,8 @@ class Group extends Entity
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo', 'publish',
         'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
-        'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation');
+        'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation',
+        'moderationstatus');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -34,6 +35,9 @@ class Group extends Entity
     const POSTING_PROHIBITED = 'PROHIBITED';
     const POSTING_DEFAULT = 'DEFAULT';
     const POSTING_UNMODERATED = 'UNMODERATED';
+
+    const OVERRIDE_MODERATION_NONE = 'None';
+    const OVERRIDE_MODERATION_ALL = 'ModerateAll';
 
     const FILTER_NONE = 0;
     const FILTER_WITHCOMMENTS = 1;

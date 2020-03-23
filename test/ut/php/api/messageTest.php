@@ -3065,4 +3065,55 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
         assertEquals(2, $m->getLikes(Message::LIKE_VIEW));
     }
+
+    public function testBigSwitch()
+    {
+        assertTrue(TRUE);
+
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        $this->group->setPrivate('onyahoo', 0);
+        $this->group->setPrivate('overridemoderation', Group::OVERRIDE_MODERATION_ALL);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail($email);
+        $u->addMembership($this->groupid);
+
+        # Take off moderation.
+        $u->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->groupid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        $this->log("Created draft $id");
+
+        # This will get sent; will get queued, as we don't have a membership for the group
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email,
+            'ignoregroupoverride' => true
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals('Success', $ret['status']);
+
+        # Should be pending because of the big switch.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertTrue($m->isPending($this->groupid));
+    }
+
 }

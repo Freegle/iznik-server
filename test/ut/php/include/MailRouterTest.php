@@ -1766,6 +1766,40 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($m->getPublic()['worry']);
     }
 
+    public function testBigSwitch() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 0);
+        $g->setPrivate('overridemoderation', Group::OVERRIDE_MODERATION_ALL);
+
+        # Now subscribe.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
+        $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
+        $this->log("Created $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('test@test.com');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $membs = $u->getMemberships();
+        assertEquals(1, count($membs));
+
+        # Mail - should be pending because of big switch.
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        $this->log("Mail message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::PENDING, $rc);
+        assertTrue($m->isPending($gid));
+    }
 
     //    public function testSpecial() {
 //        //

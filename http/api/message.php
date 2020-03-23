@@ -525,14 +525,18 @@ function message() {
                                                 $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];
                                             }
                                         } else {
-                                            # They're already a members, so we might be able to put this straight
+                                            # They're already a member, so we might be able to put this straight
                                             # to approved.
                                             #
                                             # The entire group might be moderated, or the member might be, in which
                                             # case the message goes to pending, otherwise approved.
                                             #
                                             # Worrying messages always go to Pending.
-                                            $postcoll = ($worry || $g->getSetting('moderated', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
+                                            if ($g->getPrivate('overridemoderation') === Group::OVERRIDE_MODERATION_ALL) {
+                                                $postcoll = MessageCollection::PENDING;
+                                            } else {
+                                                $postcoll = ($worry || $g->getSetting('moderated', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
+                                            }
                                         }
 
                                         # Check if it's spam
