@@ -112,7 +112,7 @@ class Admin extends Entity
     public function mailMembers($gently) {
         $mailers = [];
 
-        for ($i = 0; $i < Admin::SPOOLERS; $i++) {
+        for ($i = 1; $i <= Admin::SPOOLERS; $i++) {
             # Don't split on Travis.
             list ($transport, $mailer) = getMailer('localhost',getenv('STANDALONE')  ? '/spool' : (Admin::SPOOLNAME . $i));
             $mailers[$i] = $mailer;
@@ -179,12 +179,12 @@ class Admin extends Entity
 
                     if ($done % 1000 === 0 && $gently) {
                         # TODO Make generic
-                        $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool_bulk | wc -l 2>&1"));
+                        $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool_admin_* | wc -l 2>&1"));
 
                         if ($queuesize > 30000) {
                             while ($queuesize > 1000) {
                                 sleep(60);
-                                $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool_bulk | wc -l 2>&1"));
+                                $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool_admin_* | wc -l 2>&1"));
                                 error_log("...sleeping, spool queue $queuesize");
                             }
                         }
