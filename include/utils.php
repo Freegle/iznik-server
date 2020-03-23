@@ -449,8 +449,15 @@ function ourDomain($email) {
     return($ours);
 }
 
-function getMailer($host = 'localhost') {
-    $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
+function getMailer($host = 'localhost', $spoolname = '/spool') {
+    if (!file_exists(IZNIK_BASE . $spoolname)) {
+        mkdir(IZNIK_BASE . $spoolname);
+        chmod(IZNIK_BASE . $spoolname, 755);
+        chgrp(IZNIK_BASE . $spoolname, 'www-data');
+        chown(IZNIK_BASE . $spoolname, 'www-data');
+    }
+
+    $spool = new Swift_FileSpool(IZNIK_BASE . $spoolname);
     $spooltrans = Swift_SpoolTransport::newInstance($spool);
     $smtptrans = Swift_SmtpTransport::newInstance($host);
     $transport = Swift_FailoverTransport::newInstance([

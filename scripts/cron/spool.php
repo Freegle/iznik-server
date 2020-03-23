@@ -7,13 +7,17 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
+$opts = getopt('n:');
+
+$spoolname = presdef('n', $opts, '/spool');
+
 # Some messages can fail to send, if exim is playing up.
-$spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
+$spool = new Swift_FileSpool(IZNIK_BASE . $spoolname);
 $spool->recover(60);
 
 do {
     try {
-        $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
+        $spool = new Swift_FileSpool(IZNIK_BASE . $spoolname);
 
         $transport = Swift_SpoolTransport::newInstance($spool);
         $realTransport = Swift_SmtpTransport::newInstance();

@@ -10,6 +10,9 @@ require_once(IZNIK_BASE . '/mailtemplates/admin.php');
 
 class Admin extends Entity
 {
+    const SPOOLERS = 10;
+    const SPOOLNAME = '/spool_admin_';
+
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby', 'pending', 'parentid');
     var $settableatts = [ 'subject', 'text', 'pending' ];
@@ -21,6 +24,12 @@ class Admin extends Entity
     {
         $this->fetch($dbhr, $dbhm, $id, 'admins', 'admin', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
+        $mailers = [];
+
+        for ($i = 0; $i < Admin::SPOOLERS; $i++) {
+            list ($transport, $mailer) = getMailer('localhost', Admin::SPOOLNAME . $i);
+            $mailers[$i] = $mailer;
+        }
     }
 
     public function create($groupid, $createdby, $subject, $text) {
@@ -95,7 +104,11 @@ class Admin extends Entity
             if ($force || ($g->getPrivate('onhere') && $g->getPrivate('publish') && !$g->getPrivate('external'))) {
                 $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
                 $done += $a->mailMembers($gently);
-                $this->dbhm->preExec("UPDATE admins SET complete = NOW() WHERE id = ?;", [ $admin['id'] ]);
+                $this->dbhm->preExec("UPDATE admins SET complete = NOW() WHERE id = ?;", [$admin['id']]);
+            }
+
+            if (file_exists('/tmp/iznik.admins.abort')) {
+                exit(0);
             }
         }
 
@@ -103,7 +116,13 @@ class Admin extends Entity
     }
 
     public function mailMembers($gently) {
-        list ($transport, $mailer) = getMailer();
+        $mailers = [];
+
+        for ($i = 0; $i < Admin::SPOOLERS; $i++) {
+            list ($transport, $mailer) = getMailer('localhost', Admin::SPOOLNAME . $i);
+            $mailers[$i] = $mailer;
+        }
+
         $done = 0;
         $groupid = $this->admin['groupid'];
 
@@ -147,6 +166,9 @@ class Admin extends Entity
                     $msg = $this->constructMessage($groupname, $preferred, $u->getName(), $g->getAutoEmail(), $this->admin['subject'], $this->admin['text']);
 
                     Mail::addHeaders($msg, Mail::ADMIN, $u->getId());
+
+                    # Pick a random spooler.  This gives more throughput.
+                    $mailer = $mailers[rand(1, Admin::SPOOLERS)];
                     $mailer->send($msg);
 
                     if ($this->admin['parentid']) {
@@ -162,12 +184,12 @@ class Admin extends Entity
 
                     if ($done % 1000 === 0 && $gently) {
                         # TODO Make generic
-                        $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool | wc -l 2>&1"));
+                        $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool_bulk | wc -l 2>&1"));
 
                         if ($queuesize > 30000) {
                             while ($queuesize > 1000) {
                                 sleep(60);
-                                $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool | wc -l 2>&1"));
+                                $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool_bulk | wc -l 2>&1"));
                                 error_log("...sleeping, spool queue $queuesize");
                             }
                         }
