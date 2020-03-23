@@ -24,12 +24,6 @@ class Admin extends Entity
     {
         $this->fetch($dbhr, $dbhm, $id, 'admins', 'admin', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
-        $mailers = [];
-
-        for ($i = 0; $i < Admin::SPOOLERS; $i++) {
-            list ($transport, $mailer) = getMailer('localhost', Admin::SPOOLNAME . $i);
-            $mailers[$i] = $mailer;
-        }
     }
 
     public function create($groupid, $createdby, $subject, $text) {

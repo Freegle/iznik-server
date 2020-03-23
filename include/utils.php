@@ -450,7 +450,7 @@ function ourDomain($email) {
 }
 
 function getMailer($host = 'localhost', $spoolname = '/spool') {
-    if (!file_exists(IZNIK_BASE . $spoolname)) {
+    if (!getenv('STANDALONE') && !file_exists(IZNIK_BASE . $spoolname)) {
         mkdir(IZNIK_BASE . $spoolname);
         chmod(IZNIK_BASE . $spoolname, 755);
         chgrp(IZNIK_BASE . $spoolname, 'www-data');
