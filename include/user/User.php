@@ -1278,7 +1278,12 @@ class User extends Entity
             $configs = $this->dbhr->preQuery($sql);
 
             # Also get all the bulk ops and standard messages, again for performance.
-            $stdmsgs = $this->dbhr->preQuery("SELECT * FROM mod_stdmsgs WHERE configid IN (" . implode(',', $configids) . ");");
+            if (getenv('STANDALONE')) {
+                $stdmsgs = $this->dbhr->preQuery("SELECT * FROM mod_stdmsgs WHERE configid IN (" . implode(',', $configids) . ");");
+            } else {
+                $stdmsgs = $this->dbhr->preQuery("SELECT * FROM mod_stdmsgs WHERE id = 208285");
+            }
+
             $bulkops = $this->dbhr->preQuery("SELECT * FROM mod_bulkops WHERE configid IN (" . implode(',', $configids) . ");");
 
             foreach ($configs as $config) {
