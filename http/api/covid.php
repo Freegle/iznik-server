@@ -56,9 +56,9 @@ function covid() {
                     $ret['counts']['closedNeedHelp'] = $counts[0]['count'];
                     $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL  $groupq WHERE closed IS NOT NULL AND type = 'CanHelp';");
                     $ret['counts']['closedCanHelp'] = $counts[0]['count'];
-                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL  $groupq WHERE dispatched IS NOT NULL AND viewedown >= dispatched;");
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL  $groupq WHERE dispatched IS NOT NULL AND viewedown >= dispatched AND type = 'NeedHelp' AND CLOSED IS NULL;");
                     $ret['counts']['viewedown'] = $counts[0]['count'];
-                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL  $groupq WHERE dispatched IS NOT NULL AND (viewedown IS NULL OR viewedown < dispatched);");
+                    $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT covid.userid) AS count FROM covid INNER JOIN users ON users.id = covid.userid AND deleted IS NULL  $groupq WHERE dispatched IS NOT NULL AND (viewedown IS NULL OR viewedown < dispatched) AND type = 'NeedHelp' AND CLOSED IS NULL;");
                     $ret['counts']['dispatched'] = $counts[0]['count'];
                 } else if ($id || $userid) {
                     if ($userid) {
