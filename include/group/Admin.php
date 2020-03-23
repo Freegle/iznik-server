@@ -119,7 +119,8 @@ class Admin extends Entity
         $mailers = [];
 
         for ($i = 0; $i < Admin::SPOOLERS; $i++) {
-            list ($transport, $mailer) = getMailer('localhost', Admin::SPOOLNAME . $i);
+            # Don't split on Travis.
+            list ($transport, $mailer) = getMailer('localhost',getenv('STANDALONE')  ? '/spool' : (Admin::SPOOLNAME . $i));
             $mailers[$i] = $mailer;
         }
 
