@@ -718,7 +718,7 @@ CREATE TABLE `groups` (
   `seekingmods` tinyint(1) NOT NULL DEFAULT '0',
   `privategroup` tinyint(1) NOT NULL DEFAULT '0',
   `defaultlocation` bigint(20) unsigned DEFAULT NULL,
-  `overridemoderation` enum('None','ModerateAll') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'None'
+  `overridemoderation` enum('None','ModerateAll') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'None',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `nameshort` (`nameshort`),
