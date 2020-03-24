@@ -40,11 +40,12 @@
               Hi there,
             </mj-text>
             <mj-text>
-              We've found some people near you who have offered to help.  Please go to this link to
-              find out more and contact them.
+              The Government has now launched a registration scheme for people who may need help during the COVID-10 situation.
+              Since that's now up and running, we would encourage you to register on there.  We hope you stay
+              safe and get the help you need.
             </mj-text>
-            <mj-button width="200px" align="left" href="https://www.ilovefreegle.org/covid/followupneed" font-family="Helvetica" background-color="darkgreen" color="white">
-              Find out more
+            <mj-button width="200px" align="left" href="https://www.gov.uk/coronavirus-extremely-vulnerable" font-family="Helvetica" background-color="darkgreen" color="white">
+              Register here
             </mj-button>
             <mj-text>
               <p>Good luck, and stay well,</p>

@@ -15,34 +15,32 @@ require_once(IZNIK_BASE . '/include/misc/Donations.php');
 $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
 $twig = new Twig_Environment($loader);
 
-$users = $dbhr->preQuery("SELECT  userid FROM covid WHERE type = ? AND dispatched IS NOT NULL;", [
+$users = $dbhr->preQuery("SELECT  userid FROM covid WHERE type = ? AND nolonger = 0;", [
     'NeedHelp'
 ]);
 
 $count = 0;
 
 foreach ($users as $user) {
-    # See if we have new suggestions.
-    $helpers = $dbhr->preQuery("SELECT * FROM covid_matches WHERE helpee = ? AND emailed IS NULL;", [
-        $user['userid']
-    ]);
-    $count = count($helpers);
-    error_log("{$user['userid']} found $count helpers");
-
-    if ($count > 0) {
         $u = new User($dbhr, $dbhm, $user['userid']);
         $ours = $u->getOurEmail();
 
         try {
             list ($transport, $mailer) = getMailer();
             $m = Swift_Message::newInstance()
-                ->setSubject('COVID-19 - some people have offered to help you')
+                ->setSubject('COVID-19 - Government Registration Scheme')
                 ->setFrom([NOREPLY_ADDR => SITE_NAME])
                 ->setReplyTo('covid19@ilovefreegle.org')
                 ->setTo($u->getEmailPreferred())
+//                    ->setTo('log@ehibbert.org.uk')
                 ->setBody("Hi there,
              
-             We have some suggestions of people who may be able to help.  Please go to https://www.ilovefreegle.org/covid/followupneed
+                           The Government has now launched a registration scheme for people who may need help during the COVID-10 situation.
+              Since that's now up and running, we would encourage you to register on there.  We hope you stay
+              safe and get the help you need.
+              
+            \r\n\r\n
+            https://www.gov.uk/coronavirus-extremely-vulnerable
                   
                   Thanks,
                   
@@ -64,15 +62,7 @@ foreach ($users as $user) {
 
             $mailer->send($m);
 
-            $dbhm->preExec("UPDATE covid SET lastmailed = NOW() WHERE userid = ?;", [
-                $user['userid']
-            ]);
-
-            foreach ($helpers as $helper) {
-                $dbhm->preExec("UPDATE covid_matches SET emailed = NOW() WHERE id = ?", [
-                    $helper['id']
-                ]);
-            }
+            exit(0);
         } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
-    }
+
 }

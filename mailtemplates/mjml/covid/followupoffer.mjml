@@ -40,16 +40,17 @@
               Hi there,
             </mj-text>
             <mj-text>
-              Thanks for replying offering help - that's very kind at this busy and stressful time.
+              Thanks for replying offering help.  The Government have now announced their NHS Volunteers scheme.
             </mj-text>
             <mj-text>
-              We'd like to get a contact phone number from you that we can pass on to people nearby who might need help.
+              Now that they are getting organised, if you still are able and willing to help, we think it makes
+              sense to join in with that.
             </mj-text>
-            <mj-button width="200px" align="left" href="https://www.ilovefreegle.org/covid/followupoffer" font-family="Helvetica" background-color="darkgreen" color="white">
-              Provide a Phone Number
+            <mj-button width="200px" align="left" href="https://www.goodsamapp.org/NHS" font-family="Helvetica" background-color="darkgreen" color="white">
+              NHS Volunteers
             </mj-button>
             <mj-text>
-              <p>Thanks very much,</p>
+              <p>Thanks very much, and stay well</p>
               <p>Freegle</p>
             </mj-text>
           </mj-column>
