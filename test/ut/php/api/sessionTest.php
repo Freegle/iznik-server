@@ -492,6 +492,30 @@ class sessionTest extends IznikAPITestCase
 
         }
 
+    public function testConfirmUnsubscribe()
+    {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@test.com');
+
+        $ret = $this->call('session', 'POST', [
+            'action' => 'Unsubscribe'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('session', 'POST', [
+            'action' => 'Unsubscribe',
+            'email' => 'zzzz'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('session', 'POST', [
+            'action' => 'Unsubscribe',
+            'email' => 'test@test.com'
+        ]);
+        assertEquals(0, $ret['ret']);
+    }
+
     public function testForget()
     {
         # Try logged out - should fail.

@@ -408,6 +408,21 @@ function session() {
                         break;
                     }
 
+                    case 'Unsubscribe': {
+                        $id = $user->findByEmail($email);
+                        $ret = [ 'ret' => 2, "We don't know that email address" ];
+
+                        if ($id) {
+                            $u = User::get($dbhr, $dbhm, $id);
+
+                            # Get an auto-login unsubscribe link
+                            $u->confirmUnsubscribe();
+                            $ret = [ 'ret' => 0, 'status' => "Success", 'emailsent' => TRUE ];
+                        }
+
+                        break;
+                    }
+
                     case 'Forget': {
                         $ret = array('ret' => 1, 'status' => 'Not logged in');
 

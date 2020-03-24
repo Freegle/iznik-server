@@ -1103,7 +1103,7 @@ class User extends Entity
                     ]);
 
                     if (ourDomain($email['email'])) {
-                        # This is an email address we host, so we can email an unsubscribe request.  We do both this and
+                        # This is an email address we host, so we can email an unsubscuribe request.  We do both this and
                         # the plugin work because Yahoo is as flaky as all get out.
                         for ($i = 0; $i < 10; $i++) {
                             list ($transport, $mailer) = getMailer();
@@ -3917,6 +3917,24 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($rc);
     }
 
+    public function confirmUnsubscribe()
+    {
+        list ($transport, $mailer) = getMailer();
+
+        $link = $this->getUnsubLink(USER_SITE, $this->id, NULL, TRUE) . "&confirm=1";
+
+        $message = Swift_Message::newInstance()
+            ->setSubject("Please confirm you want to leave Freegle")
+            ->setFrom(NOREPLY_ADDR)
+            ->setReplyTo(SUPPORT_ADDR)
+            ->setTo($this->getEmailPreferred())
+            ->setDate(time())
+            ->setBody("Please click here to leave Freegle:\r\n\r\n$link\r\n\r\nIf you didn't try to leave, please ignore this mail.");
+
+        Mail::addHeaders($message, Mail::UNSUBSCRIBE);
+        $this->sendIt($mailer, $message);
+    }
+
     public function inventEmail($force = FALSE)
     {
         # An invented email is one on our domain that doesn't give away too much detail, but isn't just a string of
@@ -4108,9 +4126,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($rc);
     }
 
-    public function getUnsubLink($domain, $id, $type = NULL)
+    public function getUnsubLink($domain, $id, $type = NULL, $auto = FALSE)
     {
-        return (User::loginLink($domain, $id, "/unsubscribe/$id", $type));
+        return (User::loginLink($domain, $id, "/unsubscribe/$id", $type, $auto));
     }
 
     public function listUnsubscribe($domain, $id, $type = NULL)

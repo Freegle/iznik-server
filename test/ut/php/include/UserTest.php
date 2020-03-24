@@ -812,7 +812,28 @@ class userTest extends IznikTestCase {
         assertNotNull($u2->addEmail('test@test.com'));
         assertTrue($u2->verifyEmail('test@test.com'));
 
-        }
+    }
+
+    public function testConfirmUnsubscribe() {
+        $_SERVER['HTTP_HOST'] = 'localhost';
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+
+        $s = $this->getMockBuilder('User')
+            ->setConstructorArgs([ $this->dbhr, $this->dbhm, $uid ])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $s->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        $s->confirmUnsubscribe();
+        assertEquals(1, count($this->msgsSent));
+        assertTrue(strpos($this->msgsSent[0], '&k=') !== FALSE);
+        assertTrue(strpos($this->msgsSent[0], '&confirm') !== FALSE);
+    }
 
     public function testCanon() {
         assertEquals('test@testcom', User::canonMail('test@test.com'));
