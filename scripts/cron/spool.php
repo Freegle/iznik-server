@@ -5,11 +5,11 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
 global $dbhr, $dbhm;
 
-$lockh = lockScript(basename(__FILE__));
-
 $opts = getopt('n:');
-
 $spoolname = presdef('n', $opts, '/spool');
+
+$lockh = lockScript(basename(__FILE__ . '_' . $spoolname));
+
 
 # Some messages can fail to send, if exim is playing up.
 $spool = new Swift_FileSpool(IZNIK_BASE . $spoolname);
@@ -28,7 +28,7 @@ do {
             $sent = $spool->flushQueue($realTransport);
 
             echo "Sent $sent emails\n";
-            break;
+            sleep(1);
         } else {
             error_log("Couldn't get spool, sleep and retry");
             sleep(1);
