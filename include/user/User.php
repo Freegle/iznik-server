@@ -3929,7 +3929,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             ->setReplyTo(SUPPORT_ADDR)
             ->setTo($this->getEmailPreferred())
             ->setDate(time())
-            ->setBody("Please click here to leave Freegle:\r\n\r\n$link\r\n\r\nIf you didn't try to leave, please ignore this mail.");
+            ->setBody("Please click here to leave Freegle:\r\n\r\n$link\r\n\r\nIf you didn't try to leave, please ignore this mail.\r\n\r\nThanks for freegling, and do please come back in the future.");
 
         Mail::addHeaders($message, Mail::UNSUBSCRIBE);
         $this->sendIt($mailer, $message);

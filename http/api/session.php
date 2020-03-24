@@ -410,7 +410,7 @@ function session() {
 
                     case 'Unsubscribe': {
                         $id = $user->findByEmail($email);
-                        $ret = [ 'ret' => 2, status => "We don't know that email address" ];
+                        $ret = [ 'ret' => 2, 'status' => "We don't know that email address" ];
 
                         if ($id) {
                             $u = User::get($dbhr, $dbhm, $id);
