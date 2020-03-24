@@ -28,7 +28,6 @@ do {
             $sent = $spool->flushQueue($realTransport);
 
             echo "Sent $sent emails\n";
-            sleep(1);
         } else {
             error_log("Couldn't get spool, sleep and retry");
             sleep(1);
