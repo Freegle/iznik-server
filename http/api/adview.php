@@ -34,7 +34,7 @@ function adview() {
                     }
                 }
 
-                $url = "https://adview.online/api/v1/jobs.json?publisher=2053&channel=web&limit=50&radius=5&user_ip=$ip&location=" . urlencode($location);
+                $url = "https://uk.whatjobs.com/api/v1/jobs.json?publisher=2053&channel=web&limit=50&radius=5&user_ip=$ip&location=" . urlencode($location);
 
                 $ctx = stream_context_create(array('http'=> [
                     'timeout' => 10,

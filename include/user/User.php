@@ -1129,22 +1129,24 @@ class User extends Entity
             ]);
         }
 
-        $l = new Log($this->dbhr, $this->dbhm);
-        $l->log([
-            'type' => Log::TYPE_GROUP,
-            'subtype' => Log::SUBTYPE_LEFT,
-            'user' => $this->id,
-            'byuser' => $meid,
-            'groupid' => $groupid,
-            'text' => $spam ? "Autoremoved spammer" : ($ban ? "via ban" : NULL)
-        ]);
-
         # Now remove the membership.
         $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
             [
                 $this->id,
                 $groupid
             ]);
+
+        if ($this->dbhm->rowsAffected()) {
+            $l = new Log($this->dbhr, $this->dbhm);
+            $l->log([
+                'type' => Log::TYPE_GROUP,
+                'subtype' => Log::SUBTYPE_LEFT,
+                'user' => $this->id,
+                'byuser' => $meid,
+                'groupid' => $groupid,
+                'text' => $spam ? "Autoremoved spammer" : ($ban ? "via ban" : NULL)
+            ]);
+        }
 
         return ($rc);
     }
@@ -6152,7 +6154,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if (!is_file($fn) || (time() - filemtime($fn) > 20 * 3600)) {
                 # No cache or time to update.
-                $url = "https://adview.online/api/v1/jobs.json?publisher=2053&channel=email&limit=50&radius=5&location=" . urlencode($search);
+                $url = "https://uk.whatjobs.com/api/v1/jobs.json?publisher=2053&channel=email&limit=50&radius=5&location=" . urlencode($search);
                 $data = @file_get_contents($url);
                 file_put_contents($fn, $data);
             } else {
