@@ -2006,9 +2006,10 @@ ORDER BY lastdate DESC;";
         return($subj);
     }
 
-    public function createDraft() {
+    public function createDraft($uid = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
+        $myid = $myid ? $myid : $uid;
         $sess = session_id();
 
         $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader, date, fromip, message) VALUES(?,?, NOW(), ?, '');", [

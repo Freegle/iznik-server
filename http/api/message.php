@@ -138,11 +138,19 @@ function message() {
 
                         $ret = [ 'ret' => 3, 'status' => 'Missing location - client error' ];
 
+                        $email = presdef('email', $_REQUEST, NULL);
+
+                        if ($email) {
+                            # We're queueing a draft so we need to save the user it.
+                            $u = new User($dbhr, $dbhm);
+                            $uid = $u->findByEmail($email);
+                        }
+
                         if ($locationid) {
                             # We check the ID on the message object to handle the case where the client passes
                             # an ID which is not valid on the server.
                             if (!$m->getID()) {
-                                $id = $m->createDraft();
+                                $id = $m->createDraft($uid);
 
                                 # Use the master to avoid any replication windows.
                                 $m = new Message($dbhm, $dbhm, $id);
@@ -199,6 +207,12 @@ function message() {
                                 $m->addItem($itemid);
 
                                 $fromuser = $me ? $me->getId() : NULL;
+
+                                if (!$fromuser) {
+                                    # Creating a draft - use the supplied email.
+                                    $fromuser = $uid;
+                                }
+
                                 $textbody = presdef('textbody', $_REQUEST, NULL);
                                 $attachments = presdef('attachments', $_REQUEST, []);
                                 $m->setPrivate('locationid', $locationid);
