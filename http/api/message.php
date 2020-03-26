@@ -139,6 +139,7 @@ function message() {
                         $ret = [ 'ret' => 3, 'status' => 'Missing location - client error' ];
 
                         $email = presdef('email', $_REQUEST, NULL);
+                        $uid = NULL;
 
                         if ($email) {
                             # We're queueing a draft so we need to save the user it.
