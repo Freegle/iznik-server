@@ -39,23 +39,38 @@ function admin() {
 
         case 'POST': {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
+            $action = presdef('action', $_REQUEST, NULL);
 
             if ($me) {
-                $ret = ['ret' => 2, 'status' => "Can't create an admin on that group" ];
-                $subject = presdef('subject', $_REQUEST, NULL);
-                $text = presdef('text', $_REQUEST, NULL);
+                if ($action == 'Hold') {
+                    $a->hold();
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == 'Release') {
+                    $a->release();
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else {
+                    $ret = ['ret' => 2, 'status' => "Can't create an admin on that group" ];
+                    $subject = presdef('subject', $_REQUEST, NULL);
+                    $text = presdef('text', $_REQUEST, NULL);
 
-                # Admin and Support can create suggested admins, which aren't attached to a group.
-                if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
-                    $ret = ['ret' => 3, 'status' => "Create failed" ];
-                    $aid = $a->create($groupid, $me->getId(), $subject, $text);
+                    # Admin and Support can create suggested admins, which aren't attached to a group.
+                    if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
+                        $ret = ['ret' => 3, 'status' => "Create failed" ];
+                        $aid = $a->create($groupid, $me->getId(), $subject, $text);
 
-                    if ($aid) {
-                        $ret = [
-                            'ret' => 0,
-                            'status' => 'Success',
-                            'id' => $aid
-                        ];
+                        if ($aid) {
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                                'id' => $aid
+                            ];
+                        }
                     }
                 }
             }

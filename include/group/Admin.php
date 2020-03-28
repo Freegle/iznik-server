@@ -14,7 +14,7 @@ class Admin extends Entity
     const SPOOLNAME = '/spool_admin_';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby', 'pending', 'parentid');
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby', 'pending', 'parentid', 'heldby', 'heldat');
     var $settableatts = [ 'subject', 'text', 'pending' ];
 
     /** @var  $log Log */
@@ -249,6 +249,21 @@ class Admin extends Entity
         }
 
         return($ret);
+    }
+
+    public function hold() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $this->dbhm->preExec("UPDATE admins SET heldby = ?, heldat = NOW() WHERE id = ?;", [
+            $me->getId(),
+            $this->id
+        ]);
+    }
+
+    public function release() {
+        $this->dbhm->preExec("UPDATE admins SET heldby = NULL WHERE id = ?;", [
+            $this->id
+        ]);
     }
 
     public function delete() {
