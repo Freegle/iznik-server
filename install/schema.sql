@@ -144,6 +144,8 @@ CREATE TABLE `admins` (
   `text` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `pending` tinyint(1) NOT NULL DEFAULT '1',
   `parentid` bigint(20) unsigned DEFAULT NULL,
+  `heldby` bigint(20) UNSIGNED DEFAULT NULL,
+  `heldat` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   KEY `createdby` (`createdby`),
