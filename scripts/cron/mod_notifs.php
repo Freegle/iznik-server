@@ -76,6 +76,9 @@ if ($hour >= 8 && $hour <= 21)
                     'Spam Members' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM users INNER JOIN memberships ON memberships.groupid = ? AND memberships.userid = users.id WHERE suspectcount > 0 " . ($minage > 0 ? " AND memberships.added < '$minageq'" : '') . ";", [
                         $group['id'],
                     ])[0]['count'],
+                    'Pending Admins' => $dbhr->preQuery("SELECT COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid = ? AND admins.complete IS NULL AND admins.pending = 1 AND admins.heldby IS NULL;", [
+                        $group['id']
+                    ])[0]['count']
                 ];
 
                 $total = 0;
@@ -165,8 +168,11 @@ foreach ($mail as $id => $work) {
         $age = time() - strtotime($m['timestamp']);
     }
 
+    error_log("Mail {$work['email']} $textsumm");
+    exit(0);
     if (!$last || strcmp($textsumm, $last) !== 0 || ($age !== NULL && $age > 24 * 60 * 60)) {
         # We send a notification if the info has changed, or it's the first, or it's been more than a day.
+        error_log("Mail {$work['email']} $textsumm");
         $dbhm->preExec("REPLACE INTO modnotifs (userid, data) VALUES (?, ?);", [
             $id,
             $textsumm
