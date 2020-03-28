@@ -10,7 +10,6 @@ $spoolname = presdef('n', $opts, '/spool');
 
 $lockh = lockScript(basename(__FILE__ . '_' . $spoolname));
 
-
 # Some messages can fail to send, if exim is playing up.
 $spool = new Swift_FileSpool(IZNIK_BASE . $spoolname);
 $spool->recover(60);
@@ -28,6 +27,7 @@ do {
             $sent = $spool->flushQueue($realTransport);
 
             echo "Sent $sent emails\n";
+            break;
         } else {
             error_log("Couldn't get spool, sleep and retry");
             sleep(1);
