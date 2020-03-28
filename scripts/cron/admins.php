@@ -22,7 +22,7 @@ foreach ($suggesteds as $suggested) {
     foreach ($groups as $group) {
         $g = new Group($dbhr, $dbhm, $group['id']);
 
-        if ($g->getSetting('suggestedadmins', 1)) {
+        if ($g->getSetting('autoadmins', 1)) {
             $already = $dbhr->preQuery("SELECT * FROM admins WHERE groupid = ? AND parentid = ?;", [
                 $group['id'],
                 $suggested['id']
