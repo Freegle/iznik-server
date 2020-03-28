@@ -999,7 +999,7 @@ class Newsfeed extends Entity
                 # Got some to send
                 $url = $mod->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
 
-                $subj = $count . " newsfeed post" . ($count != 1 ? 's': '') . " from your members";
+                $subj = $count . " chitchat post" . ($count != 1 ? 's': '') . " from your members";
 
                 $html = $twig->render('newsfeed/modnotif.html', [
                     'items' => $twigitems,
@@ -1012,7 +1012,7 @@ class Newsfeed extends Entity
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath($mod->getBounce())
                     ->setTo([ $mod->getEmailPreferred() => $mod->getName() ])
-                    ->setBody("Recent newsfeed posts from your members:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
+                    ->setBody("Recent chitchat posts from your members:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
 
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                 # Outlook.
