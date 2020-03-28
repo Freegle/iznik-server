@@ -233,19 +233,19 @@ class Admin extends Entity
 
     public function listPending($userid) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        $membs = $u->getMemberships(TRUE, NULL, TRUE);
         $ret = [];
-        $admins = [];
 
-        foreach ($membs as $memb) {
-            if ($memb['work']['pendingadmins']) {
-                $admins = array_merge($admins, $this->dbhr->preQuery("SELECT id FROM admins WHERE groupid = ? AND pending = 1 AND complete IS NULL ORDER BY created DESC;", [ $memb['id']]));
-            }
-        }
+        $admins = $this->dbhr->preQuery("SELECT admins.id, admins.groupid FROM admins INNER JOIN memberships ON memberships.groupid = admins.groupid WHERE memberships.userid = ? AND pending = 1 AND complete IS NULL AND role IN ('Moderator', 'Owner') ORDER BY created ASC;", [
+            $userid
+        ]);
+
+        $u = new User($this->dbhr, $this->dbhm, $userid);
 
         foreach ($admins as $admin) {
-            $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
-            $ret[] = $a->getPublic();
+            if ($u->activeModForGroup($admin['groupid'])) {
+                $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
+                $ret[] = $a->getPublic();
+            }
         }
 
         return($ret);

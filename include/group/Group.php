@@ -426,7 +426,7 @@ GROUP BY memberships.groupid, held;
                 $eventsqltime
             ]);
 
-            $pendingadmins = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid IN $groupq AND admins.complete IS NULL AND admins.pending = 1 GROUP BY groupid;");
+            $pendingadmins = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid IN $groupq AND admins.complete IS NULL AND admins.pending = 1 AND heldby IS NULL GROUP BY groupid;");
 
             # We only want to show edit reviews upto 7 days old - after that assume they're ok.
             #
