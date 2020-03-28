@@ -41,14 +41,13 @@ $dbhn = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-# TODO Need to use u_DontDelete
 $start = date('Y-m-d', strtotime("30 years ago"));
 $alluserssql = "SELECT * FROM u_User
               WHERE u_Id IN
    (SELECT DISTINCT u_Id FROM u_User
        LEFT JOIN pr_PostResponder ON pr_PostResponder.pr_u_Id_Responder = u_User.u_Id
        LEFT JOIN p_Post ON p_Post.p_u_Id = u_User.u_Id
-   WHERE u_IsActive = 1 AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpdatedDt >= '$start' OR u_CreatedDt >= '$start'));";
+   WHERE u_IsActive = 1 AND u_DontDelete = 0 AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpdatedDt >= '$start' OR u_CreatedDt >= '$start'));";
 
 $users = $dbhn->preQuery($alluserssql);
 $total = count($users);

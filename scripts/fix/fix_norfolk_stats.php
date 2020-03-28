@@ -27,7 +27,7 @@ $groups = $dbhr->preQuery("SELECT * FROM groups  WHERE id IN (515504,
 foreach ($groups as $group) {
     $epoch = strtotime("today");
 
-    for ($i = 0; $i < 2000; $i++) {
+    for ($i = 0; $i < 100; $i++) {
         $date = date('Y-m-d', $epoch);
         error_log("...{$group['nameshort']} $date");
 
@@ -43,7 +43,7 @@ foreach ($groups as $group) {
 
 # Update outcomes stats
 $mysqltime = date("Y-m-01", strtotime("10 years ago"));
-$stats = $dbhr->preQuery("SELECT groupid, SUM(count) AS count, CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) AS date FROM stats WHERE type = ? AND date > ? AND groupd IN (
+$stats = $dbhr->preQuery("SELECT groupid, SUM(count) AS count, CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) AS date FROM stats WHERE type = ? AND date > ? AND groupid IN (
 515504,
 515507,
 515510,
