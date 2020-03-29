@@ -46,13 +46,23 @@ if (($sso->validatePayload($payload,$signature))) {
                     $ctx = NULL;
                     $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
 
-                    $memberships = $u->getModGroupsByActivity();
-
-                    if (count($memberships) === 0) {
+                    if (!$u->isFreegleMod()) {
                         # Not a Freegle mod.
                         error_log('discourse_sso - Not a Freegle mod');
                         echo "You are not a moderator of a Freegle group";
                         exit(0);
+                    }
+
+                    $memberships = $u->getModGroupsByActivity();
+
+                    if (!count($memberships)) {
+                        # We know they're a Freegle mod, they've just not been active.  So show them on all groups
+                        # they're a mod on.
+                        $modlist = $u->getModeratorships();
+
+                        if (count($modlist)) {
+                            $memberships = $dbhr->preQuery("SELECT COALESCE(namefull, nameshort) AS namedisplay FROM groups WHERE id IN (" . implode(', ', $modlist) . ")");
+                        }
                     }
 
                     $grouplist = [];

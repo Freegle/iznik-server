@@ -1330,10 +1330,15 @@ WHERE chat_rooms.id IN $idlist;";
         # so that we can pass the fetched attributes into the constructor for each ChatMessage below.
         #
         # This saves us a lot of DB operations.
+        $emailq1 = MODTOOLS ? ",chat_messages_byemail.msgid AS bymailid" : '';
+        $emailq2 = MODTOOLS ? "LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id" : '';
+
         $sql = "SELECT chat_messages.*, 
-                users_images.id AS userimageid, users_images.url AS userimageurl, users.systemrole, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS userdisplayname 
+                users_images.id AS userimageid, users_images.url AS userimageurl, users.systemrole, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS userdisplayname
+                $emailq1
                 FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid 
                 LEFT JOIN users_images ON users_images.userid = users.id 
+                $emailq2
                 WHERE chatid = ? $seenfilt $ctxq ORDER BY chat_messages.id DESC LIMIT $limit;";
         $msgs = $this->dbhr->preQuery($sql, [$this->id]);
         $msgs = array_reverse($msgs);
@@ -1365,6 +1370,8 @@ WHERE chat_rooms.id IN $idlist;";
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id'], $msg);
             $atts = $m->getPublic($refmsgsummary);
+            $atts['bymailid'] = $msg['bymailid'];
+
             $refmsgid = $m->getPrivate('refmsgid');
 
             if ($lastm &&
