@@ -59,7 +59,6 @@ if (($sso->validatePayload($payload,$signature))) {
                         # We know they're a Freegle mod, they've just not been active.  So show them on all groups
                         # they're a mod on.
                         $modlist = $u->getModeratorships();
-
                         if (count($modlist)) {
                             $memberships = $dbhr->preQuery("SELECT COALESCE(namefull, nameshort) AS namedisplay FROM groups WHERE id IN (" . implode(', ', $modlist) . ")");
                         }
