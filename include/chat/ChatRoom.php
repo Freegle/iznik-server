@@ -1634,8 +1634,12 @@ WHERE chat_rooms.id IN $idlist;";
                 # Although that runs the risk of annoying them if they've left, we also have to be able to handle
                 # the case where someone replies from a different email which isn't a group membership, and we
                 # want to notify that email.
-                #error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
-                $mailson = $thisu->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
+                #
+                # If this is a conversation between the user and a mod, we always mail the user.
+                $emailnotifson = $thisu->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
+                $forcemailfrommod = ($chat['chattype'] === ChatRoom::TYPE_USER2MOD && $chat['user1'] === $member['userid']);
+                $mailson = $emailnotifson || $forcemailfrommod;
+                #error_log("Consider mail {$member['userid']}, mails on " . $thisu->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($thisu->getMemberships()));
 
                 # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they
                 # have changed settings.
@@ -1802,6 +1806,8 @@ WHERE chat_rooms.id IN $idlist;";
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
                                 $lastmsg = $thisone;
                             }
+//                        } else {
+//                            error_log("Skip {$member['userid']} as mails off");
                         }
                     }
 
@@ -1834,10 +1840,6 @@ WHERE chat_rooms.id IN $idlist;";
                                         $site = MOD_SITE;
                                     }
                                     break;
-//                            case ChatRoom::TYPE_MOD2MOD:
-//                                $subject = "New messages in Mod Chat";
-//                                $site = MOD_SITE;
-//                                break;
                             }
 
                             # Construct the SMTP message.
@@ -2017,29 +2019,33 @@ WHERE chat_rooms.id IN $idlist;";
             if ($sentsome) {
                 # We have now mailed some more.  Note that this is resilient to new messages arriving while we were
                 # looping above, because of lastmaxmailed, and we will mail those next time.
-                #
-                # Find the max message we have mailed to all members of the chat.  Note that this might be less than
-                # the max message we just sent.  We might have mailed a message to one user in the chat but not another
-                # because we might have thought it was too soon to mail again.  So we need to get it from the roster.
-                $mailedtoall = PHP_INT_MAX;
-                $maxes = $this->dbhm->preQuery("SELECT lastmsgemailed, userid FROM chat_roster WHERE chatid = ? GROUP BY userid", [
-                    $chat['chatid']
-                ], FALSE, FALSE);
-                foreach ($maxes as $max) {
-                    $mailedtoall = min($mailedtoall, $max['lastmsgemailed']);
-                }
-
-                $lastmaxmailed = $lastmaxmailed ? $lastmaxmailed : 0;
-                #error_log("Set mailedto all for $lastmaxmailed to $maxmailednow for {$chat['chatid']}");
-                $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id > ? AND id <= ? AND chatid = ?;", [
-                    $lastmaxmailed,
-                    $mailedtoall,
-                    $chat['chatid']
-                ]);
+                $this->updateMaxMailed($chattype, $chat['chatid'], $lastmaxmailed);
             }
         }
 
         return ($notified);
+    }
+
+    public function updateMaxMailed($chattype, $chatid, $lastmaxmailed) {
+        # Find the max message we have mailed to all members of the chat.  Note that this might be less than
+        # the max message we just sent.  We might have mailed a message to one user in the chat but not another
+        # because we might have thought it was too soon to mail again.  So we need to get it from the roster.
+        $mailedtoall = PHP_INT_MAX;
+        $maxes = $this->dbhm->preQuery("SELECT lastmsgemailed, userid FROM chat_roster WHERE chatid = ? GROUP BY userid", [
+            $chatid
+        ], FALSE, FALSE);
+
+        foreach ($maxes as $max) {
+            $mailedtoall = min($mailedtoall, $max['lastmsgemailed']);
+        }
+
+        $lastmaxmailed = $lastmaxmailed ? $lastmaxmailed : 0;
+        #error_log("Set mailedto all for $lastmaxmailed to $maxmailednow for {$chat['chatid']}");
+        $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id > ? AND id <= ? AND chatid = ?;", [
+            $lastmaxmailed,
+            $mailedtoall,
+            $chatid
+        ]);
     }
 
     public function splitAndQuote($str) {
