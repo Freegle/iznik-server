@@ -109,7 +109,7 @@ class Admin extends Entity
         return($done);
     }
 
-    public function mailMembers($gently, $userid) {
+    public function mailMembers($gently, $userid = NULL) {
         $mailers = [];
 
         for ($i = 1; $i <= Admin::SPOOLERS; $i++) {
