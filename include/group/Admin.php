@@ -109,7 +109,7 @@ class Admin extends Entity
         return($done);
     }
 
-    public function mailMembers($gently) {
+    public function mailMembers($gently, $userid) {
         $mailers = [];
 
         for ($i = 1; $i <= Admin::SPOOLERS; $i++) {
@@ -126,8 +126,9 @@ class Admin extends Entity
 
         $groupname = $atts['namedisplay'];
         $onyahoo = $atts['onyahoo'];
+        $userq = $userid ? " AND userid = $userid " : '';
 
-        $sql = "SELECT userid FROM memberships WHERE groupid = ?;";
+        $sql = "SELECT userid FROM memberships WHERE groupid = ? $userq;";
         $members = $this->dbhr->preQuery($sql, [ $groupid ]);
 
         foreach ($members as $member) {
