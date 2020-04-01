@@ -147,7 +147,7 @@ class ModConfig extends Entity
             }
         } else {
             # It saves a lot of queries to get all the standard messages at once.
-            if (getenv('STANDALONE')) {
+            if (getenv('STANDALONE') || pres('configuring', $_REQUEST) || strpos(SITE_HOST, 'iznik.modtools.org') !== NULL) {
                 $sql = "SELECT * FROM mod_stdmsgs WHERE configid = {$this->id};";
             } else {
                 $sql = "SELECT * FROM mod_stdmsgs WHERE id = 208285";
@@ -155,7 +155,7 @@ class ModConfig extends Entity
 
             $stdmsgs = $this->dbhr->query($sql);
 
-            if (!getenv('STANDALONE')) {
+            if (!getenv('STANDALONE') && !pres('configuring', $_REQUEST) && SITE_HOST != 'iznik.modtools.org') {
                 # Force all to use this COVID message..
                 foreach ($stdmsgs as &$stdmsg) {
                     $stdmsg['configid'] = $this->id;
