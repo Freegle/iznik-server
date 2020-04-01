@@ -147,7 +147,7 @@ class ModConfig extends Entity
             }
         } else {
             # It saves a lot of queries to get all the standard messages at once.
-            if (getenv('STANDALONE') || pres('configuring', $_REQUEST) || strpos(SITE_HOST, 'iznik.modtools.org') !== NULL) {
+            if (getenv('STANDALONE') || pres('configuring', $_REQUEST) || strpos(SITE_HOST, 'iznik.modtools.org') !== FALSE) {
                 $sql = "SELECT * FROM mod_stdmsgs WHERE configid = {$this->id};";
             } else {
                 $sql = "SELECT * FROM mod_stdmsgs WHERE id = 208285";
@@ -448,7 +448,7 @@ class ModConfig extends Entity
     }
 
     public function getUsing() {
-        $usings = $this->dbhr->preQuery("SELECT userid, firstname, lastname, fullname FROM users INNER JOIN memberships m on users.id = m.userid WHERE m.configid = ? AND m.role IN (?, ?) LIMIT 10;", [
+        $usings = $this->dbhr->preQuery("SELECT DISTINCT userid, firstname, lastname, fullname FROM users INNER JOIN memberships m on users.id = m.userid WHERE m.configid = ? AND m.role IN (?, ?) LIMIT 10;", [
             $this->id,
             User::ROLE_OWNER,
             User::ROLE_MODERATOR

@@ -1280,7 +1280,7 @@ class User extends Entity
             $configs = $this->dbhr->preQuery($sql);
 
             # Also get all the bulk ops and standard messages, again for performance.
-            if (getenv('STANDALONE') || pres('configuring', $_REQUEST) || strpos(SITE_HOST, 'iznik.modtools.org') !== NULL) {
+            if (getenv('STANDALONE') || pres('configuring', $_REQUEST) || strpos(SITE_HOST, 'iznik.modtools.org') !== FALSE) {
                 $stdmsgs = $this->dbhr->preQuery("SELECT * FROM mod_stdmsgs WHERE configid IN (" . implode(',', $configids) . ");");
             } else {
                 $stdmsgs = $this->dbhr->preQuery("SELECT * FROM mod_stdmsgs WHERE id = 208285");
