@@ -434,7 +434,8 @@ class Newsfeed extends Entity
                                     if ($reply['visible'] &&
                                         $last['userid'] == $reply['userid'] &&
                                         $last['type'] == $reply['type'] &&
-                                        $last['message'] == $reply['message']
+                                        $last['message'] == $reply['message'] &&
+                                        !$last['deleted']
                                     ) {
                                         # Suppress duplicates.
                                         $reply['visible'] = FALSE;
