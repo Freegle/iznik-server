@@ -122,13 +122,14 @@ foreach ($totalact as $total) {
         ]);
 
         # Find the last auto-approved message
-        $timeq = $group['lastautoapprove'] ? ("timestamp >= '" . date("Y-m-d H:i:s", strtotime($group['lastautoapprove'])) . "' AND ") : '';
-        $logs = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM logs INNER JOIN messages_groups ON logs.msgid = messages_groups.msgid WHERE $timeq messages_groups.groupid = ? AND logs.type = 'Message' AND logs.subtype = 'Autoapproved';", [
+        $timeq = $group['lastautoapprove'] ? ("AND timestamp >= '" . date("Y-m-d H:i:s", strtotime($group['lastautoapprove'])) . "' ") : '';
+        $logs = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM logs WHERE groupid = ? $timeq AND logs.type = 'Message' AND logs.subtype = 'Autoapproved';", [
             $group['id']
         ]);
-        $dbhm->preExec("UPDATE groups SET lastautoapprove = ? WHERE id = ?;", [
+        $dbhm->preExec("UPDATE groups SET lastautoapprove = ? WHERE id = ? AND lastautoapprove < ?;", [
             $logs[0]['max'],
-            $group['id']
+            $group['id'],
+            $logs[0]['max']
         ]);
 
         # Count mods active in the last 30 days.
