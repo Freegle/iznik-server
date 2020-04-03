@@ -87,7 +87,8 @@ class Yahoo
                 $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
                 error_log("Get GUID $status $guid_response");
 
-                if (preg_match('/.*\<value\>(.*)\<\/value\>/', $guid_response, $matches)) {
+                if (preg_match('/.*\<value\>(.*)\<\/value\>/', $guid_response, $matches) ||
+                    preg_match('/.*\"value":"(.*?)"/', $guid_response, $matches)) {
                     error_log("Got matches " . var_export($matches, TRUE));
                     $guid = $matches[1];
 
