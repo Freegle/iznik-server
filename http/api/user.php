@@ -28,6 +28,9 @@ function user() {
         $id = $u->findByEmail($email);
     }
 
+    $u = User::get($dbhr, $dbhm, $id);
+    $sysrole = $u->getPrivate('systemrole');
+
     $yahooDeliveryType = presdef('yahooDeliveryType', $_REQUEST, NULL);
     $yahooPostingStatus = presdef('yahooPostingStatus', $_REQUEST, NULL);
     $ourPostingStatus = presdef('ourPostingStatus', $_REQUEST, NULL);
@@ -44,8 +47,6 @@ function user() {
             $info = array_key_exists('info', $_REQUEST) ? filter_var($_REQUEST['info'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $ctx = presdef('logcontext', $_REQUEST, NULL);
             $export = array_key_exists('export', $_REQUEST) ? filter_var($_REQUEST['export'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-
-            $u = User::get($dbhr, $dbhm, $id);
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
@@ -172,6 +173,24 @@ function user() {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
             #error_log("Owner of $groupid? " . $me->isModOrOwner($groupid) . " admin " . $me->isAdminOrSupport());
+            if ($u && $me && $me->isFreegleMod() && ($id == $me->getId() || $sysrole == User::SYSTEMROLE_USER)) {
+                # Freegle mods can set settings of members so that they can adjust email settings.
+                foreach (['settings', 'newslettersallowed', 'relevantallowed'] as $att) {
+                    if (array_key_exists($att, $_REQUEST)) {
+                        $u->setPrivate($att, $att == 'settings' ? json_encode($_REQUEST['settings']) : $_REQUEST[$att]);
+                    }
+                }
+
+                if ($id == $me->getId()) {
+                    User::clearCache();
+                }
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
+            }
+
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
                 if ($suspectcount !== NULL) {
                     $u->setPrivate('suspectcount', $suspectcount);
@@ -247,7 +266,6 @@ function user() {
                     $u->setMembershipAtt($groupid, 'emailfrequency', $ourEmailFrequency);
                 }
 
-                $sysrole = $u->getPrivate('systemrole');
                 if ($password &&
                     ($sysrole == User::SYSTEMROLE_USER || $me->getPrivate('systemrole') == User::SYSTEMROLE_ADMIN)) {
                     # Can only set the password of users, to prevent us using that to gain access to
@@ -268,7 +286,7 @@ function user() {
                     'status' => 'Success'
                 ];
             }
-            
+
             break;
         }
 

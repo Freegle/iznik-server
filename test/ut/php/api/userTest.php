@@ -166,6 +166,57 @@ class userAPITest extends IznikAPITestCase {
 
         }
 
+    public function testNewsletter() {
+        # Shouldn't be able to do this as a member
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create("Test", "User", "Test User");
+        $u->addEmail('test2@test.com');
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $uid,
+            'newslettersallowed' => 'FALSE'
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        # As a non-freegle mod, shouldn't work.
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid
+        ]);
+
+        # Should still be turned on.
+        assertEquals(1, $ret['user']['newslettersallowed']);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $uid,
+            'newslettersallowed' => 'FALSE'
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $this->group->create('testgroup2', Group::GROUP_FREEGLE);
+        $this->user->addMembership($gid, User::ROLE_MODERATOR);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $uid,
+            'newslettersallowed' => 'FALSE'
+        ]);
+
+        # Should be allowed.
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid
+        ]);
+
+        # Should have changed.
+        assertEquals($uid, $ret['user']['id']);
+        assertFalse(array_key_exists('newslettersallowed', $ret['user']));
+    }
+
     public function testHoliday() {
         $ret = $this->call('user', 'PATCH', [
             'id' => $this->uid2,
