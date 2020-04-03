@@ -105,12 +105,12 @@ class Yahoo
 
                 if ($status == 200) {
                     $attrs = json_decode($json_response, TRUE);
+                    $email = NULL;
 
                     if (pres('profile', $attrs)) {
                         $attrs = $attrs['profile'];
                         $givenName = presdef('givenName', $attrs, NULL);
                         $familyName = presdef('familyName', $attrs, NULL);
-                        $email = NULL;
 
                         foreach (presdef('emails', $attrs, []) as $e) {
                             if (!$email || pres('primary', $e)) {
