@@ -2260,12 +2260,12 @@ class User extends Entity
         $sql = "SELECT COUNT(*) AS count, userid FROM `users_modmails` WHERE userid IN (" . implode(',', $userids) . ") AND groupid IN (" . implode(',', $modships) . ") GROUP BY userid;";
         $modmails = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
 
-        foreach ($rets as &$ret) {
+        foreach ($rets as $userid => $ret) {
             $ret['modmails'] = 0;
 
             foreach ($modmails as $modmail) {
                 if ($modmail['userid'] == $ret['id']) {
-                    $ret['modmails'] = $modmail['count'];
+                    $rets[$userid]['modmails'] = $modmail['count'];
                 }
             }
         }

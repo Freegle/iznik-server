@@ -114,6 +114,16 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['message']['id']);
         assertFalse(array_key_exists('emails', $ret['message']['fromuser']));
 
+        # Test we can get the message history.
+        $ret = $this->call('messages', 'GET', [
+            'id' => $id,
+            'collection' => 'Approved',
+            'summary' => FALSE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['messages'][0]['id']);
+        assertEquals(1, count($ret['messages'][0]['fromuser']['messagehistory']));
+
         $atts = $a->getPublic();
         assertEquals(1, count($atts['fromuser']['messagehistory']));
         assertEquals($id, $atts['fromuser']['messagehistory'][0]['id']);
