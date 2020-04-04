@@ -5,6 +5,7 @@ function memberships() {
     $me = whoAmI($dbhr, $dbhm);
 
     $userid = intval(presdef('userid', $_REQUEST, NULL));
+    $happinessid = intval(presdef('happinessid', $_REQUEST, NULL));
 
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $g = Group::get($dbhr, $dbhm, $groupid);
@@ -82,16 +83,17 @@ function memberships() {
                         $limit = $userid ? 1 : $limit;
                         $proceed = TRUE;
                     } else if ($me->isModerator()) {
-                        # No group was specified - use the current memberships, if we have any, excluding those that our
-                        # preferences say shouldn't be in.
+                        # No group was specified - use the current active memberships, if we have any, excluding those
+                        # that our preferences say shouldn't be in.
                         #
                         # We always show spammers, because we want mods to act on them asap.
                         $mygroups = $me->getMemberships(TRUE);
                         foreach ($mygroups as $group) {
                             $settings = $me->getGroupSettings($group['id']);
-                            if (!array_key_exists('showmembers', $settings) ||
+                            if ($me->activeModForGroup($group['id']) &&
+                                (!array_key_exists('showmembers', $settings) ||
                                 $settings['showmembers'] ||
-                                $collection == MembershipCollection::SPAM) {
+                                $collection == MembershipCollection::SPAM)) {
                                 $proceed = TRUE;
                                 $groupids[] = $group['id'];
                             }
@@ -107,8 +109,8 @@ function memberships() {
                             ];
                         } else {
                             if ($collection == MembershipCollection::HAPPINESS) {
-                                # This is handled differently.
-                                $members = $g->getHappinessMembers($groupids, $ctx);
+                                # This is handled differently - including a different processing for filter.
+                                $members = $g->getHappinessMembers($groupids, $ctx, presdef('filter', $_REQUEST, NULL));
                             } else if ($filter == Group::FILTER_MOSTACTIVE) {
                                 # So is this
                                 $members = $groupid ? $u->mostActive($groupid) : NULL;
@@ -271,6 +273,9 @@ function memberships() {
                             break;
                         case 'Release':
                             $u->release($groupid);
+                            break;
+                        case 'HappinessReviewed':
+                            $u->happinessReviewed($happinessid);
                             break;
                     }
                 }

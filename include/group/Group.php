@@ -18,7 +18,7 @@ class Group extends Entity
 
     # We also cache the objects in redis, to reduce DB load.  This is shared across processes.
     const REDIS_CACHE_EXPIRY = 600;
-    
+
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo', 'publish',
         'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
@@ -434,6 +434,11 @@ GROUP BY memberships.groupid, held;
             $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
             $editreviewcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT messages_edits.msgid) AS count FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid WHERE timestamp > '$mysqltime' AND reviewrequired = 1 AND messages_groups.groupid IN $groupq AND messages_groups.deleted = 0 GROUP BY groupid;");
 
+            # We only want to show happiness upto 31 days old - after that just let it slide.
+            $mysqltime = date("Y-m-d", strtotime("Midnight 31 days ago"));
+            $sql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid WHERE messages_outcomes.timestamp >= '$mysqltime' AND groupid IN $groupq AND reviewed = 0 AND happiness IN ('" . User::UNHAPPY . "') GROUP BY groupid;";
+            $happinesscounts = $this->dbhr->preQuery($sql);
+
             foreach ($groupids as $groupid) {
                 # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
                 # less prominently in the client.
@@ -454,7 +459,8 @@ GROUP BY memberships.groupid, held;
                     'spammembers' => 0,
                     'spammembersother' => 0,
                     'editreview' => 0,
-                    'pendingadmins' => 0
+                    'pendingadmins' => 0,
+                    'happiness' => 0
                 ];
 
                 if ($active) {
@@ -513,6 +519,12 @@ GROUP BY memberships.groupid, held;
                     foreach ($pendingadmins as $count) {
                         if ($count['groupid'] == $groupid) {
                             $thisone['pendingadmins'] = $count['count'];
+                        }
+                    }
+
+                    foreach ($happinesscounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['happiness'] = $count['count'];
                         }
                     }
                 } else {
@@ -786,21 +798,63 @@ GROUP BY memberships.groupid, held;
         return($ret);
     }
 
-    public function getHappinessMembers($groupids, &$ctx) {
-        $start = microtime(TRUE);
+    public function getHappinessMembers($groupids, &$ctx, $filter = NULL) {
         $ret = [];
+        $filterq = '';
+
+        if ($filter) {
+            foreach ([ User::HAPPY, User::UNHAPPY, User::FINE] as $val) {
+                if ($filter == $val) {
+                    if ($val === 'Fine') {
+                        $filterq = " AND (messages_outcomes IS NULL OR messages_outcomes.happiness = '$val') ";
+                    } else {
+                        $filterq = " AND messages_outcomes.happiness = '$val' ";
+                    }
+                }
+            }
+        }
+
         $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);
         $groupq2 = $groupids ? " messages_groups.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
 
-        $ctxq = $ctx == NULL ? "" : " WHERE (messages_outcomes.timestamp < '{$ctx['timestamp']}' OR (messages_outcomes.timestamp = '{$ctx['timestamp']}' AND messages_outcomes.id < {$ctx['id']}))";
+        # Only interested in showing recent ones, which makes the query faster.
+        $start = date('Y-m-d', strtotime("midnight 31 days ago"));
 
-        $sql = "SELECT t.*, messages.fromuser, messages_groups.groupid, messages.subject FROM 
-(SELECT * FROM messages_outcomes $ctxq) t
-INNER JOIN messages_groups ON messages_groups.msgid = t.msgid AND $groupq2
-INNER JOIN messages ON messages.id = t.msgid
-ORDER BY t.timestamp DESC, t.id DESC LIMIT 10
+        # We want unreviewed first, then most recent.
+        $ctxq = $ctx == NULL ? " WHERE messages_outcomes.timestamp > '$start' " :
+            " WHERE
+            messages_outcomes.reviewed >= " . intval($ctx['reviewed']) . " AND   
+            messages_outcomes.timestamp > '$start' AND 
+            (messages_outcomes.timestamp < '{$ctx['timestamp']}' OR 
+                (messages_outcomes.timestamp = '{$ctx['timestamp']}' AND
+                 messages_outcomes.id < {$ctx['id']}))";
+
+        $sql = "SELECT messages_outcomes.*, messages.fromuser, messages_groups.groupid, messages.subject FROM messages_outcomes
+INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid AND $groupq2
+INNER JOIN messages ON messages.id = messages_outcomes.msgid
+$ctxq
+$filterq
+ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messages_outcomes.id DESC LIMIT 10
 ";
         $members = $this->dbhr->preQuery($sql, [], FALSE, FALSE);
+
+        # Get the users in a single go for speed.
+        $uids = array_column($members, 'fromuser');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uctx = NULL;
+        $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, $uctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+
+        # Get the preferred emails.
+        $u->getPublicEmails($users);
+
+        foreach ($users as $userid => $user) {
+            foreach ($user['emails'] as $email) {
+                if ($email['preferred'] || (!ourDomain($email['email']) && !pres('email', $users[$userid]))) {
+                    $users[$userid]['email'] = $email['email'];
+                }
+            }
+        }
+
         $last = NULL;
 
         foreach ($members as $member) {
@@ -813,21 +867,17 @@ ORDER BY t.timestamp DESC, t.id DESC LIMIT 10
 
             $ctx = [
                 'id' => $member['id'],
-                'timestamp' => $member['timestamp']
+                'timestamp' => $member['timestamp'],
+                'reviewed' => $member['reviewed']
             ];
 
-            $u = User::get($this->dbhr, $this->dbhm, $member['fromuser']);
-            $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+            $member['user']  = $users[$member['fromuser']];
 
-            $member['user']  = $atts;
-            $member['user']['email'] = $u->getEmailPreferred();
-            #unset($member['userid']);
-
-            $m = new Message($this->dbhr, $this->dbhm, $member['msgid']);
             $member['message'] = [
                 'id' => $member['msgid'],
                 'subject' => $member['subject'],
             ];
+
             unset($member['msgid']);
             unset($member['subject']);
 

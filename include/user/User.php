@@ -3513,7 +3513,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($ret);
     }
 
-    function release($groupid)
+    public function release($groupid)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
@@ -3530,6 +3530,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         $this->notif->notifyGroupMods($groupid);
+    }
+
+    public function happinessReviewed($happinessid) {
+        $this->dbhm->preExec("UPDATE messages_outcomes SET reviewed = 1 WHERE id = ?", [
+            $happinessid
+        ]);
     }
 
     public function getCommentsForSingleUser($userid) {

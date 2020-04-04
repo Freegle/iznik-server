@@ -1092,5 +1092,69 @@ class membershipsAPITest extends IznikAPITestCase {
         assertTrue($u->sendOurMails($this->group));
 
         }
+
+    function testHappiness() {
+        # Create the sending user
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->log("Created user $uid");
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        assertEquals(0, $u->addEmail('test@test.com'));
+
+        # Send a message.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($origid);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Now mark the message as complete
+        $this->log("Mark $origid as TAKEN");
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
+        $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, $uid);
+
+        # Should show as unreviewed, but can't get as member.
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::HAPPINESS,
+            'groupid' => $this->groupid
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
+        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::HAPPINESS,
+            'groupid' => $this->groupid
+        ]);
+
+        assertEquals(1, count($ret['members']));
+        assertEquals(0, $ret['members'][0]['reviewed']);
+
+        $params = [
+            'userid' => $ret['members'][0]['user']['id'],
+            'happinessid' => $ret['members'][0]['id'],
+            'action' => 'HappinessReviewed',
+            'groupid' => $this->groupid,
+            'dup' => TRUE
+        ];
+        $ret = $this->call('memberships', 'POST', $params);
+
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::HAPPINESS,
+            'groupid' => $this->groupid
+        ]);
+
+        assertEquals(1, count($ret['members']));
+        assertEquals(1, $ret['members'][0]['reviewed']);
+    }
+
 }
 

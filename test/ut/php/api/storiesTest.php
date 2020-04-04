@@ -210,7 +210,6 @@ class storiesAPITest extends IznikAPITestCase {
 
         # But not a second time
         self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, 0, NULL));
-
-        }
+    }
 }
 
