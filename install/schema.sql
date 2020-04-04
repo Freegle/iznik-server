@@ -1767,6 +1767,7 @@ CREATE TABLE `messages_outcomes` (
   `happiness` enum('Happy','Fine','Unhappy') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `userid` bigint(20) unsigned DEFAULT NULL,
   `comments` text COLLATE utf8mb4_unicode_ci,
+  `reviewed` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `userid` (`userid`),
   KEY `msgid` (`msgid`),
