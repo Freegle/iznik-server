@@ -112,7 +112,7 @@ function memberships() {
                             if ($collection == MembershipCollection::HAPPINESS) {
                                 # This is handled differently - including a different processing for filter.
                                 $members = $g->getHappinessMembers($groupids, $ctx, presdef('filter', $_REQUEST, NULL));
-                            } else if ($collection = MembershipCollection::NEARBY) {
+                            } else if ($collection == MembershipCollection::NEARBY) {
                                 $members = [];
 
                                 if ($me->isModerator()) {
