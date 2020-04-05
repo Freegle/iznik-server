@@ -1171,13 +1171,26 @@ class membershipsAPITest extends IznikAPITestCase {
             'lng' => 179.15,
             'lat' => 8.5
         ]);
+        $this->user->setPrivate('lastaccess', date("Y-m-d H:i:s"));
+
+        $n = new Nearby($this->dbhr, $this->dbhm);
+        $n->updateLocations(TRUE, '5 minutes ago');
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::NEARBY
         ]);
 
         assertEquals(0, $ret['ret']);
-        assertGreaterThan(0, count($ret['members']));
+
+        $found = FALSE;
+
+        foreach ($ret['members'] as $member) {
+            if ($member['userid'] == $this->user->getId()) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
     }
 
 }

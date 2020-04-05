@@ -120,8 +120,8 @@ class Nearby
         return($count);
     }
 
-    public function updateLocations($modonly = TRUE) {
-        $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
+    public function updateLocations($modonly = TRUE, $since = "Midnight 90 days ago") {
+        $mysqltime = date("Y-m-d", strtotime($since));
         $mods = $this->dbhr->preQuery("SELECT DISTINCT users.id FROM users INNER JOIN memberships ON memberships.userid = users.id WHERE users.lastaccess >= '$mysqltime' AND memberships.role IN (?, ?);", [
             User::ROLE_MODERATOR,
             User::ROLE_OWNER
