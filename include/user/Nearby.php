@@ -126,14 +126,12 @@ class Nearby
             User::ROLE_MODERATOR,
             User::ROLE_OWNER
         ]);
-        error_log("Found " . count($mods));
 
         foreach ($mods as $mod) {
             $u = new User($this->dbhr, $this->dbhm, $mod['id']);
 
             # Get approximate location where we have one.
             list($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE, User::BLUR_1K);
-            error_log("{$mod['id']} pos $lat, $lng");
 
             if ($lat || $lng) {
                 # We found one.
