@@ -534,7 +534,7 @@ WHERE chat_rooms.id IN $idlist;";
                 } else {
                     $u = $u1id == $myid ? $me : User::get($this->dbhr, $this->dbhm, $u1id);
                     $ctx = NULL;
-                    $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+                    $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, MODTOOLS, FALSE, FALSE, FALSE);
 
                     if (pres('group', $ret)) {
                         # As a mod we can see the email
@@ -549,7 +549,7 @@ WHERE chat_rooms.id IN $idlist;";
                 } else {
                     $u = $u2id == $myid ? $me : User::get($this->dbhr, $this->dbhm, $u2id);
                     $ctx = NULL;
-                    $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+                    $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, MODTOOLS, FALSE, FALSE, FALSE);
 
                     if (pres('group', $ret)) {
                         # As a mod we can see the email
@@ -1370,7 +1370,7 @@ WHERE chat_rooms.id IN $idlist;";
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id'], $msg);
             $atts = $m->getPublic($refmsgsummary);
-            $atts['bymailid'] = $msg['bymailid'];
+            $atts['bymailid'] = presdef('bymailid', $msg, NULL);
 
             $refmsgid = $m->getPrivate('refmsgid');
 
