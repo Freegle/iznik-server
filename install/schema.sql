@@ -4710,3 +4710,46 @@ ALTER TABLE `merges`
 --
 ALTER TABLE `merges`
     MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- Table structure for table `users_approxlocs`
+--
+
+CREATE TABLE `users_approxlocs` (
+                                    `id` bigint(20) UNSIGNED NOT NULL,
+                                    `userid` bigint(20) UNSIGNED NOT NULL,
+                                    `lat` decimal(10,6) NOT NULL,
+                                    `lng` decimal(10,6) NOT NULL,
+                                    `position` point NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `users_approxlocs`
+--
+ALTER TABLE `users_approxlocs`
+    ADD PRIMARY KEY (`id`),
+    ADD UNIQUE KEY `userid` (`userid`),
+    ADD SPATIAL KEY `position` (`position`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `users_approxlocs`
+--
+ALTER TABLE `users_approxlocs`
+    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `users_approxlocs`
+--
+ALTER TABLE `users_approxlocs`
+    ADD CONSTRAINT `users_approxlocs_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
