@@ -1167,6 +1167,10 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(2, $ret['ret']);
 
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
+        $this->user->setSetting('mylocation', [
+            'lng' => 179.15,
+            'lat' => 8.5
+        ]);
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::NEARBY
