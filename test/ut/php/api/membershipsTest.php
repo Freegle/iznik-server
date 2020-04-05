@@ -1156,5 +1156,25 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(1, $ret['members'][0]['reviewed']);
     }
 
+    public function testNearby() {
+        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::NEARBY
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::NEARBY
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertGreaterThan(0, count($ret['members']));
+    }
+
 }
 

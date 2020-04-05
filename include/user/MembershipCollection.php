@@ -13,4 +13,5 @@ class MembershipCollection
     const SPAM = 'Spam';
     const HAPPINESS = 'Happiness';
     const RELATED = 'Related';
+    const NEARBY = 'Nearby';
 }

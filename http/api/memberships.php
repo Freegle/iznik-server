@@ -48,6 +48,7 @@ function memberships() {
         case MembershipCollection::SPAM:
         case MembershipCollection::HAPPINESS:
         case MembershipCollection::RELATED:
+        case MembershipCollection::NEARBY:
             break;
         default:
             $collection = NULL;
@@ -111,6 +112,15 @@ function memberships() {
                             if ($collection == MembershipCollection::HAPPINESS) {
                                 # This is handled differently - including a different processing for filter.
                                 $members = $g->getHappinessMembers($groupids, $ctx, presdef('filter', $_REQUEST, NULL));
+                            } else if ($collection = MembershipCollection::NEARBY) {
+                                $members = [];
+
+                                if ($me->isModerator()) {
+                                    # At the moment only mods can see this, and they can see all mods..
+                                    $n = new Nearby($dbhr, $dbhm);
+                                    list ($lat, $lng, $loc) = $me->getLatLng();
+                                    $members = $n->getUsersNear($lat, $lng, TRUE);
+                                }
                             } else if ($filter == Group::FILTER_MOSTACTIVE) {
                                 # So is this
                                 $members = $groupid ? $u->mostActive($groupid) : NULL;

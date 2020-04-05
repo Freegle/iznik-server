@@ -119,4 +119,78 @@ class Nearby
 
         return($count);
     }
+
+    public function updateLocations($modonly = TRUE) {
+        $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
+        $mods = $this->dbhr->preQuery("SELECT DISTINCT users.id FROM users INNER JOIN memberships ON memberships.userid = users.id WHERE users.lastaccess >= '$mysqltime' AND memberships.role IN (?, ?);", [
+            User::ROLE_MODERATOR,
+            User::ROLE_OWNER
+        ]);
+        error_log("Found " . count($mods));
+
+        foreach ($mods as $mod) {
+            $u = new User($this->dbhr, $this->dbhm, $mod['id']);
+
+            # Get approximate location where we have one.
+            list($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE, User::BLUR_1K);
+            error_log("{$mod['id']} pos $lat, $lng");
+
+            if ($lat || $lng) {
+                # We found one.
+                $this->dbhm->preExec("INSERT INTO users_approxlocs (userid, lat, lng, position) VALUES (?, ?, ?, GEOMFROMTEXT(CONCAT('POINT(', ?, ' ', ?, ')'))) ON DUPLICATE KEY UPDATE lat = ?, lng = ?, position = GEOMFROMTEXT(CONCAT('POINT(', ?, ' ', ?, ')'));", [
+                    $mod['id'],
+                    $lat,
+                    $lng,
+                    $lng,
+                    $lat,
+                    $lat,
+                    $lng,
+                    $lng,
+                    $lat
+                ]);
+            }
+        }
+    }
+
+    public function getUsersNear($lat, $lng, $mods) {
+        $ret = [];
+
+        if ($mods) {
+            $users = $this->dbhr->preQuery("SELECT userid, firstname, lastname, fullname, lat, lng, settings FROM users_approxlocs INNER JOIN users ON users.id = users_approxlocs.userid WHERE users.systemrole IN (?, ?, ?);", [
+                User::SYSTEMROLE_MODERATOR,
+                User::SYSTEMROLE_SUPPORT,
+                User::SYSTEMROLE_ADMIN
+            ], FALSE, FALSE);
+
+            foreach ($users as $user) {
+                $name = NULL;
+
+                if (pres('fullname', $user)) {
+                    $name = $user['fullname'];
+                } else if (pres('firstname', $user) || pres('lastname', $user)) {
+                    $first = pres('firstname', $user);
+                    $last = pres('lastname', $user);
+
+                    $name = $first && $last ? "$first $last" : ($first ? $first : $last);
+                }
+
+                if ($name) {
+                    $ret[$user['userid']] = $user;
+                    $ret[$user['userid']]['displayname'] = $name;
+
+                    # Need decoded settings to get the profile.
+                    $ret[$user['userid']]['settings'] = json_decode(presdef('settings', $user, '[]'), TRUE);
+                }
+            }
+
+            $u = new User($this->dbhr, $this->dbhm);
+            $u->getPublicProfiles($ret);
+
+            foreach ($ret as $userid => $r) {
+                $ret[$userid]['settings'] = NULL;
+            }
+        }
+
+        return array_values($ret);
+    }
 }

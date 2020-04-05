@@ -83,7 +83,7 @@ function covid() {
                             $u = new User($dbhr, $dbhm, $covid['userid']);
 
                             # Get best guess location.
-                            list ($lat, $lng) = $u->getLatLng(TRUE, TRUE, TRUE);
+                            list ($lat, $lng) = $u->getLatLng(TRUE, TRUE, User::BLUR_100M);
 
                             $helpq = '';
 
@@ -107,7 +107,7 @@ function covid() {
                             $covid['user'] = $u->getPublic(NULL, TRUE, FALSE, $ctx, FALSE, TRUE, FALSE, FALSE, FALSE, [MessageCollection::APPROVED], FALSE);
                             $covid['user']['settings'] = NULL;
                             $covid['user']['publiclocation'] = $u->getPublicLocation();
-                            $covid['user']['privateposition'] = $u->getLatLng(FALSE, TRUE, TRUE);
+                            $covid['user']['privateposition'] = $u->getLatLng(FALSE, TRUE, User::BLUR_100M);
 
                             $users = [];
 

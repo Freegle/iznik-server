@@ -78,6 +78,7 @@ require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/message/Visualise.php');
+require_once(IZNIK_BASE . '/include/user/Nearby.php');
 require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/user/Request.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');

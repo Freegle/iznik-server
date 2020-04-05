@@ -110,6 +110,11 @@ class User extends Entity
     const CHAT_MODSTATUS_UNMODERATED = 'Unmoderated';
     const CHAT_MODSTATUS_FULLY = 'Fully';
 
+    # 2 decimal places is roughly 1km.
+    const BLUR_NONE = NULL;
+    const BLUR_100M = 3;
+    const BLUR_1K = 2;
+
     /** @var  $log Log */
     private $log;
     var $user;
@@ -2197,7 +2202,8 @@ class User extends Entity
             foreach ($profiles as $profile) {
                 # Get a profile.  This function is called so frequently that we can't afford to query external sites
                 # within it, so if we don't find one, we default to none.
-                if (gettype($rets[$profile['userid']]['settings']) == 'array' &&
+                if (pres('settings', $rets[$profile['userid']]) &&
+                    gettype($rets[$profile['userid']]['settings']) == 'array' &&
                     (!array_key_exists('useprofile', $rets[$profile['userid']]['settings']) || $rets[$profile['userid']]['settings']['useprofile'])) {
                     # We found a profile that we can use.
                     if (!$profile['default']) {
@@ -4691,7 +4697,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($ret);
     }
 
-    public function getLatLng($usedef = TRUE, $usegroup = TRUE, $blur = FALSE)
+    public function getLatLng($usedef = TRUE, $usegroup = TRUE, $blur = self::BLUR_NONE)
     {
         $ret = [ 0, 0, NULL ];
 
@@ -4700,9 +4706,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $loc = $locs[$this->id];
 
             if ($blur && ($loc['lat'] || $loc['lng'])) {
-                # 2 decimal places is roughly 1km.
-                $loc['lat'] = round($loc['lat'], 3);
-                $loc['lng'] = round($loc['lng'], 3);
+                $loc['lat'] = round($loc['lat'], $blur);
+                $loc['lng'] = round($loc['lng'], $blur);
             }
 
             $ret = [ $loc['lat'], $loc['lng'], presdef('loc', $loc, NULL) ];
@@ -4807,7 +4812,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function getLatLngs($users, $usedef = TRUE, $usegroup = TRUE, $needgroup = FALSE, $atts = NULL, $blur = FALSE)
+    public function getLatLngs($users, $usedef = TRUE, $usegroup = TRUE, $needgroup = FALSE, $atts = NULL, $blur = NULL)
     {
         $userids = array_filter(array_column($users, 'id'));
         $ret = [];
@@ -4914,7 +4919,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         if ($blur) {
             foreach ($ret as &$memb) {
                 if ($memb['lat'] || $memb['lng']) {
-                    # 3 decimal places is roughl 100m
+                    # 3 decimal places is roughly 100m.
                     $memb['lat'] = round($memb['lat'], 3);
                     $memb['lng'] = round($memb['lng'], 3);
                 }
