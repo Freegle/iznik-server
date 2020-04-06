@@ -140,27 +140,14 @@ class ModConfig extends Entity
             # We were passed in the standard messages on the construct.  Saves DB ops.
             $stdmsgs = [];
             foreach ($this->stdmsgs as $stdmsg) {
-                if (TRUE) {
-//                if ($stdmsg['configid'] == $this->id) {
+                if ($stdmsg['configid'] == $this->id) {
                     $stdmsgs[] = $stdmsg;
                 }
             }
         } else {
             # It saves a lot of queries to get all the standard messages at once.
-            if (getenv('STANDALONE') || pres('configuring', $_REQUEST) || strpos(SITE_HOST, 'iznik.modtools.org') !== FALSE) {
-                $sql = "SELECT * FROM mod_stdmsgs WHERE configid = {$this->id};";
-            } else {
-                $sql = "SELECT * FROM mod_stdmsgs WHERE id = 208285";
-            }
-
+            $sql = "SELECT * FROM mod_stdmsgs WHERE configid = {$this->id};";
             $stdmsgs = $this->dbhr->query($sql);
-
-            if (!getenv('STANDALONE') && !pres('configuring', $_REQUEST) && SITE_HOST != 'iznik.modtools.org') {
-                # Force all to use this COVID message..
-                foreach ($stdmsgs as &$stdmsg) {
-                    $stdmsg['configid'] = $this->id;
-                }
-            }
         }
 
         foreach ($stdmsgs as $stdmsg) {
