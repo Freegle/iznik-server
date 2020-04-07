@@ -126,7 +126,12 @@ function memberships() {
                                 $members = $groupid ? $u->mostActive($groupid) : NULL;
                             } else if ($collection == MembershipCollection::RELATED) {
                                 # So is this
-                                $members = $me->isAdminOrSupport() ? $u->listRelated($groupid, $ctx, $limit) : [];
+                                if ($groupids == [-2] && $me->isAdminOrSupport()) {
+                                    # We can fetch them systemwide.
+                                    $groupids = NULL;
+                                }
+
+                                $members = $me->isModerator() ? $u->listRelated($groupids, $ctx, $limit) : [];
                             } else if ($filter == Group::FILTER_BANNED) {
                                 # So is this
                                 $members = $groupid ? $g->getBanned($groupid, $ctx) : NULL;
