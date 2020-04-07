@@ -7,6 +7,8 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 try {
     $sessions = $dbhr->preQuery("SELECT sessions.* FROM sessions INNER JOIN users ON sessions.userid = users.id WHERE users.systemrole IN ('Admin', 'Support', 'Moderator');", NULL, FALSE, FALSE);
     $total = count($sessions);
@@ -72,3 +74,5 @@ try {
 } catch (Exception $e) {
     error_log("Get sessions failed with " . $e->getMessage());
 }
+
+unlockScript($lockh);
