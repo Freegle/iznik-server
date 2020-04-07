@@ -234,10 +234,6 @@ function session() {
 
                                 $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
 
-                                if ($me->isAdminOrSupport()) {
-                                    $ret['work']['relatedmembers'] = $u->getRelatedReviewCount();
-                                }
-
                                 $s = new Story($dbhr, $dbhm);
                                 $ret['work']['stories'] = $s->getReviewCount(FALSE);
                                 $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
