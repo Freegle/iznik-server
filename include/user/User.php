@@ -2641,6 +2641,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
                         if ($m->getID()) {
                             $log['message'] = $m->getPublic(FALSE);
+
+                            # If we're a mod (which we must be because we're accessing logs) we need to see the
+                            # envelopeto, because this is displayed in MT.  No real privacy issues in that.
+                            $log['message']['envelopeto'] = $m->getPrivate('envelopeto');
                         } else {
                             # The message has been deleted.
                             $log['message'] = [
