@@ -795,7 +795,7 @@ GROUP BY memberships.groupid, held;
 
             if ($filter === Group::FILTER_MODERATORS) {
                 # Also add in the last mod time.
-                $acts = $this->dbhr->preQuery("SELECT MAX(date) FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE approvedby = ? AND groupid = ?;", [
+                $acts = $this->dbhr->preQuery("SELECT MAX(date) AS moderated FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE approvedby = ? AND groupid = ?;", [
                     $thisone['userid'],
                     $thisone['groupid']
                 ]);
