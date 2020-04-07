@@ -6,8 +6,6 @@ require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 
 use Jenssegers\ImageHash\ImageHash;
-use WindowsAzure\Common\ServicesBuilder;
-use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
 
 # This is a base class
 class Attachment
@@ -186,13 +184,27 @@ class Attachment
         return($ret);
     }
 
-    public function getAzure() {
-        return(ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING));
+    public function scp($host, $data, $fn, &$failed) {
+        $connection = ssh2_connect($host, 22);
+
+        if ($connection) {
+            if (ssh2_auth_pubkey_file($connection, CDN_SSH_USER,
+                CDN_SSH_PUBLIC_KEY,
+                CDN_SSH_PRIVATE_KEY)) {
+                $temp = tempnam(sys_get_temp_dir(), "img_archive_$fn");
+                file_put_contents($temp, $data);
+                $failed |= !ssh2_scp_send($connection, $temp, "/var/www/iznik/images/$fn.jpg", 0644);
+            } else {
+                $failed = TRUE;
+            }
+        } else {
+            $failed = TRUE;
+        }
     }
 
     public function archive() {
-        # We archive out of the DB into Azure.  This reduces load on the servers because we don't have to serve
-        # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
+        # We archive out of the DB onto our two CDN image hosts.  This reduces load on the servers because we don't
+        # have to serve the images up, and it also reduces the disk space we need within the DB (which is not an ideal
         # place to store large amounts of image data);
         #
         # If we fail then we leave it unchanged for next time.
@@ -203,10 +215,6 @@ class Attachment
             $rc = FALSE;
 
             try {
-                $blobRestProxy = $this->getAzure();
-                $options = new CreateBlobOptions();
-                $options->setContentType("image/jpeg");
-
                 $name = NULL;
 
                 # Only these types are in archive_attachments.
@@ -217,20 +225,22 @@ class Attachment
                 }
 
                 if ($name) {
-                    # Upload the thumbnail.  If this fails we'll leave it untouched.
-                    $i = new Image($data);
-                    if ($i->img) {
-                        $i->scale(250, 250);
-                        $thumbdata = $i->getData(100);
-                        $blobRestProxy->createBlockBlob("images", "{$tname}_{$this->id}.jpg", $thumbdata, $options);
+                    $failed = FALSE;
 
-                        # Upload the full size image.
-                        $blobRestProxy->createBlockBlob("images", "{$name}_{$this->id}.jpg", $data, $options);
-
-                        $rc = TRUE;
-                    } else {
-                        error_log("...failed to create image {$this->id}");
+                    foreach ([CDN_HOST_1, CDN_HOST_2] as $host) {
+                        # Upload the thumbnail.  If this fails we'll leave it untouched.
+                        $i = new Image($data);
+                        if ($i->img) {
+                            $i->scale(250, 250);
+                            $thumbdata = $i->getData(100);
+                            $this->scp($host, $thumbdata, "{$tname}_{$this->id}.jpg", $failed);
+                            $this->scp($host, $data, "{$name}_{$this->id}.jpg", $failed);
+                        } else {
+                            error_log("...failed to create image {$this->id}");
+                        }
                     }
+
+                    $rc = !$failed;
                 }
             } catch (Exception $e) { error_log("Archive failed " . $e->getMessage()); }
         }

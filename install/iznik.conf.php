@@ -129,12 +129,15 @@ switch($host) {
         break;
 }
 
-# Image host domain - both for active, and archived.
-#
-# We archive to Azure CDN.
-define('AZURE_CONNECTION_STRING', 'zzzz');
+
+# We archive to our own hosts, which are fronted by round-robin DNS.
 define('IMAGE_DOMAIN', 'dev.modtools.org');
-define('IMAGE_ARCHIVED_DOMAIN', 'freegle.azureedge.net');
+define('IMAGE_ARCHIVED_DOMAIN', 'cdn.ilovefreegle.org');
+define('CDN_HOST_1', 'xxx1.ilovefreegle.org');
+define('CDN_HOST_2', 'xxx2.ilovefreegle.org');
+define('CDN_SSH_USER', 'XXX');
+define('CDN_SSH_PUBLIC_KEY', 'XXX');
+define('CDN_SSH_PRIVATE_KEY', 'XXX');
 
 # Domain for email addresses for our users
 define('USER_DOMAIN', 'users.ilovefreegle.org');

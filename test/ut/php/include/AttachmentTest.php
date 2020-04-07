@@ -70,15 +70,18 @@ class AttachmentTest extends IznikTestCase {
 
         $a = $this->getMockBuilder('Attachment')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm, NULL, $attType ])
-            ->setMethods(array('getAzure'))
+            ->setMethods(array('scp'))
             ->getMock();
-        $a->method('getAzure')->willReturn($this);
+
+        $a->method('scp')->will($this->returnCallback(function ($host, $data, $fn, &$failed) {
+            $this->blobCount++;
+        }));
 
         $attid = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid);
 
         $ret = $a->archive();
-        assertEquals($blobCount, $this->blobCount);
+        assertEquals($blobCount * 2, $this->blobCount);
         assertEquals($blobCount > 0, $ret);
 
         if (!getenv('STANDALONE')) {
