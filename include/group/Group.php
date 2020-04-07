@@ -1587,11 +1587,18 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
 
         if ($support) {
             $start = date('Y-m-d', strtotime("midnight 31 days ago"));
-            $approves = $this->dbhr->preQuery("SELECT COUNT(*) AS count, groupid FROM logs WHERE timestamp >= ? AND type = ? AND subtype = ? GROUP BY groupid;", [
+            $autoapproves = $this->dbhr->preQuery("SELECT COUNT(*) AS count, groupid FROM logs WHERE timestamp >= ? AND type = ? AND subtype = ? GROUP BY groupid;", [
                 $start,
                 Log::TYPE_MESSAGE,
                 Log::SUBTYPE_AUTO_APPROVED
             ]);
+
+            $manualapproves = $this->dbhr->preQuery("SELECT COUNT(*) AS count, groupid FROM logs WHERE timestamp >= ? AND type = ? AND subtype = ? GROUP BY groupid;", [
+                $start,
+                Log::TYPE_MESSAGE,
+                Log::SUBTYPE_APPROVED
+            ]);
+
         }
 
         $lastname = NULL;
@@ -1611,11 +1618,19 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
                 }
 
                 if ($support) {
-                    foreach ($approves as $approve) {
+                    foreach ($autoapproves as $approve) {
                         if ($approve['groupid'] === $group['id']) {
                             $group['recentautoapproves'] = $approve['count'];
                         }
                     }
+
+                    foreach ($manualapproves as $approve) {
+                        if ($approve['groupid'] === $group['id']) {
+                            $group['recentmanualapproves'] = $approve['count'];
+                        }
+                    }
+
+                    $group['recentautoapprovespercent'] = $group['recentmanualapproves'] ? (round(100 * $group['recentautoapproves']) / $group['recentmanualapproves']) : 0;
                 }
 
                 $ret[] = $group;
