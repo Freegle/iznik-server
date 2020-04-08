@@ -3102,6 +3102,7 @@ CREATE TABLE `users` (
   `chatmodstatus` enum('Moderated','Unmoderated') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Moderated',
   `deleted` timestamp NULL DEFAULT NULL,
   `inventedname` tinyint(1) NOT NULL DEFAULT '0',
+  `newsfeedmodstatus` enum('Unmoderated','Moderated','Suppressed','') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Unmoderated',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `yahooUserId` (`yahooUserId`),
