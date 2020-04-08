@@ -1255,7 +1255,7 @@ WHERE chat_rooms.id IN $idlist;";
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
         # a member.
         $userid = $user->getId();
-        $msgid = $ctx ? $ctx['msgid'] : 0;
+        $msgid = $ctx ? intval($ctx['msgid']) : 0;
         $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, memberships.groupid, chat_messages_held.userid AS heldby, chat_messages_held.timestamp 
         FROM chat_messages 
         LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid 
@@ -1322,6 +1322,7 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function getMessages($limit = 100, $seenbyall = NULL, &$ctx = NULL, $refmsgsummary = FALSE)
     {
+        $limit = intval($limit);
         $ctxq = $ctx ? (" AND chat_messages.id < " . intval($ctx['id']) . " ") : '';
         $seenfilt = $seenbyall === NULL ? '' : " AND seenbyall = $seenbyall ";
 

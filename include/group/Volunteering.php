@@ -74,7 +74,7 @@ class Volunteering extends Entity
         $ret = [];
         $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
         $roleq = $pending ? " AND role IN ('Owner', 'Moderator') " : '';
-        $ctxq = $ctx ? " AND volunteering.id < '{$ctx['id']}' " : '';
+        $ctxq = $ctx ? (" AND volunteering.id < '" . intval($ctx['id']) . "' ") : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
 
@@ -129,7 +129,7 @@ class Volunteering extends Entity
         $pendingq = $pending ? " pending = 1 " : " pending = 0 ";
         $roleq = $pending ? (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . " AND role IN ('Owner', 'Moderator')) ") : '';
         $groupq = $groupid ? (" AND groupid = " . intval($groupid)) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
-        $ctxq = $ctx ? " AND volunteering.id < {$ctx['id']} " : '';
+        $ctxq = $ctx ? (" AND volunteering.id < '" . intval($ctx['id']) . "' ") : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
         $sql = "SELECT volunteering.*, volunteering_dates.applyby, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE $pendingq $ctxq ORDER BY id DESC LIMIT 20;";

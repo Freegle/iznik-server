@@ -231,6 +231,8 @@ class Location extends Entity
     }
 
     public function search($term, $groupid, $limit = 10) {
+        $limit = intval($limit);
+
         # Remove any weird characters.
         $term = preg_replace("/[^[:alnum:][:space:]]/u", '', $term);
         
@@ -471,6 +473,8 @@ class Location extends Entity
     }
 
     public function groupsNear($radius = Location::NEARBY, $expand = FALSE, $limit = 10) {
+        $limit = intval($limit);
+
         # To make this efficient we want to use the spatial index on polyindex.  But our groups are not evenly
         # distributed, so if we search immediately upto $radius, which is the maximum we need to cover, then we
         # will often have to scan many more groups than we need in order to determine the closest groups

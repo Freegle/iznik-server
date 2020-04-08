@@ -101,6 +101,7 @@ class Search
     private function getWordsExact($word, $limit) {
         # We do this rather than a subquery because we can't apply a limit in a subquery, and the workarounds for doing
         # so are too complex for maintenance.
+        $limit = intval($limit);
         $sql = "SELECT id FROM {$this->wordtab} WHERE `word` = ? ORDER BY popularity LIMIT $limit;";
         $res = array();
         $ids = $this->dbhr->preQuery($sql, [
@@ -113,6 +114,7 @@ class Search
     }
 
     private function getWordsStartsWith($word, $limit) {
+        $limit = intval($limit);
         $sql = "SELECT id FROM {$this->wordtab} WHERE `word` LIKE ? ORDER BY popularity LIMIT $limit;";
         $res = array();
         $ids = $this->dbhr->preQuery($sql, [
@@ -125,6 +127,7 @@ class Search
     }
 
     private function getWordsSoundsLike($word, $limit) {
+        $limit = intval($limit);
         $sql = "SELECT id FROM {$this->wordtab} WHERE `soundex` = SUBSTRING(SOUNDEX(?), 1, 10) ORDER BY popularity LIMIT $limit;";
         $res = array();
         $ids = $this->dbhr->preQuery($sql, [
@@ -138,6 +141,7 @@ class Search
 
     private function getWordsTypo($word, $limit) {
         # We might have a cached set of words.
+        $limit = intval($limit);
         $ret = '0';
         $earliest = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
         $cached = $this->cachetab ? $this->dbhr->preQuery("SELECT * FROM {$this->cachetab} WHERE search LIKE ? AND added > '$earliest';", [

@@ -637,6 +637,8 @@ GROUP BY memberships.groupid, held;
 
     public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL, $ops = NULL, $filter = Group::FILTER_NONE) {
         $ret = [];
+        $limit = intval($limit);
+
         $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);
 
         if ($search) {
@@ -835,12 +837,12 @@ GROUP BY memberships.groupid, held;
 
         # We want unreviewed first, then most recent.
         $ctxq = $ctx == NULL ? " WHERE messages_outcomes.timestamp > '$start' " :
-            " WHERE
+            (" WHERE
             messages_outcomes.reviewed >= " . intval($ctx['reviewed']) . " AND   
             messages_outcomes.timestamp > '$start' AND 
-            (messages_outcomes.timestamp < '{$ctx['timestamp']}' OR 
-                (messages_outcomes.timestamp = '{$ctx['timestamp']}' AND
-                 messages_outcomes.id < {$ctx['id']}))";
+            (messages_outcomes.timestamp < '" . safedate($ctx['timestamp']) . "' OR 
+                (messages_outcomes.timestamp = '" . safedate($ctx['timestamp']) . "' AND
+                 messages_outcomes.id < " . intval($ctx['id']) . ")");
 
         $sql = "SELECT messages_outcomes.*, messages.fromuser, messages_groups.groupid, messages.subject FROM messages_outcomes
 INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid AND $groupq2

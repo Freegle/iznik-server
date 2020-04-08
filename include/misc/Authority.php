@@ -76,6 +76,7 @@ class Authority extends Entity
 
     public function search($term, $limit = 10) {
         # Remove any weird characters.
+        $limit = intval($limit);
         $term = preg_replace("/[^[:alnum:][:space:]]/u", '', $term);
 
         $auths = $this->dbhr->preQuery("SELECT id, name, area_code FROM authorities WHERE name LIKE " . $this->dbhr->quote("%$term%") . " LIMIT $limit;");

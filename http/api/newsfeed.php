@@ -41,7 +41,7 @@ function newsfeed() {
                         $dist = Newsfeed::DISTANCE;
 
                         if ($ctx && array_key_exists('distance', $ctx)) {
-                            $dist = $ctx['distance'];
+                            $dist = intval($ctx['distance']);
 
                             if ($dist == 'nearby') {
                                 $dist = $n->getNearbyDistance($me->getId());

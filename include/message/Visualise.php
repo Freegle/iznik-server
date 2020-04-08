@@ -192,6 +192,7 @@ class Visualise extends Entity
     }
 
     public function getMessages($swlat, $swlng , $nelat, $nelng, $limit = 5, &$ctx) {
+        $limit = intval($limit);
         $ctxq = $ctx ? (" id < " . intval($ctx) . ' AND ') : '';
         $sql = "SELECT id FROM visualise WHERE $ctxq fromlat BETWEEN ? AND ? AND fromlng BETWEEN ? AND ? ORDER BY id DESC LIMIT $limit;";
 

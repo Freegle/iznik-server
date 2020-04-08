@@ -96,6 +96,8 @@ class Log
     }
 
     public function get($types, $subtypes, $groupid, $date, $search, $limit, &$ctx, $uid = NULL) {
+        $limit = intval($limit);
+
         $groupq = $groupid ? " groupid = $groupid " : '1 = 1 ';
         $typeq = $types ? (" AND logs.type IN ('" . implode("','", $types) . "') ") : '';
         $subtypeq = $subtypes ? (" AND `subtype` IN ('" . implode("','", $subtypes) . "') ") : '';
@@ -104,7 +106,7 @@ class Log
 
         $searchq = $this->dbhr->quote("%$search%");
 
-        $idq = pres('id', $ctx) ? " AND logs.id < {$ctx['id']} " : '';
+        $idq = pres('id', $ctx) ? (" AND logs.id < " . intval($ctx['id']) . " ") : '';
         
         # We might have consecutive logs for the same messages/users, so try to speed that up.
         $msgs = [];

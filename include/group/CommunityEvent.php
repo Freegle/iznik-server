@@ -78,7 +78,7 @@ class CommunityEvent extends Entity
         $ret = [];
         $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
         $roleq = $pending ? " AND role IN ('Owner', 'Moderator') " : '';
-        $ctxq = $ctx ? " AND end > '{$ctx['end']}' " : '';
+        $ctxq = $ctx ? (" AND end > '" . safedate($ctx['end']) . "' ") : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
         $sql = "SELECT communityevents.*, communityevents.pending, communityevents_dates.end, communityevents_groups.groupid FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
@@ -114,7 +114,7 @@ class CommunityEvent extends Entity
         $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
         $roleq = $pending ? (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . " AND role IN ('Owner', 'Moderator')) ") : '';
         $groupq = $groupid ? (" AND groupid = " . intval($groupid)) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
-        $ctxq = $ctx ? " AND end > '{$ctx['end']}' " : '';
+        $ctxq = $ctx ? (" AND end > '" . safedate($ctx['end']) . "' ") : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
         $sql = "SELECT communityevents.*, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id $groupq $roleq AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";

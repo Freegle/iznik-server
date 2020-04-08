@@ -2559,7 +2559,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         # Don't cache as there might be a lot, they're rarely used, and it can cause UT issues.
         $myid = $me ? $me->getId() : NULL;
         $uids = array_keys($rets);
-        $startq = $ctx ? " AND id < {$ctx['id']} " : '';
+        $startq = $ctx ? (" AND id < " . intval($ctx['id']) . " ") : '';
         $modships = $me ? $me->getModeratorships() : [];
         $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND groupid IN (" . implode(',', $modships) . ")";
         $modq = $modmailsonly ? $modmailq : '';
@@ -2578,7 +2578,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             foreach ($logs as $log) {
                 if ($log['user'] == $ret['id'] || $log['byuser'] == $ret['id']) {
-                    $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : min($ctx['id'], $log['id']);
+                    $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : intval(min($ctx['id'], $log['id']));
 
                     if (pres('byuser', $log)) {
                         if (!pres($log['byuser'], $users)) {
@@ -4321,7 +4321,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $id = presdef('id', $ctx, 0);
+        $id = intval(presdef('id', $ctx, 0));
         $ctx = $ctx ? $ctx : [];
         $q = $this->dbhr->quote("$search%");
         $backwards = strrev($search);
@@ -5049,6 +5049,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function topKudos($gid, $limit = 10)
     {
+        $limit = intval($limit);
+
         $kudos = $this->dbhr->preQuery("SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? WHERE memberships.role = ? ORDER BY kudos DESC LIMIT $limit;", [
             $gid,
             User::ROLE_MEMBER
@@ -5080,6 +5082,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         # - using a location which is in the group area
         # - have posted with the platform, as we don't want loyal users of TN or Yahoo.
         # - have a Facebook login, as they are more likely to do publicity.
+        $limit = intval($limit);
         $start = date('Y-m-d', strtotime("60 days ago"));
         $sql = "SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? INNER JOIN groups ON groups.id = memberships.groupid INNER JOIN locations_spatial ON users.lastlocation = locations_spatial.locationid WHERE memberships.role = ? AND users_kudos.platform = 1 AND users_kudos.facebook = 1 AND ST_Contains(GeomFromText(groups.poly), locations_spatial.geometry) AND bouncing = 0 AND lastaccess >= '$start' ORDER BY kudos DESC LIMIT $limit;";
         $kudos = $this->dbhr->preQuery($sql, [
@@ -5900,6 +5903,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function mostActive($gid, $limit = 20)
     {
+        $limit = intval($limit);
         $earliest = date("Y-m-d", strtotime("Midnight 30 days ago"));
 
         $users = $this->dbhr->preQuery("SELECT users_active.userid, COUNT(*) AS count FROM users_active inner join users ON users.id = users_active.userid INNER JOIN memberships ON memberships.userid = users.id WHERE groupid = ? AND systemrole = ? AND timestamp >= ? GROUP BY users_active.userid ORDER BY count DESC LIMIT $limit", [
@@ -6269,6 +6273,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function listRelated($groupids, &$ctx, $limit = 10) {
         # The < condition ensures we don't duplicate during a single run.
+        $limit = intval($limit);
         $ret = [];
         $backstop = 100;
 

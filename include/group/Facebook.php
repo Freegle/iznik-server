@@ -142,7 +142,7 @@ class GroupFacebook {
 
 
         if ($me) {
-            $minid = $ctx ? $ctx['id'] : 0;
+            $minid = $ctx ? intval($ctx['id']) : 0;
 
             $modships = [];
 

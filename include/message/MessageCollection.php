@@ -81,6 +81,7 @@ class MessageCollection
     function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL, $hasoutcome = NULL, $summary = FALSE)
     {
         $backstop = 1000;
+        $limit = intval($limit);
 
         do {
             $tofill = [];
