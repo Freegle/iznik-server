@@ -93,31 +93,11 @@ foreach ($totalact as $total) {
             $group['id']
         ]);
 
-        # We decide if they're active on here by whether they've had a Yahoo member sync or approved a message.
-        $timeq = $group['lastmodactive'] ? ("timestamp >= '" . date("Y-m-d H:i:s", strtotime($group['lastmodactive'])) . "' AND ") : '';
-        $acts = $dbhr->preQuery("SELECT MAX(timestamp) AS moderated FROM logs WHERE $timeq groupid = ? AND logs.type = 'Message' AND subtype = 'Approved';", [$group['id']]);
-        $lastmodactive = NULL;
-
-        foreach ($acts as $act) {
-            $lastsync = $group['lastyahoomembersync'] ? strtotime($group['lastyahoomembersync']) : NULL;
-            $lastact = $act['moderated'] ? strtotime($act['moderated']) : NULL;
-            $max = ($lastsync || $lastact) ? max($lastsync, $lastact) : NULL;
-
-            if ($max) {
-                $lastmodactive = date("Y-m-d H:i:s", $max);
-                $dbhm->preExec("UPDATE groups SET lastmodactive = ? WHERE id = ?;", [
-                    $lastmodactive,
-                    $group['id']
-                ]);
-            }
-        }
-
-        # Find when the group was last moderated - max of that and when they approved a message (which could be
-        # on Yahoo).
+        # Find when the group was last moderated.
         $sql = "SELECT MAX(arrival) AS max FROM messages_groups WHERE groupid = ? AND approvedby IS NOT NULL;";
         $maxs = $dbhr->preQuery($sql, [$group['id']]);
         $dbhm->preExec("UPDATE groups SET lastmoderated = ? WHERE id = ?;", [
-            strtotime($lastmodactive) > strtotime($maxs[0]['max']) ? $lastmodactive : $maxs[0]['max'],
+            $maxs[0]['max'],
             $group['id']
         ]);
 
@@ -142,7 +122,7 @@ foreach ($totalact as $total) {
 
         # If we didn't find any approvals, but we know a mod was active, then there's at least 1.
         $dbhm->preExec("UPDATE groups SET activemodcount = ? WHERE id = ?;", [
-            $actives[0]['count'] == 0 && $lastmodactive ? 1 : $actives[0]['count'],
+            $actives[0]['count'] == 0,
             $group['id']
         ]);
 
