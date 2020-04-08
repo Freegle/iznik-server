@@ -752,31 +752,60 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals($threadhead, $ret['newsfeed']['replies'][0]['replies'][0]['threadhead']);
     }
 
-//    public function testEH() {
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
-//        $u = new User($this->dbhr, $this->dbhm);
-//
-//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-//        $_SESSION['id'] = $uid;
-//        error_log("Start it");
-//        $ret = $this->call('newsfeed', 'GET', [
-//            'types' => [
-//                Newsfeed::TYPE_MESSAGE,
-//                Newsfeed::TYPE_COMMUNITY_EVENT,
-//                Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY,
-//                Newsfeed::TYPE_ALERT,
-//                Newsfeed::TYPE_STORY,
-//                Newsfeed::TYPE_ABOUT_ME
-//            ],
-//            'context' => [
-//                'distance' => 'nearby'
-//            ]
-//        ]);
-//
-//        assertEquals(0, $ret['ret']);
-//        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-//        $this->log(var_export($ret, TRUE));
-//    }
+    public function testSuppressed() {
+        $this->log("Logged in - empty");
+        assertTrue($this->user->login('testpw'));
+
+        # Suppress them
+        $this->user->setPrivate('newsfeedmodstatus', User::NEWSFEED_SUPPRESSED);
+
+        # Post something.
+        $this->log("Post something as {$this->uid}");
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test with url https://google.co.uk'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $this->log("Created feed {$ret['id']}");
+        $nid = $ret['id'];
+
+        # Get it - should show for us.
+        $ret = $this->call('newsfeed', 'GET', [
+            'ctx' => [
+                'distance' => PHP_INT_MAX
+            ]
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $found = FALSE;
+
+        foreach ($ret['newsfeed'] as $entry) {
+            if ($nid == $entry['id']) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
+
+        # Shouldn't show for someone else.
+        assertTrue($this->user2->login('testpw'));
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'ctx' => [
+                'distance' => PHP_INT_MAX
+            ]
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $found = FALSE;
+
+        foreach ($ret['newsfeed'] as $entry) {
+            if ($nid == $entry['id']) {
+                $found = TRUE;
+            }
+        }
+
+        assertFalse($found);
+    }
 }
 

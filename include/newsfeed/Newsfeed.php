@@ -53,11 +53,15 @@ class Newsfeed extends Entity
     public function create($type, $userid = NULL, $message = NULL, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL, $lat = NULL, $lng = NULL) {
         $id = NULL;
 
-        $s = new Spam($this->dbhr, $this->dbhm);
-        $hidden = $s->checkReferToSpammer($message) ? 'NOW()' : 'NULL';
-
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+
+        # Check the newsfeed mod status of the poster.  If it is suppressed, then we insert it as hidden (so
+        # they can see it) but don't alert.
+        $suppressed = $u->getPrivate('newsfeedmodstatus') == User::NEWSFEED_SUPPRESSED;
+
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $hidden = ($suppressed || $s->checkReferToSpammer($message)) ? 'NOW()' : 'NULL';
 
         if ($lat === NULL) {
             # We might have been given a lat/lng separate from the user, e.g. for noticeboards.
@@ -557,8 +561,8 @@ class Newsfeed extends Entity
                 // This entry is the start of the thread.
                 $entry['threadhead'] = $entry['id'];
 
-                # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
-                # are there but nobody else sees them.
+                # Don't use hidden entries unless they are ours.  This means that to a spammer or suppressed user
+                # it looks like their posts are there but nobody else sees them.
                 if (!$hidden || $myid == $entry['userid']) {
                     unset($entry['hidden']);
                     $filtered[] = $entry;

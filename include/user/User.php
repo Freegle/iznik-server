@@ -110,6 +110,11 @@ class User extends Entity
     const CHAT_MODSTATUS_UNMODERATED = 'Unmoderated';
     const CHAT_MODSTATUS_FULLY = 'Fully';
 
+    # Newsfeed mod status
+    const NEWSFEED_UNMODERATED = 'Unmoderated';
+    const NEWSFEED_MODERATED = 'Moderated';
+    const NEWSFEED_SUPPRESSED = 'Suppressed';
+
     # 2 decimal places is roughly 1km.
     const BLUR_NONE = NULL;
     const BLUR_100M = 3;
