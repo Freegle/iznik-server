@@ -265,6 +265,17 @@ function memberships() {
                             # The reject call will handle any rejection on Yahoo if required.
                             $u->reject($groupid, NULL, NULL, NULL);
                             break;
+                        case 'Delete Approved Member':
+                            # We can remove them, but not if they are someone higher than us.
+                            $myrole = $me->getRoleForGroup($groupid);
+                            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
+                            if ($myrole == $u->roleMax($myrole, $u->getRoleForGroup($groupid))) {
+                                $u->mail($groupid, $subject, $body, $stdmsgid, $action);
+                                $u->removeMembership($groupid);
+                                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                            }
+                            break;
                         case 'Reject':
                             if (!$u->isPendingMember($groupid)) {
                                 $ret = ['ret' => 3, 'status' => 'Member is not pending'];
