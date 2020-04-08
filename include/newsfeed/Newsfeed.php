@@ -434,7 +434,7 @@ class Newsfeed extends Entity
 
                                 # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
                                 # are there but nobody else sees them.
-                                if (!$hidden || $myid == $entries[$entindex]['userid']) {
+                                if (!$hidden || $myid == $reply['userid']) {
                                     if ($reply['visible'] &&
                                         $last['userid'] == $reply['userid'] &&
                                         $last['type'] == $reply['type'] &&
