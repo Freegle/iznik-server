@@ -43,6 +43,13 @@ class CatalogueTest extends IznikTestCase {
 
         assertNotNull($id);
         assertEquals($json, $json2);
+
+        $authors = $mock->extractPossibleAuthors($id);
+        assertEquals( array (
+            0 => 'c. s. lewis',
+            1 => 'd. h. lawrence',
+            2 => 'john lanchester',
+        ), $authors);
     }
 }
 

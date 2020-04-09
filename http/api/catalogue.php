@@ -12,11 +12,13 @@ function catalogue() {
 
         $c = new Catalogue($dbhr, $dbhm);
         list ($id, $text) = $c->ocr($data);
+        $authors = $c->extractPossibleAuthors($id);
 
         $ret = [
             'ret' => 0,
             'status' => 'Success',
             'text' => $text,
+            'authors' => $authors,
             'id' => $id
         ];
     }
