@@ -120,9 +120,8 @@ foreach ($totalact as $total) {
             $start
         ]);
 
-        # If we didn't find any approvals, but we know a mod was active, then there's at least 1.
         $dbhm->preExec("UPDATE groups SET activemodcount = ? WHERE id = ?;", [
-            $actives[0]['count'] == 0,
+            $actives[0]['count'],
             $group['id']
         ]);
 
