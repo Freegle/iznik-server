@@ -50,6 +50,40 @@ class CatalogueTest extends IznikTestCase {
             1 => 'd. h. lawrence',
             2 => 'john lanchester',
         ), $authors);
+
+        $wip = $mock->extricateAuthors($id, $authors);
+        assertEquals(array (
+                0 =>
+                    array (
+                        'type' => 'author',
+                        'value' => 'c. s. lewis',
+                    ),
+                1 =>
+                    array (
+                        'type' => 'title',
+                        'value' => 'the problem of pain',
+                    ),
+                2 =>
+                    array (
+                        'type' => 'author',
+                        'value' => 'd. h. lawrence',
+                    ),
+                3 =>
+                    array (
+                        'type' => 'title',
+                        'value' => 'women in love',
+                    ),
+                4 =>
+                    array (
+                        'type' => 'author',
+                        'value' => 'john lanchester',
+                    ),
+                5 =>
+                    array (
+                        'type' => 'title',
+                        'value' => 'fragrant harbour interpreter of maladies jhumpa lahiri',
+                    ),
+            ), $wip);
     }
 }
 

@@ -210,4 +210,101 @@ class Catalogue
 
         return pres('author', $json);
     }
+
+    public function extricateAuthors($id, $authors) {
+        $ret = [];
+
+        $ocrdata = $this->dbhm->preQuery("SELECT text FROM booktastic_ocr WHERE id = ?;", [
+            $id
+        ]);
+
+        foreach ($ocrdata as $o) {
+            $json = json_decode($o['text'], TRUE);
+
+            if (count($json) && pres('description', $json[0])) {
+                $text = trim(strtolower(str_replace("\n", ' ', $json[0]['description'])));
+                error_log("Start with $text");
+
+                do {
+                    # Find the first author
+                    $minpos = PHP_INT_MAX;
+                    $minauthor = NULL;
+
+                    foreach ($authors as $author) {
+                        $p = strpos($text, $author);
+
+                        if ($p !== FALSE && $p < $minpos) {
+                            $minpos = $p;
+                            $minauthor = $author;
+                        }
+                    }
+
+                    if ($minpos === PHP_INT_MAX) {
+                        # Erm...
+                        break;
+                    }
+
+                    if ($minpos === 0) {
+                        # Author at start.  Find the next author after that and assume the title is what's in
+                        # between
+                        $ret[] = [
+                            'type' => 'author',
+                            'value' => $minauthor
+                        ];
+
+                        $nextpos = PHP_INT_MAX;
+                        $nextauthor = NULL;
+
+                        foreach ($authors as $author) {
+                            $p = strpos($text, $author, 1);
+
+                            if ($p !== FALSE && $p < $nextpos) {
+                                $nextpos = $p;
+                                $nextauthor = $author;
+                            }
+                        }
+
+                        error_log("Author at start, next at $nextpos");
+
+                        if ($nextpos === PHP_INT_MAX) {
+                            # No next one - assume rest of string is title.
+                            $ret[] = [
+                                'type' => 'title',
+                                'value' => trim(substr($text, strlen($minauthor), $nextpos - strlen($minauthor)))
+                            ];
+
+                            $text = trim(substr($text, strlen($minauthor)));
+
+                            error_log("Purported title at end, no next, now $text");
+                        } else {
+                            $ret[] = [
+                                'type' => 'title',
+                                'value' => trim(substr($text, strlen($minauthor), $nextpos - strlen($minauthor)))
+                            ];
+
+                            $text = trim(substr($text, $nextpos));
+                            error_log("Purported title at end, next at $nextpos, now $text");
+                        }
+                    } else {
+                        # Purported title at start
+                        $ret[] = [
+                            'type' => 'title',
+                            'value' => trim(substr($text, 0, $minpos))
+                        ];
+
+                        $ret[] = [
+                            'type' => 'author',
+                            'value' => $minauthor
+                        ];
+
+                        $text = trim(substr($text, $minpos + strlen($minauthor)));
+                        error_log("Purported title at start, now $text");
+                    }
+                } while (strlen($text));
+            }
+        }
+
+        error_log("Extricated " . var_export($ret, TRUE));
+        return $ret;
+    }
 }
