@@ -372,7 +372,7 @@ class Attachment
         return($items);
     }
 
-    public function ocr($data = NULL) {
+    public function ocr($data = NULL, $returnfull = FALSE) {
         # Identify text in an attachment using Google Vision API.
         $base64 = $data ? $data : base64_encode($this->getData());
 
@@ -401,6 +401,7 @@ class Attachment
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         $text = '';
+        $rsps = NULL;
 
         if ($status) {
             $rsp = json_decode($json_response, TRUE);
@@ -417,7 +418,7 @@ class Attachment
 
         curl_close($curl);
 
-        return($text);
+        return($returnfull ? $rsps : $text);
     }
 
     public function setPrivate($att, $val) {

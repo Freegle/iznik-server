@@ -112,6 +112,7 @@ require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/config/BulkOp.php');
 require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 require_once(IZNIK_BASE . '/include/user/Team.php');
+require_once(IZNIK_BASE . '/include/booktastic/Catalogue.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/abtest.php');
@@ -153,6 +154,7 @@ require_once(IZNIK_BASE . '/http/api/chatmessages.php');
 require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/logo.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
+require_once(IZNIK_BASE . '/http/api/catalogue.php');
 require_once(IZNIK_BASE . '/http/api/profile.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/src.php');
@@ -336,6 +338,9 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     throw new Exception();
                 case 'image':
                     $ret = image();
+                    break;
+                case 'catalogue':
+                    $ret = catalogue();
                     break;
                 case 'profile':
                     $ret = profile();
