@@ -25,65 +25,31 @@ class CatalogueTest extends IznikTestCase {
         parent::tearDown ();
     }
 
-    public function testOCR() {
-        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/booktastic/basic_image');
-        $text = file_get_contents(IZNIK_BASE . '/test/ut/php/booktastic/basic_text');
-        $json = json_decode($text);
+    /**
+     * @dataProvider libraryData
+     */
+    public function testLibrary($filename) {
+        $data = base64_encode(file_get_contents(IZNIK_BASE . $filename . ".jpg"));
+        $json = json_decode(file_get_contents(IZNIK_BASE . $filename . ".txt"), TRUE);
 
-        $mock = $this->getMockBuilder('Catalogue')
-            ->setConstructorArgs([
-                $this->dbhr,
-                $this->dbhm
-            ])
-            ->setMethods(array('doOCR'))
-            ->getMock();
-        $mock->method('doOCR')->willReturn($json);
-
-        list ($id, $json2) = $mock->ocr($data);
-
+        $c = new Catalogue($this->dbhr, $this->dbhm);
+        list ($id, $json2) = $c->ocr($data, $filename);
         assertNotNull($id);
-        assertEquals($json, $json2);
 
-        $authors = $mock->extractPossibleAuthors($id);
-        assertEquals( array (
-            0 => 'c. s. lewis',
-            1 => 'd. h. lawrence',
-            2 => 'john lanchester',
-        ), $authors);
+        $authors = $c->extractPossibleAuthors($id);
+        $wip = $c->extricateAuthors($id, $authors);
+        if (!strcmp($json, $wip)) {
+            error_log("Mismatch " . json_encode($wip));
+        }
+        assertEquals($json, $wip);
+    }
 
-        $wip = $mock->extricateAuthors($id, $authors);
-        assertEquals(array (
-                0 =>
-                    array (
-                        'type' => 'author',
-                        'value' => 'c. s. lewis',
-                    ),
-                1 =>
-                    array (
-                        'type' => 'title',
-                        'value' => 'the problem of pain',
-                    ),
-                2 =>
-                    array (
-                        'type' => 'author',
-                        'value' => 'd. h. lawrence',
-                    ),
-                3 =>
-                    array (
-                        'type' => 'title',
-                        'value' => 'women in love',
-                    ),
-                4 =>
-                    array (
-                        'type' => 'author',
-                        'value' => 'john lanchester',
-                    ),
-                5 =>
-                    array (
-                        'type' => 'title',
-                        'value' => 'fragrant harbour interpreter of maladies jhumpa lahiri',
-                    ),
-            ), $wip);
+    public function libraryData() {
+        return [
+            [
+                '/test/ut/php/booktastic/20200409_141013',
+            ]
+        ];
     }
 }
 
