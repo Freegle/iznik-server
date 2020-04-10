@@ -52,7 +52,7 @@ function session() {
                         # ModTools.  Ensure we have the cookie set up for Discourse login.
                         if (array_key_exists('persistent', $_SESSION)) {
                             #error_log("Set Discourse Cookie");
-                            setcookie('Iznik-Discourse-SSO', json_encode($_SESSION['persistent']), 0, '/', 'modtools.org');
+                            @setcookie('Iznik-Discourse-SSO', json_encode($_SESSION['persistent']), 0, '/', 'modtools.org');
                         }
                     }
 
