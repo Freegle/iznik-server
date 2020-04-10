@@ -17,13 +17,17 @@ $sso->setSecret(DISCOURSE_SECRET);
 $payload = $_GET['sso'];
 $signature = $_GET['sig'];
 
+error_log("Validate $payload, $signature");
+
 if (($sso->validatePayload($payload,$signature))) {
+    error_log("Validated");
     $nonce = $sso->getNonce($payload);
 
     $persistent = NULL;
 
     if (array_key_exists('Iznik-Discourse-SSO', $_COOKIE)) {
         $persistent = json_decode($_COOKIE['Iznik-Discourse-SSO'], TRUE);
+        error_log("Got cookie");
 
         try {
             # First try via the DB.  This avoids issues where we've just logged in and our session is not up
@@ -113,9 +117,14 @@ if (($sso->validatePayload($payload,$signature))) {
                 exit(0);
             }
         }
-      error_log('discourse_sso - dropped out');
+        error_log('discourse_sso - dropped out');
+    } else {
+        error_log("No cookie");
     }
+} else {
+    error_log("Failed validation");
 }
+
 error_log('discourse_sso - redirect to MT login');
 
 // Redirect.  This will force sign-in, which will set up the cookie, then redirect back here so that
