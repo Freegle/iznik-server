@@ -300,6 +300,16 @@ function user() {
                 $role = $me->moderatorForUser($id) ? User::ROLE_MODERATOR : User::ROLE_NONMEMBER;
             }
 
+            if ($me && $me->isAdminOrSupport() && $action == 'AddEmail') {
+                $ret = [ 'ret' => 3, 'status' => 'Email already used' ];
+                $uid = $u->findByEmail($email);
+
+                if (!$uid) {
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    $u->addEmail($email);
+                }
+            }
+
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
