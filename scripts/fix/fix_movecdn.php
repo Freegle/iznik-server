@@ -13,8 +13,7 @@ function getAzure() {
     return(ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING));
 }
 
-if (TRUE) {
-    # Done this now.
+if (FALSE) {
     $atts = $dbhr->preQuery("SELECT id FROM chat_images WHERE archived = 1;");
     error_log("Chat " . count($atts));
     $attcount = 0;
@@ -54,7 +53,6 @@ if (TRUE) {
 }
 
 if (FALSE) {
-    # Done this now.
     $atts = $dbhr->preQuery("SELECT id FROM newsfeed_images WHERE archived = 1;");
     error_log("Newsfeed " . count($atts));
     $attcount = 0;
@@ -93,7 +91,7 @@ if (FALSE) {
     }
 }
 
-if (FALSE) {
+if (TRUE) {
     $start = '2020-03-01';
     $msgs = $dbhr->preQuery("SELECT id FROM messages WHERE arrival >= '$start' ORDER BY arrival DESC;");
     error_log("Messages " . count($msgs));
