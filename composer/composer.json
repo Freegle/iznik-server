@@ -25,7 +25,7 @@
     "facebook/webdriver": "^1.1",
     "swiftmailer/swiftmailer": "v5.4.3",
     "abraham/twitteroauth": "^0.6.4",
-    "Oefenweb/damerau-levenshtein": "^2.1",
+    "oefenweb/damerau-levenshtein": "^2.1",
     "kartik-v/bootstrap-fileinput": "dev-master",
     "graphp/graphviz": "^0.2.1",
     "googleads/googleads-php-lib": "^15.0",
