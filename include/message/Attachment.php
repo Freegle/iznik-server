@@ -418,6 +418,7 @@ class Attachment
 
         curl_close($curl);
 
+        error_log("Return OCR $returnfull");
         return($returnfull ? $rsps : $text);
     }
 

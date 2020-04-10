@@ -30,7 +30,8 @@ class CatalogueTest extends IznikTestCase {
      */
     public function testLibrary($filename) {
         $data = base64_encode(file_get_contents(IZNIK_BASE . $filename . ".jpg"));
-        $json = json_decode(file_get_contents(IZNIK_BASE . $filename . ".txt"), TRUE);
+        $jsonfile = @file_get_contents(IZNIK_BASE . $filename . ".txt");
+        $json = $jsonfile ? json_decode($jsonfile, TRUE) : [];
 
         $c = new Catalogue($this->dbhr, $this->dbhm);
         list ($id, $json2) = $c->ocr($data, $filename);
@@ -38,7 +39,7 @@ class CatalogueTest extends IznikTestCase {
 
         $authors = $c->extractPossibleAuthors($id);
         $wip = $c->extricateAuthors($id, $authors);
-        if (!strcmp($json, $wip)) {
+        if ($json != $wip) {
             error_log("Mismatch " . json_encode($wip));
         }
         assertEquals($json, $wip);
@@ -46,8 +47,11 @@ class CatalogueTest extends IznikTestCase {
 
     public function libraryData() {
         return [
+//            [
+//                '/test/ut/php/booktastic/20200409_141013'
+//            ],
             [
-                '/test/ut/php/booktastic/20200409_141013',
+                '/test/ut/php/booktastic/20200409_141743'
             ]
         ];
     }

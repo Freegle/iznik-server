@@ -29,19 +29,38 @@ class Catalogue
         }
     }
 
-    public function doOCR($a, $data) {
+    public function doOCR(Attachment $a, $data) {
         return $a->ocr($data, TRUE);
     }
 
-    public function ocr($data) {
-        $a = new Attachment($this->dbhr, $this->dbhm);
-        $text = $this->doOCR($a, $data);
-        $this->dbhm->preExec("INSERT INTO booktastic_ocr (data, text) VALUES (?, ?);", [
-            $data,
-            json_encode($text)
-        ]);
+    public function ocr($data, $uid) {
+        # If we have a uid then we might have seen this before.  This is used in UT to avoid hitting
+        # Google all the time.
+        $already = [];
 
-        $id = $this->dbhm->lastInsertId();
+        if ($uid) {
+            $already = $this->dbhr->preQuery("SELECT id, text FROM booktastic_ocr WHERE uid = ?;", [
+                $uid
+            ], FALSE, FALSE);
+        }
+
+        error_log("Check for uid $uid = " . count($already));
+        if (!count($already)) {
+            error_log("Not got it");
+            $a = new Attachment($this->dbhr, $this->dbhm);
+            $text = $this->doOCR($a, $data);
+            $this->dbhm->preExec("INSERT INTO booktastic_ocr (data, text, uid) VALUES (?, ?, ?);", [
+                $data,
+                json_encode($text),
+                $uid
+            ]);
+
+            $id = $this->dbhm->lastInsertId();
+        } else {
+            $id = $already[0]['id'];
+            $text = $already[0]['text'];
+            error_log("Already got $id");
+        }
 
         return [ $id, $text ];
     }
@@ -56,6 +75,7 @@ class Catalogue
         foreach ($ocrdata as $o) {
             $json = json_decode($o['text'], TRUE);
 
+            #error_log("Returned {$o['text']}");
             if (count($json) && pres('description', $json[0])) {
                 # Google is good at assembling the fragments into a piece of text and getting the alignment
                 # right.  So for now we go with what it returns.  Possibly we could do better by using
@@ -69,10 +89,7 @@ class Catalogue
                 $gotlastname = 0;
                 $gotinitials = 0;
                 $gotauthor = FALSE;
-                $gottitle = FALSE;
                 $currentauthor = '';
-                $currenttitle = '';
-                $done = FALSE;
 
                 for ($i = 0; $i < count($fragments); $i++) {
                     $fs = strtolower(trim($fragments[$i]));
@@ -104,7 +121,7 @@ class Catalogue
                             ], FALSE, FALSE);
 
                             if (count($lasts)) {
-                                #error_log("...$f looks like a last name");
+                                error_log("...$f looks like a last name");
                                 $islast = TRUE;
                             }
 
@@ -114,7 +131,7 @@ class Catalogue
                             ], FALSE, FALSE);
 
                             if (count($firsts)) {
-                                #error_log("...$f looks like a first name");
+                                error_log("...$f looks like a first name");
                                 $isfirst = TRUE;
                                 $gotfirstname++;
                             }
@@ -125,11 +142,21 @@ class Catalogue
                             # - two firstnames
                             # - two lastnames
                             # - lastname + 1-2 initials
-                            #error_log("$f, $islast, $isfirst, $isinitial, $gotlastname, $gotfirstname, $gotinitials");
+                            error_log("$f, " .
+                                ($islast ? " is last " : " not last ") .
+                                ($isfirst ? " is first " : " not first ") .
+                                ($isinitial ? " is initial " : " not initial ") .
+                                ($gotlastname ? " got last " : " not got last ") .
+                                ($gotfirstname ? " got first " : " not got first ") .
+                                ($gotinitials ? " got initials " : " not got initials "));
+
                             if (strpos($currentauthor, ' ') !== FALSE) {
+                                error_log("Consider complete");
                                 if ($gotinitials && $islast) {
+                                    error_log("Got initials && last => author $currentauthor");
                                     $gotauthor = TRUE;
-                                } else if ($isfirst && $gotlastname) {
+                                } else if ($islast && $gotfirstname) {
+                                    error_log("Got first && last => author $currentauthor");
                                     $gotauthor = TRUE;
                                 }
                             }
@@ -139,6 +166,7 @@ class Catalogue
                                 $currentauthor = trim(str_replace('  ', ' ', $currentauthor));
 
                                 # Check if this author exists.
+                                error_log("Check valid author $currentauthor");
                                 if ($this->validAuthor($currentauthor)) {
                                     $ret[] = $currentauthor;
                                 }
@@ -158,7 +186,7 @@ class Catalogue
                                     $currentauthor .= " $f";
                                 }
 
-                                #error_log("Keep looking $currentauthor");
+                                error_log("Keep looking $currentauthor");
                             }
 
                             #error_log("Current name $currentauthor, $gotfirstname, $gotlastname, $gotinitials");
@@ -223,7 +251,7 @@ class Catalogue
 
             if (count($json) && pres('description', $json[0])) {
                 $text = trim(strtolower(str_replace("\n", ' ', $json[0]['description'])));
-                error_log("Start with $text");
+                #error_log("Start with $text");
 
                 do {
                     # Find the first author
@@ -264,7 +292,7 @@ class Catalogue
                             }
                         }
 
-                        error_log("Author at start, next at $nextpos");
+                        #error_log("Author at start, next at $nextpos");
 
                         if ($nextpos === PHP_INT_MAX) {
                             # No next one - assume rest of string is title.
@@ -275,7 +303,7 @@ class Catalogue
 
                             $text = trim(substr($text, strlen($minauthor)));
 
-                            error_log("Purported title at end, no next, now $text");
+                            #error_log("Purported title at end, no next, now $text");
                         } else {
                             $ret[] = [
                                 'type' => 'title',
@@ -283,28 +311,28 @@ class Catalogue
                             ];
 
                             $text = trim(substr($text, $nextpos));
-                            error_log("Purported title at end, next at $nextpos, now $text");
+                            #error_log("Purported title at end, next at $nextpos, now $text");
                         }
                     } else {
                         # Purported title at start
-                        $ret[] = [
-                            'type' => 'title',
-                            'value' => trim(substr($text, 0, $minpos))
-                        ];
-
                         $ret[] = [
                             'type' => 'author',
                             'value' => $minauthor
                         ];
 
+                        $ret[] = [
+                            'type' => 'title',
+                            'value' => trim(substr($text, 0, $minpos))
+                        ];
+
                         $text = trim(substr($text, $minpos + strlen($minauthor)));
-                        error_log("Purported title at start, now $text");
+                        #error_log("Purported title at start, now $text");
                     }
                 } while (strlen($text));
             }
         }
 
-        error_log("Extricated " . var_export($ret, TRUE));
+        #error_log("Extricated " . var_export($ret, TRUE));
         return $ret;
     }
 }
