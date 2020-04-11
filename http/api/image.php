@@ -112,94 +112,98 @@ function image() {
                     pres('tmp_name', $photo) &&
                     strpos($mimetype, 'image/') === 0) {
 
-                    # We may need to rotate.
-                    $data = file_get_contents($photo['tmp_name']);
-                    $image = imagecreatefromstring($data);
-                    $exif = @exif_read_data($photo['tmp_name']);
+                    try {
+                        # We may need to rotate.
+                        $data = file_get_contents($photo['tmp_name']);
+                        $image = imagecreatefromstring($data);
+                        $exif = @exif_read_data($photo['tmp_name']);
 
-                    if($exif && !empty($exif['Orientation'])) {
-                        switch($exif['Orientation']) {
-                            case 2:
-                                imageflip($image , IMG_FLIP_HORIZONTAL);
-                                break;
-                            case 3:
-                                $image = imagerotate($image,180,0);
-                                break;
-                            case 4:
-                                $image = imagerotate($image,180,0);
-                                imageflip($image , IMG_FLIP_HORIZONTAL);
-                                break;
-                            case 5:
-                                $image = imagerotate($image,90,0);
-                                imageflip ($image , IMG_FLIP_VERTICAL);
-                                break;
-                            case 6:
-                                $image = imagerotate($image,-90,0);
-                                break;
-                            case 7:
-                                $image = imagerotate($image,-90,0);
-                                imageflip ($image , IMG_FLIP_VERTICAL);
-                                break;
-                            case 8:
-                                $image = imagerotate($image,90,0);
-                                break;
+                        if($exif && !empty($exif['Orientation'])) {
+                            switch($exif['Orientation']) {
+                                case 2:
+                                    imageflip($image , IMG_FLIP_HORIZONTAL);
+                                    break;
+                                case 3:
+                                    $image = imagerotate($image,180,0);
+                                    break;
+                                case 4:
+                                    $image = imagerotate($image,180,0);
+                                    imageflip($image , IMG_FLIP_HORIZONTAL);
+                                    break;
+                                case 5:
+                                    $image = imagerotate($image,90,0);
+                                    imageflip ($image , IMG_FLIP_VERTICAL);
+                                    break;
+                                case 6:
+                                    $image = imagerotate($image,-90,0);
+                                    break;
+                                case 7:
+                                    $image = imagerotate($image,-90,0);
+                                    imageflip ($image , IMG_FLIP_VERTICAL);
+                                    break;
+                                case 8:
+                                    $image = imagerotate($image,90,0);
+                                    break;
+                            }
+
+                            ob_start();
+                            imagejpeg($image, NULL, 100);
+                            $data = ob_get_contents();
+                            ob_end_clean();
                         }
 
-                        ob_start();
-                        imagejpeg($image, NULL, 100);
-                        $data = ob_get_contents();
-                        ob_end_clean();
-                    }
+                        if ($data) {
+                            $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
+                            $id = $a->create($msgid, $photo['type'], $data);
 
-                    if ($data) {
-                        $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                        $id = $a->create($msgid, $photo['type'], $data);
+                            # Make sure it's not too large, to keep DB size down.  Ought to have been resized by
+                            # client, but you never know.
+                            $data = $a->getData();
+                            $i = new Image($data);
+                            $h = $i->height();
+                            $w = $i->width();
 
-                        # Make sure it's not too large, to keep DB size down.  Ought to have been resized by
-                        # client, but you never know.
-                        $data = $a->getData();
-                        $i = new Image($data);
-                        $h = $i->height();
-                        $w = $i->width();
+                            if ($w > $sizelimit) {
+                                $h = $h * $sizelimit / $w;
+                                $w = $sizelimit;
+                                $i->scale($w, $h);
+                                $data = $i->getData(100);
+                                $a->setPrivate('data', $data);
+                            }
 
-                        if ($w > $sizelimit) {
-                            $h = $h * $sizelimit / $w;
-                            $w = $sizelimit;
-                            $i->scale($w, $h);
-                            $data = $i->getData(100);
-                            $a->setPrivate('data', $data);
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                                'id' => $id,
+                                'path' => $a->getPath(FALSE),
+                                'paththumb' => $a->getPath(TRUE)
+                            ];
+
+                            # Return a new thumbnail (which might be a different orientation).
+                            $ret['initialPreview'] =  [
+                                '<img src="' . $a->getPath(TRUE) . '" class="file-preview-image img-responsive">',
+                            ];
+
+                            $ret['initialPreviewConfig'] = [
+                                [
+                                    'key' => $id
+                                ]
+                            ];
+
+                            $ret['append'] = TRUE;
+
+                            if ($identify) {
+                                $a = new Attachment($dbhr, $dbhm, $id);
+                                $ret['items'] = $a->identify();
+                            }
+
+                            if ($ocr) {
+                                $a = new Attachment($dbhr, $dbhm, $id, $type);
+                                $ret['ocr'] = $a->ocr();
+                            }
                         }
-
-                        $ret = [
-                            'ret' => 0,
-                            'status' => 'Success',
-                            'id' => $id,
-                            'path' => $a->getPath(FALSE),
-                            'paththumb' => $a->getPath(TRUE)
-                        ];
-
-                        # Return a new thumbnail (which might be a different orientation).
-                        $ret['initialPreview'] =  [
-                            '<img src="' . $a->getPath(TRUE) . '" class="file-preview-image img-responsive">',
-                        ];
-
-                        $ret['initialPreviewConfig'] = [
-                            [
-                                'key' => $id
-                            ]
-                        ];
-
-                        $ret['append'] = TRUE;
-
-                        if ($identify) {
-                            $a = new Attachment($dbhr, $dbhm, $id);
-                            $ret['items'] = $a->identify();
-                        }
-
-                        if ($ocr) {
-                            $a = new Attachment($dbhr, $dbhm, $id, $type);
-                            $ret['ocr'] = $a->ocr();
-                        }
+                    } catch (Exception $e) {
+                        $ret = [ 'ret' => 5, 'status' => "Image create failed " . $e->getMessage() ];
                     }
                 }
 

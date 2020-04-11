@@ -177,5 +177,21 @@ class imageAPITest extends IznikAPITestCase
 
         assertTrue(TRUE);
 
-        }
+    }
+
+    public function testHEIC()
+    {
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/image1.heic');
+        file_put_contents("/tmp/image1.heic", $data);
+
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/image1.heic',
+                'type' => 'image/heic'
+            ],
+            'identify' => TRUE
+        ]);
+
+        assertEquals(5, $ret['ret']);
+    }
 }
