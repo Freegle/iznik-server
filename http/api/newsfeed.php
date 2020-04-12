@@ -38,12 +38,13 @@ function newsfeed() {
                         ];
                     } else {
                         $ctx = presdef('context', $_REQUEST, NULL);
-                        $dist = Newsfeed::DISTANCE;
+                        $dist = array_key_exists('distance', $_REQUEST) ? $_REQUEST['distance'] : Newsfeed::DISTANCE;
 
-                        if ($ctx && array_key_exists('distance', $ctx)) {
-                            $dist = intval($ctx['distance']);
-
-                            if ($dist == 'nearby') {
+                        if ($dist == 'nearby') {
+                            if ($ctx && array_key_exists('distance', $ctx)) {
+                                # We have a distance from the last request.
+                                $dist = intval($ctx['distance']);
+                            } else {
                                 $dist = $n->getNearbyDistance($me->getId());
                             }
                         }
