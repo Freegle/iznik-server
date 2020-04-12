@@ -13,7 +13,7 @@ function getAzure() {
     return(ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING));
 }
 
-if (FALSE) {
+if (TRUE) {
     $atts = $dbhr->preQuery("SELECT id FROM chat_images WHERE archived = 1;");
     error_log("Chat " . count($atts));
     $attcount = 0;
@@ -27,15 +27,17 @@ if (FALSE) {
             if (!file_exists("/tmp/images/$fn") || !file_exists("/tmp/images/t$fn")) {
                 $getBlobResult = $blobClient->getBlob("images", $fn);
                 $data = $getBlobResult->getContentStream();
-                file_put_contents("/tmp/images/$fn", $data);
+                if ($data) {
+                    file_put_contents("/tmp/images/$fn", $data);
 
-                # Create thumbnail - saves fetching again.
-                $data = file_get_contents("/tmp/images/$fn");
-                $i = new Image($data);
-                if ($i->img) {
-                    $i->scale(250, 250);
-                    $thumbdata = $i->getData(100);
-                    file_put_contents("/tmp/images/t$fn", $thumbdata);
+                    # Create thumbnail - saves fetching again.
+                    $data = file_get_contents("/tmp/images/$fn");
+                    $i = new Image($data);
+                    if ($i->img) {
+                        $i->scale(250, 250);
+                        $thumbdata = $i->getData(100);
+                        file_put_contents("/tmp/images/t$fn", $thumbdata);
+                    }
                 }
             }
         } catch (Exception $e) {
@@ -52,7 +54,7 @@ if (FALSE) {
     }
 }
 
-if (FALSE) {
+if (TRUE) {
     $atts = $dbhr->preQuery("SELECT id FROM newsfeed_images WHERE archived = 1;");
     error_log("Newsfeed " . count($atts));
     $attcount = 0;
@@ -66,15 +68,18 @@ if (FALSE) {
             if (!file_exists("/tmp/images/$fn") || !file_exists("/tmp/images/t$fn")) {
                 $getBlobResult = $blobClient->getBlob("images", $fn);
                 $data = $getBlobResult->getContentStream();
-                file_put_contents("/tmp/images/$fn", $data);
 
-                # Create thumbnail - saves fetching again.
-                $data = file_get_contents("/tmp/images/$fn");
-                $i = new Image($data);
-                if ($i->img) {
-                    $i->scale(250, 250);
-                    $thumbdata = $i->getData(100);
-                    file_put_contents("/tmp/images/t$fn", $thumbdata);
+                if ($data) {
+                    file_put_contents("/tmp/images/$fn", $data);
+
+                    # Create thumbnail - saves fetching again.
+                    $data = file_get_contents("/tmp/images/$fn");
+                    $i = new Image($data);
+                    if ($i->img) {
+                        $i->scale(250, 250);
+                        $thumbdata = $i->getData(100);
+                        file_put_contents("/tmp/images/t$fn", $thumbdata);
+                    }
                 }
             }
         } catch (Exception $e) {
@@ -113,15 +118,18 @@ if (TRUE) {
                 if (!file_exists("/tmp/images/$fn") || !file_exists("/tmp/images/t$fn")) {
                     $getBlobResult = $blobClient->getBlob("images", $fn);
                     $data = $getBlobResult->getContentStream();
-                    file_put_contents("/tmp/images/$fn", $data);
 
-                    # Create thumbnail - saves fetching again.
-                    $data = file_get_contents("/tmp/images/$fn");
-                    $i = new Image($data);
-                    if ($i->img) {
-                        $i->scale(250, 250);
-                        $thumbdata = $i->getData(100);
-                        file_put_contents("/tmp/images/t$fn", $thumbdata);
+                    if ($data) {
+                        file_put_contents("/tmp/images/$fn", $data);
+
+                        # Create thumbnail - saves fetching again.
+                        $data = file_get_contents("/tmp/images/$fn");
+                        $i = new Image($data);
+                        if ($i->img) {
+                            $i->scale(250, 250);
+                            $thumbdata = $i->getData(100);
+                            file_put_contents("/tmp/images/t$fn", $thumbdata);
+                        }
                     }
                 }
             } catch (Exception $e) {

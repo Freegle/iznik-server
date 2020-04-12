@@ -12,6 +12,8 @@ function catalogue() {
 
         $c = new Catalogue($dbhr, $dbhm);
         list ($id, $text) = $c->ocr($data);
+        $spines = $c->identifySpinesFromOCR($id);
+
         $authors = $c->extractPossibleAuthors($id);
 
         $ret = [
@@ -19,7 +21,8 @@ function catalogue() {
             'status' => 'Success',
             'text' => $text,
             'authors' => $authors,
-            'id' => $id
+            'id' => $id,
+            'spines' => $spines
         ];
     }
 

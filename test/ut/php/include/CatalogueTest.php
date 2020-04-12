@@ -30,29 +30,41 @@ class CatalogueTest extends IznikTestCase {
      */
     public function testLibrary($filename) {
         $data = base64_encode(file_get_contents(IZNIK_BASE . $filename . ".jpg"));
-        $jsonfile = @file_get_contents(IZNIK_BASE . $filename . ".txt");
-        $json = $jsonfile ? json_decode($jsonfile, TRUE) : [];
+        $textfile = @file_get_contents(IZNIK_BASE . $filename . "_text.txt");
+        $text = $textfile ? json_decode($textfile, TRUE) : [];
 
+        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_books.txt");
+        $books = $booksfile ? json_decode($booksfile, TRUE) : [];
+        
         $c = new Catalogue($this->dbhr, $this->dbhm);
+
+        # First get the positions of books in the image.
+//        list ($id, $purportedbooks) = $c->extractPossibleBooks($data, $filename);
+//        assertNotNull($id);
+
+        # Now get the text within each book.
         list ($id, $json2) = $c->ocr($data, $filename);
         assertNotNull($id);
 
+        # Now identify spines.
+        $c->identifySpinesFromOCR($id);
+
         $authors = $c->extractPossibleAuthors($id);
         $wip = $c->extricateAuthors($id, $authors);
-        if ($json != $wip) {
+        if ($text != $wip) {
             error_log("Mismatch " . json_encode($wip));
         }
-        assertEquals($json, $wip);
+        assertEquals($text, $wip);
     }
 
     public function libraryData() {
         return [
-//            [
-//                '/test/ut/php/booktastic/20200409_141013'
-//            ],
             [
-                '/test/ut/php/booktastic/20200409_141743'
-            ]
+                '/test/ut/php/booktastic/20200409_141013'
+            ],
+//            [
+//                '/test/ut/php/booktastic/20200409_141743'
+//            ]
         ];
     }
 }

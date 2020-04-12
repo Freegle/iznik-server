@@ -33,7 +33,42 @@ class Catalogue
         return $a->ocr($data, TRUE);
     }
 
-    public function ocr($data, $uid) {
+    public function doObject(Attachment $a, $data) {
+        return $a->objects($data);
+    }
+
+    public function extractPossibleBooks($data, $uid) {
+        # If we have a uid then we might have seen this before.  This is used in UT to avoid hitting
+        # Google all the time.
+        $already = [];
+
+        if ($uid) {
+            $already = $this->dbhr->preQuery("SELECT id, objects FROM booktastic_objects WHERE uid = ?;", [
+                $uid
+            ], FALSE, FALSE);
+        }
+
+        error_log("Check for uid $uid = " . count($already));
+        if (!count($already)) {
+            error_log("Not got it");
+            $a = new Attachment($this->dbhr, $this->dbhm);
+            $objects = $this->doObject($a, $data);
+            $this->dbhm->preExec("INSERT INTO booktastic_objects (data, objects, uid) VALUES (?, ?, ?);", [
+                $data,
+                json_encode($objects),
+                $uid
+            ]);
+
+            $id = $this->dbhm->lastInsertId();
+        } else {
+            $id = $already[0]['id'];
+            $objects = $already[0]['objects'];
+        }
+
+        return [ $id, $objects ];
+    }
+
+    public function ocr($data, $uid = NULL) {
         # If we have a uid then we might have seen this before.  This is used in UT to avoid hitting
         # Google all the time.
         $already = [];
@@ -65,10 +100,163 @@ class Catalogue
         return [ $id, $text ];
     }
 
+    private function getDistance($vertices, $nvertices) {
+        $x = (presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0));
+        $y = (presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0));
+        $rdist = sqrt($x * $x + $y * $y);
+
+        $x = (presdef('x', $nvertices[1], 0) - presdef('x', $vertices[0], 0));
+        $y = (presdef('y', $nvertices[1], 0) - presdef('y', $vertices[0], 0));
+        $ldist = sqrt($x * $x + $y * $y);
+
+        return [ $ldist, $rdist ];
+    }
+
+    public function identifySpinesFromOCR($id) {
+        $ret = [];
+
+        $ocrdata = $this->dbhm->preQuery("SELECT * FROM booktastic_ocr WHERE id = ?;", [
+            $id
+        ]);
+
+
+        foreach ($ocrdata as $o) {
+            # Get the height and width of the image.  Note that this is not necessarily the same as the orientation
+            # returned by the OCR, which is rotated to match the direction of text.  See
+            # https://cloud.google.com/vision/docs/reference/rest/v1/AnnotateImageResponse#EntityAnnotation
+            $i = new Image(base64_decode($o['data']));
+            $w = $i->width();
+            $h = $i->height();
+
+            $json = json_decode($o['text'], TRUE);
+
+            # First item is summary - ignore that.
+            array_shift($json);
+
+            # Give each entry an id so we can find them in different orders.
+            $id = 0;
+            for ($i = 0; $i < count($json); $i ++) {
+                $json[$i]['id'] = $id++;
+            }
+
+            do {
+                $merged = FALSE;
+                #error_log("Scan " . count($json));
+
+                for ($j = 0; !$merged && $j < count($json); $j++) {
+                    $entry = $json[$j];
+                    #error_log("Consider {$entry['description']} at $j of " . count($json));
+                    $poly = presdef('boundingPoly', $entry, NULL);
+                    $vertices = $poly['vertices'];
+
+                    if ($poly) {
+                        # Get the middle of the bounding box on the y axis.
+                        $midy1 = (presdef('y', $vertices[0],0) + presdef('y', $vertices[3],0)) / 2;
+                        $midy2 = (presdef('y', $vertices[2],0) + presdef('y', $vertices[1],0)) / 2;
+                        $midx1 = (presdef('x', $vertices[0],0) + presdef('x', $vertices[3],0)) / 2;
+                        $midx2 = (presdef('x', $vertices[2],0) + presdef('x', $vertices[1],0)) / 2;
+                        $grad = ($midy2 - $midy1) / ($midx2 - $midx1);
+                        #error_log("Gradient $grad from $midx1, $midy1 to $midx2, $midy2");
+
+                        # If we project this line outwards, we should meet the other text which is in a line with this
+                        # one on the same spine.
+                        $others = [];
+
+                        for ($k = 0; !$merged && $k < count($json); $k++) {
+                            if ($j !== $k) {
+                                $nentry = $json[$k];
+                                #error_log("Look at " . json_encode($nentry));
+                                $npoly = presdef('boundingPoly', $nentry, NULL);
+                                $nvertices = $npoly['vertices'];
+
+                                $projecty = $midy2 + $grad * (presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0));
+
+                                #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
+                                #error_log("Compare projected $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']}");
+
+                                if ($projecty <= presdef('y', $nvertices[3], 0) &&
+                                    $projecty >= presdef('y', $nvertices[0], 0)) {
+                                    # The projected line passes through.  Merge these together.
+                                    $others[] = $nentry;
+                                }
+                            }
+                        }
+
+                        # Now we have the words that are in a line with this one.  We want to merge them together.  Sort by
+                        # distance from this one.
+//                        error_log("Found in line with {$entry['description']}:");
+//                        foreach ($others as $o) {
+//                            error_log("...{$o['description']}");
+//                        }
+
+                        usort($others, function($a, $b) use ($vertices) {
+                            list ($ldist, $rdist) = $this->getDistance($vertices, $a['boundingPoly']['vertices']);
+                            $adist = min($ldist, $rdist);
+                            list ($ldist, $rdist) = $this->getDistance($vertices, $b['boundingPoly']['vertices']);
+                            $bdist = min($ldist, $rdist);
+
+                            #error_log("{$a['description']} {$b['description']} $adist, $bdist");
+                            return ($adist - $bdist);
+                        });
+
+//                        error_log("Sorted by closeness to {$entry['description']}:");
+//                        foreach ($others as $o) {
+//                            error_log("...{$o['description']}");
+//                        }
+
+                        for ($k = 0; !$merged && $k < count($others); $k++) {
+                            # Which side is this?
+                            $other = $others[$k];
+                            $nvertices = $others[$k]['boundingPoly']['vertices'];
+                            list ($ldist, $rdist) = $this->getDistance($vertices, $nvertices);
+
+                            if ($rdist < $ldist) {
+                                # It's on the right.
+                                $json[$j]['vertices'] = [
+                                    $vertices[0],
+                                    $nvertices[1],
+                                    $nvertices[2],
+                                    $vertices[3]
+                                ];
+
+                                $json[$j]['description'] .= " {$other['description']}";
+                            } else {
+                                $json[$j]['vertices'] = [
+                                    $nvertices[0],
+                                    $vertices[1],
+                                    $vertices[2],
+                                    $nvertices[3]
+                                ];
+
+                                $json[$j]['description'] = "{$other['description']} {$json[$j]['description']}" ;
+                            }
+
+                            #error_log("Passes through {$other['description']}, now {$json[$j]['description']}, $ldist, $rdist");
+
+                            # Remove the one we've merged.
+                            $json = array_values(array_filter($json, function($a) use ($other) {
+                                return $a['id'] !== $other['id'];
+                            }));
+
+                            $merged = TRUE;
+                        }
+                    }
+                }
+            } while ($merged);
+
+            foreach ($json as $entry) {
+                $ret[] = $entry['description'];
+                #error_log($entry['description']);
+            }
+        }
+
+        return $ret;
+    }
+
     public function extractPossibleAuthors($id) {
         $ret = [];
 
-        $ocrdata = $this->dbhm->preQuery("SELECT text FROM booktastic_ocr WHERE id = ?;", [
+        $ocrdata = $this->dbhm->preQuery("SELECT * FROM booktastic_ocr WHERE id = ?;", [
             $id
         ]);
 
@@ -121,7 +309,7 @@ class Catalogue
                             ], FALSE, FALSE);
 
                             if (count($lasts)) {
-                                error_log("...$f looks like a last name");
+                                #error_log("...$f looks like a last name");
                                 $islast = TRUE;
                             }
 
@@ -131,7 +319,7 @@ class Catalogue
                             ], FALSE, FALSE);
 
                             if (count($firsts)) {
-                                error_log("...$f looks like a first name");
+                                #error_log("...$f looks like a first name");
                                 $isfirst = TRUE;
                                 $gotfirstname++;
                             }
@@ -142,21 +330,21 @@ class Catalogue
                             # - two firstnames
                             # - two lastnames
                             # - lastname + 1-2 initials
-                            error_log("$f, " .
-                                ($islast ? " is last " : " not last ") .
-                                ($isfirst ? " is first " : " not first ") .
-                                ($isinitial ? " is initial " : " not initial ") .
-                                ($gotlastname ? " got last " : " not got last ") .
-                                ($gotfirstname ? " got first " : " not got first ") .
-                                ($gotinitials ? " got initials " : " not got initials "));
+//                            error_log("$f, " .
+//                                ($islast ? " is last " : " not last ") .
+//                                ($isfirst ? " is first " : " not first ") .
+//                                ($isinitial ? " is initial " : " not initial ") .
+//                                ($gotlastname ? " got last " : " not got last ") .
+//                                ($gotfirstname ? " got first " : " not got first ") .
+//                                ($gotinitials ? " got initials " : " not got initials "));
 
                             if (strpos($currentauthor, ' ') !== FALSE) {
-                                error_log("Consider complete");
+                                #error_log("Consider complete");
                                 if ($gotinitials && $islast) {
-                                    error_log("Got initials && last => author $currentauthor");
+                                    #error_log("Got initials && last => author $currentauthor");
                                     $gotauthor = TRUE;
                                 } else if ($islast && $gotfirstname) {
-                                    error_log("Got first && last => author $currentauthor");
+                                    #error_log("Got first && last => author $currentauthor");
                                     $gotauthor = TRUE;
                                 }
                             }
@@ -166,7 +354,7 @@ class Catalogue
                                 $currentauthor = trim(str_replace('  ', ' ', $currentauthor));
 
                                 # Check if this author exists.
-                                error_log("Check valid author $currentauthor");
+                                #error_log("Check valid author $currentauthor");
                                 if ($this->validAuthor($currentauthor)) {
                                     $ret[] = $currentauthor;
                                 }
@@ -186,7 +374,7 @@ class Catalogue
                                     $currentauthor .= " $f";
                                 }
 
-                                error_log("Keep looking $currentauthor");
+                                #error_log("Keep looking $currentauthor");
                             }
 
                             #error_log("Current name $currentauthor, $gotfirstname, $gotlastname, $gotinitials");

@@ -193,7 +193,10 @@ class Attachment
                 CDN_SSH_PRIVATE_KEY)) {
                 $temp = tempnam(sys_get_temp_dir(), "img_archive_$fn");
                 file_put_contents($temp, $data);
-                $failed |= !ssh2_scp_send($connection, $temp, "/var/www/iznik/images/$fn.jpg", 0644);
+                $rem = "/var/www/iznik/images/$fn";
+                $rc = ssh2_scp_send($connection, $temp, $rem, 0644);
+                $failed |= !$rc;
+                error_log("scp $temp to $host $rem returned $rc");
             } else {
                 $failed = TRUE;
             }
@@ -420,6 +423,45 @@ class Attachment
 
         error_log("Return OCR $returnfull");
         return($returnfull ? $rsps : $text);
+    }
+
+    public function objects($data = NULL) {
+        # Identify objects in an attachment using Google Vision API.
+        $base64 = $data ? $data : base64_encode($this->getData());
+
+        $r_json ='{
+            "requests": [
+                {
+                  "image": {
+                    "content":"' . $base64. '"
+                  },
+                  "features": [
+                      {
+                        "type": "OBJECT_LOCALIZATION"
+                      }
+                  ]
+                }
+            ]
+        }';
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
+        $json_response = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        $rsp = NULL;
+
+        if ($status) {
+            $rsp = json_decode($json_response, TRUE);
+        }
+
+        curl_close($curl);
+
+        return($rsp);
     }
 
     public function setPrivate($att, $val) {
