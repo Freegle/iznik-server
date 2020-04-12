@@ -66,12 +66,18 @@ class CatalogueTest extends IznikTestCase {
             [
                 '/test/ut/php/booktastic/rotated'
             ],
-//            [
-//                '/test/ut/php/booktastic/20200409_141013'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/20200409_141743'
-//            ]
+            [
+                '/test/ut/php/booktastic/20200409_141013'
+            ],
+            [
+                '/test/ut/php/booktastic/20200409_141743'
+            ],
+            [
+                '/test/ut/php/booktastic/20200409_141753'
+            ],
+            [
+                '/test/ut/php/booktastic/20200409_141801'
+            ],
         ];
     }
 }

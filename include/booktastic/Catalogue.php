@@ -48,9 +48,8 @@ class Catalogue
             ], FALSE, FALSE);
         }
 
-        error_log("Check for uid $uid = " . count($already));
+        #error_log("Check for uid $uid = " . count($already));
         if (!count($already)) {
-            error_log("Not got it");
             $a = new Attachment($this->dbhr, $this->dbhm);
             $objects = $this->doObject($a, $data);
             $this->dbhm->preExec("INSERT INTO booktastic_objects (data, objects, uid) VALUES (?, ?, ?);", [
@@ -79,9 +78,9 @@ class Catalogue
             ], FALSE, FALSE);
         }
 
-        error_log("Check for uid $uid = " . count($already));
+        #error_log("Check for uid $uid = " . count($already));
         if (!count($already)) {
-            error_log("Not got it");
+            #error_log("Not got it");
             $a = new Attachment($this->dbhr, $this->dbhm);
             $text = $this->doOCR($a, $data);
             $this->dbhm->preExec("INSERT INTO booktastic_ocr (data, text, uid) VALUES (?, ?, ?);", [
@@ -94,7 +93,7 @@ class Catalogue
         } else {
             $id = $already[0]['id'];
             $text = $already[0]['text'];
-            error_log("Already got $id");
+            #error_log("Already got $id");
         }
 
         return [ $id, $text ];
@@ -150,7 +149,7 @@ class Catalogue
                     $vertices = $poly['vertices'];
 
                     if ($poly) {
-                        # Get the middle of the bounding box on the y axis.
+                        # Get the middle of the bounding box.
                         $midy1 = (presdef('y', $vertices[0],0) + presdef('y', $vertices[3],0)) / 2;
                         $midy2 = (presdef('y', $vertices[2],0) + presdef('y', $vertices[1],0)) / 2;
                         $midx1 = (presdef('x', $vertices[0],0) + presdef('x', $vertices[3],0)) / 2;
@@ -171,25 +170,47 @@ class Catalogue
                                     $npoly = presdef('boundingPoly', $nentry, NULL);
                                     $nvertices = $npoly['vertices'];
 
-                                    $projecty = $midy2 + $grad * (presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0));
+                                    # Which way is this oriented determines which way we project.
+                                    if (presdef('x', $vertices[1], 0) - presdef('x', $vertices[0], 0) >
+                                        presdef('y', $vertices[1], 0) - presdef('y', $vertices[0], 0)
+                                    ) {
+                                        # Horizontalish.
+                                        $projecty = $midy2 + $grad * (presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0));
 
-                                    #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
-                                    error_log("Compare projected from {$entry['description']} $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']} for {$nentry['description']}");
+                                        #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
+                                        #error_log("Compare projected horizontally from {$entry['description']} $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']} for {$nentry['description']}");
 
-                                    if ($projecty <= presdef('y', $nvertices[3], 0) &&
-                                        $projecty >= presdef('y', $nvertices[0], 0)) {
-                                        # The projected line passes through.  Merge these together.
-                                        $others[] = $nentry;
+                                        if ($projecty <= presdef('y', $nvertices[3], 0) &&
+                                            $projecty >= presdef('y', $nvertices[0], 0) ||
+                                            $projecty <= presdef('y', $nvertices[0], 0) &&
+                                            $projecty >= presdef('y', $nvertices[3], 0)) {
+                                            # The projected line passes through.  Merge these together.
+                                            $others[] = $nentry;
+                                        }
+                                    } else {
+                                        # Verticalish.
+                                        $projectx = $midx2 + (presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0)) / $grad;
+
+                                        #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
+                                        #error_log("Compare projected vertically from {$entry['description']} $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']}");
+
+                                        if ($projectx <= presdef('x', $nvertices[3], 0) &&
+                                            $projectx >= presdef('x', $nvertices[0], 0) ||
+                                            $projectx <= presdef('x', $nvertices[0], 0) &&
+                                            $projectx >= presdef('x', $nvertices[3], 0)) {
+                                            # The projected line passes through.  Merge these together.
+                                            $others[] = $nentry;
+                                        }
                                     }
                                 }
                             }
 
                             # Now we have the words that are in a line with this one.  We want to merge them together.  Sort by
                             # distance from this one.
-                        error_log("Found in line with {$entry['description']}:");
-                        foreach ($others as $o) {
-                            error_log("...{$o['description']}");
-                        }
+//                        error_log("Found in line with {$entry['description']}:");
+//                        foreach ($others as $o) {
+//                            error_log("...{$o['description']}");
+//                        }
 
                             usort($others, function($a, $b) use ($vertices) {
                                 list ($ldist, $rdist) = $this->getDistance($vertices, $a['boundingPoly']['vertices']);
