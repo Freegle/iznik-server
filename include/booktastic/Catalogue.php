@@ -155,90 +155,93 @@ class Catalogue
                         $midy2 = (presdef('y', $vertices[2],0) + presdef('y', $vertices[1],0)) / 2;
                         $midx1 = (presdef('x', $vertices[0],0) + presdef('x', $vertices[3],0)) / 2;
                         $midx2 = (presdef('x', $vertices[2],0) + presdef('x', $vertices[1],0)) / 2;
-                        $grad = ($midy2 - $midy1) / ($midx2 - $midx1);
-                        #error_log("Gradient $grad from $midx1, $midy1 to $midx2, $midy2");
 
-                        # If we project this line outwards, we should meet the other text which is in a line with this
-                        # one on the same spine.
-                        $others = [];
+                        if ($midx2 - $midx1 > 0) {
+                            $grad = ($midy2 - $midy1) / ($midx2 - $midx1);
+                            #error_log("Gradient $grad from $midx1, $midy1 to $midx2, $midy2");
 
-                        for ($k = 0; !$merged && $k < count($json); $k++) {
-                            if ($j !== $k) {
-                                $nentry = $json[$k];
-                                #error_log("Look at " . json_encode($nentry));
-                                $npoly = presdef('boundingPoly', $nentry, NULL);
-                                $nvertices = $npoly['vertices'];
+                            # If we project this line outwards, we should meet the other text which is in a line with this
+                            # one on the same spine.
+                            $others = [];
 
-                                $projecty = $midy2 + $grad * (presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0));
+                            for ($k = 0; !$merged && $k < count($json); $k++) {
+                                if ($j !== $k) {
+                                    $nentry = $json[$k];
+                                    #error_log("Look at " . json_encode($nentry));
+                                    $npoly = presdef('boundingPoly', $nentry, NULL);
+                                    $nvertices = $npoly['vertices'];
 
-                                #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
-                                #error_log("Compare projected $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']}");
+                                    $projecty = $midy2 + $grad * (presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0));
 
-                                if ($projecty <= presdef('y', $nvertices[3], 0) &&
-                                    $projecty >= presdef('y', $nvertices[0], 0)) {
-                                    # The projected line passes through.  Merge these together.
-                                    $others[] = $nentry;
+                                    #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
+                                    error_log("Compare projected from {$entry['description']} $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']} for {$nentry['description']}");
+
+                                    if ($projecty <= presdef('y', $nvertices[3], 0) &&
+                                        $projecty >= presdef('y', $nvertices[0], 0)) {
+                                        # The projected line passes through.  Merge these together.
+                                        $others[] = $nentry;
+                                    }
                                 }
                             }
+
+                            # Now we have the words that are in a line with this one.  We want to merge them together.  Sort by
+                            # distance from this one.
+                        error_log("Found in line with {$entry['description']}:");
+                        foreach ($others as $o) {
+                            error_log("...{$o['description']}");
                         }
 
-                        # Now we have the words that are in a line with this one.  We want to merge them together.  Sort by
-                        # distance from this one.
-//                        error_log("Found in line with {$entry['description']}:");
-//                        foreach ($others as $o) {
-//                            error_log("...{$o['description']}");
-//                        }
+                            usort($others, function($a, $b) use ($vertices) {
+                                list ($ldist, $rdist) = $this->getDistance($vertices, $a['boundingPoly']['vertices']);
+                                $adist = min($ldist, $rdist);
+                                list ($ldist, $rdist) = $this->getDistance($vertices, $b['boundingPoly']['vertices']);
+                                $bdist = min($ldist, $rdist);
 
-                        usort($others, function($a, $b) use ($vertices) {
-                            list ($ldist, $rdist) = $this->getDistance($vertices, $a['boundingPoly']['vertices']);
-                            $adist = min($ldist, $rdist);
-                            list ($ldist, $rdist) = $this->getDistance($vertices, $b['boundingPoly']['vertices']);
-                            $bdist = min($ldist, $rdist);
-
-                            #error_log("{$a['description']} {$b['description']} $adist, $bdist");
-                            return ($adist - $bdist);
-                        });
+                                #error_log("{$a['description']} {$b['description']} $adist, $bdist");
+                                return ($adist - $bdist);
+                            });
 
 //                        error_log("Sorted by closeness to {$entry['description']}:");
 //                        foreach ($others as $o) {
 //                            error_log("...{$o['description']}");
 //                        }
 
-                        for ($k = 0; !$merged && $k < count($others); $k++) {
-                            # Which side is this?
-                            $other = $others[$k];
-                            $nvertices = $others[$k]['boundingPoly']['vertices'];
-                            list ($ldist, $rdist) = $this->getDistance($vertices, $nvertices);
+                            for ($k = 0; !$merged && $k < count($others); $k++) {
+                                # Which side is this?
+                                $other = $others[$k];
+                                $nvertices = $others[$k]['boundingPoly']['vertices'];
+                                list ($ldist, $rdist) = $this->getDistance($vertices, $nvertices);
 
-                            if ($rdist < $ldist) {
-                                # It's on the right.
-                                $json[$j]['vertices'] = [
-                                    $vertices[0],
-                                    $nvertices[1],
-                                    $nvertices[2],
-                                    $vertices[3]
-                                ];
+                                if ($rdist < $ldist) {
+                                    # It's on the right.
+                                    $json[$j]['vertices'] = [
+                                        $vertices[0],
+                                        $nvertices[1],
+                                        $nvertices[2],
+                                        $vertices[3]
+                                    ];
 
-                                $json[$j]['description'] .= " {$other['description']}";
-                            } else {
-                                $json[$j]['vertices'] = [
-                                    $nvertices[0],
-                                    $vertices[1],
-                                    $vertices[2],
-                                    $nvertices[3]
-                                ];
+                                    $json[$j]['description'] .= " {$other['description']}";
+                                } else {
+                                    $json[$j]['vertices'] = [
+                                        $nvertices[0],
+                                        $vertices[1],
+                                        $vertices[2],
+                                        $nvertices[3]
+                                    ];
 
-                                $json[$j]['description'] = "{$other['description']} {$json[$j]['description']}" ;
+                                    $json[$j]['description'] = "{$other['description']} {$json[$j]['description']}" ;
+                                }
+
+                                #error_log("Passes through {$other['description']}, now {$json[$j]['description']}, $ldist, $rdist");
+
+                                # Remove the one we've merged.
+                                $json = array_values(array_filter($json, function($a) use ($other) {
+                                    return $a['id'] !== $other['id'];
+                                }));
+
+                                $merged = TRUE;
                             }
-
-                            #error_log("Passes through {$other['description']}, now {$json[$j]['description']}, $ldist, $rdist");
-
-                            # Remove the one we've merged.
-                            $json = array_values(array_filter($json, function($a) use ($other) {
-                                return $a['id'] !== $other['id'];
-                            }));
-
-                            $merged = TRUE;
                         }
                     }
                 }
