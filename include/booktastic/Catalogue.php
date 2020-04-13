@@ -111,6 +111,22 @@ class Catalogue
         return [ $ldist, $rdist ];
     }
 
+    private function orient($vertices, $horizontalish) {
+        if ($horizontalish) {
+            return abs(presdef('x', $vertices[1], 0) - presdef('x', $vertices[0], 0)) >=
+                abs(presdef('y', $vertices[3], 0) - presdef('y', $vertices[0], 0));
+        } else {
+            return abs(presdef('x', $vertices[3], 0) - presdef('x', $vertices[0], 0)) >=
+                abs(presdef('y', $vertices[1], 0) - presdef('y', $vertices[0], 0));
+        }
+    }
+
+    private function isWord($word) {
+        $t = preg_replace('/^[a-zA-Z]/', '', $word);
+
+        return strlen($t);
+    }
+
     public function identifySpinesFromOCR($id) {
         $ret = [];
 
@@ -138,6 +154,20 @@ class Catalogue
                 $json[$i]['id'] = $id++;
             }
 
+            # Work out whether the orientation of the image is horizontal(ish) or vertical(ish).
+            $xtot = 0;
+            $ytot = 0;
+
+            foreach ($json as $j) {
+                $vertices = $j['boundingPoly']['vertices'];
+
+                # Which way is this oriented determines which way we project.
+                $xtot += abs(presdef('x', $vertices[1], 0) - presdef('x', $vertices[0], 0));
+                $ytot += abs(presdef('y', $vertices[1], 0) - presdef('y', $vertices[0], 0));
+            }
+
+            $horizontalish = $xtot >= $ytot;
+
             do {
                 $merged = FALSE;
                 #error_log("Scan " . count($json));
@@ -145,18 +175,20 @@ class Catalogue
                 for ($j = 0; !$merged && $j < count($json); $j++) {
                     $entry = $json[$j];
                     #error_log("Consider {$entry['description']} at $j of " . count($json));
-                    $poly = presdef('boundingPoly', $entry, NULL);
-                    $vertices = $poly['vertices'];
+                    if ($this->isWord($entry['description'])) {
 
-                    if ($poly) {
-                        # Get the middle of the bounding box.
-                        $midy1 = (presdef('y', $vertices[0],0) + presdef('y', $vertices[3],0)) / 2;
-                        $midy2 = (presdef('y', $vertices[2],0) + presdef('y', $vertices[1],0)) / 2;
-                        $midx1 = (presdef('x', $vertices[0],0) + presdef('x', $vertices[3],0)) / 2;
-                        $midx2 = (presdef('x', $vertices[2],0) + presdef('x', $vertices[1],0)) / 2;
+                        $poly = presdef('boundingPoly', $entry, NULL);
+                        $vertices = $poly['vertices'];
+                        $orient = $this->orient($vertices, $horizontalish);
 
-                        if ($midx2 - $midx1 > 0) {
-                            $grad = ($midy2 - $midy1) / ($midx2 - $midx1);
+                        if ($poly) {
+                            # Get the middle of the bounding box.
+                            $midy1 = (presdef('y', $vertices[0],0) + presdef('y', $vertices[3],0)) / 2;
+                            $midy2 = (presdef('y', $vertices[2],0) + presdef('y', $vertices[1],0)) / 2;
+                            $midx1 = (presdef('x', $vertices[0],0) + presdef('x', $vertices[3],0)) / 2;
+                            $midx2 = (presdef('x', $vertices[2],0) + presdef('x', $vertices[1],0)) / 2;
+
+                            $grad = ($midx2 - $midx1 > 0) ? ($midy2 - $midy1) / ($midx2 - $midx1) : PHP_INT_MAX;
                             #error_log("Gradient $grad from $midx1, $midy1 to $midx2, $midy2");
 
                             # If we project this line outwards, we should meet the other text which is in a line with this
@@ -169,37 +201,44 @@ class Catalogue
                                     #error_log("Look at " . json_encode($nentry));
                                     $npoly = presdef('boundingPoly', $nentry, NULL);
                                     $nvertices = $npoly['vertices'];
+                                    $norient = $this->orient($nvertices, $horizontalish);
 
-                                    # Which way is this oriented determines which way we project.
-                                    if (presdef('x', $vertices[1], 0) - presdef('x', $vertices[0], 0) >
-                                        presdef('y', $vertices[1], 0) - presdef('y', $vertices[0], 0)
-                                    ) {
-                                        # Horizontalish.
-                                        $projecty = $midy2 + $grad * (presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0));
+                                    # The text should only be combined if it's the same orientation.
+                                    #error_log("{$entry['description']} horizontal $horizontalish vs {$nentry['description']} $nhorizontalish");
+                                    if ($orient == $norient) {
+                                        # Which way is this oriented determines which way we project.
+                                        $xgap = presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0);
+                                        $ygap = presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0);
 
-                                        #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
-                                        #error_log("Compare projected horizontally from {$entry['description']} $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']} for {$nentry['description']}");
+                                        if ($horizontalish) {
+                                            # Horizontalish.
+                                            $projecty = $midy2 + $grad * $xgap;
 
-                                        if ($projecty <= presdef('y', $nvertices[3], 0) &&
-                                            $projecty >= presdef('y', $nvertices[0], 0) ||
-                                            $projecty <= presdef('y', $nvertices[0], 0) &&
-                                            $projecty >= presdef('y', $nvertices[3], 0)) {
-                                            # The projected line passes through.  Merge these together.
-                                            $others[] = $nentry;
-                                        }
-                                    } else {
-                                        # Verticalish.
-                                        $projectx = $midx2 + (presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0)) / $grad;
+                                            #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
+                                            #error_log("Compare projected horizontally from {$entry['description']} $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']} for {$nentry['description']}");
 
-                                        #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
-                                        #error_log("Compare projected vertically from {$entry['description']} $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']}");
+                                            if ($projecty <= presdef('y', $nvertices[3], 0) &&
+                                                $projecty >= presdef('y', $nvertices[0], 0) ||
+                                                $projecty <= presdef('y', $nvertices[0], 0) &&
+                                                $projecty >= presdef('y', $nvertices[3], 0)) {
+                                                # The projected line passes through.  Merge these together.
+                                                $others[] = $nentry;
+                                            }
+                                        } else {
+                                            # Verticalish.
+                                            $projectx = $midx2 + ($grad ? ($ygap / $grad) : 0);
 
-                                        if ($projectx <= presdef('x', $nvertices[3], 0) &&
-                                            $projectx >= presdef('x', $nvertices[0], 0) ||
-                                            $projectx <= presdef('x', $nvertices[0], 0) &&
-                                            $projectx >= presdef('x', $nvertices[3], 0)) {
-                                            # The projected line passes through.  Merge these together.
-                                            $others[] = $nentry;
+                                            #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
+                                            #error_log("Compare projected vertically from {$entry['description']} $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']}");
+
+                                            if ($projectx <= presdef('x', $nvertices[3], 0) &&
+                                                $projectx >= presdef('x', $nvertices[0], 0) ||
+                                                $projectx <= presdef('x', $nvertices[0], 0) &&
+                                                $projectx >= presdef('x', $nvertices[3], 0)) {
+                                                # The projected line passes through.  Merge these together.
+                                                $others[] = $nentry;
+                                                #error_log("Include projected vertically from {$entry['description']} orient $orient $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']} orient $norient");
+                                            }
                                         }
                                     }
                                 }
@@ -269,8 +308,11 @@ class Catalogue
             } while ($merged);
 
             foreach ($json as $entry) {
-                $ret[] = $entry['description'];
-                #error_log($entry['description']);
+                # Take anything containing letters and multiword.
+                if ($this->isWord($entry['description']) && strpos($entry['description'], ' ') !== FALSE) {
+                    $ret[] = $entry['description'];
+                    #error_log($entry['description']);
+                }
             }
         }
 

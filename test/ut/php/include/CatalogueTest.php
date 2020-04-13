@@ -64,6 +64,9 @@ class CatalogueTest extends IznikTestCase {
     public function libraryData() {
         return [
             [
+                '/test/ut/php/booktastic/20200413_085915',
+            ],
+            [
                 '/test/ut/php/booktastic/rotated'
             ],
             [
