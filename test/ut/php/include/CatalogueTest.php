@@ -50,36 +50,36 @@ class CatalogueTest extends IznikTestCase {
         }
         assertEquals($text, $spines);
 
-//        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_authors.txt");
-//        $text = $booksfile ? json_decode($booksfile, TRUE) : [];
-//
-//        $authors = $c->extractPossibleAuthors($id);
-//        if ($authors != $text) {
-//            error_log("Mismatch " . json_encode($authors));
-//        }
+        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_authors.txt");
+        $text = $booksfile ? json_decode($booksfile, TRUE) : [];
 
-//        assertEquals($text, $authors);
+        $authors = $c->extractPossibleAuthors($id, $spines);
+        if ($authors != $text) {
+            error_log("Mismatch " . json_encode($authors));
+        }
+
+        assertEquals($text, $authors);
     }
 
     public function libraryData() {
         return [
             [
-                '/test/ut/php/booktastic/20200413_085915',
+                '/test/ut/php/booktastic/vertical_easy',
             ],
             [
-                '/test/ut/php/booktastic/rotated'
+                '/test/ut/php/booktastic/basic_horizontal'
             ],
             [
-                '/test/ut/php/booktastic/20200409_141013'
+                '/test/ut/php/booktastic/basic_vertical'
             ],
             [
-                '/test/ut/php/booktastic/20200409_141743'
+                '/test/ut/php/booktastic/gardening'
             ],
             [
-                '/test/ut/php/booktastic/20200409_141753'
+                '/test/ut/php/booktastic/horizontal_overlap'
             ],
             [
-                '/test/ut/php/booktastic/20200409_141801'
+                '/test/ut/php/booktastic/horizontal_overlap2'
             ],
         ];
     }

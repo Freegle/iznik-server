@@ -321,128 +321,118 @@ class Catalogue
         return $ret;
     }
 
-    public function extractPossibleAuthors($id) {
+    public function extractPossibleAuthors($id, $spines) {
         $ret = [];
 
-        $ocrdata = $this->dbhm->preQuery("SELECT * FROM booktastic_ocr WHERE id = ?;", [
-            $id
-        ]);
+        foreach ($spines as $spine) {
+            $fragments = explode("\n", $spine);
 
-        foreach ($ocrdata as $o) {
-            $json = json_decode($o['text'], TRUE);
+            # Work up the array looking for adajcent entries which are either initials or names.
+            $gotfirstname = 0;
+            $gotlastname = 0;
+            $gotinitials = 0;
+            $gotauthor = FALSE;
+            $currentauthor = '';
 
-            #error_log("Returned {$o['text']}");
-            if (count($json) && pres('description', $json[0])) {
-                $full = $json[0]['description'];
-                $fragments = explode("\n", $full);
+            for ($i = 0; $i < count($fragments); $i++) {
+                $fs = strtolower(trim($fragments[$i]));
 
-                # Work up the array looking for adajcent entries which are either initials or names.
-                $gotfirstname = 0;
-                $gotlastname = 0;
-                $gotinitials = 0;
-                $gotauthor = FALSE;
-                $currentauthor = '';
+                if (strlen($fs)) {
+                    $words = explode(' ', $fs);
 
-                for ($i = 0; $i < count($fragments); $i++) {
-                    $fs = strtolower(trim($fragments[$i]));
+                    foreach ($words as $f) {
+                        $isinitial = FALSE;
+                        $isfirst = FALSE;
+                        $islast = FALSE;
 
-                    if (strlen($fs)) {
-                        $words = explode(' ', $fs);
+                        $initial = str_replace('.', '', $f);
+                        #error_log("Consider initial $initial");
 
-                        foreach ($words as $f) {
-                            $isinitial = FALSE;
-                            $isfirst = FALSE;
-                            $islast = FALSE;
+                        if (strlen($initial) <= 2) {
+                            # Single or double letter, possibly with dots.  Likely to be an initial
+                            #error_log("...looks like one");
 
-                            $initial = str_replace('.', '', $f);
-                            #error_log("Consider initial $initial");
-
-                            if (strlen($initial) <= 2) {
-                                # Single or double letter, possibly with dots.  Likely to be an initial
-                                #error_log("...looks like one");
-
-                                # Ignore very common short words which look like initials.
-                                if (!in_array($initial, [ 'of', 'in' ])) {
-                                    $isinitial = TRUE;
-                                }
+                            # Ignore very common short words which look like initials.
+                            if (!in_array($initial, ['of', 'in'])) {
+                                $isinitial = TRUE;
                             }
-
-                            # See if it's a last name.
-                            $lasts = $this->dbhr->preQuery("SELECT id FROM booktastic_lastnames WHERE lastname = ? AND enabled = 1;", [
-                                $f
-                            ], FALSE, FALSE);
-
-                            if (count($lasts)) {
-                                #error_log("...$f looks like a last name");
-                                $islast = TRUE;
-                            }
-
-                            # See if it's a first name.
-                            $firsts = $this->dbhr->preQuery("SELECT id FROM booktastic_firstnames WHERE firstname = ? AND enabled = 1;", [
-                                $f
-                            ], FALSE, FALSE);
-
-                            if (count($firsts)) {
-                                #error_log("...$f looks like a first name");
-                                $isfirst = TRUE;
-                                $gotfirstname++;
-                            }
-
-                            # We have a possible author if:
-                            # - two parts to it
-                            # - firstname and lastname
-                            # - two firstnames
-                            # - two lastnames
-                            # - lastname + 1-2 initials
-//                            error_log("$f, " .
-//                                ($islast ? " is last " : " not last ") .
-//                                ($isfirst ? " is first " : " not first ") .
-//                                ($isinitial ? " is initial " : " not initial ") .
-//                                ($gotlastname ? " got last " : " not got last ") .
-//                                ($gotfirstname ? " got first " : " not got first ") .
-//                                ($gotinitials ? " got initials " : " not got initials "));
-
-                            if (strpos($currentauthor, ' ') !== FALSE) {
-                                #error_log("Consider complete");
-                                if ($gotinitials && $islast) {
-                                    #error_log("Got initials && last => author $currentauthor");
-                                    $gotauthor = TRUE;
-                                } else if ($islast && $gotfirstname) {
-                                    #error_log("Got first && last => author $currentauthor");
-                                    $gotauthor = TRUE;
-                                }
-                            }
-
-                            if ($gotauthor) {
-                                $currentauthor = "$currentauthor $f";
-                                $currentauthor = trim(str_replace('  ', ' ', $currentauthor));
-
-                                # Check if this author exists.
-                                #error_log("Check valid author $currentauthor");
-                                if ($this->validAuthor($currentauthor)) {
-                                    $ret[] = $currentauthor;
-                                }
-
-                                $currentauthor = '';
-                                $gotauthor = FALSE;
-                            } else {
-                                # We don't have one yet.  Keep looking.
-                                if ($isfirst) {
-                                    $gotfirstname++;
-                                    $currentauthor .= " $f";
-                                } else if ($islast) {
-                                    $gotlastname++;
-                                    $currentauthor .= " $f";
-                                } else if ($isinitial) {
-                                    $gotinitials += strlen($f);
-                                    $currentauthor .= " $f";
-                                }
-
-                                #error_log("Keep looking $currentauthor");
-                            }
-
-                            #error_log("Current name $currentauthor, $gotfirstname, $gotlastname, $gotinitials");
                         }
+
+                        # See if it's a last name.
+                        $lasts = $this->dbhr->preQuery("SELECT id FROM booktastic_lastnames WHERE lastname = ? AND enabled = 1;", [
+                            $f
+                        ], FALSE, FALSE);
+
+                        if (count($lasts)) {
+                            #error_log("...$f looks like a last name");
+                            $islast = TRUE;
+                        }
+
+                        # See if it's a first name.
+                        $firsts = $this->dbhr->preQuery("SELECT id FROM booktastic_firstnames WHERE firstname = ? AND enabled = 1;", [
+                            $f
+                        ], FALSE, FALSE);
+
+                        if (count($firsts)) {
+                            #error_log("...$f looks like a first name");
+                            $isfirst = TRUE;
+                            $gotfirstname++;
+                        }
+
+                        # We have a possible author if:
+                        # - two parts to it
+                        # - firstname and lastname
+                        # - two firstnames
+                        # - two lastnames
+                        # - lastname + 1-2 initials
+                        //                            error_log("$f, " .
+                        //                                ($islast ? " is last " : " not last ") .
+                        //                                ($isfirst ? " is first " : " not first ") .
+                        //                                ($isinitial ? " is initial " : " not initial ") .
+                        //                                ($gotlastname ? " got last " : " not got last ") .
+                        //                                ($gotfirstname ? " got first " : " not got first ") .
+                        //                                ($gotinitials ? " got initials " : " not got initials "));
+
+                        if (strpos($currentauthor, ' ') !== FALSE) {
+                            #error_log("Consider complete");
+                            if ($gotinitials && $islast) {
+                                #error_log("Got initials && last => author $currentauthor");
+                                $gotauthor = TRUE;
+                            } else if ($islast && $gotfirstname) {
+                                #error_log("Got first && last => author $currentauthor");
+                                $gotauthor = TRUE;
+                            }
+                        }
+
+                        if ($gotauthor) {
+                            $currentauthor = "$currentauthor $f";
+                            $currentauthor = trim(str_replace('  ', ' ', $currentauthor));
+
+                            # Check if this author exists.
+                            #error_log("Check valid author $currentauthor");
+                            if ($this->validAuthor($currentauthor)) {
+                                $ret[] = $currentauthor;
+                            }
+
+                            $currentauthor = '';
+                            $gotauthor = FALSE;
+                        } else {
+                            # We don't have one yet.  Keep looking.
+                            if ($isfirst) {
+                                $gotfirstname++;
+                                $currentauthor .= " $f";
+                            } else if ($islast) {
+                                $gotlastname++;
+                                $currentauthor .= " $f";
+                            } else if ($isinitial) {
+                                $gotinitials += strlen($f);
+                                $currentauthor .= " $f";
+                            }
+
+                            #error_log("Keep looking $currentauthor");
+                        }
+
+                        #error_log("Current name $currentauthor, $gotfirstname, $gotlastname, $gotinitials");
                     }
                 }
             }
@@ -482,6 +472,13 @@ class Catalogue
 
         # Sometimes we get backslash characters back which make us fail.
         $data = str_replace('\\', '', $data);
+
+        # Sometimes the quoting is wrong, e.g. "publisher":"Izd-vo "Shchit-M"",
+        $data = preg_replace_callback('/(.*\:")(.*)(",)/', function ($m) {
+            #error_log("Callback " . var_export($m, true));
+            return $m[1] . str_replace('"', '\"', $m[2]) . $m[3];
+        }, $data);
+
         $json = json_decode($data, TRUE);
 
         if (!$json) {
