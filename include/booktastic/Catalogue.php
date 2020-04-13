@@ -122,7 +122,16 @@ class Catalogue
     }
 
     private function isWord($word) {
-        $t = preg_replace('/^[a-zA-Z]/', '', $word);
+        if (preg_match('/^[0-9]{4}-[0-9]{2,4}/', $word)) {
+            # Allow date ranges
+            return true;
+        }
+
+        $t = preg_replace('/[^a-zA-Z]/', '', $word);
+
+        foreach (['ISBN'] as $ignore) {
+            $t = str_ireplace($ignore, '', $t);
+        }
 
         return strlen($t);
     }
@@ -136,13 +145,6 @@ class Catalogue
 
 
         foreach ($ocrdata as $o) {
-            # Get the height and width of the image.  Note that this is not necessarily the same as the orientation
-            # returned by the OCR, which is rotated to match the direction of text.  See
-            # https://cloud.google.com/vision/docs/reference/rest/v1/AnnotateImageResponse#EntityAnnotation
-            $i = new Image(base64_decode($o['data']));
-            $w = $i->width();
-            $h = $i->height();
-
             $json = json_decode($o['text'], TRUE);
 
             # First item is summary - ignore that.
@@ -196,7 +198,7 @@ class Catalogue
                             $others = [];
 
                             for ($k = 0; !$merged && $k < count($json); $k++) {
-                                if ($j !== $k) {
+                                if ($j !== $k && $this->isWord($json[$k]['description'])) {
                                     $nentry = $json[$k];
                                     #error_log("Look at " . json_encode($nentry));
                                     $npoly = presdef('boundingPoly', $nentry, NULL);
@@ -331,10 +333,6 @@ class Catalogue
 
             #error_log("Returned {$o['text']}");
             if (count($json) && pres('description', $json[0])) {
-                # Google is good at assembling the fragments into a piece of text and getting the alignment
-                # right.  So for now we go with what it returns.  Possibly we could do better by using
-                # individual works and their position to identify groups of words (authors or titles) that were
-                # on a single book (adjacent spatially).
                 $full = $json[0]['description'];
                 $fragments = explode("\n", $full);
 
@@ -491,102 +489,5 @@ class Catalogue
         }
 
         return pres('author', $json);
-    }
-
-    public function extricateAuthors($id, $authors) {
-        $ret = [];
-
-        $ocrdata = $this->dbhm->preQuery("SELECT text FROM booktastic_ocr WHERE id = ?;", [
-            $id
-        ]);
-
-        foreach ($ocrdata as $o) {
-            $json = json_decode($o['text'], TRUE);
-
-            if (count($json) && pres('description', $json[0])) {
-                $text = trim(strtolower(str_replace("\n", ' ', $json[0]['description'])));
-                #error_log("Start with $text");
-
-                do {
-                    # Find the first author
-                    $minpos = PHP_INT_MAX;
-                    $minauthor = NULL;
-
-                    foreach ($authors as $author) {
-                        $p = strpos($text, $author);
-
-                        if ($p !== FALSE && $p < $minpos) {
-                            $minpos = $p;
-                            $minauthor = $author;
-                        }
-                    }
-
-                    if ($minpos === PHP_INT_MAX) {
-                        # Erm...
-                        break;
-                    }
-
-                    if ($minpos === 0) {
-                        # Author at start.  Find the next author after that and assume the title is what's in
-                        # between
-                        $ret[] = [
-                            'type' => 'author',
-                            'value' => $minauthor
-                        ];
-
-                        $nextpos = PHP_INT_MAX;
-                        $nextauthor = NULL;
-
-                        foreach ($authors as $author) {
-                            $p = strpos($text, $author, 1);
-
-                            if ($p !== FALSE && $p < $nextpos) {
-                                $nextpos = $p;
-                                $nextauthor = $author;
-                            }
-                        }
-
-                        #error_log("Author at start, next at $nextpos");
-
-                        if ($nextpos === PHP_INT_MAX) {
-                            # No next one - assume rest of string is title.
-                            $ret[] = [
-                                'type' => 'title',
-                                'value' => trim(substr($text, strlen($minauthor), $nextpos - strlen($minauthor)))
-                            ];
-
-                            $text = trim(substr($text, strlen($minauthor)));
-
-                            #error_log("Purported title at end, no next, now $text");
-                        } else {
-                            $ret[] = [
-                                'type' => 'title',
-                                'value' => trim(substr($text, strlen($minauthor), $nextpos - strlen($minauthor)))
-                            ];
-
-                            $text = trim(substr($text, $nextpos));
-                            #error_log("Purported title at end, next at $nextpos, now $text");
-                        }
-                    } else {
-                        # Purported title at start
-                        $ret[] = [
-                            'type' => 'author',
-                            'value' => $minauthor
-                        ];
-
-                        $ret[] = [
-                            'type' => 'title',
-                            'value' => trim(substr($text, 0, $minpos))
-                        ];
-
-                        $text = trim(substr($text, $minpos + strlen($minauthor)));
-                        #error_log("Purported title at start, now $text");
-                    }
-                } while (strlen($text));
-            }
-        }
-
-        #error_log("Extricated " . var_export($ret, TRUE));
-        return $ret;
     }
 }

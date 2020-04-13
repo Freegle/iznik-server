@@ -50,15 +50,15 @@ class CatalogueTest extends IznikTestCase {
         }
         assertEquals($text, $spines);
 
-//        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_books.txt");
-//        $books = $booksfile ? json_decode($booksfile, TRUE) : [];
-
+//        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_authors.txt");
+//        $text = $booksfile ? json_decode($booksfile, TRUE) : [];
+//
 //        $authors = $c->extractPossibleAuthors($id);
-//        $wip = $c->extricateAuthors($id, $authors);
-//        if ($text != $wip) {
-//            error_log("Mismatch " . json_encode($wip));
+//        if ($authors != $text) {
+//            error_log("Mismatch " . json_encode($authors));
 //        }
-//        assertEquals($text, $wip);
+
+//        assertEquals($text, $authors);
     }
 
     public function libraryData() {
