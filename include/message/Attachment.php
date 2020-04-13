@@ -383,13 +383,18 @@ class Attachment
             "requests": [
                 {
                   "image": {
-                    "content":"' . $base64. '"
+                    "content":"' . $base64. '",
                   },
                   "features": [
                       {
                         "type": "TEXT_DETECTION"
                       }
-                  ]
+                  ],
+                  "imageContext": {
+                    "languageHints": [
+                      "en"
+                    ]
+                  }
                 }
             ]
         }';
