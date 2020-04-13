@@ -984,6 +984,10 @@ class Newsfeed extends Entity
                         $str = 'put up a poster for Freegle';
                         break;
                     }
+                    case Newsfeed::TYPE_STORY: {
+                        $str = 'told their Freegle story';
+                        break;
+                    }
                 }
 
                 $this->snip($str);
