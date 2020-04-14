@@ -27,6 +27,22 @@ foreach ($atts as $att) {
     error_log("...$count / $total");
 }
 
+$sql = "SELECT id FROM communityevents_images WHERE archived = 0;";
+$atts = $dbhr->preQuery($sql);
+error_log(count($atts) . " event images to archive");
+$count = 0;
+$total = count($atts);
+
+foreach ($atts as $att) {
+    $a = new Attachment($dbhr, $dbhm, $att['id'], Attachment::TYPE_COMMUNITY_EVENT);
+    if (!$a->archive()) {
+        $a->delete();
+    }
+
+    $count++;
+    error_log("...$count / $total");
+}
+
 $sql = "SELECT id FROM newsfeed_images WHERE archived = 0;";
 $atts = $dbhr->preQuery($sql);
 error_log(count($atts) . " newsfeed images to archive");
