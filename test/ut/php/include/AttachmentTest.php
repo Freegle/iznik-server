@@ -53,7 +53,7 @@ class AttachmentTest extends IznikTestCase {
             [ Attachment::TYPE_MESSAGE, 2 ],
             [ Attachment::TYPE_GROUP, 0 ],
             [ Attachment::TYPE_NEWSLETTER, 0 ],
-            [ Attachment::TYPE_COMMUNITY_EVENT, 0 ],
+            [ Attachment::TYPE_COMMUNITY_EVENT, 4 ],
             [ Attachment::TYPE_VOLUNTEERING , 0],
             [ Attachment::TYPE_CHAT_MESSAGE, 2 ],
             [ Attachment::TYPE_USER, 0 ],
