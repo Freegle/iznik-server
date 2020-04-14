@@ -32,20 +32,24 @@ try {
     $schema = $dbhschema->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
     # Purge old users_nearby data - we only need the last 31 days, really, because that's used to avoid duplicates.
+    $total = 0;
     do {
         $start = date('Y-m-d', strtotime("midnight 90 days ago"));
-        $sql = "SELECT * FROM users_nearby WHERE timestamp <= '$start' LIMIT 1000;";
+        $sql = "SELECT * FROM users_nearby WHERE timestamp <= '$start' LIMIT 1;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
             $dbhm->exec("DELETE FROM users_nearby WHERE userid = {$msg['userid']} AND msgid = {$msg['msgid']};");
+            #$dbhm->exec("DELETE FROM users_nearby WHERE timestamp <= '$start' LIMIT 1000;");
 
-            $total++;
+            $total ++;
 
             if ($total % 100 == 0) {
                 error_log("...$total");
             }
         }
     } while (count($msgs) > 0);
+
+    exit(0);
 
     # Purge Yahoo notify messages
     $start = date('Y-m-d', strtotime("midnight 2 days ago"));
