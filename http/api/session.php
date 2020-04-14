@@ -232,9 +232,8 @@ function session() {
 
                                 # Show social actions from last 4 days.
                                 $ctx = NULL;
-                                $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
                                 $f = new GroupFacebook($dbhr, $dbhm);
-                                $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
+                                $ret['work']['socialactions'] = count($f->listSocialActions($ctx));
 
                                 $c = new ChatMessage($dbhr, $dbhm);
 
