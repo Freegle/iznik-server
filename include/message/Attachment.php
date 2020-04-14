@@ -225,6 +225,7 @@ class Attachment
                     case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
                     case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
                     case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
+                    case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
                 }
 
                 if ($name) {
@@ -293,6 +294,7 @@ class Attachment
                     case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
                     case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
                     case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
+                    case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
                 }
 
                 $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
@@ -375,32 +377,46 @@ class Attachment
         return($items);
     }
 
-    public function ocr($data = NULL, $returnfull = FALSE) {
+    public function ocr($data = NULL, $returnfull = FALSE, $video = FALSE) {
         # Identify text in an attachment using Google Vision API.
         $base64 = $data ? $data : base64_encode($this->getData());
 
-        $r_json ='{
-            "requests": [
-                {
-                  "image": {
-                    "content":"' . $base64. '",
-                  },
-                  "features": [
-                      {
-                        "type": "TEXT_DETECTION"
-                      }
-                  ],
-                  "imageContext": {
-                    "languageHints": [
-                      "en"
-                    ]
-                  }
+        if ($video) {
+            $r_json = '{
+              "inputContent": "' . $base64 . '",
+              "features": ["TEXT_DETECTION"],
+              "videoContext": {
+                "textDetectionConfig": {
+                  "languageHints": ["en"]
                 }
-            ]
-        }';
+              }
+            }';
+        } else {
+            $r_json ='{
+                "requests": [
+                    {
+                      "image": {
+                        "content":"' . $base64. '",
+                      },
+                      "features": [
+                          {
+                            "type": "TEXT_DETECTION"
+                          }
+                      ],
+                      "imageContext": {
+                        "languageHints": [
+                          "en"
+                        ]
+                      }
+                    }
+                ]
+            }';
+        }
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY);
+        curl_setopt($curl, CURLOPT_URL,
+            ($video ? 'https://videointelligence.googleapis.com/v1/videos:annotate' : 'https://vision.googleapis.com/v1/images:annotate') .
+            '?key=' . GOOGLE_VISION_KEY);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
         curl_setopt($curl, CURLOPT_POST, true);
@@ -412,6 +428,7 @@ class Attachment
         $rsps = NULL;
 
         if ($status) {
+            error_log("Rsp $json_response");
             $rsp = json_decode($json_response, TRUE);
 
             if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
@@ -426,7 +443,6 @@ class Attachment
 
         curl_close($curl);
 
-        error_log("Return OCR $returnfull");
         return($returnfull ? $rsps : $text);
     }
 

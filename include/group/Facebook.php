@@ -108,6 +108,7 @@ class GroupFacebook {
             $posts = $ret->getDecodedBody();
 
             foreach ($posts['data'] as $wallpost) {
+                #error_log("Got " . json_encode($wallpost));
                 $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [
                     $sharefrom,
                     $wallpost['id'],

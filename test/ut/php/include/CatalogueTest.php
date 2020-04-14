@@ -10,58 +10,71 @@ require_once IZNIK_BASE . '/include/booktastic/Catalogue.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class CatalogueTest extends IznikTestCase {
+class CatalogueTest extends IznikTestCase
+{
     private $dbhr, $dbhm;
 
-    protected function setUp() {
-        parent::setUp ();
+    protected function setUp()
+    {
+        parent::setUp();
 
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
+    protected function tearDown()
+    {
+        parent::tearDown();
     }
 
     /**
      * @dataProvider libraryData
      */
-    public function testLibrary($filename) {
-        $data = base64_encode(file_get_contents(IZNIK_BASE . $filename . ".jpg"));
-        $textfile = @file_get_contents(IZNIK_BASE . $filename . "_text.txt");
-        $text = $textfile ? json_decode($textfile, TRUE) : [];
+    public function testLibrary($filename)
+    {
+        if (!getenv('STANDALONE')) {
+            $data = base64_encode(file_get_contents(IZNIK_BASE . $filename . ".jpg"));
+            $textfile = @file_get_contents(IZNIK_BASE . $filename . "_text.txt");
+            $text = $textfile ? json_decode($textfile, TRUE) : [];
 
-        $c = new Catalogue($this->dbhr, $this->dbhm);
+            $c = new Catalogue($this->dbhr, $this->dbhm);
 
-        # First get the positions of books in the image.
-//        list ($id, $purportedbooks) = $c->extractPossibleBooks($data, $filename);
-//        assertNotNull($id);
+            # First get the positions of books in the image.
+            //        list ($id, $purportedbooks) = $c->extractPossibleBooks($data, $filename);
+            //        assertNotNull($id);
 
-        # Now get the text within each book.
-        list ($id, $json2) = $c->ocr($data, $filename);
-        assertNotNull($id);
+            # Now get the text within each book.
+            list ($id, $json2) = $c->ocr($data, $filename);
+            assertNotNull($id);
 
-        # Now identify spines.
-        $spines = $c->identifySpinesFromOCR($id);
-        if ($spines != $text) {
-            error_log("Mismatch " . json_encode($spines));
+            # Now identify spines.
+            $spines = $c->identifySpinesFromOCR($id);
+            if ($spines != $text) {
+                error_log("Mismatch " . json_encode($spines));
+            }
+            assertEquals($text, $spines);
+
+            $books = $c->searchForSpines($id, $spines);
+            //
+            //        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_authors.txt");
+            //        $text = $booksfile ? json_decode($booksfile, TRUE) : [];
+            //
+            //        $spines = $c->extractKnownAuthors($id, $spines);
+            //        $spines = $c->extractPossibleAuthors($id, $spines);
+            //
+            //        if ($spines != $text) {
+            //            error_log("Mismatch " . json_encode($spines));
+            //        }
+
+            assertEquals($text, $spines);
         }
-        assertEquals($text, $spines);
 
-        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_authors.txt");
-        $text = $booksfile ? json_decode($booksfile, TRUE) : [];
-
-        $authors = $c->extractPossibleAuthors($id, $spines);
-        if ($authors != $text) {
-            error_log("Mismatch " . json_encode($authors));
-        }
-
-        assertEquals($text, $authors);
+        assertTrue(TRUE);
     }
 
-    public function libraryData() {
+    public function libraryData()
+    {
         return [
             [
                 '/test/ut/php/booktastic/vertical_easy',
@@ -83,5 +96,14 @@ class CatalogueTest extends IznikTestCase {
             ],
         ];
     }
+
+//    public function testVideo()
+//    {
+//        $data = base64_encode(file_get_contents(IZNIK_BASE . '/test/ut/php/booktastic/video.mp4'));
+//
+//        # Now get the text within each book.
+//        $c = new Catalogue($this->dbhr, $this->dbhm);
+//        list ($id, $json2) = $c->ocr($data, 'video', TRUE);
+//    }
 }
 
