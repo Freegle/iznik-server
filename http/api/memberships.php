@@ -349,7 +349,7 @@ function memberships() {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
                 if ($me) {
-                    if ($me->isAdmin() || $me->isModOrOwner($groupid)) {
+                    if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success'
