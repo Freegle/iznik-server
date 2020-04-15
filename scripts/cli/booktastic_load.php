@@ -33,7 +33,7 @@ $params = [
                 ],
                 'properties' => [
                     'vaifid' => [
-                        'type' => 'text'
+                        'type' => 'keyword'
                     ],
 
                     'author' => [
@@ -57,7 +57,9 @@ try {
     error_log("Create index failed with " . $e->getMessage());
 }
 
-$handle = fopen("/tmp/uk.csv", "r");
+$opts = getopt('f:');
+
+$handle = fopen($opts['f'], "r");
 $count = 0;
 
 do {
@@ -110,8 +112,25 @@ do {
         ]);
 
         #error_log("Already returned " . var_export($already, TRUE));
+        $addit = TRUE;
 
-        if ($already['hits']['total'] === 0) {
+        if ($already['hits']['total'] > 0) {
+            # Might already be there.  Check if this is an exact match.
+            foreach ($already['hits']['hits'] as $hit) {
+                #error_log("May already be there " . var_export($already['hits'], TRUE));
+                $hitauthor = strtolower($hit['_source']['author']);
+                $hittitle = strtolower($hit['_source']['title']);
+
+                if (!strcmp(strtolower($author), $hitauthor) && !strcmp(strtolower($title), $hittitle)) {
+                    #error_log("Already there");
+                    $already = TRUE;
+                } else {
+                    #error_log("False match $author - $title to $hitauthor - $hittitle");
+                }
+            }
+        }
+
+        if ($addit) {
             #error_log("Not there");
             $params = [
                 'index' => 'booktastic',

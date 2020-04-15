@@ -23,7 +23,7 @@ while (($line = fgets($handle)) !== false) {
             $include = FALSE;
 
             foreach ($xml->countries as $country) {
-                if ($country->data && $country->data->text && ($country->data->text == 'GB')) {
+                if ($country->data && $country->data->text && ($country->data->text == 'US')) {
                     $include = TRUE;
                 }
             }

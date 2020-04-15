@@ -56,6 +56,13 @@ class CatalogueTest extends IznikTestCase
             assertEquals($text, $spines);
 
             $books = $c->searchForSpines($id, $spines);
+
+            error_log("\n\n");
+            foreach ($books as $book) {
+                if ($book['author'] && $book['title']) {
+                    error_log("{$book['author']} - {$book['title']}");
+                }
+            }
             //
             //        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_authors.txt");
             //        $text = $booksfile ? json_decode($booksfile, TRUE) : [];
@@ -79,21 +86,21 @@ class CatalogueTest extends IznikTestCase
             [
                 '/test/ut/php/booktastic/vertical_easy',
             ],
-            [
-                '/test/ut/php/booktastic/basic_horizontal'
-            ],
-            [
-                '/test/ut/php/booktastic/basic_vertical'
-            ],
-            [
-                '/test/ut/php/booktastic/gardening'
-            ],
-            [
-                '/test/ut/php/booktastic/horizontal_overlap'
-            ],
-            [
-                '/test/ut/php/booktastic/horizontal_overlap2'
-            ],
+//            [
+//                '/test/ut/php/booktastic/basic_horizontal'
+//            ],
+//            [
+//                '/test/ut/php/booktastic/basic_vertical'
+//            ],
+//            [
+//                '/test/ut/php/booktastic/gardening'
+//            ],
+//            [
+//                '/test/ut/php/booktastic/horizontal_overlap'
+//            ],
+//            [
+//                '/test/ut/php/booktastic/horizontal_overlap2'
+//            ],
         ];
     }
 

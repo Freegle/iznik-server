@@ -12,6 +12,8 @@ class Catalogue
     /** @var  $dbhm LoggedPDO */
     var $dbhm;
 
+    const CONFIDENCE = 75;
+
     private $client = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
@@ -330,24 +332,71 @@ class Catalogue
         return $ret;
     }
 
-    private function search($author, $title) {
-        $ret = $this->client->search([
+    private function search($author, $title, $fuzziness = 0) {
+        $author = strtolower($author);
+        $title = strtolower($title);
+
+        $res = $this->client->search([
             'index' => 'booktastic',
             'body' => [
                 'query' => [
                     'bool' => [
                         'must' => [
-                            [ 'match' => [ 'author' => $author ] ],
+//                            [ 'match' => [ 'author' => $author, 'fuzziness' => $fuzziness ] ],
+//                            [ 'match' => [ 'title' => $title, 'fuzziness' => $fuzziness ] ]
+                            [ 'match' => [ 'title' => $title ] ],
                             [ 'match' => [ 'title' => $title ] ]
+//                                [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => $fuzziness ] ] ],
+//                                [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => $fuzziness ] ] ],
+                            ]
                         ]
                     ]
                 ]
-            ]
         ]);
 
-        #error_log("Search for $author, $title returned " . var_export($ret, TRUE));
+        $ret = NULL;
 
-        return $ret['hits']['total'] > 0 ? $ret['hits']['hits'] : NULL;
+        if ($res['hits']['total'] > 0) {
+            foreach ($res['hits']['hits'] as $hit) {
+                $hitauthor = strtolower($hit['_source']['author']);
+                $hittitle = strtolower($hit['_source']['title']);
+
+                # Ignore blankish entries.
+                if (strlen($hitauthor) > 5 && strlen($hittitle)) {
+                    # If one appears inside the other then it's a match.  This can happen if there's extra
+                    # stuff like publisher info.  The title is more likely to have that because the author
+                    # generally comes first.
+                    if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
+                        error_log("Search for $author - $title returned ");
+                        error_log("...matched inside $hitauthor - $hittitle");
+                        $ret = $hit;
+                    } else {
+                        # We can get different confidence values different ways round - be pessimistic.
+                        similar_text($author, $hitauthor, $authperc1);
+                        similar_text($hitauthor, $author, $authperc2);
+                        $authperc = min($authperc1, $authperc2);
+                        error_log("Consider author $hitauthor $authperc% $hittitle");
+
+                        if ($authperc > self::CONFIDENCE) {
+                            # Looks like the author.
+                            similar_text($title, $hittitle, $titperc1);
+                            similar_text($hittitle, $title, $titperc2);
+                            $titperc = min($titperc1, $titperc2);
+                            error_log("...$hitauthor - $hittitle $titperc%");
+
+                            if ($titperc > self::CONFIDENCE) {
+                                error_log("Search for $author - $title returned ");
+                                error_log("...matched $hitauthor - $hittitle $titperc%");
+                                $ret = $hit;
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+        return $ret;
     }
 
     public function searchForSpines($id, $spines) {
@@ -355,41 +404,44 @@ class Catalogue
         #
         # The spine will normally in in the format "Author Title" or "Title Author".  So we can work our
         # way along the words in the spine searching for matches on this.
-        $res = NULL;
 
         foreach ($spines as $spine) {
-            $words = explode(' ', $spine);
+            $res = NULL;
 
-            for ($i = 1; $i < count($words); $i++) {
+            $words = explode(' ', $spine);
+            error_log("Consider spine $spine words " . count($words));
+
+            for ($i = 1; !$res && $i < count($words) - 1; $i++) {
+                # Try matching assuming the author is at the start.
                 $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
                 $title = trim(implode(' ', array_slice($words, $i + 1)));
-                #error_log("Search for \"$author\" : \"$title\"");
-                $res = $this->search($author, $title);
+                $res = $this->search($author, $title, 2);
 
-                if ($res) {
-                    error_log("...found \"$author\" : \"$title\"");
-                    break 2;
+                if (!$res) {
+                    #error_log("...no author title matches");
                 }
             }
 
-            for ($i = 1; $i < count($words); $i++) {
+            for ($i = 1; !$res && $i < count($words) - 1; $i++) {
+                # Try matching assuming the author is at the end.
                 $title = trim(implode(' ', array_slice($words, 0, $i + 1)));
                 $author = trim(implode(' ', array_slice($words, $i + 1)));
-                #error_log("Search for \"$author\" : \"$title\"");
-                $res = $this->search($author, $title);
+                $res = $this->search($author, $title, 2);
 
-                if ($res) {
-                    error_log("...found \"$author\" : \"$title\"");
-                    break 2;
+                if (!$res) {
+                    #error_log("...no title author matches");
                 }
             }
+
 
             $ret[] = [
                 'spine' => $spine,
-                'author' => $res ? $res[0]['_source']['author'] : NULL,
-                'title' => $res ? $res[0]['_source']['title'] : NULL
+                'author' => $res ? $res['_source']['author'] : NULL,
+                'title' => $res ? $res['_source']['title'] : NULL
             ];
         }
+
+        return $ret;
     }
 
     public function extractKnownAuthors($id, $spines) {
