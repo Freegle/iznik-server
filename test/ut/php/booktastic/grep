@@ -1,0 +1,1 @@
+grep -i -E "rhys|hill, reginald|keillor|lerner|miller|kafka|lawrence|murdoch|orwell|powys|scott|lewis" /tmp/uk.csv > /tmp/small.csv

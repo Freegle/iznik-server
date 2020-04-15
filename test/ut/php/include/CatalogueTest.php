@@ -53,8 +53,6 @@ class CatalogueTest extends IznikTestCase
             if ($spines != $text) {
                 error_log("Mismatch " . json_encode($spines));
             }
-            assertEquals($text, $spines);
-
             $books = $c->searchForSpines($id, $spines);
 
             error_log("\n\n");
@@ -63,6 +61,8 @@ class CatalogueTest extends IznikTestCase
                     error_log("{$book['author']} - {$book['title']}");
                 }
             }
+
+            assertEquals($text, $spines);
             //
             //        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_authors.txt");
             //        $text = $booksfile ? json_decode($booksfile, TRUE) : [];
@@ -83,12 +83,15 @@ class CatalogueTest extends IznikTestCase
     public function libraryData()
     {
         return [
+            [
+                '/test/ut/php/booktastic/crime2',
+            ],
 //            [
 //                '/test/ut/php/booktastic/vertical_easy',
 //            ],
-            [
-                '/test/ut/php/booktastic/basic_horizontal'
-            ],
+//            [
+//                '/test/ut/php/booktastic/basic_horizontal'
+//            ],
 //            [
 //                '/test/ut/php/booktastic/basic_vertical'
 //            ],

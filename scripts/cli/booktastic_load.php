@@ -26,6 +26,16 @@ $client = ClientBuilder::create()
 $params = [
     'index' => 'booktastic',
     'body' => [
+        'settings' => [
+            'analysis' => [
+                'normalizer' => [
+                    'my_normalizer' => [
+                        'type' => 'custom',
+                        'filter' => ['lowercase']
+                    ]
+                ]
+            ]
+        ],
         'mappings' => [
             'books' => [
                 '_source' => [
@@ -37,12 +47,12 @@ $params = [
                     ],
 
                     'author' => [
-                        'type' => 'text',
-                        'analyzer' => 'english'
+                        'type' => 'keyword',
+                        'normalizer' => 'my_normalizer'
                     ],
                     'title' => [
-                        'type' => 'text',
-                        'analyzer' => 'english'
+                        'type' => 'keyword',
+                        'normalizer' => 'my_normalizer'
                     ]
                 ]
             ]
@@ -71,21 +81,18 @@ do {
         $author = $csv[1];
         $title = $csv[2];
 
-        #error_log("Initial author $author");
         $p = strpos($author, ',');
         $q = strpos($author, ',', $p + 1);
 
-        if ($q !== -1) {
+        if ($q != FALSE) {
             # Extra info, e.g. dates - remove.
             $author = trim(substr($author, 0, $q));
         }
 
-        if (preg_match('/(.*)\(/', $author, $matches)) {
+        if (preg_match('/(.*?)\(/', $author, $matches)) {
             # Extra info - remove.
             $author = trim($matches[1]);
         }
-
-        #error_log("Remove info $author");
 
         if ($p !== FALSE) {
             $author = trim(substr($author, $p + 1)) . " " . trim(substr($author, 0, $p));
