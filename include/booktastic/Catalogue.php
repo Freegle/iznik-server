@@ -147,6 +147,14 @@ class Catalogue
         return strlen($t);
     }
 
+    private function height($vertices, $horizontalish) {
+        if ($horizontalish) {
+            return abs(presdef('y', $vertices[0], 0) - presdef('y', $vertices[3], 0));
+        } else {
+            return abs(presdef('x', $vertices[0], 0) - presdef('x', $vertices[3], 0));
+        }
+    }
+
     public function identifySpinesFromOCR($id) {
         $ret = [];
 
@@ -189,10 +197,10 @@ class Catalogue
                     $entry = $json[$j];
                     #error_log("Consider {$entry['description']} at $j of " . count($json));
                     if ($this->isWord($entry['description'])) {
-
                         $poly = presdef('boundingPoly', $entry, NULL);
                         $vertices = $poly['vertices'];
                         $orient = $this->orient($vertices, $horizontalish);
+                        $height = $this->height($vertices, $horizontalish);
 
                         if ($poly) {
                             # Get the middle of the bounding box.
@@ -215,42 +223,54 @@ class Catalogue
                                     $npoly = presdef('boundingPoly', $nentry, NULL);
                                     $nvertices = $npoly['vertices'];
                                     $norient = $this->orient($nvertices, $horizontalish);
+                                    $nheight = $this->height($nvertices, $horizontalish);
 
-                                    # The text should only be combined if it's the same orientation.
+                                    # The text should only be combined if it's the same orientation.  The publisher
+                                    # is often a different orientation.
                                     #error_log("{$entry['description']} horizontal $horizontalish vs {$nentry['description']} $nhorizontalish");
-                                    if ($orient == $norient) {
-                                        # Which way is this oriented determines which way we project.
-                                        $xgap = presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0);
-                                        $ygap = presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0);
+                                    if ($orient == $norient && $nheight) {
+                                        # We only want to merge if the font size is similar.  The publisher is often
+                                        # much smaller font.
+                                        $ratio = $height / $nheight;
 
-                                        if ($horizontalish) {
-                                            # Horizontalish.
-                                            $projecty = $midy2 + $grad * $xgap;
+                                        #error_log("Compare sizes {$entry['description']} vs {$nentry['description']} $height, $nheight,  $ratio");
 
-                                            #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
-                                            #error_log("Compare projected horizontally from {$entry['description']} $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']} for {$nentry['description']}");
+                                        # Ratio comparison doesn't seem to help.
+                                        #if ($ratio >= 0.5 && $ratio <= 1.5)
+                                        {
+                                            # Which way is this oriented determines which way we project.
+                                            $xgap = presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0);
+                                            $ygap = presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0);
 
-                                            if ($projecty <= presdef('y', $nvertices[3], 0) &&
-                                                $projecty >= presdef('y', $nvertices[0], 0) ||
-                                                $projecty <= presdef('y', $nvertices[0], 0) &&
-                                                $projecty >= presdef('y', $nvertices[3], 0)) {
-                                                # The projected line passes through.  Merge these together.
-                                                $others[] = $nentry;
-                                            }
-                                        } else {
-                                            # Verticalish.
-                                            $projectx = $midx2 + ($grad ? ($ygap / $grad) : 0);
+                                            if ($horizontalish) {
+                                                # Horizontalish.
+                                                $projecty = $midy2 + $grad * $xgap;
 
-                                            #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
-                                            #error_log("Compare projected vertically from {$entry['description']} $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']}");
+                                                #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
+                                                #error_log("Compare projected horizontally from {$entry['description']} $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']} for {$nentry['description']}");
 
-                                            if ($projectx <= presdef('x', $nvertices[3], 0) &&
-                                                $projectx >= presdef('x', $nvertices[0], 0) ||
-                                                $projectx <= presdef('x', $nvertices[0], 0) &&
-                                                $projectx >= presdef('x', $nvertices[3], 0)) {
-                                                # The projected line passes through.  Merge these together.
-                                                $others[] = $nentry;
-                                                #error_log("Include projected vertically from {$entry['description']} orient $orient $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']} orient $norient");
+                                                if ($projecty <= presdef('y', $nvertices[3], 0) &&
+                                                    $projecty >= presdef('y', $nvertices[0], 0) ||
+                                                    $projecty <= presdef('y', $nvertices[0], 0) &&
+                                                    $projecty >= presdef('y', $nvertices[3], 0)) {
+                                                    # The projected line passes through.  Merge these together.
+                                                    $others[] = $nentry;
+                                                }
+                                            } else {
+                                                # Verticalish.
+                                                $projectx = $midx2 + ($grad ? ($ygap / $grad) : 0);
+
+                                                #error_log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
+                                                #error_log("Compare projected vertically from {$entry['description']} $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']}");
+
+                                                if ($projectx <= presdef('x', $nvertices[3], 0) &&
+                                                    $projectx >= presdef('x', $nvertices[0], 0) ||
+                                                    $projectx <= presdef('x', $nvertices[0], 0) &&
+                                                    $projectx >= presdef('x', $nvertices[3], 0)) {
+                                                    # The projected line passes through.  Merge these together.
+                                                    $others[] = $nentry;
+                                                    #error_log("Include projected vertically from {$entry['description']} orient $orient $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']} orient $norient");
+                                                }
                                             }
                                         }
                                     }
@@ -351,10 +371,13 @@ class Catalogue
                             ]
                         ]
                     ]
-                ]
+                ],
+                'size' => 50
         ]);
 
         $ret = NULL;
+        $authbest = 0;
+        $titlebest = 0;
 
         if ($res['hits']['total'] > 0) {
             foreach ($res['hits']['hits'] as $hit) {
@@ -375,21 +398,22 @@ class Catalogue
                         similar_text($author, $hitauthor, $authperc1);
                         similar_text($hitauthor, $author, $authperc2);
                         $authperc = min($authperc1, $authperc2);
-                        error_log("Consider author $hitauthor $authperc% $hittitle");
+                        error_log("Searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
 
-                        if ($authperc > self::CONFIDENCE) {
+                        if ($authperc > self::CONFIDENCE && $authperc >= $authbest) {
                             # Looks like the author.
+                            $authbest = $authperc;
                             similar_text($title, $hittitle, $titperc1);
                             similar_text($hittitle, $title, $titperc2);
                             $titperc = min($titperc1, $titperc2);
                             error_log("...$hitauthor - $hittitle $titperc%");
 
-                            if ($titperc > self::CONFIDENCE) {
+                            if ($titperc > self::CONFIDENCE && $titperc >= $titlebest) {
+                                $titlebest = $titperc;
                                 error_log("Search for $author - $title returned ");
                                 error_log("...matched $hitauthor - $hittitle $titperc%");
                                 $ret = $hit;
                             }
-
                         }
                     }
                 }

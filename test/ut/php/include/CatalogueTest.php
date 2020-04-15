@@ -83,12 +83,12 @@ class CatalogueTest extends IznikTestCase
     public function libraryData()
     {
         return [
-            [
-                '/test/ut/php/booktastic/vertical_easy',
-            ],
 //            [
-//                '/test/ut/php/booktastic/basic_horizontal'
+//                '/test/ut/php/booktastic/vertical_easy',
 //            ],
+            [
+                '/test/ut/php/booktastic/basic_horizontal'
+            ],
 //            [
 //                '/test/ut/php/booktastic/basic_vertical'
 //            ],
