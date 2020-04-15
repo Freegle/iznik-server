@@ -35,8 +35,6 @@ class CatalogueTest extends IznikTestCase
     {
         if (!getenv('STANDALONE')) {
             $data = base64_encode(file_get_contents(IZNIK_BASE . $filename . ".jpg"));
-            $textfile = @file_get_contents(IZNIK_BASE . $filename . "_text.txt");
-            $text = $textfile ? json_decode($textfile, TRUE) : [];
 
             $c = new Catalogue($this->dbhr, $this->dbhm);
 
@@ -50,9 +48,6 @@ class CatalogueTest extends IznikTestCase
 
             # Now identify spines.
             $spines = $c->identifySpinesFromOCR($id);
-            if ($spines != $text) {
-                error_log("Mismatch " . json_encode($spines));
-            }
             $books = $c->searchForSpines($id, $spines);
 
             error_log("\n\n");
@@ -62,19 +57,12 @@ class CatalogueTest extends IznikTestCase
                 }
             }
 
-            assertEquals($text, $spines);
-            //
-            //        $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_authors.txt");
-            //        $text = $booksfile ? json_decode($booksfile, TRUE) : [];
-            //
-            //        $spines = $c->extractKnownAuthors($id, $spines);
-            //        $spines = $c->extractPossibleAuthors($id, $spines);
-            //
-            //        if ($spines != $text) {
-            //            error_log("Mismatch " . json_encode($spines));
-            //        }
-
-            assertEquals($text, $spines);
+            $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_books.txt");
+            $text = $booksfile ? json_decode($booksfile, TRUE) : [];
+            if ($books != $text) {
+                error_log("Mismatch " . json_encode($books));
+            }
+            assertEquals($text, $books);
         }
 
         assertTrue(TRUE);
@@ -86,24 +74,24 @@ class CatalogueTest extends IznikTestCase
             [
                 '/test/ut/php/booktastic/crime2',
             ],
-//            [
-//                '/test/ut/php/booktastic/vertical_easy',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_horizontal'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_vertical'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/gardening'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap2'
-//            ],
+            [
+                '/test/ut/php/booktastic/vertical_easy',
+            ],
+            [
+                '/test/ut/php/booktastic/basic_horizontal'
+            ],
+            [
+                '/test/ut/php/booktastic/basic_vertical'
+            ],
+            [
+                '/test/ut/php/booktastic/gardening'
+            ],
+            [
+                '/test/ut/php/booktastic/horizontal_overlap'
+            ],
+            [
+                '/test/ut/php/booktastic/horizontal_overlap2'
+            ],
         ];
     }
 

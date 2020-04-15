@@ -15,7 +15,7 @@ class Catalogue
     const CONFIDENCE = 75;
 
     private $client = NULL;
-    private $logging = TRUE;
+    private $logging = FALSE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {

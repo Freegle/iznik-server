@@ -1,0 +1,115 @@
+[{
+	"spine": "Walter Scott THE TALISMAN",
+	"author": "Walter Scott",
+	"title": "Talisman"
+},
+{
+	"spine": "Inge Scholl Die Wei\u00dfe Rose",
+	"author": null,
+	"title": null
+},
+{
+	"spine": "wide sarg asso sea jean rhyS",
+	"author": "Jean Rhys",
+	"title": "Wide Sargasso sea"
+},
+{
+	"spine": "APRICOTS ON THE NILE COLETTE ROSSANT",
+	"author": "Colette Rossant",
+	"title": "Apricots on the Nile"
+},
+{
+	"spine": "John Cowper Powys Wolf Solent",
+	"author": "John Cowper Powys",
+	"title": "Wolf Solent"
+},
+{
+	"spine": "George Orwell Down end Out in Paris and London",
+	"author": "George Orwell",
+	"title": "Down and out in Paris and London"
+},
+{
+	"spine": "George Orwell Animal Farm 5ON O14",
+	"author": "George Orwell",
+	"title": "Animal farm"
+},
+{
+	"spine": "Flann O'Brrien",
+	"author": null,
+	"title": null
+},
+{
+	"spine": "At Swim-Two-Birds",
+	"author": null,
+	"title": null
+},
+{
+	"spine": "S WOUD NORWYGIAN WOODE",
+	"author": null,
+	"title": null
+},
+{
+	"spine": "ENORWEGIAN WOOD rakami larukt",
+	"author": null,
+	"title": null
+},
+{
+	"spine": "Iris Murdoch Severed Head",
+	"author": "Iris Murdoch",
+	"title": "severed head"
+},
+{
+	"spine": "iris Murdoch An Unofficial Rose",
+	"author": "Iris Murdoch",
+	"title": "n unofficial rose"
+},
+{
+	"spine": "Iris Murdoch The Time of the Angels",
+	"author": "Iris Murdoch",
+	"title": "time of the angels"
+},
+{
+	"spine": "IRIS MURDOCH",
+	"author": null,
+	"title": null
+},
+{
+	"spine": "THE SEA,THE SEA",
+	"author": null,
+	"title": null
+},
+{
+	"spine": "Tropic Capricorn Henry Miller",
+	"author": "Henry Miller",
+	"title": "Tropique du capricorne"
+},
+{
+	"spine": "The Screwtape Letters C.S. Lewis",
+	"author": "C.S. Lewis",
+	"title": "Screwtape Letters"
+},
+{
+	"spine": "Alan Jay Lerner My Fair Lady",
+	"author": "Alan Jay Lerner",
+	"title": "My fair lady"
+},
+{
+	"spine": "D-H.LAWRENCE Lady Chatterley's Lover ISRN",
+	"author": null,
+	"title": null
+},
+{
+	"spine": "GARRISON KEILLOR Radio Romance",
+	"author": "Garrison Keillor",
+	"title": "WLT, a radio romance"
+},
+{
+	"spine": "Franz Kafka America",
+	"author": null,
+	"title": null
+},
+{
+	"spine": "Franz Kafka The Trial",
+	"author": null,
+	"title": null
+}]
