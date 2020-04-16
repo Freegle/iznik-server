@@ -16,7 +16,7 @@ class Catalogue
     const BLUR = 10;
 
     private $client = NULL;
-    private $logging = TRUE;
+    private $logging = FALSE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -245,20 +245,33 @@ class Catalogue
 
     public function getOverallOrientation($fragments) {
         # Work out whether the orientation of the image is horizontal(ish) or vertical(ish).
+        # Which way is this oriented determines which way we project.
         $xtot = 0;
         $ytot = 0;
+        $minx = PHP_INT_MAX;
+        $maxx = -PHP_INT_MAX;
+        $miny = PHP_INT_MAX;
+        $maxy = -PHP_INT_MAX;
+
+
 
         foreach ($fragments as $j) {
             $vertices = $j['boundingPoly']['vertices'];
 
-            # Which way is this oriented determines which way we project.
             $xtot += abs(presdef('x', $vertices[1], 0) - presdef('x', $vertices[0], 0));
             $ytot += abs(presdef('y', $vertices[1], 0) - presdef('y', $vertices[0], 0));
+
+            $minx = min($minx, presdef('x', $vertices[0], 0));
+            $maxx = max($maxx, presdef('x', $vertices[0], 0));
+            $miny = min($miny, presdef('y', $vertices[0], 0));
+            $maxy = max($maxy, presdef('y', $vertices[0], 0));
         }
 
         $horizontalish = $xtot >= $ytot;
 
-        return $horizontalish;
+        $height = $horizontalish ? ($maxx - $minx) : ($maxy - $miny);
+
+        return [ $horizontalish, $height ];
     }
 
     private function addIds(&$fragments) {
@@ -285,38 +298,36 @@ class Catalogue
         }
     }
 
-    private function sortLeftToRight(&$fragments, $horizontalish) {
-        error_log("Before sorted");
-        foreach ($fragments as $fragment) {
-            error_log($fragment['description']);
-        }
-//        usort($fragments, function($a, $b) use ($horizontalish) {
-//            $majoraxis = $horizontalish ? 'x' : 'y';
-//            $minoraxis = $horizontalish ? 'y' : 'x';
-//
-//            $avertices = $a['vertices'];
-//            $bvertices = $b['vertices'];
-//
-//            $amajorpos = presdef($majoraxis, $avertices[0], 0);
-//            $bmajorpos = presdef($majoraxis, $bvertices[0], 0);
-//            $aminorpos = presdef($minoraxis, $avertices[0], 0);
-//            $bminorpos = presdef($minoraxis, $bvertices[0], 0);
-//
-//            return ($apos - $bpos);
-//        });
-
-        error_log("Sorted");
-        foreach ($fragments as $fragment) {
-            error_log($fragment['description']);
-        }
-    }
-
     private function getPos($percent, $vertices, $axis) {
         $top = presdef($axis, $vertices[1], 0);
         $bottom = presdef($axis, $vertices[2], 0);
 
         $pos = $top - $percent * ($top - $bottom) / 100;
         return $pos;
+    }
+
+    public function identifySpinesFromOCR2($id) {
+        # The overall aim here is:
+        # - assume we have a picture of a single shelf
+        # - assume that anything Google returns as a single line is on a single spine
+        $ret = [];
+
+        $ocrdata = $this->dbhm->preQuery("SELECT * FROM booktastic_ocr WHERE id = ?;", [
+            $id
+        ]);
+
+        foreach ($ocrdata as $o) {
+            # First item is summary - ignore that.
+            $fragments = json_decode($o['text'], TRUE);
+
+            $summary = $fragments[0]['description'];
+            $lines = explode("\n", $summary);
+            $this->log("Lines " . count($lines));
+            $ret = $lines;
+        }
+
+        $this->log("Spines " . var_export($ret, TRUE));
+        return $ret;
     }
 
     public function identifySpinesFromOCR($id) {
@@ -337,10 +348,7 @@ class Catalogue
             array_shift($fragments);
 
             $this->addIds($fragments);
-            $horizontalish = $this->getOverallOrientation($fragments);
-
-            # We want to process from left to right as you'd read.
-            $this->sortLeftToRight($fragments, $horizontalish);
+            list ($horizontalish, $shelfheight) = $this->getOverallOrientation($fragments);
 
             # For each fragment that we have, we want to project to find other fragments which overlap.
             #
@@ -453,8 +461,24 @@ class Catalogue
         return $ret;
     }
 
+    private function canonTitle($title) {
+        # The catalogues are erratic about whether articles are included.  Remove them for comparison.
+        $origtitle = $title;
+
+        foreach (['the', 'a'] as $word) {
+            $title = preg_replace('/(\b|$)' . preg_quote($word) . '(\b|$)/i', '', $title);
+        }
+
+        # Remove all except alphabetic.
+        $title = preg_replace('/[^a-zA-Z]/', '', $title);
+
+        $this->log("$origtitle => $title");
+        return $title;
+    }
+
     private function search($author, $title, $fuzziness = 0) {
-        $author = strtolower($author);
+        # Sometimes we get a dash where it should be a dot, which confuses things.
+        $author = str_replace('-', ' ', strtolower($author));
         $title = strtolower($title);
 
         # First search on the assumption that the OCR is pretty good, and we just have a little fuzziness.  Allow
@@ -526,21 +550,26 @@ class Catalogue
                                 $authbest = $authperc;
 
                                 # The title we have OCR'd is more likely to have guff on the end, such as the
-                                # publisher.  So compare upto the length of the canidate title.
-                                similar_text(substr($title, 0, strlen($hittitle)), $hittitle, $titperc1);
-                                similar_text($hittitle, substr($title, 0, strlen($hittitle)), $titperc2);
-                                $titperc = min($titperc1, $titperc2);
-                                $p = strpos("$title", "$hittitle");
-                                $this->log("...$hitauthor - $hittitle $titperc%, $titperc1, $titperc2, $p");
+                                # publisher.  So compare upto the length of the candidate title.
+                                $canontitle = $this->canonTitle($title);
+                                $canonhittitle = $this->canonTitle($hittitle);
 
-                                if ($p !== FALSE) {
-                                    $this->log("...matched $title inside title $hittitle");
-                                    $ret = $hit;
-                                } else if ($titperc > self::CONFIDENCE && $titperc >= $titlebest) {
-                                    $titlebest = $titperc;
-                                    $this->log("Search for $author - $title returned ");
-                                    $this->log("...matched $hitauthor - $hittitle $titperc%");
-                                    $ret = $hit;
+                                if (strlen($canontitle) && strlen($canonhittitle)) {
+                                    similar_text(substr($canontitle, 0, strlen($canonhittitle)), $canonhittitle, $titperc1);
+                                    similar_text($canonhittitle, substr($canontitle, 0, strlen($canonhittitle)), $titperc2);
+                                    $titperc = min($titperc1, $titperc2);
+                                    $p = strpos("$canontitle", "$canonhittitle");
+                                    $this->log("...$hitauthor - $hittitle $titperc%, $titperc1, $titperc2, $p");
+
+                                    if ($p !== FALSE) {
+                                        $this->log("...matched $title inside title $hittitle");
+                                        $ret = $hit;
+                                    } else if ($titperc > self::CONFIDENCE && $titperc >= $titlebest) {
+                                        $titlebest = $titperc;
+                                        $this->log("Search for $author - $title returned ");
+                                        $this->log("...matched $hitauthor - $hittitle $titperc%");
+                                        $ret = $hit;
+                                    }
                                 }
                             }
                         }
@@ -558,6 +587,7 @@ class Catalogue
         # The spine will normally in in the format "Author Title" or "Title Author".  So we can work our
         # way along the words in the spine searching for matches on this.
         $score = 0;
+        $ret = [];
 
         foreach ($spines as $spine) {
             $res = NULL;
@@ -587,7 +617,6 @@ class Catalogue
                 }
             }
 
-
             $ret[] = [
                 'spine' => $spine,
                 'author' => $res ? $res['_source']['author'] : NULL,
@@ -603,6 +632,48 @@ class Catalogue
             json_encode($ret),
             round(100 * $score / count($ret))
         ]);
+
+        return $ret;
+    }
+
+    public function searchForBrokenSpines($id, $books) {
+        # Up to this point we've relied on what Google returns on a single line.  We will have found
+        # some books via that route.  But it's common to have the author on one line, and the book on another.
+        # So loop through all cases where we have adacent spines not matched, and search for them as though that
+        # is the case.
+        $ret = [];
+        $i = 0;
+
+        while ($i < count($books) - 1) {
+            $thisone = $books[$i];
+            $nextone = $books[$i + 1];
+
+            if (!$thisone['author'] && !$nextone['author']) {
+                $healed = "{$thisone['spine']} {$nextone['spine']}";
+                $this->log("Consider broken spine $healed");
+                $found = $this->searchForSpines($id, [ $healed ]);
+
+                if ($found[0]['author']) {
+                    # It worked.
+                    $ret[] = $found[0];
+                    $i += 2;
+                } else {
+                    # It failed.
+                    $ret[] = $thisone;
+                    $i++;
+                }
+            } else {
+                $ret[] = $thisone;
+                $i++;
+            }
+        }
+
+        $this->log("After broken " . var_export($ret, TRUE));
+
+        # Strip single words - likely junk.
+        $ret = array_filter($ret, function($a) {
+            return strpos($a['spine'], ' ') !== FALSE;
+        });
 
         return $ret;
     }

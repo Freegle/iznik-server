@@ -47,11 +47,13 @@ class CatalogueTest extends IznikTestCase
             assertNotNull($id);
 
             # Now identify spines.
-            $spines = $c->identifySpinesFromOCR($id);
+            $spines = $c->identifySpinesFromOCR2($id);
             $books = $c->searchForSpines($id, $spines);
+            $books2 = $c->searchForBrokenSpines($id, $books);
 
             error_log("\n\n");
-            foreach ($books as $book) {
+            foreach ($books2 as $book) {
+                error_log("Book ". json_encode($book));
                 if ($book['author'] && $book['title']) {
                     error_log("{$book['author']} - {$book['title']}");
                 }
@@ -62,7 +64,7 @@ class CatalogueTest extends IznikTestCase
 
             $foundnow = 0;
 
-            foreach ($books as $book) {
+            foreach ($books2 as $book) {
                 if ($book['author'] && $book['title']) {
                     $foundnow++;
                 }
@@ -78,10 +80,10 @@ class CatalogueTest extends IznikTestCase
 
             if ($foundthen > $foundnow) {
                 error_log("Worse");
-                error_log(json_encode($books));
+                error_log(json_encode($books2));
             } else if ($foundthen < $foundnow) {
                 error_log("Better");
-                error_log(json_encode($books));
+                error_log(json_encode($books2));
             }
 
             assertEquals($foundthen, $foundnow);
@@ -94,7 +96,13 @@ class CatalogueTest extends IznikTestCase
     {
         return [
             [
-                '/test/ut/php/booktastic/crime2',
+                '/test/ut/php/booktastic/crime1',
+            ],
+//            [
+//                '/test/ut/php/booktastic/crime2',
+//            ],
+            [
+                '/test/ut/php/booktastic/crime3',
             ],
 //            [
 //                '/test/ut/php/booktastic/vertical_easy',
