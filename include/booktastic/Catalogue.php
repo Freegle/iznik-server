@@ -267,6 +267,17 @@ class Catalogue
         }
     }
 
+    private function considerIntersect($project, $position, $vertices, $axis, &$others, $entry) {
+        if ($this->intersects($project, $vertices, $axis)) {
+            # The projected line passes through.  Merge these together, recording the position at which we found
+            # it (top, middle, bottom).
+            # This JSON thing is an attempt to avoid shallow referencing which may not be necessary.
+            $thisone = json_decode(json_encode($entry), TRUE);
+            $thisone['position'] = $position;
+            $others[] = $thisone;
+        }
+    }
+
     public function identifySpinesFromOCR($id) {
         # The overall aim here is:
         # - assume we have a picture of a single shelf
@@ -301,6 +312,17 @@ class Catalogue
                     # TEXT1  TEXT2
                     #
                     # ...where projecting from the middle of TEXT1 will hit TEXT2, and we should merge.
+                    #
+                    # A more complex case is where we have the author's name split over two lines, and the title
+                    # in big font (or vice-versa).
+                    #
+                    #  TEXT1a      TEXT1
+                    #  TEXT1b      TEXT1
+                    #
+                    # For this we want to project leftwards from the bottom then middle then top, or rightwards from
+                    # the top then middle then bottom (to get the word order right in the merged text).  This ordering
+                    # is handled by the "distance" that we assign each fragment based on the position (top/middle/bottom)
+                    # that was used to find it.
                     $entry = $fragments[$j];
                     #$this->log("Consider {$entry['description']} at $j of " . count($fragments));
                     if ($this->isWord($entry['description'])) {
@@ -319,9 +341,6 @@ class Catalogue
                                     # is often a different orientation.
                                     #$this->log("{$entry['description']} horizontal $horizontalish vs {$nentry['description']} $nhorizontalish");
                                     if ($orient == $norient && $nheight) {
-                                        # If we project this line outwards, we should meet the other text which is in a line with this
-                                        # one on the same spine.
-                                        #
                                         # Which way the image is oriented determines which way we project.
                                         $xgap = presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0);
                                         $ygap = presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0);
@@ -330,25 +349,12 @@ class Catalogue
                                             # Horizontalish.
                                             $projecty = $midy2 + $grad * $xgap;
 
-                                            #$this->log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
-                                            #$this->log("Compare projected horizontally from {$entry['description']} $projecty to {$nvertices[0]['y']} and {$nvertices[3]['y']} for {$nentry['description']}");
-
-                                            if ($this->intersects($projecty, $nvertices, 'y')) {
-                                                # The projected line passes through.  Merge these together.
-                                                $others[] = $nentry;
-                                            }
+                                            $this->considerIntersect($projecty, 'middle', $nvertices, 'y', $others, $nentry);
                                         } else {
                                             # Verticalish.
                                             $projectx = $midx2 + ($grad ? ($ygap / $grad) : 0);
 
-                                            #$this->log("Projected y = $projecty from $midy2, $grad, {$nvertices[0]['x']}, {$vertices[1]['x']}");
-                                            #$this->log("Compare projected vertically from {$entry['description']} $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']}");
-
-                                            if ($this->intersects($projectx, $nvertices, 'x')) {
-                                                # The projected line passes through.  Merge these together.
-                                                $others[] = $nentry;
-                                                #$this->log("Include projected vertically from {$entry['description']} orient $orient $projectx to {$nvertices[0]['x']} and {$nvertices[3]['x']} for {$nentry['description']} orient $norient");
-                                            }
+                                            $this->considerIntersect($projectx, 'middle', $nvertices, 'x', $others, $nentry);
                                         }
                                     }
                                 }
