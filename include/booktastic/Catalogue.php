@@ -163,7 +163,7 @@ class Catalogue
     }
 
     private function getMid($vertices) {
-        # Get the middle of the bounding box.
+        # Get the middle of the bounding box on the right hand side.
         $midy1 = (presdef('y', $vertices[0],0) + presdef('y', $vertices[3],0)) / 2;
         $midy2 = (presdef('y', $vertices[2],0) + presdef('y', $vertices[1],0)) / 2;
         $midx1 = (presdef('x', $vertices[0],0) + presdef('x', $vertices[3],0)) / 2;
@@ -171,7 +171,7 @@ class Catalogue
 
         $grad = ($midx2 - $midx1 > 0) ? ($midy2 - $midy1) / ($midx2 - $midx1) : PHP_INT_MAX;
 
-        return [ $midx1, $midx2, $midy1, $midy2, $grad ];
+        return [ $midx2, $midy2, $grad ];
     }
 
     private function intersects($project, $vertices, $axis)
@@ -288,20 +288,26 @@ class Catalogue
             $horizontalish = $this->getOverallOrientation($fragments);
 
             do {
+                # Once we merge we've messed up the array a bit so we bail out the loops and keep going.  This code
+                # could be more efficient but it'll do for now.
                 $merged = FALSE;
                 #$this->log("Scan " . count($fragments));
 
                 for ($j = 0; !$merged && $j < count($fragments); $j++) {
+                    # For each fragment that we have, we want to project to find other fragments which overlap.
+                    #
+                    # The simple case is:
+                    #
+                    # TEXT1  TEXT2
+                    #
+                    # ...where projecting from the middle of TEXT1 will hit TEXT2, and we should merge.
                     $entry = $fragments[$j];
                     #$this->log("Consider {$entry['description']} at $j of " . count($fragments));
                     if ($this->isWord($entry['description'])) {
                         list ($poly, $vertices, $orient, $height) = $this->getInfo($entry, $horizontalish);
 
                         if ($poly) {
-                            list ($midx1, $midx2, $midy1, $midy2, $grad) = $this->getMid($vertices);
-
-                            # If we project this line outwards, we should meet the other text which is in a line with this
-                            # one on the same spine.
+                            list ($midx2, $midy2, $grad) = $this->getMid($vertices);
                             $others = [];
 
                             for ($k = 0; !$merged && $k < count($fragments); $k++) {
@@ -313,7 +319,10 @@ class Catalogue
                                     # is often a different orientation.
                                     #$this->log("{$entry['description']} horizontal $horizontalish vs {$nentry['description']} $nhorizontalish");
                                     if ($orient == $norient && $nheight) {
-                                        # Which way is this oriented determines which way we project.
+                                        # If we project this line outwards, we should meet the other text which is in a line with this
+                                        # one on the same spine.
+                                        #
+                                        # Which way the image is oriented determines which way we project.
                                         $xgap = presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0);
                                         $ygap = presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0);
 
