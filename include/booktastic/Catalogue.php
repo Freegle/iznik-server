@@ -461,6 +461,16 @@ class Catalogue
         return $ret;
     }
 
+    private function compare($str1, $str2) {
+        if (strlen($str1) > 255 || strlen($str2) > 255) {
+            return 0;
+        }
+
+        $dist = levenshtein($str1, $str2);
+        $pc = 100 - 100 * $dist / min(strlen($str1), strlen($str2));
+        return $pc;
+    }
+
     private function canonTitle($title) {
         # The catalogues are erratic about whether articles are included.  Remove them for comparison.
         $origtitle = $title;
@@ -620,7 +630,8 @@ class Catalogue
             $ret[] = [
                 'spine' => $spine,
                 'author' => $res ? $res['_source']['author'] : NULL,
-                'title' => $res ? $res['_source']['title'] : NULL
+                'title' => $res ? $res['_source']['title'] : NULL,
+                'vaifid' => $res ? $res['_source']['vaifid'] : NULL,
             ];
 
             $score += $res ? 1 : 0;
@@ -638,34 +649,59 @@ class Catalogue
 
     public function searchForBrokenSpines($id, $books) {
         # Up to this point we've relied on what Google returns on a single line.  We will have found
-        # some books via that route.  But it's common to have the author on one line, and the book on another.
-        # So loop through all cases where we have adacent spines not matched, and search for them as though that
-        # is the case.
+        # some books via that route.  But it's common to have the author on one line, and the book on another,
+        # or other variations which result in text on a single spine being split.
+        #
+        # So loop through all cases where we have adjacent spines not matched, and search for them as though that
+        # is the case.  Do this initially for 2 adjacent spines, then increase - we've seen some examples
+        # where a single title can end up on several lines.
         $ret = [];
+
+        for ($adjacent = 2; $adjacent <= 2; $adjacent++) {
         $i = 0;
 
         while ($i < count($books) - 1) {
             $thisone = $books[$i];
-            $nextone = $books[$i + 1];
 
-            if (!$thisone['author'] && !$nextone['author']) {
-                $healed = "{$thisone['spine']} {$nextone['spine']}";
+                $blank = TRUE;
+                $healed = $thisone['spine'];
+
+                for ($j = $i; $j < count($books) && $j - $i + 1 <= $adjacent; $j++) {
+                    if (pres('used', $books[$j]) || $books[$j]['author']) {
+                        $blank = FALSE;
+                    } else {
+                        $healed .= " {$books[$j]['spine']}";
+                    }
+                }
+
+                if ($blank) {
                 $this->log("Consider broken spine $healed");
                 $found = $this->searchForSpines($id, [ $healed ]);
 
                 if ($found[0]['author']) {
-                    # It worked.
+                        # It worked.  Use these slots up.
                     $ret[] = $found[0];
-                    $i += 2;
+
+                        for ($j = $i; $j < count($books) && $j - $i + 1 <= $adjacent; $j++) {
+                            $books[$j]['used'] = TRUE;
+                        }
+
+                        $i += $adjacent;
                 } else {
-                    # It failed.
-                    $ret[] = $thisone;
+                        # It failed - try the next.
+//                        $ret[] = $thisone;
                     $i++;
                 }
             } else {
+                    # Already got one - mark it as used.
+                    if (!pres('used', $books[$i])) {
                 $ret[] = $thisone;
+                        $books[$i]['used'] = TRUE;
+                    }
+
                 $i++;
             }
+        }
         }
 
         $this->log("After broken " . var_export($ret, TRUE));

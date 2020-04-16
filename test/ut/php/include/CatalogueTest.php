@@ -80,9 +80,42 @@ class CatalogueTest extends IznikTestCase
 
             if ($foundthen > $foundnow) {
                 error_log("$filename worse");
+                foreach ($text as $then) {
+                    if ($then['author']) {
+                        $found = FALSE;
+
+                        foreach ($books2 as $now) {
+                            if ($now['author'] == $then['author'] && $now['title'] == $then['title']) {
+                                $found = TRUE;
+                            }
+                        }
+
+                        if (!$found) {
+                            error_log("No longer finding {$then['author']} - {$then['title']}");
+                        }
+                    }
+                }
+
                 error_log(json_encode($books2));
+
             } else if ($foundthen < $foundnow) {
                 error_log("$filename better");
+
+                foreach ($books2 as $now) {
+                    if ($now['author']) {
+                        $found = FALSE;
+
+                        foreach ($text as $then) {
+                            if ($now['author'] == $then['author'] && $now['title'] == $then['title']) {
+                                $found = TRUE;
+                            }
+                        }
+
+                        if (!$found) {
+                            error_log("Now also finding {$now['author']} - {$now['title']}");
+                        }
+                    }
+                }
                 error_log(json_encode($books2));
             }
 
@@ -95,36 +128,36 @@ class CatalogueTest extends IznikTestCase
     public function libraryData()
     {
         return [
+//            [
+//                '/test/ut/php/booktastic/bryson',
+//            ],
             [
-                '/test/ut/php/booktastic/bryson',
+                '/test/ut/php/booktastic/crime1',
             ],
-//            [
-//                '/test/ut/php/booktastic/crime1',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/crime2',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/crime3',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/vertical_easy',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_horizontal'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_vertical'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/gardening'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap2'
-//            ],
+            [
+                '/test/ut/php/booktastic/crime2',
+            ],
+            [
+                '/test/ut/php/booktastic/crime3',
+            ],
+            [
+                '/test/ut/php/booktastic/vertical_easy',
+            ],
+            [
+                '/test/ut/php/booktastic/basic_horizontal'
+            ],
+            [
+                '/test/ut/php/booktastic/basic_vertical'
+            ],
+            [
+                '/test/ut/php/booktastic/gardening'
+            ],
+            [
+                '/test/ut/php/booktastic/horizontal_overlap'
+            ],
+            [
+                '/test/ut/php/booktastic/horizontal_overlap2'
+            ],
         ];
     }
 
