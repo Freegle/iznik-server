@@ -16,7 +16,7 @@ class Catalogue
     const BLUR = 10;
 
     private $client = NULL;
-    private $logging = FALSE;
+    private $logging = TRUE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {

@@ -428,7 +428,7 @@ class Attachment
         $rsps = NULL;
 
         if ($status) {
-            error_log("Rsp $json_response");
+            #error_log("Rsp $json_response");
             $rsp = json_decode($json_response, TRUE);
 
             if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
