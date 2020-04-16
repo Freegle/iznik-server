@@ -79,10 +79,10 @@ class CatalogueTest extends IznikTestCase
             }
 
             if ($foundthen > $foundnow) {
-                error_log("Worse");
+                error_log("$filename worse");
                 error_log(json_encode($books2));
             } else if ($foundthen < $foundnow) {
-                error_log("Better");
+                error_log("$filename better");
                 error_log(json_encode($books2));
             }
 
@@ -98,30 +98,30 @@ class CatalogueTest extends IznikTestCase
             [
                 '/test/ut/php/booktastic/crime1',
             ],
-//            [
-//                '/test/ut/php/booktastic/crime2',
-//            ],
+            [
+                '/test/ut/php/booktastic/crime2',
+            ],
             [
                 '/test/ut/php/booktastic/crime3',
             ],
-//            [
-//                '/test/ut/php/booktastic/vertical_easy',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_horizontal'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_vertical'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/gardening'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap2'
-//            ],
+            [
+                '/test/ut/php/booktastic/vertical_easy',
+            ],
+            [
+                '/test/ut/php/booktastic/basic_horizontal'
+            ],
+            [
+                '/test/ut/php/booktastic/basic_vertical'
+            ],
+            [
+                '/test/ut/php/booktastic/gardening'
+            ],
+            [
+                '/test/ut/php/booktastic/horizontal_overlap'
+            ],
+            [
+                '/test/ut/php/booktastic/horizontal_overlap2'
+            ],
         ];
     }
 
