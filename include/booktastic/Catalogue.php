@@ -13,9 +13,10 @@ class Catalogue
     var $dbhm;
 
     const CONFIDENCE = 75;
+    const BLUR = 10;
 
     private $client = NULL;
-    private $logging = FALSE;
+    private $logging = TRUE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -162,7 +163,7 @@ class Catalogue
         }
     }
 
-    private function getMid($vertices) {
+    private function getGradient($vertices) {
         # Get the middle of the bounding box on the right hand side.
         $midy1 = (presdef('y', $vertices[0],0) + presdef('y', $vertices[3],0)) / 2;
         $midy2 = (presdef('y', $vertices[2],0) + presdef('y', $vertices[1],0)) / 2;
@@ -171,15 +172,16 @@ class Catalogue
 
         $grad = ($midx2 - $midx1 > 0) ? ($midy2 - $midy1) / ($midx2 - $midx1) : PHP_INT_MAX;
 
-        return [ $midx2, $midy2, $grad ];
+        return $grad;
     }
 
     private function intersects($project, $vertices, $axis)
     {
-        return ($project <= presdef($axis, $vertices[3], 0) &&
-                $project >= presdef($axis, $vertices[0], 0) ||
-                $project <= presdef($axis, $vertices[0], 0) &&
-                $project >= presdef($axis, $vertices[3], 0));
+        # Blur a bit.  Fudge.
+        return ($project <= presdef($axis, $vertices[3], 0) + self::BLUR &&
+                $project >= presdef($axis, $vertices[0], 0) - self::BLUR ||
+                $project <= presdef($axis, $vertices[0], 0) + self::BLUR &&
+                $project >= presdef($axis, $vertices[3], 0) - self::BLUR);
     }
 
     private function sortByDistance(&$others, $vertices) {
@@ -230,7 +232,7 @@ class Catalogue
                 $fragments[$index]['description'] = "{$other['description']} {$fragments[$index]['description']}" ;
             }
 
-            #$this->log("Passes through {$other['description']}, now {$json[$j]['description']}, $ldist, $rdist");
+            $this->log("{$other['description']} merged, now {$fragments[$index]['description']}, $ldist, $rdist");
 
             # Remove the one we've merged.
             $fragments = array_values(array_filter($fragments, function($a) use ($other) {
@@ -267,15 +269,54 @@ class Catalogue
         }
     }
 
-    private function considerIntersect($project, $position, $vertices, $axis, &$others, $entry) {
+    private function considerIntersect($project, $position, $vertices, $axis, &$others, $candidate, $entry) {
+        $this->log("Intersects? {$candidate['description']} and {$entry['description']} at $project vs " . presdef($axis, $vertices[3], 0) . "," .
+            presdef($axis, $vertices[0], 0) . " or " . presdef($axis, $vertices[0], 0) . "," .
+            presdef($axis, $vertices[3], 0));
+
         if ($this->intersects($project, $vertices, $axis)) {
             # The projected line passes through.  Merge these together, recording the position at which we found
             # it (top, middle, bottom).
             # This JSON thing is an attempt to avoid shallow referencing which may not be necessary.
-            $thisone = json_decode(json_encode($entry), TRUE);
+            $thisone = json_decode(json_encode($candidate), TRUE);
+            $this->log("#{$entry['id']} {$entry['description']} intersects #{$candidate['id']} {$candidate['description']}");
             $thisone['position'] = $position;
             $others[] = $thisone;
         }
+    }
+
+    private function sortLeftToRight(&$fragments, $horizontalish) {
+        error_log("Before sorted");
+        foreach ($fragments as $fragment) {
+            error_log($fragment['description']);
+        }
+//        usort($fragments, function($a, $b) use ($horizontalish) {
+//            $majoraxis = $horizontalish ? 'x' : 'y';
+//            $minoraxis = $horizontalish ? 'y' : 'x';
+//
+//            $avertices = $a['vertices'];
+//            $bvertices = $b['vertices'];
+//
+//            $amajorpos = presdef($majoraxis, $avertices[0], 0);
+//            $bmajorpos = presdef($majoraxis, $bvertices[0], 0);
+//            $aminorpos = presdef($minoraxis, $avertices[0], 0);
+//            $bminorpos = presdef($minoraxis, $bvertices[0], 0);
+//
+//            return ($apos - $bpos);
+//        });
+
+        error_log("Sorted");
+        foreach ($fragments as $fragment) {
+            error_log($fragment['description']);
+        }
+    }
+
+    private function getPos($percent, $vertices, $axis) {
+        $top = presdef($axis, $vertices[1], 0);
+        $bottom = presdef($axis, $vertices[2], 0);
+
+        $pos = $top - $percent * ($top - $bottom) / 100;
+        return $pos;
     }
 
     public function identifySpinesFromOCR($id) {
@@ -298,76 +339,107 @@ class Catalogue
             $this->addIds($fragments);
             $horizontalish = $this->getOverallOrientation($fragments);
 
-            do {
-                # Once we merge we've messed up the array a bit so we bail out the loops and keep going.  This code
-                # could be more efficient but it'll do for now.
-                $merged = FALSE;
-                #$this->log("Scan " . count($fragments));
+            # We want to process from left to right as you'd read.
+            $this->sortLeftToRight($fragments, $horizontalish);
 
-                for ($j = 0; !$merged && $j < count($fragments); $j++) {
-                    # For each fragment that we have, we want to project to find other fragments which overlap.
-                    #
-                    # The simple case is:
-                    #
-                    # TEXT1  TEXT2
-                    #
-                    # ...where projecting from the middle of TEXT1 will hit TEXT2, and we should merge.
-                    #
-                    # A more complex case is where we have the author's name split over two lines, and the title
-                    # in big font (or vice-versa).
-                    #
-                    #  TEXT1a      TEXT1
-                    #  TEXT1b      TEXT1
-                    #
-                    # For this we want to project leftwards from the bottom then middle then top, or rightwards from
-                    # the top then middle then bottom (to get the word order right in the merged text).  This ordering
-                    # is handled by the "distance" that we assign each fragment based on the position (top/middle/bottom)
-                    # that was used to find it.
-                    $entry = $fragments[$j];
-                    #$this->log("Consider {$entry['description']} at $j of " . count($fragments));
-                    if ($this->isWord($entry['description'])) {
-                        list ($poly, $vertices, $orient, $height) = $this->getInfo($entry, $horizontalish);
+            # For each fragment that we have, we want to project to find other fragments which overlap.
+            #
+            # The simple case is:
+            #
+            # TEXT1  TEXT2
+            #
+            # ...where projecting from the middle of TEXT1 will hit TEXT2, and we should merge.
+            #
+            # A more complex case is where we have the author's name split over two lines, and the title
+            # in big font (or vice-versa).
+            #
+            #  TEXT1a      TEXT1
+            #  TEXT1b      TEXT1
+            #
+            # For this we want to project leftwards from the bottom then middle then top, or rightwards from
+            # the top then middle then bottom (to get the word order right in the merged text).  This ordering
+            # is handled by the "distance" that we assign each fragment based on the position (top/middle/bottom)
+            # that was used to find it.
+            #
+            # When we say "top" and "bottom", actually we mean 25% of the way down and 75% of the way down, as the
+            # very top may miss.
+            #
+            # Once we merge we've messed up the array a bit so we bail out the loops and keep going.  This code
+            # could be more efficient in that respect but it'll do for now.
+            foreach (['top', 'mid', 'bot'] as $position) {
+                do {
+                    $merged = FALSE;
+                    #$this->log("Scan " . count($fragments));
 
-                        if ($poly) {
-                            list ($midx2, $midy2, $grad) = $this->getMid($vertices);
-                            $others = [];
+                    for ($j = 0; !$merged && $j < count($fragments); $j++) {
+                        $entry = $fragments[$j];
+                        #$this->log("Consider {$entry['description']} at $j of " . count($fragments));
+                        if ($this->isWord($entry['description'])) {
+                            list ($poly, $vertices, $orient, $height) = $this->getInfo($entry, $horizontalish);
 
-                            for ($k = 0; !$merged && $k < count($fragments); $k++) {
-                                if ($j !== $k && $this->isWord($fragments[$k]['description'])) {
-                                    $nentry = $fragments[$k];
-                                    list ($npoly, $nvertices, $norient, $nheight) = $this->getInfo($nentry, $horizontalish);
+                            if ($poly) {
+                                $grad = $this->getGradient($vertices);
+                                $others = [];
 
-                                    # The text should only be combined if it's the same orientation.  The publisher
-                                    # is often a different orientation.
-                                    #$this->log("{$entry['description']} horizontal $horizontalish vs {$nentry['description']} $nhorizontalish");
-                                    if ($orient == $norient && $nheight) {
-                                        # Which way the image is oriented determines which way we project.
-                                        $xgap = presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0);
-                                        $ygap = presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0);
+                                for ($k = $j + 1 ; !$merged && $k < count($fragments); $k++) {
+                                    if ($j !== $k && $this->isWord($fragments[$k]['description'])) {
+                                        $nentry = $fragments[$k];
+                                        list ($npoly, $nvertices, $norient, $nheight) = $this->getInfo($nentry, $horizontalish);
 
-                                        if ($horizontalish) {
-                                            # Horizontalish.
-                                            $projecty = $midy2 + $grad * $xgap;
+                                        # The text should only be combined if it's the same orientation.  The publisher
+                                        # is often a different orientation.
+                                        #$this->log("{$entry['description']} horizontal $horizontalish vs {$nentry['description']} $nhorizontalish");
+                                        if ($orient == $norient && $nheight) {
+                                            # Which way the image is oriented determines which way we project.
+                                            $xgap = presdef('x', $nvertices[0], 0) - presdef('x', $vertices[1], 0);
+                                            $ygap = presdef('y', $nvertices[0], 0) - presdef('y', $vertices[1], 0);
 
-                                            $this->considerIntersect($projecty, 'middle', $nvertices, 'y', $others, $nentry);
-                                        } else {
-                                            # Verticalish.
-                                            $projectx = $midx2 + ($grad ? ($ygap / $grad) : 0);
-
-                                            $this->considerIntersect($projectx, 'middle', $nvertices, 'x', $others, $nentry);
+                                            if ($horizontalish) {
+                                                # Horizontalish.
+                                                switch ($position) {
+                                                    case 'top':
+                                                        $projecttopy = $this->getPos(25, $vertices, 'y') + $grad * $xgap;
+                                                        $this->considerIntersect($projecttopy, 'top', $nvertices, 'y', $others, $nentry, $entry);
+                                                        break;
+                                                    case 'mid':
+                                                        $projectmidy = $this->getPos(50, $vertices, 'y') + $grad * $xgap;
+                                                        $this->considerIntersect($projectmidy, 'mid', $nvertices, 'y', $others, $nentry, $entry);
+                                                        break;
+                                                    case 'bot':
+                                                        $projectboty = $this->getPos(75, $vertices, 'y') + $grad * $xgap;
+                                                        $this->considerIntersect($projectboty, 'bot', $nvertices, 'y', $others, $nentry, $entry);
+                                                        break;
+                                                }
+                                            } else {
+                                                # Verticalish.
+                                                switch ($position) {
+                                                    case 'top':
+                                                        $projecttopx = $this->getPos(25, $vertices, 'x') + ($grad ? ($ygap / $grad) : 0);
+                                                        $this->considerIntersect($projecttopx, 'top', $nvertices, 'x', $others, $nentry, $entry);
+                                                        break;
+                                                    case 'mid':
+                                                        $projectmidx = $this->getPos(50, $vertices, 'x') + ($grad ? ($ygap / $grad) : 0);
+                                                        $this->considerIntersect($projectmidx, 'mid', $nvertices, 'x', $others, $nentry, $entry);
+                                                        break;
+                                                    case 'bot':
+                                                        $projectbotx = $this->getPos(75, $vertices, 'x') + ($grad ? ($ygap / $grad) : 0);
+                                                        $this->considerIntersect($projectbotx, 'bot', $nvertices, 'x', $others, $nentry, $entry);
+                                                        break;
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            # Now we have the words that are in a line with this one.  We want to merge them together.
-                            # Sort by distance from this one.
-                            $this->sortByDistance($others, $vertices);
-                            $this->merge($merged, $others, $vertices, $fragments, $j);
+                                # Now we have the words that are in a line with this one.  We want to merge them together.
+                                # Sort by distance from this one.
+                                $this->sortByDistance($others, $vertices);
+                                $this->merge($merged, $others, $vertices, $fragments, $j);
+                            }
                         }
                     }
-                }
-            } while ($merged);
+                } while ($merged);
+            }
 
             foreach ($fragments as $entry) {
                 # Take anything containing letters and multiword.
