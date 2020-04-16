@@ -134,7 +134,7 @@ class GroupFacebook {
         return($count);
     }
 
-    public function listSocialActions(&$ctx, $mindate = NULL) {
+    public function listSocialActions(&$ctx, $mindate = '7 days ago') {
         # We want posts which have been collected from the sharefrom page which have not already been shared, for
         # groups where we are a moderator.
         $mindate = date("Y-m-d H:i:s", strtotime($mindate));
