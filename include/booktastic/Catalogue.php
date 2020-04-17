@@ -306,7 +306,7 @@ class Catalogue
         return $pos;
     }
 
-    public function identifySpinesFromOCR2($id) {
+    public function identifySpinesFromOCR($id) {
         # The overall aim here is:
         # - assume we have a picture of a single shelf
         # - assume that anything Google returns as a single line is on a single spine
@@ -330,7 +330,7 @@ class Catalogue
         return $ret;
     }
 
-    public function identifySpinesFromOCR($id) {
+    public function identifySpinesFromOCROld($id) {
         # The overall aim here is:
         # - assume we have a picture of a single shelf
         # - use the bounding boxes to get the overall orientation of the text (i.e. direction of the spines)
@@ -463,11 +463,27 @@ class Catalogue
 
     private function compare($str1, $str2) {
         if (strlen($str1) > 255 || strlen($str2) > 255) {
+            # Too long.
             return 0;
         }
 
-        $dist = levenshtein($str1, $str2);
-        $pc = 100 - 100 * $dist / min(strlen($str1), strlen($str2));
+        $lenratio = strlen($str1) / strlen($str2);
+
+        error_log("Compare $lenratio $str1 $str2 " .
+            (strpos($str1, $str2) !== FALSE) . ", " . (strpos($str2, $str1) !== FALSE));
+
+        if (
+            (strpos($str1, $str2) !== FALSE || strpos($str2, $str1) !== FALSE) &&
+            ($lenratio >= 0.5 && $lenratio <= 2))
+        {
+            # One inside the other is pretty good as long as they're not too different in length.
+            $pc = self::CONFIDENCE;
+        } else {
+            # See how close they are as strings.
+            $dist = levenshtein($str1, $str2);
+            $pc = 100 - 100 * $dist / max(strlen($str1), strlen($str2));
+        }
+
         return $pc;
     }
 
@@ -549,14 +565,12 @@ class Catalogue
                             $this->log("...matched inside $hitauthor - $hittitle");
                             $ret = $hit;
                         } else {
-                            # We can get different confidence values different ways round - be pessimistic.
-                            similar_text($author, $hitauthor, $authperc1);
-                            similar_text($hitauthor, $author, $authperc2);
-                            $authperc = min($authperc1, $authperc2);
+                            $authperc = $this->compare($author, $hitauthor);
                             $this->log("Searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
 
-                            if ($authperc > self::CONFIDENCE && $authperc >= $authbest) {
-                                # Looks like the author.
+                            if ($authperc >= self::CONFIDENCE) {
+                                # Looks like the author.  Don't find the best author match - this is close enough
+                                # for it to be worth us scanning the books.
                                 $authbest = $authperc;
 
                                 # The title we have OCR'd is more likely to have guff on the end, such as the
@@ -565,16 +579,11 @@ class Catalogue
                                 $canonhittitle = $this->canonTitle($hittitle);
 
                                 if (strlen($canontitle) && strlen($canonhittitle)) {
-                                    similar_text(substr($canontitle, 0, strlen($canonhittitle)), $canonhittitle, $titperc1);
-                                    similar_text($canonhittitle, substr($canontitle, 0, strlen($canonhittitle)), $titperc2);
-                                    $titperc = min($titperc1, $titperc2);
+                                    $titperc = $this->compare($canontitle, $canonhittitle);
                                     $p = strpos("$canontitle", "$canonhittitle");
-                                    $this->log("...$hitauthor - $hittitle $titperc%, $titperc1, $titperc2, $p");
+                                    $this->log("...$hitauthor - $hittitle $titperc%, $p");
 
-                                    if ($p !== FALSE) {
-                                        $this->log("...matched $title inside title $hittitle");
-                                        $ret = $hit;
-                                    } else if ($titperc > self::CONFIDENCE && $titperc >= $titlebest) {
+                                    if ($titperc >= self::CONFIDENCE && $titperc >= $titlebest) {
                                         $titlebest = $titperc;
                                         $this->log("Search for $author - $title returned ");
                                         $this->log("...matched $hitauthor - $hittitle $titperc%");
@@ -596,7 +605,6 @@ class Catalogue
         #
         # The spine will normally in in the format "Author Title" or "Title Author".  So we can work our
         # way along the words in the spine searching for matches on this.
-        $score = 0;
         $ret = [];
 
         foreach ($spines as $spine) {
@@ -633,17 +641,24 @@ class Catalogue
                 'title' => $res ? $res['_source']['title'] : NULL,
                 'vaifid' => $res ? $res['_source']['vaifid'] : NULL,
             ];
-
-            $score += $res ? 1 : 0;
         }
 
+        return $ret;
+    }
 
-        $this->dbhm->preExec("INSERT INTO booktastic_results (ocrid, results, score) VALUES (?, ?, ?);", [
-            $id,
-            json_encode($ret),
-            round(100 * $score / count($ret))
-        ]);
-
+    // From https://stackoverflow.com/questions/10222835/get-all-permutations-of-a-php-array
+    private function permute($items, $perms = [],&$ret = []) {
+        if (empty($items)) {
+            $ret[] = $perms;
+        } else {
+            for ($i = count($items) - 1; $i >= 0; --$i) {
+                $newitems = $items;
+                $newperms = $perms;
+                list($foo) = array_splice($newitems, $i, 1);
+                array_unshift($newperms, $foo);
+                $this->permute($newitems, $newperms,$ret);
+            }
+        }
         return $ret;
     }
 
@@ -657,54 +672,82 @@ class Catalogue
         # where a single title can end up on several lines.
         $ret = [];
 
-        for ($adjacent = 2; $adjacent <= 2; $adjacent++) {
-        $i = 0;
+        for ($adjacent = 2; $adjacent <= 3; $adjacent++) {
+            $i = 0;
 
-        while ($i < count($books) - 1) {
-            $thisone = $books[$i];
+            while ($i < count($books) - 1) {
+                $thisone = $books[$i];
 
                 $blank = TRUE;
-                $healed = $thisone['spine'];
+                $healed = [ ];
 
                 for ($j = $i; $j < count($books) && $j - $i + 1 <= $adjacent; $j++) {
                     if (pres('used', $books[$j]) || $books[$j]['author']) {
                         $blank = FALSE;
+                        break;
                     } else {
-                        $healed .= " {$books[$j]['spine']}";
+                        $healed[] = $books[$j]['spine'];
                     }
                 }
 
                 if ($blank) {
-                $this->log("Consider broken spine $healed");
-                $found = $this->searchForSpines($id, [ $healed ]);
+                    # We need to scan these in all possible orders.  Wow this is getting computationally inefficient.
+                    # But we have seen cases where the fragments are there, but not ordered by Google in the right
+                    # way, e.g. in bryson.jpg.
+                    $this->log("Consider broken spine " . json_encode($healed));
+                    $permuted = $this->permute($healed);
 
-                if ($found[0]['author']) {
+                    foreach ($permuted as $permute) {
+                        $str = implode(' ', $permute);
+                        $this->log("Consider permutation " . $str);
+                        $found = $this->searchForSpines($id, [ $str ]);
+
+                        if ($found[0]['author']) {
+                            break;
+                        }
+                    }
+
+                    if ($found[0]['author']) {
                         # It worked.  Use these slots up.
-                    $ret[] = $found[0];
+                        $thisone = $found[0];
+                        $thisone['spine'] = $str;
+                        $ret[] = $found[0];
 
                         for ($j = $i; $j < count($books) && $j - $i + 1 <= $adjacent; $j++) {
                             $books[$j]['used'] = TRUE;
                         }
 
                         $i += $adjacent;
-                } else {
+                    } else {
                         # It failed - try the next.
-//                        $ret[] = $thisone;
-                    $i++;
-                }
-            } else {
+                        $i++;
+                    }
+                } else {
                     # Already got one - mark it as used.
                     if (!pres('used', $books[$i])) {
-                $ret[] = $thisone;
+                        $ret[] = $thisone;
                         $books[$i]['used'] = TRUE;
                     }
 
-                $i++;
+                    $i++;
+                }
             }
-        }
         }
 
         $this->log("After broken " . var_export($ret, TRUE));
+        $score = 0;
+
+        foreach ($ret as $r) {
+            if ($r['author']) {
+                $score++;
+            }
+        }
+
+        $this->dbhm->preExec("INSERT INTO booktastic_results (ocrid, results, score) VALUES (?, ?, ?);", [
+            $id,
+            json_encode($ret),
+            count($ret) ? round(100 * $score / count($ret)) : 0
+        ]);
 
         # Strip single words - likely junk.
         $ret = array_filter($ret, function($a) {

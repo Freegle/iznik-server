@@ -47,7 +47,7 @@ class CatalogueTest extends IznikTestCase
             assertNotNull($id);
 
             # Now identify spines.
-            $spines = $c->identifySpinesFromOCR2($id);
+            $spines = $c->identifySpinesFromOCR($id);
             $books = $c->searchForSpines($id, $spines);
             $books2 = $c->searchForBrokenSpines($id, $books);
 
@@ -128,9 +128,9 @@ class CatalogueTest extends IznikTestCase
     public function libraryData()
     {
         return [
-//            [
-//                '/test/ut/php/booktastic/bryson',
-//            ],
+            [
+                '/test/ut/php/booktastic/bryson',
+            ],
             [
                 '/test/ut/php/booktastic/crime1',
             ],
