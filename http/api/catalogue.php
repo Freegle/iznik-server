@@ -12,15 +12,15 @@ function catalogue() {
 
         $c = new Catalogue($dbhr, $dbhm);
         list ($id, $text) = $c->ocr($data);
-        $spines = $c->identifySpinesFromOCR($id);
-
-        $authors = $c->extractPossibleAuthors($id);
+        list ($spines, $fragments) = $c->identifySpinesFromOCR($id);
+        $c->searchForSpines($id, $spines, $fragments);
+        $c->searchForBrokenSpines($id, $spines, $fragments);
 
         $ret = [
             'ret' => 0,
             'status' => 'Success',
             'text' => $text,
-            'authors' => $authors,
+            'fragments' => $fragments,
             'id' => $id,
             'spines' => $spines
         ];

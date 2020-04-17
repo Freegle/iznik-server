@@ -16,7 +16,7 @@ class Catalogue
     const BLUR = 10;
 
     private $client = NULL;
-    private $logging = TRUE;
+    private $logging = FALSE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -171,12 +171,12 @@ class Catalogue
             # Annotate the fragments with whether they are related.
             $fragindex = 0;
 
-            for($lineindex = 0; $lineindex < count($lines) && $fragindex < count($fragments); $lineindex++) {
-                $words = explode(' ', $lines[$lineindex]);
+            for($spineindex = 0; $spineindex < count($lines) && $fragindex < count($fragments); $spineindex++) {
+                $words = explode(' ', $lines[$spineindex]);
 
                 foreach ($words as $word) {
                     if (strcmp($word, $fragments[$fragindex]['description']) === 0) {
-                        $fragments[$fragindex++]['lineindex'] = $lineindex;
+                        $fragments[$fragindex++]['spineindex'] = $spineindex;
                     } else {
                         error_log("Mismatch $word vs " . json_encode($fragments[$fragindex]));
                     }
@@ -374,9 +374,9 @@ class Catalogue
 
             if ($res) {
                 # We found one for this spine.
-                $spine['author'] = $res['_source']['author'];
-                $spine['title'] = $res['_source']['title'];
-                $spine['vaifid'] = $res['_source']['vaifid'];
+                $spines[$spineindex]['author'] = $res['_source']['author'];
+                $spines[$spineindex]['title'] = $res['_source']['title'];
+                $spines[$spineindex]['vaifid'] = $res['_source']['vaifid'];
                 
                 $this->flagUsed($fragments, $spineindex);
             }
@@ -447,11 +447,13 @@ class Catalogue
                         $this->log("Consider permutation " . $str);
                         $comspined = [
                             [
-                                'spine' => $str
+                                'spine' => $str,
+                                'author' => NULL,
+                                'title' => NULL
                             ]
                         ];
                         
-                        $this->searchForSpines($id, $comspined);
+                        $this->searchForSpines($id, $comspined, $fragments);
 
                         if ($comspined[0]['author']) {
                             break;
@@ -460,36 +462,42 @@ class Catalogue
 
                     if ($comspined[0]['author']) {
                         # It worked.  Use these slots up.
-                        $thisone = $comspined[0];
-                        $thisone['spine'] = $str;
-                        $ret[] = $comspined[0];
-
-                        for ($j = $i; $j < count($spines) && $j - $i + 1 <= $adjacent; $j++) {
-                            $spines[$j]['used'] = TRUE;
-                            $this->flagUsed($fragments, $j);
-                        }
-
+                        $this->mergeSpines($spines, $fragments, $comspined[0], $i, $adjacent);
                         $i += $adjacent;
                     } else {
                         # It failed - try the next.
                         $i++;
                     }
                 } else {
-                    # Already got one - mark it as used.
-                    if (!pres('used', $spines[$i])) {
-                        $ret[] = $thisone;
-                        $spines[$i]['used'] = TRUE;
-                    }
-
                     $i++;
                 }
             }
         }
+    }
 
-        $this->log("After broken " . var_export($ret, TRUE));
+    private function mergeSpines(&$spines, $fragments, $comspined, $start, $length) {
+        # We have combined multiple adjacent spines into a single one, possibly with some
+        # reordering of text.
+        $spines[$start] = $comspined;
+
+        # Renumber the spine indexes in the fragments we are removing..
+        foreach ($fragments as &$fragment) {
+            if ($fragment['spineindex'] > $start && $fragment['spineindex'] <= $start + $length - 1) {
+                # These are the ones we're merging.
+                $fragment['spineindex'] = $start;
+            } else if ($fragment['spineindex'] > $start + $length - 1) {
+                # These are above.
+                $fragment['spineindex'] -= $length;
+            }
+        }
+
+        array_splice($fragments, $start, $length);
+    }
+
+    public function recordResults($id, $spines) {
         $score = 0;
 
-        foreach ($ret as $r) {
+        foreach ($spines as $r) {
             if ($r['author']) {
                 $score++;
             }
@@ -497,16 +505,9 @@ class Catalogue
 
         $this->dbhm->preExec("INSERT INTO booktastic_results (ocrid, results, score) VALUES (?, ?, ?);", [
             $id,
-            json_encode($ret),
-            count($ret) ? round(100 * $score / count($ret)) : 0
+            json_encode($spines),
+            count($spines) ? round(100 * $score / count($spines)) : 0
         ]);
-
-        # Strip single words - likely junk.
-        $ret = array_filter($ret, function($a) {
-            return strpos($a['spine'], ' ') !== FALSE;
-        });
-
-        return $ret;
     }
 
     public function validAuthor($name) {
