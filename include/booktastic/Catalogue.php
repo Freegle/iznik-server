@@ -335,14 +335,16 @@ class Catalogue
         return $ret;
     }
 
-    public function searchForSpines($id, $spines) {
+    public function searchForSpines($id, &$spines, &$fragments) {
         # We want to search for the spines in ElasticSearch, where we have a list of authors and books.
         #
         # The spine will normally in in the format "Author Title" or "Title Author".  So we can work our
         # way along the words in the spine searching for matches on this.
         $ret = [];
 
-        foreach ($spines as $spine) {
+        for ($spineindex = 0; $spineindex < count($spines); $spineindex++) {
+            $spine = $spines[$spineindex];
+            
             $res = NULL;
 
             $words = explode(' ', $spine['spine']);
@@ -370,15 +372,23 @@ class Catalogue
                 }
             }
 
-            $ret[] = [
-                'spine' => $spine['spine'],
-                'author' => $res ? $res['_source']['author'] : NULL,
-                'title' => $res ? $res['_source']['title'] : NULL,
-                'vaifid' => $res ? $res['_source']['vaifid'] : NULL,
-            ];
+            if ($res) {
+                # We found one for this spine.
+                $spine['author'] = $res['_source']['author'];
+                $spine['title'] = $res['_source']['title'];
+                $spine['vaifid'] = $res['_source']['vaifid'];
+                
+                $this->flagUsed($fragments, $spineindex);
+            }
         }
-
-        return $ret;
+    }
+    
+    private function flagUsed(&$fragments, $spineindex) {
+        foreach ($fragments as &$fragment) {
+            if ($fragment['spineindex'] == $spineindex) {
+                $fragment['used'] = TRUE; 
+            }
+        }
     }
 
     // From https://stackoverflow.com/questions/10222835/get-all-permutations-of-a-php-array
@@ -397,7 +407,7 @@ class Catalogue
         return $ret;
     }
 
-    public function searchForBrokenSpines($id, $books) {
+    public function searchForBrokenSpines($id, &$spines, &$fragments) {
         # Up to this point we've relied on what Google returns on a single line.  We will have found
         # some books via that route.  But it's common to have the author on one line, and the book on another,
         # or other variations which result in text on a single spine being split.
@@ -410,18 +420,18 @@ class Catalogue
         for ($adjacent = 2; $adjacent <= 3; $adjacent++) {
             $i = 0;
 
-            while ($i < count($books) - 1) {
-                $thisone = $books[$i];
+            while ($i < count($spines) - 1) {
+                $thisone = $spines[$i];
 
                 $blank = TRUE;
                 $healed = [ ];
 
-                for ($j = $i; $j < count($books) && $j - $i + 1 <= $adjacent; $j++) {
-                    if (pres('used', $books[$j]) || $books[$j]['author']) {
+                for ($j = $i; $j < count($spines) && $j - $i + 1 <= $adjacent; $j++) {
+                    if (pres('used', $spines[$j]) || $spines[$j]['author']) {
                         $blank = FALSE;
                         break;
                     } else {
-                        $healed[] = $books[$j]['spine'];
+                        $healed[] = $spines[$j]['spine'];
                     }
                 }
 
@@ -435,25 +445,28 @@ class Catalogue
                     foreach ($permuted as $permute) {
                         $str = implode(' ', $permute);
                         $this->log("Consider permutation " . $str);
-                        $found = $this->searchForSpines($id, [
+                        $comspined = [
                             [
                                 'spine' => $str
                             ]
-                        ]);
+                        ];
+                        
+                        $this->searchForSpines($id, $comspined);
 
-                        if ($found[0]['author']) {
+                        if ($comspined[0]['author']) {
                             break;
                         }
                     }
 
-                    if ($found[0]['author']) {
+                    if ($comspined[0]['author']) {
                         # It worked.  Use these slots up.
-                        $thisone = $found[0];
+                        $thisone = $comspined[0];
                         $thisone['spine'] = $str;
-                        $ret[] = $found[0];
+                        $ret[] = $comspined[0];
 
-                        for ($j = $i; $j < count($books) && $j - $i + 1 <= $adjacent; $j++) {
-                            $books[$j]['used'] = TRUE;
+                        for ($j = $i; $j < count($spines) && $j - $i + 1 <= $adjacent; $j++) {
+                            $spines[$j]['used'] = TRUE;
+                            $this->flagUsed($fragments, $j);
                         }
 
                         $i += $adjacent;
@@ -463,9 +476,9 @@ class Catalogue
                     }
                 } else {
                     # Already got one - mark it as used.
-                    if (!pres('used', $books[$i])) {
+                    if (!pres('used', $spines[$i])) {
                         $ret[] = $thisone;
-                        $books[$i]['used'] = TRUE;
+                        $spines[$i]['used'] = TRUE;
                     }
 
                     $i++;

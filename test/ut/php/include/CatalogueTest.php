@@ -48,12 +48,12 @@ class CatalogueTest extends IznikTestCase
 
             # Now identify spines.
             list ($spines, $fragments) = $c->identifySpinesFromOCR($id);
-            $books = $c->searchForSpines($id, $spines);
-            $books2 = $c->searchForBrokenSpines($id, $books);
+            $c->searchForSpines($id, $spines, $fragments);
+            $c->searchForBrokenSpines($id, $spines, $fragments);
 
             error_log("\n\n");
-            foreach ($books2 as $book) {
-                error_log("Book ". json_encode($book));
+            foreach ($spines as $book) {
+                #error_log("Book ". json_encode($book));
                 if ($book['author'] && $book['title']) {
                     error_log("{$book['author']} - {$book['title']}");
                 }
@@ -64,7 +64,7 @@ class CatalogueTest extends IznikTestCase
 
             $foundnow = 0;
 
-            foreach ($books2 as $book) {
+            foreach ($spines as $book) {
                 if ($book['author'] && $book['title']) {
                     $foundnow++;
                 }
@@ -84,7 +84,7 @@ class CatalogueTest extends IznikTestCase
                     if ($then['author']) {
                         $found = FALSE;
 
-                        foreach ($books2 as $now) {
+                        foreach ($spines as $now) {
                             if ($now['author'] == $then['author'] && $now['title'] == $then['title']) {
                                 $found = TRUE;
                             }
@@ -96,12 +96,12 @@ class CatalogueTest extends IznikTestCase
                     }
                 }
 
-                error_log(json_encode($books2));
+                error_log(json_encode($spines));
 
             } else if ($foundthen < $foundnow) {
                 error_log("$filename better");
 
-                foreach ($books2 as $now) {
+                foreach ($spines as $now) {
                     if ($now['author']) {
                         $found = FALSE;
 
@@ -116,7 +116,7 @@ class CatalogueTest extends IznikTestCase
                         }
                     }
                 }
-                error_log(json_encode($books2));
+                error_log(json_encode($spines));
             }
 
             assertEquals($foundthen, $foundnow);
