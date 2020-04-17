@@ -176,6 +176,7 @@ class Catalogue
 
                 foreach ($words as $word) {
                     if (strcmp($word, $fragments[$fragindex]['description']) === 0) {
+                        $this->log("{$fragments[$fragindex]['description']} in spine $spineindex");
                         $fragments[$fragindex++]['spineindex'] = $spineindex;
                     } else {
                         error_log("Mismatch $word vs " . json_encode($fragments[$fragindex]));
@@ -335,7 +336,7 @@ class Catalogue
         return $ret;
     }
 
-    public function searchForSpines($id, &$spines, &$fragments) {
+    public function searchForSpines($id, &$spines, &$fragments, $flag = TRUE) {
         # We want to search for the spines in ElasticSearch, where we have a list of authors and books.
         #
         # The spine will normally in in the format "Author Title" or "Title Author".  So we can work our
@@ -377,16 +378,21 @@ class Catalogue
                 $spines[$spineindex]['author'] = $res['_source']['author'];
                 $spines[$spineindex]['title'] = $res['_source']['title'];
                 $spines[$spineindex]['vaifid'] = $res['_source']['vaifid'];
-                
-                $this->flagUsed($fragments, $spineindex);
+                $this->log("FOUND: {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
+
+                if ($flag) {
+                    $this->flagUsed($fragments, $spineindex);
+                }
             }
         }
     }
     
     private function flagUsed(&$fragments, $spineindex) {
-        foreach ($fragments as &$fragment) {
-            if ($fragment['spineindex'] == $spineindex) {
-                $fragment['used'] = TRUE; 
+        $this->log("flag used $spineindex");
+        for ($fragindex = 0; $fragindex < count($fragments); $fragindex++) {
+            if ($fragments[$fragindex]['spineindex'] == $spineindex) {
+                $this->log("...found in {$fragments[$fragindex]['description']}");
+                $fragments[$fragindex]['used'] = TRUE;
             }
         }
     }
@@ -422,6 +428,7 @@ class Catalogue
 
             while ($i < count($spines) - 1) {
                 $thisone = $spines[$i];
+                $this->log("Consider broken spine {$thisone['spine']} at $i");
 
                 $blank = TRUE;
                 $healed = [ ];
@@ -453,7 +460,7 @@ class Catalogue
                             ]
                         ];
                         
-                        $this->searchForSpines($id, $comspined, $fragments);
+                        $this->searchForSpines($id, $comspined, $fragments, FALSE);
 
                         if ($comspined[0]['author']) {
                             break;
@@ -462,36 +469,37 @@ class Catalogue
 
                     if ($comspined[0]['author']) {
                         # It worked.  Use these slots up.
+                        $this->log("Merge spines as $i length $adjacent for {$comspined[0]['author']}");
                         $this->mergeSpines($spines, $fragments, $comspined[0], $i, $adjacent);
-                        $i += $adjacent;
-                    } else {
-                        # It failed - try the next.
-                        $i++;
+                        $this->log("Merged, flag");
+                        $this->flagUsed($fragments, $i);
                     }
-                } else {
-                    $i++;
                 }
+
+                $i++;
             }
         }
     }
 
-    private function mergeSpines(&$spines, $fragments, $comspined, $start, $length) {
+    private function mergeSpines(&$spines, &$fragments, $comspined, $start, $length) {
         # We have combined multiple adjacent spines into a single one, possibly with some
         # reordering of text.
         $spines[$start] = $comspined;
 
         # Renumber the spine indexes in the fragments we are removing..
-        foreach ($fragments as &$fragment) {
-            if ($fragment['spineindex'] > $start && $fragment['spineindex'] <= $start + $length - 1) {
+        for ($fragindex = 0; $fragindex < count($fragments); $fragindex++) {
+            if ($fragments[$fragindex]['spineindex'] > $start && $fragments[$fragindex]['spineindex'] <= $start + $length - 1) {
                 # These are the ones we're merging.
-                $fragment['spineindex'] = $start;
-            } else if ($fragment['spineindex'] > $start + $length - 1) {
+                $this->log("Fragment {$fragments[$fragindex]['description']} is part of merge");
+                $fragments[$fragindex]['spineindex'] = $start;
+            } else if ($fragments[$fragindex]['spineindex'] > $start + $length - 1) {
                 # These are above.
-                $fragment['spineindex'] -= $length;
+                $fragments[$fragindex]['spineindex'] -= ($length - 1);
+                $this->log("Fragment {$fragments[$fragindex]['description']} is above merge");
             }
         }
 
-        array_splice($fragments, $start, $length);
+        array_splice($spines, $start + 1, $length - 1);
     }
 
     public function recordResults($id, $spines) {
