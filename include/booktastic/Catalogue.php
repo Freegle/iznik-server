@@ -16,7 +16,7 @@ class Catalogue
     const BLUR = 10;
 
     private $client = NULL;
-    private $logging = FALSE;
+    private $logging = TRUE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -183,7 +183,16 @@ class Catalogue
                 }
             }
 
-            $ret = [ $lines, $fragments ];
+            $spines = [];
+            foreach ($lines as $line) {
+                $spines[] = [
+                    'spine' => $line,
+                    'author' => NULL,
+                    'title' => NULL
+                ];
+            }
+
+            $ret = [ $spines, $fragments ];
         }
 
         $this->log("Spines " . var_export($ret, TRUE));
@@ -336,8 +345,8 @@ class Catalogue
         foreach ($spines as $spine) {
             $res = NULL;
 
-            $words = explode(' ', $spine);
-            $this->log("Consider spine $spine words " . count($words));
+            $words = explode(' ', $spine['spine']);
+            $this->log("Consider spine {$spine['spine']} words " . count($words));
 
             for ($i = 0; !$res && $i < count($words) - 1; $i++) {
                 # Try matching assuming the author is at the start.
@@ -362,7 +371,7 @@ class Catalogue
             }
 
             $ret[] = [
-                'spine' => $spine,
+                'spine' => $spine['spine'],
                 'author' => $res ? $res['_source']['author'] : NULL,
                 'title' => $res ? $res['_source']['title'] : NULL,
                 'vaifid' => $res ? $res['_source']['vaifid'] : NULL,
@@ -426,7 +435,11 @@ class Catalogue
                     foreach ($permuted as $permute) {
                         $str = implode(' ', $permute);
                         $this->log("Consider permutation " . $str);
-                        $found = $this->searchForSpines($id, [ $str ]);
+                        $found = $this->searchForSpines($id, [
+                            [
+                                'spine' => $str
+                            ]
+                        ]);
 
                         if ($found[0]['author']) {
                             break;
