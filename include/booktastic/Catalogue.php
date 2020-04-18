@@ -17,7 +17,7 @@ class Catalogue
 
     private $client = NULL;
     private $start = NULL;
-    private $logging = FALSE;
+    private $logging = TRUE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -240,7 +240,10 @@ class Catalogue
         return $title;
     }
 
-    private function search($author, $title, $fuzziness = 0) {
+    private function search($author, $title, $fuzziness = 0, $sorted = FALSE) {
+        $authkey = ($sorted ? 'sortedauthor' : 'author');
+        $titkey = ($sorted ? 'sortedtitle' : 'title');
+
         # Any numbers in an author are junk.
         $author2 = trim(preg_replace('/[0-9]/', '', $author));
 
@@ -250,6 +253,12 @@ class Catalogue
             return NULL;
         } else {
             $author = $author2;
+        }
+
+        # There are some titles which are very short, but they are more likely to just be false junk.
+        if (strlen($title) < 4) {
+            $this->log("Reject as too short title $title");
+            return NULL;
         }
 
         # Sometimes we get a dash where it should be a dot, which confuses things.
@@ -265,8 +274,8 @@ class Catalogue
                 'query' => [
                     'bool' => [
                         'must' => [
-                                [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 3 ] ] ],
-                                [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => 20 ] ] ],
+                                [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 3 ] ] ],
+                                [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => 20 ] ] ],
                         ]
                     ]
                 ]
@@ -285,7 +294,7 @@ class Catalogue
                     'query' => [
                         'bool' => [
                             'must' => [
-                                [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 2] ] ]
+                                [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 2] ] ]
                             ]
                         ]
                     ]
@@ -300,10 +309,9 @@ class Catalogue
 
             if ($res['hits']['total'] > 0) {
                 foreach ($res['hits']['hits'] as $hit) {
-                    $hitauthor = strtolower($hit['_source']['author']);
-                    $hittitle = strtolower($hit['_source']['title']);
+                    $hitauthor = strtolower($hit['_source'][$authkey]);
+                    $hittitle = strtolower($hit['_source'][$titkey]);
 
-                    # Ignore blankish entries.
                     if (strlen($hitauthor) > 5 && strlen($hittitle)) {
                         # If one appears inside the other then it's a match.  This can happen if there's extra
                         # stuff like publisher info.  The title is more likely to have that because the author
@@ -369,7 +377,7 @@ class Catalogue
                 $title = trim(implode(' ', array_slice($words, $i + 1)));
                 $res = $this->search($author, $title, 2);
 
-                if (!$res) {
+                if ($res) {
                     #$this->log("...no author title matches");
                 }
             }
@@ -398,7 +406,67 @@ class Catalogue
             }
         }
     }
-    
+
+    public function searchForPermutedSpines($id, $spines, &$fragments) {
+        # Search the different orders of these these spines.
+        $this->log("Search for permuted spines " . json_encode($spines));
+        $permuted = $this->permute($spines);
+
+        # We have a string with lots of words.  We want to search for all the different author title combinations
+//        # this might have.  We have sortedauthor/sortedtitle in the db, so we only care about the combinations
+//        # with unique values of those.
+//        $words = explode(' ', $text);
+//        $this->log("Filter words");
+//        $words = array_filter($words, function($a) {
+//            return strlen($a);
+//        });
+//        $this->log((microtime(TRUE) - $this->start) . " Permute words");
+//        $permuted = $this->permute($words);
+//        $this->log((microtime(TRUE) - $this->start) . " Permuted");
+
+        $searched = [];
+        $search = 0;
+        $skipped = 0;
+        $res = NULL;
+
+        foreach ($permuted as $permute) {
+            $words = explode(' ', implode(' ', $permute));
+            $this->log("Filter words");
+            $words = array_filter($words, function($a) {
+                return strlen($a);
+            });
+
+            $this->log("Consider permutation " . json_encode($words));
+
+            for ($i = 0; !$res && $i < count($words) - 1; $i++) {
+                $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
+                $title = trim(implode(' ', array_slice($words, $i + 1)));
+                $sortedauthor = $this->sortstring($author);
+                $sortedtitle = $this->sortstring($title);
+
+                $key = "$sortedauthor - $sortedtitle";
+                $this->log("Consider permute search $key");
+                if (!array_key_exists($key, $searched)) {
+                    $this->log((microtime(TRUE) - $this->start) . " New search $key");
+                    $search++;
+                    $searched[$key] = TRUE;
+                    $ret = $this->search($author, $title, 2);
+
+                    if ($ret) {
+                        $res = $ret['_source'];
+                        $res['spine'] = "{$res['author']} {$res['title']}";
+                    }
+                } else {
+                    $this->log("Already searched");
+                    $skipped++;
+                }
+            }
+        }
+
+        $this->log("Generated $search and skipped $skipped and found " . json_encode($res));
+        return $res;
+    }
+
     private function flagUsed(&$fragments, $spineindex) {
         $this->log("flag used $spineindex");
         for ($fragindex = 0; $fragindex < count($fragments); $fragindex++) {
@@ -422,7 +490,16 @@ class Catalogue
                 $this->permute($newitems, $newperms,$ret);
             }
         }
+
         return $ret;
+    }
+
+    private function sortstring($string,$unique = false) {
+        $string = str_replace('.', '', $string);
+        $array = explode(' ',strtolower($string));
+        if ($unique) $array = array_unique($array);
+        sort($array);
+        return implode(' ',$array);
     }
 
     public function searchForBrokenSpines($id, &$spines, &$fragments) {
@@ -430,9 +507,10 @@ class Catalogue
         # some books via that route.  But it's common to have the author on one line, and the book on another,
         # or other variations which result in text on a single spine being split.
         #
-        # So loop through all cases where we have adjacent spines not matched, and search for them as though that
-        # is the case.  Do this initially for 2 adjacent spines, then increase - we've seen some examples
-        # where a single title can end up on several lines.
+        # Ideally we'd search all permutations of all the words.  But this is expensive - if we had 7
+        #
+        # So loop through all cases where we have adjacent spines not matched.  Do this initially for 2 adjacent
+        # spines, then increase - we've seen some examples where a single title can end up on several lines.
         $ret = [];
 
         for ($adjacent = 2; $adjacent <= 3; $adjacent++) {
@@ -440,10 +518,10 @@ class Catalogue
 
             while ($i < count($spines) - 1) {
                 $thisone = $spines[$i];
-                $this->log("Consider broken spine {$thisone['spine']} at $i");
+                $this->log("Consider broken spine {$thisone['spine']} at $i length $adjacent");
 
                 $blank = TRUE;
-                $healed = [ ];
+                $healed = [];
 
                 for ($j = $i; $j < count($spines) && $j - $i + 1 <= $adjacent; $j++) {
                     if (pres('used', $spines[$j]) || $spines[$j]['author']) {
@@ -455,37 +533,20 @@ class Catalogue
                 }
 
                 if ($blank) {
-                    # We need to scan these in all possible orders.  Wow this is getting computationally inefficient.
-                    # But we have seen cases where the fragments are there, but not ordered by Google in the right
-                    # way, e.g. in bryson.jpg.
-                    $this->log("Consider broken spine " . json_encode($healed));
-                    $permuted = $this->permute($healed);
+                    # We want to search all possible orders of these words, which would be quite a lot of searches.
+                    # But in elastic we have sortedauthor and sorted title, which allows us to shortcut.
+                    $this->log("Enough blanks");
+                    $comspined = $this->searchForPermutedSpines($id, $healed, $fragments);
 
-                    foreach ($permuted as $permute) {
-                        $str = implode(' ', $permute);
-                        $this->log("Consider permutation " . $str);
-                        $comspined = [
-                            [
-                                'spine' => $str,
-                                'author' => NULL,
-                                'title' => NULL
-                            ]
-                        ];
-                        
-                        $this->searchForSpines($id, $comspined, $fragments, FALSE);
-
-                        if ($comspined[0]['author']) {
-                            break;
-                        }
-                    }
-
-                    if ($comspined[0]['author']) {
+                    if ($comspined) {
                         # It worked.  Use these slots up.
-                        $this->log("Merge spines as $i length $adjacent for {$comspined[0]['author']}");
-                        $this->mergeSpines($spines, $fragments, $comspined[0], $i, $adjacent);
+                        $this->log("Merge spines as $i length $adjacent for {$comspined['author']}");
+                        $this->mergeSpines($spines, $fragments, $comspined, $i, $adjacent);
                         $this->log("Merged, flag");
                         $this->flagUsed($fragments, $i);
                     }
+                } else {
+                    $this->log("Not enough blanks");
                 }
 
                 $i++;
