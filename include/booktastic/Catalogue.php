@@ -17,7 +17,7 @@ class Catalogue
 
     private $client = NULL;
     private $start = NULL;
-    private $logging = FALSE;
+    private $logging = TRUE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -468,10 +468,10 @@ class Catalogue
     }
 
     private function flagUsed(&$fragments, $spineindex) {
-        $this->log("flag used $spineindex");
+        $this->log("flag used $spineindex ");
         for ($fragindex = 0; $fragindex < count($fragments); $fragindex++) {
             if ($fragments[$fragindex]['spineindex'] == $spineindex) {
-                $this->log("...found in {$fragments[$fragindex]['description']}");
+                $this->log("...found in {$fragments[$fragindex]['description']} #$fragindex");
                 $fragments[$fragindex]['used'] = TRUE;
             }
         }
@@ -479,6 +479,9 @@ class Catalogue
 
     // From https://stackoverflow.com/questions/10222835/get-all-permutations-of-a-php-array
     private function permute($items, $perms = [],&$ret = []) {
+        if (!count($perms)) {
+            $this->log("Permute " . json_encode($items));
+        }
         if (empty($items)) {
             $ret[] = $perms;
         } else {
@@ -491,6 +494,9 @@ class Catalogue
             }
         }
 
+        if (!count($perms)) {
+            $this->log("...returning " . json_encode($ret));
+        }
         return $ret;
     }
 
@@ -513,7 +519,7 @@ class Catalogue
         # spines, then increase - we've seen some examples where a single title can end up on several lines.
         $ret = [];
 
-        for ($adjacent = 2; $adjacent <= 3; $adjacent++) {
+        for ($adjacent = 2; $adjacent <= 4; $adjacent++) {
             $i = 0;
 
             while ($i < count($spines) - 1) {
@@ -533,15 +539,15 @@ class Catalogue
                 }
 
                 if ($blank) {
-                    # We want to search all possible orders of these words, which would be quite a lot of searches.
-                    # But in elastic we have sortedauthor and sorted title, which allows us to shortcut.
                     $this->log("Enough blanks");
                     $comspined = $this->searchForPermutedSpines($id, $healed, $fragments);
 
                     if ($comspined) {
                         # It worked.  Use these slots up.
                         $this->log("Merge spines as $i length $adjacent for {$comspined['author']}");
+                        $this->log("spines before " . json_encode($spines));
                         $this->mergeSpines($spines, $fragments, $comspined, $i, $adjacent);
+                        $this->log("spines now " . json_encode($spines));
                         $this->log("Merged, flag");
                         $this->flagUsed($fragments, $i);
                     }
@@ -563,12 +569,12 @@ class Catalogue
         for ($fragindex = 0; $fragindex < count($fragments); $fragindex++) {
             if ($fragments[$fragindex]['spineindex'] > $start && $fragments[$fragindex]['spineindex'] <= $start + $length - 1) {
                 # These are the ones we're merging.
-                $this->log("Fragment {$fragments[$fragindex]['description']} is part of merge");
+                #$this->log("Fragment {$fragments[$fragindex]['description']} is part of merge");
                 $fragments[$fragindex]['spineindex'] = $start;
             } else if ($fragments[$fragindex]['spineindex'] > $start + $length - 1) {
                 # These are above.
                 $fragments[$fragindex]['spineindex'] -= ($length - 1);
-                $this->log("Fragment {$fragments[$fragindex]['description']} is above merge");
+                #$this->log("Fragment {$fragments[$fragindex]['description']} is above merge");
             }
         }
 
