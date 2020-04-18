@@ -17,7 +17,7 @@ class Catalogue
 
     private $client = NULL;
     private $start = NULL;
-    private $logging = TRUE;
+    private $logging = FALSE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
