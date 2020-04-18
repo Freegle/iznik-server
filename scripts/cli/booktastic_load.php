@@ -42,15 +42,22 @@ $params = [
                     'enabled' => TRUE
                 ],
                 'properties' => [
-                    'vaifid' => [
+                    'viafid' => [
                         'type' => 'keyword'
                     ],
-
                     'author' => [
                         'type' => 'keyword',
                         'normalizer' => 'my_normalizer'
                     ],
                     'title' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'my_normalizer'
+                    ],
+                    'sortedauthor' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'my_normalizer'
+                    ],
+                    'sortedtitle' => [
                         'type' => 'keyword',
                         'normalizer' => 'my_normalizer'
                     ]
@@ -72,12 +79,20 @@ $opts = getopt('f:');
 $handle = fopen($opts['f'], "r");
 $count = 0;
 
+function sortstring($string,$unique = false) {
+    $string = str_replace('.', '', $string);
+    $array = explode(' ',strtolower($string));
+    if ($unique) $array = array_unique($array);
+    sort($array);
+    return implode(' ',$array);
+}
+
 do {
     $csv = fgetcsv($handle);
 
     if ($csv) {
         # Author is in format lastname, rest, whereas we want a different format.
-        $vaifid = $csv[0];
+        $viafid = $csv[0];
         $author = $csv[1];
         $title = $csv[2];
 
@@ -130,7 +145,7 @@ do {
 
                 if (!strcmp(strtolower($author), $hitauthor) && !strcmp(strtolower($title), $hittitle)) {
                     #error_log("Already there");
-                    $already = TRUE;
+                    $addit = FALSE;
                 } else {
                     #error_log("False match $author - $title to $hitauthor - $hittitle");
                 }
@@ -142,15 +157,18 @@ do {
             $params = [
                 'index' => 'booktastic',
                 'body' => [
-                    'vaifid' => $vaifid,
+                    'viafid' => $viafid,
                     'author' => $author,
-                    'title' => $title
+                    'title' => $title,
+                    'sortedauthor' => sortstring($author),
+                    'sortedtitle' => sortstring($title)
                 ]
             ];
 
             #error_log("Create with params " . var_export($params, TRUE));
             #error_log("$author");
             $response = $client->index($params);
+            #error_log("Add returned " . var_export($response, TRUE));
         } else {
             # Ignore, already there.
         }

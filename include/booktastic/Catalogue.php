@@ -16,12 +16,14 @@ class Catalogue
     const BLUR = 10;
 
     private $client = NULL;
+    private $start = NULL;
     private $logging = FALSE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->start = microtime(TRUE);
 
         foreach (['lewis', 'lawrence', 'lanchester'] AS $name) {
             $dbhm->preExec("INSERT IGNORE INTO booktastic_lastnames (lastname) VALUES (?);", [
@@ -239,6 +241,17 @@ class Catalogue
     }
 
     private function search($author, $title, $fuzziness = 0) {
+        # Any numbers in an author are junk.
+        $author2 = trim(preg_replace('/[0-9]/', '', $author));
+
+        if (strlen($author2) < 5) {
+            # Implausibly short.  Reject.
+            $this->log("Reject too short author $author");
+            return NULL;
+        } else {
+            $author = $author2;
+        }
+
         # Sometimes we get a dash where it should be a dot, which confuses things.
         $author = str_replace('-', ' ', strtolower($author));
         $title = strtolower($title);
@@ -281,7 +294,6 @@ class Catalogue
             ]);
 
             $ret = NULL;
-            $authbest = 0;
             $titlebest = 0;
 
             $this->log("Search for $author, $title returned " . json_encode($res));
@@ -349,7 +361,7 @@ class Catalogue
             $res = NULL;
 
             $words = explode(' ', $spine['spine']);
-            $this->log("Consider spine {$spine['spine']} words " . count($words));
+            $this->log((microtime(TRUE) - $this->start) . " Consider spine {$spine['spine']} words " . count($words));
 
             for ($i = 0; !$res && $i < count($words) - 1; $i++) {
                 # Try matching assuming the author is at the start.
@@ -377,7 +389,7 @@ class Catalogue
                 # We found one for this spine.
                 $spines[$spineindex]['author'] = $res['_source']['author'];
                 $spines[$spineindex]['title'] = $res['_source']['title'];
-                $spines[$spineindex]['vaifid'] = $res['_source']['vaifid'];
+                $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
                 $this->log("FOUND: {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
 
                 if ($flag) {
