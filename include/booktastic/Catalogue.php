@@ -240,12 +240,43 @@ class Catalogue
         return $title;
     }
 
+    private function removeArticles($title) {
+        foreach ([ 'the ', 'a '] as $article) {
+            $title = str_ireplace($article, '', $title);
+        }
+
+        return trim($title);
+    }
+
+    private function normalizeTitle($title) {
+        # Remove any articles at the start of the title, as the catalogues are inconsistent about whether they
+        # are included.
+        $title = $this->removeArticles($title);
+
+        # Some books have a subtitle, and the catalogues are inconsistent about whether that's included.
+        $p = strpos($title, ':');
+
+        if ($p !== FALSE && $p > 0 && $p < strlen($title)) {
+            $title = trim(substr($title, 0, $p - 1));
+        }
+
+        return $title;
+    }
+
+    private function normalizeAuthor($author) {
+        # Any numbers in an author are junk.
+        $author = trim(preg_replace('/[0-9]/', '', $author));
+
+        # Remove Dr. as this isn't always present.
+        $author = trim(preg_replace('/Dr./', '', $author));
+        return $author;
+    }
+
     private function search($author, $title, $fuzziness = 0, $sorted = FALSE) {
         $authkey = ($sorted ? 'sortedauthor' : 'author');
         $titkey = ($sorted ? 'sortedtitle' : 'title');
 
-        # Any numbers in an author are junk.
-        $author2 = trim(preg_replace('/[0-9]/', '', $author));
+        $author2 = $this->normalizeAuthor($author);
 
         if (strlen($author2) < 5) {
             # Implausibly short.  Reject.
@@ -264,6 +295,7 @@ class Catalogue
         # Sometimes we get a dash where it should be a dot, which confuses things.
         $author = str_replace('-', ' ', strtolower($author));
         $title = strtolower($title);
+        $title = $this->normalizeTitle($title);
 
         # First search on the assumption that the OCR is pretty good, and we just have a little fuzziness.  Allow
         # significantly more on the title because it can get cluttered up with publisher info, and it's also
@@ -309,8 +341,8 @@ class Catalogue
 
             if ($res['hits']['total'] > 0) {
                 foreach ($res['hits']['hits'] as $hit) {
-                    $hitauthor = strtolower($hit['_source'][$authkey]);
-                    $hittitle = strtolower($hit['_source'][$titkey]);
+                    $hitauthor = $this->normalizeAuthor(strtolower($hit['_source'][$authkey]));
+                    $hittitle = $this->normalizeTitle(strtolower($hit['_source'][$titkey]));
 
                     if (strlen($hitauthor) > 5 && strlen($hittitle)) {
                         # If one appears inside the other then it's a match.  This can happen if there's extra
@@ -362,49 +394,129 @@ class Catalogue
         # The spine will normally in in the format "Author Title" or "Title Author".  So we can work our
         # way along the words in the spine searching for matches on this.
         $ret = [];
+        $restart = FALSE;
+        $startindex = 0;
 
-        for ($spineindex = 0; $spineindex < count($spines); $spineindex++) {
-            $spine = $spines[$spineindex];
-            
-            $res = NULL;
+        do {
+            $restart = FALSE;
 
-            $words = explode(' ', $spine['spine']);
-            $this->log((microtime(TRUE) - $this->start) . " Consider spine {$spine['spine']} words " . count($words));
+            for ($spineindex = $startindex; !$restart && $spineindex < count($spines); $spineindex++) {
+                $spine = $spines[$spineindex];
 
-            for ($i = 0; !$res && $i < count($words) - 1; $i++) {
-                # Try matching assuming the author is at the start.
-                $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
-                $title = trim(implode(' ', array_slice($words, $i + 1)));
-                $res = $this->search($author, $title, 2);
+                if (!$spine['author']) {
+                    $res = NULL;
 
-                if ($res) {
-                    #$this->log("...no author title matches");
+                    $words = explode(' ', $spine['spine']);
+                    $this->log((microtime(TRUE) - $this->start) . " Consider spine {$spine['spine']} words " . count($words));
+
+                    for ($i = 0; !$res && $i < count($words) - 1; $i++) {
+                        # Try matching assuming the author is at the start.
+                        $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
+                        $title = trim(implode(' ', array_slice($words, $i + 1)));
+                        $res = $this->search($author, $title, 2);
+
+                        if ($res) {
+                            #$this->log("...no author title matches");
+                        }
+                    }
+
+                    for ($i = 0; !$res && $i < count($words) - 1; $i++) {
+                        # Try matching assuming the author is at the end.
+                        $title = trim(implode(' ', array_slice($words, 0, $i + 1)));
+                        $author = trim(implode(' ', array_slice($words, $i + 1)));
+                        $res = $this->search($author, $title, 2);
+
+                        if (!$res) {
+                            #$this->log("...no title author matches");
+                        }
+                    }
+
+                    if ($res) {
+                        # We found one for this spine.
+                        $spines[$spineindex]['author'] = $res['_source']['author'];
+                        $spines[$spineindex]['title'] = $res['_source']['title'];
+                        $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
+                        $this->log("FOUND: {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
+
+                        if ($flag) {
+                            $this->flagUsed($fragments, $spineindex);
+                        }
+
+                        $this->extractKnownAuthors($spines, $fragments);
+
+                        # Spines might have changed.
+                        $restart = TRUE;
+                    }
                 }
             }
+        } while ($restart);
+    }
 
-            for ($i = 0; !$res && $i < count($words) - 1; $i++) {
-                # Try matching assuming the author is at the end.
-                $title = trim(implode(' ', array_slice($words, 0, $i + 1)));
-                $author = trim(implode(' ', array_slice($words, $i + 1)));
-                $res = $this->search($author, $title, 2);
+    private function startsWith($haystack, $needle)
+    {
+        $length = strlen($needle);
+        return (strcasecmp(substr($haystack, 0, $length), $needle) === 0);
+    }
 
-                if (!$res) {
-                    #$this->log("...no title author matches");
-                }
-            }
-
-            if ($res) {
-                # We found one for this spine.
-                $spines[$spineindex]['author'] = $res['_source']['author'];
-                $spines[$spineindex]['title'] = $res['_source']['title'];
-                $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
-                $this->log("FOUND: {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
-
-                if ($flag) {
-                    $this->flagUsed($fragments, $spineindex);
-                }
-            }
+    private function endsWith($haystack, $needle)
+    {
+        $length = strlen($needle);
+        if ($length == 0) {
+            return true;
         }
+
+        return (strcasecmp(substr($haystack, -$length), $needle) === 0);
+    }
+
+    public function extractKnownAuthors(&$spines, &$fragments) {
+        # People often file books from the same author together.  If we check the authors we have in hand so far
+        # then we can ensure that no known author is split across multiple spines.  That can happen sometimes in
+        # the Google results.  This means that we will find the author when we are checking broken spines.
+        #
+        # It also avoids some issues where we can end up using the author from the wrong spine because the correct
+        # author is split across more spines than we are currently looking at.
+        $authors = array_filter(array_column($spines, 'author'));
+        $this->log("Currently known authors " . json_encode($authors));
+        foreach ($authors as $author) {
+            $this->log("Search for known author $author");
+            $authorwords = explode(' ', $author);
+            $wordindex = 0;
+
+            do {
+                $merged = FALSE;
+
+                for ($spineindex = 0; !$merged && $spineindex < count($spines) - 1; $spineindex++) {
+                    #$this->log("Check spine at $spineindex");
+                    $wi = $wordindex;
+                    $si = $spineindex;
+
+                    while ($wi < count($authorwords) &&
+                        $si < count($spines) &&
+                        strcasecmp($spines[$si]['spine'], $authorwords[$wi]) === 0) {
+                        $this->log("Found possible author match {$authorwords[$wi]} from $author in {$spines[$si]['spine']} at $si");
+                        $wi++;
+                        $si++;
+                    }
+
+                    if ($wi >= count($authorwords)) {
+                        # We reached the end of the author.  Merge these spines.
+                        $this->log("Found end of author, merge");
+                        $merged = TRUE;
+                        $comspined = $spines[$spineindex];
+                        $comspined['spine'] = $author;
+                        $this->log("Spines before merge " . json_encode($spines));
+                        $this->mergeSpines($spines, $fragments, $comspined, $spineindex, $si - $spineindex);
+                        $this->log("Spines after merge " . json_encode($spines));
+                    } else {
+                        $this->log("No author match");
+                    }
+                }
+
+                #$this->log("Done a pass, merged? $merged");
+            } while ($merged);
+        }
+
+        #$this->log("Checked authors");
     }
 
     public function searchForPermutedSpines($id, $spines, &$fragments) {

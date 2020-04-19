@@ -132,33 +132,33 @@ class CatalogueTest extends IznikTestCase
             [
                 '/test/ut/php/booktastic/bryson',
             ],
-//            [
-//                '/test/ut/php/booktastic/crime1',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/crime2',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/crime3',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/vertical_easy',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_horizontal'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_vertical'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/gardening'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap2'
-//            ],
+            [
+                '/test/ut/php/booktastic/crime1',
+            ],
+            [
+                '/test/ut/php/booktastic/crime2',
+            ],
+            [
+                '/test/ut/php/booktastic/crime3',
+            ],
+            [
+                '/test/ut/php/booktastic/vertical_easy',
+            ],
+            [
+                '/test/ut/php/booktastic/basic_horizontal'
+            ],
+            [
+                '/test/ut/php/booktastic/basic_vertical'
+            ],
+            [
+                '/test/ut/php/booktastic/gardening'
+            ],
+            [
+                '/test/ut/php/booktastic/horizontal_overlap'
+            ],
+            [
+                '/test/ut/php/booktastic/horizontal_overlap2'
+            ],
         ];
     }
 
