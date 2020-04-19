@@ -17,7 +17,7 @@ class Catalogue
 
     private $client = NULL;
     private $start = NULL;
-    private $logging = TRUE;
+    private $logging = FALSE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -273,6 +273,7 @@ class Catalogue
     }
 
     private function search($author, $title, $fuzziness = 0, $sorted = FALSE) {
+        $ret = NULL;
         $authkey = ($sorted ? 'sortedauthor' : 'author');
         $titkey = ($sorted ? 'sortedtitle' : 'title');
 
@@ -306,7 +307,7 @@ class Catalogue
                 'query' => [
                     'bool' => [
                         'must' => [
-                                [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 3 ] ] ],
+                            [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 3 ] ] ],
                                 [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => 20 ] ] ],
                         ]
                     ]
@@ -334,7 +335,6 @@ class Catalogue
                 'size' => 100,
             ]);
 
-            $ret = NULL;
             $titlebest = 0;
 
             $this->log("Search for $author - $title returned " . json_encode($res));
@@ -524,35 +524,20 @@ class Catalogue
 
     public function searchForPermutedSpines($id, $spines, &$fragments) {
         # Search the different orders of these these spines.
+        #
+        # The most likely case is that each spine we have in hand is an author or a title - the fact that Google
+        # split it at that point tells us something.  So first search using those spine breakpoints.
         $this->log("Search for permuted spines " . json_encode($spines));
+
         $permuted = $this->permute($spines);
 
         $searched = [];
-        $search = 0;
-        $skipped = 0;
         $res = NULL;
 
         foreach ($permuted as $permute) {
-            $words = explode(' ', implode(' ', $permute));
-            $this->log("Filter words");
-            $words = array_filter($words, function($a) {
-                return strlen($a);
-            });
-
-            $this->log("Consider permutation " . json_encode($words));
-
-            # Most authors have two words, so order our loop to search for that first, at the start or end.
-            $order = range(0, count($words) - 1);
-
-            if (count($words) > 2) {
-                array_unshift($order,array_pop($order));
-                $order[1] = 1;
-                $order[2] = 0;
-            }
-
-            foreach ($order as $i) {
-                $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
-                $title = trim(implode(' ', array_slice($words, $i + 1)));
+            for ($element = 0; $element < count($permute) - 1; $element++) {
+                $author = trim(implode(' ', array_slice($permute, 0, $element + 1)));
+                $title = trim(implode(' ', array_slice($permute, $element + 1)));
                 $sortedauthor = $this->sortstring($author);
                 $sortedtitle = $this->sortstring($title);
 
@@ -560,22 +545,66 @@ class Catalogue
                 $this->log("Consider permute search $key");
                 if (!array_key_exists($key, $searched)) {
                     $this->log((microtime(TRUE) - $this->start) . " New search $key");
-                    $search++;
                     $searched[$key] = TRUE;
                     $ret = $this->search($author, $title, 2);
 
                     if ($ret) {
                         $res = $ret['_source'];
                         $res['spine'] = "{$res['author']} {$res['title']}";
+                        $this->log("Found {$res['spine']} using Google breakpoints");
                     }
                 } else {
                     $this->log("Already searched");
-                    $skipped++;
                 }
             }
         }
 
-        $this->log("Generated $search and skipped $skipped and found " . json_encode($res));
+        if (!$res) {
+            # Well, that didn't work.  But sometimes Google breaks in the wrong place.  So now search using
+            # each word as a breakpoint.
+            foreach ($permuted as $permute) {
+                $words = explode(' ', implode(' ', $permute));
+                $this->log("Filter words");
+                $words = array_filter($words, function($a) {
+                    return strlen($a);
+                });
+
+                $this->log("Consider permutation " . json_encode($words));
+
+                # Most authors have two words, so order our loop to search for that first, at the start or end.
+                $order = range(0, count($words) - 1);
+
+                if (count($words) > 2) {
+                    array_unshift($order,array_pop($order));
+                    $order[1] = 1;
+                    $order[2] = 0;
+                }
+
+                foreach ($order as $i) {
+                    $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
+                    $title = trim(implode(' ', array_slice($words, $i + 1)));
+                    $sortedauthor = $this->sortstring($author);
+                    $sortedtitle = $this->sortstring($title);
+
+                    $key = "$sortedauthor - $sortedtitle";
+                    $this->log("Consider permute search $key");
+                    if (!array_key_exists($key, $searched)) {
+                        $this->log((microtime(TRUE) - $this->start) . " New search $key");
+                        $searched[$key] = TRUE;
+                        $ret = $this->search($author, $title, 2);
+
+                        if ($ret) {
+                            $res = $ret['_source'];
+                            $res['spine'] = "{$res['author']} {$res['title']}";
+                            $this->log("Found {$res['spine']} using word breakpoints");
+                        }
+                    } else {
+                        $this->log("Already searched");
+                    }
+                }
+            }
+        }
+
         return $res;
     }
 
