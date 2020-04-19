@@ -331,13 +331,13 @@ class Catalogue
                         ]
                     ]
                 ],
-                'size' => 500,
+                'size' => 100,
             ]);
 
             $ret = NULL;
             $titlebest = 0;
 
-            $this->log("Search for $author, $title returned " . json_encode($res));
+            $this->log("Search for $author - $title returned " . json_encode($res));
 
             if ($res['hits']['total'] > 0) {
                 foreach ($res['hits']['hits'] as $hit) {
@@ -388,68 +388,71 @@ class Catalogue
         return $ret;
     }
 
-    public function searchForSpines($id, &$spines, &$fragments, $flag = TRUE) {
+    public function searchForSpines($id, &$spines, &$fragments, $flag = TRUE)
+    {
         # We want to search for the spines in ElasticSearch, where we have a list of authors and books.
         #
         # The spine will normally in in the format "Author Title" or "Title Author".  So we can work our
         # way along the words in the spine searching for matches on this.
         $ret = [];
-        $restart = FALSE;
-        $startindex = 0;
 
-        do {
-            $restart = FALSE;
+        for ($spineindex = 0; $spineindex < count($spines); $spineindex++) {
+            $spine = $spines[$spineindex];
 
-            for ($spineindex = $startindex; !$restart && $spineindex < count($spines); $spineindex++) {
-                $spine = $spines[$spineindex];
+            if (!$spine['author']) {
+                $res = NULL;
 
-                if (!$spine['author']) {
-                    $res = NULL;
+                $words = explode(' ', $spine['spine']);
+                $this->log((microtime(TRUE) - $this->start) . " Consider spine {$spine['spine']} words " . count($words));
 
-                    $words = explode(' ', $spine['spine']);
-                    $this->log((microtime(TRUE) - $this->start) . " Consider spine {$spine['spine']} words " . count($words));
+                # Most authors have two words, so try first for those to save time.
+                $author = trim(implode(' ', array_slice($words, 0, 2)));
+                $title = trim(implode(' ', array_slice($words, 2)));
+                $res = $this->search($author, $title, 2);
 
-                    for ($i = 0; !$res && $i < count($words) - 1; $i++) {
-                        # Try matching assuming the author is at the start.
-                        $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
-                        $title = trim(implode(' ', array_slice($words, $i + 1)));
-                        $res = $this->search($author, $title, 2);
+                if (!$res) {
+                    $title = trim(implode(' ', array_slice($words, 0, count($words) - 2)));
+                    $author = trim(implode(' ', array_slice($words, count($words) - 2)));
+                    $res = $this->search($author, $title, 2);
+                }
 
-                        if ($res) {
-                            #$this->log("...no author title matches");
-                        }
-                    }
-
-                    for ($i = 0; !$res && $i < count($words) - 1; $i++) {
-                        # Try matching assuming the author is at the end.
-                        $title = trim(implode(' ', array_slice($words, 0, $i + 1)));
-                        $author = trim(implode(' ', array_slice($words, $i + 1)));
-                        $res = $this->search($author, $title, 2);
-
-                        if (!$res) {
-                            #$this->log("...no title author matches");
-                        }
-                    }
+                for ($i = 0; !$res && $i < count($words) - 1; $i++) {
+                    # Try matching assuming the author is at the start.
+                    $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
+                    $title = trim(implode(' ', array_slice($words, $i + 1)));
+                    $res = $this->search($author, $title, 2);
 
                     if ($res) {
-                        # We found one for this spine.
-                        $spines[$spineindex]['author'] = $res['_source']['author'];
-                        $spines[$spineindex]['title'] = $res['_source']['title'];
-                        $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
-                        $this->log("FOUND: {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
-
-                        if ($flag) {
-                            $this->flagUsed($fragments, $spineindex);
-                        }
-
-                        $this->extractKnownAuthors($spines, $fragments);
-
-                        # Spines might have changed.
-                        $restart = TRUE;
+                        #$this->log("...no author title matches");
                     }
                 }
+
+                for ($i = 0; !$res && $i < count($words) - 1; $i++) {
+                    # Try matching assuming the author is at the end.
+                    $title = trim(implode(' ', array_slice($words, 0, $i + 1)));
+                    $author = trim(implode(' ', array_slice($words, $i + 1)));
+                    $res = $this->search($author, $title, 2);
+
+                    if (!$res) {
+                        #$this->log("...no title author matches");
+                    }
+                }
+
+                if ($res) {
+                    # We found one for this spine.
+                    $spines[$spineindex]['author'] = $res['_source']['author'];
+                    $spines[$spineindex]['title'] = $res['_source']['title'];
+                    $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
+                    $this->log("FOUND: {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
+
+                    if ($flag) {
+                        $this->flagUsed($fragments, $spineindex);
+                    }
+
+                    $this->extractKnownAuthors($spines, $fragments);
+                }
             }
-        } while ($restart);
+        }
     }
 
     private function startsWith($haystack, $needle)
@@ -504,11 +507,11 @@ class Catalogue
                         $merged = TRUE;
                         $comspined = $spines[$spineindex];
                         $comspined['spine'] = $author;
-                        $this->log("Spines before merge " . json_encode($spines));
+                        #$this->log("Spines before merge " . json_encode($spines));
                         $this->mergeSpines($spines, $fragments, $comspined, $spineindex, $si - $spineindex);
-                        $this->log("Spines after merge " . json_encode($spines));
+                        #$this->log("Spines after merge " . json_encode($spines));
                     } else {
-                        $this->log("No author match");
+                        #$this->log("No author match");
                     }
                 }
 
@@ -524,18 +527,6 @@ class Catalogue
         $this->log("Search for permuted spines " . json_encode($spines));
         $permuted = $this->permute($spines);
 
-        # We have a string with lots of words.  We want to search for all the different author title combinations
-//        # this might have.  We have sortedauthor/sortedtitle in the db, so we only care about the combinations
-//        # with unique values of those.
-//        $words = explode(' ', $text);
-//        $this->log("Filter words");
-//        $words = array_filter($words, function($a) {
-//            return strlen($a);
-//        });
-//        $this->log((microtime(TRUE) - $this->start) . " Permute words");
-//        $permuted = $this->permute($words);
-//        $this->log((microtime(TRUE) - $this->start) . " Permuted");
-
         $searched = [];
         $search = 0;
         $skipped = 0;
@@ -550,7 +541,16 @@ class Catalogue
 
             $this->log("Consider permutation " . json_encode($words));
 
-            for ($i = 0; !$res && $i < count($words) - 1; $i++) {
+            # Most authors have two words, so order our loop to search for that first, at the start or end.
+            $order = range(0, count($words) - 1);
+
+            if (count($words) > 2) {
+                array_unshift($order,array_pop($order));
+                $order[1] = 1;
+                $order[2] = 0;
+            }
+
+            foreach ($order as $i) {
                 $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
                 $title = trim(implode(' ', array_slice($words, $i + 1)));
                 $sortedauthor = $this->sortstring($author);
