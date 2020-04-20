@@ -130,6 +130,9 @@ class CatalogueTest extends IznikTestCase
     {
         return [
             [
+                '/test/ut/php/booktastic/bryson2',
+            ],
+            [
                 '/test/ut/php/booktastic/bryson',
             ],
             [

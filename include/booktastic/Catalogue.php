@@ -17,7 +17,7 @@ class Catalogue
 
     private $client = NULL;
     private $start = NULL;
-    private $logging = FALSE;
+    private $logging = TRUE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -188,6 +188,10 @@ class Catalogue
 
             $spines = [];
             foreach ($lines as $line) {
+                foreach (['"', "'"] as $remove) {
+                    $line = str_replace($remove, '', $line);
+                }
+
                 $spines[] = [
                     'spine' => $line,
                     'author' => NULL,
@@ -195,8 +199,13 @@ class Catalogue
                 ];
             }
 
+            $spines = array_filter($spines, function($s) {
+                return strlen($s['spine']);
+            });
+
             $ret = [ $spines, $fragments ];
         }
+
 
         $this->log("Spines " . var_export($ret, TRUE));
         return $ret;
@@ -221,6 +230,8 @@ class Catalogue
             $dist = levenshtein($str1, $str2);
             $pc = 100 - 100 * $dist / max(strlen($str1), strlen($str2));
         }
+
+        #error_log("Compare $str1 vs $str2 returns $pc");
 
         return $pc;
     }
@@ -394,62 +405,86 @@ class Catalogue
         #
         # The spine will normally in in the format "Author Title" or "Title Author".  So we can work our
         # way along the words in the spine searching for matches on this.
-        $ret = [];
+        #
+        # Order our search by longest spine first.  This is because the longer the spine is, the more likely
+        # it is to have both and author and a subject, and therefore match.  Matching gets it out of the way
+        # but also gives us a known author, which can be used to good effect to improve matching on other
+        # spines.
+        $order = [];
 
         for ($spineindex = 0; $spineindex < count($spines); $spineindex++) {
-            $spine = $spines[$spineindex];
+            $order[] = [
+                $spineindex,
+                strlen($spines[$spineindex]['spine'])
+            ];
+        }
 
-            if (!$spine['author']) {
-                $res = NULL;
+        usort($order, function($a, $b) {
+            return $b[1] - $a[1];
+        });
 
-                $words = explode(' ', $spine['spine']);
-                $this->log((microtime(TRUE) - $this->start) . " Consider spine {$spine['spine']} words " . count($words));
+        $this->log("Sorted by length " . json_encode($order));
 
-                # Most authors have two words, so try first for those to save time.
-                $author = trim(implode(' ', array_slice($words, 0, 2)));
-                $title = trim(implode(' ', array_slice($words, 2)));
-                $res = $this->search($author, $title, 2);
+        $ret = [];
 
-                if (!$res) {
-                    $title = trim(implode(' ', array_slice($words, 0, count($words) - 2)));
-                    $author = trim(implode(' ', array_slice($words, count($words) - 2)));
-                    $res = $this->search($author, $title, 2);
-                }
+        foreach ($order as $ord) {
+            $spineindex = $ord[0];
 
-                for ($i = 0; !$res && $i < count($words) - 1; $i++) {
-                    # Try matching assuming the author is at the start.
-                    $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
-                    $title = trim(implode(' ', array_slice($words, $i + 1)));
-                    $res = $this->search($author, $title, 2);
+            if ($spineindex < count($spines)) {
+                $spine = $spines[$spineindex];
 
-                    if ($res) {
-                        #$this->log("...no author title matches");
-                    }
-                }
+                if (!$spine['author']) {
+                    $res = NULL;
 
-                for ($i = 0; !$res && $i < count($words) - 1; $i++) {
-                    # Try matching assuming the author is at the end.
-                    $title = trim(implode(' ', array_slice($words, 0, $i + 1)));
-                    $author = trim(implode(' ', array_slice($words, $i + 1)));
+                    $words = explode(' ', $spine['spine']);
+                    $this->log((microtime(TRUE) - $this->start) . " Consider spine {$spine['spine']} words " . count($words));
+
+                    # Most authors have two words, so try first for those to save time.
+                    $author = trim(implode(' ', array_slice($words, 0, 2)));
+                    $title = trim(implode(' ', array_slice($words, 2)));
                     $res = $this->search($author, $title, 2);
 
                     if (!$res) {
-                        #$this->log("...no title author matches");
-                    }
-                }
-
-                if ($res) {
-                    # We found one for this spine.
-                    $spines[$spineindex]['author'] = $res['_source']['author'];
-                    $spines[$spineindex]['title'] = $res['_source']['title'];
-                    $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
-                    $this->log("FOUND: {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
-
-                    if ($flag) {
-                        $this->flagUsed($fragments, $spineindex);
+                        $title = trim(implode(' ', array_slice($words, 0, count($words) - 2)));
+                        $author = trim(implode(' ', array_slice($words, count($words) - 2)));
+                        $res = $this->search($author, $title, 2);
                     }
 
-                    $this->extractKnownAuthors($spines, $fragments);
+                    for ($i = 0; !$res && $i < count($words) - 1; $i++) {
+                        # Try matching assuming the author is at the start.
+                        $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
+                        $title = trim(implode(' ', array_slice($words, $i + 1)));
+                        $res = $this->search($author, $title, 2);
+
+                        if ($res) {
+                            #$this->log("...no author title matches");
+                        }
+                    }
+
+                    for ($i = 0; !$res && $i < count($words) - 1; $i++) {
+                        # Try matching assuming the author is at the end.
+                        $title = trim(implode(' ', array_slice($words, 0, $i + 1)));
+                        $author = trim(implode(' ', array_slice($words, $i + 1)));
+                        $res = $this->search($author, $title, 2);
+
+                        if (!$res) {
+                            #$this->log("...no title author matches");
+                        }
+                    }
+
+                    if ($res) {
+                        # We found one for this spine.
+                        $spines[$spineindex]['author'] = $res['_source']['author'];
+                        $spines[$spineindex]['title'] = $res['_source']['title'];
+                        $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
+                        $this->log("FOUND: {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
+
+                        if ($flag) {
+                            $this->flagUsed($fragments, $spineindex);
+                        }
+
+                        $this->extractKnownAuthors($spines, $fragments);
+                    }
                 }
             }
         }
@@ -485,38 +520,68 @@ class Catalogue
             $authorwords = explode(' ', $author);
             $wordindex = 0;
 
-            do {
-                $merged = FALSE;
-
-                for ($spineindex = 0; !$merged && $spineindex < count($spines) - 1; $spineindex++) {
+            for ($spineindex = 0; $spineindex < count($spines) - 1; $spineindex++) {
+                error_log("Looking at #$spineindex " . json_encode($spines[$spineindex]));
+                if (!$spines[$spineindex]['author']) {
                     #$this->log("Check spine at $spineindex");
                     $wi = $wordindex;
                     $si = $spineindex;
 
-                    while ($wi < count($authorwords) &&
-                        $si < count($spines) &&
-                        strcasecmp($spines[$si]['spine'], $authorwords[$wi]) === 0) {
-                        $this->log("Found possible author match {$authorwords[$wi]} from $author in {$spines[$si]['spine']} at $si");
-                        $wi++;
-                        $si++;
-                    }
+                    $spinewords = explode(' ', $spines[$si]['spine']);
 
-                    if ($wi >= count($authorwords)) {
-                        # We reached the end of the author.  Merge these spines.
-                        $this->log("Found end of author, merge");
-                        $merged = TRUE;
-                        $comspined = $spines[$spineindex];
-                        $comspined['spine'] = $author;
-                        #$this->log("Spines before merge " . json_encode($spines));
-                        $this->mergeSpines($spines, $fragments, $comspined, $spineindex, $si - $spineindex);
-                        #$this->log("Spines after merge " . json_encode($spines));
-                    } else {
-                        #$this->log("No author match");
+                    for ($startword = 0; $startword < count($spinewords); $startword++) {
+                        $swi = $startword;
+
+                        while ($wi < count($authorwords) &&
+                            $si < count($spines) &&
+                            $this->compare($spinewords[$swi], $authorwords[$wi]) >= self::CONFIDENCE) {
+                            $this->log("Found possible author match {$authorwords[$wi]} from $author in {$spines[$si]['spine']} at $si starting from $startword");
+                            $wi++;
+                            $swi++;
+
+                            if ($wi >= count($authorwords)) {
+                                break;
+                            } else if ($swi >= count($spinewords)) {
+                                $swi = 0;
+                                $si++;
+
+                                if ($spines[$si]['author']) {
+                                    # Already sorted - stop.
+                                    break;
+                                }
+
+                                $spinewords = explode(' ', $spines[$si]['spine']);
+                            }
+                        }
+
+                        if ($wi >= count($authorwords)) {
+                            # We reached the end of the author.
+                            $this->log("Found end of author at startword $startword spine word $swi");
+                            $this->log("Spines before " . json_encode($spines));
+
+                            if ($startword > 0) {
+                                # Part way along.  First split the spines at the start of the author.
+                                $this->log("Split");
+                                $this->splitSpines($spines, $fragments, $spineindex, $startword);
+                                $this->log("Spines after split" . json_encode($spines));
+                            } else if ($swi === count($spinewords)) {
+                                # Only want to merge if the end of the author is at the end of the spine, as if we
+                                # have other words in the spine they may be a title.
+                                $this->log("Merge at $spineindex len $si - $spineindex");
+                                $comspined = $spines[$spineindex];
+                                $comspined['spine'] .= " {$spines[$spineindex + 1]['spine']}";
+                                $this->mergeSpines($spines, $fragments, $comspined, $spineindex, $si - $spineindex + 1);
+                                $spineindex++;
+                            }
+
+                            $this->log("Spines now " . json_encode($spines));
+                            break;
+                        } else {
+                            #$this->log("No author match");
+                        }
                     }
                 }
-
-                #$this->log("Done a pass, merged? $merged");
-            } while ($merged);
+            }
         }
 
         #$this->log("Checked authors");
@@ -542,7 +607,7 @@ class Catalogue
                 $sortedtitle = $this->sortstring($title);
 
                 $key = "$sortedauthor - $sortedtitle";
-                $this->log("Consider permute search $key");
+                #$this->log("Consider permute search $key");
                 if (!array_key_exists($key, $searched)) {
                     $this->log((microtime(TRUE) - $this->start) . " New search $key");
                     $searched[$key] = TRUE;
@@ -554,7 +619,7 @@ class Catalogue
                         $this->log("Found {$res['spine']} using Google breakpoints");
                     }
                 } else {
-                    $this->log("Already searched");
+                    #$this->log("Already searched");
                 }
             }
         }
@@ -660,7 +725,7 @@ class Catalogue
         # spines, then increase - we've seen some examples where a single title can end up on several lines.
         $ret = [];
 
-        for ($adjacent = 2; $adjacent <= 4; $adjacent++) {
+        for ($adjacent = 2; $adjacent <= 5; $adjacent++) {
             $i = 0;
 
             while ($i < count($spines) - 1) {
@@ -701,12 +766,54 @@ class Catalogue
         }
     }
 
+    private function splitSpines(&$spines, &$fragments, $start, $wordindex) {
+        # Renumber the spine indexes in the fragments we are removing.
+        for ($fragindex = 0; $fragindex < count($fragments); $fragindex++) {
+            if ($fragments[$fragindex]['spineindex'] == $start) {
+                if ($wordindex < 0) {
+                    $this->log("Splitting wordindex $wordindex at " . json_encode($fragments[$fragindex]));
+                    $fragments[$fragindex]['spineindex'] = $start;
+                } else {
+                    $fragments[$fragindex]['spineindex'] = $start + 1;
+                }
+
+                $wordindex--;
+            } else if ($fragments[$fragindex]['spineindex'] > $start) {
+                # These are the ones we're merging.
+                #$this->log("Fragment {$fragments[$fragindex]['description']} is part of merge");
+                $fragments[$fragindex]['spineindex']++;
+            }
+        }
+
+        $words = explode(' ', $spines[$start]['spine']);
+        $first = implode(' ', array_slice($words, 0, $wordindex));
+        $second = implode(' ', array_slice($words, $wordindex));
+        $this->log("Split {$spines[$start]['spine']} into $first and $second");
+
+        $newspines = array_slice($spines, 0, $start);
+
+        $newspines[] = [
+            'spine' => $first,
+            'author' => NULL,
+            'title' => NULL
+        ];
+        $newspines[] = [
+            'spine' => $second,
+            'author' => NULL,
+            'title' => NULL
+        ];
+
+        $newspines = array_merge($newspines, array_slice($spines, $start + 1));
+
+        $spines = $newspines;
+    }
+
     private function mergeSpines(&$spines, &$fragments, $comspined, $start, $length) {
         # We have combined multiple adjacent spines into a single one, possibly with some
         # reordering of text.
         $spines[$start] = $comspined;
 
-        # Renumber the spine indexes in the fragments we are removing..
+        # Renumber the spine indexes in the fragments we are removing.
         for ($fragindex = 0; $fragindex < count($fragments); $fragindex++) {
             if ($fragments[$fragindex]['spineindex'] > $start && $fragments[$fragindex]['spineindex'] <= $start + $length - 1) {
                 # These are the ones we're merging.
