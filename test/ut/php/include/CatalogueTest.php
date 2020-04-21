@@ -50,7 +50,7 @@ class CatalogueTest extends IznikTestCase
             list ($spines, $fragments) = $c->identifySpinesFromOCR($id);
             $c->searchForSpines($id, $spines, $fragments);
             $c->searchForBrokenSpines($id, $spines, $fragments);
-            $c->recordResults($id, $spines);
+            $c->recordResults($id, $spines, $fragments);
 
             error_log("\n\n");
             foreach ($spines as $book) {
@@ -132,9 +132,9 @@ class CatalogueTest extends IznikTestCase
 //            [
 //                '/test/ut/php/booktastic/bryson3',
 //            ],
-//            [
-//                '/test/ut/php/booktastic/bryson2',
-//            ],
+            [
+                '/test/ut/php/booktastic/bryson2',
+            ],
 //            [
 //                '/test/ut/php/booktastic/bryson',
 //            ],
@@ -147,9 +147,9 @@ class CatalogueTest extends IznikTestCase
 //            [
 //                '/test/ut/php/booktastic/crime3',
 //            ],
-            [
-                '/test/ut/php/booktastic/vertical_easy',
-            ],
+//            [
+//                '/test/ut/php/booktastic/vertical_easy',
+//            ],
 //            [
 //                '/test/ut/php/booktastic/basic_horizontal'
 //            ],

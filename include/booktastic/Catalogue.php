@@ -44,6 +44,68 @@ class Catalogue
             ->build();
     }
 
+    public function clean($str) {
+        # Clean a string to remove OCR errors by matching against known names and words.
+        $words = explode(' ', $str);
+        
+        foreach ($words as $index => $word) {
+            if (strlen($word)) {
+                $knownwords = $this->dbhr->preQuery("SELECT * FROM booktastic_words WHERE word LIKE ?;", [
+                    $word
+                ], FALSE, FALSE);
+
+                if (count($knownwords)) {
+                    continue;
+                }
+
+                $firstnames = $this->dbhr->preQuery("SELECT * FROM booktastic_firstnames WHERE firstname LIKE ?;", [
+                    $word
+                ], FALSE, FALSE);
+
+                if (count($firstnames)) {
+                    continue;
+                }
+
+                $lastnames = $this->dbhr->preQuery("SELECT * FROM booktastic_lastnames WHERE lastname LIKE ?;", [
+                    $word
+                ], FALSE, FALSE);
+
+                if (count($lastnames)) {
+                    continue;
+                }
+
+                # Didn't match exactly.  Look for a close match.
+                $knownwords = $this->dbhr->preQuery("SELECT booktastic_words.*, DAMLEVLIM(word, " . $this->dbhr->quote($word) . ", " . strlen($word) . ") AS dist FROM `booktastic_words` HAVING dist < 2 ORDER BY dist ASC, LENGTH(word) ASC;", NULL, FALSE, FALSE);
+
+                if (count($knownwords)) {
+                    $words[$index] = $knownwords[0]['word'];
+                    continue;
+                }
+
+                $firstnames = $this->dbhr->preQuery("SELECT booktastic_firstnames.*, DAMLEVLIM(firstname, " . $this->dbhr->quote($word) . ", " . strlen($word) . ") AS dist FROM `booktastic_firstnames` HAVING dist < 2 ORDER BY dist ASC, LENGTH(firstname) ASC;", NULL, FALSE, FALSE);
+
+                if (count($firstnames)) {
+                    $words[$index] = $firstnames[0]['firstname'];
+                    continue;
+                }
+
+                $lastnames = $this->dbhr->preQuery("SELECT booktastic_lastnames.*, DAMLEVLIM(lastname, " . $this->dbhr->quote($word) . ", " . strlen($word) . ") AS dist FROM `booktastic_lastnames` HAVING dist < 2 ORDER BY dist ASC, LENGTH(lastname) ASC;", NULL, FALSE, FALSE);
+
+                if (count($lastnames)) {
+                    $words[$index] = $lastnames[0]['lastname'];
+                    continue;
+                }
+            }
+        }
+
+        $ret = implode(' ', $words);
+        if ($ret != $str) {
+            $this->log("Cleaned $str => $ret");
+        }
+
+        return $ret;
+    }
+    
     private function log($str) {
         if ($this->logging) {
             error_log($str);
@@ -186,6 +248,10 @@ class Catalogue
                 }
             }
 
+            foreach ($lines as $key => $line) {
+                #$lines[$key] = $this->clean($line);
+            }
+
             $spines = [];
             foreach ($lines as $line) {
                 foreach (['"', "'"] as $remove) {
@@ -290,7 +356,19 @@ class Catalogue
 
         $author2 = $this->normalizeAuthor($author);
 
-        if (strlen($author2) < 5) {
+        $authwords = explode(' ', $author2);
+
+        # Require an author to have one part of their name which isn't very short.  Probably discriminates against
+        # Chinese people who use initials, so not ideal.
+        $longenough = FALSE;
+
+        foreach ($authwords as $word) {
+            if (strlen($word) > 3) {
+                $longenough = TRUE;
+            }
+        }
+
+        if (!$longenough) {
             # Implausibly short.  Reject.
             $this->log("Reject too short author $author");
             return NULL;
@@ -837,7 +915,7 @@ class Catalogue
         array_splice($spines, $start + 1, $length - 1);
     }
 
-    public function recordResults($id, $spines) {
+    public function recordResults($id, $spines, $fragments) {
         $score = 0;
 
         foreach ($spines as $r) {
@@ -846,11 +924,32 @@ class Catalogue
             }
         }
 
-        $this->dbhm->preExec("INSERT INTO booktastic_results (ocrid, results, score) VALUES (?, ?, ?);", [
+        $this->dbhm->preExec("INSERT INTO booktastic_results (ocrid, spines, fragments, score) VALUES (?, ?, ?, ?);", [
             $id,
             json_encode($spines),
+            json_encode($fragments),
             count($spines) ? round(100 * $score / count($spines)) : 0
         ]);
+
+        $this->dbhm->preExec("UPDATE booktastic_ocr SET processed = 1 WHERE id = ?;", [
+            $id
+        ]);
+    }
+
+    public function getResult($id) {
+        $spines = NULL;
+        $fragments = NULL;
+
+        $results = $this->dbhr->preQuery("SELECT * FROM booktastic_results WHERE ocrid = ?;", [
+            $id
+        ], FALSE, FALSE);
+
+        foreach ($results as $result) {
+            $spines = json_decode($result['spines'], TRUE);
+            $fragments = json_decode($result['fragments'], TRUE);
+        }
+
+        return [ $spines, $fragments ];
     }
 
     public function validAuthor($name) {
