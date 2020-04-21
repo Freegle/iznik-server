@@ -129,39 +129,42 @@ class CatalogueTest extends IznikTestCase
     public function libraryData()
     {
         return [
-            [
-                '/test/ut/php/booktastic/bryson2',
-            ],
-            [
-                '/test/ut/php/booktastic/bryson',
-            ],
-            [
-                '/test/ut/php/booktastic/crime1',
-            ],
-            [
-                '/test/ut/php/booktastic/crime2',
-            ],
-            [
-                '/test/ut/php/booktastic/crime3',
-            ],
+//            [
+//                '/test/ut/php/booktastic/bryson3',
+//            ],
+//            [
+//                '/test/ut/php/booktastic/bryson2',
+//            ],
+//            [
+//                '/test/ut/php/booktastic/bryson',
+//            ],
+//            [
+//                '/test/ut/php/booktastic/crime1',
+//            ],
+//            [
+//                '/test/ut/php/booktastic/crime2',
+//            ],
+//            [
+//                '/test/ut/php/booktastic/crime3',
+//            ],
             [
                 '/test/ut/php/booktastic/vertical_easy',
             ],
-            [
-                '/test/ut/php/booktastic/basic_horizontal'
-            ],
-            [
-                '/test/ut/php/booktastic/basic_vertical'
-            ],
-            [
-                '/test/ut/php/booktastic/gardening'
-            ],
-            [
-                '/test/ut/php/booktastic/horizontal_overlap'
-            ],
-            [
-                '/test/ut/php/booktastic/horizontal_overlap2'
-            ],
+//            [
+//                '/test/ut/php/booktastic/basic_horizontal'
+//            ],
+//            [
+//                '/test/ut/php/booktastic/basic_vertical'
+//            ],
+//            [
+//                '/test/ut/php/booktastic/gardening'
+//            ],
+//            [
+//                '/test/ut/php/booktastic/horizontal_overlap'
+//            ],
+//            [
+//                '/test/ut/php/booktastic/horizontal_overlap2'
+//            ],
         ];
     }
 
@@ -172,6 +175,7 @@ class CatalogueTest extends IznikTestCase
 //        # Now get the text within each book.
 //        $c = new Catalogue($this->dbhr, $this->dbhm);
 //        list ($id, $json2) = $c->ocr($data, 'video', TRUE);
+//        assertTrue(TRUE);
 //    }
 }
 

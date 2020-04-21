@@ -6,6 +6,8 @@ require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 
 use Jenssegers\ImageHash\ImageHash;
+//use Google\Cloud\VideoIntelligence\V1\VideoIntelligenceServiceClient;
+//use Google\Cloud\VideoIntelligence\V1\Feature;
 
 # This is a base class
 class Attachment
@@ -379,17 +381,19 @@ class Attachment
 
     public function ocr($data = NULL, $returnfull = FALSE, $video = FALSE) {
         # Identify text in an attachment using Google Vision API.
+        error_log("OCR $video");
         $base64 = $data ? $data : base64_encode($this->getData());
 
+
         if ($video) {
+//            "videoContext": {
+//                "textDetectionConfig": {
+//                    "languageHints": ["en"]
+//                }
+//              }
             $r_json = '{
               "inputContent": "' . $base64 . '",
               "features": ["TEXT_DETECTION"],
-              "videoContext": {
-                "textDetectionConfig": {
-                  "languageHints": ["en"]
-                }
-              }
             }';
         } else {
             $r_json ='{
@@ -413,35 +417,82 @@ class Attachment
             }';
         }
 
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL,
-            ($video ? 'https://videointelligence.googleapis.com/v1/videos:annotate' : 'https://vision.googleapis.com/v1/images:annotate') .
-            '?key=' . GOOGLE_VISION_KEY);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
-        $json_response = curl_exec($curl);
-        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        if ($video) {
+//            error_log("Key " . GOOGLE_VIDEO_KEY);
+//            $url = 'https://videointelligence.googleapis.com/v1/videos:annotate';
+//
+//            $videoIntelligenceServiceClient = new VideoIntelligenceServiceClient([
+//                'credentials' => json_decode(file_get_contents('/etc/booktastic.json'), true)
+//            ]);
+//
+//            $inputUri = "gs://freegle_backup_uk/video2.mp4";
+//
+//            $features = [
+//                Feature::TEXT_DETECTION,
+//            ];
+//            $operationResponse = $videoIntelligenceServiceClient->annotateVideo([
+//                'inputUri' => $inputUri,
+//                'features' => $features
+//            ]);
+//
+//            $operationResponse->pollUntilComplete();
+//
+//            if ($operationResponse->operationSucceeded()) {
+//                $results = $operationResponse->getResult()->getAnnotationResults()[0];
+//
+//                # Process video/segment level label annotations
+//                foreach ($results->getTextAnnotations() as $text) {
+//                    printf('Video text description: %s' . PHP_EOL, $text->getText());
+//                    foreach ($text->getSegments() as $segment) {
+//                        $start = $segment->getSegment()->getStartTimeOffset();
+//                        $end = $segment->getSegment()->getEndTimeOffset();
+//                        printf('  Segment: %ss to %ss' . PHP_EOL,
+//                            $start->getSeconds() + $start->getNanos()/1000000000.0,
+//                            $end->getSeconds() + $end->getNanos()/1000000000.0);
+//                        printf('  Confidence: %f' . PHP_EOL, $segment->getConfidence());
+//                    }
+//                }
+//                print(PHP_EOL);
+//            } else {
+//                $error = $operationResponse->getError();
+//                echo "error: " . $error->getMessage() . PHP_EOL;
+//
+//            }
+        } else {
+            $url = 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY;
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
 
-        $text = '';
-        $rsps = NULL;
+            if ($video) {
+                curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer " . GOOGLE_VIDEO_KEY));
+            }
 
-        if ($status) {
-            #error_log("Rsp $json_response");
-            $rsp = json_decode($json_response, TRUE);
+            $json_response = curl_exec($curl);
+            $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-            if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
-                $rsps = $rsp['responses'][0]['textAnnotations'];
+            $text = '';
+            $rsps = NULL;
 
-                foreach ($rsps as $rsp) {
-                    $text .= $rsp['description'] . "\n";
-                    break;
+            if ($status) {
+                error_log("Rsp $json_response");
+                $rsp = json_decode($json_response, TRUE);
+
+                if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
+                    $rsps = $rsp['responses'][0]['textAnnotations'];
+
+                    foreach ($rsps as $rsp) {
+                        $text .= $rsp['description'] . "\n";
+                        break;
+                    }
                 }
             }
-        }
 
-        curl_close($curl);
+            curl_close($curl);
+        }
 
         return($returnfull ? $rsps : $text);
     }

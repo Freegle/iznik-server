@@ -100,7 +100,7 @@ class Catalogue
         }
 
         #$this->log("Check for uid $uid = " . count($already));
-        if (!count($already)) {
+        if (!count($already) || $video) {
             #$this->log("Not got it");
             $a = new Attachment($this->dbhr, $this->dbhm);
             $text = $this->doOCR($a, $data, $video);
@@ -309,22 +309,23 @@ class Catalogue
         $title = strtolower($title);
         $title = $this->normalizeTitle($title);
 
-        # First search on the assumption that the OCR is pretty good, and we just have a little fuzziness.  Allow
-        # significantly more on the title because it can get cluttered up with publisher info, and it's also
-        # longer so there will be more errors.
+        # First search on the assumption that the OCR is pretty good, and we just have a little fuzziness.
+        $fuzauthor = round(strlen($author) / 10 + 1);
+        $fuztitle = round(strlen($title) / 10 + 1);
+
         $res = $this->client->search([
             'index' => 'booktastic',
             'body' => [
                 'query' => [
                     'bool' => [
                         'must' => [
-                            [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 3 ] ] ],
-                                [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => 20 ] ] ],
+                            [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => $fuzauthor ] ] ],
+                            [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
                         ]
                     ]
                 ]
             ],
-            'size' => 50,
+            'size' => 5,
         ]);
 
         if ($res['hits']['total'] > 0) {
@@ -332,19 +333,25 @@ class Catalogue
             $ret = $res['hits']['hits'][0];
         } else {
             # Now search just by author, and do our own custom matching.
-            $res = $this->client->search([
+            $params = [
                 'index' => 'booktastic',
                 'body' => [
                     'query' => [
                         'bool' => [
                             'must' => [
                                 [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 2] ] ]
+                            ],
+                            'should' => [
+                                [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
                             ]
                         ]
                     ]
                 ],
-                'size' => 100,
-            ]);
+                'size' => 100
+            ];
+
+            $this->log("No close match, search for author " . json_encode($params));
+            $res = $this->client->search($params);
 
             $titlebest = 0;
 
@@ -365,7 +372,7 @@ class Catalogue
                             $ret = $hit;
                         } else {
                             $authperc = $this->compare($author, $hitauthor);
-                            $this->log("Searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
+                            $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
 
                             if ($authperc >= self::CONFIDENCE) {
                                 # Looks like the author.  Don't find the best author match - this is close enough
@@ -521,7 +528,8 @@ class Catalogue
             $wordindex = 0;
 
             for ($spineindex = 0; $spineindex < count($spines) - 1; $spineindex++) {
-                error_log("Looking at #$spineindex " . json_encode($spines[$spineindex]));
+                $this->log("Looking at #$spineindex " . json_encode($spines[$spineindex]));
+
                 if (!$spines[$spineindex]['author']) {
                     #$this->log("Check spine at $spineindex");
                     $wi = $wordindex;

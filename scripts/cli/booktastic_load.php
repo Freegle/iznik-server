@@ -21,7 +21,7 @@ $client = ClientBuilder::create()
 //} catch (Exception $e) {
 //
 //}
-
+//
 # Add the index
 $params = [
     'index' => 'booktastic',
@@ -51,7 +51,11 @@ $params = [
                     ],
                     'title' => [
                         'type' => 'keyword',
-                        'normalizer' => 'my_normalizer'
+                        'normalizer' => 'my_normalizer',
+                        'split_queries_on_whitespace' => TRUE
+                    ],
+                    'titletext' => [
+                        'type' => 'text'
                     ],
                     'sortedauthor' => [
                         'type' => 'keyword',
@@ -160,6 +164,7 @@ do {
                     'viafid' => $viafid,
                     'author' => $author,
                     'title' => $title,
+                    'titletext' => $title,
                     'sortedauthor' => sortstring($author),
                     'sortedtitle' => sortstring($title)
                 ]

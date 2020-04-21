@@ -309,7 +309,7 @@ function group() {
                         break;
                     }
 
-                    case 'RemoveFacebookGroup': {
+                    case 'RemoveFacebook': {
                         $uid = intval(presdef('uid', $_REQUEST, NULL));
                         $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 
