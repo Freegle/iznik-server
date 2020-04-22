@@ -802,7 +802,7 @@ class User extends Entity
         # to us and move to Approved.  If there is a value for ourPostingStatus, then this is a native group and
         # we will use that.
         $ps = $this->getMembershipAtt($groupid, 'ourPostingStatus');
-        $coll = (!$ps || $ps == Group::POSTING_MODERATED) ? MessageCollection::PENDING : MessageCollection::APPROVED;
+        $coll = (!$ps || $ps == Group::POSTING_MODERATED || $ps == Group::POSTING_PROHIBITED) ? MessageCollection::PENDING : MessageCollection::APPROVED;
         return ($coll);
     }
 
