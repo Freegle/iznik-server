@@ -95,7 +95,7 @@ class ChatMessage extends Entity
             # Check whether this member has sent a lot of chat messages in the last couple of days.  This is something
             # which scammers sometimes do.
             $mysqltime = date("Y-m-d", strtotime("48 hours ago"));
-            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE userid = ? AND date > '$mysqltime' AND chat_rooms.chattype = ?", [
+            $counts = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(chatid)) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE userid = ? AND date > '$mysqltime' AND chat_rooms.chattype = ?", [
                 $userid,
                 ChatRoom::TYPE_USER2USER
             ]);
