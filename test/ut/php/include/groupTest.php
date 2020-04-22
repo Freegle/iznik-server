@@ -401,7 +401,7 @@ class groupTest extends IznikTestCase {
         self::assertEquals(NULL, $g->ourPS(NULL));
         self::assertEquals(Group::POSTING_DEFAULT, $g->ourPS(Group::POSTING_DEFAULT));
         self::assertEquals(Group::POSTING_DEFAULT, $g->ourPS(Group::POSTING_UNMODERATED));
-        self::assertEquals(Group::POSTING_MODERATED, $g->ourPS(Group::POSTING_PROHIBITED));
+        self::assertEquals(Group::POSTING_PROHIBITED, $g->ourPS(Group::POSTING_PROHIBITED));
         self::assertEquals(Group::POSTING_MODERATED, $g->ourPS(Group::POSTING_MODERATED));
 
         }
