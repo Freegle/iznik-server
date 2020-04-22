@@ -6,13 +6,15 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/booktastic/Catalogue.php');
 
-$c = new Catalogue($dbhr, $dbhm);
+$lockh = lockScript(basename(__FILE__));
+
 
 do {
     $queue = $dbhr->preQuery("SELECT id FROM booktastic_ocr WHERE processed = 0;");
 
     foreach ($queue as $q) {
         $id = $q['id'];
+        $c = new Catalogue($dbhr, $dbhm);
         list ($spines, $fragments) = $c->identifySpinesFromOCR($id);
         $c->searchForSpines($id, $spines, $fragments);
         $c->searchForBrokenSpines($id, $spines, $fragments);
