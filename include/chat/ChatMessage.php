@@ -35,6 +35,8 @@ class ChatMessage extends Entity
     const ACTION_HOLD = 'Hold';
     const ACTION_RELEASE = 'Release';
 
+    const TOO_MANY_RECENT = 20;
+
     /** @var  $log Log */
     private $log;
 
@@ -85,9 +87,23 @@ class ChatMessage extends Entity
         }
     }
 
-    public function checkReview($message, $language = FALSE) {
+    public function checkReview($message, $language = FALSE, $userid) {
         $s = new Spam($this->dbhr, $this->dbhm);
         $ret = $s->checkReview($message, $language);
+
+        if (!$ret) {
+            # Check whether this member has sent a lot of chat messages in the last couple of days.  This is something
+            # which scammers sometimes do.
+            $mysqltime = date("Y-m-d", strtotime("48 hours ago"));
+            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE userid = ? AND date > '$mysqltime' AND chat_rooms.chattype = ?", [
+                $userid,
+                ChatRoom::TYPE_USER2USER
+            ]);
+
+            if ($counts[0]['count'] > self::TOO_MANY_RECENT) {
+                $ret = TRUE;
+            }
+        }
 
         return($ret);
     }
@@ -169,7 +185,7 @@ class ChatMessage extends Entity
                     !$u->isModerator() &&
                     ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) &&
                     ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
-                    $review = ($modstatus == User::CHAT_MODSTATUS_FULLY) || $this->checkReview($message, TRUE);
+                    $review = ($modstatus == User::CHAT_MODSTATUS_FULLY) || $this->checkReview($message, TRUE, $userid);
                     $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
                     # If we decided it was spam then it doesn't need reviewing.
