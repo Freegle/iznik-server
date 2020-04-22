@@ -11,5 +11,5 @@ $m = new ChatMessage($dbhr, $dbhm);
 
 foreach ($messages as $message) {
     error_log("Check spam? " . $m->checkSpam($message['textbody']));
-    error_log("Check review? " . $m->checkReview($message['textbody']));
+    error_log("Check review? " . $m->checkReview($message['textbody'], FALSE, $message['userid']));
 }

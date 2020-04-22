@@ -19,7 +19,7 @@ foreach ($messages as $message) {
         $snippet = $matches[1];
     }
 
-    $review = $m->checkReview($message['message']);
+    $review = $m->checkReview($message['message'], FALSE, $message['userid']);
 
     if ($review) {
         $spam++;

@@ -20,14 +20,14 @@ $oldspam = 0;
 foreach ($messages as $message) {
     if ($message['reviewrequired'] == 0 && $message['reviewrejected'] == 0) {
         # Not spam - check if it now is.
-        if ($m->checkReview($message['message'])) {
+        if ($m->checkReview($message['message'], FALSE, $message['userid'])) {
             error_log("New spam {$message['id']} " . substr($message['message'], 0, 60));
             $dbhm->preExec("UPDATE chat_messages SET reviewrequired = 1 WHERE id = ?;", [ $message['id'] ]);
             $newspam++;
         }
     } else if (!$message['reviewrejected']) {
         # Currently not spam - check if it now is
-        if (!$m->checkReview($message['message'])) {
+        if (!$m->checkReview($message['message'], FALSE, $message['userid'])) {
             error_log("No longer spam {$message['id']} " . substr($message['message'], 0, 60));
             $dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0 WHERE id = ?;", [ $message['id'] ]);
             $oldspam++;

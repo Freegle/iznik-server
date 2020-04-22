@@ -87,11 +87,11 @@ class ChatMessage extends Entity
         }
     }
 
-    public function checkReview($message, $language = FALSE, $userid) {
+    public function checkReview($message, $language = FALSE, $userid = NULL) {
         $s = new Spam($this->dbhr, $this->dbhm);
         $ret = $s->checkReview($message, $language);
 
-        if (!$ret) {
+        if (!$ret && $userid) {
             # Check whether this member has sent a lot of chat messages in the last couple of days.  This is something
             # which scammers sometimes do.
             $mysqltime = date("Y-m-d", strtotime("48 hours ago"));
