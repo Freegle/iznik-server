@@ -992,11 +992,11 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
 
     public function ourPS($status) {
         # For historical reasons, the ourPostingStatus field has various values, equivalent to those on Yahoo.  But
-        # we only support two settings - MODERATED, and DEFAULT aka Group Settings.
+        # we only support three settings - MODERATED, DEFAULT aka Group Settings, and PROHIBITED aka Can't Post.
         switch ($status) {
             case NULL: $status = NULL; break;
             case Group::POSTING_MODERATED: $status = Group::POSTING_MODERATED; break;
-            case Group::POSTING_PROHIBITED: $status = Group::POSTING_MODERATED; break;
+            case Group::POSTING_PROHIBITED: $status = Group::POSTING_PROHIBITED; break;
             default: $status = Group::POSTING_DEFAULT; break;
         }
 
