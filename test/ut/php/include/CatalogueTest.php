@@ -128,44 +128,27 @@ class CatalogueTest extends IznikTestCase
 
     public function libraryData()
     {
-        return [
-//            [
-//                '/test/ut/php/booktastic/bryson3',
-//            ],
-            [
-                '/test/ut/php/booktastic/bryson2',
-            ],
-//            [
-//                '/test/ut/php/booktastic/bryson',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/crime1',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/crime2',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/crime3',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/vertical_easy',
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_horizontal'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/basic_vertical'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/gardening'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap'
-//            ],
-//            [
-//                '/test/ut/php/booktastic/horizontal_overlap2'
-//            ],
-        ];
+        $ret = [];
+        
+        foreach ( [ 
+            'chris1',
+            'bryson3',
+            'bryson2',
+            'bryson',
+            'crime1',
+            'crime2',
+            'crime3',
+            'vertical_easy',
+            'basic_horizontal',
+            'basic_vertical',
+            'gardening',
+            'horizontal_overlap',
+            'horizontal_overlap2',
+        ] as $test) {
+            $ret[$test] = [ '/test/ut/php/booktastic/'. $test ];
+        }
+
+        return $ret;
     }
 
 //    public function testVideo()

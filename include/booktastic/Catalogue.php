@@ -17,7 +17,7 @@ class Catalogue
 
     private $client = NULL;
     private $start = NULL;
-    private $logging = FALSE;
+    private $logging = TRUE;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -45,9 +45,36 @@ class Catalogue
     }
 
     public function clean($str) {
+        $sstr = $str;
+
+        # ISBNs often appear on spines.
+        $str = str_replace('ISBN', '', $str);
+
+        # Remove digit sequences which are likely part of ISBN.
+        #
+        # Anything with leading zeros can't be in a real title.
+        $str = preg_replace('/0\d+/', '', $str);
+
+        # Anything with digits separated by dots can't be either.
+        $str = preg_replace('/[\d\.]{2,}/', '', $str);
+
+        # Nothing good starts with a dash.
+        $str = preg_replace('/\s-\w+(\b|$)/', '', $str);
+
+        # Collapse multiple spaces.
+        $str = preg_replace('/\s+/', ' ', $str);
+
+        $str = trim($str);
+
+        if ($sstr != $str) {
+            $this->log("Cleaned $sstr => $str");
+        }
+
+        return $str;
+
         # Clean a string to remove OCR errors by matching against known names and words.
         $words = explode(' ', $str);
-        
+
         foreach ($words as $index => $word) {
             if (strlen($word)) {
                 $knownwords = $this->dbhr->preQuery("SELECT * FROM booktastic_words WHERE word LIKE ?;", [
@@ -105,13 +132,13 @@ class Catalogue
 
         return $ret;
     }
-    
+
     private function log($str) {
         if ($this->logging) {
             error_log($str);
         }
     }
-    
+
     public function doOCR(Attachment $a, $data, $video) {
         return $a->ocr($data, TRUE, $video);
     }
@@ -240,7 +267,7 @@ class Catalogue
 
                 foreach ($words as $word) {
                     if (strcmp($word, $fragments[$fragindex]['description']) === 0) {
-                        $this->log("{$fragments[$fragindex]['description']} in spine $spineindex");
+                        #$this->log("{$fragments[$fragindex]['description']} in spine $spineindex");
                         $fragments[$fragindex++]['spineindex'] = $spineindex;
                     } else {
                         error_log("Mismatch $word vs " . json_encode($fragments[$fragindex]));
@@ -249,7 +276,7 @@ class Catalogue
             }
 
             foreach ($lines as $key => $line) {
-                #$lines[$key] = $this->clean($line);
+                $lines[$key] = $this->clean($line);
             }
 
             $spines = [];
@@ -265,15 +292,15 @@ class Catalogue
                 ];
             }
 
-            $spines = array_filter($spines, function($s) {
-                return strlen($s['spine']);
-            });
-
             $ret = [ $spines, $fragments ];
         }
 
+        foreach ($spines as $r) {
+            if (pres('spine', $r)) {
+                $this->log($r['spine']);
+            }
+        }
 
-        $this->log("Spines " . var_export($ret, TRUE));
         return $ret;
     }
 
@@ -351,127 +378,129 @@ class Catalogue
 
     private function search($author, $title, $fuzziness = 0, $sorted = FALSE) {
         $ret = NULL;
-        $authkey = ($sorted ? 'sortedauthor' : 'author');
-        $titkey = ($sorted ? 'sortedtitle' : 'title');
+        try {
+            $authkey = ($sorted ? 'sortedauthor' : 'author');
+            $titkey = ($sorted ? 'sortedtitle' : 'title');
 
-        $author2 = $this->normalizeAuthor($author);
+            $author2 = $this->normalizeAuthor($author);
 
-        $authwords = explode(' ', $author2);
+            $authwords = explode(' ', $author2);
 
-        # Require an author to have one part of their name which isn't very short.  Probably discriminates against
-        # Chinese people who use initials, so not ideal.
-        $longenough = FALSE;
+            # Require an author to have one part of their name which isn't very short.  Probably discriminates against
+            # Chinese people who use initials, so not ideal.
+            $longenough = FALSE;
 
-        foreach ($authwords as $word) {
-            if (strlen($word) > 3) {
-                $longenough = TRUE;
+            foreach ($authwords as $word) {
+                if (strlen($word) > 3) {
+                    $longenough = TRUE;
+                }
             }
-        }
 
-        if (!$longenough) {
-            # Implausibly short.  Reject.
-            $this->log("Reject too short author $author");
-            return NULL;
-        } else {
-            $author = $author2;
-        }
+            if (!$longenough) {
+                # Implausibly short.  Reject.
+                $this->log("Reject too short author $author");
+                return NULL;
+            } else {
+                $author = $author2;
+            }
 
-        # There are some titles which are very short, but they are more likely to just be false junk.
-        if (strlen($title) < 4) {
-            $this->log("Reject as too short title $title");
-            return NULL;
-        }
+            # There are some titles which are very short, but they are more likely to just be false junk.
+            if (strlen($title) < 4) {
+                $this->log("Reject as too short title $title");
+                return NULL;
+            }
 
-        # Sometimes we get a dash where it should be a dot, which confuses things.
-        $author = str_replace('-', ' ', strtolower($author));
-        $title = strtolower($title);
-        $title = $this->normalizeTitle($title);
+            # Sometimes we get a dash where it should be a dot, which confuses things.
+            $author = str_replace('-', ' ', strtolower($author));
+            $title = strtolower($title);
+            $title = $this->normalizeTitle($title);
 
-        # First search on the assumption that the OCR is pretty good, and we just have a little fuzziness.
-        $fuzauthor = round(strlen($author) / 10 + 1);
-        $fuztitle = round(strlen($title) / 10 + 1);
+            # First search on the assumption that the OCR is pretty good, and we just have a little fuzziness.
+            $fuzauthor = round(strlen($author) / 10 + 1);
+            $fuztitle = round(strlen($title) / 10 + 1);
 
-        $res = $this->client->search([
-            'index' => 'booktastic',
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => [
-                            [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => $fuzauthor ] ] ],
-                            [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
-                        ]
-                    ]
-                ]
-            ],
-            'size' => 5,
-        ]);
-
-        if ($res['hits']['total'] > 0) {
-            $this->log("Found very close match ");
-            $ret = $res['hits']['hits'][0];
-        } else {
-            # Now search just by author, and do our own custom matching.
-            $params = [
+            $res = $this->client->search([
                 'index' => 'booktastic',
                 'body' => [
                     'query' => [
                         'bool' => [
                             'must' => [
-                                [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 2] ] ]
-                            ],
-                            'should' => [
+                                [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => $fuzauthor ] ] ],
                                 [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
                             ]
                         ]
                     ]
                 ],
-                'size' => 100
-            ];
-
-            $this->log("No close match, search for author " . json_encode($params));
-            $res = $this->client->search($params);
-
-            $titlebest = 0;
-
-            $this->log("Search for $author - $title returned " . json_encode($res));
+                'size' => 5,
+            ]);
 
             if ($res['hits']['total'] > 0) {
-                foreach ($res['hits']['hits'] as $hit) {
-                    $hitauthor = $this->normalizeAuthor(strtolower($hit['_source'][$authkey]));
-                    $hittitle = $this->normalizeTitle(strtolower($hit['_source'][$titkey]));
+                $this->log("Found very close match ");
+                $ret = $res['hits']['hits'][0];
+            } else {
+                # Now search just by author, and do our own custom matching.
+                $params = [
+                    'index' => 'booktastic',
+                    'body' => [
+                        'query' => [
+                            'bool' => [
+                                'must' => [
+                                    [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 2] ] ]
+                                ],
+                                'should' => [
+                                    [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
+                                ]
+                            ]
+                        ]
+                    ],
+                    'size' => 100
+                ];
 
-                    if (strlen($hitauthor) > 5 && strlen($hittitle)) {
-                        # If one appears inside the other then it's a match.  This can happen if there's extra
-                        # stuff like publisher info.  The title is more likely to have that because the author
-                        # generally comes first.
-                        if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
-                            $this->log("Search for $author - $title returned ");
-                            $this->log("...matched inside $hitauthor - $hittitle");
-                            $ret = $hit;
-                        } else {
-                            $authperc = $this->compare($author, $hitauthor);
-                            $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
+                $this->log("No close match, search for author " . json_encode($params));
+                $res = $this->client->search($params);
 
-                            if ($authperc >= self::CONFIDENCE) {
-                                # Looks like the author.  Don't find the best author match - this is close enough
-                                # for it to be worth us scanning the books.
-                                $authbest = $authperc;
+                $titlebest = 0;
 
-                                # The title we have OCR'd is more likely to have guff on the end, such as the
-                                # publisher.  So compare upto the length of the candidate title.
-                                $canontitle = $this->canonTitle($title);
-                                $canonhittitle = $this->canonTitle($hittitle);
+                $this->log("Search for $author - $title returned " . json_encode($res));
 
-                                if (strlen($canontitle) && strlen($canonhittitle)) {
-                                    $titperc = $this->compare($canontitle, $canonhittitle);
-                                    $p = strpos("$canontitle", "$canonhittitle");
-                                    $this->log("...$hitauthor - $hittitle $titperc%, $p");
+                if ($res['hits']['total'] > 0) {
+                    foreach ($res['hits']['hits'] as $hit) {
+                        $hitauthor = $this->normalizeAuthor(strtolower($hit['_source'][$authkey]));
+                        $hittitle = $this->normalizeTitle(strtolower($hit['_source'][$titkey]));
 
-                                    if ($titperc >= self::CONFIDENCE && $titperc >= $titlebest) {
-                                        $titlebest = $titperc;
-                                        $this->log("Search for $author - $title returned ");
-                                        $this->log("...matched $hitauthor - $hittitle $titperc%");
-                                        $ret = $hit;
+                        if (strlen($hitauthor) > 5 && strlen($hittitle)) {
+                            # If one appears inside the other then it's a match.  This can happen if there's extra
+                            # stuff like publisher info.  The title is more likely to have that because the author
+                            # generally comes first.
+                            if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
+                                $this->log("Search for $author - $title returned ");
+                                $this->log("...matched inside $hitauthor - $hittitle");
+                                $ret = $hit;
+                            } else {
+                                $authperc = $this->compare($author, $hitauthor);
+                                $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
+
+                                if ($authperc >= self::CONFIDENCE) {
+                                    # Looks like the author.  Don't find the best author match - this is close enough
+                                    # for it to be worth us scanning the books.
+                                    $authbest = $authperc;
+
+                                    # The title we have OCR'd is more likely to have guff on the end, such as the
+                                    # publisher.  So compare upto the length of the candidate title.
+                                    $canontitle = $this->canonTitle($title);
+                                    $canonhittitle = $this->canonTitle($hittitle);
+
+                                    if (strlen($canontitle) && strlen($canonhittitle)) {
+                                        $titperc = $this->compare($canontitle, $canonhittitle);
+                                        $p = strpos("$canontitle", "$canonhittitle");
+                                        $this->log("...$hitauthor - $hittitle $titperc%, $p");
+
+                                        if ($titperc >= self::CONFIDENCE && $titperc >= $titlebest) {
+                                            $titlebest = $titperc;
+                                            $this->log("Search for $author - $title returned ");
+                                            $this->log("...matched $hitauthor - $hittitle $titperc%");
+                                            $ret = $hit;
+                                        }
                                     }
                                 }
                             }
@@ -479,6 +508,8 @@ class Catalogue
                     }
                 }
             }
+        } catch (Exception $e) {
+            $this->log("Failed " . $e->getMessage());
         }
 
         return $ret;
@@ -564,12 +595,40 @@ class Catalogue
                         $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
                         $this->log("FOUND: {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
 
+                        $this->checkAdjacent($spines, $spineindex, $author, $title);
+
                         if ($flag) {
                             $this->flagUsed($fragments, $spineindex);
                         }
 
                         $this->extractKnownAuthors($spines, $fragments);
                     }
+                }
+            }
+        }
+    }
+
+    private function checkAdjacent(&$spines, $spineindex, $author, $title) {
+        # We might have matched on part of a title and have the rest of it in an adjacent spine.  If so it's
+        # good to remove it to avoid it causing false matches.
+        $residual = trim(str_ireplace($title, '', $spines[$spineindex]['title']));
+        $this->log("Residual after removing $title => $residual");
+
+        if (strlen($residual)) {
+            $cmp = [];
+
+            if ($spineindex > 0) {
+                $cmp[] = $spineindex - 1;
+            }
+
+            if ($spineindex < count($spines) - 1) {
+                $cmp[] = $spineindex + 1;
+            }
+
+            foreach ($cmp as $c) {
+                if (!$spines[$c]['author'] && stripos($spines[$c]['spine'], $residual) !== FALSE) {
+                    $this->log("Remove from " . $spines[$c]['spine']);
+                    $spines[$c]['spine'] = trim(str_ireplace($residual, '', $spines[$c]['spine']));
                 }
             }
         }
@@ -598,7 +657,7 @@ class Catalogue
         #
         # It also avoids some issues where we can end up using the author from the wrong spine because the correct
         # author is split across more spines than we are currently looking at.
-        $authors = array_filter(array_column($spines, 'author'));
+        $authors = array_unique(array_filter(array_column($spines, 'author')));
         $this->log("Currently known authors " . json_encode($authors));
         foreach ($authors as $author) {
             $this->log("Search for known author $author");
@@ -608,7 +667,7 @@ class Catalogue
             for ($spineindex = 0; $spineindex < count($spines) - 1; $spineindex++) {
                 $this->log("Looking at #$spineindex " . json_encode($spines[$spineindex]));
 
-                if (!$spines[$spineindex]['author']) {
+                if (!$spines[$spineindex]['author'] && strlen($spines[$spineindex]['spine'])) {
                     #$this->log("Check spine at $spineindex");
                     $wi = $wordindex;
                     $si = $spineindex;
@@ -650,7 +709,10 @@ class Catalogue
                                 $this->log("Split");
                                 $this->splitSpines($spines, $fragments, $spineindex, $startword);
                                 $this->log("Spines after split" . json_encode($spines));
-                            } else if ($swi === count($spinewords)) {
+                            }
+                            else if ($si != $spineindex  && $swi === count($spinewords)) {
+                                # Found the author split across multiple spines.
+                                #
                                 # Only want to merge if the end of the author is at the end of the spine, as if we
                                 # have other words in the spine they may be a title.
                                 $this->log("Merge at $spineindex len $si - $spineindex");
@@ -805,46 +867,57 @@ class Catalogue
         # some books via that route.  But it's common to have the author on one line, and the book on another,
         # or other variations which result in text on a single spine being split.
         #
-        # Ideally we'd search all permutations of all the words.  But this is expensive - if we had 7
+        # Ideally we'd search all permutations of all the words.  But this is expensive.  3 chunks allows for an
+        # author and a split title or vice-versa.
         #
         # So loop through all cases where we have adjacent spines not matched.  Do this initially for 2 adjacent
         # spines, then increase - we've seen some examples where a single title can end up on several lines.
-        $ret = [];
+        $this->log("Broken spines");
+        foreach ($spines as $spine) {
+            if ($spine['author']) {
+                $this->log('-');
+            } else {
+                $this->log($spine['spine']);
+            }
+        }
 
-        for ($adjacent = 2; $adjacent <= 5; $adjacent++) {
+        for ($adjacent = 2; $adjacent <= 4; $adjacent++) {
             $i = 0;
 
             while ($i < count($spines) - 1) {
                 $thisone = $spines[$i];
-                $this->log("Consider broken spine {$thisone['spine']} at $i length $adjacent");
 
-                $blank = TRUE;
-                $healed = [];
+                if (strlen($thisone['spine'])) {
+                    $this->log("Consider broken spine {$thisone['spine']} at $i length $adjacent");
 
-                for ($j = $i; $j < count($spines) && $j - $i + 1 <= $adjacent; $j++) {
-                    if (pres('used', $spines[$j]) || $spines[$j]['author']) {
-                        $blank = FALSE;
-                        break;
+                    $blank = TRUE;
+                    $healed = [];
+
+                    for ($j = $i; $j < count($spines) && $j - $i + 1 <= $adjacent; $j++) {
+                        if (pres('used', $spines[$j]) || $spines[$j]['author']) {
+                            $blank = FALSE;
+                            break;
+                        } else {
+                            $healed[] = $spines[$j]['spine'];
+                        }
+                    }
+
+                    if ($blank) {
+                        $this->log("Enough blanks");
+                        $comspined = $this->searchForPermutedSpines($id, $healed, $fragments);
+
+                        if ($comspined) {
+                            # It worked.  Use these slots up.
+                            $this->log("Merge spines as $i length $adjacent for {$comspined['author']}");
+                            $this->log("spines before " . json_encode($spines));
+                            $this->mergeSpines($spines, $fragments, $comspined, $i, $adjacent);
+                            $this->log("spines now " . json_encode($spines));
+                            $this->log("Merged, flag");
+                            $this->flagUsed($fragments, $i);
+                        }
                     } else {
-                        $healed[] = $spines[$j]['spine'];
+                        $this->log("Not enough blanks");
                     }
-                }
-
-                if ($blank) {
-                    $this->log("Enough blanks");
-                    $comspined = $this->searchForPermutedSpines($id, $healed, $fragments);
-
-                    if ($comspined) {
-                        # It worked.  Use these slots up.
-                        $this->log("Merge spines as $i length $adjacent for {$comspined['author']}");
-                        $this->log("spines before " . json_encode($spines));
-                        $this->mergeSpines($spines, $fragments, $comspined, $i, $adjacent);
-                        $this->log("spines now " . json_encode($spines));
-                        $this->log("Merged, flag");
-                        $this->flagUsed($fragments, $i);
-                    }
-                } else {
-                    $this->log("Not enough blanks");
                 }
 
                 $i++;
