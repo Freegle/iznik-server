@@ -18,6 +18,7 @@ class Catalogue
     private $client = NULL;
     private $start = NULL;
     private $logging = TRUE;
+    private $searchAuthors = [];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -56,7 +57,7 @@ class Catalogue
         $str = preg_replace('/0\d+/', '', $str);
 
         # Anything with digits separated by dots can't be either.
-        $str = preg_replace('/[\d\.]{2,}/', '', $str);
+        $str = preg_replace('/\d+\.\d+/', '', $str);
 
         # Nothing good starts with a dash.
         $str = preg_replace('/\s-\w+(\b|$)/', '', $str);
@@ -439,25 +440,30 @@ class Catalogue
                 $ret = $res['hits']['hits'][0];
             } else {
                 # Now search just by author, and do our own custom matching.
-                $params = [
-                    'index' => 'booktastic',
-                    'body' => [
-                        'query' => [
-                            'bool' => [
-                                'must' => [
-                                    [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 2] ] ]
-                                ],
-                                'should' => [
-                                    [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
+                $res = presdef($author, $this->searchAuthors, NULL);
+
+                if (!$res) {
+                    $params = [
+                        'index' => 'booktastic',
+                        'body' => [
+                            'query' => [
+                                'bool' => [
+                                    'must' => [
+                                        [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 2] ] ]
+                                    ],
+//                                    'should' => [
+//                                        [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
+//                                    ]
                                 ]
                             ]
-                        ]
-                    ],
-                    'size' => 100
-                ];
+                        ],
+                        'size' => 100
+                    ];
 
-                $this->log("No close match, search for author " . json_encode($params));
-                $res = $this->client->search($params);
+                    $this->log("No close match, search for author " . json_encode($params));
+                    $res = $this->client->search($params);
+                    $this->searchAuthors[$author] = $res;
+                }
 
                 $titlebest = 0;
 
