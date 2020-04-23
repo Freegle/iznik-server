@@ -135,6 +135,7 @@ class CatalogueTest extends IznikTestCase
             'bryson2',
             'bryson',
             'chris1',
+            'chris2',
             'crime1',
             'crime2',
             'crime3',

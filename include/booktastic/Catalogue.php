@@ -229,7 +229,7 @@ class Catalogue
     }
 
     private function pruneSmallText(&$lines, &$fragments) {
-        # Small text on spines is likely to be publishers, ISBN numbers, stuff we've read from the front at an angle,
+        # Very small text on spines is likely to be publishers, ISBN numbers, stuff we've read from the front at an angle,
         # or otherwise junk.  So let's identify the typical letter height, and prune out stuff that's much smaller.
         $heights = [];
 
@@ -257,6 +257,7 @@ class Catalogue
                         if ($thismax < 0.25 * $mean) {
                             $this->log("Prune small text " . $fragments[$fragindex]['description'] . " size $thismax vs $mean");
                         } else {
+                            #$this->log("Keep larger text " . $fragments[$fragindex]['description'] . " size $thismax vs $mean");
                             $newlinewords[] = $fragments[$fragindex]['description'];
                             $newfragments[] = $fragments[$fragindex];
                         }
@@ -502,7 +503,7 @@ class Catalogue
 
                 $titlebest = 0;
 
-                $this->log("Search for $author - $title returned " . json_encode($res));
+                $this->log("Search for $author returned " . json_encode($res));
 
                 if ($res['hits']['total'] > 0) {
                     foreach ($res['hits']['hits'] as $hit) {
