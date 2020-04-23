@@ -49,18 +49,25 @@ class Catalogue
         $sstr = $str;
 
         # ISBNs often appear on spines.
-        $str = str_replace('ISBN', '', $str);
+        $str = trim(str_replace('ISBN', '', $str));
 
         # Remove digit sequences which are likely part of ISBN.
         #
-        # Anything with leading zeros can't be in a real title.
-        $str = preg_replace('/0\d+/', '', $str);
+        # Anything with digits separated by dots can't be a real word.
+        $str = trim(preg_replace('/\d+\.\d+/', '', $str));
 
-        # Anything with digits separated by dots can't be either.
-        $str = preg_replace('/\d+\.\d+/', '', $str);
+        # Anything with leading zeros can't either.
+        $str = trim(preg_replace('/0\d+/', '', $str));
+
+        # Remove all words that are 1, 2 or 3 digits.  These could legitimately be in some titles but
+        # much more often they are ISBN junk.
+        $str = trim(preg_replace('/\b\d{1,3}\b/', '', $str));
 
         # Nothing good starts with a dash.
-        $str = preg_replace('/\s-\w+(\b|$)/', '', $str);
+        $str = trim(preg_replace('/\s-\w+(\b|$)/', '', $str));
+
+        # # is not a word
+        $str = trim(preg_replace('/\b\#\b/', '', $str));
 
         # Collapse multiple spaces.
         $str = preg_replace('/\s+/', ' ', $str);
@@ -419,6 +426,7 @@ class Catalogue
             # First search on the assumption that the OCR is pretty good, and we just have a little fuzziness.
             $fuzauthor = round(strlen($author) / 10 + 1);
             $fuztitle = round(strlen($title) / 10 + 1);
+            $this->log("Search for $author - $title, fuzz $fuzauthor, $fuztitle");
 
             $res = $this->client->search([
                 'index' => 'booktastic',
@@ -778,48 +786,63 @@ class Catalogue
             }
         }
 
-        if (!$res) {
-            # Well, that didn't work.  But sometimes Google breaks in the wrong place.  So now search using
-            # each word as a breakpoint.
-            foreach ($permuted as $permute) {
-                $words = explode(' ', implode(' ', $permute));
-                $this->log("Filter words");
-                $words = array_filter($words, function($a) {
-                    return strlen($a);
-                });
+        return $res;
+    }
 
-                $this->log("Consider permutation " . json_encode($words));
+    public function searchForMangledSpines($id, $spines, &$fragments) {
+        # Search the different orders of these these spines.
+        #
+        # The most likely case is that each spine we have in hand is an author or a title - the fact that Google
+        # split it at that point tells us something.  So first search using those spine breakpoints.
+        $this->log("Search for mangled spines " . json_encode($spines));
 
-                # Most authors have two words, so order our loop to search for that first, at the start or end.
-                $order = range(0, count($words) - 1);
+        $permuted = $this->permute($spines);
 
-                if (count($words) > 2) {
-                    array_unshift($order,array_pop($order));
-                    $order[1] = 1;
-                    $order[2] = 0;
-                }
+        $searched = [];
+        $res = NULL;
 
-                foreach ($order as $i) {
-                    $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
-                    $title = trim(implode(' ', array_slice($words, $i + 1)));
-                    $sortedauthor = $this->sortstring($author);
-                    $sortedtitle = $this->sortstring($title);
+        # Sometimes Google breaks in the wrong place.  So now search using each word as a breakpoint.
+        foreach ($permuted as $permute) {
+            $words = explode(' ', implode(' ', $permute));
+            $this->log("Filter words");
+            $words = array_filter($words, function ($a) {
+                return strlen($a);
+            });
 
-                    $key = "$sortedauthor - $sortedtitle";
-                    $this->log("Consider permute search $key");
-                    if (!array_key_exists($key, $searched)) {
-                        $this->log((microtime(TRUE) - $this->start) . " New search $key");
-                        $searched[$key] = TRUE;
-                        $ret = $this->search($author, $title, 2);
+            $this->log("Consider mangling " . json_encode($words));
 
-                        if ($ret) {
-                            $res = $ret['_source'];
-                            $res['spine'] = "{$res['author']} {$res['title']}";
-                            $this->log("Found {$res['spine']} using word breakpoints");
-                        }
-                    } else {
-                        $this->log("Already searched");
+            # Most authors have two words, so order our loop to search for that first, at the start or end.
+            $order = range(0, count($words) - 1);
+
+            if (count($words) > 2) {
+                array_unshift($order, array_pop($order));
+                $order[1] = 1;
+                $order[2] = 0;
+            }
+
+            foreach ($order as $i) {
+                $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
+                $title = trim(implode(' ', array_slice($words, $i + 1)));
+                $key = "$author - $title";
+                $sortedauthor = $this->sortstring($author);
+                $sortedtitle = $this->sortstring($title);
+                #$key = "$sortedauthor - $sortedtitle";
+
+                $this->log("Consider mangled search $key");
+
+                if (!array_key_exists($key, $searched)) {
+                    $this->log((microtime(TRUE) - $this->start) . " New search $key");
+                    $searched[$key] = TRUE;
+                    #$ret = $this->search($sortedauthor, $sortedtitle, 2, TRUE);
+                    $ret = $this->search($author, $title, 2, FALSE);
+
+                    if ($ret) {
+                        $res = $ret['_source'];
+                        $res['spine'] = "{$res['author']} {$res['title']}";
+                        $this->log("Found {$res['spine']} using word breakpoints");
                     }
+                } else {
+                    $this->log("Already searched");
                 }
             }
         }
@@ -887,46 +910,55 @@ class Catalogue
             }
         }
 
-        for ($adjacent = 2; $adjacent <= 4; $adjacent++) {
-            $i = 0;
+        # Mangled searches are slower so we do them second, and because we will split inside a spine we don't
+        # need to try as many spines.
+        foreach ([FALSE, TRUE] as $mangle) {
+            for ($adjacent = 2; $adjacent <= ($mangle ? 2 : 4); $adjacent++) {
+                $i = 0;
 
-            while ($i < count($spines) - 1) {
-                $thisone = $spines[$i];
+                while ($i < count($spines) - 1) {
+                    $thisone = $spines[$i];
 
-                if (strlen($thisone['spine'])) {
-                    $this->log("Consider broken spine {$thisone['spine']} at $i length $adjacent");
+                    if (strlen($thisone['spine'])) {
+                        $this->log("Consider broken spine {$thisone['spine']} at $i length $adjacent");
 
-                    $blank = TRUE;
-                    $healed = [];
+                        $blank = TRUE;
+                        $healed = [];
 
-                    for ($j = $i; $j < count($spines) && $j - $i + 1 <= $adjacent; $j++) {
-                        if (pres('used', $spines[$j]) || $spines[$j]['author']) {
-                            $blank = FALSE;
-                            break;
+                        for ($j = $i; $j < count($spines) && $j - $i + 1 <= $adjacent; $j++) {
+                            if (pres('used', $spines[$j]) || $spines[$j]['author']) {
+                                $blank = FALSE;
+                                break;
+                            } else {
+                                $healed[] = $spines[$j]['spine'];
+                            }
+                        }
+
+                        if ($blank) {
+                            $this->log("Enough blanks");
+
+                            if (!$mangle) {
+                                $comspined = $this->searchForPermutedSpines($id, $healed, $fragments);
+                            } else {
+                                $comspined = $this->searchForMangledSpines($id, $healed, $fragments);
+                            }
+
+                            if ($comspined) {
+                                # It worked.  Use these slots up.
+                                $this->log("Merge spines as $i length $adjacent for {$comspined['author']}");
+                                $this->log("spines before " . json_encode($spines));
+                                $this->mergeSpines($spines, $fragments, $comspined, $i, $adjacent);
+                                $this->log("spines now " . json_encode($spines));
+                                $this->log("Merged, flag");
+                                $this->flagUsed($fragments, $i);
+                            }
                         } else {
-                            $healed[] = $spines[$j]['spine'];
+                            $this->log("Not enough blanks");
                         }
                     }
 
-                    if ($blank) {
-                        $this->log("Enough blanks");
-                        $comspined = $this->searchForPermutedSpines($id, $healed, $fragments);
-
-                        if ($comspined) {
-                            # It worked.  Use these slots up.
-                            $this->log("Merge spines as $i length $adjacent for {$comspined['author']}");
-                            $this->log("spines before " . json_encode($spines));
-                            $this->mergeSpines($spines, $fragments, $comspined, $i, $adjacent);
-                            $this->log("spines now " . json_encode($spines));
-                            $this->log("Merged, flag");
-                            $this->flagUsed($fragments, $i);
-                        }
-                    } else {
-                        $this->log("Not enough blanks");
-                    }
+                    $i++;
                 }
-
-                $i++;
             }
         }
     }
