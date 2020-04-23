@@ -217,35 +217,60 @@ class Catalogue
         return [ $id, $text ];
     }
 
-    public function getOverallOrientation($fragments) {
-        # Work out whether the orientation of the image is horizontal(ish) or vertical(ish).
-        # Which way is this oriented determines which way we project.
-        $xtot = 0;
-        $ytot = 0;
-        $minx = PHP_INT_MAX;
-        $maxx = -PHP_INT_MAX;
-        $miny = PHP_INT_MAX;
-        $maxy = -PHP_INT_MAX;
+    private function getMaxDimension($fragment) {
+        $vertices = $fragment['boundingPoly']['vertices'];
 
+        $x = abs(presdef('x', $vertices[0], 0) - presdef('x', $vertices[3], 0));
+        $y = abs(presdef('y', $vertices[0], 0) - presdef('y', $vertices[3], 0));
+        $ret = max($x, $y);
+        #$this->log($fragment['description'] . " max dimension $ret from " . json_encode($vertices));
 
+        return $ret;
+    }
 
-        foreach ($fragments as $j) {
-            $vertices = $j['boundingPoly']['vertices'];
+    private function pruneSmallText(&$lines, &$fragments) {
+        # Small text on spines is likely to be publishers, ISBN numbers, stuff we've read from the front at an angle,
+        # or otherwise junk.  So let's identify the typical letter height, and prune out stuff that's much smaller.
+        $heights = [];
 
-            $xtot += abs(presdef('x', $vertices[1], 0) - presdef('x', $vertices[0], 0));
-            $ytot += abs(presdef('y', $vertices[1], 0) - presdef('y', $vertices[0], 0));
-
-            $minx = min($minx, presdef('x', $vertices[0], 0));
-            $maxx = max($maxx, presdef('x', $vertices[0], 0));
-            $miny = min($miny, presdef('y', $vertices[0], 0));
-            $maxy = max($maxy, presdef('y', $vertices[0], 0));
+        foreach ($fragments as $fragment) {
+            $heights[] = $this->getMaxDimension($fragment);
         }
 
-        $horizontalish = $xtot >= $ytot;
+        $mean = array_sum($heights) / count($heights);
+        $this->log("Mean height $mean");
+        $newlines = [];
+        $newfragments = [];
+        $fragindex = 0;
 
-        $height = $horizontalish ? ($maxx - $minx) : ($maxy - $miny);
+        foreach ($lines as $lindinex => $line) {
+            $linewords = explode(' ', trim($line));
+            $newlinewords = [];
 
-        return [ $horizontalish, $height ];
+            foreach ($linewords as $word) {
+                if (strlen($word)) {
+                    $this->log("Consider $word line $lindinex, fragment $fragindex vs " . count($fragments));
+                    if ($fragments[$fragindex]['description'] !== $word) {
+                        $this->log("ERROR: mismatch spine/fragment");
+                    } else {
+                        $thismax = $this->getMaxDimension($fragments[$fragindex]);
+                        if ($thismax < 0.25 * $mean) {
+                            $this->log("Prune small text " . $fragments[$fragindex]['description'] . " size $thismax vs $mean");
+                        } else {
+                            $newlinewords[] = $fragments[$fragindex]['description'];
+                            $newfragments[] = $fragments[$fragindex];
+                        }
+
+                        $fragindex++;
+                    }
+                }
+            }
+
+            $newlines[] = implode(' ', $newlinewords);
+        }
+
+        $lines = $newlines;
+        $fragments = $newfragments;
     }
 
     public function identifySpinesFromOCR($id) {
@@ -266,6 +291,8 @@ class Catalogue
             $lines = explode("\n", $summary);
 
             array_shift($fragments);
+
+            $this->pruneSmallText($lines, $fragments);
 
             # Annotate the fragments with whether they are related.
             $fragindex = 0;

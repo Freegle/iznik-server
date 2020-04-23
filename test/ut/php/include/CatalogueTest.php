@@ -131,10 +131,10 @@ class CatalogueTest extends IznikTestCase
         $ret = [];
         
         foreach ( [ 
-            'chris1',
             'bryson3',
             'bryson2',
             'bryson',
+            'chris1',
             'crime1',
             'crime2',
             'crime3',
