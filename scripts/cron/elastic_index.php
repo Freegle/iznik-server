@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 
 $client = ClientBuilder::create()
     ->setHosts([
-        'db-1.ilovefreegle.org:9200'
+        'bulk3.ilovefreegle.org:9200'
     ])
     ->build();
 

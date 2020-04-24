@@ -267,13 +267,29 @@ try {
 # in multiple timestamps per user who was active at that time, which is what we need, because MySQL ignores NULL
 # values in constraints.
 $start = date('Y-m-d', strtotime("midnight 7 days ago"));
-error_log("Purge user activity logs before $start");
+error_log("Anonymise user activity logs before $start");
 
 try {
     error_log("Activity logs:");
     $total = 0;
     do {
         $count = $dbhm->exec("UPDATE users_active SET userid = NULL WHERE userid IS NOT NULL AND timestamp < '$start' LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+        set_time_limit(600);
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete Plugin logs " . $e->getMessage());
+}
+
+# No value to this data beyond a year.
+$start = date('Y-m-d', strtotime("midnight 1 year ago"));
+error_log("Purge user activity logs entirely before $start");
+
+try {
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM users_active WHERE timestamp < '$start' LIMIT 1000;");
         $total += $count;
         error_log("...$total");
         set_time_limit(600);

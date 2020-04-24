@@ -40,7 +40,7 @@ class Catalogue
 
         $this->client = ClientBuilder::create()
             ->setHosts([
-                'db-1.ilovefreegle.org:9200'
+                'bulk3.ilovefreegle.org:9200'
             ])
             ->build();
     }
@@ -1154,5 +1154,12 @@ class Catalogue
         }
 
         return pres('author', $json);
+    }
+
+    public function rate($id, $rating) {
+        $this->dbhm->preExec("UPDATE booktastic_results SET rating = ? WHERE ocrid = ?;", [
+            $rating,
+            $id
+        ]);
     }
 }

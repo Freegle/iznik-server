@@ -1,5 +1,8 @@
 <?php
 
+const CLEAN = TRUE;
+const CHECK = FALSE;
+
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
@@ -9,73 +12,65 @@ use Elasticsearch\ClientBuilder;
 
 $client = ClientBuilder::create()
     ->setHosts([
-        'db-1.ilovefreegle.org:9200'
+        'bulk3.ilovefreegle.org:9200'
     ])
     ->build();
 
-//try {
-//    # Delete any old index
-//    $client->indices()->delete([
-//        'index' => 'booktastic'
-//    ]);
-//} catch (Exception $e) {
-//
-//}
-//
-# Add the index
-$params = [
-    'index' => 'booktastic',
-    'body' => [
-        'settings' => [
-            'analysis' => [
-                'normalizer' => [
-                    'my_normalizer' => [
-                        'type' => 'custom',
-                        'filter' => ['lowercase']
+if (CLEAN) {
+    try {
+        # Delete any old index
+        $client->indices()->delete([
+            'index' => 'booktastic'
+        ]);
+        exit(0);
+    } catch (Exception $e) {
+
+    }
+
+    # Add the index
+    $params = [
+        'index' => 'booktastic',
+        'body' => [
+            'settings' => [
+                'analysis' => [
+                    'normalizer' => [
+                        'my_normalizer' => [
+                            'type' => 'custom',
+                            'filter' => ['lowercase']
+                        ]
                     ]
                 ]
-            ]
-        ],
-        'mappings' => [
-            'books' => [
-                '_source' => [
-                    'enabled' => TRUE
-                ],
-                'properties' => [
-                    'viafid' => [
-                        'type' => 'keyword'
+            ],
+            'mappings' => [
+                'books' => [
+                    '_source' => [
+                        'enabled' => TRUE
                     ],
-                    'author' => [
-                        'type' => 'keyword',
-                        'normalizer' => 'my_normalizer'
-                    ],
-                    'title' => [
-                        'type' => 'keyword',
-                        'normalizer' => 'my_normalizer',
-                        'split_queries_on_whitespace' => TRUE
-                    ],
-                    'titletext' => [
-                        'type' => 'text'
-                    ],
-                    'sortedauthor' => [
-                        'type' => 'keyword',
-                        'normalizer' => 'my_normalizer'
-                    ],
-                    'sortedtitle' => [
-                        'type' => 'keyword',
-                        'normalizer' => 'my_normalizer'
+                    'properties' => [
+                        'viafid' => [
+                            'type' => 'keyword'
+                        ],
+                        'author' => [
+                            'type' => 'keyword',
+                            'normalizer' => 'my_normalizer'
+                        ],
+                        'title' => [
+                            'type' => 'keyword',
+                            'normalizer' => 'my_normalizer',
+                            'split_queries_on_whitespace' => TRUE
+                        ],
                     ]
                 ]
             ]
         ]
-    ]
-];
+    ];
 
-try {
-    $response = $client->indices()->create($params);
-    error_log("Created index " . var_export($response, TRUE));
-} catch (Exception $e) {
-    error_log("Create index failed with " . $e->getMessage());
+    try {
+        $response = $client->indices()->create($params);
+        error_log("Created index " . var_export($response, TRUE));
+    } catch (Exception $e) {
+        error_log("Create index failed with " . $e->getMessage());
+    }
 }
 
 $opts = getopt('f:');
@@ -118,40 +113,42 @@ do {
             #error_log("Reorder $author");
         }
 
-        # Check if already there.
-        $already = $client->search([
-            'index' => 'booktastic',
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => [
-                            'match' => [
-                                'author' => $author
-                            ],
-                            'match' => [
-                                'title' => $title
+        $addit = TRUE;
+
+        if (!CHECK) {
+            # Check if already there.
+            $already = $client->search([
+                'index' => 'booktastic',
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'must' => [
+                                'match' => [
+                                    'author' => $author
+                                ],
+                                'match' => [
+                                    'title' => $title
+                                ]
                             ]
                         ]
                     ]
                 ]
-            ]
-        ]);
+            ]);
 
-        #error_log("Already returned " . var_export($already, TRUE));
-        $addit = TRUE;
+            #error_log("Already returned " . var_export($already, TRUE));
+            if ($already['hits']['total'] > 0) {
+                # Might already be there.  Check if this is an exact match.
+                foreach ($already['hits']['hits'] as $hit) {
+                    #error_log("May already be there " . var_export($already['hits'], TRUE));
+                    $hitauthor = strtolower($hit['_source']['author']);
+                    $hittitle = strtolower($hit['_source']['title']);
 
-        if ($already['hits']['total'] > 0) {
-            # Might already be there.  Check if this is an exact match.
-            foreach ($already['hits']['hits'] as $hit) {
-                #error_log("May already be there " . var_export($already['hits'], TRUE));
-                $hitauthor = strtolower($hit['_source']['author']);
-                $hittitle = strtolower($hit['_source']['title']);
-
-                if (!strcmp(strtolower($author), $hitauthor) && !strcmp(strtolower($title), $hittitle)) {
-                    #error_log("Already there");
-                    $addit = FALSE;
-                } else {
-                    #error_log("False match $author - $title to $hitauthor - $hittitle");
+                    if (!strcmp(strtolower($author), $hitauthor) && !strcmp(strtolower($title), $hittitle)) {
+                        #error_log("Already there");
+                        $addit = FALSE;
+                    } else {
+                        #error_log("False match $author - $title to $hitauthor - $hittitle");
+                    }
                 }
             }
         }

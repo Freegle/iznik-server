@@ -8,22 +8,41 @@ function catalogue() {
     switch ($_REQUEST['type']) {
         case 'POST':
         {
-            $photo = presdef('photo', $_REQUEST, NULL);
+            $c = new Catalogue($dbhr, $dbhm);
 
-            if ($photo) {
-                $data = substr($photo, strpos($photo, ',') + 1);
+            $action = presdef('action', $_REQUEST, NULL);
+            $id = intval(presdef('id', $_REQUEST, 0));
 
-                $c = new Catalogue($dbhr, $dbhm);
-                list ($id, $text) = $c->ocr($data);
+            if ($action) {
+                switch ($action) {
+                    case 'Rate': {
+                        $rating = intval(presdef('rating', $_REQUEST, 0));
+                        $c->rate($id, $rating);
 
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'text' => $text,
-                    'id' => $id
-                ];
-                break;
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                            ];
+                        break;
+                    }
+                }
+            } else {
+                $photo = presdef('photo', $_REQUEST, NULL);
+
+                if ($photo) {
+                    $data = substr($photo, strpos($photo, ',') + 1);
+
+                    list ($id, $text) = $c->ocr($data);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'text' => $text,
+                        'id' => $id
+                    ];
+                }
             }
+            break;
         }
         case 'GET': {
             $c = new Catalogue($dbhr, $dbhm);
