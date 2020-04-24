@@ -211,6 +211,29 @@ try {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
 }
 
+# Logs for users who no longer exist.
+$start = date('Y-m-d', strtotime("midnight 30 days ago"));
+error_log("Purge logs for users who don't exist before $start");
+
+try {
+    $total = 0;
+    do {
+        $logs = $dbhr->preQuery("SELECT logs.id FROM logs LEFT JOIN users ON users.id = logs.user WHERE `timestamp` < '$start' AND logs.user IS NOT NULL AND users.id IS NULL LIMIT 1000;", NULL, FALSE, FALSE);
+
+        foreach ($logs as $log) {
+            $dbhm->exec("DELETE FROM logs WHERE id = {$log['id']};");
+            $total++;
+
+            if ($total % 1000 == 0) {
+                error_log("...$total");
+                set_time_limit(600);
+            }
+        }
+    } while (count($logs) > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete Plugin logs " . $e->getMessage());
+}
+
 try {
     error_log("API logs:");
     $total = 0;
