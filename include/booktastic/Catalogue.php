@@ -471,8 +471,8 @@ class Catalogue
                 'size' => 5,
             ]);
 
-            if ($res['hits']['total'] > 0) {
-                $this->log("Found very close match ");
+            if ($res['hits']['total']['value'] > 0) {
+                $this->log("Found very close match " . json_encode($res));
                 $ret = $res['hits']['hits'][0];
             } else {
                 # Now search just by author, and do our own custom matching.
@@ -505,7 +505,7 @@ class Catalogue
 
                 $this->log("Search for $author returned " . json_encode($res));
 
-                if ($res['hits']['total'] > 0) {
+                if ($res['hits']['total']['value'] > 0) {
                     foreach ($res['hits']['hits'] as $hit) {
                         $hitauthor = $this->normalizeAuthor(strtolower($hit['_source'][$authkey]));
                         $hittitle = $this->normalizeTitle(strtolower($hit['_source'][$titkey]));

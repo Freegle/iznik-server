@@ -1,7 +1,6 @@
 <?php
 
-const CLEAN = TRUE;
-const CHECK = FALSE;
+const CLEAN = FALSE;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
@@ -19,12 +18,13 @@ $client = ClientBuilder::create()
 if (CLEAN) {
     try {
         # Delete any old index
+        error_log("Delete old");
         $client->indices()->delete([
             'index' => 'booktastic'
         ]);
-        exit(0);
+        error_log("Deleted");
     } catch (Exception $e) {
-
+        error_log("Delete failed " . $e->getMessage());
     }
 
     # Add the index
@@ -42,7 +42,7 @@ if (CLEAN) {
                 ]
             ],
             'mappings' => [
-                'books' => [
+//                'books' => [
                     '_source' => [
                         'enabled' => TRUE
                     ],
@@ -60,12 +60,13 @@ if (CLEAN) {
                             'split_queries_on_whitespace' => TRUE
                         ],
                     ]
-                ]
+//                ]
             ]
         ]
     ];
 
     try {
+        error_log("Create index");
         $response = $client->indices()->create($params);
         error_log("Created index " . var_export($response, TRUE));
     } catch (Exception $e) {
@@ -73,18 +74,40 @@ if (CLEAN) {
     }
 }
 
+$addParamsInitial = [
+    'body' => []
+];
+
+$addParams = $addParamsInitial;
+
+function addOne($client, $viafid, $author, $title, &$count) {
+    global $addParams, $addParamsInitial;
+
+    $addParams['body'][] = [
+        'index' => [
+            '_index' => 'booktastic',
+        ]
+    ];
+
+    $addParams['body'][] = [
+        'viafid' => $viafid,
+        'author' => $author,
+        'title' => $title,
+    ];
+
+    $count++;
+
+    if ($count % 1000 == 0) {
+        $response = $client->bulk($addParams);
+        $addParams = $addParamsInitial;
+        error_log("...$count");
+    }
+}
+
 $opts = getopt('f:');
 
 $handle = fopen($opts['f'], "r");
 $count = 0;
-
-function sortstring($string,$unique = false) {
-    $string = str_replace('.', '', $string);
-    $array = explode(' ',strtolower($string));
-    if ($unique) $array = array_unique($array);
-    sort($array);
-    return implode(' ',$array);
-}
 
 do {
     $csv = fgetcsv($handle);
@@ -110,76 +133,10 @@ do {
 
         if ($p !== FALSE) {
             $author = trim(substr($author, $p + 1)) . " " . trim(substr($author, 0, $p));
-            #error_log("Reorder $author");
         }
 
-        $addit = TRUE;
-
-        if (!CHECK) {
-            # Check if already there.
-            $already = $client->search([
-                'index' => 'booktastic',
-                'body' => [
-                    'query' => [
-                        'bool' => [
-                            'must' => [
-                                'match' => [
-                                    'author' => $author
-                                ],
-                                'match' => [
-                                    'title' => $title
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]);
-
-            #error_log("Already returned " . var_export($already, TRUE));
-            if ($already['hits']['total'] > 0) {
-                # Might already be there.  Check if this is an exact match.
-                foreach ($already['hits']['hits'] as $hit) {
-                    #error_log("May already be there " . var_export($already['hits'], TRUE));
-                    $hitauthor = strtolower($hit['_source']['author']);
-                    $hittitle = strtolower($hit['_source']['title']);
-
-                    if (!strcmp(strtolower($author), $hitauthor) && !strcmp(strtolower($title), $hittitle)) {
-                        #error_log("Already there");
-                        $addit = FALSE;
-                    } else {
-                        #error_log("False match $author - $title to $hitauthor - $hittitle");
-                    }
-                }
-            }
-        }
-
-        if ($addit) {
-            #error_log("Not there");
-            $params = [
-                'index' => 'booktastic',
-                'body' => [
-                    'viafid' => $viafid,
-                    'author' => $author,
-                    'title' => $title,
-                    'titletext' => $title,
-                    'sortedauthor' => sortstring($author),
-                    'sortedtitle' => sortstring($title)
-                ]
-            ];
-
-            #error_log("Create with params " . var_export($params, TRUE));
-            #error_log("$author");
-            $response = $client->index($params);
-            #error_log("Add returned " . var_export($response, TRUE));
-        } else {
-            # Ignore, already there.
-        }
-
-        $count++;
-
-        if ($count % 1000 == 0) {
-            error_log("...$count");
-        }
-        #error_log("Indexed message " . var_export($response, TRUE));
+        addOne($client, $viafid, $author, $title, $count);
     }
 } while ($csv);
+
+$client->bulk($addParams);
