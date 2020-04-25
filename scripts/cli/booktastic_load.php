@@ -6,6 +6,7 @@ define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/booktastic/Catalogue.php');
 
 use Elasticsearch\ClientBuilder;
 
@@ -51,7 +52,8 @@ if (CLEAN) {
                     ],
                     'author' => [
                         'type' => 'keyword',
-                        'normalizer' => 'my_normalizer'
+                        'normalizer' => 'my_normalizer',
+                        'split_queries_on_whitespace' => TRUE
                     ],
                     'title' => [
                         'type' => 'keyword',
@@ -77,9 +79,10 @@ $addParamsInitial = [
 ];
 
 $addParams = $addParamsInitial;
+$c = new Catalogue($dbhr, $dbhm);
 
 function addOne($client, $viafid, $author, $title, &$count) {
-    global $addParams, $addParamsInitial;
+    global $addParams, $addParamsInitial, $c;
 
     $addParams['body'][] = [
         'index' => [
@@ -89,8 +92,8 @@ function addOne($client, $viafid, $author, $title, &$count) {
 
     $addParams['body'][] = [
         'viafid' => $viafid,
-        'author' => $author,
-        'title' => $title,
+        'author' => $c->normalizeAuthor($author),
+        'title' => $c->normalizeTitle($title),
     ];
 
     $count++;
@@ -137,4 +140,6 @@ do {
     }
 } while ($csv);
 
-$client->bulk($addParams);
+if (count($addParams['body'])) {
+    $client->bulk($addParams);
+}
