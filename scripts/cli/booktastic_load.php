@@ -42,25 +42,23 @@ if (CLEAN) {
                 ]
             ],
             'mappings' => [
-//                'books' => [
-                    '_source' => [
-                        'enabled' => TRUE
+                '_source' => [
+                    'enabled' => TRUE
+                ],
+                'properties' => [
+                    'viafid' => [
+                        'type' => 'keyword'
                     ],
-                    'properties' => [
-                        'viafid' => [
-                            'type' => 'keyword'
-                        ],
-                        'author' => [
-                            'type' => 'keyword',
-                            'normalizer' => 'my_normalizer'
-                        ],
-                        'title' => [
-                            'type' => 'keyword',
-                            'normalizer' => 'my_normalizer',
-                            'split_queries_on_whitespace' => TRUE
-                        ],
-                    ]
-//                ]
+                    'author' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'my_normalizer'
+                    ],
+                    'title' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'my_normalizer',
+                        'split_queries_on_whitespace' => TRUE
+                    ],
+                ]
             ]
         ]
     ];

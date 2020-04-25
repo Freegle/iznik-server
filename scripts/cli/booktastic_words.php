@@ -7,23 +7,100 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 
+use Elasticsearch\ClientBuilder;
+
+$client = ClientBuilder::create()
+    ->setHosts([
+        'bulk3.ilovefreegle.org:9200'
+    ])
+    ->build();
+
+$params = [
+    'index' => 'names',
+    'body' => [
+        'mappings' => [
+            '_source' => [
+                'enabled' => TRUE
+            ],
+            'properties' => [
+                'word' => [
+                    'type' => 'keyword'
+                ]
+            ]
+        ]
+    ]
+];
+
+try {
+    error_log("Create index");
+    $response = $client->indices()->create($params);
+    error_log("Created index " . var_export($response, TRUE));
+} catch (Exception $e) {
+    error_log("Create index failed with " . $e->getMessage());
+}
+
+$params = [
+    'index' => 'words',
+    'body' => [
+        'mappings' => [
+            '_source' => [
+                'enabled' => TRUE
+            ],
+            'properties' => [
+                'word' => [
+                    'type' => 'keyword'
+                ]
+            ]
+        ]
+    ]
+];
+
+try {
+    error_log("Create index");
+    $response = $client->indices()->create($params);
+    error_log("Created index " . var_export($response, TRUE));
+} catch (Exception $e) {
+    error_log("Create index failed with " . $e->getMessage());
+}
 
 $opts = getopt('f:');
 
+function addOne($client, &$add, $index, $word, $freq, &$count) {
+    $add['body'][] = [
+        'index' => [
+            '_index' => $index,
+        ]
+    ];
+
+    $add['body'][] = [
+        'word' => $word,
+        'frequency' => $freq
+    ];
+
+    $count++;
+
+    if ($count % 1000 == 0) {
+        $response = $client->bulk($add);
+        $add = [
+            'body' => []
+        ];
+        error_log("...$count");
+    }
+}
+
 $handle = fopen($opts['f'], "r");
 $count = 0;
+$namelist = [];
 $wordlist = [];
 
-function addWords($table, $str) {
-    global $dbhm, $wordlist;
-
+function addWords(&$list, $str) {
     $words = explode(' ', strtolower($str));
 
     foreach ($words as $word) {
-        if (pres($word, $wordlist)) {
-            $wordlist[$word]++;
+        if (pres($word, $list)) {
+            $list[$word]++;
         } else {
-            $wordlist[$word] = 1;
+            $list[$word] = 1;
         }
     }
 }
@@ -55,28 +132,38 @@ do {
             $author = trim(substr($author, $p + 1)) . " " . trim(substr($author, 0, $p));
         }
 
-        #addWords('booktastic_words', $title);
-        addWords('booktastic_names', $author);
+        addWords($wordlist, $title);
+        addWords($namelist, $author);
 
         $count++;
         if ($count % 1000 == 0) {
-            error_log("...$count, " . count($wordlist));
+            error_log("...$count, " . count($wordlist) . ", " . count($namelist));
         }
     }
 } while ($csv);
 
 $count = 0;
+$wordadd = [
+    'body' => []
+];
 
 foreach ($wordlist as $word => $freq) {
-    $dbhm->preExec("INSERT INTO booktastic_names (word, frequency) VALUES (?, ?) ON DUPLICATE KEY UPDATE frequency = ?;", [
-        $word,
-        $freq,
-        $freq
-    ]);
-
-    $count++;
-    if ($count % 1000 == 0) {
-        error_log("...$count / " . count($wordlist));
-    }
+    addOne($client, $wordadd, 'words', $word, $freq, $count);
 }
 
+if (count($wordadd['body'])) {
+    $client->bulk($wordadd);
+}
+
+$count = 0;
+$nameadd = [
+    'body' => []
+];
+
+foreach ($namelist as $word => $freq) {
+    addOne($client, $nameadd, 'names', $word, $freq, $count);
+}
+
+if (count($nameadd['body'])) {
+    $client->bulk($nameadd);
+}

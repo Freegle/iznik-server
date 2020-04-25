@@ -17,7 +17,7 @@ class Catalogue
 
     private $client = NULL;
     private $start = NULL;
-    private $logging = TRUE;
+    private $logging = FALSE;
     private $searchAuthors = [];
     private $searchTitles = [];
 
@@ -73,33 +73,43 @@ class Catalogue
         return $str;
     }
 
-    private function cleanKnown($table, $str) {
-        # Clean a string to remove OCR errors by matching against known names and words.
-        $words = explode(' ', $str);
-        $ret = [];
+    public function fuzzy($str) {
+        # We want to correct OCR errors by checking against our DB of known names/words which appear in actual books.
+        $ret = preg_replace_callback('/([a-zA-Z\'-]*)/', function($matches) use ($str) {
+            $word = strtolower($matches[1]);
+            $newword = $word;
 
-        foreach ($words as $index => $word) {
-            if (strlen($word)) {
-                $knownwords = $this->dbhr->preQuery("SELECT * FROM $table WHERE word LIKE ?;", [
-                    $word
-                ], FALSE, FALSE);
+            if (strlen(trim($word))) {
+                $found = $this->lookup('words', $word, 0);
 
-                if (count($knownwords)) {
-                    $ret[] = $word;
-                } else {
-                    # Didn't match exactly.  Look for a close match.
-                    $knownwords = $this->dbhr->preQuery("SELECT $table.*, DAMLEVLIM(word, " . $this->dbhr->quote($word) . ", " . strlen($word) . ") AS dist FROM `$table` HAVING dist < 2 ORDER BY dist ASC, LENGTH(word) ASC;", NULL, FALSE, FALSE);
+                if (!$found) {
+                    # Not a known title word.
+                    $found = $this->lookup('names', $word, 0);
 
-                    if (count($knownwords)) {
-                        $ret[] = $knownwords[0]['word'];
+                    if (!$found) {
+                        # Not a known author word.
+                        $known = $this->lookup('words', $word, 2);
+
+                        if ($known && !preg_match('/[^a-zA-Z\'-]/', $known['_source']['word'])) {
+                            $this->log("Correct $word in $str => word {$known['_source']['word']}");
+                            $newword = trim($known['_source']['word']);
+                        } else {
+                            $name = $this->lookup('names', $word, 2);
+
+                            if ($name && !preg_match('/[^a-zA-Z\'-]/', $name['_source']['word'])) {
+                                $this->log("Correct $word in $str => name {$known['_source']['word']}");
+                                $newword = trim($known['_source']['word']);
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        $ret = implode(' ', $words);
-        if ($ret != $str) {
-            $this->log("Cleaned known $str => $ret");
+            return $newword;
+        }, $str);
+
+        if ($str != $ret) {
+            $this->log("Fuzzy $str => $ret");
         }
 
         return $ret;
@@ -117,36 +127,6 @@ class Catalogue
 
     public function doObject(Attachment $a, $data) {
         return $a->objects($data);
-    }
-
-    public function extractPossibleBooks($data, $uid) {
-        # If we have a uid then we might have seen this before.  This is used in UT to avoid hitting
-        # Google all the time.
-        $already = [];
-
-        if ($uid) {
-            $already = $this->dbhr->preQuery("SELECT id, objects FROM booktastic_objects WHERE uid = ?;", [
-                $uid
-            ], FALSE, FALSE);
-        }
-
-        #$this->log("Check for uid $uid = " . count($already));
-        if (!count($already)) {
-            $a = new Attachment($this->dbhr, $this->dbhm);
-            $objects = $this->doObject($a, $data);
-            $this->dbhm->preExec("INSERT INTO booktastic_objects (data, objects, uid) VALUES (?, ?, ?);", [
-                $data,
-                json_encode($objects),
-                $uid
-            ]);
-
-            $id = $this->dbhm->lastInsertId();
-        } else {
-            $id = $already[0]['id'];
-            $objects = $already[0]['objects'];
-        }
-
-        return [ $id, $objects ];
     }
 
     public function ocr($data, $uid = NULL, $video = FALSE) {
@@ -286,11 +266,13 @@ class Catalogue
                     $line = str_replace($remove, '', $line);
                 }
 
-                $spines[] = [
-                    'spine' => $line,
-                    'author' => NULL,
-                    'title' => NULL
-                ];
+                if (strlen($line)) {
+                    $spines[] = [
+                        'spine' => $line,
+                        'author' => NULL,
+                        'title' => NULL
+                    ];
+                }
             }
 
             $ret = [ $spines, $fragments ];
@@ -378,20 +360,27 @@ class Catalogue
         # Sometimes we get a dash where it should be a dot, which confuses things.
         $author = str_replace('-', ' ', strtolower($author));
 
+        # All dots must be followed by a space.
+        $author = preg_replace('/(.*?)\.([^ ])(.*?)/', "$1. $2", $author);
+
+        # Anything in brackets should be removed - not part of the name, could be "(writing as ...)".
+        $author = preg_replace('/(.*)\(.*\)(.*)/', '$1$2', $author);
+
         return $author;
     }
 
-    private function searchAuthorTitle($author, $title, $fuzauthor, $fuztitle) {
+    private function searchAuthorTitle($author, $title) {
         $ret = NULL;
 
+        # Empirical testing shows that using a fuzziness of 2 for author all the time gives good results.
         $res = $this->client->search([
             'index' => 'booktastic',
             'body' => [
                 'query' => [
                     'bool' => [
                         'must' => [
-                            [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => $fuzauthor ] ] ],
-                            [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
+                            [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 0 ] ] ],
+                            [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => 0 ] ] ],
                         ]
                     ]
                 ]
@@ -407,7 +396,7 @@ class Catalogue
         return $ret;
     }
 
-    private function searchAuthor($author, $title, $fuzauthor, $fuztitle) {
+    private function searchAuthor($author, $title) {
         # Search just by author, and do our own custom matching.
         $ret = NULL;
         $res = presdef($author, $this->searchAuthors, NULL);
@@ -419,10 +408,10 @@ class Catalogue
                     'query' => [
                         'bool' => [
                             'must' => [
-                                [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 2] ] ]
+                                [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 2 ] ] ]
                             ],
                             'should' => [
-                                [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
+                                [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => 0 ] ] ],
                             ]
                         ]
                     ]
@@ -430,7 +419,7 @@ class Catalogue
                 'size' => 100
             ];
 
-            $this->log("No close match, search for author " . json_encode($params));
+            $this->log("Search for author " . json_encode($params));
             $res = $this->client->search($params);
             $this->searchAuthors[$author] = $res;
         }
@@ -451,6 +440,7 @@ class Catalogue
                     if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
                         $this->log("Search for $author - $title returned ");
                         $this->log("...matched inside $hitauthor - $hittitle");
+                        #error_log("Search by author for $author - $title found in $hitauthor - $hittitle");
                         $ret = $hit;
                     } else {
                         $authperc = $this->compare($author, $hitauthor);
@@ -459,8 +449,7 @@ class Catalogue
                         if ($authperc >= self::CONFIDENCE) {
                             # Looks like the author.  Don't find the best author match - this is close enough
                             # for it to be worth us scanning the books.
-                            $authbest = $authperc;
-
+                            #
                             # The title we have OCR'd is more likely to have guff on the end, such as the
                             # publisher.  So compare upto the length of the candidate title.
                             $canontitle = $this->canonTitle($title);
@@ -475,6 +464,7 @@ class Catalogue
                                     $titlebest = $titperc;
                                     $this->log("Search for $author - $title returned ");
                                     $this->log("...matched $hitauthor - $hittitle $titperc%");
+                                    #error_log("Search by author for $author - $title matched in $hitauthor - $hittitle with fuzziness $fuzauthor");
                                     $ret = $hit;
                                 }
                             }
@@ -487,7 +477,80 @@ class Catalogue
         return $ret;
     }
 
-    private function search($author, $title, $fuzzy, $authorplustitle) {
+    private function searchTitle($author, $title) {
+        # Search just by title, and do our own custom matching.
+        $ret = NULL;
+        $res = presdef($author, $this->searchTitles, NULL);
+
+        if (!$res) {
+            $params = [
+                'index' => 'booktastic',
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'must' => [
+                                [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => 2 ] ] ]
+                            ],
+                            'should' => [
+                                [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 0 ] ] ],
+                            ]
+                        ]
+                    ]
+                ],
+                'size' => 100
+            ];
+
+            $this->log("Search for title " . json_encode($params));
+            $res = $this->client->search($params);
+            $this->searchTitles[$author] = $res;
+        }
+
+        $authorbest = 0;
+
+        $this->log("Search for $author returned " . json_encode($res));
+
+        if ($res['hits']['total']['value'] > 0) {
+            foreach ($res['hits']['hits'] as $hit) {
+                $hitauthor = $this->normalizeAuthor(strtolower($hit['_source']['author']));
+                $hittitle = $this->normalizeTitle(strtolower($hit['_source']['title']));
+
+                if (strlen($hitauthor) > 5 && strlen($hittitle)) {
+                    # If one appears inside the other then it's a match.  This can happen if there's extra
+                    # stuff like publisher info.  The title is more likely to have that because the author
+                    # generally comes first.
+                    if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
+                        $this->log("Search for $author - $title returned ");
+                        $this->log("...matched inside $hitauthor - $hittitle");
+                        error_log("Search by title for $author - $title found in $hitauthor - $hittitle");
+                        $ret = $hit;
+                    } else {
+                        $titperc = $this->compare($$title, $hittitle);
+                        $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider title $hittitle $titperc% $hitauthor");
+
+                        if ($titperc >= self::CONFIDENCE) {
+                            # Looks like the title.  Don't find the best title match - this is close enough
+                            # for it to be worth us scanning the books.
+                            $authperc = $this->compare($author, $hitauthor);
+                            $p = strpos("$author", "$hitauthor");
+                            $this->log("...$hitauthor - $hittitle $authperc%, $p");
+
+                            if ($authperc >= self::CONFIDENCE && $authperc >= $authorbest) {
+                                $authorbest = $authperc;
+                                $this->log("Search for $author - $title returned ");
+                                $this->log("...matched $hitauthor - $hittitle $authperc%");
+                                #error_log("Search by title for $author - $title matched in $hitauthor - $hittitle");
+                                $ret = $hit;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $ret;
+    }
+
+    private function search($author, $title, $authorplustitle) {
         $ret = NULL;
         try {
             $author2 = $this->normalizeAuthor($author);
@@ -522,25 +585,15 @@ class Catalogue
             $fuzauthor = 0;
             $fuztitle = 0;
 
-            if ($fuzzy) {
-                # Try to cope with poor OCR by fuzzy matching against known names/words derived from the VIAF
-                # DB.  Doing this once per word is a lot faster than doing fuzzy searches in ElasticDB.
-//                $author = $this->cleanKnown('booktastic_names', $author);
-//                $title = $this->cleanKnown('booktastic_words', $title);
-
-                $fuzauthor = $fuzzy ? round(strlen($author) / 10 + 1) : 0;
-//                $fuztitle = $fuzzy ? round(strlen($title) / 10 + 1) : 0;
-            }
-
-            $this->log("Search for $author - $title, fuzz $fuzauthor, $fuztitle");
+            $this->log("Search for $author - $title");
 
             if (!$authorplustitle) {
-                $ret = $this->searchAuthorTitle($author, $title, $fuzauthor, $fuztitle);
+                $ret = $this->searchAuthorTitle($author, $title);
             } else {
-                $ret = $this->searchAuthor($author, $title, $fuzauthor, $fuztitle);
+                $ret = $this->searchAuthor($author, $title);
 
                 if (!$ret) {
-//                    $ret = $this->searchTitle($author, $title, $fuzauthor, $fuztitle);
+                    $ret = $this->searchTitle($author, $title);
                 }
             }
         } catch (Exception $e) {
@@ -550,7 +603,7 @@ class Catalogue
         return $ret;
     }
 
-    public function searchForSpines($id, &$spines, &$fragments, $authorstart, $fuzzy, $authorplustitle, $mangled)
+    public function searchForSpines($id, &$spines, &$fragments, $fuzzy, $authorstart, $authorplustitle, $mangled)
     {
         # We want to search for the spines in ElasticSearch, where we have a list of authors and books.
         #
@@ -561,7 +614,7 @@ class Catalogue
         # it is to have both and author and a subject, and therefore match.  Matching gets it out of the way
         # but also gives us a known author, which can be used to good effect to improve matching on other
         # spines.
-        $this->log("Search for spines authorstart = $authorstart fuzzy = $fuzzy authorplustitle = $authorplustitle mangled = $mangled");
+        $this->log("Search for spines fuzzy = $fuzzy authorstart = $authorstart authorplustitle = $authorplustitle mangled = $mangled");
         $order = [];
 
         for ($spineindex = 0; $spineindex < count($spines); $spineindex++) {
@@ -576,6 +629,18 @@ class Catalogue
         });
 
         $this->log("Sorted by length " . json_encode($order));
+
+        if ($fuzzy) {
+            # Fuzzy match using DB of known words.  This has the frequency values in it and is therefore likely to
+            # yield a better result than what happens within an each ElasticDB search, though we still do that
+            # for authors as it works better.
+            foreach ($spines as &$spine) {
+                if (!array_key_exists('original', $spine) && !$spine['author']) {
+                    $spine['original'] = $spine['spine'];
+                    $spine['spine'] = $this->fuzzy($spine['spine']);
+                }
+            }
+        }
 
         $ret = [];
 
@@ -595,24 +660,24 @@ class Catalogue
                     if ($authorstart) {
                         $author = trim(implode(' ', array_slice($words, 0, 2)));
                         $title = trim(implode(' ', array_slice($words, 2)));
-                        $res = $this->search($author, $title, $fuzzy, $authorplustitle);
+                        $res = $this->search($author, $title, $authorplustitle);
 
                         for ($i = 0; !$res && $i < count($words) - 1; $i++) {
                             # Try matching assuming the author is at the start.
                             $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
                             $title = trim(implode(' ', array_slice($words, $i + 1)));
-                            $res = $this->search($author, $title, $fuzzy, $authorplustitle);
+                            $res = $this->search($author, $title, $authorplustitle);
                         }
                     } else {
                         $title = trim(implode(' ', array_slice($words, 0, count($words) - 2)));
                         $author = trim(implode(' ', array_slice($words, count($words) - 2)));
-                        $res = $this->search($author, $title, $fuzzy, $authorplustitle);
+                        $res = $this->search($author, $title, $authorplustitle);
 
                         for ($i = 0; !$res && $i < count($words) - 1; $i++) {
                             # Try matching assuming the author is at the end.
                             $title = trim(implode(' ', array_slice($words, 0, $i + 1)));
                             $author = trim(implode(' ', array_slice($words, $i + 1)));
-                            $res = $this->search($author, $title, $fuzzy, $authorplustitle);
+                            $res = $this->search($author, $title, $authorplustitle);
                         }
                     }
 
@@ -631,7 +696,7 @@ class Catalogue
             }
         }
 
-        $this->searchForBrokenSpines($id, $spines, $fragments, $fuzzy, $authorplustitle, $mangled);
+        $this->searchForBrokenSpines($id, $spines, $fragments, $authorplustitle, $mangled);
     }
 
     private function checkAdjacent(&$spines, $spineindex, $author, $title) {
@@ -746,7 +811,7 @@ class Catalogue
         #$this->log("Checked authors");
     }
 
-    public function searchForPermutedSpines($id, $spines, &$fragments, $fuzzy, $authorplustitle) {
+    public function searchForPermutedSpines($id, $spines, &$fragments, $authorplustitle) {
         # Search the different orders of these these spines.
         #
         # The most likely case is that each spine we have in hand is an author or a title - the fact that Google
@@ -770,7 +835,7 @@ class Catalogue
                 if (!array_key_exists($key, $searched)) {
                     $this->log((microtime(TRUE) - $this->start) . " New search $key");
                     $searched[$key] = TRUE;
-                    $ret = $this->search($author, $title, $fuzzy, $authorplustitle);
+                    $ret = $this->search($author, $title, $authorplustitle);
 
                     if ($ret) {
                         $res = $ret['_source'];
@@ -888,7 +953,7 @@ class Catalogue
         return implode(' ',$array);
     }
 
-    public function searchForBrokenSpines($id, &$spines, &$fragments, $fuzzy, $authorplustitle, $mangle = FALSE) {
+    public function searchForBrokenSpines($id, &$spines, &$fragments, $authorplustitle, $mangle) {
         # Up to this point we've relied on what Google returns on a single line.  We will have found
         # some books via that route.  But it's common to have the author on one line, and the book on another,
         # or other variations which result in text on a single spine being split.
@@ -934,9 +999,9 @@ class Catalogue
                         $this->log("Enough blanks");
 
                         if (!$mangle) {
-                            $comspined = $this->searchForPermutedSpines($id, $healed, $fragments, $fuzzy, $authorplustitle);
+                            $comspined = $this->searchForPermutedSpines($id, $healed, $fragments, $authorplustitle);
                         } else {
-                            $comspined = $this->searchForMangledSpines($id, $healed, $fragments, $fuzzy, $authorplustitle);
+                            $comspined = $this->searchForMangledSpines($id, $healed, $fragments, $authorplustitle);
                         }
 
                         if ($comspined) {
@@ -1049,6 +1114,8 @@ class Catalogue
         foreach ($spines as $spine) {
             if ($spine['author']) {
                 $count++;
+            } else {
+                #error_log("...{$spine['spine']}");
             }
         }
 
@@ -1071,71 +1138,6 @@ class Catalogue
         return [ $spines, $fragments ];
     }
 
-    public function validAuthor($name) {
-        # First check in our local cache of known authors.
-        $knowns = $this->dbhr->preQuery("SELECT * FROM booktastic_authors WHERE name LIKE ?;", [
-            $name
-        ]);
-
-        if (count($knowns)) {
-            return TRUE;
-        }
-
-        # Also look (more slowly) for minor issues with OCR which get a character or two wrong.
-        $knowns = $this->dbhr->preQuery("SELECT * FROM booktastic_authors WHERE damlevlim(LOWER(name), ?, " . strlen($name) . ") < 2;", [
-            $name
-        ]);
-
-        if (count($knowns)) {
-            return TRUE;
-        }
-
-        # Look for existing queries.
-        $existing = $this->dbhr->preQuery("SELECT id, results FROM booktastic_search_author WHERE search LIKE ?;", [
-            $name
-        ]);
-
-        if (count($existing)) {
-            # We have a cached copy.
-            $data = $existing[0]['results'];
-        } else {
-            # We need to query.
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, "https://api2.isbndb.com/author/" . urlencode($name) . "?page=1&pageSize=1000");
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: " . ISBNDB_KEY));
-
-            $data = curl_exec($curl);
-            $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-            curl_close($curl);
-
-            if ($status == 200 && $data) {
-                $this->dbhm->preExec("INSERT INTO booktastic_search_author (search, results) VALUES (?, ?);", [
-                    $name,
-                    $data
-                ]);
-            }
-        }
-
-        # Sometimes we get backslash characters back which make us fail.
-        $data = str_replace('\\', '', $data);
-
-        # Sometimes the quoting is wrong, e.g. "publisher":"Izd-vo "Shchit-M"",
-        $data = preg_replace_callback('/(.*\:")(.*)(",)/', function ($m) {
-            #$this->log("Callback " . var_export($m, true));
-            return $m[1] . str_replace('"', '\"', $m[2]) . $m[3];
-        }, $data);
-
-        $json = json_decode($data, TRUE);
-
-        if (!$json) {
-            $this->log("JSON decode for $name failed " . json_last_error_msg());
-        }
-
-        return pres('author', $json);
-    }
-
     public function rate($id, $rating) {
         $this->dbhm->preExec("UPDATE booktastic_results SET rating = ? WHERE ocrid = ?;", [
             $rating,
@@ -1151,7 +1153,6 @@ class Catalogue
         # We scan the text to identify spines.  We have various techniques for this:
         #
         # - author at start/end of spine
-        # - fuzzy matching or not
         # - match on author + title or match on author and scan titles
         # - change the order of the spines (permuted spines)
         # - change the order of the words (mangled spines)
@@ -1165,6 +1166,7 @@ class Catalogue
         #
         # Empirically, if we don't find anything in an earlier phase, it isn't worth going on to a later phase.
         $phases = [];
+
         foreach ([FALSE, TRUE] as $fuzzy) {
             foreach ([FALSE, TRUE] as $mangled) {
                 foreach ([FALSE, TRUE] as $permuted) {
@@ -1172,8 +1174,8 @@ class Catalogue
                         foreach ([FALSE, TRUE] as $authorplustitle) {
                             foreach ([ FALSE, TRUE] as $authorstart) {
                                 $phases[] = [
-                                    'authorstart' => $authorstart,
                                     'fuzzy' => $fuzzy,
+                                    'authorstart' => $authorstart,
                                     'authorplustitle' => $authorplustitle,
                                     'permuted' => $permuted,
                                     'mangled' => $mangled
@@ -1188,13 +1190,14 @@ class Catalogue
         $found = 0;
 
         # This is the empirical bit.
-        foreach ([2, 1, 0, 3] as $phaseid) {
-//        foreach ($phases as $phaseid => $t) {
+//        foreach ([3, 0, 1, 2, 4] as $phaseid) {
+        foreach ($phases as $phaseid => $t) {
             $phase = $phases[$phaseid];
 
             $start = microtime(TRUE);
-            
-            $this->searchForSpines($id, $spines, $fragments, $phase['authorstart'], $phase['fuzzy'], $phase['authorplustitle'], $phase['permuted'], $phase['mangled']);
+
+            #error_log("Spines as start " . json_encode($spines));
+            $this->searchForSpines($id, $spines, $fragments, $phase['fuzzy'], $phase['authorstart'], $phase['authorplustitle'], $phase['permuted'], $phase['mangled']);
 
             $end = microtime(TRUE);
             $newfound = $this->countSuccess($spines);
@@ -1208,6 +1211,12 @@ class Catalogue
             }
 
             $found = $newfound;
+        }
+
+        foreach ($spines as $r) {
+            if (!$r['author']) {
+                error_log("Leftover {$r['spine']}");
+            }
         }
 
         $this->complete($id);
@@ -1236,5 +1245,32 @@ class Catalogue
             $phase,
             $id
         ]);
+    }
+
+    private function lookup($index, $word, $fuzziness)
+    {
+        $ret = NULL;
+
+        $res = $this->client->search([
+            'index' => $index,
+            'body' => [
+                'query' => [
+                    'fuzzy' => [ 'word' => [ 'value' => $word, 'fuzziness' => $fuzziness ] ]
+                ],
+                'sort' => [
+                    'frequency' => [
+                        'order' => 'desc'
+                    ]
+                ]
+            ],
+            'size' => 1,
+        ]);
+
+        if ($res['hits']['total']['value'] > 0) {
+            $ret = $res['hits']['hits'][0];
+        }
+
+        #$this->log("Looked up $word in $index found " . json_encode($ret));
+        return $ret;
     }
 }
