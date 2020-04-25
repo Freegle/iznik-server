@@ -17,8 +17,9 @@ class Catalogue
 
     private $client = NULL;
     private $start = NULL;
-    private $logging = FALSE;
+    private $logging = TRUE;
     private $searchAuthors = [];
+    private $searchTitles = [];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -380,12 +381,115 @@ class Catalogue
         return $author;
     }
 
+    private function searchAuthorTitle($author, $title, $fuzauthor, $fuztitle) {
+        $ret = NULL;
+
+        $res = $this->client->search([
+            'index' => 'booktastic',
+            'body' => [
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => $fuzauthor ] ] ],
+                            [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
+                        ]
+                    ]
+                ]
+            ],
+            'size' => 5,
+        ]);
+
+        if ($res['hits']['total']['value'] > 0) {
+            $this->log("FOUND: very close match " . json_encode($res));
+            $ret = $res['hits']['hits'][0];
+        }
+
+        return $ret;
+    }
+
+    private function searchAuthor($author, $title, $fuzauthor, $fuztitle) {
+        # Search just by author, and do our own custom matching.
+        $ret = NULL;
+        $res = presdef($author, $this->searchAuthors, NULL);
+
+        if (!$res) {
+            $params = [
+                'index' => 'booktastic',
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'must' => [
+                                [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 2] ] ]
+                            ],
+                            'should' => [
+                                [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
+                            ]
+                        ]
+                    ]
+                ],
+                'size' => 100
+            ];
+
+            $this->log("No close match, search for author " . json_encode($params));
+            $res = $this->client->search($params);
+            $this->searchAuthors[$author] = $res;
+        }
+
+        $titlebest = 0;
+
+        $this->log("Search for $author returned " . json_encode($res));
+
+        if ($res['hits']['total']['value'] > 0) {
+            foreach ($res['hits']['hits'] as $hit) {
+                $hitauthor = $this->normalizeAuthor(strtolower($hit['_source']['author']));
+                $hittitle = $this->normalizeTitle(strtolower($hit['_source']['title']));
+
+                if (strlen($hitauthor) > 5 && strlen($hittitle)) {
+                    # If one appears inside the other then it's a match.  This can happen if there's extra
+                    # stuff like publisher info.  The title is more likely to have that because the author
+                    # generally comes first.
+                    if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
+                        $this->log("Search for $author - $title returned ");
+                        $this->log("...matched inside $hitauthor - $hittitle");
+                        $ret = $hit;
+                    } else {
+                        $authperc = $this->compare($author, $hitauthor);
+                        $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
+
+                        if ($authperc >= self::CONFIDENCE) {
+                            # Looks like the author.  Don't find the best author match - this is close enough
+                            # for it to be worth us scanning the books.
+                            $authbest = $authperc;
+
+                            # The title we have OCR'd is more likely to have guff on the end, such as the
+                            # publisher.  So compare upto the length of the candidate title.
+                            $canontitle = $this->canonTitle($title);
+                            $canonhittitle = $this->canonTitle($hittitle);
+
+                            if (strlen($canontitle) && strlen($canonhittitle)) {
+                                $titperc = $this->compare($canontitle, $canonhittitle);
+                                $p = strpos("$canontitle", "$canonhittitle");
+                                $this->log("...$hitauthor - $hittitle $titperc%, $p");
+
+                                if ($titperc >= self::CONFIDENCE && $titperc >= $titlebest) {
+                                    $titlebest = $titperc;
+                                    $this->log("Search for $author - $title returned ");
+                                    $this->log("...matched $hitauthor - $hittitle $titperc%");
+                                    $ret = $hit;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $ret;
+    }
+
     private function search($author, $title, $fuzzy, $authorplustitle) {
         $ret = NULL;
         try {
-            $authkey = 'author';
-            $titkey = 'title';
-
             $author2 = $this->normalizeAuthor($author);
 
             $authwords = explode(' ', $author2);
@@ -431,99 +535,12 @@ class Catalogue
             $this->log("Search for $author - $title, fuzz $fuzauthor, $fuztitle");
 
             if (!$authorplustitle) {
-                $res = $this->client->search([
-                    'index' => 'booktastic',
-                    'body' => [
-                        'query' => [
-                            'bool' => [
-                                'must' => [
-                                    [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => $fuzauthor ] ] ],
-                                    [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
-                                ]
-                            ]
-                        ]
-                    ],
-                    'size' => 5,
-                ]);
-
-                if ($res['hits']['total']['value'] > 0) {
-                    $this->log("FOUND: very close match " . json_encode($res));
-                    $ret = $res['hits']['hits'][0];
-                }
+                $ret = $this->searchAuthorTitle($author, $title, $fuzauthor, $fuztitle);
             } else {
-                # Now search just by author, and do our own custom matching.
-                $res = presdef($author, $this->searchAuthors, NULL);
+                $ret = $this->searchAuthor($author, $title, $fuzauthor, $fuztitle);
 
-                if (!$res) {
-                    $params = [
-                        'index' => 'booktastic',
-                        'body' => [
-                            'query' => [
-                                'bool' => [
-                                    'must' => [
-                                        [ 'fuzzy' => [ $authkey => [ 'value' => $author, 'fuzziness' => 2] ] ]
-                                    ],
-                                    'should' => [
-                                        [ 'fuzzy' => [ $titkey => [ 'value' => $title, 'fuzziness' => $fuztitle ] ] ],
-                                    ]
-                                ]
-                            ]
-                        ],
-                        'size' => 100
-                    ];
-
-                    $this->log("No close match, search for author " . json_encode($params));
-                    $res = $this->client->search($params);
-                    $this->searchAuthors[$author] = $res;
-                }
-
-                $titlebest = 0;
-
-                $this->log("Search for $author returned " . json_encode($res));
-
-                if ($res['hits']['total']['value'] > 0) {
-                    foreach ($res['hits']['hits'] as $hit) {
-                        $hitauthor = $this->normalizeAuthor(strtolower($hit['_source'][$authkey]));
-                        $hittitle = $this->normalizeTitle(strtolower($hit['_source'][$titkey]));
-
-                        if (strlen($hitauthor) > 5 && strlen($hittitle)) {
-                            # If one appears inside the other then it's a match.  This can happen if there's extra
-                            # stuff like publisher info.  The title is more likely to have that because the author
-                            # generally comes first.
-                            if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
-                                $this->log("Search for $author - $title returned ");
-                                $this->log("...matched inside $hitauthor - $hittitle");
-                                $ret = $hit;
-                            } else {
-                                $authperc = $this->compare($author, $hitauthor);
-                                $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
-
-                                if ($authperc >= self::CONFIDENCE) {
-                                    # Looks like the author.  Don't find the best author match - this is close enough
-                                    # for it to be worth us scanning the books.
-                                    $authbest = $authperc;
-
-                                    # The title we have OCR'd is more likely to have guff on the end, such as the
-                                    # publisher.  So compare upto the length of the candidate title.
-                                    $canontitle = $this->canonTitle($title);
-                                    $canonhittitle = $this->canonTitle($hittitle);
-
-                                    if (strlen($canontitle) && strlen($canonhittitle)) {
-                                        $titperc = $this->compare($canontitle, $canonhittitle);
-                                        $p = strpos("$canontitle", "$canonhittitle");
-                                        $this->log("...$hitauthor - $hittitle $titperc%, $p");
-
-                                        if ($titperc >= self::CONFIDENCE && $titperc >= $titlebest) {
-                                            $titlebest = $titperc;
-                                            $this->log("Search for $author - $title returned ");
-                                            $this->log("...matched $hitauthor - $hittitle $titperc%");
-                                            $ret = $hit;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                if (!$ret) {
+//                    $ret = $this->searchTitle($author, $title, $fuzauthor, $fuztitle);
                 }
             }
         } catch (Exception $e) {
