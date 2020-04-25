@@ -47,10 +47,7 @@ class CatalogueTest extends IznikTestCase
             assertNotNull($id);
 
             # Now identify spines.
-            list ($spines, $fragments) = $c->identifySpinesFromOCR($id);
-            $c->searchForSpines($id, $spines, $fragments);
-            $c->searchForBrokenSpines($id, $spines, $fragments);
-            $c->recordResults($id, $spines, $fragments);
+            list ($spines, $fragments) = $c->process($id);
 
             error_log("\n\n");
             foreach ($spines as $book) {
@@ -131,6 +128,7 @@ class CatalogueTest extends IznikTestCase
         $ret = [];
 
         foreach ([
+                     'vertical_easy',
                      'doug1',
                      'doug2',
                      'doug3',
@@ -156,7 +154,6 @@ class CatalogueTest extends IznikTestCase
                      'crime1',
                      'crime2',
                      'crime3',
-                     'vertical_easy',
                      'basic_horizontal',
                      'basic_vertical',
                      'gardening',

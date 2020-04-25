@@ -16,9 +16,8 @@ do {
         $id = $q['id'];
         $c = new Catalogue($dbhr, $dbhm);
         list ($spines, $fragments) = $c->identifySpinesFromOCR($id);
-        $c->searchForSpines($id, $spines, $fragments);
-        $c->searchForBrokenSpines($id, $spines, $fragments);
-        $c->recordResults($id, $spines, $fragments);
+
+        list ($spines, $fragments) = $c->process($id);
         error_log("Completed $id");
     }
 
