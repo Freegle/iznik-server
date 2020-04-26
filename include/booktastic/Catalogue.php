@@ -310,21 +310,6 @@ class Catalogue
         return $pc;
     }
 
-    private function canonTitle($title) {
-        # The catalogues are erratic about whether articles are included.  Remove them for comparison.
-        $origtitle = $title;
-
-        foreach (['the', 'a'] as $word) {
-            $title = preg_replace('/(\b|$)' . preg_quote($word) . '(\b|$)/i', '', $title);
-        }
-
-        # Remove all except alphabetic.
-        $title = preg_replace('/[^a-zA-Z]/', '', $title);
-
-        $this->log("$origtitle => $title");
-        return $title;
-    }
-
     private function removeArticles($title) {
         foreach ([ 'the ', 'a ', 'an '] as $article) {
             $title = str_ireplace($article, '', $title);
@@ -333,7 +318,7 @@ class Catalogue
         return trim($title);
     }
 
-    private function normalizeTitle($title) {
+    public function normaliseTitle($title) {
         # Remove any articles at the start of the title, as the catalogues are inconsistent about whether they
         # are included.
         $title = $this->removeArticles($title);
@@ -345,53 +330,98 @@ class Catalogue
             $title = trim(substr($title, 0, $p - 1));
         }
 
+        # Anything in brackets should be removed - ditto.
+        $title = preg_replace('/(.*)\(.*\)(.*)/', '$1$2', $title);
+
+        # Remove anything which isn't alphanumeric.
+        $title = preg_replace('/[^a-z0-9 ]+/i', '', $title);
+
         $title = trim(strtolower($title));
+
+        $title = $this->removeShortWords($title);
+
+        #error_log("Normalised title $title");
 
         return $title;
     }
 
-    private function normalizeAuthor($author) {
+    public function normaliseAuthor($author) {
         # Any numbers in an author are junk.
         $author = trim(preg_replace('/[0-9]/', '', $author));
 
         # Remove Dr. as this isn't always present.
         $author = trim(preg_replace('/Dr./', '', $author));
 
-        # Sometimes we get a dash where it should be a dot, which confuses things.
-        $author = str_replace('-', ' ', strtolower($author));
-
-        # All dots must be followed by a space.
-        $author = preg_replace('/(.*?)\.([^ ])(.*?)/', "$1. $2", $author);
-
         # Anything in brackets should be removed - not part of the name, could be "(writing as ...)".
         $author = preg_replace('/(.*)\(.*\)(.*)/', '$1$2', $author);
 
+        # Remove anything which isn't alphabetic.
+        $author = preg_replace('/[^a-z ]+/i', '', $author);
+
+        $author = trim(strtolower($author));
+
+        $author = $this->removeShortWords($author);
+
+        #error_log("Normalised author $author");
+
         return $author;
+    }
+
+    private function removeShortWords($str) {
+        # Short words are common, or initials, and very vulnerable to OCR errors.  Remove them, and hope that there
+        # is a longer word in the author/title.  Which there normally is.
+        $words = explode(' ', $str);
+        $ret = [];
+
+        foreach ($words as $word) {
+            $w = trim($word);
+
+            if (strlen($word) > 3) {
+                $ret[] = $w;
+            }
+        }
+
+        return implode(' ', $ret);
+    }
+
+    private function sanityCheck(&$ret) {
+        $hitauthor = $ret['_source']['normalauthor'];
+        $hittitle = $ret['_source']['normaltitle'];
+
+        if (stripos($hittitle, $hitauthor) !== FALSE || stripos($hitauthor, $hittitle) !== FALSE) {
+            $ret = NULL;
+        }
     }
 
     private function searchAuthorTitle($author, $title) {
         $ret = NULL;
 
-        # Empirical testing shows that using a fuzziness of 2 for author all the time gives good results.
-        $res = $this->client->search([
-            'index' => 'booktastic',
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => [
-                            [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 0 ] ] ],
-                            [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => 0 ] ] ],
+        if (strlen($author) && strlen($title)) {
+            # Empirical testing shows that using a fuzziness of 2 for author all the time gives good results.
+            $res = $this->client->search([
+                'index' => 'booktastic',
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'must' => [
+                                [ 'fuzzy' => [ 'normalauthor' => [ 'value' => $author, 'fuzziness' => 0 ] ] ],
+                                [ 'fuzzy' => [ 'normaltitle' => [ 'value' => $title, 'fuzziness' => 0 ] ] ],
+//                            [ 'match' => [ 'normalauthor' => $author ] ],
+//                            [ 'match' => [ 'normaltitle' => $title ] ],
+                            ]
                         ]
                     ]
-                ]
-            ],
-            'size' => 5,
-        ]);
+                ],
+                'size' => 5,
+            ]);
 
-        if ($res['hits']['total']['value'] > 0) {
-            $this->log("FOUND: very close match " . json_encode($res));
-            $ret = $res['hits']['hits'][0];
+            if ($res['hits']['total']['value'] > 0) {
+                $this->log("FOUND: very close match " . json_encode($res));
+                $ret = $res['hits']['hits'][0];
+            }
         }
+
+        $this->sanityCheck($ret);
 
         return $ret;
     }
@@ -399,65 +429,63 @@ class Catalogue
     private function searchAuthor($author, $title) {
         # Search just by author, and do our own custom matching.
         $ret = NULL;
-        $res = presdef($author, $this->searchAuthors, NULL);
 
-        if (!$res) {
-            $params = [
-                'index' => 'booktastic',
-                'body' => [
-                    'query' => [
-                        'bool' => [
-                            'must' => [
-                                [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 2 ] ] ]
-                            ],
-                            'should' => [
-                                [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => 0 ] ] ],
+        if (strlen($author) && strlen($title)) {
+            $res = presdef($author, $this->searchAuthors, NULL);
+
+            if (!$res) {
+                $params = [
+                    'index' => 'booktastic',
+                    'body' => [
+                        'query' => [
+                            'bool' => [
+                                'must' => [
+                                    ['fuzzy' => ['normalauthor' => ['value' => $author, 'fuzziness' => 2]]]
+                                ],
+                                'should' => [
+                                    ['fuzzy' => ['normaltitle' => ['value' => $title, 'fuzziness' => 0]]],
+                                ]
                             ]
                         ]
-                    ]
-                ],
-                'size' => 100
-            ];
+                    ],
+                    'size' => 100
+                ];
 
-            $this->log("Search for author " . json_encode($params));
-            $res = $this->client->search($params);
-            $this->searchAuthors[$author] = $res;
-        }
+                $this->log("Search for author " . json_encode($params));
+                $res = $this->client->search($params);
+                $this->searchAuthors[$author] = $res;
+            }
 
-        $titlebest = 0;
+            $titlebest = 0;
 
-        $this->log("Search for $author returned " . json_encode($res));
+            #$this->log("Search for $author returned " . json_encode($res));
 
-        if ($res['hits']['total']['value'] > 0) {
-            foreach ($res['hits']['hits'] as $hit) {
-                $hitauthor = $this->normalizeAuthor(strtolower($hit['_source']['author']));
-                $hittitle = $this->normalizeTitle(strtolower($hit['_source']['title']));
+            if ($res['hits']['total']['value'] > 0) {
+                foreach ($res['hits']['hits'] as $hit) {
+                    $hitauthor = $hit['_source']['normalauthor'];
+                    $hittitle = $hit['_source']['normaltitle'];
 
-                if (strlen($hitauthor) > 5 && strlen($hittitle)) {
-                    # If one appears inside the other then it's a match.  This can happen if there's extra
-                    # stuff like publisher info.  The title is more likely to have that because the author
-                    # generally comes first.
-                    if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
-                        $this->log("Search for $author - $title returned ");
-                        $this->log("...matched inside $hitauthor - $hittitle");
-                        #error_log("Search by author for $author - $title found in $hitauthor - $hittitle");
-                        $ret = $hit;
-                    } else {
-                        $authperc = $this->compare($author, $hitauthor);
-                        $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
+                    if (strlen($hitauthor) > 5 && strlen($hittitle)) {
+                        # If one appears inside the other then it's a match.  This can happen if there's extra
+                        # stuff like publisher info.  The title is more likely to have that because the author
+                        # generally comes first.
+                        if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
+                            $this->log("Search for $author - $title returned ");
+                            $this->log("...matched inside $hitauthor - $hittitle");
+                            #error_log("Search by author for $author - $title found in $hitauthor - $hittitle");
+                            $ret = $hit;
+                        } else {
+                            $authperc = $this->compare($author, $hitauthor);
+                            $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider author $hitauthor $authperc% $hittitle");
 
-                        if ($authperc >= self::CONFIDENCE) {
-                            # Looks like the author.  Don't find the best author match - this is close enough
-                            # for it to be worth us scanning the books.
-                            #
-                            # The title we have OCR'd is more likely to have guff on the end, such as the
-                            # publisher.  So compare upto the length of the candidate title.
-                            $canontitle = $this->canonTitle($title);
-                            $canonhittitle = $this->canonTitle($hittitle);
-
-                            if (strlen($canontitle) && strlen($canonhittitle)) {
-                                $titperc = $this->compare($canontitle, $canonhittitle);
-                                $p = strpos("$canontitle", "$canonhittitle");
+                            if ($authperc >= self::CONFIDENCE) {
+                                # Looks like the author.  Don't find the best author match - this is close enough
+                                # for it to be worth us scanning the books.
+                                #
+                                # The title we have OCR'd is more likely to have guff on the end, such as the
+                                # publisher.  So compare upto the length of the candidate title.
+                                $titperc = $this->compare($title, $hittitle);
+                                $p = strpos("$title", "$hittitle");
                                 $this->log("...$hitauthor - $hittitle $titperc%, $p");
 
                                 if ($titperc >= self::CONFIDENCE && $titperc >= $titlebest) {
@@ -474,72 +502,77 @@ class Catalogue
             }
         }
 
+        $this->sanityCheck($ret);
+
         return $ret;
     }
 
     private function searchTitle($author, $title) {
         # Search just by title, and do our own custom matching.
         $ret = NULL;
-        $res = presdef($author, $this->searchTitles, NULL);
 
-        if (!$res) {
-            $params = [
-                'index' => 'booktastic',
-                'body' => [
-                    'query' => [
-                        'bool' => [
-                            'must' => [
-                                [ 'fuzzy' => [ 'title' => [ 'value' => $title, 'fuzziness' => 2 ] ] ]
-                            ],
-                            'should' => [
-                                [ 'fuzzy' => [ 'author' => [ 'value' => $author, 'fuzziness' => 0 ] ] ],
+        if (strlen($author) && strlen($title)) {
+            $res = presdef($title, $this->searchTitles, NULL);
+
+            if (!$res) {
+                $params = [
+                    'index' => 'booktastic',
+                    'body' => [
+                        'query' => [
+                            'bool' => [
+                                'must' => [
+                                    ['fuzzy' => ['normaltitle' => ['value' => $title, 'fuzziness' => 2]]]
+                                ],
+                                'should' => [
+                                    ['fuzzy' => ['normalauthor' => ['value' => $author, 'fuzziness' => 0]]],
+                                ]
                             ]
                         ]
-                    ]
-                ],
-                'size' => 100
-            ];
+                    ],
+                    'size' => 100
+                ];
 
-            $this->log("Search for title " . json_encode($params));
-            $res = $this->client->search($params);
-            $this->searchTitles[$author] = $res;
-        }
+                $this->log("Search for title " . json_encode($params));
+                $res = $this->client->search($params);
+                $this->searchTitles[$title] = $res;
+            }
 
-        $authorbest = 0;
+            $authorbest = 0;
 
-        $this->log("Search for $author returned " . json_encode($res));
+            #$this->log("Search for $title returned " . json_encode($res));
 
-        if ($res['hits']['total']['value'] > 0) {
-            foreach ($res['hits']['hits'] as $hit) {
-                $hitauthor = $this->normalizeAuthor(strtolower($hit['_source']['author']));
-                $hittitle = $this->normalizeTitle(strtolower($hit['_source']['title']));
+            if ($res['hits']['total']['value'] > 0) {
+                foreach ($res['hits']['hits'] as $hit) {
+                    $hitauthor = $hit['_source']['normalauthor'];
+                    $hittitle = $hit['_source']['normaltitle'];
 
-                if (strlen($hitauthor) > 5 && strlen($hittitle)) {
-                    # If one appears inside the other then it's a match.  This can happen if there's extra
-                    # stuff like publisher info.  The title is more likely to have that because the author
-                    # generally comes first.
-                    if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
-                        $this->log("Search for $author - $title returned ");
-                        $this->log("...matched inside $hitauthor - $hittitle");
-                        error_log("Search by title for $author - $title found in $hitauthor - $hittitle");
-                        $ret = $hit;
-                    } else {
-                        $titperc = $this->compare($$title, $hittitle);
-                        $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider title $hittitle $titperc% $hitauthor");
+                    if (strlen($hitauthor) > 5 && strlen($hittitle)) {
+                        # If one appears inside the other then it's a match.  This can happen if there's extra
+                        # stuff like publisher info.  The title is more likely to have that because the author
+                        # generally comes first.
+                        if (strpos("$author $title", "$hitauthor $hittitle") !== FALSE) {
+                            $this->log("Search for $author - $title returned ");
+                            $this->log("...matched inside $hitauthor - $hittitle");
+                            error_log("Search by title for $author - $title found in $hitauthor - $hittitle");
+                            $ret = $hit;
+                        } else {
+                            $titperc = $this->compare($title, $hittitle);
+                            $this->log((microtime(TRUE) - $this->start) . " searched for $author - $title, Consider title $hittitle $titperc% $hitauthor");
 
-                        if ($titperc >= self::CONFIDENCE) {
-                            # Looks like the title.  Don't find the best title match - this is close enough
-                            # for it to be worth us scanning the books.
-                            $authperc = $this->compare($author, $hitauthor);
-                            $p = strpos("$author", "$hitauthor");
-                            $this->log("...$hitauthor - $hittitle $authperc%, $p");
+                            if ($titperc >= self::CONFIDENCE) {
+                                # Looks like the title.  Don't find the best title match - this is close enough
+                                # for it to be worth us scanning the books.
+                                $authperc = $this->compare($author, $hitauthor);
+                                $p = strpos("$author", "$hitauthor");
+                                $this->log("...$hitauthor - $hittitle $authperc%, $p");
 
-                            if ($authperc >= self::CONFIDENCE && $authperc >= $authorbest) {
-                                $authorbest = $authperc;
-                                $this->log("Search for $author - $title returned ");
-                                $this->log("...matched $hitauthor - $hittitle $authperc%");
-                                #error_log("Search by title for $author - $title matched in $hitauthor - $hittitle");
-                                $ret = $hit;
+                                if ($authperc >= self::CONFIDENCE && $authperc >= $authorbest) {
+                                    $authorbest = $authperc;
+                                    $this->log("Search for $author - $title returned ");
+                                    $this->log("...matched $hitauthor - $hittitle $authperc%");
+                                    #error_log("Search by title for $author - $title matched in $hitauthor - $hittitle");
+                                    $ret = $hit;
+                                }
                             }
                         }
                     }
@@ -547,13 +580,51 @@ class Catalogue
             }
         }
 
+        $this->sanityCheck($ret);
+
+        return $ret;
+    }
+
+    private function searchTitleOnly($title) {
+        # Search just by title.  Must be pretty close.
+        $ret = NULL;
+
+        # This is only reliable for pretty long titles.
+        if (strlen($this->normaliseTitle($title)) > 20) {
+            $params = [
+                'index' => 'booktastic',
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'must' => [
+                                ['fuzzy' => ['normaltitle' => ['value' => $title, 'fuzziness' => 2]]]
+                            ]
+                        ]
+                    ]
+                ],
+                'size' => 1
+            ];
+
+            $this->log("Search for title " . json_encode($params));
+            $res = $this->client->search($params);
+
+            $this->log("Search for $title only returned " . json_encode($res));
+
+            if ($res['hits']['total']['value'] > 0) {
+                $this->log("FOUND: title only match " . json_encode($res));
+                $ret = $res['hits']['hits'][0];
+            }
+        }
+
+        $this->sanityCheck($ret);
+
         return $ret;
     }
 
     private function search($author, $title, $authorplustitle) {
         $ret = NULL;
         try {
-            $author2 = $this->normalizeAuthor($author);
+            $author2 = $this->normaliseAuthor($author);
 
             $authwords = explode(' ', $author2);
 
@@ -581,18 +652,19 @@ class Catalogue
                 return NULL;
             }
 
-            $title = $this->normalizeTitle($title);
-            $fuzauthor = 0;
-            $fuztitle = 0;
+            $title = $this->normaliseTitle($title);
 
             $this->log("Search for $author - $title");
 
             if (!$authorplustitle) {
+                $this->log("author title");
                 $ret = $this->searchAuthorTitle($author, $title);
             } else {
+                $this->log("author only");
                 $ret = $this->searchAuthor($author, $title);
 
                 if (!$ret) {
+                    $this->log("title only");
                     $ret = $this->searchTitle($author, $title);
                 }
             }
@@ -660,23 +732,27 @@ class Catalogue
                     if ($authorstart) {
                         $author = trim(implode(' ', array_slice($words, 0, 2)));
                         $title = trim(implode(' ', array_slice($words, 2)));
+                        $this->log("Author start $author - $title");
                         $res = $this->search($author, $title, $authorplustitle);
 
                         for ($i = 0; !$res && $i < count($words) - 1; $i++) {
                             # Try matching assuming the author is at the start.
                             $author = trim(implode(' ', array_slice($words, 0, $i + 1)));
                             $title = trim(implode(' ', array_slice($words, $i + 1)));
+                            $this->log("Author rest $author - $title");
                             $res = $this->search($author, $title, $authorplustitle);
                         }
                     } else {
                         $title = trim(implode(' ', array_slice($words, 0, count($words) - 2)));
                         $author = trim(implode(' ', array_slice($words, count($words) - 2)));
+                        $this->log("Author end $author - $title");
                         $res = $this->search($author, $title, $authorplustitle);
 
                         for ($i = 0; !$res && $i < count($words) - 1; $i++) {
                             # Try matching assuming the author is at the end.
                             $title = trim(implode(' ', array_slice($words, 0, $i + 1)));
                             $author = trim(implode(' ', array_slice($words, $i + 1)));
+                            $this->log("Author rest $author - $title");
                             $res = $this->search($author, $title, $authorplustitle);
                         }
                     }
@@ -1190,8 +1266,8 @@ class Catalogue
         $found = 0;
 
         # This is the empirical bit.
-//        foreach ([3, 0, 1, 2, 4] as $phaseid) {
-        foreach ($phases as $phaseid => $t) {
+        foreach ([3, 0, 1, 2, 4, 14] as $phaseid) {
+//        foreach ($phases as $phaseid => $t) {
             $phase = $phases[$phaseid];
 
             $start = microtime(TRUE);
@@ -1206,16 +1282,23 @@ class Catalogue
 
             $this->recordResults($id, $spines, $fragments, $phaseid);
 
-            if ($found == $newfound) {
-//                break;
-            }
-
             $found = $newfound;
         }
 
-        foreach ($spines as $r) {
+        # Last attempt - look for a fairly exact match on the spine assuming it's a title.
+        foreach ($spines as $spineindex => $r) {
             if (!$r['author']) {
                 error_log("Leftover {$r['spine']}");
+                $res = $this->searchTitleOnly($r['spine']);
+
+                if ($res) {
+                    $spines[$spineindex]['author'] = $res['_source']['author'];
+                    $spines[$spineindex]['title'] = $res['_source']['title'];
+                    $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
+                    $this->log("FOUND: Title-only match {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
+
+                    $this->flagUsed($fragments, $spineindex);
+                }
             }
         }
 

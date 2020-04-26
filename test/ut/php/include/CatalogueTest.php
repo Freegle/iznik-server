@@ -83,7 +83,7 @@ class CatalogueTest extends IznikTestCase
                         $found = FALSE;
 
                         foreach ($spines as $now) {
-                            if ($now['author'] == $then['author'] && $now['title'] == $then['title']) {
+                            if (!strcasecmp($now['author'], $then['author']) && !strcasecmp($now['title'], $then['title'])) {
                                 $found = TRUE;
                             }
                         }
@@ -129,6 +129,35 @@ class CatalogueTest extends IznikTestCase
 
         foreach ([
                      'vertical_easy',
+                     'liz1',
+                     'liz2',
+                     'liz3',
+                     'liz4',
+                     'liz5',
+                     'liz7',
+                     'liz8',
+                     'liz9',
+                     'liz10',
+                     'liz11',
+                     'liz13',
+                     'liz14',
+                     'liz15',
+                     'liz16',
+                     'liz17',
+                     'liz18',
+                     'liz19',
+                     'liz20',
+                     'liz21',
+                     'liz22',
+                     'liz23',
+                     'ruth1',
+                     'ruth2',
+                     'ruth3',
+                     'jo1',
+                     'carol1',
+                     'carol2',
+                     'kathryn1',
+                     'phil1',
                      'doug1',
                      'doug2',
                      'doug3',
@@ -136,8 +165,6 @@ class CatalogueTest extends IznikTestCase
                      'adam2',
                      'andy1',
                      'emma1',
-                     'liz1',
-                     'ruth1',
                      'suzanne1',
                      'suzanne2',
                      'suzanne3',

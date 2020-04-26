@@ -60,6 +60,16 @@ if (CLEAN) {
                         'normalizer' => 'my_normalizer',
                         'split_queries_on_whitespace' => TRUE
                     ],
+                    'normalauthor' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'my_normalizer',
+                        'split_queries_on_whitespace' => TRUE
+                    ],
+                    'normaltitle' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'my_normalizer',
+                        'split_queries_on_whitespace' => TRUE
+                    ],
                 ]
             ]
         ]
@@ -92,8 +102,10 @@ function addOne($client, $viafid, $author, $title, &$count) {
 
     $addParams['body'][] = [
         'viafid' => $viafid,
-        'author' => $c->normalizeAuthor($author),
-        'title' => $c->normalizeTitle($title),
+        'normalauthor' => $c->normaliseAuthor($author),
+        'normaltitle' => $c->normaliseTitle($title),
+        'author' => $author,
+        'title' => $title,
     ];
 
     $count++;
@@ -136,7 +148,12 @@ do {
             $author = trim(substr($author, $p + 1)) . " " . trim(substr($author, 0, $p));
         }
 
-        addOne($client, $viafid, $author, $title, $count);
+        # Only interested in books with latin characters for now.  Asterix, etc.
+        $latinReg = '/[^\\p{Common}\\p{Latin}]/u';
+
+        if (!preg_match($latinReg, $author) && !preg_match($latinReg, $title)) {
+            addOne($client, $viafid, $author, $title, $count);
+        }
     }
 } while ($csv);
 
