@@ -1,1 +1,1 @@
-[{"spine":"BLACK","author":null,"title":null},{"spine":"SWAN","author":null,"title":null},{"spine":"A","author":null,"title":null},{"spine":"Bill Bryson Nearly Everything","author":"Bill Bryson","title":"Short history of nearly everything","viafid":"59134159"},{"spine":"","author":null,"title":null}]
+[{"spine":"A Short History of","author":"Too Short","title":"History of rap.","viafid":"25145970355932252815"},{"spine":"Bill Bryson Nearly Everything","author":"Bill Bryson","title":"Short history of nearly everything","viafid":"59134159"}]

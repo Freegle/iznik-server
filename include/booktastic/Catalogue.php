@@ -389,12 +389,14 @@ class Catalogue
         $hittitle = $ret['_source']['normaltitle'];
 
         if (stripos($hittitle, $hitauthor) !== FALSE || stripos($hitauthor, $hittitle) !== FALSE) {
+            $this->log("Sanity check failed $hittitle, $hitauthor");
             $ret = NULL;
         }
     }
 
     private function searchAuthorTitle($author, $title) {
         $ret = NULL;
+        $this->log("Author $author title $title");
 
         if (strlen($author) && strlen($title)) {
             # Empirical testing shows that using a fuzziness of 2 for author all the time gives good results.
@@ -404,8 +406,8 @@ class Catalogue
                     'query' => [
                         'bool' => [
                             'must' => [
-                                [ 'fuzzy' => [ 'normalauthor' => [ 'value' => $author, 'fuzziness' => 0 ] ] ],
-                                [ 'fuzzy' => [ 'normaltitle' => [ 'value' => $title, 'fuzziness' => 0 ] ] ],
+                                [ 'fuzzy' => [ 'normalauthor' => [ 'value' => $author, 'fuzziness' => 2 ] ] ],
+                                [ 'fuzzy' => [ 'normaltitle' => [ 'value' => $title, 'fuzziness' => 2 ] ] ],
 //                            [ 'match' => [ 'normalauthor' => $author ] ],
 //                            [ 'match' => [ 'normaltitle' => $title ] ],
                             ]
@@ -416,10 +418,22 @@ class Catalogue
             ]);
 
             if ($res['hits']['total']['value'] > 0) {
-                $this->log("FOUND: very close match " . json_encode($res));
-                $ret = $res['hits']['hits'][0];
+                $hit = $res['hits']['hits'][0];
+                $hitauthor = $hit['_source']['normalauthor'];
+                $hittitle = $hit['_source']['normaltitle'];
+                $authperc = $this->compare($author, $hitauthor);
+                $titperc = $this->compare($title, $hittitle);
+                $this->log("Author + title match $authperc, $titperc, $author, $title vs $hitauthor, $hittitle");
+
+                if ($authperc >= self::CONFIDENCE && $titperc >= self::CONFIDENCE) {
+                    $this->log("FOUND: author + title match $authperc, $titperc" . json_encode($res));
+                    $ret = $hit;
+                }
             }
+        } else {
+            $this->log("Blank");
         }
+
 
         $this->sanityCheck($ret);
 
@@ -706,10 +720,10 @@ class Catalogue
             # Fuzzy match using DB of known words.  This has the frequency values in it and is therefore likely to
             # yield a better result than what happens within an each ElasticDB search, though we still do that
             # for authors as it works better.
-            foreach ($spines as &$spine) {
+            foreach ($spines as $spineindex => $spine) {
                 if (!array_key_exists('original', $spine) && !$spine['author']) {
-                    $spine['original'] = $spine['spine'];
-                    $spine['spine'] = $this->fuzzy($spine['spine']);
+                    $spines[$spineindex]['original'] = $spine['spine'];
+                    $spine[$spineindex]['spine'] = $this->fuzzy($spine['spine']);
                 }
             }
         }
@@ -1266,7 +1280,7 @@ class Catalogue
         $found = 0;
 
         # This is the empirical bit.
-        foreach ([3, 0, 1, 2, 4, 14] as $phaseid) {
+        foreach ([0, 1, 2, 3, 4, 14] as $phaseid) {
 //        foreach ($phases as $phaseid => $t) {
             $phase = $phases[$phaseid];
 

@@ -44,18 +44,50 @@ function catalogue() {
             }
             break;
         }
+
         case 'GET': {
             $c = new Catalogue($dbhr, $dbhm);
             $id = intval(presdef('id', $_REQUEST, 0));
 
-            list ($spines, $fragments) = $c->getResult($id);
-            $ret = [
-                'ret' => 0,
-                'status' => 'Success',
-                'id' => $id,
-                'fragments' => $fragments,
-                'spines' => $spines
-            ];
+            if ($id) {
+                list ($spines, $fragments) = $c->getResult($id);
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'id' => $id,
+                    'fragments' => $fragments,
+                    'spines' => $spines
+                ];
+            } else {
+                # For now return the UT info.
+                $dir = '/var/www/iznik.mt.dbg/test/ut/php/booktastic';
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'results' => []
+                ];
+
+                if ($dh = opendir($dir)) {
+                    while (($file = readdir($dh)) !== false) {
+                        if (strpos($file, '_books.txt')) {
+                            $img = "https://" . IMAGE_ARCHIVED_DOMAIN . '/booktastic/' . str_replace('_books.txt', '.jpg', $file);
+                            $thisone = [ 'img' => $img, 'books' => [] ];
+                            $json = json_decode(file_get_contents($dir . DIRECTORY_SEPARATOR . $file), TRUE);
+
+                            foreach ($json as $b) {
+                                if ($b['author']) {
+                                    $thisone['books'][] = $b;
+                                }
+                            }
+
+                            $ret['results'][] = $thisone;
+                        }
+                    }
+
+                    closedir($dh);
+                }
+            }
 
             break;
         }
