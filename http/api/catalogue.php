@@ -72,12 +72,14 @@ function catalogue() {
                     while (($file = readdir($dh)) !== false) {
                         if (strpos($file, '_books.txt')) {
                             $img = "https://" . IMAGE_ARCHIVED_DOMAIN . '/booktastic/' . str_replace('_books.txt', '.jpg', $file);
-                            $thisone = [ 'img' => $img, 'books' => [] ];
+                            $thisone = [ 'img' => $img, 'books' => [], 'fragments' => [] ];
                             $json = json_decode(file_get_contents($dir . DIRECTORY_SEPARATOR . $file), TRUE);
 
                             foreach ($json as $b) {
                                 if ($b['author']) {
                                     $thisone['books'][] = $b;
+                                } else {
+                                    $thisone['fragments'][] = $b;
                                 }
                             }
 

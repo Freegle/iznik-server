@@ -13,7 +13,6 @@ class Catalogue
     var $dbhm;
 
     const CONFIDENCE = 75;
-    const BLUR = 10;
 
     private $client = NULL;
     private $start = NULL;

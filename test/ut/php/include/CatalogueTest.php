@@ -117,6 +117,8 @@ class CatalogueTest extends IznikTestCase
                 error_log(json_encode($spines));
             }
 
+            file_put_contents(IZNIK_BASE . $filename . ".json");
+
             assertEquals($foundthen, $foundnow);
         }
 
@@ -150,6 +152,29 @@ class CatalogueTest extends IznikTestCase
                      'liz21',
                      'liz22',
                      'liz23',
+                     'liz24',
+                     'liz25',
+                     'liz26',
+                     'liz27',
+                     'liz28',
+                     'liz29',
+                     'liz30',
+                     'liz31',
+                     'liz33',
+                     'liz34',
+                     'liz35',
+                     'liz36',
+                     'liz37',
+                     'liz38',
+                     'liz39',
+                     'liz40',
+                     'liz41',
+                     'liz43',
+                     'liz44',
+                     'liz45',
+                     'liz46',
+                     'liz47',
+                     'liz48',
                      'ruth1',
                      'ruth2',
                      'ruth3',
