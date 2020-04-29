@@ -117,8 +117,6 @@ class CatalogueTest extends IznikTestCase
                 error_log(json_encode($spines));
             }
 
-            file_put_contents(IZNIK_BASE . $filename . ".json");
-
             assertEquals($foundthen, $foundnow);
         }
 
