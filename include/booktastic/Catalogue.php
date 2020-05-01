@@ -1237,85 +1237,34 @@ class Catalogue
     public function process($id) {
         $this->start($id);
 
-        list ($spines, $fragments) = $this->identifySpinesFromOCR($id);
+        $ocrdata = $this->dbhm->preQuery("SELECT * FROM booktastic_ocr WHERE id = ?;", [
+            $id
+        ]);
 
-        # We scan the text to identify spines.  We have various techniques for this:
-        #
-        # - author at start/end of spine
-        # - match on author + title or match on author and scan titles
-        # - change the order of the spines (permuted spines)
-        # - change the order of the words (mangled spines)
-        #
-        # Some of these are more expensive than others, especially the ordering ones, and work better if we've already
-        # identified and flagged as much as possible.  So we run through several phases doing these tests in different
-        # orders.
-        #
-        # The order has been chosen by empirical testing as a combination of success and time - generally
-        # the earlier ones are quicker.  If a combination doesn't appear then it has not been effective.
-        #
-        # Empirically, if we don't find anything in an earlier phase, it isn't worth going on to a later phase.
-        $phases = [];
+        $spines = [];
+        $fragments = [];
 
-        foreach ([FALSE, TRUE] as $fuzzy) {
-            foreach ([FALSE, TRUE] as $mangled) {
-                foreach ([FALSE, TRUE] as $permuted) {
-                    if (!$mangled || !$permuted) {
-                        foreach ([FALSE, TRUE] as $authorplustitle) {
-                            foreach ([ FALSE, TRUE] as $authorstart) {
-                                $phases[] = [
-                                    'fuzzy' => $fuzzy,
-                                    'authorstart' => $authorstart,
-                                    'authorplustitle' => $authorplustitle,
-                                    'permuted' => $permuted,
-                                    'mangled' => $mangled
-                                ];
-                            }
-                        }
-                    }
-                }
+        foreach ($ocrdata as $o) {
+            # The first item is a Google's assembly of the text.  This is useful because it puts \n between
+            # items which it thinks are less related, and it does a good job of it.  That means that we
+            # have a head start on what is likely to be on a single spine.  The rest of the entries are the
+            # individual words.
+            $fn = tempnam('/tmp/', 'booktastic_');
+            file_put_contents($fn, $o['text']);
+            $cmd = "/root/bin/booktastic -i $fn -o $fn.out";
+            system($cmd);
+            $res = file_get_contents("$fn.out");
+            unlink($fn);
+            unlink("$fn.out");
+
+            if ($res) {
+                $json = json_decode($res, TRUE);
+                $spines = $json['spines'];
+                $fragments = $json['fragments'];
+                $this->recordResults($id, $spines, $fragments, 0);
+                $this->complete($id);
             }
         }
-
-        $found = 0;
-
-        # This is the empirical bit.
-        foreach ([0, 1, 2, 3, 4, 14] as $phaseid) {
-//        foreach ($phases as $phaseid => $t) {
-            $phase = $phases[$phaseid];
-
-            $start = microtime(TRUE);
-
-            #error_log("Spines as start " . json_encode($spines));
-            $this->searchForSpines($id, $spines, $fragments, $phase['fuzzy'], $phase['authorstart'], $phase['authorplustitle'], $phase['permuted'], $phase['mangled']);
-
-            $end = microtime(TRUE);
-            $newfound = $this->countSuccess($spines);
-
-            error_log("Phase $phaseid " . json_encode($phase) . " found " . ($newfound - $found) . " in " . ($end - $start) . "s");
-
-            $this->recordResults($id, $spines, $fragments, $phaseid);
-
-            $found = $newfound;
-        }
-
-        # Last attempt - look for a fairly exact match on the spine assuming it's a title.
-        foreach ($spines as $spineindex => $r) {
-            if (!$r['author']) {
-                error_log("Leftover {$r['spine']}");
-                $res = $this->searchTitleOnly($r['spine']);
-
-                if ($res) {
-                    $spines[$spineindex]['author'] = $res['_source']['author'];
-                    $spines[$spineindex]['title'] = $res['_source']['title'];
-                    $spines[$spineindex]['viafid'] = $res['_source']['viafid'];
-                    $this->log("FOUND: Title-only match {$spines[$spineindex]['author']} - {$spines[$spineindex]['title']}");
-
-                    $this->flagUsed($fragments, $spineindex);
-                }
-            }
-        }
-
-        $this->complete($id);
 
         return [ $spines, $fragments ];
     }
