@@ -168,8 +168,6 @@ foreach ($mail as $id => $work) {
         $age = time() - strtotime($m['timestamp']);
     }
 
-    error_log("Mail {$work['email']} $textsumm");
-    exit(0);
     if (!$last || strcmp($textsumm, $last) !== 0 || ($age !== NULL && $age > 24 * 60 * 60)) {
         # We send a notification if the info has changed, or it's the first, or it's been more than a day.
         error_log("Mail {$work['email']} $textsumm");
