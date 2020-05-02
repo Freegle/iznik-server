@@ -18,6 +18,7 @@ function image() {
     $newsfeed = presdef('newsfeed', $_REQUEST, NULL);
     $story = presdef('story', $_REQUEST, NULL);
     $circle = presdef('circle', $_REQUEST, NULL);
+    $booktastic = presdef('booktastic', $_REQUEST, NULL);
 
     $sizelimit = 800;
     
@@ -45,14 +46,30 @@ function image() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $a = new Attachment($dbhr, $dbhm, $id, $type);
-            $data = $a->getData();
+            $data = NULL;
+
+            if ($booktastic) {
+                # Outside normal.
+                $ocrs = $dbhr->preQuery("SELECT data FROM booktastic_ocr WHERE id = ?;", [
+                    $id
+                ], FALSE, FALSE);
+
+                foreach ($ocrs as $ocr) {
+                    $data = base64_decode($ocr['data']);
+                }
+            } else {
+                $a = new Attachment($dbhr, $dbhm, $id, $type);
+                $data = $a->getData();
+            }
+
             $i = new Image($data);
 
             $ret = [
                 'ret' => 1,
-                'status' => "Failed to create image $id of type $type"
+                'status' => "Failed to create image $id of type $type",
+                'req'=> $_REQUEST
             ];
+
 
             if ($i->img) {
                 $w = intval(presdef('w', $_REQUEST, $i->width()));
@@ -71,6 +88,7 @@ function image() {
                         'img' => $i->getDataPNG()
                     ];
                 } else {
+                    error_log("Returning");
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
