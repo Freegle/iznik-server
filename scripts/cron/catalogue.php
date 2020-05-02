@@ -15,9 +15,7 @@ do {
     foreach ($queue as $q) {
         $id = $q['id'];
         $c = new Catalogue($dbhr, $dbhm);
-        list ($spines, $fragments) = $c->identifySpinesFromOCR($id);
-
-        list ($spines, $fragments) = $c->process($id);
+        $c->process($id);
         error_log("Completed $id");
     }
 

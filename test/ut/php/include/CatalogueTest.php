@@ -28,202 +28,22 @@ class CatalogueTest extends IznikTestCase
         parent::tearDown();
     }
 
-    /**
-     * @dataProvider libraryData
-     */
-    public function testLibrary($filename)
+    public function testISBNDB()
     {
         if (!getenv('STANDALONE')) {
-            $data = base64_encode(file_get_contents(IZNIK_BASE . $filename . ".jpg"));
-
             $c = new Catalogue($this->dbhr, $this->dbhm);
+            $spines = json_decode("[{\"viaf\": \"\", \"spine\": \"ADalziels Pascoe\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Novel\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"A Dalziel& Pascoe\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Novel\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"per\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"HARPER\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Harper\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Collins\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"HARPER\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Halper\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Collins\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"HARPER\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Barper\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Collins\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Hill\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"The Pure in Heart\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"VINTAGE\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"14741797\", \"spine\": \"Reginald Hill A Pinch of Snuff\", \"title\": \"Pinch of snuff\", \"author\": \"Reginald Hill\"}, {\"viaf\": \"22170692\", \"spine\": \"Reginald Hill Pictures of Perfection\", \"title\": \"Pictures of Perfection\", \"author\": \"Reginald Hill\"}, {\"viaf\": \"\", \"spine\": \"REGA\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"22170692\", \"spine\": \" ON BEULAH HEIGHT REGINALD HILLMidnight .\", \"title\": \"On Beulah Height\", \"author\": \"Reginald Hill\"}, {\"viaf\": \"\", \"spine\": \"Fugue\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"SINALD\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"22170692\", \"spine\": \" KILLING THE LAWYERS REGINALD HILL\", \"title\": \"Killing the lawyers\", \"author\": \"Reginald Hill\"}, {\"viaf\": \"\", \"spine\": \"A KILLING KINDNESS\", \"title\": \"Killing kindness\", \"author\": \"Reginald Hill\"}, {\"viaf\": \"\", \"spine\": \"GRAFTON\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"14741797\", \"spine\": \" Reginald Hill A KILLING KINDNESS\", \"title\": \"Killing kindness\", \"author\": \"Reginald Hill\"}, {\"viaf\": \"22170692\", \"spine\": \"Reginald Hill Good Morning, Midnight\", \"title\": \"Good morning, midnight\", \"author\": \"Reginald Hill\"}, {\"viaf\": \"\", \"spine\": \"THE DEATH\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"OF DALZIEL\", \"title\": \"\", \"author\": \"\"}, {\"viaf\": \"\", \"spine\": \"Reginald Hil\", \"title\": \"\", \"author\": \"\"}]", TRUE);
+            $fragments = json_decode("[{\"used\": false, \"locale\": \"\", \"spineindex\": 0, \"description\": \"ADalziels\", \"boundingPoly\": {\"vertices\": [{\"x\": 957, \"y\": 340}, {\"x\": 1097, \"y\": 342}, {\"x\": 1096, \"y\": 378}, {\"x\": 956, \"y\": 376}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 0, \"description\": \"Pascoe\", \"boundingPoly\": {\"vertices\": [{\"x\": 1106, \"y\": 342}, {\"x\": 1205, \"y\": 344}, {\"x\": 1204, \"y\": 380}, {\"x\": 1105, \"y\": 378}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 1, \"description\": \"Novel\", \"boundingPoly\": {\"vertices\": [{\"x\": 1033, \"y\": 377}, {\"x\": 1126, \"y\": 376}, {\"x\": 1126, \"y\": 412}, {\"x\": 1033, \"y\": 413}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 2, \"description\": \"A\", \"boundingPoly\": {\"vertices\": [{\"x\": 1999, \"y\": 412}, {\"x\": 2011, \"y\": 412}, {\"x\": 2010, \"y\": 432}, {\"x\": 1998, \"y\": 432}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 2, \"description\": \"Dalziel&\", \"boundingPoly\": {\"vertices\": [{\"x\": 2020, \"y\": 399}, {\"x\": 2153, \"y\": 404}, {\"x\": 2152, \"y\": 438}, {\"x\": 2019, \"y\": 433}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 2, \"description\": \"Pascoe\", \"boundingPoly\": {\"vertices\": [{\"x\": 2159, \"y\": 403}, {\"x\": 2273, \"y\": 407}, {\"x\": 2271, \"y\": 445}, {\"x\": 2158, \"y\": 441}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 3, \"description\": \"Novel\", \"boundingPoly\": {\"vertices\": [{\"x\": 2082, \"y\": 436}, {\"x\": 2180, \"y\": 440}, {\"x\": 2178, \"y\": 478}, {\"x\": 2081, \"y\": 474}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 4, \"description\": \"per\", \"boundingPoly\": {\"vertices\": [{\"x\": 8, \"y\": 2622}, {\"x\": 39, \"y\": 2618}, {\"x\": 42, \"y\": 2640}, {\"x\": 11, \"y\": 2644}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 5, \"description\": \"HARPER\", \"boundingPoly\": {\"vertices\": [{\"x\": 222, \"y\": 2711}, {\"x\": 445, \"y\": 2684}, {\"x\": 449, \"y\": 2717}, {\"x\": 226, \"y\": 2744}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 6, \"description\": \"Harper\", \"boundingPoly\": {\"vertices\": [{\"x\": 788, \"y\": 2701}, {\"x\": 884, \"y\": 2702}, {\"x\": 884, \"y\": 2733}, {\"x\": 788, \"y\": 2732}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 7, \"description\": \"Collins\", \"boundingPoly\": {\"vertices\": [{\"x\": 796, \"y\": 2731}, {\"x\": 879, \"y\": 2731}, {\"x\": 879, \"y\": 2754}, {\"x\": 796, \"y\": 2754}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 8, \"description\": \"HARPER\", \"boundingPoly\": {\"vertices\": [{\"x\": 1110, \"y\": 2740}, {\"x\": 1290, \"y\": 2728}, {\"x\": 1292, \"y\": 2757}, {\"x\": 1112, \"y\": 2769}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 9, \"description\": \"Halper\", \"boundingPoly\": {\"vertices\": [{\"x\": 1788, \"y\": 2743}, {\"x\": 1845, \"y\": 2743}, {\"x\": 1845, \"y\": 2768}, {\"x\": 1788, \"y\": 2768}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 10, \"description\": \"Collins\", \"boundingPoly\": {\"vertices\": [{\"x\": 1779, \"y\": 2766}, {\"x\": 1845, \"y\": 2765}, {\"x\": 1845, \"y\": 2786}, {\"x\": 1779, \"y\": 2787}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 11, \"description\": \"HARPER\", \"boundingPoly\": {\"vertices\": [{\"x\": 1994, \"y\": 2746}, {\"x\": 2212, \"y\": 2723}, {\"x\": 2217, \"y\": 2770}, {\"x\": 1999, \"y\": 2794}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 12, \"description\": \"Barper\", \"boundingPoly\": {\"vertices\": [{\"x\": 2449, \"y\": 2812}, {\"x\": 2527, \"y\": 2808}, {\"x\": 2528, \"y\": 2831}, {\"x\": 2450, \"y\": 2835}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 13, \"description\": \"Collins\", \"boundingPoly\": {\"vertices\": [{\"x\": 2446, \"y\": 2832}, {\"x\": 2524, \"y\": 2825}, {\"x\": 2526, \"y\": 2847}, {\"x\": 2448, \"y\": 2854}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 14, \"description\": \"Hill\", \"boundingPoly\": {\"vertices\": [{\"x\": 3967, \"y\": 687}, {\"x\": 3925, \"y\": 1517}, {\"x\": 3630, \"y\": 1502}, {\"x\": 3672, \"y\": 672}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 15, \"description\": \"The\", \"boundingPoly\": {\"vertices\": [{\"x\": 3785, \"y\": 1601}, {\"x\": 3769, \"y\": 1746}, {\"x\": 3707, \"y\": 1739}, {\"x\": 3723, \"y\": 1594}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 15, \"description\": \"Pure\", \"boundingPoly\": {\"vertices\": [{\"x\": 3762, \"y\": 1752}, {\"x\": 3741, \"y\": 1940}, {\"x\": 3689, \"y\": 1934}, {\"x\": 3709, \"y\": 1746}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 15, \"description\": \"in\", \"boundingPoly\": {\"vertices\": [{\"x\": 3745, \"y\": 1965}, {\"x\": 3737, \"y\": 2042}, {\"x\": 3680, \"y\": 2035}, {\"x\": 3688, \"y\": 1959}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 15, \"description\": \"Heart\", \"boundingPoly\": {\"vertices\": [{\"x\": 3741, \"y\": 2057}, {\"x\": 3718, \"y\": 2263}, {\"x\": 3647, \"y\": 2255}, {\"x\": 3669, \"y\": 2049}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 16, \"description\": \"VINTAGE\", \"boundingPoly\": {\"vertices\": [{\"x\": 3668, \"y\": 2532}, {\"x\": 3648, \"y\": 2726}, {\"x\": 3617, \"y\": 2723}, {\"x\": 3637, \"y\": 2529}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 17, \"description\": \"Reginald\", \"boundingPoly\": {\"vertices\": [{\"x\": 3463, \"y\": 635}, {\"x\": 3441, \"y\": 1058}, {\"x\": 3345, \"y\": 1053}, {\"x\": 3367, \"y\": 630}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 17, \"description\": \"Hill\", \"boundingPoly\": {\"vertices\": [{\"x\": 3448, \"y\": 1117}, {\"x\": 3431, \"y\": 1436}, {\"x\": 3323, \"y\": 1430}, {\"x\": 3340, \"y\": 1111}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 17, \"description\": \"A\", \"boundingPoly\": {\"vertices\": [{\"x\": 3423, \"y\": 1478}, {\"x\": 3419, \"y\": 1555}, {\"x\": 3344, \"y\": 1551}, {\"x\": 3348, \"y\": 1474}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 17, \"description\": \"Pinch\", \"boundingPoly\": {\"vertices\": [{\"x\": 3413, \"y\": 1590}, {\"x\": 3399, \"y\": 1851}, {\"x\": 3322, \"y\": 1847}, {\"x\": 3336, \"y\": 1586}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 17, \"description\": \"of\", \"boundingPoly\": {\"vertices\": [{\"x\": 3391, \"y\": 1889}, {\"x\": 3386, \"y\": 1984}, {\"x\": 3311, \"y\": 1980}, {\"x\": 3316, \"y\": 1885}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 17, \"description\": \"Snuff\", \"boundingPoly\": {\"vertices\": [{\"x\": 3379, \"y\": 2009}, {\"x\": 3367, \"y\": 2240}, {\"x\": 3290, \"y\": 2236}, {\"x\": 3302, \"y\": 2005}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 18, \"description\": \"Reginald\", \"boundingPoly\": {\"vertices\": [{\"x\": 3011, \"y\": 637}, {\"x\": 2985, \"y\": 1040}, {\"x\": 2894, \"y\": 1034}, {\"x\": 2920, \"y\": 631}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 18, \"description\": \"Hill\", \"boundingPoly\": {\"vertices\": [{\"x\": 2994, \"y\": 1065}, {\"x\": 2976, \"y\": 1348}, {\"x\": 2874, \"y\": 1342}, {\"x\": 2892, \"y\": 1059}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 18, \"description\": \"Pictures\", \"boundingPoly\": {\"vertices\": [{\"x\": 2956, \"y\": 1472}, {\"x\": 2934, \"y\": 1810}, {\"x\": 2862, \"y\": 1806}, {\"x\": 2883, \"y\": 1467}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 18, \"description\": \"of\", \"boundingPoly\": {\"vertices\": [{\"x\": 2945, \"y\": 1836}, {\"x\": 2938, \"y\": 1950}, {\"x\": 2836, \"y\": 1943}, {\"x\": 2843, \"y\": 1830}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 18, \"description\": \"Perfection\", \"boundingPoly\": {\"vertices\": [{\"x\": 2937, \"y\": 1955}, {\"x\": 2911, \"y\": 2358}, {\"x\": 2811, \"y\": 2352}, {\"x\": 2836, \"y\": 1949}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 19, \"description\": \"REGA\", \"boundingPoly\": {\"vertices\": [{\"x\": 2610, \"y\": 1151}, {\"x\": 2594, \"y\": 1504}, {\"x\": 2495, \"y\": 1499}, {\"x\": 2510, \"y\": 1147}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 20, \"description\": \"ON\", \"boundingPoly\": {\"vertices\": [{\"x\": 2579, \"y\": 2204}, {\"x\": 2575, \"y\": 2295}, {\"x\": 2513, \"y\": 2292}, {\"x\": 2517, \"y\": 2202}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 20, \"description\": \"BEULAH\", \"boundingPoly\": {\"vertices\": [{\"x\": 2569, \"y\": 2302}, {\"x\": 2559, \"y\": 2556}, {\"x\": 2514, \"y\": 2554}, {\"x\": 2524, \"y\": 2300}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 20, \"description\": \"HEIGHT\", \"boundingPoly\": {\"vertices\": [{\"x\": 2500, \"y\": 2248}, {\"x\": 2490, \"y\": 2496}, {\"x\": 2444, \"y\": 2494}, {\"x\": 2454, \"y\": 2246}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 20, \"description\": \"REGINALD\", \"boundingPoly\": {\"vertices\": [{\"x\": 2199, \"y\": 534}, {\"x\": 2210, \"y\": 1701}, {\"x\": 2048, \"y\": 1702}, {\"x\": 2037, \"y\": 536}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 20, \"description\": \"HILLMidnight\", \"boundingPoly\": {\"vertices\": [{\"x\": 2210, \"y\": 1708}, {\"x\": 2217, \"y\": 2457}, {\"x\": 2055, \"y\": 2458}, {\"x\": 2048, \"y\": 1710}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 20, \"description\": \".\", \"boundingPoly\": {\"vertices\": [{\"x\": 2216, \"y\": 2459}, {\"x\": 2217, \"y\": 2539}, {\"x\": 2056, \"y\": 2541}, {\"x\": 2055, \"y\": 2461}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 21, \"description\": \"Fugue\", \"boundingPoly\": {\"vertices\": [{\"x\": 2106, \"y\": 2084}, {\"x\": 2098, \"y\": 2395}, {\"x\": 2002, \"y\": 2393}, {\"x\": 2010, \"y\": 2082}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 22, \"description\": \"SINALD\", \"boundingPoly\": {\"vertices\": [{\"x\": 1834, \"y\": 1319}, {\"x\": 1849, \"y\": 1733}, {\"x\": 1759, \"y\": 1736}, {\"x\": 1744, \"y\": 1322}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 23, \"description\": \"KILLING\", \"boundingPoly\": {\"vertices\": [{\"x\": 1852, \"y\": 2098}, {\"x\": 1856, \"y\": 2371}, {\"x\": 1799, \"y\": 2372}, {\"x\": 1795, \"y\": 2099}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 23, \"description\": \"THE\", \"boundingPoly\": {\"vertices\": [{\"x\": 1855, \"y\": 2386}, {\"x\": 1857, \"y\": 2511}, {\"x\": 1811, \"y\": 2512}, {\"x\": 1809, \"y\": 2387}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 23, \"description\": \"LAWYERS\", \"boundingPoly\": {\"vertices\": [{\"x\": 1786, \"y\": 2171}, {\"x\": 1787, \"y\": 2467}, {\"x\": 1724, \"y\": 2467}, {\"x\": 1723, \"y\": 2171}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 23, \"description\": \"REGINALD\", \"boundingPoly\": {\"vertices\": [{\"x\": 1475, \"y\": 602}, {\"x\": 1483, \"y\": 921}, {\"x\": 1437, \"y\": 922}, {\"x\": 1429, \"y\": 603}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 23, \"description\": \"HILL\", \"boundingPoly\": {\"vertices\": [{\"x\": 1484, \"y\": 940}, {\"x\": 1487, \"y\": 1069}, {\"x\": 1443, \"y\": 1070}, {\"x\": 1440, \"y\": 941}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 24, \"description\": \"A\", \"boundingPoly\": {\"vertices\": [{\"x\": 1497, \"y\": 1187}, {\"x\": 1498, \"y\": 1229}, {\"x\": 1443, \"y\": 1230}, {\"x\": 1442, \"y\": 1188}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 24, \"description\": \"KILLING\", \"boundingPoly\": {\"vertices\": [{\"x\": 1499, \"y\": 1233}, {\"x\": 1505, \"y\": 1443}, {\"x\": 1449, \"y\": 1444}, {\"x\": 1443, \"y\": 1235}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 24, \"description\": \"KINDNESS\", \"boundingPoly\": {\"vertices\": [{\"x\": 1499, \"y\": 1458}, {\"x\": 1506, \"y\": 1733}, {\"x\": 1464, \"y\": 1734}, {\"x\": 1457, \"y\": 1459}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 25, \"description\": \"GRAFTON\", \"boundingPoly\": {\"vertices\": [{\"x\": 1517, \"y\": 2556}, {\"x\": 1525, \"y\": 2765}, {\"x\": 1493, \"y\": 2766}, {\"x\": 1485, \"y\": 2557}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 26, \"description\": \"Reginald\", \"boundingPoly\": {\"vertices\": [{\"x\": 1185, \"y\": 556}, {\"x\": 1241, \"y\": 1241}, {\"x\": 1031, \"y\": 1258}, {\"x\": 975, \"y\": 573}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 26, \"description\": \"Hill\", \"boundingPoly\": {\"vertices\": [{\"x\": 1225, \"y\": 1279}, {\"x\": 1249, \"y\": 1566}, {\"x\": 1081, \"y\": 1580}, {\"x\": 1058, \"y\": 1293}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 26, \"description\": \"A\", \"boundingPoly\": {\"vertices\": [{\"x\": 1280, \"y\": 1801}, {\"x\": 1291, \"y\": 1920}, {\"x\": 1101, \"y\": 1938}, {\"x\": 1090, \"y\": 1819}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 26, \"description\": \"KILLING\", \"boundingPoly\": {\"vertices\": [{\"x\": 1292, \"y\": 1923}, {\"x\": 1334, \"y\": 2367}, {\"x\": 1143, \"y\": 2385}, {\"x\": 1101, \"y\": 1941}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 26, \"description\": \"KINDNESS\", \"boundingPoly\": {\"vertices\": [{\"x\": 1138, \"y\": 1804}, {\"x\": 1165, \"y\": 2357}, {\"x\": 1078, \"y\": 2362}, {\"x\": 1051, \"y\": 1808}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 27, \"description\": \"Reginald\", \"boundingPoly\": {\"vertices\": [{\"x\": 678, \"y\": 653}, {\"x\": 715, \"y\": 1063}, {\"x\": 608, \"y\": 1073}, {\"x\": 570, \"y\": 663}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 27, \"description\": \"Hill\", \"boundingPoly\": {\"vertices\": [{\"x\": 734, \"y\": 1086}, {\"x\": 761, \"y\": 1384}, {\"x\": 638, \"y\": 1395}, {\"x\": 611, \"y\": 1097}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 27, \"description\": \"Good\", \"boundingPoly\": {\"vertices\": [{\"x\": 751, \"y\": 1458}, {\"x\": 770, \"y\": 1664}, {\"x\": 699, \"y\": 1671}, {\"x\": 680, \"y\": 1464}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 27, \"description\": \"Morning,\", \"boundingPoly\": {\"vertices\": [{\"x\": 771, \"y\": 1705}, {\"x\": 802, \"y\": 2043}, {\"x\": 710, \"y\": 2051}, {\"x\": 679, \"y\": 1713}]}}, {\"used\": true, \"locale\": \"\", \"spineindex\": 27, \"description\": \"Midnight\", \"boundingPoly\": {\"vertices\": [{\"x\": 804, \"y\": 2072}, {\"x\": 833, \"y\": 2390}, {\"x\": 741, \"y\": 2398}, {\"x\": 712, \"y\": 2080}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 28, \"description\": \"THE\", \"boundingPoly\": {\"vertices\": [{\"x\": 340, \"y\": 2138}, {\"x\": 359, \"y\": 2281}, {\"x\": 303, \"y\": 2288}, {\"x\": 284, \"y\": 2146}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 28, \"description\": \"DEATH\", \"boundingPoly\": {\"vertices\": [{\"x\": 372, \"y\": 2301}, {\"x\": 412, \"y\": 2597}, {\"x\": 339, \"y\": 2607}, {\"x\": 299, \"y\": 2311}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 29, \"description\": \"OF\", \"boundingPoly\": {\"vertices\": [{\"x\": 242, \"y\": 2150}, {\"x\": 253, \"y\": 2236}, {\"x\": 198, \"y\": 2243}, {\"x\": 187, \"y\": 2157}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 29, \"description\": \"DALZIEL\", \"boundingPoly\": {\"vertices\": [{\"x\": 268, \"y\": 2256}, {\"x\": 313, \"y\": 2611}, {\"x\": 242, \"y\": 2620}, {\"x\": 197, \"y\": 2265}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 30, \"description\": \"Reginald\", \"boundingPoly\": {\"vertices\": [{\"x\": 256, \"y\": 664}, {\"x\": 368, \"y\": 1713}, {\"x\": 113, \"y\": 1740}, {\"x\": 0, \"y\": 691}]}}, {\"used\": false, \"locale\": \"\", \"spineindex\": 30, \"description\": \"Hil\", \"boundingPoly\": {\"vertices\": [{\"x\": 376, \"y\": 1778}, {\"x\": 406, \"y\": 2055}, {\"x\": 111, \"y\": 2087}, {\"x\": 82, \"y\": 1809}]}}]", TRUE);
 
-            # First get the positions of books in the image.
-            //        list ($id, $purportedbooks) = $c->extractPossibleBooks($data, $filename);
-            //        assertNotNull($id);
-
-            # Now get the text within each book.
-            list ($id, $json2) = $c->ocr($data, $filename);
-            assertNotNull($id);
-
-            # Now identify spines.
-            list ($spines, $fragments) = $c->process($id);
-
-            error_log("\n\n");
-            foreach ($spines as $book) {
-                #error_log("Book ". json_encode($book));
-                if ($book['author'] && $book['title']) {
-                    error_log("{$book['author']} - {$book['title']}");
+            foreach ($spines as $spine) {
+                if (pres('author', $spine)) {
+                    error_log("{$spine['author']} - {$spine['title']}");
+                    $c->findISBN($spine['author'], $spine['title']);
                 }
             }
-
-            $booksfile = @file_get_contents(IZNIK_BASE . $filename . "_books.txt");
-            $text = $booksfile ? json_decode($booksfile, TRUE) : [];
-
-            $foundnow = 0;
-
-            foreach ($spines as $book) {
-                if ($book['author'] && $book['title']) {
-                    $foundnow++;
-                }
-            }
-
-            $foundthen = 0;
-
-            foreach ($text as $book) {
-                if ($book['author'] && $book['title']) {
-                    $foundthen++;
-                }
-            }
-
-            if ($foundthen > $foundnow) {
-                error_log("$filename worse");
-                foreach ($text as $then) {
-                    if ($then['author']) {
-                        $found = FALSE;
-
-                        foreach ($spines as $now) {
-                            if (!strcasecmp($now['author'], $then['author']) && !strcasecmp($now['title'], $then['title'])) {
-                                $found = TRUE;
-                            }
-                        }
-
-                        if (!$found) {
-                            error_log("No longer finding {$then['author']} - {$then['title']}");
-                        }
-                    }
-                }
-
-                error_log(json_encode($spines));
-
-            } else if ($foundthen < $foundnow) {
-                error_log("$filename better");
-
-                foreach ($spines as $now) {
-                    if ($now['author']) {
-                        $found = FALSE;
-
-                        foreach ($text as $then) {
-                            if ($now['author'] == $then['author'] && $now['title'] == $then['title']) {
-                                $found = TRUE;
-                            }
-                        }
-
-                        if (!$found) {
-                            error_log("Now also finding {$now['author']} - {$now['title']}");
-                        }
-                    }
-                }
-                error_log(json_encode($spines));
-            }
-
-            assertEquals($foundthen, $foundnow);
         }
 
         assertTrue(TRUE);
     }
-
-    public function libraryData()
-    {
-        $ret = [];
-
-        foreach ([
-                     'vertical_easy',
-                     'liz1',
-                     'liz2',
-                     'liz3',
-                     'liz4',
-                     'liz5',
-                     'liz7',
-                     'liz8',
-                     'liz9',
-                     'liz10',
-                     'liz11',
-                     'liz13',
-                     'liz14',
-                     'liz15',
-                     'liz16',
-                     'liz17',
-                     'liz18',
-                     'liz19',
-                     'liz20',
-                     'liz21',
-                     'liz22',
-                     'liz23',
-                     'liz24',
-                     'liz25',
-                     'liz26',
-                     'liz27',
-                     'liz28',
-                     'liz29',
-                     'liz30',
-                     'liz31',
-                     'liz33',
-                     'liz34',
-                     'liz35',
-                     'liz36',
-                     'liz37',
-                     'liz38',
-                     'liz39',
-                     'liz40',
-                     'liz41',
-                     'liz43',
-                     'liz44',
-                     'liz45',
-                     'liz46',
-                     'liz47',
-                     'liz48',
-                     'ruth1',
-                     'ruth2',
-                     'ruth3',
-                     'jo1',
-                     'carol1',
-                     'carol2',
-                     'kathryn1',
-                     'phil1',
-                     'doug1',
-                     'doug2',
-                     'doug3',
-                     'adam1',
-                     'adam2',
-                     'andy1',
-                     'emma1',
-                     'suzanne1',
-                     'suzanne2',
-                     'suzanne3',
-                     'suzanne4',
-                     'suzanne5',
-                     'tom1',
-                     'wanda1',
-                     'caroline1',
-                     'bryson3',
-                     'bryson2',
-                     'bryson',
-                     'chris1',
-                     'chris2',
-                     'crime1',
-                     'crime2',
-                     'crime3',
-                     'basic_horizontal',
-                     'basic_vertical',
-                     'gardening',
-                     'horizontal_overlap',
-                     'horizontal_overlap2',
-                 ] as $test) {
-            $ret[$test] = ['/test/ut/php/booktastic/' . $test];
-        }
-
-        return $ret;
-    }
-
-//    public function testVideo()
-//    {
-//        $data = base64_encode(file_get_contents(IZNIK_BASE . '/test/ut/php/booktastic/video.mp4'));
-//
-//        # Now get the text within each book.
-//        $c = new Catalogue($this->dbhr, $this->dbhm);
-//        list ($id, $json2) = $c->ocr($data, 'video', TRUE);
-//        assertTrue(TRUE);
-//    }
 }
 

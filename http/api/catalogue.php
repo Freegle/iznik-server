@@ -60,7 +60,7 @@ function catalogue() {
                 ];
             } else {
                 # For now return the UT info.
-                $dir = '/var/www/iznik.mt.dbg/test/ut/php/booktastic';
+                $dir = '/var/build/booktastic/testdata';
 
                 $ret = [
                     'ret' => 0,
@@ -70,13 +70,15 @@ function catalogue() {
 
                 if ($dh = opendir($dir)) {
                     while (($file = readdir($dh)) !== false) {
-                        if (strpos($file, '_books.txt')) {
-                            $img = "https://" . IMAGE_ARCHIVED_DOMAIN . '/booktastic/' . str_replace('_books.txt', '.jpg', $file);
+                        if (strpos($file, '_books.json')) {
+                            $img = "https://" . IMAGE_ARCHIVED_DOMAIN . '/booktastic/' . str_replace('_books.json', '.jpg', $file);
                             $thisone = [ 'img' => $img, 'books' => [], 'fragments' => [] ];
-                            $json = json_decode(file_get_contents($dir . DIRECTORY_SEPARATOR . $file), TRUE);
+                            $raw = file_get_contents($dir . DIRECTORY_SEPARATOR . $file);
+                            $thisone['raw'] = $raw;
+                            $json = json_decode($raw, TRUE);
 
                             foreach ($json as $b) {
-                                if ($b['author']) {
+                                if (pres('author', $b) || pres('Author', $b)) {
                                     $thisone['books'][] = $b;
                                 } else {
                                     $thisone['fragments'][] = $b;
