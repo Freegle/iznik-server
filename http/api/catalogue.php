@@ -59,37 +59,37 @@ function catalogue() {
                     'spines' => $spines
                 ];
             } else {
-                # For now return the UT info.
-                $dir = '/var/build/booktastic/testdata';
-
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
                     'results' => []
                 ];
 
-                if ($dh = opendir($dir)) {
-                    while (($file = readdir($dh)) !== false) {
-                        if (strpos($file, '_books.json')) {
-                            $img = "https://" . IMAGE_ARCHIVED_DOMAIN . '/booktastic/' . str_replace('_books.json', '.jpg', $file);
-                            $thisone = [ 'img' => $img, 'books' => [], 'fragments' => [] ];
-                            $raw = file_get_contents($dir . DIRECTORY_SEPARATOR . $file);
-                            $thisone['raw'] = $raw;
-                            $json = json_decode($raw, TRUE);
+                $ocrs = $dbhr->preQuery("SELECT id FROM booktastic_ocr WHERE processed IS NOT NULL ORDER BY id desc LIMIT 30;");
+                foreach ($ocrs as $ocr) {
+                    $img = "https://" . IMAGE_DOMAIN . '/zimg_' . $ocr['id'] . '.jpg';
+                    $thisone = [ 'img' => $img, 'books' => [], 'fragments' => [] ];
 
-                            foreach ($json as $b) {
-                                if (pres('author', $b) || pres('Author', $b)) {
-                                    $thisone['books'][] = $b;
-                                } else {
-                                    $thisone['fragments'][] = $b;
+                    $results = $dbhr->preQuery("SELECT * FROM booktastic_results WHERE ocrid = ?;", [
+                        $ocr['id']
+                    ], FALSE, FALSE);
+
+                    foreach ($results as $result) {
+                        $spines = json_decode($result['spines'], TRUE);
+                        $fragments = json_decode($result['fragments'], TRUE);
+
+                        if ($spines && $fragments) {
+                            $thisone['fragments'] = $fragments;
+
+                            foreach ($spines as $spine) {
+                                if (pres('author', $spine)) {
+                                    $thisone['books'][] = $spine;
                                 }
                             }
-
-                            $ret['results'][] = $thisone;
                         }
                     }
 
-                    closedir($dh);
+                    $ret['results'][] = $thisone;
                 }
             }
 

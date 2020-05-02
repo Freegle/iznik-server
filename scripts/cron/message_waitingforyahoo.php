@@ -32,7 +32,6 @@ foreach ($messages as $message) {
 }
 
 # We might have messages which were stranded waiting for a membership at the point when we switched a group to native.
-
 $sql = "SELECT messages_groups.msgid AS id, groups.id AS groupid FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid WHERE collection = ? AND onyahoo = 0;";
 $messages = $dbhr->preQuery($sql, [
     MessageCollection::QUEUED_YAHOO_USER
