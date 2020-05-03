@@ -38,6 +38,8 @@ function image() {
         $type = Attachment::TYPE_NEWSFEED;
     } else if ($story) {
         $type = Attachment::TYPE_STORY;
+    } else if ($booktastic) {
+        $type = Attachment::TYPE_BOOKTASTIC;
     } else {
         $type = Attachment::TYPE_MESSAGE;
     }
@@ -46,21 +48,8 @@ function image() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $data = NULL;
-
-            if ($booktastic) {
-                # Outside normal.
-                $ocrs = $dbhr->preQuery("SELECT data FROM booktastic_ocr WHERE id = ?;", [
-                    $id
-                ], FALSE, FALSE);
-
-                foreach ($ocrs as $ocr) {
-                    $data = base64_decode($ocr['data']);
-                }
-            } else {
-                $a = new Attachment($dbhr, $dbhm, $id, $type);
-                $data = $a->getData();
-            }
+            $a = new Attachment($dbhr, $dbhm, $id, $type);
+            $data = $a->getData();
 
             $i = new Image($data);
 
@@ -88,7 +77,6 @@ function image() {
                         'img' => $i->getDataPNG()
                     ];
                 } else {
-                    error_log("Returning");
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',

@@ -56,8 +56,7 @@ class Catalogue
             #$this->log("Not got it");
             $a = new Attachment($this->dbhr, $this->dbhm);
             $text = $this->doOCR($a, $data, $video);
-            $this->dbhm->preExec("INSERT INTO booktastic_ocr (data, text, uid) VALUES (?, ?, ?);", [
-                $data,
+            $this->dbhm->preExec("INSERT INTO booktastic_ocr (text, uid) VALUES (?, ?);", [
                 json_encode($text),
                 $uid
             ]);
