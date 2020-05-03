@@ -252,51 +252,10 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         #error_log("Like returned " . var_export($res, true));
                     }
 
-                    try {
-                        # We want to share the post out with the existing details - but we need to remove the id, otherwise
-                        # it's an invalid op.
-                        $params = json_decode($action['data'], TRUE);
-                        unset($params['id']);
-
-                        error_log("Post to {$this->name} {$this->id} with {$this->token} action " . var_export($params, TRUE));
-                        $result = $fb->post($this->id . '/feed', $params, $this->token);
-                        error_log("Post returned " . var_export($result, true));
-                    } catch (Exception $e) {
-                        # Sometimes we get problems sharing, but we would be able to post ourselves.
-                        $code = $e->getCode();
-
-                        # Try a straight post.
-                        error_log("Share failed, try post");
-                        unset($params['link']);
-                        try {
-                            if (pres('full_picture', $params)) {
-                                # There is a photo, so the process is more complex.
-                                error_log("Get picture");
-
-                                # Now post it to this page.
-                                $result = $fb->post($this->id . '/photos', [
-                                    'url' => $params['full_picture'],
-                                    'message' => presdef('message', $params, 'Check this out')
-                                ], $this->token);
-                                error_log("Photo post returned " . var_export($result, TRUE));
-                            } else {
-                                $result = $fb->post($this->id . '/feed', $params, $this->token);
-                                error_log("Simple post returned " . var_export($result, TRUE));
-                            }
-                        } catch (Exception $e) {
-                            $code = $e->getCode();
-                            error_log("Simple post failed with " . $e->getMessage());
-                            # These numbers come from FacebookResponseException.
-                            #
-                            # Code 100 can be returned for some posts which are not visible.
-                            if ($code == 100 || $code == 102 || $code == 190) {
-                                $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE uid = ?;", [
-                                    $e->getMessage(),
-                                    $this->uid
-                                ]);
-                            }
-                        }
-                    }
+                    $a = explode('_', $action['postid']);
+                    $params['link'] = 'https://www.facebook.com/' . $a[0] . '/posts/' . $a[1];
+                    $result = $fb->post($this->id . '/feed', $params, $this->token);
+                    error_log("Share via " . json_encode($params) . " returned " . var_export($result, TRUE));
                 }
             }
         }
