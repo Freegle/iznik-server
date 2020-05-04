@@ -120,10 +120,14 @@ function user() {
                             'id' => $id
                         ];
                     } else {
+                        # Behaviour is different.  For mods we return success and the existing id - this is used
+                        # in the Add User feature.  For users we return an error to get them to sign in.
+                        $mod = $me && $me->isModerator();
+
                         $ret = [
-                            'ret' => 0,
+                            'ret' => $mod ? 0 : 2,
                             'status' => "That user already exists, but with a different password.",
-                            'id' => $me && $me->isModerator() ? $id : null
+                            'id' => $mod ? $id : null
                         ];
                     }
                 } else {
