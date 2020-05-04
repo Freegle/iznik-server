@@ -121,7 +121,7 @@ function user() {
                         ];
                     } else {
                         $ret = [
-                            'ret' => 2,
+                            'ret' => 0,
                             'status' => "That user already exists, but with a different password.",
                             'id' => $me && $me->isModerator() ? $id : null
                         ];
