@@ -379,6 +379,12 @@ class User extends Entity
 
     public function inventPassword()
     {
+        $spamwords = [];
+        $ws = $this->dbhr->preQuery("SELECT word FROM spam_keywords");
+        foreach ($ws as $w) {
+            $spamwords[] = strtolower($w['word']);
+        }
+
         $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
         $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
         $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
@@ -388,7 +394,11 @@ class User extends Entity
         do {
             $length = \Wordle\array_weighted_rand($lengths);
             $start = \Wordle\array_weighted_rand($bigrams);
-            $pw .= \Wordle\fill_word($start, $length, $trigrams);
+            $word = \Wordle\fill_word($start, $length, $trigrams);
+
+            if (!in_array(strtolower($word), $spamwords)) {
+                $pw .= $word;
+            }
         } while (strlen($pw) < 6);
 
         $pw = strtolower($pw);

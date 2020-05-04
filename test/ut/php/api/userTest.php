@@ -88,7 +88,7 @@ class userAPITest extends IznikAPITestCase {
             'email' => $email,
             'password' => 'wibble2'
         ]);
-        assertEquals(0, $ret['ret']);
+        assertEquals(2, $ret['ret']);
         assertTrue(pres('id', $ret));
 
         # Register with same email and pass
@@ -99,7 +99,13 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['id']);
 
-        }
+        # Register with no password
+        $ret = $this->call('user', 'PUT', [
+            'email' => $email
+        ]);
+
+        assertEquals(0, $ret['ret']);
+    }
     
     public function testDeliveryType() {
         # Shouldn't be able to do this as a member
