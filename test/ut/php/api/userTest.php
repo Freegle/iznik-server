@@ -88,7 +88,8 @@ class userAPITest extends IznikAPITestCase {
             'email' => $email,
             'password' => 'wibble2'
         ]);
-        assertEquals(2, $ret['ret']);
+        assertEquals(0, $ret['ret']);
+        assertTrue(pres('id', $ret));
 
         # Register with same email and pass
         $ret = $this->call('user', 'PUT', [
