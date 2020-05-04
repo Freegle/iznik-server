@@ -4402,6 +4402,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             $thisone['comments'] = $this->getCommentsForSingleUser($user['userid']);
 
+            $push = $this->dbhr->preQuery("SELECT MAX(lastsent) AS lastpush FROM users_push_notifications WHERE userid = ?;", [
+                $user['userid']
+            ], FALSE, FALSE);
+
+            foreach ($push as $p) {
+                $thisone['lastpush'] = ISODate($p['lastpush']);
+            }
+
             $ret[] = $thisone;
         }
 
