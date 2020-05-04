@@ -123,7 +123,7 @@ function user() {
                         $ret = [
                             'ret' => 2,
                             'status' => "That user already exists, but with a different password.",
-                            'id' => $id
+                            'id' => $me && $me->isModerator() ? $id : null
                         ];
                     }
                 } else {
