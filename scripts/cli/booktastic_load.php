@@ -13,6 +13,7 @@ use Elasticsearch\ClientBuilder;
 $client = ClientBuilder::create()
     ->setHosts([
         'bulk3.ilovefreegle.org:9200'
+//    'localhost:9200'
     ])
     ->build();
 
@@ -150,9 +151,12 @@ do {
 
         # Only interested in books with latin characters for now.  Asterix, etc.
         $latinReg = '/[^\\p{Common}\\p{Latin}]/u';
+        $stitle = $c->normaliseTitle($title, TRUE);
 
         if (!preg_match($latinReg, $author) && !preg_match($latinReg, $title)) {
-            addOne($client, $viafid, $author, $title, $count);
+            if  (!strlen($stitle)) {
+                addOne($client, $viafid, $author, $title, $count);
+            }
         }
     }
 } while ($csv);

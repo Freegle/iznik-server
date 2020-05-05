@@ -71,7 +71,7 @@ class Catalogue
         return [ $id, $text ];
     }
 
-    public function normaliseTitle($title) {
+    public function normaliseTitle($title, $allowempty = FALSE) {
         # Some books have a subtitle, and the catalogues are inconsistent about whether that's included.
         $p = strpos($title, ':');
 
@@ -87,7 +87,15 @@ class Catalogue
 
         $title = trim(strtolower($title));
 
-        $title = $this->removeShortWords($title);
+        $stitle = $this->removeShortWords($title);
+
+        if (!strlen($stitle)) {
+            if ($allowempty) {
+                $title = $stitle;
+            }
+        } else {
+            $title = $stitle;
+        }
 
         #error_log("Normalised title $title");
 
