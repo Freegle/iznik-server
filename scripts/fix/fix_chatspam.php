@@ -4,8 +4,10 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
-$mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
-$messages = $dbhr->preQuery("SELECT chat_messages.*, users.fullname FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid WHERE chat_messages.date >= '$mysqltime' AND reviewrequired = 1 AND reviewrejected = 0;");
+$mysqltime = date("Y-m-d H:i:s", strtotime("midnight 2 days ago"));
+$sql = "SELECT chat_messages.*, users.fullname FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid WHERE chat_messages.date >= '$mysqltime' AND reviewrequired = 1 AND reviewrejected = 0;";
+error_log($sql);
+$messages = $dbhr->preQuery($sql);
 $total = count($messages);
 $count = 0;
 $spam = 0;

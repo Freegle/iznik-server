@@ -1193,7 +1193,6 @@ WHERE chat_rooms.id IN $idlist;";
         # - Facebook
         # - push
         $userids = [];
-        $group = NULL;
         #error_log("Notify $message exclude $excludeuser");
 
         switch ($this->chatroom['chattype']) {
@@ -1203,8 +1202,12 @@ WHERE chat_rooms.id IN $idlist;";
                 $userids[] = $this->chatroom['user2'];
                 break;
             case ChatRoom::TYPE_USER2MOD:
-                # Notify the initiator but not groups mods - they're used to email notifications.
+                # Notify the initiator and the groups mods.
                 $userids[] = $this->chatroom['user1'];
+                $g = Group::get($this->dbhr, $this->dbhm, $this->chatroom['groupid']);
+                $mods = $g->getMods();
+                $userids = array_merge($userids, $mods);
+
                 break;
         }
 
@@ -1260,7 +1263,7 @@ WHERE chat_rooms.id IN $idlist;";
         FROM chat_messages 
         LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid 
         LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id 
-        INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid 
+        INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
         INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) 
               AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) 
         INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' 
