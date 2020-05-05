@@ -284,6 +284,7 @@ function memberships() {
                             }
                             break;
                         case 'Approve':
+                        case 'Approve Member':
                             if (!$u->isPendingMember($groupid)) {
                                 $ret = ['ret' => 3, 'status' => 'Member is not pending'];
                             } else {
