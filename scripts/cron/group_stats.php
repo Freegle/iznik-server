@@ -112,9 +112,9 @@ foreach ($totalact as $total) {
             $logs[0]['max']
         ]);
 
-        # Count mods active in the last 30 days.
+        # Count mods who have been logged in within the last 30 days.
         $start = date('Y-m-d', strtotime("30 days ago"));
-        $sql = "SELECT COUNT(DISTINCT(approvedby)) AS count FROM messages_groups WHERE groupid = ? AND arrival > ? AND approvedby IS NOT NULL;";
+        $sql = "SELECT COUNT(DISTINCT(users.id)) AS count FROM users INNER JOIN memberships ON memberships.userid = users.id WHERE groupid = ? AND role IN ('Owner', 'Moderator') AND lastaccess > ?;";
         $actives = $dbhr->preQuery($sql, [
             $group['id'],
             $start
