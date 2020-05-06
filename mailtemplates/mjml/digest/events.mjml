@@ -65,10 +65,6 @@
         </mj-section>
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column>
-            <mj-text background-color="#FFF8DC" color="red" line-height="1.25em">
-              Some events may be disrupted due to COVID-19.  Check if they're still happening, and if you have
-              posted an event use the Edit button to update it.
-            </mj-text>
             <mj-text background-color="#FFF8DC" color="#1D6607" line-height="1.25em">
               Here are the current Community Events. Depending on
               your email client you may be able to click on a link to move down this email;
