@@ -36,6 +36,10 @@
         </mj-section>
         <mj-section background-color="#F7F6EC">
           <mj-column>
+            <mj-text color="red">
+              Please read our advice on safe freegling during COVID-19 -
+              <a href="https://www.ilovefreegle.org/covidsafefreegling">click here</a>.
+            </mj-text>
             <mj-raw>
             {% if password is defined and password is not null %}
             </mj-raw>
