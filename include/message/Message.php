@@ -33,7 +33,7 @@ class Message
     const TYPE_ADMIN = 'Admin';
     const TYPE_OTHER = 'Other';
 
-    const EXPIRE_TIME = 30;
+    const EXPIRE_TIME = 90;
 
     const OUTCOME_TAKEN = 'Taken';
     const OUTCOME_RECEIVED = 'Received';
