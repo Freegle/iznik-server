@@ -791,8 +791,8 @@ GROUP BY memberships.groupid, held;
 
             if (pres('heldby', $thisone)) {
                 $u = User::get($this->dbhr, $this->dbhm, $thisone['heldby']);
-                $ctx = NULL;
-                $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $ctx2 = NULL;
+                $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE, FALSE, FALSE);
             }
 
             if ($filter === Group::FILTER_MODERATORS) {
