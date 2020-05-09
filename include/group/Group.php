@@ -428,12 +428,12 @@ GROUP BY memberships.groupid, held;
 
             $pendingadmins = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid IN $groupq AND admins.complete IS NULL AND admins.pending = 1 AND heldby IS NULL GROUP BY groupid;");
 
-            # Related members - everyone appears both ways round.
-            $relatedsql = "SELECT COUNT(*) AS count, memberships.groupid FROM users_related 
+            # Related members.
+            $relatedsql = "SELECT COUNT(*) AS count, groupid FROM (SELECT user1, memberships.groupid FROM users_related 
     INNER JOIN users u1 ON u1.id = users_related.user1 AND u1.deleted IS NULL AND u1.systemrole = 'User'
     INNER JOIN memberships ON (memberships.userid = users_related.user1 OR memberships.userid = users_related.user2) AND memberships.groupid IN $groupq
     INNER JOIN users u2 ON u2.id = users_related.user2 AND u2.deleted IS NULL AND u2.systemrole = 'User' 
-    WHERE notified = 0 AND user1 < user2 GROUP BY memberships.groupid";
+    WHERE notified = 0 AND user1 < user2) t GROUP BY groupid";
             $relatedmembers = $this->dbhr->preQuery($relatedsql, NULL, FALSE, FALSE);
 
             # We only want to show edit reviews upto 7 days old - after that assume they're ok.
@@ -539,7 +539,7 @@ GROUP BY memberships.groupid, held;
                     
                     foreach ($relatedmembers as $count) {
                         if ($count['groupid'] == $groupid) {
-                            $thisone['relatedmembers'] = round($count['count'] / 2);
+                            $thisone['relatedmembers'] = $count['count'];
                         }
                     }
                 } else {
