@@ -2275,14 +2275,24 @@ WHERE chat_rooms.id IN $idlist;";
         $myid = $me ? $me->getId() : NULL;
         $other = $myid == $this->chatroom['user1'] ? $this->chatroom['user2'] : $this->chatroom['user1'];
 
-        # Create a message in the chat.
-        $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $m->create($this->id, $myid, NULL, ChatMessage::TYPE_NUDGE);
-        $m->setPrivate('replyexpected', 1);
+        # Check that the last message in the chat is not a nudge from us.  That would be annoying.
+        $lastmsg = $this->dbhr->preQuery("SELECT id, type, userid FROM chat_messages WHERE chatid = ? ORDER BY id DESC LIMIT 1;", [
+            $this->id
+        ]);
 
-        # Also record the nudge so that we can see when it has been acted on
-        $this->dbhm->preExec("INSERT INTO users_nudges (fromuser, touser) VALUES (?, ?);", [ $myid, $other ]);
-        $id = $this->dbhm->lastInsertId();
+        if (count($lastmsg) == 0 || $lastmsg['type'] !== ChatMessage::TYPE_NUDGE || $lastmsg['userid'] != $myid) {
+            $m = new ChatMessage($this->dbhr, $this->dbhm);
+            $m->create($this->id, $myid, NULL, ChatMessage::TYPE_NUDGE);
+            $m->setPrivate('replyexpected', 1);
+
+            # Also record the nudge so that we can see when it has been acted on
+            $this->dbhm->preExec("INSERT INTO users_nudges (fromuser, touser) VALUES (?, ?);", [ $myid, $other ]);
+            $id = $this->dbhm->lastInsertId();
+        } else {
+            $id = $lastmsg['id'];
+        }
+
+        # Create a message in the chat.
         return($id);
     }
 
