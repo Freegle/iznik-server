@@ -33,7 +33,7 @@ class Message
     const TYPE_ADMIN = 'Admin';
     const TYPE_OTHER = 'Other';
 
-    const EXPIRE_TIME = 90;
+    const EXPIRE_TIME = 30;
 
     const OUTCOME_TAKEN = 'Taken';
     const OUTCOME_RECEIVED = 'Received';
@@ -1101,11 +1101,12 @@ class Message
                 $rets[$msg['id']]['groups'][$groupind]['namedisplay'] = $g->getName();
                 #error_log("Message {$group['msgid']} {$group['groupid']} {$group['namedisplay']}");
 
-                # Work out the maximum number of autoreposts to prevent expiry before that has occurred.
+                # Work out when this message should be deemed as expired and no longer show.
+                $maxagetoshow = $g->getSetting('maxagetoshow', Message::EXPIRE_TIME);
                 $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
                 $repost = $msg['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $maxreposts = $repost * $reposts['max'];
-                $rets[$msg['id']]['expiretime'] = max(Message::EXPIRE_TIME, $maxreposts);
+                $rets[$msg['id']]['expiretime'] = min($maxreposts, $maxagetoshow);
 
                 if (array_key_exists('canedit', $rets[$msg['id']]) && !$rets[$msg['id']]['canedit'] && $myid && $myid === $msg['fromuser'] && $msg['source'] == Message::PLATFORM) {
                     # This is our own message, which we may be able to edit if the group allows it.
