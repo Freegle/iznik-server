@@ -1801,6 +1801,27 @@ class MailRouterTest extends IznikTestCase {
         assertTrue($m->isPending($gid));
     }
 
+    public function testBanned() {
+        $u1 = User::get($this->dbhr, $this->dbhr);
+        $uid1 = $u1->create(NULL, NULL, 'Test User');
+        assertNotNull($uid1);
+        $u1->addEmail('test@test.com');
+
+        # Ban u1
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+        $u1->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+        $u1->removeMembership($gid, TRUE);
+
+        # u1 shouldn't be able to post by email.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msgid = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
+    }
+
     //    public function testSpecial() {
 //        //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));
