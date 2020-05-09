@@ -730,6 +730,7 @@ class MailRouter
             # Find the group
             $g = new Group($this->dbhr, $this->dbhm);
             $gid = $g->findByShortName($matches[1]);
+            $g = new Group($this->dbhr, $this->dbhm, $gid);
 
             if ($gid && !$g->getPrivate('onyahoo')) {
                 # It's one of our groups.  Find the user this is from.
