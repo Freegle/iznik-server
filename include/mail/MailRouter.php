@@ -979,13 +979,15 @@ class MailRouter
                             $worry = $w->checkMessage($this->msg->getID(), $this->msg->getFromuser(), $this->msg->getSubject(), $this->msg->getTextbody());
 
                             foreach ($groups as $group) {
-                                if ($worry) {
+                                $appmemb = $u->isApprovedMember($group['groupid']);
+                                $ispendingmember = $u->isPendingMember($group['groupid']);
+
+                                if (($appmemb || $ispendingmember) && $worry) {
                                     if ($log) { error_log("Worrying => pending"); }
                                     if ($this->markPending($notspam, FALSE)) {
                                         $ret = MailRouter::PENDING;
                                     }
                                 } else {
-                                    $appmemb = $u->isApprovedMember($group['groupid']);
                                     if ($log) { error_log("Approved member? $appmemb"); }
                                     if ($appmemb) {
                                         # Worrying messages always go to Pending.
