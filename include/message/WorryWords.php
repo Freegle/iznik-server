@@ -32,6 +32,7 @@ class WorryWords {
     public function checkMessage($id, $fromuser, $subject, $textbody, $log = TRUE) {
         $this->getWords();
         $ret = NULL;
+        $foundword = [];
 
         foreach ([ $subject, $textbody ] as $scan) {
             foreach ($this->words as $worryword) {
@@ -44,7 +45,7 @@ class WorryWords {
 
             foreach ($words as $word) {
                 foreach ($this->words as $worryword) {
-                    if ($worryword['type'] !== WorryWords::TYPE_ALLOWED) {
+                    if (!pres($worryword['keyword'], $foundword) && $worryword['type'] !== WorryWords::TYPE_ALLOWED) {
                         # Check that words are roughly the same length, and allow more fuzziness as the word length increases.
                         $ratio = strlen($word) / strlen($worryword['keyword']);
                         $len = strlen($word);
@@ -73,6 +74,8 @@ class WorryWords {
                                 'word' => $word,
                                 'worryword' => $worryword,
                             ];
+
+                            $foundword[$worryword['keyword']] = TRUE;
                         }
                     }
                 }
