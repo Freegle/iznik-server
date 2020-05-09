@@ -1755,6 +1755,18 @@ class MailRouterTest extends IznikTestCase {
             WorryWords::TYPE_REPORTABLE
         ]);
 
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
+        # Create a user not on moderation.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->log("Created user $uid");
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+        $u->addMembership($gid);
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/worry');
