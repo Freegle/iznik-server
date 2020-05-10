@@ -6296,11 +6296,27 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $backstop = 100;
 
         do {
-            $ctxq = $ctx ? (" AND users_related.id < " . intval($ctx['id'])) : '';
+            $ctxq = $ctx ? (" WHERE id < " . intval($ctx['id'])) : '';
             $ctx = $ctx ? $ctx : [ 'id'  => NULL ];
 
             if ($groupids && count($groupids)) {
-                $sql = "SELECT DISTINCT users_related.id, user1, user2 FROM users_related INNER JOIN memberships ON (memberships.userid = users_related.user1 OR memberships.userid = users_related.user2) INNER JOIN users u1 ON u1.id = users_related.user1 AND u1.deleted IS NULL AND u1.systemrole = 'User' INNER JOIN users u2 ON u2.id = users_related.user2 AND u2.deleted IS NULL AND u2.systemrole = 'User' WHERE  groupid IN (" . implode(',', $groupids) . ") AND notified = 0 AND user1 < user2 $ctxq ORDER BY users_related.id DESC LIMIT $limit;";
+                $groupq = "(" . implode(',', $groupids) . ")";
+                $sql = "SELECT DISTINCT id, user1, user2 FROM (
+SELECT users_related.id, user1, user2, memberships.groupid FROM users_related 
+INNER JOIN memberships ON users_related.user1 = memberships.id 
+INNER JOIN users u1 ON users_related.user1 = u1.id AND u1.deleted IS NULL AND u1.systemrole = 'User'
+WHERE 
+user1 < user2 AND
+notified = 0 AND
+memberships.groupid IN $groupq UNION
+SELECT users_related.id, user1, user2, memberships.groupid FROM users_related 
+INNER JOIN memberships ON users_related.user2 = memberships.id 
+INNER JOIN users u2 ON users_related.user2 = u2.id AND u2.deleted IS NULL AND u2.systemrole = 'User'
+WHERE 
+user1 < user2 AND
+notified = 0 AND
+memberships.groupid IN $groupq 
+) t $ctxq ORDER BY id DESC LIMIT $limit;";
                 $members = $this->dbhr->preQuery($sql);
             } else {
                 $sql = "SELECT DISTINCT users_related.id, user1, user2 FROM users_related INNER JOIN users u1 ON u1.id = users_related.user1 AND u1.deleted IS NULL AND u1.systemrole = 'User' INNER JOIN users u2 ON u2.id = users_related.user2 AND u2.deleted IS NULL AND u2.systemrole = 'User' WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY id DESC LIMIT $limit;";
