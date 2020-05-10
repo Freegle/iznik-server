@@ -24,12 +24,11 @@ foreach ($logs as $log) {
             $s = json_decode($s, TRUE);
         }
 
-//        if ($welcome && $welcome != "1") {
-//            error_log("$groupid welcome");
-//            error_log($s);
-//            $s['welcomemail'] = $welcome;
-//            $g->setSettings($s);
-//        }
+        if ($welcome && $welcome != "1") {
+            error_log("$groupid welcome");
+            $s['welcomemail'] = $welcome;
+            $g->setSettings($s);
+        }
 
         if ($tagline && $tagline != "1") {
             error_log("$groupid tagline = $tagline");
