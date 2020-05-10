@@ -4560,7 +4560,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             if (pres('pending', $work) > 0) {
                 $title .= $work['pending'] . ' pending message' . (($work['pending'] != 1) ? 's' : '') . " \n";
                 $total += $work['pending'];
-                $route = 'modtools/messages/pending';
+                $route = '/modtools/messages/pending';
             }
 
             $title = $title == '' ? NULL : $title;
