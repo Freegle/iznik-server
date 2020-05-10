@@ -1227,6 +1227,7 @@ class userTest extends IznikTestCase {
         $uid1 = $u->create('Test', 'User', 'Test User');
         $uid2 = $u->create('Test', 'User', 'Test User');
         $u->setPrivate('yahooid', -1);
+        $this->waitBackground();
 
         self::assertEquals(0, $u->userRetention($uid1));
         $u->setPrivate('lastaccess', '2000-01-01');
