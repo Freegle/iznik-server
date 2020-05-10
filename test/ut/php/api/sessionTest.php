@@ -648,7 +648,7 @@ class sessionTest extends IznikAPITestCase
 
         $found = FALSE;
 
-        foreach ($ret['members'] as $member) {
+        foreach (presdef('members', $ret, [] as $member) {
             if ($member['id'] == $id1) {
                 $found = TRUE;
                 assertEquals($id2, $member['relatedto']['id']);
