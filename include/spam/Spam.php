@@ -370,11 +370,6 @@ class Spam {
         # Strip out any job text, which might have spam keywords.
         $message = preg_replace('/\<https\:\/\/www\.ilovefreegle\.org\/jobs\/.*\>.*$/im', '', $message);
 
-        # Some elusive spam has percent signs.
-        if (strpos($message, '%') !== FALSE) {
-            $ret = [ TRUE, Spam::REASON_KNOWN_KEYWORD, 'Has percent sign - possible medication spam' ];
-        }
-
         # Check keywords which are known as spam.
         $this->getSpamWords();
         foreach ($this->spamwords as $word) {
