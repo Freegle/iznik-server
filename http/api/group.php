@@ -166,9 +166,19 @@ function group() {
                         }
 
                         # Other settable attributes
-                        foreach (['tagline', 'showonyahoo', 'onyahoo', 'onhere', 'namefull', 'welcomemail', 'description', 'region', 'affiliationconfirmed', 'publish'] as $att) {
+                        foreach (['showonyahoo', 'onyahoo', 'onhere', 'publish'] as $att) {
                             $val = presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
+                                $g->setPrivate($att, $val);
+
+                                if ($att === 'affiliationconfirmed') {
+                                    $g->setPrivate('affiliationconfirmedby', $me->getId());
+                                }
+                            }
+                        }
+                        foreach (['tagline', 'namefull', 'welcomemail', 'description', 'region', 'affiliationconfirmed'] as $att) {
+                            $val = presdef($att, $_REQUEST, NULL);
+                            if (array_key_exists($att, $_REQUEST) && $val != "1") {
                                 $g->setPrivate($att, $val);
 
                                 if ($att === 'affiliationconfirmed') {
