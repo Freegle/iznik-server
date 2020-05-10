@@ -145,7 +145,7 @@ class ChatMessage extends Entity
         return($dup);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $forcereview = FALSE) {
         try {
             if ($refmsgid) {
                 # If $userid is banned on the group that $refmsgid is on, then we shouldn't create a message.
@@ -159,7 +159,9 @@ class ChatMessage extends Entity
                 }
             }
 
+            # We might have been asked to force this to go to review.
             $review = 0;
+            error_log("Force review? $forcereview");
             $spam = 0;
             $blocked = FALSE;
 
@@ -173,7 +175,7 @@ class ChatMessage extends Entity
                 $userid
             ]);
 
-            if (count($last) && $last[0]['reviewrequired']) {
+            if (count($last) && $last[0]['reviewrequired'] || $forcereview) {
                 $review = 1;
             } else {
                 # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which

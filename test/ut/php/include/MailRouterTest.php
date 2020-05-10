@@ -1508,8 +1508,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
-
-        }
+    }
 
     public function testSubMailUnsub() {
         # Subscribe

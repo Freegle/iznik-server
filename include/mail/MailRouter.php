@@ -784,6 +784,7 @@ class MailRouter
             # would otherwise get flagged - so this improves overall reliability.
             $contentcheck = !$notspam && !preg_match('/.*?\:(.*)\(.*\)/', $this->msg->getSubject());
             $spamscore = NULL;
+            $spamfound = FALSE;
 
             $groups = $this->msg->getGroups(FALSE, FALSE);
             #error_log("Got groups " . var_export($groups, TRUE));
@@ -827,6 +828,7 @@ class MailRouter
 
                     if ($this->markAsSpam($rc[1], $rc[2])) {
                         $ret = MailRouter::INCOMING_SPAM;
+                        $spamfound = true;
                     }
                 } else if ($contentcheck) {
                     # Now check if we think this is spam according to SpamAssassin.
@@ -869,6 +871,7 @@ class MailRouter
 
                             if ($this->markAsSpam(Spam::REASON_SPAMASSASSIN, "SpamAssassin flagged this as possible spam; score $spamscore (high is bad)")) {
                                 $ret = MailRouter::INCOMING_SPAM;
+                                $spamfound = true;
                             } else {
                                 error_log("Failed to mark as spam");
                                 $this->msg->recordFailure('Failed to mark spam');
@@ -881,6 +884,15 @@ class MailRouter
                         $this->msg->recordFailure('Spam Assassin check failed ' . $this->spamc->err);
                     }
                 }
+            }
+
+            if ($spamfound && strpos($to, '@' . USER_DOMAIN) !== FALSE) {
+                # Horrible spaghetti logic.  We found spam in a message which will end up going to chat, if it
+                # has the right kind of address.  We don't want to junk it - we want to send it to review.  We will
+                # check the spamfound flag below
+                # when creating the chat message.
+                error_log("Spam, but destined for chat, continue");
+                $ret = NULL;
             }
 
             if (!$ret) {
@@ -1093,7 +1105,18 @@ class MailRouter
                                     # create a blank chat message in that case, and such a message would get held
                                     # for review anyway.
                                     $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                                    list ($mid, $banned) = $cm->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
+                                    list ($mid, $banned) = $cm->create($chatid,
+                                        $fromid,
+                                        $textbody,
+                                        ChatMessage::TYPE_INTERESTED,
+                                        $msgid,
+                                        FALSE,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        $spamfound);
 
                                     if ($mid) {
                                         $cm->chatByEmail($mid, $this->msg->getID());
@@ -1156,7 +1179,18 @@ class MailRouter
                                         # create a blank chat message in that case, and such a message would get held
                                         # for review anyway.
                                         $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                                        list ($mid, $banned) = $cm->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+                                        list ($mid, $banned) = $cm->create($chatid,
+                                            $userid,
+                                            $textbody,
+                                            ChatMessage::TYPE_DEFAULT,
+                                            $this->msg->getID(),
+                                            FALSE,
+                                            NULL,
+                                            NULL,
+                                            NULL,
+                                            NULL,
+                                            NULL,
+                                            $spamfound);
 
                                         $cm->chatByEmail($mid, $this->msg->getID());
                                     }
@@ -1226,7 +1260,12 @@ class MailRouter
                                     $this->msg->getModmail() ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_INTERESTED,
                                     $original,
                                     FALSE,
-                                    $spamscore);
+                                    $spamscore,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    $spamfound);
                                 if ($log) { error_log("Created chat message $mid"); }
 
                                 $m->chatByEmail($mid, $this->msg->getID());

@@ -253,7 +253,7 @@ class chatMessagesTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
 
-        }
+    }
 
     public function testSpamReply3() {
         # Put a valid message on a group.
@@ -275,8 +275,83 @@ class chatMessagesTest extends IznikTestCase {
         $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
+    }
 
+    public function testSpamReply6() {
+        # Put a valid message on a group.
+        $this->log("Put valid message on");
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
+        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+        $email = $u->inventEmail();
+        $u->addEmail($email, FALSE, FALSE);
+
+        # Send a reply direct to the user - should go to spam but marked for review.
+        $this->log("Reply direct to $email");
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply3'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', $email, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+        $chatmessages = $this->dbhr->preQuery("SELECT chat_messages.id, chatid, reviewrequired FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_rooms.user2 = ?", [
+            $m->getFromuser()
+        ]);
+        assertEquals(1, count($chatmessages));
+        $chatid = NULL;
+        foreach ($chatmessages as $c) {
+            $chatid = $c['chatid'];
+            assertEquals(1, $c['reviewrequired']);
+            $this->dbhm->preExec("DELETE FROM chat_messages WHERE id = ?;", [
+                $c['id']
+            ]);
         }
+
+        # Send a reply to a replyto email - ditto.
+        $this->log("Reply to reply-to");
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply3'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', "replyto-$refmsgid-" . $m->getFromuser() . '@' . USER_DOMAIN, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+        $chatmessages = $this->dbhr->preQuery("SELECT chat_messages.id, reviewrequired FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_rooms.user2 = ?", [
+            $m->getFromuser()
+        ]);
+        assertEquals(1, count($chatmessages));
+        foreach ($chatmessages as $c) {
+            assertEquals(1, $c['reviewrequired']);
+            $this->dbhm->preExec("DELETE FROM chat_messages WHERE id = ?;", [
+                $c['id']
+            ]);
+        }
+
+        # Send a reply to a notify email - ditto.
+        $this->log("Reply to reply-to");
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply3'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', "notify-$chatid-" . $m->getFromuser() . '@' . USER_DOMAIN, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+        $chatmessages = $this->dbhr->preQuery("SELECT chat_messages.id, reviewrequired FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_rooms.user2 = ?", [
+            $m->getFromuser()
+        ]);
+        assertEquals(1, count($chatmessages));
+        $chatid = NULL;
+        foreach ($chatmessages as $c) {
+            assertEquals(1, $c['reviewrequired']);
+            $this->dbhm->preExec("DELETE FROM chat_messages WHERE id = ?;", [
+                $c['id']
+            ]);
+        }
+    }
 
     public function testReplyJobSpam() {
         # Put a valid message on a group.
