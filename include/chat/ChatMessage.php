@@ -161,7 +161,6 @@ class ChatMessage extends Entity
 
             # We might have been asked to force this to go to review.
             $review = 0;
-            error_log("Force review? $forcereview");
             $spam = 0;
             $blocked = FALSE;
 
