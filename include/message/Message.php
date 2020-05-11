@@ -110,6 +110,7 @@ class Message
         "Automatic reply",
         "Mail Receipt",
         "Read receipt",
+        "Return Receipt",
         "Automated reply",
         "Auto-Reply",
         "Out of Office",
