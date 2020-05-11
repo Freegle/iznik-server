@@ -1102,11 +1102,13 @@ class Message
                 #error_log("Message {$group['msgid']} {$group['groupid']} {$group['namedisplay']}");
 
                 # Work out when this message should be deemed as expired and no longer show.
+                #
+                # We use the max time here - reposts can finish earlier.
                 $maxagetoshow = $g->getSetting('maxagetoshow', Message::EXPIRE_TIME);
                 $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
                 $repost = $msg['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $maxreposts = $repost * $reposts['max'];
-                $rets[$msg['id']]['expiretime'] = min($maxreposts, $maxagetoshow);
+                $rets[$msg['id']]['expiretime'] = max($maxreposts, $maxagetoshow);
 
                 if (array_key_exists('canedit', $rets[$msg['id']]) && !$rets[$msg['id']]['canedit'] && $myid && $myid === $msg['fromuser'] && $msg['source'] == Message::PLATFORM) {
                     # This is our own message, which we may be able to edit if the group allows it.
