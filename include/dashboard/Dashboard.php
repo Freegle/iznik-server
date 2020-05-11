@@ -22,6 +22,7 @@ class Dashboard {
     const COMPONENTS_MESSAGE_BREAKDOWN = 'MessageBreakdown';
     const COMPONENTS_WEIGHT = 'Weight';
     const COMPONENTS_OUTCOMES = 'Outcomes';
+    const COMPONENTS_DONATIONS = 'Donations';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -236,7 +237,9 @@ class Dashboard {
             }
 
             if (in_array(Dashboard::COMPONENT_POPULAR_POSTS, $components)) {
-                $populars = $this->dbhr->preQuery("SELECT COUNT(*) AS views, messages.id, messages.subject FROM messages INNER JOIN messages_likes ON messages_likes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages_likes.type = 'View' GROUP BY messages.id HAVING views > 0 ORDER BY views DESC LIMIT 5", NULL, FALSE, FALSE);
+                $populars = $this->dbhr->preQuery("SELECT COUNT(*) AS views, messages.id, messages.subject FROM messages INNER JOIN messages_likes ON messages_likes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.collection = ? WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages_likes.type = 'View' GROUP BY messages.id HAVING views > 0 ORDER BY views DESC LIMIT 5", [
+                    MessageCollection::APPROVED
+                ], FALSE, FALSE);
 
                 if (count($populars)) {
                     $msgids = array_filter(array_column($populars, 'id'));
@@ -373,6 +376,22 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
             if (in_array(Dashboard::COMPONENTS_OUTCOMES, $components)) {
                 $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::OUTCOMES]);
                 $ret[Dashboard::COMPONENTS_OUTCOMES] = $stats[ Stats::OUTCOMES ];
+            }
+
+            if (in_array(Dashboard::COMPONENTS_DONATIONS, $components)) {
+                if ($systemwide) {
+                    $ret[Dashboard::COMPONENTS_DONATIONS] = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS count, DATE(timestamp) AS date FROM users_donations WHERE users_donations.timestamp >= ? AND users_donations.timestamp <= ? AND Payer NOT LIKE 'ppgfukpay@paypalgivingfund.org' GROUP BY date ORDER BY date ASC", [
+                        $start,
+                        $end
+                    ]);
+                } else {
+                    $groupq = (" groupid IN (" . implode(', ', $groupids) . ") ");
+
+                    $ret[Dashboard::COMPONENTS_DONATIONS] = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS count, DATE(timestamp) AS date FROM users_donations WHERE userid IN (SELECT DISTINCT userid FROM memberships WHERE $groupq) AND users_donations.timestamp >= ? AND users_donations.timestamp <= ? AND Payer NOT LIKE 'ppgfukpay@paypalgivingfund.org' GROUP BY date ORDER BY date ASC", [
+                        $start,
+                        $end
+                    ]);
+                }
             }
         }
 
