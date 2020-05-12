@@ -88,6 +88,31 @@
             <a id="top" name="top" />
           {% if availablemessages | length > 0 %}
         </mj-raw>
+        {% for sponsor in sponsors %}
+        </mj-raw>
+        <mj-section background-color="white">
+          <mj-column width="150px">
+            <mj-image alt="Sponsor logo" href="{{ sponsor.linkurl }}" align="left" border-radius="5px" src="{{ sponsor.imageurl }}" width="80px">
+            </mj-image>
+          </mj-column>
+          <mj-column>
+            <mj-text>
+            <p>This community is kindly sponsored by:</p>
+            <a href="{{ sponsor.linkurl }}">{{ sponsor.name }}</a>
+            </mj-text>
+            <mj-raw>
+              {% if sponsor.tagline is defined %}
+            </mj-raw>
+            <mj-text>
+	            <b>{{ sponsor.tagline }}</b>
+            </mj-text>
+            <mj-raw>
+            {% endif %}
+            </mj-raw>
+          </mj-column>
+        </mj-section>
+        <mj-raw>
+        {% endfor %}
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column>
             <mj-text background-color="#FFF8DC" color="#1D6607" font-size="20pt" line-height="1.25em" padding-bottom="0px">

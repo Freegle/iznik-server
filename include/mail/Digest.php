@@ -118,6 +118,7 @@ class Digest
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
+        $sponsors = $g->getSponsorships();
         $sent = 0;
 
         if ($this->errorlog) { error_log("#$groupid " . $g->getPrivate('nameshort') . " send emails for $frequency"); }
@@ -228,6 +229,7 @@ class Digest
                             'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
                             'date' => $datetime->format('D, jS F g:ia'),
                             'autoreposts' => $msg['autoreposts'],
+                            'sponsors' => $sponsors,
 
                             # Per-recipient fields for later Swift expansion
                             'settings' => '{{settings}}',
@@ -354,6 +356,7 @@ class Digest
                         'noemail' => '{{noemail}}',
                         'visit' => '{{visit}}',
                         'jobads' => '{{jobads}}',
+                        'sponsors' => $sponsors,
                         'joblocation' => '{{joblocation}}'
                     ]);
                 } catch (Exception $e) {
