@@ -5880,11 +5880,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         ], FALSE, FALSE);
 
         foreach ($users as $user) {
-            $logs = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), timestamp) AS logsago FROM logs WHERE user = ? ORDER BY id DESC LIMIT 1;", [
-                $user['id']
+            $logs = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), timestamp) AS logsago FROM logs WHERE user = ? AND (type != ? OR subtype != ?) ORDER BY id DESC LIMIT 1;", [
+                $user['id'],
+                Log::TYPE_USER,
+                Log::SUBTYPE_CREATED
             ], FALSE, FALSE);
 
-            #error_log("#{$user['id']} Found logs " . count($logs) . " age " . (count($logs) > 0 ? $logs['0']['logsago'] : ' none '));
+            error_log("#{$user['id']} Found logs " . count($logs) . " age " . (count($logs) > 0 ? $logs['0']['logsago'] : ' none '));
 
             if (count($logs) == 0 || $logs[0]['logsago'] > 90) {
                 error_log("...forget user #{$user['id']} " . (count($logs) > 0 ? $logs[0]['logsago'] : ''));
@@ -6273,7 +6275,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         foreach ($userlist as $user1) {
             foreach ($userlist as $user2) {
-                if ($user1 !== $user2) {
+                if ($user1 && $user2 && $user1 !== $user2) {
                     $this->dbhm->background("INSERT INTO users_related (user1, user2) VALUES ($user1, $user2) ON DUPLICATE KEY UPDATE timestamp = NOW();");
                 }
             }
@@ -6296,10 +6298,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $backstop = 100;
 
         do {
-            $ctxq = $ctx ? (" WHERE id < " . intval($ctx['id'])) : '';
             $ctx = $ctx ? $ctx : [ 'id'  => NULL ];
 
             if ($groupids && count($groupids)) {
+                $ctxq = $ctx ? (" WHERE users_related.id < " . intval($ctx['id'])) : '';
                 $groupq = "(" . implode(',', $groupids) . ")";
                 $sql = "SELECT DISTINCT id, user1, user2 FROM (
 SELECT users_related.id, user1, user2, memberships.groupid FROM users_related 
@@ -6319,8 +6321,9 @@ memberships.groupid IN $groupq
 ) t $ctxq ORDER BY id DESC LIMIT $limit;";
                 $members = $this->dbhr->preQuery($sql);
             } else {
+                $ctxq = ($ctx && intval($ctx['id'])) ? (" AND users_related.id < " . intval($ctx['id'])) : '';
                 $sql = "SELECT DISTINCT users_related.id, user1, user2 FROM users_related INNER JOIN users u1 ON u1.id = users_related.user1 AND u1.deleted IS NULL AND u1.systemrole = 'User' INNER JOIN users u2 ON u2.id = users_related.user2 AND u2.deleted IS NULL AND u2.systemrole = 'User' WHERE notified = 0 AND user1 < user2 $ctxq ORDER BY id DESC LIMIT $limit;";
-                $members = $this->dbhr->preQuery($sql);
+                $members = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
             }
 
             $uids1 = array_column($members, 'user1');

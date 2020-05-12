@@ -137,6 +137,7 @@ class dashboardTest extends IznikAPITestCase {
         $this->log("Created message $mid");
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -162,6 +163,21 @@ class dashboardTest extends IznikAPITestCase {
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         assertEquals(Message::TYPE_OFFER, $m->getType());
         $m->like($uid, Message::LIKE_VIEW);
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENT_POPULAR_POSTS
+            ],
+            'group' => $gid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        # Message is still pending.
+        assertEquals(0, count($ret['components']['PopularPosts']));
+
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $m->approve($gid);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
