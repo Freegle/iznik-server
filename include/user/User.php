@@ -4337,11 +4337,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $backwards = strrev($search);
         $qb = $this->dbhr->quote("$backwards%");
 
+        $canon = $this->dbhr->quote(User::canonMail($search) . "%");
+
         # If we're searching for a notify address, switch to the user it.
         $search = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
 
         $sql = "SELECT DISTINCT userid FROM
-                ((SELECT userid FROM users_emails WHERE email LIKE $q OR backwards LIKE $qb) UNION
+                ((SELECT userid FROM users_emails WHERE canon LIKE $canon OR backwards LIKE $qb) UNION
                 (SELECT id AS userid FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE yahooid LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE id = ?) UNION
