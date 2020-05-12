@@ -182,6 +182,7 @@ class User extends Entity
                     #error_log("Zapped, refetch " . $id);
                     $u->fetch($u->dbhr, $u->dbhm, $id, 'users', 'user', $u->publicatts);
                     #error_log("Fetched $id as " . $u->getId() . " mod " . $u->isModerator());
+
                     User::$cache[$id] = $u;
                     User::$cacheDeleted[$id] = FALSE;
                     return ($u);
@@ -2562,6 +2563,14 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
+    public static function purgedUser($id) {
+        return [
+            'id' => $id,
+            'displayname' => 'Purged user #' . $id,
+            'systemrole' => User::SYSTEMROLE_USER
+        ];
+    }
+
     public function getPublicLogs($me, &$rets, $modmailsonly, &$ctx) {
         # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
         # - creation - either of ourselves or others during syncing.
@@ -2593,7 +2602,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     if (pres('byuser', $log)) {
                         if (!pres($log['byuser'], $users)) {
                             $u = User::get($this->dbhr, $this->dbhm, $log['byuser']);
-                            $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
+
+                            if ($u->getId() == $log['byuser']) {
+                                $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
+                            } else {
+                                $users[$log['byuser']] = User::purgedUser($log['byuser']);
+                            }
                         }
 
                         $log['byuser'] = $users[$log['byuser']];
@@ -2602,7 +2616,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     if (pres('user', $log)) {
                         if (!pres($log['user'], $users)) {
                             $u = User::get($this->dbhr, $this->dbhm, $log['user']);
-                            $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
+
+                            if ($u->getId() == $log['user']) {
+                                $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
+                            } else {
+                                $users[$log['user']] = User::purgedUser($log['user']);
+                            }
                         }
 
                         $log['user'] = $users[$log['user']];

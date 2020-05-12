@@ -163,8 +163,6 @@ class Log
             $users = $u->getPublicsById($uids, NULL, NULL, FALSE, $ctx, FALSE, TRUE, TRUE);
         }
 
-        error_log("Fetchsed " . count($users) . " for " . json_encode($uids));
-
         $mids = array_filter(array_column($logs, 'msgid'));
         $msgs = [];
 
@@ -185,11 +183,21 @@ class Log
             $log['timestamp'] = ISODate($log['timestamp']);
 
             if (pres('user', $log)) {
+                $id = $log['user'];
                 $log['user'] = presdef($log['user'], $users, NULL);
+
+                if (!$log['user']) {
+                    $log['user'] = User::purgedUser($id);
+                }
             }
 
             if (pres('byuser', $log)) {
+                $id = $log['byuser'];
                 $log['byuser'] = presdef($log['byuser'], $users, NULL);
+
+                if (!$log['byuser']) {
+                    $log['byuser'] = User::purgedUser($id);
+                }
             }
 
             if (pres('msgid', $log)) {
@@ -208,8 +216,6 @@ class Log
 
             $ctx['id'] = $log['id'];
         }
-
-        error_log("...completed logs");
 
         return($logs);
     }
