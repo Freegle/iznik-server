@@ -6303,18 +6303,18 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $ctx = $ctx ? $ctx : [ 'id'  => NULL ];
 
             if ($groupids && count($groupids)) {
-                $ctxq = $ctx ? (" WHERE users_related.id < " . intval($ctx['id'])) : '';
+                $ctxq = ($ctx && intval($ctx['id'])) ? (" WHERE id < " . intval($ctx['id'])) : '';
                 $groupq = "(" . implode(',', $groupids) . ")";
                 $sql = "SELECT DISTINCT id, user1, user2 FROM (
 SELECT users_related.id, user1, user2, memberships.groupid FROM users_related 
-INNER JOIN memberships ON users_related.user1 = memberships.id 
+INNER JOIN memberships ON users_related.user1 = memberships.userid 
 INNER JOIN users u1 ON users_related.user1 = u1.id AND u1.deleted IS NULL AND u1.systemrole = 'User'
 WHERE 
 user1 < user2 AND
 notified = 0 AND
 memberships.groupid IN $groupq UNION
 SELECT users_related.id, user1, user2, memberships.groupid FROM users_related 
-INNER JOIN memberships ON users_related.user2 = memberships.id 
+INNER JOIN memberships ON users_related.user2 = memberships.userid 
 INNER JOIN users u2 ON users_related.user2 = u2.id AND u2.deleted IS NULL AND u2.systemrole = 'User'
 WHERE 
 user1 < user2 AND
@@ -6387,11 +6387,6 @@ memberships.groupid IN $groupq
         } while ($backstop > 0 && count($ret) < $limit && count($members));
 
         return $ret;
-    }
-
-    public function getRelatedReviewCount() {
-        // Divide by 2 as every user appears two ways round.
-        return round($this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_related INNER JOIN users u1 ON u1.id = users_related.user1 INNER JOIN users u2 ON u2.id = users_related.user2 WHERE notified = 0 AND u1.deleted IS NULL AND u1.systemrole = 'User' AND u2.deleted IS NULL AND u2.systemrole = 'User';", NULL, FALSE, FALSE)[0]['count'] / 2);
     }
 
     public function getExpectedReplies($uids, $since = ChatRoom::ACTIVELIM, $grace = 30) {
