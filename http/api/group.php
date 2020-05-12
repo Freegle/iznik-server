@@ -81,6 +81,10 @@ function group() {
                     $ret['group']['polygon'] = $ret['group']['dpa'] ? $ret['group']['dpa'] : $ret['group']['cga'];
                 }
 
+                if (presdef('sponsors', $_REQUEST, FALSE)) {
+                    $ret['group']['sponsors'] = $g->getSponsorships();
+                }
+
                 if (presdef('affiliationconfirmedby', $_REQUEST, FALSE)) {
                     $by = $g->getPrivate('affiliationconfirmedby');
 

@@ -75,8 +75,7 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
-
-        }
+    }
 
     public function testGet() {
         # Not logged in - shouldn't see members list
@@ -368,6 +367,21 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['members']));
+    }
+
+    public function testSponsors()
+    {
+        $this->dbhm->preExec("INSERT INTO groups_sponsorship (groupid, name, startdate, enddate, contactname, contactemail, amount) VALUES (?, 'testsponsor', NOW(), NOW(), 'test', 'test', 1);", [
+            $this->groupid
+        ]);
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid,
+            'sponsors' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['group']['sponsors']));
+        assertEquals('testsponsor', $ret['group']['sponsors'][0]['name']);
     }
 }
 

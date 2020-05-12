@@ -4593,6 +4593,57 @@ CREATE TABLE `worrywords` (
 ) ENGINE=InnoDB AUTO_INCREMENT=578 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `groups_sponsorship`
+--
+
+CREATE TABLE `groups_sponsorship` (
+                                      `id` bigint(20) UNSIGNED NOT NULL,
+                                      `groupid` bigint(20) UNSIGNED NOT NULL,
+                                      `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                      `linkurl` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+                                      `startdate` date NOT NULL,
+                                      `enddate` date NOT NULL,
+                                      `contactname` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                      `contactemail` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                      `amount` int(11) NOT NULL,
+                                      `notes` text COLLATE utf8mb4_unicode_ci,
+                                      `imageurl` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+                                      `visible` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `groups_sponsorship`
+--
+ALTER TABLE `groups_sponsorship`
+    ADD PRIMARY KEY (`id`),
+    ADD KEY `groupid` (`groupid`,`startdate`,`enddate`,`visible`) USING BTREE;
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `groups_sponsorship`
+--
+ALTER TABLE `groups_sponsorship`
+    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `groups_sponsorship`
+--
+ALTER TABLE `groups_sponsorship`
+    ADD CONSTRAINT `groups_sponsorship_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
+
 --
 -- Final view structure for view `VW_Essex_Searches`
 --

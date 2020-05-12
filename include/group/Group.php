@@ -1395,6 +1395,12 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         return(array_key_exists($key, $settings) ? $settings[$key] : $def);
     }
 
+    public function getSponsorships() {
+        return $this->dbhr->preQuery("SELECT * FROM groups_sponsorship WHERE groupid = ? AND startdate <= NOW() AND enddate >= DATE(NOW()) AND visible = 1 ORDER BY amount DESC;", [
+            $this->id
+        ]);
+    }
+
     private function getKey($message) {
         # Both pending and approved messages have unique IDs, though they are only unique within pending and approved,
         # not between them.
