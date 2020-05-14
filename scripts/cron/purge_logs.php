@@ -52,7 +52,8 @@ try {
     error_log("Logs for messages no longer around:");
     $total = 0;
     $start = date('Y-m-d', strtotime("midnight 30 days ago"));
-    $logs = $dbhm->query("SELECT logs.id FROM logs LEFT JOIN messages ON messages.id = logs.msgid WHERE logs.type = 'Message' AND logs.msgid IS NOT NULL AND messages.id IS NULL AND logs.timestamp < '$start';");
+    $end = date('Y-m-d', strtotime("midnight 60 days ago"));
+    $logs = $dbhm->query("SELECT logs.id FROM logs LEFT JOIN messages ON messages.id = logs.msgid WHERE logs.type = 'Message' AND logs.msgid IS NOT NULL AND messages.id IS NULL AND logs.timestamp >= '$end' AND logs.timestamp < '$start';");
     error_log("Found " . count($logs));
 
     foreach ($logs as $log) {
@@ -233,6 +234,8 @@ try {
 } catch (Exception $e) {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
 }
+
+$start = date('Y-m-d', strtotime("48 hours ago"));
 
 try {
     error_log("API logs:");
