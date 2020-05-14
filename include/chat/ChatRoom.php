@@ -1290,7 +1290,8 @@ WHERE chat_rooms.id IN $idlist;";
                     $thisone['held'] = [
                         'id' => $u->getId(),
                         'name' => $u->getName(),
-                        'timestamp' => ISODate($msg['timestamp'])
+                        'timestamp' => ISODate($msg['timestamp']),
+                        'email' => $u->getEmailPreferred()
                     ];
 
                     unset($thisone['heldby']);
