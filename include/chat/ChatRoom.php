@@ -2281,7 +2281,7 @@ WHERE chat_rooms.id IN $idlist;";
             $this->id
         ]);
 
-        if (count($lastmsg) == 0 || $lastmsg['type'] !== ChatMessage::TYPE_NUDGE || $lastmsg['userid'] != $myid) {
+        if (count($lastmsg) == 0 || $lastmsg[0]['type'] !== ChatMessage::TYPE_NUDGE || $lastmsg[0]['userid'] != $myid) {
             $m = new ChatMessage($this->dbhr, $this->dbhm);
             $m->create($this->id, $myid, NULL, ChatMessage::TYPE_NUDGE);
             $m->setPrivate('replyexpected', 1);
