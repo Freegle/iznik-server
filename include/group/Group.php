@@ -569,7 +569,7 @@ memberships.groupid IN $groupq
                         if ($count['groupid'] == $groupid) {
                             if ($count['collection'] == MembershipCollection::SPAM) {
                             } else {
-                                $thisone['spammembersother'] = $count['count'];
+                                $thisone['pendingmembersother'] = $count['count'];
                             }
                         }
                     }
