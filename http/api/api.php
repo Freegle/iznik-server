@@ -180,6 +180,11 @@ $includetime = microtime(true) - $scriptstart;
 #error_log("Request " . var_export($_REQUEST, TRUE));
 #error_log("Server " . var_export($_SERVER, TRUE));
 
+if (pres('HTTP_X_REAL_IP', $_SERVER)) {
+    # We jump through hoops to get the real IP address. This is one of them.
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_REAL_IP'];
+}
+
 if (array_key_exists('model', $_REQUEST)) {
     # Used by Backbone's emulateJSON to work around servers which don't handle requests encoded as
     # application/json.
@@ -510,6 +515,8 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                 $ret['cachetime'] = $dbhr->getCacheTime();
                 $ret['cachequeries'] = $dbhr->getCacheQueries();
                 $ret['cachehits'] = $dbhr->getCacheHits();
+                $ret['remoteaddr'] = presdef('REMOTE_ADDR', $_SERVER, '-');
+//                $ret['_server'] = $_SERVER;
 
                 filterResult($ret);
 
