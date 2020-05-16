@@ -868,6 +868,8 @@ CREATE TABLE `groups` (
   `privategroup` tinyint(1) NOT NULL DEFAULT '0',
   `defaultlocation` bigint(20) unsigned DEFAULT NULL,
   `overridemoderation` enum('None','ModerateAll') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'None',
+  `altlat` decimal(10,6) DEFAULT NULL,
+  `altlng` decimal(10,6) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `nameshort` (`nameshort`),
