@@ -482,7 +482,15 @@ class Location extends Entity
         #
         # For example, searching in London will find ~120 groups within 50 miles, of which we are only interested
         # in 10, and the query will take ~0.03s.  If we search within 4 miles, that will typically find what we
-        # need and the query takes ~0.00s.  So we step up, using a bounding box that covers the point and radius.
+        # need and the query takes ~0.00s.
+        #
+        # So we step up, using a bounding box that covers the point and radius and searching based on the lat/lng
+        # centre of the group.  That's much faster.  But (infuriatingly) there are some groups which are so large that
+        # the centre of the group is further away than the centre of lots of other groups, and that means that
+        # we don't find the correct group.  So to deal with such groups we have an alt lat/lng which we can set to
+        # be somewhere else, effectively giving the group two "centres".  This is a fudge which clearly wouldn't
+        # cope with arbitrary geographies or hyperdimensional quintuple manifolds or whatever, but works ok for our
+        # little old UK reuse network.
         $currradius = round($radius / 16 + 0.5, 0);
         
         do {
@@ -495,7 +503,7 @@ class Location extends Entity
             # reflects which group you are genuinely closest to.
             #
             # Favour groups hosted by us if there's a tie.
-            $sql = "SELECT id, nameshort, ST_distance(POINT({$this->loc['lng']}, {$this->loc['lat']}), polyindex) AS dist, haversine(lat, lng, {$this->loc['lat']}, {$this->loc['lng']}) AS hav FROM groups WHERE MBRIntersects(polyindex, $box) AND publish = 1 AND listable = 1 HAVING hav < $currradius AND hav IS NOT NULL ORDER BY dist ASC, hav ASC, external ASC LIMIT $limit;";
+            $sql = "SELECT id, nameshort, ST_distance(POINT({$this->loc['lng']}, {$this->loc['lat']}), polyindex) AS dist, haversine(lat, lng, {$this->loc['lat']}, {$this->loc['lng']}) AS hav, CASE WHEN altlat IS NOT NULL THEN haversine(altlat, altlng, {$this->loc['lat']}, {$this->loc['lng']}) ELSE NULL END AS hav2 FROM groups WHERE MBRIntersects(polyindex, $box) AND publish = 1 AND listable = 1 HAVING (hav IS NOT NULL AND hav < $currradius OR hav2 IS NOT NULL AND hav2 < $currradius) ORDER BY dist ASC, hav ASC, external ASC LIMIT $limit;";
             #error_log("Find near $sql");
             $groups = $this->dbhr->preQuery($sql);
 
