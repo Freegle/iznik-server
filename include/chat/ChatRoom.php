@@ -1253,7 +1253,7 @@ WHERE chat_rooms.id IN $idlist;";
         return ($count);
     }
 
-    public function getMessagesForReview($user, &$ctx)
+    public function getMessagesForReview(User $user, &$ctx)
     {
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
         # a member.
@@ -1278,47 +1278,45 @@ WHERE chat_rooms.id IN $idlist;";
         $processed = [];
 
         foreach ($msgs as $msg) {
-            # This might be for a group which we are a mod on but don't actually want to see.
-            if ($user->activeModForGroup($msg['groupid'])) {
-                $processed[$msg['id']] = TRUE;
+            # Return whether we're an active or not - client can filter.
+            $processed[$msg['id']] = TRUE;
 
-                $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
-                $thisone = $m->getPublic(FALSE, $userlist);
+            $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
+            $thisone = $m->getPublic(FALSE, $userlist);
 
-                if (pres('heldby', $msg)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $msg['heldby']);
-                    $thisone['held'] = [
-                        'id' => $u->getId(),
-                        'name' => $u->getName(),
-                        'timestamp' => ISODate($msg['timestamp']),
-                        'email' => $u->getEmailPreferred()
-                    ];
+            if (pres('heldby', $msg)) {
+                $u = User::get($this->dbhr, $this->dbhm, $msg['heldby']);
+                $thisone['held'] = [
+                    'id' => $u->getId(),
+                    'name' => $u->getName(),
+                    'timestamp' => ISODate($msg['timestamp']),
+                    'email' => $u->getEmailPreferred()
+                ];
 
-                    unset($thisone['heldby']);
-                }
-
-                $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
-                $thisone['chatroom'] = $r->getPublic();
-
-                $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
-                $ctx = NULL;
-                $thisone['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
-
-                $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
-                $u = User::get($this->dbhr, $this->dbhm, $touserid);
-                $ctx = NULL;
-                $thisone['touser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
-
-                $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
-                $thisone['group'] = $g->getPublic();
-
-                $thisone['date'] = ISODate($thisone['date']);
-                $thisone['msgid'] = $msg['msgid'];
-
-                $ctx['msgid'] = $msg['id'];
-
-                $ret[] = $thisone;
+                unset($thisone['heldby']);
             }
+
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
+            $thisone['chatroom'] = $r->getPublic();
+
+            $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
+            $ctx = NULL;
+            $thisone['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
+
+            $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
+            $u = User::get($this->dbhr, $this->dbhm, $touserid);
+            $ctx = NULL;
+            $thisone['touser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
+
+            $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
+            $thisone['group'] = $g->getPublic();
+
+            $thisone['date'] = ISODate($thisone['date']);
+            $thisone['msgid'] = $msg['msgid'];
+
+            $ctx['msgid'] = $msg['id'];
+
+            $ret[] = $thisone;
         }
 
         return ($ret);
