@@ -199,61 +199,7 @@ function session() {
 
                         if (MODTOOLS) {
                             if (!$components || in_array('work', $components)) {
-                                # Tell them what mod work there is.  Similar code in Notifications.
-                                $ret['work'] = [];
-                                $national = FALSE;
-
-                                if (!$me) {
-                                    # When getting work we want to avoid instantiating the full User object.  But
-                                    # we need the memberships.  So work around that.  Bit hacky but saves ops in a
-                                    # perf critical path.
-                                    $me = new User($dbhr, $dbhm);
-                                    $me->cacheMemberships($_SESSION['id']);
-                                    $perms = $dbhr->preQuery("SELECT permissions FROM users WHERE id = ?;", [
-                                        $_SESSION['id']
-                                    ]);
-
-                                    foreach ($perms as $perm) {
-                                        $national = stripos($perm['permissions'], User::PERM_NATIONAL_VOLUNTEERS) !== FALSE;
-                                    }
-                                } else {
-                                    $national = $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS);
-                                }
-
-                                if ($national) {
-                                    $v = new Volunteering($dbhr, $dbhm);
-                                    $ret['work']['pendingvolunteering'] = $v->systemWideCount();
-                                }
-
-                                $s = new Spam($dbhr, $dbhm);
-                                $spamcounts = $s->collectionCounts();
-                                $ret['work']['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];
-                                $ret['work']['spammerpendingremove'] = $spamcounts[Spam::TYPE_PENDING_REMOVE];
-
-                                # Show social actions from last 4 days.
-                                $ctx = NULL;
-                                $f = new GroupFacebook($dbhr, $dbhm);
-                                $ret['work']['socialactions'] = count($f->listSocialActions($ctx));
-
-                                $c = new ChatMessage($dbhr, $dbhm);
-
-                                $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
-
-                                $s = new Story($dbhr, $dbhm);
-                                $ret['work']['stories'] = $s->getReviewCount(FALSE);
-                                $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
-
-                                foreach ($ret['groups'] as &$group) {
-                                    if (pres('work', $group)) {
-                                        foreach ($group['work'] as $key => $work) {
-                                            if (pres('work', $ret) && pres($key, $ret['work'])) {
-                                                $ret['work'][$key] += $work;
-                                            } else {
-                                                $ret['work'][$key] = $work;
-                                            }
-                                        }
-                                    }
-                                }
+                                $ret['work'] = $me->getWorkCounts();
                             }
 
                             # Get Discourse notifications and unread topics, to drive mods through to that site.

@@ -4555,32 +4555,18 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 }
             }
         } else {
-            # ModTools notification.  Similar code in session (to calculate work) and sw.php (to construct notification
+            # ModTools notification.  Similar code in session (to calculate work) and modtools.vue (to construct notification
             # text on the client side).
-            $groups = $this->getMemberships(FALSE, NULL, TRUE);
-            $work = [];
-
-            foreach ($groups as &$group) {
-                if (pres('work', $group)) {
-                    foreach ($group['work'] as $key => $workitem) {
-                        if (pres($key, $work)) {
-                            $work[$key] += $workitem;
-                        } else {
-                            $work[$key] = $workitem;
-                        }
-                    }
-                }
-            }
+            $work = $this->getWorkCounts();
+            $total = $work['total'];
 
             if (pres('pendingmembers', $work) > 0) {
                 $title .= $work['pendingmembers'] . ' pending member' . (($work['pendingmembers'] != 1) ? 's' : '') . " \n";
-                $total += $work['pendingmembers'];
                 $route = 'modtools/members/pending';
             }
 
             if (pres('pending', $work) > 0) {
                 $title .= $work['pending'] . ' pending message' . (($work['pending'] != 1) ? 's' : '') . " \n";
-                $total += $work['pending'];
                 $route = '/modtools/messages/pending';
             }
 
@@ -6448,6 +6434,81 @@ memberships.groupid IN $groupq
                 ];
             }
         }
+
+        return $ret;
+    }
+    
+    public function getWorkCounts() {
+        # Tell them what mod work there is.  Similar code in Notifications.
+        $ret = [];
+
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $national = $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS);
+
+        if ($national) {
+            $v = new Volunteering($this->dbhr, $this->dbhm);
+            $ret['pendingvolunteering'] = $v->systemWideCount();
+        }
+
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $spamcounts = $s->collectionCounts();
+        $ret['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];
+        $ret['spammerpendingremove'] = $spamcounts[Spam::TYPE_PENDING_REMOVE];
+
+        # Show social actions from last 4 days.
+        $ctx = NULL;
+        $f = new GroupFacebook($this->dbhr, $this->dbhm);
+        $ret['socialactions'] = count($f->listSocialActions($ctx));
+
+        $c = new ChatMessage($this->dbhr, $this->dbhm);
+
+        $ret = array_merge($ret, $c->getReviewCount($me));
+
+        $s = new Story($this->dbhr, $this->dbhm);
+        $ret['stories'] = $s->getReviewCount(FALSE);
+        $ret['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
+
+        foreach ($ret['groups'] as &$group) {
+            if (pres('work', $group)) {
+                foreach ($group['work'] as $key => $work) {
+                    if (pres('work', $ret) && pres($key, $ret)) {
+                        $ret[$key] += $work;
+                    } else {
+                        $ret[$key] = $work;
+                    }
+                }
+            }
+        }
+
+        // All the types of work which are worth nagging about.
+        $worktypes = [
+            'pendingvolunteering',
+            'socialactions',
+            'chatreview',
+            'relatedmembers',
+            'stories',
+            'newsletterstories',
+            'pending',
+            'spam',
+            'pendingmembers',
+            'pendingevents',
+            'spammembers',
+            'editreview',
+            'pendingadmins'
+        ];
+
+        if ($me->isAdminOrSupport()) {
+            $worktypes[] = 'spammerpendingadd';
+            $worktypes[] = 'spammerpendingremove';
+        }
+
+        $total = 0;
+
+        foreach ($worktypes as $key => $value) {
+            $total += $value;
+        }
+
+        $ret['total'] = $total;
 
         return $ret;
     }
