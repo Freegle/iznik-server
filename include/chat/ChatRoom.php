@@ -806,12 +806,21 @@ WHERE chat_rooms.id IN $idlist;";
             $this->id
         ], FALSE);
 
-        $this->dbhm->preExec("UPDATE chat_rooms SET msgvalid = ?, msginvalid = ?, latestmessage = ? WHERE id = ?;", [
-            $validcount,
-            $invalidcount,
-            $dates[0]['maxdate'],
-            $this->id
-        ]);
+        if ($dates[0]['maxdate']) {
+            $this->dbhm->preExec("UPDATE chat_rooms SET msgvalid = ?, msginvalid = ?, latestmessage = ? WHERE id = ?;", [
+                $validcount,
+                $invalidcount,
+                $dates[0]['maxdate'],
+                $this->id
+            ]);
+        } else {
+            # Leave date untouched to allow chat to age out.
+            $this->dbhm->preExec("UPDATE chat_rooms SET msgvalid = ?, msginvalid = ? WHERE id = ?;", [
+                $validcount,
+                $invalidcount,
+                $this->id
+            ]);
+        }
     }
 
     private function getKey($chattypes, $modtools) {
