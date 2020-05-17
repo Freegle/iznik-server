@@ -55,7 +55,7 @@ function schedule() {
                     $r = new ChatRoom($dbhr, $dbhm);
                     $rid = $r->createConversation($myid, $chatuserid);
                     $m = new ChatMessage($dbhr, $dbhm);
-                    list ($mid, $banned) = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, $s->getId());
+                    list ($mid, $banned) = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL, NULL);
                 }
 
                 $ret = [
