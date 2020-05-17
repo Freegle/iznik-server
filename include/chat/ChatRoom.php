@@ -329,7 +329,7 @@ WHERE chat_rooms.id IN $idlist;";
     {
         try {
             # Duplicates can occur due to timing windows.
-            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (name, chattype, groupid) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (name, chattype, groupid, latestmessage) VALUES (?,?,?, NOW()) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), latestmessage = NOW()", [
                 $name,
                 ChatRoom::TYPE_MOD2MOD,
                 $gid
@@ -388,7 +388,7 @@ WHERE chat_rooms.id IN $idlist;";
             $this->ensureAppearInList($id);
         } else if (!$checkonly) {
             # We don't.  Create one.  Duplicates can happen due to timing windows.
-            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2, chattype) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2, chattype, latestmessage) VALUES (?,?,?, NOW()) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), latestmessage = NOW()", [
                 $user1,
                 $user2,
                 ChatRoom::TYPE_USER2USER
@@ -457,7 +457,7 @@ WHERE chat_rooms.id IN $idlist;";
 
         if (!$id) {
             # We don't.  Create one.  Duplicates can happen due to timing windows.
-            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, groupid, chattype) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, groupid, chattype, latestmessage) VALUES (?,?,?, NOW()) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), latestmessage = NOW()", [
                 $user1,
                 $groupid,
                 ChatRoom::TYPE_USER2MOD
