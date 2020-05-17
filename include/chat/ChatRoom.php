@@ -869,8 +869,8 @@ WHERE chat_rooms.id IN $idlist;";
                 #
                 # If we're on the user site then we only want User2Mod chats where we are a user.
                 $thissql = $modtools ?
-                    "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND (latestmessage >= '$activesince' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed')" :
-                    "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = $userid AND chattype = 'User2Mod' AND (latestmessage >= '$activesince' OR latestmessage IS NULL) AND (status IS NULL OR status != 'Closed') $countq";
+                    "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN $t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) $activeq AND latestmessage >= '$activesince' AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed')" :
+                    "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = $userid AND chattype = 'User2Mod' AND latestmessage >= '$activesince' AND (status IS NULL OR status != 'Closed') $countq";
                 $sql = $sql == '' ? $thissql : "$sql UNION $thissql";
             }
 
@@ -878,8 +878,8 @@ WHERE chat_rooms.id IN $idlist;";
                 # We want chats where we are one of the users.  If the chat is closed or blocked we don't want to see
                 # it unless we're on MT.
                 $statusq = $modtools ? '' : "AND (status IS NULL OR status NOT IN ('Closed', 'Blocked'))";
-                $thissql = "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = $userid AND chattype = 'User2User' AND (latestmessage >= '$activesince' OR latestmessage IS NULL) $statusq $countq";
-                $thissql .= " UNION SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user2 = $userid AND chattype = 'User2User' AND (latestmessage >= '$activesince' OR latestmessage IS NULL) $statusq $countq";
+                $thissql = "SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user1 = $userid AND chattype = 'User2User' AND latestmessage >= '$activesince' $statusq $countq";
+                $thissql .= " UNION SELECT $atts FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq user2 = $userid AND chattype = 'User2User' AND latestmessage >= '$activesince' $statusq $countq";
                 $sql = $sql == '' ? $thissql : "$sql UNION $thissql";
                 #error_log("User chats $sql, $userid");
             }
