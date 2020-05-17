@@ -6508,7 +6508,7 @@ memberships.groupid IN $groupq
             }
 
             foreach ($worktypes as $key) {
-                $total += $ret[$key];
+                $total += presdef($key, $ret, 0);
             }
         }
 
