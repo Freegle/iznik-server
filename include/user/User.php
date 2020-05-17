@@ -6441,71 +6441,75 @@ memberships.groupid IN $groupq
     public function getWorkCounts() {
         # Tell them what mod work there is.  Similar code in Notifications.
         $ret = [];
+        $total = 0;
 
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $national = $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS);
 
-        if ($national) {
-            $v = new Volunteering($this->dbhr, $this->dbhm);
-            $ret['pendingvolunteering'] = $v->systemWideCount();
-        }
+        if ($me) {
+            $national = $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS);
 
-        $s = new Spam($this->dbhr, $this->dbhm);
-        $spamcounts = $s->collectionCounts();
-        $ret['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];
-        $ret['spammerpendingremove'] = $spamcounts[Spam::TYPE_PENDING_REMOVE];
+            if ($national) {
+                $v = new Volunteering($this->dbhr, $this->dbhm);
+                $ret['pendingvolunteering'] = $v->systemWideCount();
+            }
 
-        # Show social actions from last 4 days.
-        $ctx = NULL;
-        $f = new GroupFacebook($this->dbhr, $this->dbhm);
-        $ret['socialactions'] = count($f->listSocialActions($ctx));
+            $s = new Spam($this->dbhr, $this->dbhm);
+            $spamcounts = $s->collectionCounts();
+            $ret['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];
+            $ret['spammerpendingremove'] = $spamcounts[Spam::TYPE_PENDING_REMOVE];
 
-        $c = new ChatMessage($this->dbhr, $this->dbhm);
+            # Show social actions from last 4 days.
+            $ctx = NULL;
+            $f = new GroupFacebook($this->dbhr, $this->dbhm);
+            $ret['socialactions'] = count($f->listSocialActions($ctx));
 
-        $ret = array_merge($ret, $c->getReviewCount($me));
+            $c = new ChatMessage($this->dbhr, $this->dbhm);
 
-        $s = new Story($this->dbhr, $this->dbhm);
-        $ret['stories'] = $s->getReviewCount(FALSE);
-        $ret['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
+            $ret = array_merge($ret, $c->getReviewCount($me));
 
-        foreach ($ret['groups'] as &$group) {
-            if (pres('work', $group)) {
-                foreach ($group['work'] as $key => $work) {
-                    if (pres('work', $ret) && pres($key, $ret)) {
-                        $ret[$key] += $work;
-                    } else {
-                        $ret[$key] = $work;
+            $s = new Story($this->dbhr, $this->dbhm);
+            $ret['stories'] = $s->getReviewCount(FALSE);
+            $ret['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
+
+            $groups = $this->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $this->id);
+
+            foreach ($groups as &$group) {
+                if (pres('work', $group)) {
+                    foreach ($group['work'] as $key => $work) {
+                        if (pres('work', $ret) && pres($key, $ret)) {
+                            $ret[$key] += $work;
+                        } else {
+                            $ret[$key] = $work;
+                        }
                     }
                 }
             }
-        }
 
-        // All the types of work which are worth nagging about.
-        $worktypes = [
-            'pendingvolunteering',
-            'socialactions',
-            'chatreview',
-            'relatedmembers',
-            'stories',
-            'newsletterstories',
-            'pending',
-            'spam',
-            'pendingmembers',
-            'pendingevents',
-            'spammembers',
-            'editreview',
-            'pendingadmins'
-        ];
+            // All the types of work which are worth nagging about.
+            $worktypes = [
+                'pendingvolunteering',
+                'socialactions',
+                'chatreview',
+                'relatedmembers',
+                'stories',
+                'newsletterstories',
+                'pending',
+                'spam',
+                'pendingmembers',
+                'pendingevents',
+                'spammembers',
+                'editreview',
+                'pendingadmins'
+            ];
 
-        if ($me->isAdminOrSupport()) {
-            $worktypes[] = 'spammerpendingadd';
-            $worktypes[] = 'spammerpendingremove';
-        }
+            if ($me->isAdminOrSupport()) {
+                $worktypes[] = 'spammerpendingadd';
+                $worktypes[] = 'spammerpendingremove';
+            }
 
-        $total = 0;
-
-        foreach ($worktypes as $key => $value) {
-            $total += $value;
+            foreach ($worktypes as $key) {
+                $total += $ret[$key];
+            }
         }
 
         $ret['total'] = $total;
