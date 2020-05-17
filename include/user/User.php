@@ -6476,7 +6476,7 @@ memberships.groupid IN $groupq
             foreach ($groups as &$group) {
                 if (pres('work', $group)) {
                     foreach ($group['work'] as $key => $work) {
-                        if (pres('work', $ret) && pres($key, $ret)) {
+                        if (pres($key, $ret)) {
                             $ret[$key] += $work;
                         } else {
                             $ret[$key] = $work;
