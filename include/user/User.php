@@ -1092,7 +1092,7 @@ class User extends Entity
                 ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
                 ->setFrom($g->getAutoEmail())
                 ->setReplyTo($g->getModsEmail())
-                ->setTo($byemail)
+                ->setTo($this->getEmailPreferred())
                 ->setDate(time())
                 ->setBody("Parting is such sweet sorrow.");
 
