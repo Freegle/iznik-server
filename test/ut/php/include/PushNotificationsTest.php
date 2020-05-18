@@ -28,6 +28,8 @@ class pushNotificationsTest extends IznikTestCase {
     public function testBasic() {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
         $this->log("Created $id");
 
         $mock = $this->getMockBuilder('PushNotifications')
