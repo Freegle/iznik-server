@@ -223,6 +223,10 @@ class PushNotifications
                                         # We do want to remove the subscription in this case.
                                         throw new Exception($detail['fieldViolations'][0]['description']);
                                     }
+                                    if ($detail['fieldViolations'][0]['description'] == 'The registration token is not a valid FCM registration token') {
+                                        # We do want to remove the subscription in this case.
+                                        throw new Exception($detail['fieldViolations'][0]['description']);
+                                    }
                                 }
                             }
 
