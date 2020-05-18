@@ -179,8 +179,8 @@ class Story extends Entity
         return($ret);
     }
 
-    public function getReviewCount($newsletter) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+    public function getReviewCount($newsletter, $me = NULL) {
+        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d", strtotime("31 days ago"));
 
         if ($newsletter) {

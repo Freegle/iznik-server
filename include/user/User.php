@@ -6465,7 +6465,7 @@ memberships.groupid IN $groupq
         $ret = array_merge($ret, $c->getReviewCount($this));
 
         $s = new Story($this->dbhr, $this->dbhm);
-        $ret['stories'] = $s->getReviewCount(FALSE);
+        $ret['stories'] = $s->getReviewCount(FALSE, $this);
         $ret['newsletterstories'] = $this->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
 
         $groups = $this->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $this->id);
