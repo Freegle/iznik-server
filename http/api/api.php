@@ -515,7 +515,7 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                 $ret['cachetime'] = $dbhr->getCacheTime();
                 $ret['cachequeries'] = $dbhr->getCacheQueries();
                 $ret['cachehits'] = $dbhr->getCacheHits();
-                $ret['remoteaddr'] = presdef('REMOTE_ADDR', $_SERVER, '-');
+//                $ret['remoteaddr'] = presdef('REMOTE_ADDR', $_SERVER, '-');
 //                $ret['_server'] = $_SERVER;
 
                 filterResult($ret);
