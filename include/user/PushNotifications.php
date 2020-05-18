@@ -327,6 +327,7 @@ class PushNotifications
                 $message = ($total === 0) ? "" : $message;
                 if (is_null($message)) $message = "";
 
+                # badge and/or count are used by the app, possibly when it isn't running, to set the home screen badge.
                 $payload = [
                     'badge' => $total,
                     'count' => $total,

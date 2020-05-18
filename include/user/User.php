@@ -4555,10 +4555,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 }
             }
         } else {
-            # ModTools notification.  Similar code in session (to calculate work) and modtools.vue (to construct notification
-            # text on the client side).
+            # ModTools notification.  We show the count of work + chats.
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            $unseen = $r->allUnseenForUser($this->id, [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD], $modtools);
+            $chatcount = count($unseen);
+
             $work = $this->getWorkCounts();
-            $total = $work['total'];
+            $total = $work['total'] + $chatcount;
 
             if (pres('pendingmembers', $work) > 0) {
                 $title .= $work['pendingmembers'] . ' pending member' . (($work['pendingmembers'] != 1) ? 's' : '') . " \n";
