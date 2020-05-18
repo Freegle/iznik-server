@@ -100,7 +100,7 @@ class Twitter {
                 #error_log("Tweet failed " . var_export($ret, TRUE));
                 $this->dbhm->preExec("UPDATE groups_twitter SET lasterror = ?, lasterrortime = NOW() WHERE groupid = ?;", [ var_export($ret['errors'], TRUE), $this->groupid ]);
 
-                if ($ret['errors'][0]['code'] == 220) {
+                if ($ret['errors'][0]['code'] == 220 || $ret['errors'][0]['code'] == 89) {
                     # This indicates invalid credentials.
                     #error_log("Now invalid");
                     $valid = FALSE;
