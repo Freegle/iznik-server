@@ -3,6 +3,7 @@ function chatmessages() {
     global $dbhr, $dbhm;
 
     $roomid = intval(presdef('roomid', $_REQUEST, NULL));
+    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $message = presdef('message', $_REQUEST, NULL);
     $refmsgid = presdef('refmsgid', $_REQUEST, NULL);
     $refchatid = presdef('refchatid', $_REQUEST, NULL);
@@ -61,7 +62,7 @@ function chatmessages() {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'chatmessages' => $r->getMessagesForReview($me, $ctx),
+                        'chatmessages' => $r->getMessagesForReview($me, $groupid, $ctx),
                         'chatreports' => []
                     ];
 

@@ -386,6 +386,7 @@ class Group extends Entity
 
     public function getWorkCounts($mysettings, $groupids) {
         $ret = [];
+        $me = whoAmI($this->dbhr, $this->dbhm);
 
         if ($groupids) {
             $groupq = "(" . implode(',', $groupids) . ")";
@@ -461,6 +462,9 @@ memberships.groupid IN $groupq
             $sql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid WHERE messages_outcomes.timestamp >= '$mysqltime' AND groupid IN $groupq AND reviewed = 0 AND happiness IN ('" . User::UNHAPPY . "') GROUP BY groupid;";
             $happinesscounts = $this->dbhr->preQuery($sql);
 
+            $c = new ChatMessage($this->dbhr, $this->dbhm);
+            $reviewcounts = $c->getReviewCountByGroup($me, NULL);
+
             foreach ($groupids as $groupid) {
                 # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
                 # less prominently in the client.
@@ -483,7 +487,9 @@ memberships.groupid IN $groupq
                     'editreview' => 0,
                     'pendingadmins' => 0,
                     'happiness' => 0,
-                    'relatedmembers' => 0
+                    'relatedmembers' => 0,
+                    'chatreview' => 0,
+                    'chatreviewother' => 0
                 ];
 
                 if ($active) {
@@ -556,6 +562,12 @@ memberships.groupid IN $groupq
                             $thisone['relatedmembers'] = $count['count'];
                         }
                     }
+
+                    foreach ($reviewcounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['chatreview'] = $count['count'];
+                        }
+                    }
                 } else {
                     foreach ($pendingspamcounts as $count) {
                         if ($count['groupid'] == $groupid) {
@@ -580,6 +592,8 @@ memberships.groupid IN $groupq
                         }
                     }
                 }
+
+                $c = new ChatMessage($this->dbhr, $this->dbhm);
 
                 $ret[$groupid] = $thisone;
             }

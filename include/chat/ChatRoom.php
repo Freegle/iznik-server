@@ -1262,19 +1262,21 @@ WHERE chat_rooms.id IN $idlist;";
         return ($count);
     }
 
-    public function getMessagesForReview(User $user, &$ctx)
+    public function getMessagesForReview(User $user, $groupid, &$ctx)
     {
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
         # a member.
         $userid = $user->getId();
         $msgid = $ctx ? intval($ctx['msgid']) : 0;
+        $groupq = $groupid ? " AND groupid = $groupid " : '';
+
         $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, memberships.groupid, chat_messages_held.userid AS heldby, chat_messages_held.timestamp 
         FROM chat_messages 
         LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid 
         LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id 
         INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
         INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) 
-              AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) 
+              AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq) 
         INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' 
         ORDER BY chat_messages.id, memberships.added ASC;";
         $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid]);

@@ -402,7 +402,7 @@ class ChatMessage extends Entity
         }
     }
 
-    public function getReviewCount(User $me, $minage = NULL) {
+    public function getReviewCount(User $me, $minage = NULL, $groupid = NULL) {
         # For chats, we should see the messages which require review, and where we are a mod on one of the groups
         # that the recipient of the message (i.e. the chat member who isn't the one who sent it) is on.
         #
@@ -410,7 +410,8 @@ class ChatMessage extends Entity
         $show = [];
         $dontshow = [];
 
-        $groupids = $me->getModeratorships();
+        $groupids = $groupid ? [ $groupid ] : $me->getModeratorships();
+
         foreach ($groupids as $groupid) {
             if ($me->activeModForGroup($groupid)) {
                 $show[] = $groupid;
@@ -425,15 +426,34 @@ class ChatMessage extends Entity
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
         # a member.  Put a backstop time on it to avoid getting too many or
         # an inefficient query.
-        # TODO This uses INSTR to check a json-encoded field.  In MySQL 5.7 we can do better.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
         $minageq = $minage ? (" AND chat_messages.date <= '" . date ("Y-m-d H:i:s", strtotime("$minage hours ago")) . "' ") : '';
-        $sql = "SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) AND chat_messages_held.userid IS NULL INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle'  WHERE chat_messages.date > '$mysqltime' $minageq;";
-        #error_log("Show SQL $sql");
-        $showcount = count($show) > 0 ? $this->dbhr->preQuery($sql)[0]['count'] : 0;
-        $sql = "SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND (memberships.groupid IN ($dontshowq) AND chat_messages_held.userid IS NOT NULL) INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE chat_messages.date > '$mysqltime' $minageq;";
-        #error_log("No Show SQL $sql");
-        $dontshowcount = count($dontshow) > 0 ? $this->dbhr->preQuery($sql)[0]['count'] : 0;
+        $showcount = 0;
+        $dontshowcount = 0;
+
+        if (count($show) > 0) {
+            $sql = "SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) AND chat_messages_held.userid IS NULL INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle'  WHERE chat_messages.date > '$mysqltime' $minageq;";
+            #error_log("Show SQL $sql");
+            $showcount = $this->dbhr->preQuery($sql)[0]['count'];
+        }
+
+        if (count($show) > 0 || count($dontshow) > 0) {
+            if (count($show) > 0 && count($dontshow) > 0) {
+                $q = "memberships.groupid IN ($dontshowq) OR (memberships.groupid IN ($showq) AND chat_messages_held.userid IS NOT NULL)";
+            } else if (count($show) > 0) {
+                $q = "memberships.groupid IN ($showq) AND chat_messages_held.userid IS NOT NULL";
+            } else {
+                $q = "memberships.groupid IN ($dontshowq)";
+            }
+
+            $sql = "SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages 
+    LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id 
+    INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
+    INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND ($q) 
+    INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE chat_messages.date > '$mysqltime' $minageq;";
+            #error_log("No Show SQL $sql");
+            $dontshowcount = $this->dbhr->preQuery($sql)[0]['count'];
+        }
 
         return([
             'showgroups' => $showq,
@@ -441,6 +461,23 @@ class ChatMessage extends Entity
             'chatreview' => $showcount,
             'chatreviewother' => $dontshowcount
         ]);
+    }
+
+    public function getReviewCountByGroup(User $me, $minage = NULL) {
+        $groupids = $me->getModeratorships();
+        $showq = implode(',', $groupids);
+
+        # We want the messages for review for any group where we are a mod and the recipient of the chat message is
+        # a member.  Put a backstop time on it to avoid getting too many or
+        # an inefficient query.
+        $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
+        $minageq = $minage ? (" AND chat_messages.date <= '" . date ("Y-m-d H:i:s", strtotime("$minage hours ago")) . "' ") : '';
+
+        $sql = "SELECT COUNT(DISTINCT chat_messages.id) AS count, memberships.groupid FROM chat_messages LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) AND chat_messages_held.userid IS NULL INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE chat_messages.date > '$mysqltime' $minageq GROUP BY groupid;";
+        #error_log("Show SQL $sql");
+        $showcounts = $this->dbhr->preQuery($sql)[0]['count'];
+
+        return($showcounts);
     }
 
     public function hold($id) {
