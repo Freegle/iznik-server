@@ -593,8 +593,6 @@ memberships.groupid IN $groupq
                     }
                 }
 
-                $c = new ChatMessage($this->dbhr, $this->dbhm);
-
                 $ret[$groupid] = $thisone;
             }
         }
