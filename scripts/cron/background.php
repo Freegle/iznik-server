@@ -95,7 +95,7 @@ try {
                             }
                         }
 
-                        $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
+                        $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $payload);
 
                         # Now the real one.
                         $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
