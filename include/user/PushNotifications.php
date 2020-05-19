@@ -119,6 +119,7 @@ class PushNotifications
         #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
         try {
             error_log("notiftype " . $notiftype . " userid " . $userid);
+
             switch ($notiftype) {
                 case PushNotifications::PUSH_FCM_ANDROID:
                 case PushNotifications::PUSH_FCM_IOS:
@@ -290,38 +291,8 @@ class PushNotifications
                         [PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS]))) {
                 #error_log("Send user $userid {$notif['subscription']} type {$notif['type']}");
                 $payload = NULL;
-                $proceed = TRUE;
                 $params = [];
 
-                # Some Android devices stack the notifications rather than replace them, and the app code doesn't
-                # get invoked so can't help.  We can stop this by sending a "clear" notification first.
-                $payload = [
-                    'badge' => 0,
-                    'count' => 0,
-                    'chatcount' => 0,
-                    'notifcount' => 0,
-                    'title' => NULL,
-                    'message' => '',
-                    'chatids' => [],
-                    'content-available' => FALSE,
-                    'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
-                    'modtools' => $modtools,
-                    'route' => NULL
-                ];
-
-                switch ($notif['type']) {
-                    case PushNotifications::PUSH_GOOGLE:
-                        {
-                            $params = [
-                                'GCM' => GOOGLE_PUSH_KEY
-                            ];
-                            break;
-                        }
-                }
-
-                $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
-
-                # Now on to the real one.
                 list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
 
                 $message = ($total === 0) ? "" : $message;

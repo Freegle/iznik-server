@@ -66,6 +66,38 @@ try {
 
                     case 'webpush': {
                         $n = new PushNotifications($dbhr, $dbhm);
+
+                        # Some Android devices stack the notifications rather than replace them, and the app code doesn't
+                        # get invoked so can't help.  We can stop this by sending a "clear" notification first.  We do
+                        # this here rather than queueing two of them because there are multiple instances and we can
+                        # end up with them out of order.
+                        $payload = [
+                            'badge' => 0,
+                            'count' => 0,
+                            'chatcount' => 0,
+                            'notifcount' => 0,
+                            'title' => NULL,
+                            'message' => '',
+                            'chatids' => [],
+                            'content-available' => FALSE,
+                            'image' => $data['payload']['image'],
+                            'modtools' => $data['payload']['modtools'],
+                            'route' => NULL
+                        ];
+
+                        switch ($data['notiftype']) {
+                            case PushNotifications::PUSH_GOOGLE:
+                            {
+                                $params = [
+                                    'GCM' => GOOGLE_PUSH_KEY
+                                ];
+                                break;
+                            }
+                        }
+
+                        $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
+
+                        # Now the real one.
                         $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
                         break;
                     }
