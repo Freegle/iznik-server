@@ -196,7 +196,7 @@ class Predict extends Entity
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
 
                 # Train on this specific conversation, because that's the one which didn't work out.
-                $chatid = $r->createConversation($rating['rater'], $rating['ratee']);
+                $chatid = $r->createConversation($rating['rater'], $rating['ratee'], TRUE);
 
                 if ($chatid) {
                     $text = $this->getTextForUser($rating['ratee'], $chatid);
