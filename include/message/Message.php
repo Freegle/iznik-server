@@ -3775,7 +3775,7 @@ ORDER BY lastdate DESC;";
                     if ($tnwithdraw) {
                         $outcome = Message::OUTCOME_WITHDRAWN;
                     } else {
-                        $this->type == Message::TYPE_TAKEN ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
+                        $outcome = $this->type == Message::TYPE_TAKEN ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                     }
 
                     $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
