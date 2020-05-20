@@ -6441,7 +6441,7 @@ memberships.groupid IN $groupq
         return $ret;
     }
     
-    public function getWorkCounts() {
+    public function getWorkCounts($groups = NULL) {
         # Tell them what mod work there is.  Similar code in Notifications.
         $ret = [];
         $total = 0;
@@ -6463,15 +6463,25 @@ memberships.groupid IN $groupq
         $f = new GroupFacebook($this->dbhr, $this->dbhm);
         $ret['socialactions'] = count($f->listSocialActions($ctx));
 
-        $c = new ChatMessage($this->dbhr, $this->dbhm);
-
-        $ret = array_merge($ret, $c->getReviewCount($this));
-
         $s = new Story($this->dbhr, $this->dbhm);
         $ret['stories'] = $s->getReviewCount(FALSE, $this);
         $ret['newsletterstories'] = $this->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
 
-        $groups = $this->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $this->id);
+        if (!$groups) {
+            $groups = $this->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $this->id);
+        }
+
+        foreach ($groups as &$group) {
+            if (pres('work', $group)) {
+                foreach ($group['work'] as $key => $work) {
+                    if (pres($key, $ret)) {
+                        $ret[$key] += $work;
+                    } else {
+                        $ret[$key] = $work;
+                    }
+                }
+            }
+        }
 
         // All the types of work which are worth nagging about.
         $worktypes = [

@@ -139,8 +139,9 @@ function session() {
                     }
 
                     if (!$components || in_array('groups', $components) || in_array('work', $components)) {
+                        # Get groups including work when we're on ModTools; don't need that on the user site.
                         $u = new User($dbhr, $dbhm);
-                        $ret['groups'] = $u->getMemberships(FALSE, NULL, FALSE, TRUE, $_SESSION['id']);
+                        $ret['groups'] = $u->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $_SESSION['id']);
 
                         $gids = [];
 
@@ -198,7 +199,7 @@ function session() {
 
                         if (MODTOOLS) {
                             if (!$components || in_array('work', $components)) {
-                                $ret['work'] = $me->getWorkCounts();
+                                $ret['work'] = $me->getWorkCounts($ret['groups']);
                             }
 
                             # Get Discourse notifications and unread topics, to drive mods through to that site.
