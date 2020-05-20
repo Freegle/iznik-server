@@ -3770,9 +3770,17 @@ ORDER BY lastdate DESC;";
                     # Also record an outcome on the original message.  We only need to do this when the message didn't
                     # come from our platform, because if it did that has already happened.  This also avoids the
                     # situation where we match against the wrong message because of the order messages arrive from Yahoo.
+                    $tnwithdraw = $this->getHeader('x-trash-nothing-withdrawn');
+
+                    if ($tnwithdraw) {
+                        $outcome = Message::OUTCOME_WITHDRAWN;
+                    } else {
+                        $this->type == Message::TYPE_TAKEN ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
+                    }
+
                     $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
                         $matchmsg['id'],
-                        $this->type == Message::TYPE_TAKEN ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED,
+                        $outcome,
                         NULL,
                         NULL,
                         $this->getTextbody()
