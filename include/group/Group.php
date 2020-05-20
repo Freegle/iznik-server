@@ -868,7 +868,7 @@ memberships.groupid IN $groupq
             messages_outcomes.timestamp > '$start' AND 
             (messages_outcomes.timestamp < '" . safedate($ctx['timestamp']) . "' OR 
                 (messages_outcomes.timestamp = '" . safedate($ctx['timestamp']) . "' AND
-                 messages_outcomes.id < " . intval($ctx['id']) . ")");
+                 messages_outcomes.id < " . intval($ctx['id']) . "))");
 
         $sql = "SELECT messages_outcomes.*, messages.fromuser, messages_groups.groupid, messages.subject FROM messages_outcomes
 INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid AND $groupq2
