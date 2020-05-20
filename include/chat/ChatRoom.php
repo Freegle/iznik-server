@@ -982,7 +982,9 @@ WHERE chat_rooms.id IN $idlist;";
                     if ($me->isAdminOrSupport() ||
                         ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
                             ($me->moderatorForUser($this->chatroom['user1']) ||
-                                $me->moderatorForUser($this->chatroom['user2'])))
+                                $me->moderatorForUser($this->chatroom['user2']))) ||
+                        ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2MOD &&
+                            $me->moderatorForUser($this->chatroom['user1']))
                     ) {
                         $cansee = TRUE;
                     }
