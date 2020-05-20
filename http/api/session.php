@@ -139,9 +139,8 @@ function session() {
                     }
 
                     if (!$components || in_array('groups', $components) || in_array('work', $components)) {
-                        # Get groups including work when we're on ModTools; don't need that on the user site.
                         $u = new User($dbhr, $dbhm);
-                        $ret['groups'] = $u->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $_SESSION['id']);
+                        $ret['groups'] = $u->getMemberships(FALSE, NULL, FALSE, TRUE, $_SESSION['id']);
 
                         $gids = [];
 

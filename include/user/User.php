@@ -6473,18 +6473,6 @@ memberships.groupid IN $groupq
 
         $groups = $this->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $this->id);
 
-        foreach ($groups as &$group) {
-            if (pres('work', $group)) {
-                foreach ($group['work'] as $key => $work) {
-                    if (pres($key, $ret)) {
-                        $ret[$key] += $work;
-                    } else {
-                        $ret[$key] = $work;
-                    }
-                }
-            }
-        }
-
         // All the types of work which are worth nagging about.
         $worktypes = [
             'pendingvolunteering',
