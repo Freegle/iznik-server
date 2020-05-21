@@ -4489,7 +4489,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         # This gets a notification count/title/message for this user.
         $notifcount = 0;
         $chatcount = 0;
-        $title = NULL;
+        $title = '';
         $message = NULL;
         $chatids = [];
         $route = NULL;
