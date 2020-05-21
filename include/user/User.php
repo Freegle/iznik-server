@@ -4563,9 +4563,64 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $work = $this->getWorkCounts();
             $total = $work['total'] + $chatcount;
 
+            if (pres('pendingvolunteering', $work) > 0) {
+                $title .= $work['pendingvolunteering'] . ' volunteer op' . (($work['pendingvolunteering'] != 1) ? 's' : '') . " to review\n";
+                $route = 'modtools/volunteering';
+            }
+
+            if (pres('pendingevents', $work) > 0) {
+                $title .= $work['pendingevents'] . ' event' . (($work['pendingevents'] != 1) ? 's' : '') . " to review\n";
+                $route = 'modtools/volunteering';
+            }
+
+            if (pres('socialactions', $work) > 0) {
+                $title .= $work['socialactions'] . ' publicity item' . (($work['socialactions'] != 1) ? 's' : '') . " to review\n";
+                $route = 'modtools/publicity';
+            }
+
+            if (pres('stories', $work) > 0) {
+                $title .= $work['stories'] . (($work['stories'] != 1) ? 'stories' : 'story') . "\n";
+                $route = 'modtools/members/stories';
+            }
+
+            if (pres('newsletterstories', $work) > 0) {
+                $title .= $work['newsletterstories'] . " newsletter " . (($work['newsletterstories'] != 1) ? 'stories' : 'story') . "\n";
+                $route = 'modtools/members/newsletter';
+            }
+
+            if (pres('chatreview', $work) > 0) {
+                $title .= $work['chatrevew'] . ' chat messages' . (($work['chatreview'] != 1) ? 's' : '') . " to review\n";
+                $route = 'modtools/chats/review';
+            }
+
+            if (pres('pendingadmins', $work) > 0) {
+                $title .= $work['pendingadmins'] . ' admin' . (($work['pendingadmins'] != 1) ? 's' : '') . "\n";
+                $route = 'modtools/admin';
+            }
+
+            if (pres('spammembers', $work) > 0) {
+                $title .= $work['spam'] . ' member' . (($work['spam'] != 1) ? 's' : '') . " to review\n";
+                $route = '/modtools/members/review';
+            }
+
+            if (pres('relatedmembers', $work) > 0) {
+                $title .= $work['relatedmembers'] . ' related member' . (($work['relatedmembers'] != 1) ? 's' : '') . " to review\n";
+                $route = '/modtools/members/related';
+            }
+
             if (pres('pendingmembers', $work) > 0) {
                 $title .= $work['pendingmembers'] . ' pending member' . (($work['pendingmembers'] != 1) ? 's' : '') . " \n";
                 $route = 'modtools/members/pending';
+            }
+
+            if (pres('editreview', $work) > 0) {
+                $title .= $work['editreview'] . ' edit' . (($work['editreview'] != 1) ? 's' : '') . "\n";
+                $route = '/modtools/messages/review';
+            }
+
+            if (pres('spam', $work) > 0) {
+                $title .= $work['spam'] . ' message' . (($work['spam'] != 1) ? 's' : '') . " to review\n";
+                $route = '/modtools/messages/review';
             }
 
             if (pres('pending', $work) > 0) {
@@ -6468,7 +6523,8 @@ memberships.groupid IN $groupq
         $ret['newsletterstories'] = $this->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
 
         if (!$groups) {
-            $groups = $this->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $this->id);
+            # When the user posts, MODTOOLS will be FALSE but we need to notify mods.
+            $groups = $this->getMemberships(FALSE, NULL, TRUE, TRUE, $this->id);
         }
 
         foreach ($groups as &$group) {
