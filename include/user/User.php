@@ -4564,17 +4564,17 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $total = $work['total'] + $chatcount;
 
             if (pres('pendingvolunteering', $work) > 0) {
-                $title .= $work['pendingvolunteering'] . ' volunteer op' . (($work['pendingvolunteering'] != 1) ? 's' : '') . " to review\n";
+                $title .= $work['pendingvolunteering'] . ' volunteer op' . (($work['pendingvolunteering'] != 1) ? 's' : '') . "n";
                 $route = 'modtools/volunteering';
             }
 
             if (pres('pendingevents', $work) > 0) {
-                $title .= $work['pendingevents'] . ' event' . (($work['pendingevents'] != 1) ? 's' : '') . " to review\n";
+                $title .= $work['pendingevents'] . ' event' . (($work['pendingevents'] != 1) ? 's' : '') . "\n";
                 $route = 'modtools/volunteering';
             }
 
             if (pres('socialactions', $work) > 0) {
-                $title .= $work['socialactions'] . ' publicity item' . (($work['socialactions'] != 1) ? 's' : '') . " to review\n";
+                $title .= $work['socialactions'] . ' publicity item' . (($work['socialactions'] != 1) ? 's' : '') . "\n";
                 $route = 'modtools/publicity';
             }
 
