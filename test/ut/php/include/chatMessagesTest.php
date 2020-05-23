@@ -295,9 +295,10 @@ class chatMessagesTest extends IznikTestCase {
         $email = $u->inventEmail();
         $u->addEmail($email, FALSE, FALSE);
 
-        # Send a reply direct to the user - should go to spam but marked for review.
+        # Send a reply direct to the user - should go to spam but marked for review, as this will fail Spam Assassin
+        # via the GTUBE string.
         $this->log("Reply direct to $email");
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply3'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply6'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', $email, $msg);
         $rc = $r->route();
@@ -317,7 +318,7 @@ class chatMessagesTest extends IznikTestCase {
 
         # Send a reply to a replyto email - ditto.
         $this->log("Reply to reply-to");
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply3'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply6'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', "replyto-$refmsgid-" . $m->getFromuser() . '@' . USER_DOMAIN, $msg);
         $rc = $r->route();
@@ -335,7 +336,7 @@ class chatMessagesTest extends IznikTestCase {
 
         # Send a reply to a notify email - ditto.
         $this->log("Reply to reply-to");
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply3'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply6'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', "notify-$chatid-" . $m->getFromuser() . '@' . USER_DOMAIN, $msg);
         $rc = $r->route();
