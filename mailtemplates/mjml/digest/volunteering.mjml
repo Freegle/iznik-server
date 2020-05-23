@@ -198,7 +198,7 @@
             <mj-button align="right" href="https://www.ilovefreegle.org/jobs/{{ joblocation }}" font-family="Helvetica" background-color="darkblue" color="white">
               View more jobs
             </mj-button>
-            <mj-button align="right" href="https://freegle.in/paypalfundraiser" font-family="Helvetica" background-color="darkgreen" color="white">
+            <mj-button align="right" href="https://freegle.in/paypal1510" font-family="Helvetica" background-color="darkgreen" color="white">
               Donating helps too!
             </mj-button>
           </mj-column>
