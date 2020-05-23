@@ -463,7 +463,8 @@ memberships.groupid IN $groupq
             $happinesscounts = $this->dbhr->preQuery($sql);
 
             $c = new ChatMessage($this->dbhr, $this->dbhm);
-            $reviewcounts = $c->getReviewCountByGroup($me, NULL);
+            $reviewcounts = $c->getReviewCountByGroup($me, NULL, FALSE);
+            $reviewcountsother = $c->getReviewCountByGroup($me, NULL, TRUE);
 
             foreach ($groupids as $groupid) {
                 # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
@@ -568,6 +569,12 @@ memberships.groupid IN $groupq
                             $thisone['chatreview'] = $count['count'];
                         }
                     }
+
+                    foreach ($reviewcountsother as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['chatreviewother'] = $count['count'];
+                        }
+                    }
                 } else {
                     foreach ($pendingspamcounts as $count) {
                         if ($count['groupid'] == $groupid) {
@@ -589,6 +596,18 @@ memberships.groupid IN $groupq
                     foreach ($spammembercounts as $count) {
                         if ($count['groupid'] == $groupid) {
                             $thisone['spammembersother'] = $count['count'];
+                        }
+                    }
+
+                    foreach ($reviewcounts as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['chatreviewother'] += $count['count'];
+                        }
+                    }
+
+                    foreach ($reviewcountsother as $count) {
+                        if ($count['groupid'] == $groupid) {
+                            $thisone['chatreviewother'] += $count['count'];
                         }
                     }
                 }
