@@ -1198,7 +1198,7 @@ WHERE chat_rooms.id IN $idlist;";
         return ($count);
     }
 
-    public function notifyMembers($name, $message, $excludeuser = NULL)
+    public function notifyMembers($name, $message, $excludeuser = NULL, $modstoo = FALSE)
     {
         # Notify members of a chat room via:
         # - Facebook
@@ -1211,6 +1211,18 @@ WHERE chat_rooms.id IN $idlist;";
                 # Notify both users.
                 $userids[] = $this->chatroom['user1'];
                 $userids[] = $this->chatroom['user2'];
+
+                if ($modstoo) {
+                    # Notify mods of any groups that the recipient is a member of.
+                    $recip = $this->chatroom['user1'] == $excludeuser ? $this->chatroom['user2'] : $this->chatroom['user1'];
+                    $u = User::get($this->dbhr, $this->dbhm, $recip);
+                    $groupids = array_column($u->getMemberships(), 'id');
+
+                    if (count($groupids)) {
+                        $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid IN (" . implode(',', $groupids) . ")", NULL, FALSE, FALSE);
+                        $userids = array_merge($userids, array_column($mods, 'userid'));
+                    }
+                }
                 break;
             case ChatRoom::TYPE_USER2MOD:
                 # Notify the initiator and the groups mods.
@@ -1218,7 +1230,6 @@ WHERE chat_rooms.id IN $idlist;";
                 $g = Group::get($this->dbhr, $this->dbhm, $this->chatroom['groupid']);
                 $mods = $g->getMods();
                 $userids = array_merge($userids, $mods);
-
                 break;
         }
 

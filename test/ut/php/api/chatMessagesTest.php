@@ -347,6 +347,12 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
         assertTrue($this->user->login('testpw'));
 
+        # Add some mods on the recipient's group, so they can be notified.
+        $u = new User($this->dbhr, $this->dbhm);
+        $modid = $u->create('Test', 'User', 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $modid);
+        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+
         # Create a chat to the second user
         $ret = $this->call('chatrooms', 'PUT', [
             'userid' => $this->uid2

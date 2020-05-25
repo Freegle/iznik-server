@@ -265,7 +265,9 @@ class ChatMessage extends Entity
 
             if (!$spam && !$review && !$blocked) {
                 $r->pokeMembers();
-                $r->notifyMembers($u->getName(), $message, $userid);
+
+                # Notify mods if we have flagged this for review.
+                $r->notifyMembers($u->getName(), $message, $userid, $review);
 
                 if ($r->getPrivate('synctofacebook') == ChatRoom::FACEBOOK_SYNC_REPLIED_ON_FACEBOOK) {
                     # We have had a reply from Facebook, which caused us to flag this conversation.
@@ -379,7 +381,7 @@ class ChatMessage extends Entity
             $r->updateMessageCounts();
             $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
             $r->pokeMembers();
-            $r->notifyMembers($u->getName(), $msg['message'], $msg['userid']);
+            $r->notifyMembers($u->getName(), $msg['message'], $msg['userid'], TRUE);
         }
     }
 
