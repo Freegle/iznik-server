@@ -8,7 +8,7 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
-# We archive chat photos out of the DB into Azure.  This reduces load on the servers because we don't have to serve
+# We archive chat photos out of the DB.  This reduces load on the servers because we don't have to serve
 # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
 # place to store large amounts of image data);
 $sql = "SELECT id FROM chat_images WHERE archived = 0;";
