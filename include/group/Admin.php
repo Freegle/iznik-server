@@ -7,6 +7,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/mailtemplates/admin.php');
+require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 
 class Admin extends Entity
 {
@@ -37,6 +38,9 @@ class Admin extends Entity
             $id = $this->dbhm->lastInsertId();
             $this->fetch($this->dbhm, $this->dbhm, $id, 'admins', 'admin', $this->publicatts);
         }
+
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->notifyGroupMods($groupid);
 
         return($id);
     }

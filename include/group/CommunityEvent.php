@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
+require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 
 class CommunityEvent extends Entity
 {
@@ -65,6 +66,9 @@ class CommunityEvent extends Entity
         # Create now so that we can pass the groupid.
         $n = new Newsfeed($this->dbhr, $this->dbhm);
         $fid = $n->create(Newsfeed::TYPE_COMMUNITY_EVENT, $this->event['userid'], NULL, NULL, NULL, NULL, $groupid, $this->id, NULL, NULL);
+
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->notifyGroupMods($groupid);
     }
 
     public function removeGroup($id) {

@@ -7,6 +7,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/mailtemplates/volunteerrenew.php');
 require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
+require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 
 class Volunteering extends Entity
 {
@@ -61,6 +62,9 @@ class Volunteering extends Entity
         # Create now so that we can pass the groupid.
         $n = new Newsfeed($this->dbhr, $this->dbhm);
         $fid = $n->create(Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY, $this->volunteering['userid'], NULL, NULL, NULL, NULL, $groupid, NULL, $this->id, NULL);
+
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->notifyGroupMods($groupid);
     }
 
     public function removeGroup($id) {

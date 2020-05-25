@@ -86,8 +86,13 @@ class GroupFacebook {
                 $type
             ]);
 
+        $created = $this->dbhm->lastInsertId();
         $this->token = $token;
-        return($this->dbhm->lastInsertId());
+
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->notifyGroupMods($groupid);
+
+        return($created);
     }
 
     public function remove($uid) {
