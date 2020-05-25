@@ -50,3 +50,17 @@ do {
     }
 } while (count($chats) > 0);
 
+# Purge chat images which have no parent chat message.
+$total = 0;
+do {
+    $sql = "SELECT id FROM chat_images WHERE chatmsgid IS NULL LIMIT 1000;";
+    $msgs = $dbhm->query($sql)->fetchAll();
+    foreach ($msgs as $msg) {
+        $dbhm->exec("DELETE FROM chat_images WHERE id = {$msg['id']};");
+        $total++;
+
+        if ($total % 1000 == 0) {
+            error_log("...$total");
+        }
+    }
+} while (count($msgs) > 0);
