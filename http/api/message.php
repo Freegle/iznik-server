@@ -264,8 +264,6 @@ function message() {
                         'allgood' => $me ? (!$me->isModerator() && $m->getFromuser() != $me->getId()) : 'no me'
                     ];
                 } else {
-                    $atts = $m->getPublic();
-
                     # Ignore the canedit flag here - the client will either show or not show the edit button on this
                     # basis but editing is part of the repost flow and therefore needs to work.
                     $subject = presdef('subject', $_REQUEST, NULL);
@@ -282,7 +280,7 @@ function message() {
                         'status' => 'Success'
                     ];
 
-                    if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments) {
+                    if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
                         $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments, $me->isApprovedMember($groupid) ? $groupid : NULL);
                         $ret = $rc ? $ret : ['ret' => 2, 'status' => 'Edit failed'];
                     }
