@@ -22,7 +22,9 @@ function domains() {
                     if (count($suggestions)) {
                         $ret['suggestions'] = [];
                         foreach ($suggestions as $s) {
-                            $ret['suggestions'][] = $s['domain'];
+                            if ($s['domain'] != $domain) {
+                                $ret['suggestions'][] = $s['domain'];
+                            }
                         }
                     }
                 }
