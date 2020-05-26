@@ -1111,8 +1111,9 @@ class Message
                 $maxreposts = $repost * $reposts['max'];
                 $rets[$msg['id']]['expiretime'] = max($maxreposts, $maxagetoshow);
 
-                if (array_key_exists('canedit', $rets[$msg['id']]) && !$rets[$msg['id']]['canedit'] && $myid && $myid === $msg['fromuser'] && $msg['source'] == Message::PLATFORM) {
-                    # This is our own message, which we may be able to edit if the group allows it.
+                if (array_key_exists('canedit', $rets[$msg['id']]) && !$rets[$msg['id']]['canedit'] && $myid && $myid === $msg['fromuser']) {
+                    # This is our own message, which we may be able to edit if the group allows it.  Allow this even if
+                    # it wasn't originally posted on here.
                     $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
                     $ourPS = $me->getMembershipAtt($rets[$msg['id']]['groups'][$groupind]['groupid'], 'ourPostingStatus');
 
