@@ -85,21 +85,31 @@ class Newsfeed extends Entity
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
-            $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position, hidden) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos, $hidden);", [
-                $type,
-                $userid,
-                $imageid,
-                $msgid,
-                $replyto,
-                $groupid,
-                $eventid,
-                $volunteeringid,
-                $publicityid,
-                $storyid,
-                $message
-            ]);
+            # We've seen cases where we get duplicate POSTS of the same newsfeed item from different sessions, which
+            # bypasses the normal duplicate protection. So check.
+            $last = $this->dbhm->preQuery("SELECT * FROM newsfeed WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
+                $userid
+            ], FALSE, FALSE);
 
-            $id = $this->dbhm->lastInsertId();
+            if (!count($last) || $last[0]['replyto'] != $replyto || $last[0]['type'] != $type || $last[0]['message'] != $message) {
+                $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position, hidden) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos, $hidden);", [
+                    $type,
+                    $userid,
+                    $imageid,
+                    $msgid,
+                    $replyto,
+                    $groupid,
+                    $eventid,
+                    $volunteeringid,
+                    $publicityid,
+                    $storyid,
+                    $message
+                ]);
+
+                $id = $this->dbhm->lastInsertId();
+            } else {
+                $id = $last[0]['id'];
+            }
 
             if ($id) {
                 $this->fetch($this->dbhm, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);

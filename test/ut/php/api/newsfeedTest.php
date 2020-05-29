@@ -807,5 +807,40 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         assertFalse($found);
     }
+
+    public function testDuplicate() {
+        assertTrue($this->user->login('testpw'));
+
+        # Post something.
+        $this->log("Post something as {$this->uid}");
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test for duplicate'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $this->log("Created feed {$ret['id']}");
+        $nid = $ret['id'];
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test for duplicate',
+            'dup' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $this->log("Created dup feed {$ret['id']}");
+        assertEquals($nid, $ret['id']);
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test for non-duplicate',
+            'dup' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $this->log("Created non dup feed {$ret['id']}");
+        assertNotEquals($nid, $ret['id']);
+    }
 }
 
