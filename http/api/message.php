@@ -650,10 +650,11 @@ function message() {
             $canmod = $myid == $m->getFromuser();
 
             if (!$canmod) {
-                $role = $m->getRoleForMessage();
+                $role = $m->getRoleForMessage()[0];
                 $canmod = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
             }
 
+            error_log("Canmod? $canmod");
             if ($canmod) {
                 if ($userid > 0) {
                     $r = new ChatRoom($dbhr, $dbhm);

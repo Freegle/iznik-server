@@ -2576,6 +2576,11 @@ class messageAPITest extends IznikAPITestCase
             'dup' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+        ]);
+        assertEquals(1, count($ret['message']['outcomes']));
     }
 
     public function testExpired()
