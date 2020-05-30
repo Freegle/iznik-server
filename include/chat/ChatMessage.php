@@ -166,7 +166,7 @@ class ChatMessage extends Entity
 
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
             $chattype = $r->getPrivate('chattype');
-            $u = new User($this->dbhr, $this->dbhm, $userid);
+            $u = User::get($this->dbhr, $this->dbhm, $userid);
 
             # If the last message in this chat is held for review, then hold this one too.
             $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? ORDER BY id DESC LIMIT 1;", [

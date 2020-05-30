@@ -1080,17 +1080,26 @@ class Message
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                     if (pres('approvedby', $rets[$msg['id']]['groups'][$groupind])) {
                         if (!pres($rets[$msg['id']]['groups'][$groupind]['approvedby'], $approvedcache)) {
-                            $appby = $this->dbhr->preQuery("SELECT id, fullname, firstname, lastname FROM users WHERE id = ?;", [
-                                $rets[$msg['id']]['groups'][$groupind]['approvedby']
-                            ]);
-
-                            foreach ($appby as $app) {
-                                $name = pres('fullname', $app) ? $app['fullname'] : "{$app['firstname']} {$app['lastname']}";
+                            if ($rets[$msg['id']]['groups'][$groupind]['approvedby'] === $myid) {
+                                # This saves a DB op in a common case for an active mod.
                                 $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']] = [
-                                    'id' => $rets[$msg['id']]['groups'][$groupind]['approvedby'],
-                                    'displayname' => $name
+                                    'id' => $myid,
+                                    'displayname' => 'you'
                                 ];
+                            } else {
+                                $appby = $this->dbhr->preQuery("SELECT id, fullname, firstname, lastname FROM users WHERE id = ?;", [
+                                    $rets[$msg['id']]['groups'][$groupind]['approvedby']
+                                ]);
+
+                                foreach ($appby as $app) {
+                                    $name = pres('fullname', $app) ? $app['fullname'] : "{$app['firstname']} {$app['lastname']}";
+                                    $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']] = [
+                                        'id' => $rets[$msg['id']]['groups'][$groupind]['approvedby'],
+                                        'displayname' => $name
+                                    ];
+                                }
                             }
+
                         }
 
                         $rets[$msg['id']]['groups'][$groupind]['approvedby'] = $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']];

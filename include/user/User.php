@@ -161,8 +161,10 @@ class User extends Entity
         }
     }
 
-    public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $usecache = TRUE)
+    public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $usecache = TRUE, $testonly = FALSE)
     {
+        $u = NULL;
+
         if ($id) {
             # We cache the constructed user.
             if ($usecache && array_key_exists($id, User::$cache) && User::$cache[$id]->getId() == $id) {
@@ -175,7 +177,7 @@ class User extends Entity
                     # And it's not zapped - so we can use it.
                     #error_log("Not zapped");
                     return ($u);
-                } else {
+                } else if (!$tes) {
                     # It's zapped - so refetch.  It's important that we do this using the original DB handles, because
                     # whatever caused us to zap the cache might have done a modification operation which in turn
                     # zapped the SQL read cache.
@@ -191,14 +193,16 @@ class User extends Entity
         }
 
         # Not cached.
-        #error_log("$id not in cache");
-        $u = new User($dbhr, $dbhm, $id);
+        if (!$testonly) {
+            #error_log("$id not in cache");
+            $u = new User($dbhr, $dbhm, $id);
 
-        if ($id && count(User::$cache) < User::CACHE_SIZE) {
-            # Store for next time
-            #error_log("store $id in cache");
-            User::$cache[$id] = $u;
-            User::$cacheDeleted[$id] = FALSE;
+            if ($id && count(User::$cache) < User::CACHE_SIZE) {
+                # Store for next time
+                #error_log("store $id in cache");
+                User::$cache[$id] = $u;
+                User::$cacheDeleted[$id] = FALSE;
+            }
         }
 
         return ($u);
@@ -2545,9 +2549,22 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     public function getPublicsById($uids, $groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE) {
         $rets = [];
 
-        if (count($uids)) {
-            $users = $this->dbhr->preQuery("SELECT * FROM users WHERE id IN (" . implode(',', $uids) . ");", NULL, FALSE, FALSE);
-            $rets = $this->getPublics($users, $groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
+        # We might have some of these in cache, especially ourselves.
+        $uidsleft = [];
+
+        foreach ($uids as $uid) {
+            $u = User::get($this->dbhr, $this->dbhm, $uid, TRUE, FALSE);
+
+            if ($u) {
+                $rets[$uid] = $u->getPublic($groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
+            } else {
+                $uidsleft[] = $uid;
+            }
+        }
+
+        if (count($uidsleft)) {
+            $users = $this->dbhr->preQuery("SELECT * FROM users WHERE id IN (" . implode(',', $uidsleft) . ");", NULL, FALSE, FALSE);
+            $rets = array_merge($rets, $this->getPublics($users, $groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull));
         }
 
         return($rets);

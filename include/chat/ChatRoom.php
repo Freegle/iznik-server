@@ -1455,15 +1455,6 @@ WHERE chat_rooms.id IN $idlist;";
                             $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                             $users[$msg['userid']]['aboutme'] = $u->getAboutMe();
                         }
-
-                        if (!pres('prediction', $users[$msg['userid']])) {
-                            # Also any prediction about this user.
-                            $predictions = $this->dbhr->preQuery("SELECT * FROM predictions WHERE userid = ?;", [
-                                $msg['userid']
-                            ], FALSE, FALSE);
-
-                            $users[$msg['userid']]['prediction'] = count($predictions) == 0 ? User::RATING_UNKNOWN : $predictions[0]['prediction'];
-                        }
                     }
 
                     $ret[] = $atts;
@@ -2121,7 +2112,7 @@ WHERE chat_rooms.id IN $idlist;";
             # If we have only one user in here then it must tbe the one who started the query.
             if (count($users) == 1) {
                 foreach ($users as $uid => $user) {
-                    $u = new User($this->dbhr, $this->dbhm, $uid);
+                    $u = User::get($this->dbhr, $this->dbhm, $uid);
                     $msgs = array_reverse($msgs);
                     $last = $msgs[0];
                     $timeago = strtotime($last['date']);

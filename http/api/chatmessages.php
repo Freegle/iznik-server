@@ -10,7 +10,6 @@ function chatmessages() {
     $imageid = presdef('imageid', $_REQUEST, NULL);
     $addressid = presdef('addressid', $_REQUEST, NULL);
     $reportreason = presdef('reportreason', $_REQUEST, NULL);
-    $refmsgsummary = array_key_exists('refmsgsummary', $_REQUEST) ? filter_var($_REQUEST['refmsgsummary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ctx = presdef('context', $_REQUEST, NULL);
     $ctx = (isset($ctx) && $ctx !== 'undefined') ? $ctx : NULL;
     $limit = array_key_exists('limit', $_REQUEST) ? intval($_REQUEST['limit']) : 100;
@@ -47,7 +46,7 @@ function chatmessages() {
                         $u = User::get($dbhr, $dbhm, $ret['chatmessage']['userid']);
                         $ret['chatmessage']['user'] = $u->getPublic(NULL, FALSE);
                     } else {
-                        list($msgs, $users) = $r->getMessages($limit, NULL, $ctx, $refmsgsummary);
+                        list($msgs, $users) = $r->getMessages($limit, NULL, $ctx, TRUE);
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
