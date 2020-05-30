@@ -2387,10 +2387,10 @@ ORDER BY lastdate DESC;";
                                 )
                             ));
 
-                            $data = @file_get_contents($src, false, $ctx);
+                            error_log("Get TN att $src");
+                            $data = file_get_contents($src, false, $ctx);
 
                             if ($data) {
-                                error_log("Got it");
                                 # Try to convert to an image.  If it's not an image, this will fail.
                                 $img = new Image($data);
 
