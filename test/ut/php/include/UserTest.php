@@ -1002,12 +1002,12 @@ class userTest extends IznikTestCase {
 
         $uid = $u->create("Test", "User", "Test User");
         $u->addEmail('atrusty-gxxxx@user.trashnothing.com');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
         $this->log("atrusty " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['TN']);
-
-        }
+    }
 
     public function testBadYahooId() {
         $u = User::get($this->dbhr, $this->dbhm);
