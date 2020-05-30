@@ -2399,6 +2399,9 @@ ORDER BY lastdate DESC;";
             }
         }
 
+        # Now remove any reference to TN photos in the text body.
+        $this->textbody = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $this->textbody);
+
         # If this is a reuse group, we need to determine the type.
         $g = Group::get($this->dbhr, $this->dbhm, $this->groupid);
         if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||
