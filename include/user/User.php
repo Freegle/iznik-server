@@ -177,7 +177,7 @@ class User extends Entity
                     # And it's not zapped - so we can use it.
                     #error_log("Not zapped");
                     return ($u);
-                } else if (!$tes) {
+                } else if (!$testonly) {
                     # It's zapped - so refetch.  It's important that we do this using the original DB handles, because
                     # whatever caused us to zap the cache might have done a modification operation which in turn
                     # zapped the SQL read cache.
