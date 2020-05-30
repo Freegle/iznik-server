@@ -2227,6 +2227,7 @@ class User extends Entity
                         $turl = pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
                         $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
                         $rets[$profile['userid']]['profile'] = [
+                            'id' => $profile['id'],
                             'url' => pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
                             'turl' => $turl,
                             'default' => FALSE
