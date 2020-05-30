@@ -69,6 +69,10 @@ function session() {
                         $ret['me'] = $me->getPublic();
                         $ret['me']['city'] = $me->getCity();
 
+                        if (pres('profile', $ret['me']) && pres('url', $ret['me']['profile']) && strpos($ret['me']['profile']['url'], IMAGE_DOMAIN) !== FALSE) {
+                            $ret['me']['profile']['ours'] = TRUE;
+                        }
+
                         # Don't need to return this, and it might be large.
                         $ret['me']['messagehistory'] = NULL;
                     }
