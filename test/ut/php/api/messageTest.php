@@ -2526,7 +2526,57 @@ class messageAPITest extends IznikAPITestCase
 
         $m->delete("UT delete");
 
-        }
+    }
+
+    public function testMarkAsMod()
+    {
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
+        $msg = $this->unique($origmsg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        # Create a member on the group and check we can can't mark.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->addMembership($group1, User::ROLE_MEMBER);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_TAKEN
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $u->addMembership($group1, User::ROLE_MODERATOR);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_TAKEN,
+            'dup' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+    }
 
     public function testExpired()
     {
