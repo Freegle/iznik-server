@@ -4583,37 +4583,37 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if (pres('pendingvolunteering', $work) > 0) {
                 $title .= $work['pendingvolunteering'] . ' volunteer op' . (($work['pendingvolunteering'] != 1) ? 's' : '') . "n";
-                $route = 'modtools/volunteering';
+                $route = '/modtools/volunteering';
             }
 
             if (pres('pendingevents', $work) > 0) {
                 $title .= $work['pendingevents'] . ' event' . (($work['pendingevents'] != 1) ? 's' : '') . "\n";
-                $route = 'modtools/volunteering';
+                $route = '/modtools/volunteering';
             }
 
             if (pres('socialactions', $work) > 0) {
                 $title .= $work['socialactions'] . ' publicity item' . (($work['socialactions'] != 1) ? 's' : '') . "\n";
-                $route = 'modtools/publicity';
+                $route = '/modtools/publicity';
             }
 
             if (pres('stories', $work) > 0) {
                 $title .= $work['stories'] . (($work['stories'] != 1) ? 'stories' : 'story') . "\n";
-                $route = 'modtools/members/stories';
+                $route = '/modtools/members/stories';
             }
 
             if (pres('newsletterstories', $work) > 0) {
                 $title .= $work['newsletterstories'] . " newsletter " . (($work['newsletterstories'] != 1) ? 'stories' : 'story') . "\n";
-                $route = 'modtools/members/newsletter';
+                $route = '/modtools/members/newsletter';
             }
 
             if (pres('chatreview', $work) > 0) {
                 $title .= $work['chatrevew'] . ' chat messages' . (($work['chatreview'] != 1) ? 's' : '') . " to review\n";
-                $route = 'modtools/chats/review';
+                $route = '/modtools/chats/review';
             }
 
             if (pres('pendingadmins', $work) > 0) {
                 $title .= $work['pendingadmins'] . ' admin' . (($work['pendingadmins'] != 1) ? 's' : '') . "\n";
-                $route = 'modtools/admin';
+                $route = '/modtools/admin';
             }
 
             if (pres('spammembers', $work) > 0) {
@@ -4628,7 +4628,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if (pres('pendingmembers', $work) > 0) {
                 $title .= $work['pendingmembers'] . ' pending member' . (($work['pendingmembers'] != 1) ? 's' : '') . " \n";
-                $route = 'modtools/members/pending';
+                $route = '/modtools/members/pending';
             }
 
             if (pres('editreview', $work) > 0) {
