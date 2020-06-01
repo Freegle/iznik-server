@@ -714,7 +714,7 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $m->save();
         $atts = $m->getAttachments();
-        assertEquals(2, count($atts));
+        assertEquals(1, count($atts));
         $m->delete();
 
         }
