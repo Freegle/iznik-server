@@ -2368,6 +2368,7 @@ ORDER BY lastdate DESC;";
                     )
                 ));
 
+                error_log("Get TN url $url");
                 $data = @file_get_contents($url, false, $ctx);
 
                 if ($data) {
