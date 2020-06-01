@@ -2368,7 +2368,6 @@ ORDER BY lastdate DESC;";
                     )
                 ));
 
-                error_log("Get TN url $url");
                 $data = @file_get_contents($url, false, $ctx);
 
                 if ($data) {
@@ -2388,8 +2387,7 @@ ORDER BY lastdate DESC;";
                                 )
                             ));
 
-                            error_log("Get TN att $src");
-                            $data = file_get_contents($src, false, $ctx);
+                            $data = @file_get_contents($src, false, $ctx);
 
                             if ($data) {
                                 # Try to convert to an image.  If it's not an image, this will fail.
