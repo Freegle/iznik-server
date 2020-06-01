@@ -48,7 +48,8 @@
             </mj-text>
             <mj-text>
               If you've not already, why not send a thanks to the person who gave it?  Just to
-              be nice.
+              be nice.  Please also use the thumbs up/down buttons in chat on the site, to help other freeglers
+              know about them.
             </mj-text>
             <mj-raw>
               {% else %}
