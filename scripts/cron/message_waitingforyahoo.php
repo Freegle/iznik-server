@@ -65,60 +65,62 @@ foreach ($messages as $message) {
 
         $g = new Group($dbhr, $dbhm, $message['groupid']);
 
-        $outcome = $m->hasOutcome();
+        if (!$g->getSetting('closed', 0)) {
+            $outcome = $m->hasOutcome();
 
-        if ($outcome) {
-            # The message has been marked as completed, or withdrawn, while we were waiting for Yahoo to get its
-            # act together.  Either way, there's no need to submit to Yahoo.
-            #
-            # Mark all of these as deleted.  That might not be quite right, but it gets them out of the way.
-            $m->delete("Yahoo membership approved after message completed", $message['groupid']);
-        } else {
-            $uid = $m->getFromuser();
+            if ($outcome) {
+                # The message has been marked as completed, or withdrawn, while we were waiting for Yahoo to get its
+                # act together.  Either way, there's no need to submit to Yahoo.
+                #
+                # Mark all of these as deleted.  That might not be quite right, but it gets them out of the way.
+                $m->delete("Yahoo membership approved after message completed", $message['groupid']);
+            } else {
+                $uid = $m->getFromuser();
 
-            if ($uid) {
-                $u = User::get($dbhr, $dbhm, $uid);
+                if ($uid) {
+                    $u = User::get($dbhr, $dbhm, $uid);
 
-                list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE, TRUE);
+                    list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE, TRUE);
 
-                # If the message has been hanging around for a while, it might be that Yahoo has blocked our
-                # subscribe request - we've seen messages get delayed for many days with 451 temp errors.
-                # In that case assume the membership worked (which it might have done) and submit the message.
-                # The message will then be in Pending, and we have more processing below to auto-approve those mails
-                # if they are not moderated in time.
-                if ($message['ago'] >= 48 && $u->isPendingMember($message['groupid']) && !$u->isHeld($message['groupid'])) {
-                    error_log("{$message['id']} has been pending for {$message['ago']} - auto approve membership");
-                    $eid = $u->getOurEmailId();
-                    $u->markYahooApproved($message['groupid'], $eid);
-                    $l->log([
-                        'type' => Log::TYPE_GROUP,
-                        'subtype' => Log::SUBTYPE_AUTO_APPROVED,
-                        'groupid' => $message['groupid'],
-                        'msgid' => $message['id'],
-                        'user' => $uid
-                    ]);
+                    # If the message has been hanging around for a while, it might be that Yahoo has blocked our
+                    # subscribe request - we've seen messages get delayed for many days with 451 temp errors.
+                    # In that case assume the membership worked (which it might have done) and submit the message.
+                    # The message will then be in Pending, and we have more processing below to auto-approve those mails
+                    # if they are not moderated in time.
+                    if ($message['ago'] >= 48 && $u->isPendingMember($message['groupid']) && !$u->isHeld($message['groupid'])) {
+                        error_log("{$message['id']} has been pending for {$message['ago']} - auto approve membership");
+                        $eid = $u->getOurEmailId();
+                        $u->markYahooApproved($message['groupid'], $eid);
+                        $l->log([
+                            'type' => Log::TYPE_GROUP,
+                            'subtype' => Log::SUBTYPE_AUTO_APPROVED,
+                            'groupid' => $message['groupid'],
+                            'msgid' => $message['id'],
+                            'user' => $uid
+                        ]);
+                    }
+
+                    #error_log("Email $email id $eid for {$message['groupid']}");
+
+                    if ($eid) {
+                        # Now approved - we can submit.
+                        $m->submit($u, $email, $message['groupid']);
+                        $outcome = ' submitted';
+                        $submitted++;
+                    } else if (!$u->isRejected($message['groupid'])) {
+                        # Still pending - maybe Yahoo lost it.  Resend the application.
+                        $u->triggerYahooApplication($message['groupid'], FALSE);
+                        $outcome = ' still queued';
+                        $queued++;
+                    } else {
+                        # No longer pending.  Just leave - it will eventually get purged, and this way we have it
+                        # for debug if we want.
+                        $outcome = ' rejected?';
+                        $rejected++;
+                    }
+
+                    error_log("#{$message['id']} {$message['date']} {$message['subject']} $outcome");
                 }
-
-                #error_log("Email $email id $eid for {$message['groupid']}");
-
-                if ($eid) {
-                    # Now approved - we can submit.
-                    $m->submit($u, $email, $message['groupid']);
-                    $outcome = ' submitted';
-                    $submitted++;
-                } else if (!$u->isRejected($message['groupid'])) {
-                    # Still pending - maybe Yahoo lost it.  Resend the application.
-                    $u->triggerYahooApplication($message['groupid'], FALSE);
-                    $outcome = ' still queued';
-                    $queued++;
-                } else {
-                    # No longer pending.  Just leave - it will eventually get purged, and this way we have it
-                    # for debug if we want.
-                    $outcome = ' rejected?';
-                    $rejected++;
-                }
-
-                error_log("#{$message['id']} {$message['date']} {$message['subject']} $outcome");
             }
         }
     } catch (Exception $e) {
