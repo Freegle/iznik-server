@@ -4607,7 +4607,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
 
             if (pres('chatreview', $work) > 0) {
-                $title .= $work['chatrevew'] . ' chat messages' . (($work['chatreview'] != 1) ? 's' : '') . " to review\n";
+                $title .= $work['chatreview'] . ' chat message' . (($work['chatreview'] != 1) ? 's' : '') . " to review\n";
                 $route = '/modtools/chats/review';
             }
 
