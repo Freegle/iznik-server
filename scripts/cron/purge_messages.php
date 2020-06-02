@@ -133,9 +133,7 @@ try {
     error_log("Deleted $total");
 
     # Purge old drafts.
-    #$start = date('Y-m-d', strtotime("midnight 31 days ago"));
-    # COVID
-    $start = date('Y-m-d', strtotime("2020-02-26"));
+    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
     error_log("Purge old drafts before $start");
 
     $total = 0;

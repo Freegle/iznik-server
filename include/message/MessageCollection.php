@@ -96,9 +96,7 @@ class MessageCollection
                 # Draft messages are handled differently, as they're not attached to any group.  Only show
                 # recent drafts - if they've not completed within a reasonable time they're probably stuck.
                 # Only return these on the first fetch of a sequence.  No point returning them multiple times.
-                # COVID - normally 7 days.
-                #$mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
-                $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
+                $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
                 $oldest = " AND timestamp >= '$mysqltime' ";
 
                 $userids = $userids ? $userids : ($me ? [$me->getId()] : NULL);
