@@ -84,14 +84,15 @@ function memberships() {
                         $limit = $userid ? 1 : $limit;
                         $proceed = TRUE;
                     } else if ($me->isModerator()) {
-                        # No group was specified - use the current active memberships, if we have any, excluding those
-                        # that our preferences say shouldn't be in.
+                        # No group was specified - use the current memberships, if we have any, excluding those
+                        # that our preferences say shouldn't be in.  Use active memberships unless we're searching - if
+                        # we are searching we want to find everything.
                         #
                         # We always show spammers, because we want mods to act on them asap.
                         $mygroups = $me->getMemberships(TRUE);
                         foreach ($mygroups as $group) {
                             $settings = $me->getGroupSettings($group['id']);
-                            if ($me->activeModForGroup($group['id']) &&
+                            if ($search || $me->activeModForGroup($group['id']) &&
                                 (!array_key_exists('showmembers', $settings) ||
                                 $settings['showmembers'] ||
                                 $collection == MembershipCollection::SPAM)) {
