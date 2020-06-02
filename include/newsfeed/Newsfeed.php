@@ -442,9 +442,9 @@ class Newsfeed extends Entity
                             if ($reply['replyto'] == $entries[$entindex]['id']) {
                                 $hidden = $reply['hidden'];
 
-                                # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
-                                # are there but nobody else sees them.
-                                if (!$hidden || $myid == $reply['userid']) {
+                                # Don't use hidden entries unless they are ours.  This means that to a spammer or a
+                                # disruptive member it looks like their posts are there but no other user can see them.
+                                if (!$hidden || $myid == $reply['userid'] || $me->isModerator()) {
                                     if ($reply['visible'] &&
                                         $last['userid'] == $reply['userid'] &&
                                         $last['type'] == $reply['type'] &&
@@ -456,6 +456,10 @@ class Newsfeed extends Entity
                                     }
 
                                     $entries[$entindex]['replies'][] = $reply;
+
+                                    if (!$me->isModerator()) {
+                                        unset($reply['hidden']);
+                                    }
 
                                     $last = $reply;
                                 }
@@ -573,8 +577,11 @@ class Newsfeed extends Entity
 
                 # Don't use hidden entries unless they are ours.  This means that to a spammer or suppressed user
                 # it looks like their posts are there but nobody else sees them.
-                if (!$hidden || $myid == $entry['userid']) {
-                    unset($entry['hidden']);
+                if (!$hidden || $myid == $entry['userid'] || $me->isModerator()) {
+                    if (!$me->isModerator()) {
+                        unset($entry['hidden']);
+                    }
+
                     $filtered[] = $entry;
                 }
             }
