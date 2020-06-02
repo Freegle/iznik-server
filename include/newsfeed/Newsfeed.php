@@ -438,7 +438,7 @@ class Newsfeed extends Entity
                         $last = NULL;
                         $entries[$entindex]['replies'] = [];
 
-                        foreach ($replies as &$reply) {
+                        foreach ($replies as $index => $reply) {
                             if ($reply['replyto'] == $entries[$entindex]['id']) {
                                 $hidden = $reply['hidden'];
 
@@ -452,16 +452,16 @@ class Newsfeed extends Entity
                                         !$last['deleted']
                                     ) {
                                         # Suppress duplicates.
-                                        $reply['visible'] = FALSE;
+                                        $replies[$index]['visible'] = FALSE;
                                     }
-
-                                    $entries[$entindex]['replies'][] = $reply;
 
                                     if (!$me->isModerator()) {
-                                        unset($reply['hidden']);
+                                        $replies[$index]['hidden'] = NULL;
                                     }
 
-                                    $last = $reply;
+                                    $entries[$entindex]['replies'][] = $replies[$index];
+
+                                    $last = $replies[$index];
                                 }
                             }
                         }
