@@ -85,6 +85,7 @@ class Message
     
     private $bounce_bodies = [
         "I'm afraid I wasn't able to deliver your message to the following addresses.",
+        "I'm afraid I wasn't able to deliver the following message.",
         "Delivery to the following recipients failed.",
         "was not delivered to",
         "550 No such user",
