@@ -94,7 +94,7 @@ foreach ($totalact as $total) {
         ]);
 
         # Find when the group was last moderated.
-        $sql = "SELECT MAX(arrival) AS max FROM messages_groups WHERE groupid = ? AND approvedby IS NOT NULL;";
+        $sql = "SELECT MAX(approvedat) AS max FROM messages_groups WHERE groupid = ? AND approvedby IS NOT NULL;";
         $maxs = $dbhr->preQuery($sql, [$group['id']]);
         $dbhm->preExec("UPDATE groups SET lastmoderated = ? WHERE id = ?;", [
             $maxs[0]['max'],
