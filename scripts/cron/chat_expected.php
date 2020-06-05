@@ -1,4 +1,4 @@
-<?php
+a<?php
 # Notify by email of unread chats
 
 require_once dirname(__FILE__) . '/../../include/config.php';

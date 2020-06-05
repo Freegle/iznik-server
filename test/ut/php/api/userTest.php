@@ -8,6 +8,8 @@ require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/MessageCollection.php';
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
+require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
 /**
  * @backupGlobals disabled
@@ -582,6 +584,9 @@ class userAPITest extends IznikAPITestCase {
     public function testRating() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $ret = $this->call('user', 'GET', [
             'info' => TRUE,
@@ -625,6 +630,78 @@ class userAPITest extends IznikAPITestCase {
         self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
         self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
 
+        # Rating should not be visible to someone else  there has been no interaction.
+        assertTrue($u2->login('testpw'));
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
+        # Should not flag as visible yet.
+        $u->ratingVisibility();
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
+        # Create some interaction.
+        $cr = new ChatRoom($this->dbhr, $this->dbhm);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $cid = $cr->createConversation($this->user->getId(), $uid);
+        list ($mid1, $j) = $cm->create($cid, $this->user->getId(), "test");
+        list ($mid2, $j) = $cm->create($cid, $uid, "test");
+
+        $this->log("Created conversation between {$this->user->getId()} and $uid");
+        $u->ratingVisibility();
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
+        # Delete that interaction and re-rate - should get set to not visible.
+        $this->dbhm->preExec("DELETE FROM chat_messages WHERE id IN (?,?)", [
+            $mid1,
+            $mid2
+        ]);
+
+        $u->ratingVisibility();
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
+        # Add the other kind of interaction.  Fake a reply from $uid to a message ostensibly posted by $this->user.
+        $ids = $this->dbhr->preQuery("SELECT id FROM messages LIMIT 1");
+        assertEquals(1, count($ids));
+        $cm->create($cid, $uid, "test", ChatMessage::TYPE_DEFAULT, $ids[0]['id']);
+
+        $u->ratingVisibility();
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
+        # Unrate
+        assertTrue($this->user->login('testpw'));
         $ret = $this->call('user', 'POST', [
             'action' => 'Rate',
             'ratee' => $uid,

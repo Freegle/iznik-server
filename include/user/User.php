@@ -6172,8 +6172,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' GROUP BY rating, ratee;";
-        $ratings = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+        # We show visible ratings, or ones we have made ourselves.
+        $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' AND (rater = ? OR visible = 1) GROUP BY rating, ratee;";
+        $ratings = $this->dbhr->preQuery($sql, [ $myid ], FALSE, FALSE);
 
         foreach ($uids as $uid) {
             $ret[$uid] = [
@@ -6586,5 +6587,58 @@ memberships.groupid IN $groupq
         $ret['total'] = $total;
 
         return $ret;
+    }
+
+    public function ratingVisibility($since = "1 hour ago") {
+        $mysqltime = date("Y-m-d", strtotime($since));
+
+        $ratings = $this->dbhr->preQuery("SELECT * FROM ratings WHERE timestamp >= ?;", [
+            $mysqltime
+        ], FALSE, FALSE);
+
+        foreach ($ratings as $rating) {
+            # A rating is visible to others if there is a chat between the two members, and
+            # - the ratee replied to a post, or
+            # - there is at least one message from each of them.
+            # This means that has been an exchange substantial enough for the rating not to just be frivolous.  It
+            # deliberately excludes interactions on ChitChat, where we have seen some people go a bit overboard on
+            # rating people.
+            $visible = FALSE;
+
+            $chats = $this->dbhr->preQuery("SELECT id FROM chat_rooms WHERE (user1 = ? AND user2 = ?) OR (user2 = ? AND user1 = ?)", [
+                $rating['rater'],
+                $rating['ratee'],
+                $rating['rater'],
+                $rating['ratee'],
+            ], FALSE, FALSE);
+
+            foreach ($chats as $chat) {
+                $distincts = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count FROM chat_messages WHERE chatid = ?;", [
+                    $chat['id']
+                ], FALSE, FALSE);
+
+                if ($distincts[0]['count'] >= 2) {
+                    $visible = TRUE;
+                } else {
+                    $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND userid = ? AND refmsgid IS NOT NULL;", [
+                        $chat['id'],
+                        $rating['ratee']
+                    ], FALSE, FALSE);
+
+                    if ($replies[0]['count']) {
+                        $visible = TRUE;
+                    }
+                }
+            }
+
+            $oldvisible = intval($rating['visible']) ? TRUE : FALSE;
+
+            if ($visible != $oldvisible) {
+                $this->dbhm->preExec("UPDATE ratings SET visible = ? WHERE id = ?;", [
+                    $visible,
+                    $rating['id']
+                ]);
+            }
+        }
     }
 }
