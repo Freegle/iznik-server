@@ -133,6 +133,7 @@ class Message
         "Please note his new address",
         "THIS IS AN AUTO-RESPONSE MESSAGE",
         "out of the office",
+        "on annual leave",
         "Thank you so much for your email enquiry",
         "I am away",
         "I am currently away",
