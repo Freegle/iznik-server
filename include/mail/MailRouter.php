@@ -1022,7 +1022,10 @@ class MailRouter
                                             if ($log) { error_log("Member, Our PS is $ps"); }
                                         }
 
-                                        if ($ps == Group::POSTING_MODERATED) {
+                                        if ($ps == Group::POSTING_PROHIBITED) {
+                                            if ($log) { error_log("Prohibited, drop"); }
+                                            $ret = MailRouter::DROPPED;
+                                        } else if ($ps == Group::POSTING_MODERATED) {
                                             if ($log) { error_log("Mark as pending"); }
                                             if ($this->markPending($notspam, FALSE)) {
                                                 $ret = MailRouter::PENDING;
