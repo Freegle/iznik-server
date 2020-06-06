@@ -816,6 +816,8 @@ class User extends Entity
         # will post to Pending, and send the message to Yahoo; if the user is unmoderated on there it will come back
         # to us and move to Approved.  If there is a value for ourPostingStatus, then this is a native group and
         # we will use that.
+        #
+        # We shouldn't come through here with prohibited, but if we do, best send to pending.
         $ps = $this->getMembershipAtt($groupid, 'ourPostingStatus');
         $coll = (!$ps || $ps == Group::POSTING_MODERATED || $ps == Group::POSTING_PROHIBITED) ? MessageCollection::PENDING : MessageCollection::APPROVED;
         return ($coll);

@@ -3181,4 +3181,50 @@ class messageAPITest extends IznikAPITestCase
         assertTrue($m->isPending($this->groupid));
     }
 
+    public function testCantPost()
+    {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onyahoo', 0);
+
+        # Create member and mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+
+        # Forbid us from posting.
+        $member->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_PROHIBITED);
+
+        # Submit a message from the member - should fail
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $gid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email
+        ]);
+
+        assertNotEquals(0, $ret['ret']);
+    }
 }
