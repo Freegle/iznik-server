@@ -4582,7 +4582,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $total = $work['total'] + $chatcount;
 
             if (pres('pendingvolunteering', $work) > 0) {
-                $title .= $work['pendingvolunteering'] . ' volunteer op' . (($work['pendingvolunteering'] != 1) ? 's' : '') . "n";
+                $title .= $work['pendingvolunteering'] . ' volunteer op' . (($work['pendingvolunteering'] != 1) ? 's' : '') . "\n";
                 $route = '/modtools/volunteering';
             }
 
