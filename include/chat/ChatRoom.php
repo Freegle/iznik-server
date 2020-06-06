@@ -1204,7 +1204,7 @@ WHERE chat_rooms.id IN $idlist;";
         # - Facebook
         # - push
         $userids = [];
-        #error_log("Notify $message exclude $excludeuser");
+        error_log("Notify $message exclude $excludeuser");
 
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
@@ -1213,14 +1213,22 @@ WHERE chat_rooms.id IN $idlist;";
                 $userids[] = $this->chatroom['user2'];
 
                 if ($modstoo) {
-                    # Notify mods of any groups that the recipient is a member of.
+                    # Notify active mods of any groups that the recipient is a member of.
                     $recip = $this->chatroom['user1'] == $excludeuser ? $this->chatroom['user2'] : $this->chatroom['user1'];
                     $u = User::get($this->dbhr, $this->dbhm, $recip);
                     $groupids = array_column($u->getMemberships(), 'id');
 
                     if (count($groupids)) {
-                        $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid IN (" . implode(',', $groupids) . ")", NULL, FALSE, FALSE);
-                        $userids = array_merge($userids, array_column($mods, 'userid'));
+                        $mods = $this->dbhr->preQuery("SELECT DISTINCT userid, settings FROM memberships WHERE groupid IN (" . implode(',', $groupids) . ") AND role IN (?, ?)", [
+                            User::ROLE_MODERATOR,
+                            User::ROLE_OWNER
+                        ], FALSE, FALSE);
+
+                        foreach ($mods as $mod) {
+                            if (!pres('settings', $mod) || pres('active', json_decode($mod['settings']))) {
+                                $userids[] = $mod['userid'];
+                            }
+                        }
                     }
                 }
                 break;
@@ -1243,17 +1251,18 @@ WHERE chat_rooms.id IN $idlist;";
 
         foreach ($userids as $userid) {
             # We only want to notify users who have a group membership; if they don't, then we shouldn't annoy them.
-            $pu = User::get($this->dbhr, $this->dbhm, $userid);
-            if (count($pu->getMemberships())  > 0) {
+            $u = User::get($this->dbhr, $this->dbhm, $userid);
+            if ($u->isModerator() || count($u->getMemberships())  > 0) {
                 if ($userid != $excludeuser) {
                     #error_log("Poke {$rost['userid']} for {$this->id}");
-                    $u = User::get($this->dbhr, $this->dbhm, $userid);
-
                     if ($u->notifsOn(User::NOTIFS_FACEBOOK)) {
-                        $logins = $u->getLogins();
+                        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ? AND type = ?;", [
+                            $userid,
+                            User::LOGIN_FACEBOOK
+                        ]);
 
                         foreach ($logins as $login) {
-                            if ($login['type'] == User::LOGIN_FACEBOOK && is_numeric($login['uid'])) {
+                            if (is_numeric($login['uid'])) {
                                 $f->notify($login['uid'], $text, $url);
                             }
                         }
