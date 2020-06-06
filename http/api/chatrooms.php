@@ -105,7 +105,9 @@ function chatrooms() {
                     # Single roster update.
                     $ret = ['ret' => 2, 'status' => "$id Not visible to you"];
 
-                    if ($r->canSee($myid)) {
+                    # We shouldn't be doing roster updates for chats which we can see by virtue of being a mod, but
+                    # which we're not actually in.  That would be a client bug.
+                    if ($r->canSee($myid, FALSE)) {
                         $ret = ['ret' => 0, 'status' => 'Success'];
                         $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
                         $status = presdef('status', $_REQUEST, ChatRoom::STATUS_ONLINE);

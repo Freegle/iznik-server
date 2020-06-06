@@ -956,7 +956,7 @@ WHERE chat_rooms.id IN $idlist;";
         return(array_intersect($chatids, $rooms));
     }
 
-    public function canSee($userid)
+    public function canSee($userid, $checkmod = TRUE)
     {
         if (!$this->id) {
             # It's an invalid id.
