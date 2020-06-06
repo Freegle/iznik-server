@@ -537,7 +537,7 @@ function message() {
                                                 # Pretend it worked, if we suppressed a banned message.
                                                 $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid];
                                             }
-                                        } else if ($me->getMembershipAtt($groupid, 'ourPostingStatus') == Group::POSTING_PROHIBITED) {
+                                        } else if ($me && $me->getMembershipAtt($groupid, 'ourPostingStatus') == Group::POSTING_PROHIBITED) {
                                             # We're not allowed to post.
                                             $cont = FALSE;
                                             $ret = ['ret' => 8, 'status' => 'Not allowed to post on this group'];
