@@ -4629,6 +4629,46 @@ CREATE TABLE `worrywords` (
 ) ENGINE=InnoDB AUTO_INCREMENT=582 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+CREATE TABLE `engage` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `userid` bigint(20) UNSIGNED NOT NULL,
+  `type` enum('Missing') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `succeeded` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User re-engagement attempts';
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `engage`
+--
+ALTER TABLE `engage`
+    ADD PRIMARY KEY (`id`),
+    ADD UNIQUE KEY `userid_2` (`userid`,`type`),
+    ADD KEY `userid` (`userid`),
+    ADD KEY `timestamp` (`timestamp`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `engage`
+--
+ALTER TABLE `engage`
+    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `engage`
+--
+ALTER TABLE `engage`
+    ADD CONSTRAINT `engage_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
 --
 -- Final view structure for view `VW_Essex_Searches`
 --
@@ -4981,43 +5021,3 @@ CREATE TABLE `worrywords` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2020-06-05 11:51:18
-
-REATE TABLE `engage` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `userid` bigint(20) UNSIGNED NOT NULL,
-  `type` enum('Missing') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `succeeded` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User re-engagement attempts';
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `engage`
---
-ALTER TABLE `engage`
-    ADD PRIMARY KEY (`id`),
-    ADD UNIQUE KEY `userid_2` (`userid`,`type`),
-    ADD KEY `userid` (`userid`),
-    ADD KEY `timestamp` (`timestamp`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `engage`
---
-ALTER TABLE `engage`
-    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `engage`
---
-ALTER TABLE `engage`
-    ADD CONSTRAINT `engage_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
