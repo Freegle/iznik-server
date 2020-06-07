@@ -35,7 +35,7 @@ class ChatMessage extends Entity
     const ACTION_HOLD = 'Hold';
     const ACTION_RELEASE = 'Release';
 
-    const TOO_MANY_RECENT = 20;
+    const TOO_MANY_RECENT = 40;
 
     /** @var  $log Log */
     private $log;
