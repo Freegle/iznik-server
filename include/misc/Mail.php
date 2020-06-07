@@ -41,6 +41,7 @@ class Mail {
     const NOTICEBOARD = 38;
     const MERGE = 39;
     const UNSUBSCRIBE = 40;
+    const MISSING = 41;
 
     const DESCRIPTIONS = [
         Mail::DIGEST => 'Digest',
@@ -80,7 +81,8 @@ class Mail {
         Mail::BAD_SMS => 'BadSMS',
         Mail::SPAM_WARNING => 'SpamWarning',
         Mail::NOTICEBOARD => 'Noticeboard',
-        Mail::UNSUBSCRIBE => 'Unsubscribe'
+        Mail::UNSUBSCRIBE => 'Unsubscribe',
+        Mail::MISSING => 'Missing'
     ];
 
     # This is the key control over how frequency we add Return Path seed lists to our mails.  0 will disable.
@@ -122,7 +124,8 @@ class Mail {
         Mail::BAD_SMS => 0,
         Mail::SPAM_WARNING => 0,
         Mail::NOTICEBOARD => 0,
-        Mail::UNSUBSCRIBE => 0
+        Mail::UNSUBSCRIBE => 0,
+        Mail::MISSING => 0,
     ];
 
     public static function getDescription($type) {

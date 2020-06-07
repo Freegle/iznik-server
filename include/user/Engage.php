@@ -16,11 +16,15 @@ class Engage
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/engage');
+        $this->twig = new Twig_Environment($loader);
     }
 
-
-    public function tearDown() {
-
+    # Split out for UT to override
+    public function sendOne($mailer, $message) {
+        Mail::addHeaders($message, Mail::MISSING);
+        $mailer->send($message);
     }
 
     public function findUsers($id = NULL, $filter) {
@@ -43,6 +47,54 @@ class Engage
         }
 
         return $userids;
+    }
+
+    public function sendUsers($attempt, $uids, $subject, $textbody, $template) {
+        $count = 0;
+
+        foreach ($uids as $uid) {
+            $u = new User($this->dbhr, $this->dbhm, $uid);
+
+            # Only send to users who have a membership, and who haven't disabled.
+            try {
+                $membs = $u->getMemberships();
+
+                if (count($membs)) {
+                    list ($transport, $mailer) = getMailer();
+                    $m = Swift_Message::newInstance()
+                        ->setSubject($subject)
+                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setReplyTo(NOREPLY_ADDR)
+                        ->setTo($u->getEmailPreferred())
+                        ->setBody($textbody);
+
+                    Mail::addHeaders($m, Mail::MISSING);
+
+                    $html = $this->twig->render($template, [
+                        'name' => $u->getName(),
+                        'email' => $u->getEmailPreferred(),
+                        'subject' => $subject,
+                        'unsubscribe' => $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", NULL)
+                    ]);
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $m->attach($htmlPart);
+
+                    $this->sendOne($mailer, $m);
+                    $count++;
+
+                    $this->recordEngage($uid, $attempt);
+                }
+            } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
+        }
+
+        return $count;
     }
 
     public function recordEngage($userid, $attempt) {
