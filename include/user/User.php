@@ -4625,7 +4625,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
 
             if (pres('spammembers', $work) > 0) {
-                $title .= $work['spam'] . ' member' . (($work['spam'] != 1) ? 's' : '') . " to review\n";
+                $title .= $work['spammembers'] . ' member' . (($work['spammembers'] != 1) ? 's' : '') . " to review\n";
                 $route = '/modtools/members/review';
             }
 
