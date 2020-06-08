@@ -3227,4 +3227,51 @@ class messageAPITest extends IznikAPITestCase
 
         assertNotEquals(0, $ret['ret']);
     }
+
+    public function testMergeDuringSubmit() {
+        $g = Group::get($this->dbhm, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $u1 = User::get($this->dbhm, $this->dbhm, $id1);
+        assertGreaterThan(0, $u1->addEmail('test1@test.com'));
+
+        $l = new Location($this->dbhm, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $gid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => 'test2@test.com'
+        ]);
+
+        $msgs = $this->dbhr->preQuery("SELECT * FROM messages WHERE id = $mid;");
+
+        $m = new Message($this->dbhm, $this->dbhm, $mid);
+        $id2 = $m->getFromuser();
+        assertNotNull($id2);
+        assertNotEquals($id1, $id2);
+
+        assertEquals(0, $ret['ret']);
+
+        $u->merge($id1, $id2, "UT Test");
+
+        $m = new Message($this->dbhm, $this->dbhm, $mid);
+        $id3 = $m->getFromuser();
+        assertNotNull($id3);
+    }
 }

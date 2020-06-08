@@ -3218,13 +3218,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                             'byuser' => $me ? $me->getId() : NULL,
                             'text' => "Merged $id2 into $id1 ($reason)"
                         ]);
-
-                        # Finally, delete id2.  Make sure we don't pick up an old cached version, as we've just
-                        # changed it quite a bit.
-                        #error_log("Delete $id2");
-                        error_log("Merged $id1 < $id2, $reason");
-                        $deleteme = new User($this->dbhm, $this->dbhm, $id2);
-                        $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
                     }
 
                     if ($rc) {
@@ -3250,6 +3243,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             } else {
                 #error_log("Merge worked, commit");
                 $ret = $this->dbhm->commit();
+
+                if ($ret) {
+                    # Finally, delete id2.  We used to this inside the transaction, but the result was that
+                    # fromuser sometimes got set to NULL on messages owned by id2, despite them having been set to
+                    # id1 earlier on.  Either we're dumb, or there's a subtle interaction between transactions,
+                    # foreign keys and Percona clusters.  This is safer and proves to be more reliable.
+                    #
+                    # Make sure we don't pick up an old cached version, as we've just changed it quite a bit.
+                    #error_log("Delete $id2");
+                    error_log("Merged $id1 < $id2, $reason");
+                    $deleteme = new User($this->dbhm, $this->dbhm, $id2);
+                    $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
+                }
             }
         }
 
