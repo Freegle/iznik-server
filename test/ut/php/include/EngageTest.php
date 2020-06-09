@@ -26,7 +26,7 @@ class engageTest extends IznikTestCase {
         $this->tidy();
 
         $g = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $this->gid = $g->create("testgroup", Group::GROUP_FREEGLE);
         $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
     }
 
