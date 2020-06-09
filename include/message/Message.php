@@ -4356,11 +4356,13 @@ ORDER BY lastdate DESC;";
         foreach ($groups as $groupid) {
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
+            # We might be a mod marking on a member's behalf, so might need to set byuser.
             $this->log->log([
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_OUTCOME,
                 'msgid' => $this->id,
-                'user' => $me ? $me->getId() : NULL,
+                'user' => $this->getFromuser(),
+                'byuser' => ($me && $me->getId()) != $this->getFromuser() ? $this->getFromuser() : NULL,
                 'groupid' => $groupid,
                 'text' => "$outcome $comment"
             ]);
