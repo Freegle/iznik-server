@@ -8,9 +8,13 @@ class Engage
 {
     private $dbhr, $dbhm;
 
+    const USER_INACTIVE = 365 * 24 * 60 * 60 / 2;
+
     const FILTER_DONORS = 'Donors';
+    const FILTER_INACTIVE = 'Inactive';
 
     const ATTEMPT_MISSING = 'Missing';
+    const ATTEMPT_INACTIVE = 'Inactive';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -30,20 +34,36 @@ class Engage
     public function findUsers($id = NULL, $filter) {
         $userids = [];
 
-        if ($filter == Engage::FILTER_DONORS) {
-            # Find people who have donated in the last year, who have not been active in the last two months.
-            $donatedsince = date("Y-m-d", strtotime("3 years ago"));
-            $activesince = date("Y-m-d", strtotime("2 months ago"));
-            $lastengage = date("Y-m-d", strtotime("1 month ago"));
-            $uq = $id ? " AND users_donations.userid = $id " : "";
-            $sql = "SELECT DISTINCT users_donations.userid, lastaccess FROM users_donations INNER JOIN users ON users.id = users_donations.userid LEFT JOIN engage ON engage.userid = users.id WHERE users_donations.timestamp >= ? AND users.lastaccess <= ? AND (engage.timestamp IS NULL OR engage.timestamp < ?) $uq;";
-            $users = $this->dbhr->preQuery($sql, [
-                $donatedsince,
-                $activesince,
-                $lastengage
-            ]);
+        switch ($filter) {
+            case Engage::FILTER_DONORS: {
+                # Find people who have donated in the last year, who have not been active in the last two months.
+                $donatedsince = date("Y-m-d", strtotime("3 years ago"));
+                $activesince = date("Y-m-d", strtotime("2 months ago"));
+                $lastengage = date("Y-m-d", strtotime("1 month ago"));
+                $uq = $id ? " AND users_donations.userid = $id " : "";
+                $sql = "SELECT DISTINCT users_donations.userid, lastaccess FROM users_donations INNER JOIN users ON users.id = users_donations.userid LEFT JOIN engage ON engage.userid = users.id WHERE users_donations.timestamp >= ? AND users.lastaccess <= ? AND (engage.timestamp IS NULL OR engage.timestamp < ?) $uq;";
+                $users = $this->dbhr->preQuery($sql, [
+                    $donatedsince,
+                    $activesince,
+                    $lastengage
+                ]);
 
-            $userids = array_column($users, 'userid');
+                $userids = array_column($users, 'userid');
+                break;
+            }
+
+            case Engage::FILTER_INACTIVE: {
+                # Find people who we'll stop sending mails to soon.  This time is related to sendOurMails in User.
+                $activeon = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 7 * 24 * 60 * 60)));
+                $uq = $id ? " AND users.id = $id " : "";
+                $sql = "SELECT id FROM users WHERE DATE(lastaccess) = ? $uq;";
+                $users = $this->dbhr->preQuery($sql, [
+                    $activeon
+                ]);
+
+                $userids = array_column($users, 'id');
+                break;
+            }
         }
 
         return $userids;
@@ -57,7 +77,7 @@ class Engage
 
             # Only send to users who have a membership, and who haven't disabled.
             try {
-                $membs = $u->getMemberships();
+                $membs = $u->getMemberships(FALSE, Group::GROUP_FREEGLE);
 
                 if (count($membs)) {
                     list ($transport, $mailer) = getMailer();
@@ -66,6 +86,7 @@ class Engage
                         ->setFrom([NOREPLY_ADDR => SITE_NAME])
                         ->setReplyTo(NOREPLY_ADDR)
                         ->setTo($u->getEmailPreferred())
+//                        ->setTo('log@ehibbert.org.uk')
                         ->setBody($textbody);
 
                     Mail::addHeaders($m, Mail::MISSING);

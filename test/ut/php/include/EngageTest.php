@@ -65,7 +65,29 @@ class engageTest extends IznikTestCase {
         assertEquals(0, $e->checkSuccess($uid));
         $u->setPrivate('lastaccess', date("Y-m-d H:i:s", time()));
         assertEquals(1, $e->checkSuccess($uid));
+    }
 
+    public function testInactive() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $sqltime =  date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 24 * 60 * 60)));
+        $u->setPrivate('lastaccess', $sqltime);
+
+        $e = new Engage($this->dbhm, $this->dbhm);
+
+        $uids = $e->findUsers($uid, Engage::FILTER_INACTIVE);
+        assertEquals(0, count($uids));
+
+        $sqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 7 * 24 * 60 * 60)));
+        $u->setPrivate('lastaccess', $sqltime);
+        $uids = $e->findUsers($uid, Engage::FILTER_INACTIVE);
+        assertEquals([ $uid ], $uids);
+
+        $sqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE - 24 * 60 * 60)));
+        $u->setPrivate('lastaccess', $sqltime);
+        $uids = $e->findUsers($uid, Engage::FILTER_INACTIVE);
+        assertEquals(0, count($uids));
     }
 }
 
