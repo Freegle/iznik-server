@@ -253,17 +253,10 @@ function message() {
             $ret = ['ret' => 3, 'status' => 'Message does not exist'];
 
             if ($m->getID()) {
-                # We can edit this if we're logged in and a mod or the sender.
-                if (!$me || (!$me->isModerator() && $m->getFromuser() != $me->getId())) {
-                    $ret = ['ret' => 2,
-                        'status' => 'Permission denied 6',
-                        'fromuser' => $m->getFromuser(),
-                        'me' => $me ? $me->getId() : 'no me',
-                        'ismod' => $me ? !$me->isModerator() : 'no me',
-                        'usermatch' => $me ? ($m->getFromuser() != $me->getId()) : 'no me',
-                        'allgood' => $me ? (!$me->isModerator() && $m->getFromuser() != $me->getId()) : 'no me'
-                    ];
-                } else {
+                # We can edit this if we're logged in and a mod or the sender, or for TN if it's a TN user.
+                $partner = pres('partner', $_SESSION) && pres('domain', $_SESSION['partner']) && strpos($m->getFromaddr(), '@' . $_SESSION['partner']['domain']) !== FALSE;
+
+                if (($me && ($me->isModerator() || $m->getFromuser() == $me->getId())) || $partner) {
                     # Ignore the canedit flag here - the client will either show or not show the edit button on this
                     # basis but editing is part of the repost flow and therefore needs to work.
                     $subject = presdef('subject', $_REQUEST, NULL);
@@ -281,7 +274,7 @@ function message() {
                     ];
 
                     if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
-                        $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments, TRUE, $me->isApprovedMember($groupid) ? $groupid : NULL);
+                        $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments, TRUE, ($partner || $me->isApprovedMember($groupid)) ? $groupid : NULL);
                         $ret = $rc ? $ret : ['ret' => 2, 'status' => 'Edit failed'];
                     }
 
@@ -292,6 +285,11 @@ function message() {
                     if ($groupid) {
                         $dbhm->preExec("UPDATE messages_drafts SET groupid = ? WHERE msgid = ?;", [$groupid, $m->getID()]);
                     }
+                } else {
+                    $ret = ['ret' => 2,
+                        'status' => 'Permission denied 6',
+                        'fromuser' => $m->getFromuser()
+                    ];
                 }
             }
         }
