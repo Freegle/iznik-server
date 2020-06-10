@@ -281,7 +281,7 @@ function message() {
                     ];
 
                     if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
-                        $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments, $me->isApprovedMember($groupid) ? $groupid : NULL);
+                        $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments, TRUE, $me->isApprovedMember($groupid) ? $groupid : NULL);
                         $ret = $rc ? $ret : ['ret' => 2, 'status' => 'Edit failed'];
                     }
 

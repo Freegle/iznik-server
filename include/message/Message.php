@@ -464,6 +464,7 @@ class Message
                 }
             }
 
+            # We'll always have 3, from the id, reviewrequired, and me.
             if ($changes > 3) {
                 $this->dbhm->preExec("INSERT INTO messages_edits (msgid, oldtext, newtext, oldsubject, newsubject, 
               oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation, byuser, reviewrequired) 
