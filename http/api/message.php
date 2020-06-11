@@ -276,6 +276,18 @@ function message() {
                     if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
                         $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments, TRUE, ($partner || $me->isApprovedMember($groupid)) ? $groupid : NULL);
                         $ret = $rc ? $ret : ['ret' => 2, 'status' => 'Edit failed'];
+
+                        if ($rc) {
+                            if ($partner) {
+                                $m->deleteAllAttachments();
+                                $m->scrapePhotos();
+                            }
+
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success'
+                            ];
+                        }
                     }
 
                     if ($fop !== NULL) {

@@ -2304,6 +2304,101 @@ ORDER BY lastdate DESC;";
 
         $this->textbody = $this->stripSigs($this->textbody);
 
+        $this->scrapePhotos();
+
+        # Now remove any reference to TN photos in the text body.
+        $this->textbody = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $this->textbody);
+
+        # If this is a reuse group, we need to determine the type.
+        $g = Group::get($this->dbhr, $this->dbhm, $this->groupid);
+        if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||
+            $g->getPrivate('type') == Group::GROUP_REUSE
+        ) {
+            $this->type = $this->determineType($this->subject);
+        } else {
+            $this->type = Message::TYPE_OTHER;
+        }
+
+        if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED  || $source == Message::EMAIL) {
+            # Make sure we have a user for the sender.
+            $u = User::get($this->dbhr, $this->dbhm);
+
+            # If there is a Yahoo uid in here - which there isn't always - we might be able to find them that way.
+            #
+            # This is important as well as checking the email address as users can send from the owner address (which
+            # we do not allow to be attached to a specific user, as it can be shared by many).
+            $iznikid = NULL;
+            $userid = NULL;
+            $yahoouid = NULL;
+            $emailid = NULL;
+            $this->modmail = FALSE;
+
+            $iznikid = $Parser->getHeader('x-iznik-from-user');
+            if ($iznikid) {
+                # We know who claims to have sent this.  There's a slight exploit here where someone could spoof
+                # the modmail setting and get a more prominent display.  I may regret writing this comment.
+                $userid = $iznikid;
+                $this->modmail = filter_var($Parser->getHeader('x-iznik-modmail'), FILTER_VALIDATE_BOOLEAN);
+            }
+
+            if (!$userid) {
+                # They might have posted from Yahoo.
+                $gp = $Parser->getHeader('x-yahoo-group-post');
+                if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
+                    $yahoouid = $matches[1];
+                    $userid = $u->findByYahooUserId($yahoouid);
+                }
+            }
+
+            if (!$userid) {
+                # Or we might have their email.
+                $userid = $u->findByEmail($this->fromaddr);
+            }
+
+            if (!$userid) {
+                # We don't know them.  Add.
+                #
+                # We don't have a first and last name, so use what we have. If the friendly name is set to an
+                # email address, take the first part.
+                $name = $this->fromname;
+                if (preg_match('/(.*)@/', $name, $matches)) {
+                    $name = $matches[1];
+                }
+
+                $userid = $u->create(NULL, NULL, $name, "Incoming message #{$this->id} from {$this->fromaddr} on $groupname");
+
+                # Use the m handle to make sure we find it later.
+                $this->dbhr = $this->dbhm;
+            }
+
+            if ($userid) {
+                # We have a user.
+                $u = User::get($this->dbhm, $this->dbhm, $userid);
+
+                # We might not have this yahoo user id associated with this user.
+                if ($yahoouid) {
+                    $u->setPrivate('yahooUserId', $yahoouid);
+                }
+
+                # We might not have this email associated with this user.
+                $emailid = $u->addEmail($this->fromaddr, 0, FALSE);
+
+                if ($emailid && ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED)) {
+                    # Make sure we have a membership for the originator of this message; they were a member
+                    # at the time they sent this.  If they have since left we'll pick that up later via a sync.
+                    if (!$u->isApprovedMember($this->groupid)) {
+                        $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::APPROVED, NULL, NULL, FALSE);
+                    }
+                }
+            }
+
+            $this->fromuser = $userid;
+        }
+
+        return(TRUE);
+    }
+
+    public function scrapePhotos() {
         # Trash Nothing sends attachments too, but just as links - get those.
         #
         # - links to flic.kr, for groups which for some reason don't like images hosted on TN
@@ -2409,97 +2504,6 @@ ORDER BY lastdate DESC;";
                 }
             }
         }
-
-        # Now remove any reference to TN photos in the text body.
-        $this->textbody = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $this->textbody);
-
-        # If this is a reuse group, we need to determine the type.
-        $g = Group::get($this->dbhr, $this->dbhm, $this->groupid);
-        if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||
-            $g->getPrivate('type') == Group::GROUP_REUSE
-        ) {
-            $this->type = $this->determineType($this->subject);
-        } else {
-            $this->type = Message::TYPE_OTHER;
-        }
-
-        if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED  || $source == Message::EMAIL) {
-            # Make sure we have a user for the sender.
-            $u = User::get($this->dbhr, $this->dbhm);
-
-            # If there is a Yahoo uid in here - which there isn't always - we might be able to find them that way.
-            #
-            # This is important as well as checking the email address as users can send from the owner address (which
-            # we do not allow to be attached to a specific user, as it can be shared by many).
-            $iznikid = NULL;
-            $userid = NULL;
-            $yahoouid = NULL;
-            $emailid = NULL;
-            $this->modmail = FALSE;
-
-            $iznikid = $Parser->getHeader('x-iznik-from-user');
-            if ($iznikid) {
-                # We know who claims to have sent this.  There's a slight exploit here where someone could spoof
-                # the modmail setting and get a more prominent display.  I may regret writing this comment.
-                $userid = $iznikid;
-                $this->modmail = filter_var($Parser->getHeader('x-iznik-modmail'), FILTER_VALIDATE_BOOLEAN);
-            }
-
-            if (!$userid) {
-                # They might have posted from Yahoo.
-                $gp = $Parser->getHeader('x-yahoo-group-post');
-                if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
-                    $yahoouid = $matches[1];
-                    $userid = $u->findByYahooUserId($yahoouid);
-                }
-            }
-
-            if (!$userid) {
-                # Or we might have their email.
-                $userid = $u->findByEmail($this->fromaddr);
-            }
-
-            if (!$userid) {
-                # We don't know them.  Add.
-                #
-                # We don't have a first and last name, so use what we have. If the friendly name is set to an
-                # email address, take the first part.
-                $name = $this->fromname;
-                if (preg_match('/(.*)@/', $name, $matches)) {
-                    $name = $matches[1];
-                }
-
-                $userid = $u->create(NULL, NULL, $name, "Incoming message #{$this->id} from {$this->fromaddr} on $groupname");
-
-                # Use the m handle to make sure we find it later.
-                $this->dbhr = $this->dbhm;
-            }
-
-            if ($userid) {
-                # We have a user.
-                $u = User::get($this->dbhm, $this->dbhm, $userid);
-
-                # We might not have this yahoo user id associated with this user.
-                if ($yahoouid) {
-                    $u->setPrivate('yahooUserId', $yahoouid);
-                }
-
-                # We might not have this email associated with this user.
-                $emailid = $u->addEmail($this->fromaddr, 0, FALSE);
-
-                if ($emailid && ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED)) {
-                    # Make sure we have a membership for the originator of this message; they were a member
-                    # at the time they sent this.  If they have since left we'll pick that up later via a sync.
-                    if (!$u->isApprovedMember($this->groupid)) {
-                        $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::APPROVED, NULL, NULL, FALSE);
-                    }
-                }
-            }
-
-            $this->fromuser = $userid;
-        }
-
-        return(TRUE);
     }
 
     public function pruneMessage() {
@@ -3973,6 +3977,10 @@ ORDER BY lastdate DESC;";
         foreach ($oldids as $oldid) {
             $this->dbhm->preExec("DELETE FROM messages_attachments WHERE id = ?;", [ $oldid ]);
         }
+    }
+
+    public function deleteAllAttachments() {
+        $this->dbhm->preExec("DELETE FROM messages_attachments WHERE msgid = ?;", [ $this->id ]);
     }
 
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL, $exactonly = FALSE) {
