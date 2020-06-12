@@ -362,6 +362,36 @@ WHERE chat_rooms.id IN $idlist;";
         $me = whoAmI($this->dbhr, $this->dbhm);
     }
 
+    public function bannedInCommon($user1, $user2) {
+        $bannedonall = FALSE;
+
+        $banned = $this->dbhr->preQuery("SELECT groupid FROM users_banned WHERE userid = ?;", [
+            $user1
+        ], FALSE, FALSE);
+
+        if (count($banned)) {
+            $bannedon = array_column($banned, 'groupid');
+
+            $user1groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
+                $user1
+            ], FALSE, FALSE);
+
+            $user2groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
+                $user2
+            ], FALSE, FALSE);
+
+            $user1ids = array_column($user1groups, 'groupid');
+            $user2ids = array_column($user2groups, 'groupid');
+            $inter = array_intersect($user1ids, $user2ids);
+
+            if (count($inter) == count(array_intersect($inter, $bannedon))) {
+                $bannedonall = TRUE;
+            }
+        }
+
+        return $bannedonall;
+    }
+
     public function createConversation($user1, $user2, $checkonly = FALSE)
     {
         $id = NULL;
@@ -391,31 +421,7 @@ WHERE chat_rooms.id IN $idlist;";
             #
             # If the sender is banned on all the groups they have in common with the recipient, then they shouldn't
             # be able to communicate.
-            $bannedonall = FALSE;
-
-            $banned = $this->dbhr->preQuery("SELECT groupid FROM users_banned WHERE userid = ?;", [
-                $user1
-            ], FALSE, FALSE);
-
-            if (count($banned)) {
-                $bannedon = array_column($banned, 'groupid');
-
-                $user1groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
-                    $user1
-                ], FALSE, FALSE);
-
-                $user2groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
-                    $user2
-                ], FALSE, FALSE);
-
-                $user1ids = array_column($user1groups, 'groupid');
-                $user2ids = array_column($user2groups, 'groupid');
-                $inter = array_intersect($user1ids, $user2ids);
-
-                if (count($inter) == count(array_intersect($inter, $bannedon))) {
-                    $bannedonall = TRUE;
-                }
-            }
+            $bannedonall = $this->bannedInCommon($user1, $user2);
 
             if (!$bannedonall) {
                 # All good.  Create one.  Duplicates can happen due to timing windows.

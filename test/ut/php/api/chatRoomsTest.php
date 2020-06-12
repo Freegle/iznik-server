@@ -399,16 +399,10 @@ class chatRoomsAPITest extends IznikAPITestCase
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        # u1 should be able to open a chat to u2
+        # u1 should not be able to open a chat to u2 as they are banned on all groups in common.
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $rid = $r->createConversation($uid1, $uid2);
-        assertNotNull($rid);
-
-        # But the interested-in message shouldn't get through.
-        $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($mid, $banned) = $m->create($rid, $uid1, "Test", ChatMessage::TYPE_INTERESTED, $msgid);
-        assertNull($mid);
-        assertTrue($banned);
+        assertNull($rid);
     }
 
 //    public function testEH() {
