@@ -693,6 +693,23 @@ class chatRoomsTest extends IznikTestCase {
         $r = new ChatRoom($this->dbhr, $this->dbhm, -1);
         assertEquals(NULL, $r->getId());
     }
+
+    public function testBanned() {
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, "Test User 1");
+        $u1 = new User($this->dbhr, $this->dbhm, $uid1);
+        $u1->addMembership($this->groupid);
+        $uid2 = $u->create(NULL, NULL, "Test User 2");
+        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        $u2->addMembership($this->groupid);
+
+        # Ban the initiating member on the group they have in common.  This should prevent a chat opening.
+        $u1->removeMembership($this->groupid, TRUE);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($uid1, $uid2);
+        assertNull($id);
+    }
 }
 
 

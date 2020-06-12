@@ -387,17 +387,49 @@ WHERE chat_rooms.id IN $idlist;";
 
             $this->ensureAppearInList($id);
         } else if (!$checkonly) {
-            # We don't.  Create one.  Duplicates can happen due to timing windows.
-            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2, chattype, latestmessage) VALUES (?,?,?, NOW()) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), latestmessage = NOW()", [
-                $user1,
-                $user2,
-                ChatRoom::TYPE_USER2USER
-            ]);
+            # We don't have one.
+            #
+            # If the sender is banned on all the groups they have in common with the recipient, then they shouldn't
+            # be able to communicate.
+            $bannedonall = FALSE;
 
-            if ($rc) {
-                # We created one.  We'll commit below.
-                $id = $this->dbhm->lastInsertId();
-                $rollback = FALSE;
+            $banned = $this->dbhr->preQuery("SELECT groupid FROM users_banned WHERE userid = ?;", [
+                $user1
+            ], FALSE, FALSE);
+
+            if (count($banned)) {
+                $bannedon = array_column($banned, 'groupid');
+
+                $user1groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
+                    $user1
+                ], FALSE, FALSE);
+
+                $user2groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
+                    $user2
+                ], FALSE, FALSE);
+
+                $user1ids = array_column($user1groups, 'groupid');
+                $user2ids = array_column($user2groups, 'groupid');
+                $inter = array_intersect($user1ids, $user2ids);
+
+                if (count($inter) == count(array_intersect($inter, $bannedon))) {
+                    $bannedonall = TRUE;
+                }
+            }
+
+            if (!$bannedonall) {
+                # All good.  Create one.  Duplicates can happen due to timing windows.
+                $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2, chattype, latestmessage) VALUES (?,?,?, NOW()) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), latestmessage = NOW()", [
+                    $user1,
+                    $user2,
+                    ChatRoom::TYPE_USER2USER
+                ]);
+
+                if ($rc) {
+                    # We created one.  We'll commit below.
+                    $id = $this->dbhm->lastInsertId();
+                    $rollback = FALSE;
+                }
             }
         }
 
