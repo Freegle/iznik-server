@@ -828,6 +828,7 @@ class MailRouter
 
                     if ($this->markAsSpam($rc[1], $rc[2])) {
                         $ret = MailRouter::INCOMING_SPAM;
+                        $spamfound = TRUE;
                     }
                 } else if ($contentcheck) {
                     # Now check if we think this is spam according to SpamAssassin.
@@ -888,8 +889,7 @@ class MailRouter
             if ($spamfound && strpos($to, '@' . USER_DOMAIN) !== FALSE) {
                 # Horrible spaghetti logic.  We found spam in a message which will end up going to chat, if it
                 # has the right kind of address.  We don't want to junk it - we want to send it to review.  We will
-                # check the spamfound flag below when creating the chat message.  We don't do this for our own
-                # checks as they are more carefully chosen than SpamAssassin stats magic.
+                # check the spamfound flag below when creating the chat message.
                 error_log("Spam, but destined for chat, continue");
                 $ret = NULL;
             }
