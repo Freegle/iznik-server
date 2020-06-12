@@ -43,6 +43,10 @@ class CommunityEvent extends Entity
     }
 
     public function addDate($start, $end) {
+        # If the client passes us an end date before the start date, that's a bug, but we don't want to lose the event
+        # so correct it to an hour.
+        $end = (strtotime($end) < strtotime($start)) ? date("Y-m-d H:i:s", strtotime($start) + 60 * 60) : $end;
+
         $this->dbhm->preExec("INSERT INTO communityevents_dates (eventid, start, end) VALUES (?, ?, ?);" , [
             $this->id,
             $start,
