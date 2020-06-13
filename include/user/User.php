@@ -6650,4 +6650,11 @@ memberships.groupid IN $groupq
             }
         }
     }
+
+    public function unban($groupid) {
+        $this->dbhm->preExec("DELETE FROM users_banned WHERE userid = ? AND groupid = ?;", [
+            $this->id,
+            $groupid
+        ]);
+    }
 }

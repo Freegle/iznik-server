@@ -204,6 +204,9 @@ function memberships() {
                         # If we're allowed to add another user, then they should be added as an approved member even
                         # if the group approves members.
                         $addtocoll = MembershipCollection::APPROVED;
+
+                        # Make sure they're not banned - an explicit add should override that.
+                        $u->unban($groupid);
                     } else if ($userid) {
                         # We're adding ourselves, i.e. joining a group.  If the group approves members then we should
                         # add to pending unless the member is already approved.  That can happen if the client keeps

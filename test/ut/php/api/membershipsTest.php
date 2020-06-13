@@ -75,10 +75,33 @@ class membershipsAPITest extends IznikAPITestCase {
             'role' => 'Member',
             'email' => 'test2@test.com'
         ]);
-        assertEquals(0, $ret['ret']);
-        self::assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
 
-        }
+        assertEquals(0, $ret['ret']);
+        assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
+        assertNotNull($this->user2->isApprovedMember($this->groupid));
+    }
+
+    public function testAddAsMod() {
+        # Should be able to add (i.e. join) as a non-member or a member.
+        $_SESSION['id'] = $this->uid;
+        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        # Ban the member - the add should override.
+        $this->user2->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+        assertNotNull($this->user2->isApprovedMember($this->groupid));
+        $this->user2->removeMembership($this->groupid, TRUE);
+
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'userid' => $this->uid2,
+            'role' => 'Member',
+            'email' => 'test2@test.com'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
+        assertNotNull($this->user2->isApprovedMember($this->groupid));
+    }
 
     public function testJoinApprove() {
         $this->group->setSettings([
