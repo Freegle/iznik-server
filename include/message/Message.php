@@ -2583,7 +2583,7 @@ ORDER BY lastdate DESC;";
         return($current);
     }
 
-    private function saveAttachments($msgid) {
+    public function saveAttachments($msgid) {
         if ($this->type != Message::TYPE_TAKEN && $this->type != Message::TYPE_RECEIVED) {
             # Don't want attachments for TAKEN/RECEIVED.  They can occur if people forward the original message.
             #

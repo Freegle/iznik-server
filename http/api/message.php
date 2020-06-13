@@ -282,6 +282,7 @@ function message() {
                             if ($partner) {
                                 $m->deleteAllAttachments();
                                 $m->scrapePhotos();
+                                $m->saveAttachments($id);
                             }
 
                             $ret = [
