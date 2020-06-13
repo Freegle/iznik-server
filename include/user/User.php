@@ -3273,6 +3273,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     {
         if ($body) {
             # We have a mail to send.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me->getId();
+
             list ($eid, $to) = $this->getEmailForYahooGroup($groupid, FALSE, FALSE);
 
             # If this is one of our domains, then we should send directly to the preferred email, to avoid
@@ -3298,21 +3301,49 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 # We can do a simple substitution in the from name.
                 $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
-                $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
                 $bcc = $c->getBcc($action);
 
                 if ($bcc) {
                     $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
-                    $headers .= "Bcc: $bcc\r\n";
                 }
 
-                $this->mailer(
-                    $to,
-                    $subject,
-                    $body,
-                    $headers,
-                    "-f" . $g->getModsEmail()
-                );
+                # We add the message into chat.  For users who we host, we leave the message unseen; that will then
+                # later generate a notification to them.  Otherwise we mail them the message and mark it as seen,
+                # because they would get confused by a mail in our notification format.
+                $r = new ChatRoom($this->dbhr, $this->dbhm);
+                $rid = $r->createUser2Mod($this->id, $groupid);
+
+                if ($rid) {
+                    $m = new ChatMessage($this->dbhr, $this->dbhm);
+                    list ($mid, $banned) = $m->create($rid,
+                        $myid,
+                        "$subject\r\n\r\n$body",
+                        ChatMessage::TYPE_MODMAIL,
+                        NULL,
+                        TRUE,
+                        NULL);
+
+                    $this->mailer($me, TRUE, $this->getName(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->id . " $to)\n\n" . $body);
+
+                    # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
+                    # appearing as unread to us and other mods.
+                    $r->updateRoster($myid, $mid);
+                }
+
+                if (!ourDomain($to)) {
+                    $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
+
+                    $this->mailer(
+                        $to,
+                        $subject,
+                        $body,
+                        $headers,
+                        "-f" . $g->getModsEmail()
+                    );
+
+                    # Mark the message as seen, because have mailed it.
+                    $r->updateRoster($myid, $this->id);
+                }
             }
         }
     }

@@ -2913,7 +2913,7 @@ ORDER BY lastdate DESC;";
                     "$subject\r\n\r\n$body",
                     ChatMessage::TYPE_MODMAIL,
                     $this->id,
-                    FALSE,
+                    TRUE,
                     NULL);
 
                 $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->getFromuser() . " $to)\n\n" . $body);
