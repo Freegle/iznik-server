@@ -254,7 +254,8 @@ function message() {
 
             if ($m->getID()) {
                 # We can edit this if we're logged in and a mod or the sender, or for TN if it's a TN user.
-                $partner = pres('partner', $_SESSION) && pres('domain', $_SESSION['partner']) && strpos($m->getFromaddr(), '@' . $_SESSION['partner']['domain']) !== FALSE;
+                $partnerkey = presdef('partner', $_REQUEST, NULL);
+                $partner = $partnerkey ? partner($dbhr, $partnerkey) : FALSE;
 
                 if (($me && ($me->isModerator() || $m->getFromuser() == $me->getId())) || $partner) {
                     # Ignore the canedit flag here - the client will either show or not show the edit button on this

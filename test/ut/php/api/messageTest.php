@@ -3276,21 +3276,20 @@ class messageAPITest extends IznikAPITestCase
     }
 
     public function testPartner() {
+        $key = randstr(64);
+        $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'test.com']);
+        assertNotNull($id);
+
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
-        # Fake a partner which owns this.
-        $_SESSION['partner'] = [
-            'id' => $id,
-            'domain' => 'test.com'
-        ];
-
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
-            'subject' => 'Test edit'
+            'subject' => 'Test edit',
+            'partner' => $key
         ]);
         assertEquals(0, $ret['ret']);
     }
