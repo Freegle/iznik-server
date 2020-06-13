@@ -3264,9 +3264,44 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
     }
 
     # Default mailer is to use the standard PHP one, but this can be overridden in UT.
-    public function mailer()
-    {
-        call_user_func_array('mail', func_get_args());
+    public function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
+        # These mails don't need tracking, so we don't call addHeaders.
+        try {
+            #error_log(session_id() . " mail " . microtime(true));
+
+            list ($transport, $mailer) = getMailer();
+
+            $message = Swift_Message::newInstance()
+                ->setSubject($subject)
+                ->setFrom([$from => $fromname])
+                ->setTo([$to => $toname])
+                ->setBody($text);
+
+            # We add some headers so that if we receive this back, we can identify it as a mod mail.
+            $headers = $message->getHeaders();
+
+            if ($user) {
+                $headers->addTextHeader('X-Iznik-From-User', $user->getId());
+            }
+
+            $headers->addTextHeader('X-Iznik-ModMail', $modmail);
+
+            if ($bcc) {
+                $message->setBcc(explode(',', $bcc));
+            }
+
+            $mailer->send($message);
+
+            # Stop the transport, otherwise the message doesn't get sent until the UT script finishes.
+            $transport->stop();
+
+            #error_log(session_id() . " mailed " . microtime(true));
+        } catch (Exception $e) {
+            # Not much we can do - shouldn't really happen given the failover transport.
+            // @codeCoverageIgnoreStart
+            error_log("Send failed with " . $e->getMessage());
+            // @codeCoverageIgnoreEnd
+        }
     }
 
     private function maybeMail($groupid, $subject, $body, $action)
@@ -3331,15 +3366,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 }
 
                 if (!ourDomain($to)) {
-                    $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
-
-                    $this->mailer(
-                        $to,
-                        $subject,
-                        $body,
-                        $headers,
-                        "-f" . $g->getModsEmail()
-                    );
+                    $this->mailer($me, TRUE, $this->getName(), $to, NULL, $name, $g->getModsEmail(), $subject, $body);
 
                     # Mark the message as seen, because have mailed it.
                     $r->updateRoster($myid, $this->id);
@@ -3458,13 +3485,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $members = $this->dbhr->preQuery($sql, [$this->id, $groupid, MembershipCollection::PENDING]);
 
         foreach ($members as $member) {
-            if (pres('yahooapprove', $member)) {
-                # We can trigger approval by email - do so.  Yahoo is sluggish so we send multiple times.
-                for ($i = 0; $i < 10; $i++) {
-                    $this->mailer($member['yahooapprove'], "My name is Iznik and I approve this member", NULL, '-f' . MODERATOR_EMAIL);
-                }
-            }
-
             if (pres('yahooUserId', $this->user)) {
                 $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
                 $emails = $this->dbhr->preQuery($sql, [$this->id]);
