@@ -2584,7 +2584,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function saveAttachments($msgid) {
-        if ($this->type != Message::TYPE_TAKEN && $this->type != Message::TYPE_RECEIVED) {
+        if ($this->type != Message::TYPE_TAKEN && $this->type != Message::TYPE_RECEIVED && $this->attachments && count($this->attachments)) {
             # Don't want attachments for TAKEN/RECEIVED.  They can occur if people forward the original message.
             #
             # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
