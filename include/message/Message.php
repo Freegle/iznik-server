@@ -535,7 +535,7 @@ class Message
 
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $suggestedsubject, $fromname, $fromaddr,
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
-        $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
+        $fromhost, $type, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
         $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP, $publishconsent, $isdraft, $itemid, $itemname;
 
@@ -543,6 +543,7 @@ class Message
 
     private $groups = [];
     private $outcomes = [];
+    private $attachments = [];
 
     /**
      * @return mixed
@@ -2584,7 +2585,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function saveAttachments($msgid) {
-        if ($this->type != Message::TYPE_TAKEN && $this->type != Message::TYPE_RECEIVED && $this->attachments && count($this->attachments)) {
+        if ($this->type != Message::TYPE_TAKEN && $this->type != Message::TYPE_RECEIVED) {
             # Don't want attachments for TAKEN/RECEIVED.  They can occur if people forward the original message.
             #
             # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
