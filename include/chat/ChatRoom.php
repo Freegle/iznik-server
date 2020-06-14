@@ -1004,11 +1004,19 @@ WHERE chat_rooms.id IN $idlist;";
                 # It's one of ours - so we can see it.
                 $cansee = TRUE;
             } else {
-                # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
-                # but using a specific chatid to save time.
-                $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL, $this->id);
-                #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
-                $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
+                # If we ourselves have rights to see all chats, then we can speed things up by noticing that rather
+                # than doing more queries.
+                $me = whoAmI($this->dbhr, $this->dbhm);
+
+                if ($me && $me->isAdminOrSupport()) {
+                    $cansee = TRUE;
+                } else {
+                    # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
+                    # but using a specific chatid to save time.
+                    $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL, $this->id);
+                    #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
+                    $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
+                }
             }
 
             if (!$cansee) {
