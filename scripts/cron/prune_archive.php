@@ -14,7 +14,9 @@ $chatdeleted = 0;
 $chatretained = 0;
 $chattotal = 0;
 
-foreach ([CDN_HOST_1, CDN_HOST_2] as $host) {
+# Shuffle in case we bomb out partway through, then at least we'll have done something on each a lot of the time.
+$hosts = [CDN_HOST_1, CDN_HOST_2];
+foreach (shuffle($hosts) as $host) {
     $connection = ssh2_connect($host, 22);
 
     if ($connection) {
@@ -25,6 +27,7 @@ foreach ([CDN_HOST_1, CDN_HOST_2] as $host) {
             $sftp_fd = intval($sftp);
 
             $handle = opendir("ssh2.sftp://$sftp_fd$path");
+
             while (false != ($entry = readdir($handle))){
                 if (preg_match('/^(timg|img)_(.*)\./', $entry, $matches)) {
                     $mid = $matches[2];
@@ -68,6 +71,8 @@ foreach ([CDN_HOST_1, CDN_HOST_2] as $host) {
                     }
                 }
             }
+
+            closedir($handle);
         }
     }
 }
