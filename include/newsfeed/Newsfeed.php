@@ -455,7 +455,7 @@ class Newsfeed extends Entity
                                         $replies[$index]['visible'] = FALSE;
                                     }
 
-                                    if (!$me->isModerator()) {
+                                    if (!$me || !$me->isModerator()) {
                                         $replies[$index]['hidden'] = NULL;
                                     }
 
