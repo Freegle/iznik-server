@@ -1717,7 +1717,7 @@ WHERE chat_rooms.id IN $idlist;";
                 # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they
                 # have changed settings.
                 $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
-                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.date >= ? ORDER BY id ASC;",
+                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.date >= ? ORDER BY id ASC;",
                     [
                         $chat['chatid'],
                         $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0,
@@ -1767,7 +1767,20 @@ WHERE chat_rooms.id IN $idlist;";
                                 }
 
                                 case ChatMessage::TYPE_PROMISED: {
-                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You promised this to " . $otheru->getName()) : ("Good news! " . $otheru->getName() . " has promised this to you.");
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You promised \"" . $unmailedmsg['subject'] . "\" to " . $otheru->getName()) : ("Good news! " . $otheru->getName() . " has promised \"" . $unmailedmsg['subject'] . "\" to you.");
+                                    break;
+                                }
+
+                                case ChatMessage::TYPE_INTERESTED: {
+                                    $intsubj = "";
+
+                                    if (count($unmailedmsgs) > 1) {
+                                        # Add in something which identifies the message we're talking about to avoid confusion if this person
+                                        # is asking about two items.
+                                        $intsubj = "\"" . $unmailedmsg['subject'] . "\":  ";
+                                    }
+
+                                    $thisone = $intsubj . $unmailedmsg['message'];
                                     break;
                                 }
 
