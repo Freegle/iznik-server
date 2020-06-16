@@ -320,25 +320,21 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
             if (in_array(Dashboard::COMPONENT_MODERATORS_ACTIVE, $components) && $ismod) {
                 $modsql = "SELECT userid, groupid FROM memberships WHERE $groupq AND role IN ('Moderator', 'Owner');";
                 $mods = $this->dbhr->preQuery($modsql, NULL, FALSE, FALSE);
-                $logsql = "SELECT byuser, MAX(timestamp) AS lastactive FROM logs WHERE $groupq AND byuser IN (" . implode(',', array_unique(array_filter(array_column($mods, 'userid')))) . ") GROUP BY byuser;";
-                $logs = $this->dbhr->preQuery($logsql, NULL, FALSE, FALSE);
-
+                $modids = array_filter(array_column($mods, 'userid'));
                 $u = User::get($this->dbhr, $this->dbhm);
 
-                $users = $u->getPublicsById(array_filter(array_column($logs, 'byuser')), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+                $users = $u->getPublicsById($modids, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
 
                 foreach ($users as &$user) {
-                    foreach ($logs as $log) {
-                        if ($log['byuser'] == $user['id']) {
-                            $user['lastactive'] = $log['lastactive'];
-                        }
-                    }
-
                     foreach ($mods as $mod) {
                         if ($mod['userid'] == $user['id']) {
                             $user['groupid'][] = $mod['groupid'];
                         }
                     }
+
+                    # Say that we were last active when we were last on the platform.  This isn't when we last
+                    # moderated but it's a lot quicker to obtain, and this matters for load on the system.
+                    $user['lastactive'] = $user['lastaccess'];
                 }
 
                 usort($users, function($mod1, $mod2) {

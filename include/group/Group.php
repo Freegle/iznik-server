@@ -407,15 +407,15 @@ class Group extends Entity
             ], FALSE, FALSE);
 
             $spammembercounts = $this->dbhr->preQuery(
-                "SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships 
+                "SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships
 INNER JOIN users ON users.id = memberships.userid AND suspectcount > 0
-WHERE groupid IN $groupq 
-GROUP BY memberships.groupid, held     
+WHERE groupid IN $groupq
+GROUP BY memberships.groupid, held
 UNION
-SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships 
+SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships
 INNER JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.collection = '" . Spam::TYPE_SPAMMER . "'
-WHERE groupid IN $groupq 
-GROUP BY memberships.groupid, held;     
+WHERE groupid IN $groupq
+GROUP BY memberships.groupid, held;
 ", [], FALSE, FALSE);
 
             $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
@@ -433,18 +433,18 @@ GROUP BY memberships.groupid, held;
             #
             # Complex query for speed.
             $relatedsql = "SELECT COUNT(*) AS count, groupid FROM (
-SELECT user1, memberships.groupid FROM users_related 
-INNER JOIN memberships ON users_related.user1 = memberships.userid 
+SELECT user1, memberships.groupid FROM users_related
+INNER JOIN memberships ON users_related.user1 = memberships.userid
 INNER JOIN users u1 ON users_related.user1 = u1.id AND u1.deleted IS NULL AND u1.systemrole = 'User'
-WHERE 
+WHERE
 user1 < user2 AND
 notified = 0 AND
 memberships.groupid IN $groupq
 UNION
-SELECT user1, memberships.groupid FROM users_related 
-INNER JOIN memberships ON users_related.user2 = memberships.userid 
+SELECT user1, memberships.groupid FROM users_related
+INNER JOIN memberships ON users_related.user2 = memberships.userid
 INNER JOIN users u2 ON users_related.user2 = u2.id AND u2.deleted IS NULL AND u2.systemrole = 'User'
-WHERE 
+WHERE
 user1 < user2 AND
 notified = 0 AND
 memberships.groupid IN $groupq
@@ -459,7 +459,7 @@ memberships.groupid IN $groupq
 
             # We only want to show happiness upto 31 days old - after that just let it slide.
             $mysqltime = date("Y-m-d", strtotime("Midnight 31 days ago"));
-            $sql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid WHERE messages_outcomes.timestamp >= '$mysqltime' AND groupid IN $groupq AND reviewed = 0 AND happiness IN ('" . User::UNHAPPY . "') GROUP BY groupid;";
+            $sql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid WHERE messages_groups.arrival >= '$mysqltime' AND messages_outcomes.timestamp >= '$mysqltime' AND groupid IN $groupq AND reviewed = 0 AND happiness IN ('" . User::UNHAPPY . "') GROUP BY groupid;";
             $happinesscounts = $this->dbhr->preQuery($sql);
 
             $c = new ChatMessage($this->dbhr, $this->dbhm);
@@ -557,7 +557,7 @@ memberships.groupid IN $groupq
                             $thisone['happiness'] = $count['count'];
                         }
                     }
-                    
+
                     foreach ($relatedmembers as $count) {
                         if ($count['groupid'] == $groupid) {
                             $thisone['relatedmembers'] = $count['count'];
@@ -841,15 +841,10 @@ memberships.groupid IN $groupq
             }
 
             if ($filter === Group::FILTER_MODERATORS) {
-                # Also add in the last mod time.
-                $acts = $this->dbhr->preQuery("SELECT MAX(date) AS moderated FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE approvedby = ? AND groupid = ?;", [
-                    $thisone['userid'],
-                    $thisone['groupid']
-                ]);
-
-                foreach ($acts as $act) {
-                    $thisone['lastmoderated'] = ISODate($act['moderated']);
-                }
+                # Also add in the time this mod was last active.  This is not the same as when they last moderated
+                # but indicates if they have been on the platform, which is what you want to find mods who have
+                # drifted off.  Getting the correct value is too timeconsuming.
+                $thisone['lastmoderated'] = ISODate($u->getPrivate('lastaccess'));
             }
 
             $ret[] = $thisone;
