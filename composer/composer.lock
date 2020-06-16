@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c8e6a556a9b92118a5e31939d27b19f7",
+    "content-hash": "a120a449a14be121cd868ffbddd7325b",
     "packages": [
         {
             "name": "abraham/twitteroauth",
@@ -1238,6 +1238,42 @@
                 "graphviz"
             ],
             "time": "2015-03-08T10:30:28+00:00"
+        },
+        {
+            "name": "griffinledingham/php-apple-signin",
+            "version": "1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Yanlong-LI/php-apple-signin.git",
+                "reference": "069e79b7ca2366fdebd3f92289281912849e0cb1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "AppleSignIn\\": ""
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Griffin Ledingham",
+                    "email": "gcledingham@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A simple library to decode and parse Apple Sign In client tokens.",
+            "keywords": [
+                "apple",
+                "in",
+                "ios",
+                "jwk",
+                "jwt",
+                "php",
+                "sign"
+            ],
+            "time": "2020-04-06T16:05:53+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",

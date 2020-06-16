@@ -1,0 +1,164 @@
+<?php
+
+require_once("/etc/iznik.conf");
+require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/session/Session.php');
+require_once(IZNIK_BASE . '/include/misc/Log.php');
+
+use AppleSignIn\ASDecoder;
+use AppleSignIn\Vendor\JWT;
+
+class Apple
+{
+    /** @var LoggedPDO $dbhr */
+    /** @var LoggedPDO $dbhm */
+    private $dbhr;
+    private $dbhm;
+    private $access_token;
+
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
+    {
+        $this->dbhr = $dbhr;
+        $this->dbhm = $dbhm;
+
+        return ($this);
+    }
+
+    public function getPayload($token) {
+        # So we can mock.
+        return ASDecoder::getAppleSignInPayload($token);
+    }
+
+    function login($claimeduser, $credentials)
+    {
+        $uid = NULL;
+        $ret = 2;
+        $status = 'Login failed';
+        $s = NULL;
+
+        error_log("Credentials " . var_export($credentials, TRUE));
+
+        $token = presdef('identityToken', $credentials, NULL);
+        $fullName = presdef('fullName', $credentials, NULL);
+        error_log("Full " . json_encode($fullName));
+        $firstname = presdef('givenName', $fullName, NULL);
+        $lastname = presdef('familyName', $fullName, NULL);
+
+        error_log("Got field $token $firstname $lastname?");
+
+        if ($token) {
+            error_log("Yes, check");
+            JWT::$leeway = 1000000;
+            $appleSignInPayload = $this->getPayload($token);
+            error_log("Checked");
+
+            $email = $appleSignInPayload->getEmail();
+            error_log("Email $email");
+            $user = $appleSignInPayload->getUser();
+            error_log("User $user");
+            $isValid = $appleSignInPayload->verifyUser($claimeduser);
+            error_log("Valid $isValid");
+
+            try {
+                if ($isValid) {
+                    # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
+                    $u = User::get($this->dbhr, $this->dbhm);
+                    $eid = $u->findByEmail($email);
+                    $aid = $u->findByLogin('Apple', $user);
+                }
+
+                #error_log("Email $eid  from $googlemail Google $gid, f $firstname, l $lastname, full $fullname");
+
+                if ($eid && $aid && $eid != $aid) {
+                    # This is a duplicate user.  Merge them.
+                    $u = User::get($this->dbhr, $this->dbhm);
+                    $u->merge($eid, $aid, "Apple Login - Apple ID $aid, Email $email = $eid");
+                }
+
+                $id = $eid ? $eid : $aid;
+                #error_log("Login id $id from $eid and $gid");
+
+                if (!$id) {
+                    # We don't know them.  Create a user.
+                    #
+                    # There's a timing window here, where if we had two first-time logins for the same user,
+                    # one would fail.  Bigger fish to fry.
+                    #
+                    # firstname and lastname might be null, but if they are then we will invent a name later in
+                    # User::getName.
+                    $id = $u->create($firstname, $lastname, NULL, "Apple login from $aid");
+
+                    if ($id) {
+                        # Make sure that we have the email recorded as one of the emails for this user.
+                        $u = User::get($this->dbhr, $this->dbhm, $id);
+
+                        if ($email) {
+                            $u->addEmail($email, 0, FALSE);
+                        }
+
+                        # Now Set up a login entry.  Use IGNORE as there is a timing window here.
+                        $rc = $this->dbhm->preExec(
+                            "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Apple',?);",
+                            [
+                                $id,
+                                $user
+                            ]
+                        );
+
+                        $id = $rc ? $id : NULL;
+                    }
+                } else {
+                    # We know them - but we might not have all the details.
+                    $u = User::get($this->dbhr, $this->dbhm, $id);
+
+                    if (!$eid) {
+                        $u->addEmail($email, 0, FALSE);
+                    }
+
+                    if (!$aid) {
+                        $this->dbhm->preExec(
+                            "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Apple',?);",
+                            [
+                                $id,
+                                $user
+                            ]
+                        );
+                    }
+                }
+
+                # We have publish permissions for users who login via our platform.
+                $u->setPrivate('publishconsent', 1);
+
+                if ($id) {
+                    # We are logged in.
+                    $s = new Session($this->dbhr, $this->dbhm);
+                    $s->create($id);
+
+                    # Anyone who has logged in to our site has given RIPA consent.
+                    $this->dbhm->preExec("UPDATE users SET ripaconsent = 1 WHERE id = ?;",
+                        [
+                            $id
+                        ]);
+                    User::clearCache($id);
+
+                    $l = new Log($this->dbhr, $this->dbhm);
+                    $l->log([
+                        'type' => Log::TYPE_USER,
+                        'subtype' => Log::SUBTYPE_LOGIN,
+                        'byuser' => $id,
+                        'text' => "Using Apple $user"
+                    ]);
+
+                    $ret = 0;
+                    $status = 'Success';
+                }
+            } catch (Exception $e) {
+                $ret = 2;
+                $status = "Didn't manage to validate Apple session: " . $e->getMessage();
+                error_log("Didn't manage to validate Apple session " . $e->getMessage());
+            }
+        }
+
+        return ([$s, [ 'ret' => $ret, 'status' => $status]]);
+    }
+}

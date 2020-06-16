@@ -116,7 +116,7 @@ class Google
                 $id = $u->create($firstname, $lastname, $fullname, "Google login from $gid");
 
                 if ($id) {
-                    # Make sure that we have the Yahoo email recorded as one of the emails for this user.
+                    # Make sure that we have the email recorded as one of the emails for this user.
                     $u = User::get($this->dbhr, $this->dbhm, $id);
 
                     if ($googlemail) {
