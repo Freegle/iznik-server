@@ -126,6 +126,18 @@ class sessionTest extends IznikAPITestCase
 
         }
 
+    public function testApple()
+    {
+        # With no token should fail.
+        $ret = $this->call('session', 'POST', [
+            'applelogin' => 1
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Rest of testing done in include test.
+
+    }
+
     public function testNative()
     {
         $u = User::get($this->dbhm, $this->dbhm);

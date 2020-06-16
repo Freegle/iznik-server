@@ -293,9 +293,12 @@ function session() {
             $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $fbaccesstoken = presdef('fbaccesstoken', $_REQUEST, NULL);
             $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+            $googleauthcode = array_key_exists('googleauthcode', $_REQUEST) ? $_REQUEST['googleauthcode'] : NULL;
             $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $yahoocodelogin = presdef('yahoocodelogin', $_REQUEST, NULL);
-            $googleauthcode = array_key_exists('googleauthcode', $_REQUEST) ? $_REQUEST['googleauthcode'] : NULL;
+            $applelogin = array_key_exists('applelogin', $_REQUEST) ? filter_var($_REQUEST['applelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+            $applecredentials = array_key_exists('applecredentials', $_REQUEST) ? $_REQUEST['applecredentials'] : NULL;
+            $appleuser = array_key_exists('$appleuser', $_REQUEST) ? $_REQUEST['$appleuser'] : NULL;
             $mobile = array_key_exists('mobile', $_REQUEST) ? filter_var($_REQUEST['mobile'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : NULL;
             $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
@@ -342,6 +345,12 @@ function session() {
                 # Google
                 $g = new Google($dbhr, $dbhm, $mobile);
                 list ($session, $ret) = $g->login($googleauthcode);
+                /** @var Session $session */
+                $id = $session ? $session->getUserId() : NULL;
+            } else if ($applelogin) {
+                # Apple
+                $a = new Apple($dbhr, $dbhm);
+                list ($session, $ret) = $a->login($appleuser, $applecredentials);
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;
             } else if ($action) {
