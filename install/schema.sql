@@ -2797,7 +2797,7 @@ CREATE TABLE `polls` (
   `active` tinyint(1) NOT NULL DEFAULT '1',
   `groupid` bigint(20) unsigned DEFAULT NULL,
   `template` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `logintype` enum('Facebook','Google','Yahoo','Native', 'Apple') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `logintype` enum('Facebook','Google','Yahoo','Native') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   CONSTRAINT `polls_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
@@ -3890,7 +3890,7 @@ DROP TABLE IF EXISTS `users_logins`;
 CREATE TABLE `users_logins` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userid` bigint(20) unsigned NOT NULL COMMENT 'Unique ID in users table',
-  `type` enum('Yahoo','Facebook','Google','Native','Link') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `type` enum('Yahoo','Facebook','Google','Native','Link','Apple') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `uid` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Unique identifier for login',
   `credentials` text COLLATE utf8mb4_unicode_ci,
   `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
