@@ -314,6 +314,18 @@ function user() {
                 }
             }
 
+            if ($me && ($me->isAdminOrSupport() || $id == $me->getId()) && $action == 'RemoveEmail') {
+                # People can remove their own emails.
+                $ret = [ 'ret' => 3, 'status' => 'Not on same user' ];
+                $uid = $u->findByEmail($email);
+
+                if ($uid && $uid == $id) {
+                    # The email is on the same user.
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    $u->removeEmail($email);
+                }
+            }
+
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
