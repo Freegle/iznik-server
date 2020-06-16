@@ -2797,7 +2797,7 @@ CREATE TABLE `polls` (
   `active` tinyint(1) NOT NULL DEFAULT '1',
   `groupid` bigint(20) unsigned DEFAULT NULL,
   `template` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `logintype` enum('Facebook','Google','Yahoo','Native') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `logintype` enum('Facebook','Google','Yahoo','Native', 'Apple') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   CONSTRAINT `polls_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
