@@ -4673,7 +4673,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if (pres('pendingadmins', $work) > 0) {
                 $title .= $work['pendingadmins'] . ' admin' . (($work['pendingadmins'] != 1) ? 's' : '') . "\n";
-                $route = '/modtools/admin';
+                $route = '/modtools/admins';
             }
 
             if (pres('spammembers', $work) > 0) {
