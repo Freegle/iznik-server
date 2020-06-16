@@ -67,11 +67,12 @@ class Apple
                     $aid = $u->findByLogin('Apple', $user);
                 }
 
-                #error_log("Email $eid  from $googlemail Google $gid, f $firstname, l $lastname, full $fullname");
+                error_log("Email $eid from $email, AppleID $aid, f $firstname, l $lastname");
 
                 if ($eid && $aid && $eid != $aid) {
                     # This is a duplicate user.  Merge them.
                     $u = User::get($this->dbhr, $this->dbhm);
+                    error_log("MErge");
                     $u->merge($eid, $aid, "Apple Login - Apple ID $aid, Email $email = $eid");
                 }
 
