@@ -55,6 +55,11 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->user2->setPrivate('lastlocation', $this->fullpcid);
         $this->user2->addEmail('test@test.com');
 
+        $this->user3 = User::get($this->dbhr, $this->dbhm);
+        $this->uid3 = $this->user3->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $this->user3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->user3->setPrivate('lastlocation', $this->fullpcid);
+
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
     }
 
@@ -723,6 +728,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->log("Created feed {$ret['id']}");
         $threadhead = $ret['id'];
 
+        assertTrue($this->user2->login('testpw'));
+
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test reply',
             'replyto' => $threadhead
@@ -731,7 +738,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $replyid = $ret['id'];
 
-        assertTrue($this->user2->login('testpw'));
+        assertTrue($this->user3->login('testpw'));
 
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test reply to reply',
@@ -746,11 +753,11 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         assertEquals($threadhead, $ret['newsfeed']['id']);
 
-        assertEquals($this->user->getId(), $ret['newsfeed']['replies'][0]['user']['id']);
+        assertEquals($this->user2->getId(), $ret['newsfeed']['replies'][0]['user']['id']);
         assertEquals($threadhead, $ret['newsfeed']['replies'][0]['replyto']);
         assertEquals($threadhead, $ret['newsfeed']['replies'][0]['threadhead']);
 
-        assertEquals($this->user2->getId(), $ret['newsfeed']['replies'][0]['replies'][0]['user']['id']);
+        assertEquals($this->user3->getId(), $ret['newsfeed']['replies'][0]['replies'][0]['user']['id']);
         assertEquals($replyid, $ret['newsfeed']['replies'][0]['replies'][0]['replyto']);
         assertEquals($threadhead, $ret['newsfeed']['replies'][0]['replies'][0]['threadhead']);
     }

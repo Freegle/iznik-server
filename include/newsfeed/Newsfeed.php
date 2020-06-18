@@ -272,7 +272,10 @@ class Newsfeed extends Entity
             $replyusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
             $u->getPublicLocations($replyusers);
             $u->getActiveCountss($replyusers);
-            $users = array_replace($users, $replyusers);
+
+            foreach ($replyusers as $r) {
+                $users[$r['id']] = $r;
+            }
         }
     }
 
