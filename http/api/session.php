@@ -298,7 +298,6 @@ function session() {
             $yahoocodelogin = presdef('yahoocodelogin', $_REQUEST, NULL);
             $applelogin = array_key_exists('applelogin', $_REQUEST) ? filter_var($_REQUEST['applelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $applecredentials = array_key_exists('applecredentials', $_REQUEST) ? $_REQUEST['applecredentials'] : NULL;
-            $appleuser = array_key_exists('$appleuser', $_REQUEST) ? $_REQUEST['$appleuser'] : NULL;
             $mobile = array_key_exists('mobile', $_REQUEST) ? filter_var($_REQUEST['mobile'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : NULL;
             $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
@@ -349,8 +348,9 @@ function session() {
                 $id = $session ? $session->getUserId() : NULL;
             } else if ($applelogin) {
                 # Apple
+                file_put_contents('/tmp/tok2', var_export($_REQUEST, TRUE));
                 $a = new Apple($dbhr, $dbhm);
-                list ($session, $ret) = $a->login($appleuser, $applecredentials);
+                list ($session, $ret) = $a->login($applecredentials);
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;
             } else if ($action) {

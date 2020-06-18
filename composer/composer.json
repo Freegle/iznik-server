@@ -38,8 +38,15 @@
     "cviebrock/discourse-php": "^0.9.3",
     "elasticsearch/elasticsearch": "^6.1",
     "violet/streaming-json-encoder": "^1.1",
-    "facebook/graph-sdk": "^5.7"
+    "facebook/graph-sdk": "^5.7",
+    "griffinledingham/php-apple-signin": "^1.1"
   },
+  "repositories": [
+    {
+      "url": "https://github.com/Yanlong-LI/php-apple-signin.git",
+      "type": "git"
+    }
+  ],
   "require-dev": {
     "phpunit/phpunit": "^7"
   }

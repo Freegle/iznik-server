@@ -42,7 +42,7 @@ class AppleTest extends IznikTestCase {
 
     public function testBasic() {
         $a = new Apple($this->dbhr, $this->dbhm);
-        list($session, $ret) = $a->login("TestUser", []);
+        list($session, $ret) = $a->login([]);
         assertEquals(2, $ret['ret']);
 
         # Basic successful login
@@ -73,7 +73,7 @@ class AppleTest extends IznikTestCase {
         ];
 
         error_log("Login");
-        list($session, $ret) = $mock->login($credentials['user'], $credentials);
+        list($session, $ret) = $mock->login($credentials);
         error_log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -87,7 +87,7 @@ class AppleTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
 
         $this->email = 'test2@test.com';
-        list($session, $ret) = $mock->login($credentials['user'], $credentials);
+        list($session, $ret) = $mock->login($credentials);
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
@@ -96,7 +96,7 @@ class AppleTest extends IznikTestCase {
 
         # Now delete an email, and log in again - should trigger an add of the email
         $me->removeEmail('test2@test.com');
-        list($session, $ret) = $mock->login($credentials['user'], $credentials);
+        list($session, $ret) = $mock->login($credentials);
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
@@ -105,7 +105,7 @@ class AppleTest extends IznikTestCase {
 
         # Now delete the Apple login, and log in again - should trigger an add of the Appleid.
         assertEquals(1, $me->removeLogin('Apple', 1));
-        list($session, $ret) = $mock->login($credentials['user'], $credentials);
+        list($session, $ret) = $mock->login($credentials);
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();

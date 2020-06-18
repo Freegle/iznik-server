@@ -29,35 +29,27 @@ class Apple
         return ASDecoder::getAppleSignInPayload($token);
     }
 
-    function login($claimeduser, $credentials)
+    function login($credentials)
     {
         $uid = NULL;
         $ret = 2;
         $status = 'Login failed';
         $s = NULL;
 
-        error_log("Credentials " . var_export($credentials, TRUE));
+        #error_log("Credentials " . var_export($credentials, TRUE));
 
         $token = presdef('identityToken', $credentials, NULL);
         $fullName = presdef('fullName', $credentials, NULL);
-        error_log("Full " . json_encode($fullName));
         $firstname = presdef('givenName', $fullName, NULL);
         $lastname = presdef('familyName', $fullName, NULL);
 
-        error_log("Got field $token $firstname $lastname?");
-
         if ($token) {
-            error_log("Yes, check");
             JWT::$leeway = 1000000;
             $appleSignInPayload = $this->getPayload($token);
-            error_log("Checked");
 
             $email = $appleSignInPayload->getEmail();
-            error_log("Email $email");
             $user = $appleSignInPayload->getUser();
-            error_log("User $user");
-            $isValid = $appleSignInPayload->verifyUser($claimeduser);
-            error_log("Valid $isValid");
+            $isValid = $appleSignInPayload->verifyUser($user);
 
             try {
                 if ($isValid) {
@@ -67,12 +59,9 @@ class Apple
                     $aid = $u->findByLogin('Apple', $user);
                 }
 
-                error_log("Email $eid from $email, AppleID $aid, f $firstname, l $lastname");
-
                 if ($eid && $aid && $eid != $aid) {
                     # This is a duplicate user.  Merge them.
                     $u = User::get($this->dbhr, $this->dbhm);
-                    error_log("MErge");
                     $u->merge($eid, $aid, "Apple Login - Apple ID $aid, Email $email = $eid");
                 }
 
