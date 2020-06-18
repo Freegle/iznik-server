@@ -218,18 +218,23 @@ class Newsfeed extends Entity
         $atts = $entries[0];
 
         if ($anyreplies && pres('replies', $atts)) {
+            # We may already have some or all of the reply users in users.
+            $replyuids = array_column($atts['replies'], 'userid');
+            $missing = array_diff($replyuids, array_keys($users));
+
+            if (count($missing)) {
+                $ctx = NULL;
+                $u = User::get($this->dbhr, $this->dbhm);
+                $replyusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
+                $u->getPublicLocations($replyusers);
+                $u->getActiveCountss($replyusers);
+
+                $users = array_merge($replyusers, $users);
+            }
+
             foreach ($atts['replies'] as &$reply) {
                 if (pres('userid', $reply)) {
-                    if (!pres($reply['userid'], $users)) {
-                        $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
-                        $ctx = NULL;
-                        $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-                        $reply['user']['activecounts'] = $u->getActiveCounts();
-                        $reply['user']['publiclocation'] = $u->getPublicLocation();
-                        $users[$reply['userid']] = $reply['user'];
-                    } else {
-                        $reply['user'] = $users[$reply['userid']];
-                    }
+                    $reply['user'] = $replyusers[$reply['userid']];
                 }
             }
         }
@@ -244,16 +249,20 @@ class Newsfeed extends Entity
                 $this->id
             ]);
 
+            $loveuids = array_column($loves, 'userid');
+            $missing = array_diff($loveuids, array_keys($users));
+
+            if (count($missing)) {
+                $ctx = NULL;
+                $u = User::get($this->dbhr, $this->dbhm);
+                $loveusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
+                $u->getPublicLocations($loveusers);
+                $u->getActiveCountss($loveusers);
+                $users = array_merge($loveusers, $users);
+            }
+
             foreach ($loves as $love) {
-                if (!pres($love['userid'], $users)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $love['userid']);
-                    $ctx = NULL;
-                    $uatts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-                    $uatts['publiclocation'] = $u->getPublicLocation();
-                    $atts['lovelist'][] = $uatts;
-                } else {
-                    $atts['lovelist'][] = $users[$love['userid']];
-                }
+                $atts['lovelist'][] = $users[$love['userid']];
             }
         }
 
@@ -264,10 +273,13 @@ class Newsfeed extends Entity
         }
 
         if (pres('userid', $atts)) {
-            $u = User::get($this->dbhr, $this->dbhm);
-            $users = $u->getPublicsById([ $atts['userid'] ]);
-            $u->getPublicLocations($users);
-            $u->getActiveCountss($users);
+            if (!pres($atts['userid'], $users)) {
+                $u = User::get($this->dbhr, $this->dbhm);
+                $users = $u->getPublicsById([ $atts['userid'] ]);
+                $u->getPublicLocations($users);
+                $u->getActiveCountss($users);
+            }
+
             $atts['user'] = $users[$atts['userid']];
             unset($atts['userid']);
         }
@@ -295,10 +307,6 @@ class Newsfeed extends Entity
             }
 
             if ($checkreplies) {
-                # Don't cache replies - might be lots and might change frequently.
-                #
-                # We only return 11; this matches the 10 in the client in newsfeed.  That's enough to cause it to show
-                # the "Show earlier" prompt; it will then fetch more as required.
                 $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;", NULL, FALSE);
                 $replies = array_reverse($replies);
                 $this->fillIn($replies, $users, TRUE, FALSE);
@@ -562,7 +570,7 @@ class Newsfeed extends Entity
                     $newsids = array_unique(array_merge($newsids, array_filter(array_column($replies, 'id'))));
                 } while (count($uids) !== $uidcount);
 
-                $users = $u->getPublicsById($uids);
+                $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
                 $u->getPublicLocations($users);
                 $u->getActiveCountss($users);
             }

@@ -2557,7 +2557,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $uidsleft = [];
 
         foreach ($uids as $uid) {
-            $u = User::get($this->dbhr, $this->dbhm, $uid, TRUE, FALSE);
+            $u = User::get($this->dbhr, $this->dbhm, $uid, TRUE, TRUE);
 
             if ($u) {
                 $rets[$uid] = $u->getPublic($groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
