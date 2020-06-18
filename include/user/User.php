@@ -2578,7 +2578,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             if (count($users)) {
                 $users = $this->getPublics($users, $groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
-                array_merge($rets, $users);
+                $rets = array_replace($rets, $users);
             }
         }
 
