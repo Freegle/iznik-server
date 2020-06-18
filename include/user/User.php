@@ -1977,7 +1977,8 @@ class User extends Entity
     {
         $users = [
             $this->id => [
-                'id' => $this->id ]
+                'id' => $this->id
+            ]
         ];
 
         $this->getLatLngs($users);
@@ -2566,9 +2567,19 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             }
         }
 
+        $uidsleft = array_filter($uidsleft);
+
         if (count($uidsleft)) {
-            $users = $this->dbhr->preQuery("SELECT * FROM users WHERE id IN (" . implode(',', $uidsleft) . ");", NULL, FALSE, FALSE);
-            $rets = array_merge($rets, $this->getPublics($users, $groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull));
+            $us = $this->dbhr->preQuery("SELECT * FROM users WHERE id IN (" . implode(',', $uidsleft) . ");", NULL, FALSE, FALSE);
+            $users = [];
+            foreach ($us as $u) {
+                $users[$u['id']] = $u;
+            }
+
+            if (count($users)) {
+                $users = $this->getPublics($users, $groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
+                array_merge($rets, $users);
+            }
         }
 
         return($rets);

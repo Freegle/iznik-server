@@ -228,13 +228,12 @@ class Newsfeed extends Entity
                 $replyusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
                 $u->getPublicLocations($replyusers);
                 $u->getActiveCountss($replyusers);
-
-                $users = array_merge($replyusers, $users);
+                $users = array_replace($users, $replyusers);
             }
 
             foreach ($atts['replies'] as &$reply) {
                 if (pres('userid', $reply)) {
-                    $reply['user'] = $replyusers[$reply['userid']];
+                    $reply['user'] = $users[$reply['userid']];
                 }
             }
         }
@@ -258,7 +257,7 @@ class Newsfeed extends Entity
                 $loveusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
                 $u->getPublicLocations($loveusers);
                 $u->getActiveCountss($loveusers);
-                $users = array_merge($loveusers, $users);
+                $users = array_replace($users, $loveusers);
             }
 
             foreach ($loves as $love) {
@@ -275,9 +274,10 @@ class Newsfeed extends Entity
         if (pres('userid', $atts)) {
             if (!pres($atts['userid'], $users)) {
                 $u = User::get($this->dbhr, $this->dbhm);
-                $users = $u->getPublicsById([ $atts['userid'] ]);
-                $u->getPublicLocations($users);
-                $u->getActiveCountss($users);
+                $thisun = $u->getPublicsById([ $atts['userid'] ]);
+                $u->getPublicLocations($thisun);
+                $u->getActiveCountss($thisun);
+                $users = array_replace($users, $thisun);
             }
 
             $atts['user'] = $users[$atts['userid']];

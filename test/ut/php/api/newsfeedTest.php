@@ -745,6 +745,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         #error_log(var_export($ret, TRUE));
         assertEquals($threadhead, $ret['newsfeed']['id']);
 
+        assertEquals($this->user->getId(), $ret['newsfeed']['replies'][0]['user']['id']);
         assertEquals($threadhead, $ret['newsfeed']['replies'][0]['replyto']);
         assertEquals($threadhead, $ret['newsfeed']['replies'][0]['threadhead']);
 
@@ -842,21 +843,21 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->log("Created non dup feed {$ret['id']}");
         assertNotEquals($nid, $ret['id']);
     }
-
-    public function testEH() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->dbhr->errorLog = TRUE;
-        $this->dbhm->errorLog = TRUE;
-
-        $u = new User($this->dbhr, $this->dbhm);
-
-        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
-        $_SESSION['id'] = $uid;
-        $ret = $this->call('newsfeed', 'GET', [
-            'id' => 56827,
-            'modtools' => FALSE,
-        ]);
-    }
+//
+//    public function testEH() {
+//        $u = new User($this->dbhr, $this->dbhm);
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//
+//        $u = new User($this->dbhr, $this->dbhm);
+//
+//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
+//        $u = new User($this->dbhr, $this->dbhm, $uid);
+//        $_SESSION['id'] = $uid;
+//        $ret = $this->call('newsfeed', 'GET', [
+//            'id' => 56827,
+//            'modtools' => FALSE,
+//        ]);
+//    }
 }
 
