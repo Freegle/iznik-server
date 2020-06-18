@@ -3890,7 +3890,7 @@ DROP TABLE IF EXISTS `users_logins`;
 CREATE TABLE `users_logins` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userid` bigint(20) unsigned NOT NULL COMMENT 'Unique ID in users table',
-  `type` enum('Yahoo','Facebook','Google','Native','Link') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `type` enum('Yahoo','Facebook','Google','Native','Link','Apple') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `uid` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Unique identifier for login',
   `credentials` text COLLATE utf8mb4_unicode_ci,
   `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
