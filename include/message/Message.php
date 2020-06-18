@@ -3625,6 +3625,7 @@ ORDER BY lastdate DESC;";
         $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my Samsung device.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my Galaxy smartphone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Samsung Galaxy smartphone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my Windows Phone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from the trash nothing! Mobile App.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my account on trashnothing.com.*/ms', '', $textbody);
