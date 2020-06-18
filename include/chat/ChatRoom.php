@@ -1250,7 +1250,7 @@ WHERE chat_rooms.id IN $idlist;";
         # - Facebook
         # - push
         $userids = [];
-        error_log("Notify $message exclude $excludeuser");
+        #error_log("Notify $message exclude $excludeuser");
 
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
