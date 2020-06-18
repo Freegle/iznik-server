@@ -59,8 +59,8 @@ class AppleTest extends IznikTestCase {
             "authorizationCode" => "UT",
             "email" => "",
             "fullName" => [
-                "familyName" => "",
-                "givenName" => "",
+                "familyName" => "User",
+                "givenName" => "Test",
                 "middleName" => "",
                 "namePrefix" => "",
                 "nameSuffix" => "",
@@ -77,6 +77,8 @@ class AppleTest extends IznikTestCase {
         error_log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
+        assertEquals("Test User" , $me->getName());
+
         $logins = $me->getLogins();
         $this->log("Logins " . var_export($logins, TRUE));
         assertEquals($credentials['user'], $logins[0]['uid']);
