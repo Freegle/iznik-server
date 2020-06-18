@@ -731,6 +731,8 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $replyid = $ret['id'];
 
+        assertTrue($this->user2->login('testpw'));
+
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test reply to reply',
             'replyto' => $replyid
@@ -742,13 +744,13 @@ class newsfeedAPITest extends IznikAPITestCase {
             'id' => $threadhead
         ]);
 
-        #error_log(var_export($ret, TRUE));
         assertEquals($threadhead, $ret['newsfeed']['id']);
 
         assertEquals($this->user->getId(), $ret['newsfeed']['replies'][0]['user']['id']);
         assertEquals($threadhead, $ret['newsfeed']['replies'][0]['replyto']);
         assertEquals($threadhead, $ret['newsfeed']['replies'][0]['threadhead']);
 
+        assertEquals($this->user2->getId(), $ret['newsfeed']['replies'][0]['replies'][0]['user']['id']);
         assertEquals($replyid, $ret['newsfeed']['replies'][0]['replies'][0]['replyto']);
         assertEquals($threadhead, $ret['newsfeed']['replies'][0]['replies'][0]['threadhead']);
     }

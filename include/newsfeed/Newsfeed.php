@@ -219,17 +219,7 @@ class Newsfeed extends Entity
 
         if ($anyreplies && pres('replies', $atts)) {
             # We may already have some or all of the reply users in users.
-            $replyuids = array_column($atts['replies'], 'userid');
-            $missing = array_diff($replyuids, array_keys($users));
-
-            if (count($missing)) {
-                $ctx = NULL;
-                $u = User::get($this->dbhr, $this->dbhm);
-                $replyusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
-                $u->getPublicLocations($replyusers);
-                $u->getActiveCountss($replyusers);
-                $users = array_replace($users, $replyusers);
-            }
+            $this->addUsers($users, array_column($atts['replies'], 'userid'));
 
             foreach ($atts['replies'] as &$reply) {
                 if (pres('userid', $reply)) {
@@ -248,17 +238,7 @@ class Newsfeed extends Entity
                 $this->id
             ]);
 
-            $loveuids = array_column($loves, 'userid');
-            $missing = array_diff($loveuids, array_keys($users));
-
-            if (count($missing)) {
-                $ctx = NULL;
-                $u = User::get($this->dbhr, $this->dbhm);
-                $loveusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
-                $u->getPublicLocations($loveusers);
-                $u->getActiveCountss($loveusers);
-                $users = array_replace($users, $loveusers);
-            }
+            $this->addUsers($users, array_column($loves, 'userid'));
 
             foreach ($loves as $love) {
                 $atts['lovelist'][] = $users[$love['userid']];
@@ -273,11 +253,7 @@ class Newsfeed extends Entity
 
         if (pres('userid', $atts)) {
             if (!pres($atts['userid'], $users)) {
-                $u = User::get($this->dbhr, $this->dbhm);
-                $thisun = $u->getPublicsById([ $atts['userid'] ]);
-                $u->getPublicLocations($thisun);
-                $u->getActiveCountss($thisun);
-                $users = array_replace($users, $thisun);
+                $this->addUsers($users, [ $atts['userid']]);
             }
 
             $atts['user'] = $users[$atts['userid']];
@@ -285,6 +261,19 @@ class Newsfeed extends Entity
         }
 
         return($atts);
+    }
+
+    private function addUsers(&$users, $uids) {
+        $missing = array_diff($uids, array_keys($users));
+
+        if (count($missing)) {
+            $ctx = NULL;
+            $u = User::get($this->dbhr, $this->dbhm);
+            $replyusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
+            $u->getPublicLocations($replyusers);
+            $u->getActiveCountss($replyusers);
+            $users = array_replace($users, $replyusers);
+        }
     }
 
     private function fillIn(&$entries, &$users, $checkreplies = TRUE, $allreplies = FALSE) {
@@ -446,6 +435,9 @@ class Newsfeed extends Entity
                         $last = NULL;
                         $entries[$entindex]['replies'] = [];
 
+                        # We may already have some or all of the reply users in users.
+                        $this->addUsers($users, array_column($replies, 'userid'));
+
                         foreach ($replies as $index => $reply) {
                             if ($reply['replyto'] == $entries[$entindex]['id']) {
                                 $hidden = $reply['hidden'];
@@ -465,6 +457,10 @@ class Newsfeed extends Entity
 
                                     if (!$me || !$me->isModerator()) {
                                         $replies[$index]['hidden'] = NULL;
+                                    }
+
+                                    if (pres('userid', $reply)) {
+                                        $replies[$index]['user'] = $users[$reply['userid']];
                                     }
 
                                     $entries[$entindex]['replies'][] = $replies[$index];
