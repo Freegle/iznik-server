@@ -1008,18 +1008,20 @@ WHERE chat_rooms.id IN $idlist;";
                 # than doing more queries.
                 $me = whoAmI($this->dbhr, $this->dbhm);
 
-                if ($me && $me->isAdminOrSupport()) {
-                    $cansee = TRUE;
-                } else {
-                    # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
-                    # but using a specific chatid to save time.
-                    $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL, $this->id);
-                    #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
-                    $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
+                if ($checkmod) {
+                    if ($me && $me->isAdminOrSupport()) {
+                        $cansee = TRUE;
+                    } else {
+                        # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
+                        # but using a specific chatid to save time.
+                        $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL, $this->id);
+                        #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
+                        $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
+                    }
                 }
             }
 
-            if (!$cansee) {
+            if (!$cansee && $checkmod) {
                 # If we can't see it by right, but we are a mod for the users in the chat, then we can see it.
                 #error_log("$userid can't see {$this->id} of type {$this->chatroom['chattype']}");
                 $me = whoAmI($this->dbhr, $this->dbhm);
