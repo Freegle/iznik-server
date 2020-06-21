@@ -562,8 +562,9 @@ function session() {
                             # Found a recent one - update it.
                             $n = new Newsfeed($dbhr, $dbhm, $nid);
                             $n->setPrivate('message', $_REQUEST['aboutme']);
-                        } else {
-                            # No recent ones - add a new item
+                        } else if (strlen($_REQUEST['aboutme']) > 32) {
+                            # No recent ones - add a new item.  But don't do this for very short ones, as they are
+                            # of no interest on the newsfeed.
                             $n->create(Newsfeed::TYPE_ABOUT_ME, $me->getId(), $_REQUEST['aboutme']);
                         }
                     }
