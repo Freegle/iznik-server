@@ -48,6 +48,12 @@ function session() {
                             $appversion = presdef('appversion', $_REQUEST, NULL);
                             $dbhm->background("INSERT INTO users_builddates (userid, webversion, appversion) VALUES ({$_SESSION['id']}, '$webversion', '$appversion') ON DUPLICATE KEY UPDATE timestamp = NOW(), webversion = '$webversion', appversion = '$appversion';");
                         }
+
+                        # Ensure we have the cookie set up for Discourse forum login.
+                        if (array_key_exists('persistent', $_SESSION)) {
+                            #error_log("Set Discourse Cookie");
+                            @setcookie('Iznik-Forum-SSO', json_encode($_SESSION['persistent']), 0, '/', 'ilovefreegle.org');
+                        }
                     } else {
                         # ModTools.  Ensure we have the cookie set up for Discourse login.
                         if (array_key_exists('persistent', $_SESSION)) {
