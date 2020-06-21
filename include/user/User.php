@@ -1093,7 +1093,7 @@ class User extends Entity
         //
         // Let them know.  We always want to let TN know if a member is removed/banned so that they can't see
         // the messages.
-        if ($byemail || strpos($this->getEmailPreferred(), '@user.trashnothing.com') !== FALSE) {
+        if ($byemail || $this->isTN()) {
             list ($transport, $mailer) = getMailer();
             $message = Swift_Message::newInstance()
                 ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
@@ -2586,6 +2586,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         return($rets);
+    }
+
+    public function isTN() {
+        return strpos($this->getEmailPreferred(), '@user.trashnothing.com') !== FALSE;
     }
 
     public function getPublicEmails(&$rets) {

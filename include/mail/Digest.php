@@ -393,7 +393,7 @@ class Digest
                     $email = $u->getEmailPreferred();
                     if ($this->errorlog) { error_log("Preferred $email, send ours " . $u->sendOurMails($g)); }
 
-                    if ($email && $email != MODERATOR_EMAIL && strpos($email, '@user.trashnothing.com') === FALSE && $u->sendOurMails($g)) {
+                    if ($email && $email != MODERATOR_EMAIL && !$u->isTN() && $u->sendOurMails($g)) {
                         $t = $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST);
                         $creds = substr($t, strpos($t, '?'));
 
