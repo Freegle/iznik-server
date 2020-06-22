@@ -50,16 +50,17 @@ class commentAPITest extends IznikAPITestCase {
         assertNotNull($id);
 
         $ret = $this->call('comment', 'GET', [
-            'id' => 0
-        ]);
-        assertEquals(2, $ret['ret']);
-
-        $ret = $this->call('comment', 'GET', [
             'id' => $id
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($this->uid, $ret['comment']['byuserid']);
         assertEquals('Test comment', $ret['comment']['user1']);
+
+        $ret = $this->call('comment', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['comments']));
+        assertEquals($this->uid, $ret['comments'][0]['byuser']['id']);
+        assertEquals('Test comment', $ret['comments'][0]['user1']);
 
         $ret = $this->call('comment', 'PUT', [
             'id' => $id,

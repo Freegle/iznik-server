@@ -3729,6 +3729,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 if ($comments[$commentind]['userid'] == $rets[$retind]['id']) {
                     if ($support || in_array($comments[$commentind]['groupid'], $groupids)) {
                         $comments[$commentind]['date'] = ISODate($comments[$commentind]['date']);
+                        $comments[$commentind]['reviewed'] = ISODate($comments[$commentind]['reviewed']);
 
                         if (pres('byuserid', $comments[$commentind])) {
                             $comments[$commentind]['byuser'] = $commentusers[$comments[$commentind]['byuserid']];
@@ -3739,6 +3740,43 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 }
             }
         }
+    }
+
+    public function listComments(&$ctx) {
+        $ctxq = '';
+
+        if ($ctx) {
+            $ctxq = "users_comments.id > " . intval(presdef('id', $ctx, NULL)) . " AND ";
+        }
+
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $groupids = $me->getModeratorships();
+
+        $sql = "SELECT * FROM users_comments WHERE $ctxq groupid IN (" . implode(',', $groupids) . ") ORDER BY reviewed ASC LIMIT 10;";
+        $comments = $this->dbhr->preQuery($sql);
+
+        $uids = array_unique(array_merge(array_column($comments, 'byuserid'), array_column($comments, 'userid')));
+        $u = new User($this->dbhr, $this->dbhm);
+        $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+
+        foreach ($comments as &$comment) {
+            $comment['date'] = ISODate($comment['date']);
+            $comment['reviewed'] = ISODate($comment['reviewed']);
+
+            if (pres('userid', $comment)) {
+                $comment['user'] = $users[$comment['userid']];
+                unset($comment['userid']);
+            }
+
+            if (pres('byuserid', $comment)) {
+                $comment['byuser'] = $users[$comment['byuserid']];
+                unset($comment['byuserid']);
+            }
+
+            $ctx['id'] = $comment['id'];
+        }
+
+        return $comments;
     }
 
     public function getComment($id)
@@ -3753,6 +3791,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
         foreach ($comments as &$comment) {
             $comment['date'] = ISODate($comment['date']);
+            $comment['reviewed'] = ISODate($comment['reviewed']);
 
             if (pres('byuserid', $comment)) {
                 $u = User::get($this->dbhr, $this->dbhm, $comment['byuserid']);

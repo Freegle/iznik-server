@@ -4,9 +4,8 @@ function comment() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    $me = whoAmI($dbhr, $dbhm);
-
     $id = intval(presdef('id', $_REQUEST, NULL));
+    $ctx = presdef('context', $_REQUEST, NULL);
     $userid = intval(presdef('userid', $_REQUEST, NULL));
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $user1 = $user2 = $user3 = $user4 = $user5 = $user6 = $user7 = $user8 = $user9 = $user10 = $user11 = NULL;
@@ -18,52 +17,63 @@ function comment() {
     $u = User::get($dbhr, $dbhm, $userid);
 
     # Access control is done inside the calls, rather than in here.
-    #
-    # TODO There's inconsistency between what is done in the API layer and what is done in the underlying classes
-    # which might be bad for maintenance.
-    if ($id || $_REQUEST['type'] == 'POST') {
-        $ret = [
-            'ret' => 2,
-            'status' => 'Failed'
-        ];
+    $ret = [
+        'ret' => 2,
+        'status' => 'Failed'
+    ];
 
-        switch ($_REQUEST['type']) {
-            case 'GET': {
+    switch ($_REQUEST['type']) {
+        case 'GET':
+        {
+            if ($id) {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
                     'comment' => $u->getComment($id)
                 ];
+            } else {
+                $comments = $u->listComments($ctx);
 
-                break;
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'comments' => $comments,
+                    'context' => $ctx
+                ];
             }
 
-            case 'POST': {
-                $id = $u->addComment($groupid,
-                    $user1,
-                    $user2,
-                    $user3,
-                    $user4,
-                    $user5,
-                    $user6,
-                    $user7,
-                    $user8,
-                    $user9,
-                    $user10,
-                    $user11);
+            break;
+        }
 
-                if ($id) {
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'id' => $id
-                    ];
-                }
+        case 'POST':
+        {
+            $id = $u->addComment($groupid,
+                $user1,
+                $user2,
+                $user3,
+                $user4,
+                $user5,
+                $user6,
+                $user7,
+                $user8,
+                $user9,
+                $user10,
+                $user11);
 
-                break;
+            if ($id) {
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'id' => $id
+                ];
             }
 
-            case 'PUT': {
+            break;
+        }
+
+        case 'PUT':
+        {
+            if ($id) {
                 $rc = $u->editComment($id,
                     $user1,
                     $user2,
@@ -78,24 +88,22 @@ function comment() {
                     $user11);
 
                 if ($rc) {
-                    $ret = ['ret' => 0, 'status' => 'Success' ];
+                    $ret = ['ret' => 0, 'status' => 'Success'];
                 }
-                break;
             }
+            break;
+        }
 
-            case 'DELETE': {
+        case 'DELETE':
+        {
+            if ($id) {
                 $rc = $u->deleteComment($id);
 
                 if ($rc) {
-                    $ret = ['ret' => 0, 'status' => 'Success' ];
+                    $ret = ['ret' => 0, 'status' => 'Success'];
                 }
             }
         }
-    } else {
-        $ret = [
-            'ret' => 2,
-            'status' => 'Invalid comment id'
-        ];
     }
 
     return($ret);
