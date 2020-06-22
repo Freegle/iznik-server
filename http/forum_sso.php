@@ -31,7 +31,7 @@ if (($sso->validatePayload($payload,$signature))) {
         try {
             # First try via the DB.  This avoids issues where we've just logged in and our session is not up
             # to date.
-            $sessions = $dbhr->preQuery("SELECT sessions.* WHERE sessions.id = ? AND sessions.series = ? AND sessions.token = ?;", [
+            $sessions = $dbhr->preQuery("SELECT * FROM sessions WHERE id = ? AND series = ? AND token = ?;", [
                 $persistent['id'],
                 $persistent['series'],
                 $persistent['token']
