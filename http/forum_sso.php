@@ -62,6 +62,7 @@ if (($sso->validatePayload($payload,$signature))) {
                 $session['admin'] = $u->isAdmin();
                 $session['email'] = $u->getEmailPreferred();
                 $session['grouplist'] = substr(implode(',', $grouplist),0,1000);  // Actual max is 3000 but 1000 is enough
+                $session['mod'] = $u->isModerator();
                 error_log("Group list is {$session['grouplist']}");
             }
         } catch (Exception $e) {
@@ -79,7 +80,7 @@ if (($sso->validatePayload($payload,$signature))) {
                     'name' => $session['name'],
                     'avatar_url' => $session['avatar_url'],
                     'admin' => $session['admin'],
-                    'bio' => "Is on " . $session['grouplist']
+                    'bio' => presdef('mod', $session) ? "Freegle Volunteer on {$session['grouplist']}" : "Member on {$session['grouplist']}"
                 );
 
                 $refer = 'https://forum.ilovefreegle.org';
