@@ -496,99 +496,66 @@ function message() {
                                     $worry = $w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody());
 
                                     # Assume this post is moderated unless we decide otherwise below.
-                                    if ($g->getPrivate('onyahoo')) {
-                                        # We need to make sure we're a member of the Yahoo group with an email address
-                                        # we host (so that replies come back here).
-                                        list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
+                                    if (!$u->isApprovedMember($groupid)) {
+                                        # We're not yet a member.
+                                        if ($g->getSetting('approvemembers', FALSE)) {
+                                            # We approve members.  Add this member as pending.
+                                            $addworked = $u->addMembership($groupid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING);
 
-                                        $ret = ['ret' => 6, 'status' => 'Failed to join group'];
-                                        if (!$eidforgroup || !$u->isApprovedMember($groupid)) {
-                                            # Not a member yet.  We need to sign them up to the Yahoo group before we
-                                            # can send it.  This may result in more applications to Yahoo - but dups are
-                                            # ok.
-                                            $ret = [
-                                                'ret' => 0,
-                                                'status' => 'Queued for group membership',
-                                                'appliedemail' => $m->queueForMembership($u, $groupid),
-                                                'groupid' => $groupid
-                                            ];
-
-                                            # We can't put this message in pending or approved yet.
-                                            $postcoll = MessageCollection::QUEUED_YAHOO_USER;
+                                            # We can't put this in pending yet, as we need to approve the
+                                            # membership first.
+                                            $postcoll = MessageCollection::QUEUED_USER;
                                         } else {
-                                            # Now we have a user who is a member of the appropriate group.
-                                            #
-                                            # We're good to go.  Make sure we submit with the email that is a group member
-                                            # rather than the one they supplied.
-                                            $fromemail = $u->getEmailById($eidforgroup);
+                                            # We don't approve members.  Just join the group.
+                                            $addworked = $u->addMembership($groupid);
 
-                                            # We put this in pending; if the user is unmoderated on Yahoo then it
-                                            # will come back to us and we will move it to approved.
+                                            # This is now a member, and we always moderate posts from new members,
+                                            # so this goes to pending.
                                             $postcoll = MessageCollection::PENDING;
                                         }
-                                    } else {
-                                        # This group is hosted here.
-                                        if (!$u->isApprovedMember($groupid)) {
-                                            # We're not yet a member.
-                                            if ($g->getSetting('approvemembers', FALSE)) {
-                                                # We approve members.  Add this member as pending.
-                                                $addworked = $u->addMembership($groupid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING);
 
-                                                # We can't put this in pending yet, as we need to approve the
-                                                # membership first.
-                                                $postcoll = MessageCollection::QUEUED_USER;
-                                            } else {
-                                                # We don't approve members.  Just join the group.
-                                                $addworked = $u->addMembership($groupid);
-
-                                                # This is now a member, and we always moderate posts from new members,
-                                                # so this goes to pending.
-                                                $postcoll = MessageCollection::PENDING;
-                                            }
-
-                                            if ($addworked === FALSE) {
-                                                # We couldn't join - we're banned.  Suppress the message below.
-                                                $cont = FALSE;
-
-                                                # Pretend it worked, if we suppressed a banned message.
-                                                $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid];
-                                            }
-                                        } else if ($me && $me->getMembershipAtt($groupid, 'ourPostingStatus') == Group::POSTING_PROHIBITED) {
-                                            # We're not allowed to post.
+                                        if ($addworked === FALSE) {
+                                            # We couldn't join - we're banned.  Suppress the message below.
                                             $cont = FALSE;
-                                            $ret = ['ret' => 8, 'status' => 'Not allowed to post on this group'];
+
+                                            # Pretend it worked, if we suppressed a banned message.
+                                            $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid];
+                                        }
+                                    } else if ($me && $me->getMembershipAtt($groupid, 'ourPostingStatus') == Group::POSTING_PROHIBITED) {
+                                        # We're not allowed to post.
+                                        $cont = FALSE;
+                                        $ret = ['ret' => 8, 'status' => 'Not allowed to post on this group'];
+                                    } else {
+                                        # They're already a member, so we might be able to put this straight
+                                        # to approved.
+                                        #
+                                        # The entire group might be moderated, or the member might be, in which
+                                        # case the message goes to pending, otherwise approved.
+                                        #
+                                        # Worrying messages always go to Pending.
+                                        if ($g->getPrivate('overridemoderation') === Group::OVERRIDE_MODERATION_ALL) {
+                                            $postcoll = MessageCollection::PENDING;
                                         } else {
-                                            # They're already a member, so we might be able to put this straight
-                                            # to approved.
-                                            #
-                                            # The entire group might be moderated, or the member might be, in which
-                                            # case the message goes to pending, otherwise approved.
-                                            #
-                                            # Worrying messages always go to Pending.
-                                            if ($g->getPrivate('overridemoderation') === Group::OVERRIDE_MODERATION_ALL) {
-                                                $postcoll = MessageCollection::PENDING;
-                                            } else {
-                                                $postcoll = ($worry || $g->getSetting('moderated', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
-                                            }
+                                            $postcoll = ($worry || $g->getSetting('moderated', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
                                         }
-
-                                        # Check if it's spam
-                                        $s = new Spam($dbhr, $dbhm);
-                                        list ($rc, $reason) = $s->checkMessage($m);
-
-                                        if ($rc) {
-                                            # It is.  Put in the spam collection.
-                                            $postcoll = MessageCollection::SPAM;
-                                        }
-
-                                        # We want the message to come from one of our emails rather than theirs, so
-                                        # that replies come back to us and privacy is maintained.
-                                        $fromemail = $u->inventEmail();
-
-                                        # Make sure this email is attached to the user so that we don't invent
-                                        # another next time.
-                                        $u->addEmail($fromemail, 0, FALSE);
                                     }
+
+                                    # Check if it's spam
+                                    $s = new Spam($dbhr, $dbhm);
+                                    list ($rc, $reason) = $s->checkMessage($m);
+
+                                    if ($rc) {
+                                        # It is.  Put in the spam collection.
+                                        $postcoll = MessageCollection::SPAM;
+                                    }
+
+                                    # We want the message to come from one of our emails rather than theirs, so
+                                    # that replies come back to us and privacy is maintained.
+                                    $fromemail = $u->inventEmail();
+
+                                    # Make sure this email is attached to the user so that we don't invent
+                                    # another next time.
+                                    $u->addEmail($fromemail, 0, FALSE);
 
                                     $m->constructSubject($groupid);
 

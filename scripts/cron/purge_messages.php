@@ -98,27 +98,7 @@ try {
 
     $total = 0;
     do {
-        $sql = "SELECT msgid FROM messages_groups WHERE collection IN ('" . MessageCollection::SPAM . "', '" . MessageCollection::PENDING . "', '" . MessageCollection::QUEUED_YAHOO_USER . "') AND arrival < '$start' LIMIT 1000;";
-        $msgs = $dbhm->query($sql)->fetchAll();
-        foreach ($msgs as $msg) {
-            $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
-            $total++;
-
-            if ($total % 1000 == 0) {
-                error_log("...$total");
-            }
-        }
-    } while (count($msgs) > 0);
-
-    error_log("Deleted $total");
-
-    # Purge messages which have been stuck waiting for Yahoo users for ages.
-    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
-    error_log("Purge waiting for Yahoo before $start");
-
-    $total = 0;
-    do {
-        $sql = "SELECT msgid FROM messages_groups WHERE collection = '" . MessageCollection::QUEUED_YAHOO_USER . "' AND arrival < '$start' LIMIT 1000;";
+        $sql = "SELECT msgid FROM messages_groups WHERE collection IN ('" . MessageCollection::SPAM . "', '" . MessageCollection::PENDING . "') AND arrival < '$start' LIMIT 1000;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
             $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");

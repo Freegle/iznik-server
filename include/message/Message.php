@@ -4051,29 +4051,6 @@ ORDER BY lastdate DESC;";
         }
     }
 
-    public function queueForMembership(User $fromuser, $groupid) {
-        # We would like to submit this message, but we can't do so because we don't have a membership on the Yahoo
-        # group yet.  So fire off an application for one; when this gets processed, we will submit the
-        # message.
-        $ret = NULL;
-        $this->setPrivate('fromuser', $fromuser->getId());
-
-        # If this message is already on this group, that's fine.
-        $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection, arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
-            $this->id,
-            $groupid,
-            MessageCollection::QUEUED_YAHOO_USER,
-            $this->getType()
-        ]);
-
-        if ($rc) {
-            # We've stored the message; send a subscription.
-            $ret = $fromuser->triggerYahooApplication($groupid);
-        }
-        
-        return($ret);
-    }
-
     public function addItem($itemid) {
         # Ignore duplicate msgid/itemid.
         $this->dbhm->preExec("INSERT IGNORE INTO messages_items (msgid, itemid) VALUES (?, ?);", [ $this->id, $itemid]);

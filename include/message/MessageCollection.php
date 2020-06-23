@@ -15,7 +15,6 @@ class MessageCollection
     const EDITS = 'Edit';
     const SPAM = 'Spam';
     const DRAFT = 'Draft';
-    const QUEUED_YAHOO_USER = 'QueuedYahooUser'; # Awaiting a user on the Yahoo group before it can be sent
     const QUEUED_USER = 'QueuedUser'; # Awaiting a user on a native group before it can be sent
     const REJECTED = 'Rejected'; # Rejected by mod; user can see and resend.
     const ALLUSER = 'AllUser';
@@ -54,7 +53,6 @@ class MessageCollection
             case MessageCollection::EDITS:
             case MessageCollection::SPAM:
             case MessageCollection::DRAFT:
-            case MessageCollection::QUEUED_YAHOO_USER:
             case MessageCollection::QUEUED_USER:
             case MessageCollection::REJECTED:
             case MessageCollection::VIEWED:
@@ -69,7 +67,6 @@ class MessageCollection
                     MessageCollection::APPROVED,
                     MessageCollection::PENDING,
                     MessageCollection::REJECTED,
-                    MessageCollection::QUEUED_YAHOO_USER,
                     MessageCollection::QUEUED_USER
                 ];
                 break;
@@ -353,7 +350,6 @@ class MessageCollection
 
                     switch ($coll) {
                         case MessageCollection::DRAFT:
-                        case MessageCollection::QUEUED_YAHOO_USER:
                         case MessageCollection::QUEUED_USER:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners, or self (which returns a role of moderator).

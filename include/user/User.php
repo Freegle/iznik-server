@@ -3463,11 +3463,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         # We might have messages which are awaiting this membership.  Reject them.
-        $msgs = $this->dbhr->preQuery("SELECT messages.id FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND groupid = ? AND collection IN (?, ?);", [
+        $msgs = $this->dbhr->preQuery("SELECT messages.id FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND groupid = ? AND collection = ?;", [
             $this->id,
             $groupid,
-            MessageCollection::QUEUED_USER,
-            MessageCollection::QUEUED_YAHOO_USER
+            MessageCollection::QUEUED_USER
         ], FALSE, FALSE);
 
         foreach ($msgs as $msg) {

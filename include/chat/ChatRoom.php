@@ -1046,7 +1046,7 @@ WHERE chat_rooms.id IN $idlist;";
     public function upToDate($userid) {
         $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
         foreach ($msgs as $msg) {
-            #error_log("Set max to {$msg['max']} for $userid in room {$this->id} ");
+            error_log("upToDate: Set max to {$msg['max']} for $userid in room {$this->id} ");
             $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
                 [
                     $this->id,
@@ -1088,6 +1088,7 @@ WHERE chat_rooms.id IN $idlist;";
 
             if (!$found) {
                 # We don't currently have one.  Add it; include duplicate processing for timing window.
+                error_log("upToDateAll: Add $myid into $chatid");
                 $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
                     [
                         $chatid,
@@ -1106,6 +1107,7 @@ WHERE chat_rooms.id IN $idlist;";
         # We have a unique key, and an update on current timestamp.
         #
         # Don't want to log these - lots of them.
+        error_log("updateRoster: Add $userid into {$this->id}");
         $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?, status = ?;",
             [
                 $this->id,
