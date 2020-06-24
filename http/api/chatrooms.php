@@ -112,9 +112,19 @@ function chatrooms() {
                     # Single roster update.
                     $ret = ['ret' => 2, 'status' => "$id Not visible to you"];
 
-                    # We shouldn't be doing roster updates for chats which we can see by virtue of being a mod, but
-                    # which we're not actually in.  That would be a client bug.
-                    if ($r->canSee($myid, FALSE)) {
+                    # We should only update the roster for a chat we can legitimately be a member of.  We have had
+                    # client bugs where the client updates a User2User chat for a mod, thereby inserting them into the
+                    # chat.
+                    $chattype = $r->getPrivate('chattype');
+
+                    if ($r->canSee($myid, FALSE) &&
+                        ($chattype == ChatRoom::TYPE_USER2MOD ||
+                            $chattype == ChatRoom::TYPE_GROUP ||
+                            $chattype == ChatRoom::TYPE_MOD2MOD ||
+                            ($chattype == ChatRoom::TYPE_USER2USER &&
+                                ($myid == $r->getPrivate('user1') || $myid == $r->getPrivate('user2')))
+                        )
+                    ) {
                         $ret = ['ret' => 0, 'status' => 'Success'];
                         $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
                         $status = presdef('status', $_REQUEST, ChatRoom::STATUS_ONLINE);
