@@ -6199,7 +6199,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     ]);
                     error_log("Sent SMS to {$phone['number']} result {$rsp->sid}");
                 } else {
-                    error_log("Don't send, too recent");
+                    error_log("Don't send SMS to {$phone['number']}, too recent");
                 }
             } catch (Exception $e) {
                 error_log("Send to {$phone['number']} failed with " . $e->getMessage());
