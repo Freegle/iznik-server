@@ -113,16 +113,16 @@ class Authority extends Entity
        CASE 
          WHEN polyindex = 
               Coalesce(simplified, polygon) THEN 1 
-         ELSE St_area(St_intersection(St_simplify(polyindex, 0.01), 
-                                     St_simplify(Coalesce(simplified, polygon), 0.01))) 
+         ELSE St_area(St_intersection(polyindex, 
+                                     Coalesce(simplified, polygon))) 
               / St_area(polyindex) 
        end                          AS overlap, 
        CASE 
          WHEN polyindex = 
               Coalesce(simplified, polygon) THEN 1 
          ELSE St_area(polyindex) / St_area( 
-                     St_intersection(St_simplify(polyindex, 0.01), 
-                             St_simplify(Coalesce(simplified, polygon), 0.01))) 
+                     St_intersection(polyindex, 
+                             Coalesce(simplified, polygon))) 
        end                          AS overlap2 
 FROM   groups 
        INNER JOIN authorities 
