@@ -189,7 +189,13 @@ class locationsAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals('TV13 1HH', $ret['locations'][0]['name']);
 
-        }
+        $ret = $this->call('locations', 'GET', [
+            'typeahead' => 'Tuvalu Central',
+            'pconly' => FALSE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($areaid, $ret['locations'][0]['id']);
+    }
 
     public function testWithinBox()
     {

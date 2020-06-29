@@ -529,10 +529,11 @@ class Location extends Entity
         return($ret);
     }
 
-    public function typeahead($query, $limit = 10, $near = TRUE) {
+    public function typeahead($query, $limit = 10, $near = TRUE, $postcode = TRUE) {
         # We want to select full postcodes (with a space in them)
         $stripped = preg_replace('/\s/', '', $query);
-        $sql = "SELECT * FROM locations WHERE canon LIKE ? AND name LIKE '% %' AND type = 'Postcode' LIMIT $limit;";
+        $postcodeq = $postcode ? " AND name LIKE '% %' AND type = 'Postcode'" : '';
+        $sql = "SELECT * FROM locations WHERE canon LIKE ? $postcodeq LIMIT $limit;";
         $pcs = $this->dbhr->preQuery($sql, [
             "$stripped%"
         ]);
