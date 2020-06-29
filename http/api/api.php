@@ -212,15 +212,6 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
     # This is an optimisation for User.php.
     $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
 
-    # Update our last access time for this user.  We do this every 60 seconds.  This is used to return our
-    # roster status in ChatRoom.php, and also for spotting idle members.
-    $id = pres('id', $_SESSION);
-    $last = presdef('lastaccessupdate', $_SESSION, 0);
-    if ($id && (time() - $last > 60)) {
-        $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
-        $_SESSION['lastaccessupdate'] = time();
-    }
-
     do {
         if (presdef('type', $_REQUEST, NULL) != 'GET') {
             # Check that we're not posting from a blocked country.
@@ -600,6 +591,17 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
     if (presdef('type', $_REQUEST, NULL) != 'GET') {
         # This might have changed things.
         $_SESSION['modorowner'] = [];
+    }
+
+    # Update our last access time for this user.  We do this every 60 seconds.  This is used to return our
+    # roster status in ChatRoom.php, and also for spotting idle members.
+    #
+    # Do this here, as we might not be logged in at the start if we had a persistent token but no PHP session.
+    $id = pres('id', $_SESSION);
+    $last = intval(presdef('lastaccessupdate', $_SESSION, 0));
+    if ($id && (abs(time() - $last) > 60)) {
+        $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
+        $_SESSION['lastaccessupdate'] = time();
     }
 }
 
