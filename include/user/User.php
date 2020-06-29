@@ -4548,9 +4548,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
             $thisone['logins'] = $u->getLogins($me && $me->isAdmin());
 
-            # Also return the chats for this user.
+            # Also return the chats for this user.  Need to pass MODTOOLS = FALSE so that we see the same chats
+            # the user would.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
-            $rooms = $r->listForUser($user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER], NULL, MODTOOLS, NULL, '01-09-2009');
+            $rooms = $r->listForUser($user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER], NULL, FALSE, NULL, '01-09-2009');
             $thisone['chatrooms'] = [];
 
             if ($rooms) {
