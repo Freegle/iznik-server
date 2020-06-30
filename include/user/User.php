@@ -3171,11 +3171,13 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                             User::clearCache($id1);
                             User::clearCache($id2);
 
-                            if ($att != 'fullname') {
-                                $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
-                            } else if (stripos($user[$att], 'fbuser') === FALSE && stripos($user[$att], '-owner') === FALSE) {
-                                # We don't want to overwrite a name with FBUser or a -owner address.
-                                $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1;", [$user[$att]]);
+                            if (!$u1->getPrivate($att)) {
+                                if ($att != 'fullname') {
+                                    $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
+                                } else if (stripos($user[$att], 'fbuser') === FALSE && stripos($user[$att], '-owner') === FALSE) {
+                                    # We don't want to overwrite a name with FBUser or a -owner address.
+                                    $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1;", [$user[$att]]);
+                                }
                             }
                         }
                     }
