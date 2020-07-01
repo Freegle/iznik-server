@@ -779,7 +779,7 @@ class MailRouter
                     $u = new User($this->dbhr, $this->dbhm, $uid);
                     $ret = MailRouter::DROPPED;
 
-                    if ($u->isModOrOwner($gid)) {
+                    if (!$u->isModOrOwner($gid)) {
                         $u->removeMembership($gid, FALSE, FALSE, $envfrom);
                         $ret = MailRouter::TO_SYSTEM;
                     }
