@@ -188,7 +188,8 @@ class PushNotifications
                                 ],
                                 'payload' => [
                                     'aps' => [
-                                        'badge' => $payload['count']
+                                        'badge' => $payload['count'],
+                                        'sound' => "default"
                                         //'content-available' => 1
                                     ]
                                 ],
@@ -310,6 +311,7 @@ class PushNotifications
                     'content-available' => $total > 0,
                     'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
                     'modtools' => $modtools,
+                    'sound' => 'default',
                     'route' => $route
                 ];
 
