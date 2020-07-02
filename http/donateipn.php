@@ -9,6 +9,8 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/misc/Donations.php');
 
 $u = new User($dbhr, $dbhm);
 
@@ -47,6 +49,15 @@ if ($transaction['mc_gross'] > 0) {
         $eid,
         date("Y-m-d H:i:s", strtotime($transaction['payment_date']))
     ]);
+
+    $d = new Donations($dbhr, $dbhm);
+    $giftaid = $d->getGiftAid($u->getId());
+
+    if (!$giftaid || $giftaid['period'] == Donations::PERIOD_THIS) {
+        # Ask them to complete a gift aid form.
+        $n = new Notifications($dbhr, $dbhm);
+        $n->add(NULL, $u->getId, Notifications::TYPE_GIFTAID, NULL);
+    }
 
     # Don't ask for thanks for the PayPal Giving Fund transactions.
     if ($transaction['mc_gross'] >= 20 && $transaction['payer_email'] != 'ppgfukpay@paypalgivingfund.org') {

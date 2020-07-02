@@ -20,6 +20,7 @@ class Notifications
     const TYPE_MEMBERSHIP_REJECTED = 'MembershipRejected';
     const TYPE_ABOUT_ME = 'AboutMe';
     const TYPE_EXHORT = 'Exhort';
+    const TYPE_GIFTAID = 'GiftAid';
 
     private $dbhr, $dbhm, $log;
 

@@ -4,6 +4,10 @@ require_once(IZNIK_BASE . '/include/utils.php');
 
 class Donations
 {
+    const PERIOD_THIS = 'This';
+    const PERIOD_SINCE = 'Since';
+    const PERIOD_FUTURE = 'Future';
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
         $this->dbhr = $dbhr;
@@ -43,5 +47,31 @@ class Donations
         }
 
         return($ret);
+    }
+
+    public function getGiftAid($userid) {
+        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE userid = ? AND deleted IS NULL;", [
+            $userid
+        ], FALSE, FALSE);
+
+        return count($giftaids) ? $giftaids[0] : NULL;
+    }
+
+    public function setGiftAid($userid, $period, $fullname, $homeaddress) {
+        $this->dbhm->preExec("INSERT INTO giftaid (userid, period, fullname, homeaddress) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE period = ?, fullname = ?, homeaddress = ?, deleted = NULL;", [
+            $userid,
+            $period,
+            $fullname,
+            $homeaddress,
+            $period,
+            $fullname,
+            $homeaddress
+        ]);
+    }
+
+    public function deleteGiftAid($userid) {
+        $this->dbhm->preExec("UPDATE giftaid SET deleted = NOW() WHERE userid = ?", [
+            $userid
+        ]);
     }
 }

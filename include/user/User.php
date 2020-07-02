@@ -20,7 +20,6 @@ require_once(IZNIK_BASE . '/include/group/GroupCollection.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
-require_once(IZNIK_BASE . '/mailtemplates/donations/thank.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
@@ -4785,29 +4784,39 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
     public function thankDonation()
     {
-        list ($transport, $mailer) = getMailer();
-        $message = Swift_Message::newInstance()
-            ->setSubject("Thank you for supporting Freegle!")
-            ->setFrom(PAYPAL_THANKS_FROM)
-            ->setReplyTo(PAYPAL_THANKS_FROM)
-            ->setTo($this->getEmailPreferred())
-            ->setBody("Thank you for donating to freegle");
-        Mail::addHeaders($message, Mail::THANK_DONATION);
+        try {
+            $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/donations');
+            $twig = new Twig_Environment($loader);
+            list ($transport, $mailer) = getMailer();
 
-        $html = donation_thank($this->getName(), $this->getEmailPreferred(), $this->loginLink(USER_SITE, $this->id, '/?src=thankdonation'), $this->loginLink(USER_SITE, $this->id, '/settings?src=thankdonation'));
+            $message = Swift_Message::newInstance()
+                ->setSubject("Thank you for supporting Freegle!")
+                ->setFrom(PAYPAL_THANKS_FROM)
+                ->setReplyTo(PAYPAL_THANKS_FROM)
+                ->setTo($this->getEmailPreferred())
+                ->setBody("Thank you for supporting Freegle!");
 
-        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-        # Outlook.
-        $htmlPart = Swift_MimePart::newInstance();
-        $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-        $htmlPart->setContentType('text/html');
-        $htmlPart->setBody($html);
-        $message->attach($htmlPart);
+            Mail::addHeaders($message, Mail::THANK_DONATION);
 
-        Mail::addHeaders($message, Mail::THANK_DONATION, $this->getId());
+            $html = $twig->render('thank.html', [
+                'name' => $this->getName(),
+                'email' => $this->getEmailPreferred(),
+                'unsubscribe' => $this->loginLink(USER_SITE, $this->getId(), "/unsubscribe", NULL)
+            ]);
 
-        $this->sendIt($mailer, $message);
+            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+            # Outlook.
+            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart->setCharset('utf-8');
+            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setContentType('text/html');
+            $htmlPart->setBody($html);
+            $message->attach($htmlPart);
+
+            Mail::addHeaders($message, Mail::THANK_DONATION, $this->getId());
+
+            $this->sendIt($mailer, $message);
+        } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
     }
 
     public function invite($email)
@@ -5871,6 +5880,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $log['group'] = $loggroups[$log['groupid']];
             }
         }
+
+        # Gift aid
+        $d = new Donations($this->dbhr, $this->dbhm);
+        $d['giftaid'] = $d->getGiftAid($this->id);
 
         $ret = $d;
 

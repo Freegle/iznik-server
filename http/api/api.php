@@ -131,6 +131,7 @@ require_once(IZNIK_BASE . '/http/api/bulkop.php');
 require_once(IZNIK_BASE . '/http/api/comment.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/donations.php');
+require_once(IZNIK_BASE . '/http/api/giftaid.php');
 require_once(IZNIK_BASE . '/http/api/error.php');
 require_once(IZNIK_BASE . '/http/api/export.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
@@ -430,6 +431,9 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     break;
                 case 'donations':
                     $ret = donations();
+                    break;
+                case 'giftaid':
+                    $ret = giftaid();
                     break;
                 case 'status':
                     $ret = status();
