@@ -5883,8 +5883,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
 
         # Gift aid
-        $d = new Donations($this->dbhr, $this->dbhm);
-        $d['giftaid'] = $d->getGiftAid($this->id);
+        $don = new Donations($this->dbhr, $this->dbhm);
+        $d['giftaid'] = $don->getGiftAid($this->id);
 
         $ret = $d;
 
