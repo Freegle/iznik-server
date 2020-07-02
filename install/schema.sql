@@ -828,6 +828,27 @@ CREATE TABLE `engage` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `giftaid`
+--
+
+DROP TABLE IF EXISTS `giftaid`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `giftaid` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `userid` bigint(20) unsigned NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `period` enum('This','Since','Future') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'This',
+  `fullname` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `homeaddress` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `deleted` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `userid` (`userid`),
+  CONSTRAINT `giftaid_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `groups`
 --
 
@@ -3667,6 +3688,7 @@ CREATE TABLE `users_donations` (
   `TransactionID` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `GrossAmount` decimal(10,2) NOT NULL,
   `source` enum('DonateWithPayPal','PayPalGivingFund','Facebook','eBay') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DonateWithPayPal',
+  `giftaidrequested` timestamp NULL DEFAULT NULL,
   `giftaidconsent` tinyint(1) NOT NULL DEFAULT '0',
   `giftaidclaimed` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -3962,7 +3984,7 @@ CREATE TABLE `users_notifications` (
   `fromuser` bigint(20) unsigned DEFAULT NULL,
   `touser` bigint(20) unsigned NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `type` enum('CommentOnYourPost','CommentOnCommented','LovedPost','LovedComment','TryFeed','MembershipPending','MembershipApproved','MembershipRejected','AboutMe','Exhort') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('CommentOnYourPost','CommentOnCommented','LovedPost','LovedComment','TryFeed','MembershipPending','MembershipApproved','MembershipRejected','AboutMe','Exhort','GiftAid') COLLATE utf8mb4_unicode_ci NOT NULL,
   `newsfeedid` bigint(20) unsigned DEFAULT NULL,
   `url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `seen` tinyint(1) NOT NULL DEFAULT '0',
@@ -5037,4 +5059,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-02  7:40:14
+-- Dump completed on 2020-07-02  9:09:06
