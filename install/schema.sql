@@ -837,15 +837,17 @@ DROP TABLE IF EXISTS `giftaid`;
 CREATE TABLE `giftaid` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userid` bigint(20) unsigned NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `period` enum('This','Since','Future') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'This',
   `fullname` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `homeaddress` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `deleted` timestamp NULL DEFAULT NULL,
+  `reviewed` timestamp NULL DEFAULT NULL,
+  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid` (`userid`),
   CONSTRAINT `giftaid_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3395,7 +3397,7 @@ CREATE TABLE `users` (
   `lastrelevantcheck` timestamp NULL DEFAULT NULL,
   `lastidlechaseup` timestamp NULL DEFAULT NULL,
   `bouncing` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Whether preferred email has been determined to be bouncing',
-  `permissions` set('BusinessCardsAdmin','Newsletter','NationalVolunteers','Teams') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `permissions` set('BusinessCardsAdmin','Newsletter','NationalVolunteers','Teams','GiftAid') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `invitesleft` int(10) unsigned DEFAULT '10',
   `source` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `chatmodstatus` enum('Moderated','Unmoderated','Fully') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Moderated',
@@ -5038,4 +5040,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-03  7:03:38
+-- Dump completed on 2020-07-03  9:19:42
