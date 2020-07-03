@@ -29,9 +29,8 @@ class giftaidAPITest extends IznikAPITestCase
     public function testBasic()
     {
         # Get a valid postcode.
-        $locid = $this->dbhr->preQuery("SELECT id FROM locations WHERE name LIKE 'EH3 6SS';")[0]['id'];
         $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses WHERE postcodeid = ? LIMIT 1;", [
-            $locid
+            1687412
         ]);
         self::assertEquals(1, count($pafadds));
         $pafid = $pafadds[0]['id'];
