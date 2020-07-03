@@ -214,17 +214,42 @@ class ChatMessage extends Entity
 
             $id = $this->dbhm->lastInsertId();
 
-            # We have ourselves seen this message - unless we're configured to email our own messages, in which
-            # case we want to leave it unseen for the chat digest.
-            if (!$u->notifsOn(User::NOTIFS_EMAIL_MINE)) {
-                $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
-                    [
-                        $id,
-                        $id,
-                        $chatid,
-                        $userid,
-                        $id
-                    ]);
+            if (!$platform) {
+                # Reply by email.  We have obviously seen the message ourselves, but there might be earlier messages
+                # in the chat from other users which we have not seen because they have not yet been notified.
+                #
+                # In this case we leave the message unseen.  That means we may notify and include this message itself,
+                # but that will look OK in context.
+                $earliers = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? AND userid != ? AND seenbyall = 0 AND mailedtoall = 0 ORDER BY id DESC LIMIT 1;", [
+                    $chatid,
+                    $userid
+                ], FALSE, FALSE);
+
+                if (!count($earliers)) {
+                    $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
+                        [
+                            $id,
+                            $id,
+                            $chatid,
+                            $userid,
+                            $id
+                        ]);
+                }
+            } else {
+                # We have ourselves seen this message, and because we sent it from the platform we have had a chance
+                # to see any others.
+                #
+                # If we're configured to email our own messages, we want to leave it unseen for the chat digest.
+                if (!$u->notifsOn(User::NOTIFS_EMAIL_MINE)) {
+                    $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
+                        [
+                            $id,
+                            $id,
+                            $chatid,
+                            $userid,
+                            $id
+                        ]);
+                }
             }
 
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);

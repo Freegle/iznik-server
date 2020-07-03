@@ -714,10 +714,6 @@ class MailRouter
                                             # Add any photos.
                                             $this->addPhotosToChat($chatid);
 
-                                            # The user sending this is up to date with this conversation.  This prevents us
-                                            # notifying her about other messages
-                                            $r->mailedLastForUser($uid);
-
                                             $ret = MailRouter::TO_VOLUNTEERS;
                                         }
                                     }
@@ -1135,14 +1131,10 @@ class MailRouter
                                 # Add any photos.
                                 $this->addPhotosToChat($chatid);
 
-                                # The user sending this is up to date with this conversation.  This prevents us
-                                # notifying her about other messages.
-                                $r->mailedLastForUser($fromid);
-
                                 $promisedto = $m->promisedTo();
 
                                 if ($m->hasOutcome() || ($promisedto && $promisedto != $this->msg->getFromuser())) {
-                                    # We don't want to email the recipient either - no point pestering them with more
+                                    # We don't want to email the recipient - no point pestering them with more
                                     # emails for items which are completed or promised.  They can see them on the
                                     # site if they want.
                                     $r->mailedLastForUser($m->getFromuser());
@@ -1206,10 +1198,6 @@ class MailRouter
 
                                     # Add any photos.
                                     $this->addPhotosToChat($chatid);
-
-                                    # The user sending this is up to date with this conversation.  This prevents us
-                                    # notifying her about other messages
-                                    $r->mailedLastForUser($userid);
 
                                     # It might be nice to suppress email notifications if the message has already
                                     # been promised or is complete, but we don't really know which message this
@@ -1282,16 +1270,12 @@ class MailRouter
                                 # Add any photos.
                                 $this->addPhotosToChat($rid);
 
-                                # The user sending this is up to date with this conversation.  This prevents us
-                                # notifying her about other messages
-                                $r->mailedLastForUser($this->msg->getFromuser());
-
                                 if ($original) {
                                     $m = new Message($this->dbhr, $this->dbhm, $original);
                                     $promisedto = $m->promisedTo();
 
                                     if ($m->hasOutcome() || ($promisedto && $promisedto != $this->msg->getFromuser())) {
-                                        # We don't want to email the recipient either - no point pestering them with more
+                                        # We don't want to email the recipient - no point pestering them with more
                                         # emails for items which are completed or promised.  They can see them on the
                                         # site if they want.
                                         $r->mailedLastForUser($m->getFromuser());
@@ -1362,7 +1346,9 @@ class MailRouter
             } catch (Exception $e) {
                 # Ignore this and continue routing the rest.
                 error_log("Route #" . $this->msg->getID() . " failed " . $e->getMessage() . " stack " . $e->getTraceAsString());
-                $this->dbhm->rollBack();
+                if ($this->dbhm->inTransaction()) {
+                    $this->dbhm->rollBack();
+                }
             }
         }
     }

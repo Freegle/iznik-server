@@ -204,6 +204,71 @@ class chatRoomsTest extends IznikTestCase {
 
     }
 
+    public function testNotifyUser2UserInterleaved() {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+        $this->log("Chat room $id for $u1 <-> $u2");
+        assertNotNull($id);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # Create:
+        #
+        # u1 -> u2 (platform)
+        # u1 <- u2 (email)
+        # u1 -> u2 (platform)
+        #
+        # Then notify u2.  Check that it contains both messages.
+        list ($cm1id, $banned) = $m->create($id, $u1, "Test u1 -> u2 1");
+
+        $cm1 = new ChatMessage($this->dbhr, $this->dbhm, $cm1id);
+        assertEquals(0, $cm1->getPrivate('mailedtoall'));
+        assertEquals(0, $cm1->getPrivate('seenbyall'));
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
+        $mr = new MailRouter($this->dbhm, $this->dbhm);
+        $mid = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
+        $rc = $mr->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $cm1 = new ChatMessage($this->dbhr, $this->dbhm, $cm1id);
+        assertEquals(0, $cm1->getPrivate('mailedtoall'));
+        assertEquals(0, $cm1->getPrivate('seenbyall'));
+
+        list ($cm2id, $banned) = $m->create($id, $u1, "Test u1 -> u2 2");
+        $this->log("u1 $u1 sent CM1 $cm1id, CM2 $cm2id to $u2");
+
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        # Notify - will email just one as we don't notify our own by default.
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+
+        $text = $this->msgsSent[0]['body'];
+        assertTrue(strpos($text, 'Test u1 -> u2 1') !== FALSE);
+    }
+
     public function testNotifyUser2UserOwn() {
         $this->log(__METHOD__ );
 
