@@ -3419,7 +3419,7 @@ CREATE TABLE `users` (
   `lastrelevantcheck` timestamp NULL DEFAULT NULL,
   `lastidlechaseup` timestamp NULL DEFAULT NULL,
   `bouncing` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Whether preferred email has been determined to be bouncing',
-  `permissions` set('BusinessCardsAdmin','Newsletter','NationalVolunteers','Teams') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `permissions` set('BusinessCardsAdmin','Newsletter','NationalVolunteers','Teams','GiftAid') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `invitesleft` int(10) unsigned DEFAULT '10',
   `source` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `chatmodstatus` enum('Moderated','Unmoderated','Fully') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Moderated',
