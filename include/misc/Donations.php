@@ -151,7 +151,6 @@ class Donations
             $addresses = $a->listForUser($giftaid['userid']);
             $possible = NULL;
 
-            error_log("check addresses " . var_export($giftaid, TRUE) . " vs " . var_export($addresses, TRUE));
             foreach ($addresses as $address) {
                 $pc = $address['postcode']['name'];
 
@@ -161,8 +160,6 @@ class Donations
                     break;
                 }
             }
-
-            error_log("Possible $possible");
 
             if (!$possible) {
                 # We didn't find it in one of their addresses.  See if we can find a postcode using the government
@@ -175,7 +172,6 @@ class Donations
             if ($possible) {
                 $l = new Location($this->dbhr, $this->dbhm);
                 $locs = $l->typeahead($possible);
-                error_log("Typehead for $possible " . var_export($locs, TRUE));
 
                 if (count($locs)) {
                     $found++;
