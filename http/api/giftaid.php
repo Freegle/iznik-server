@@ -44,11 +44,12 @@ function giftaid() {
                 $ret = ['ret' => 2, 'status' => 'Bad parameters'];
 
                 if ($period && $fullname && $homeaddress) {
-                    $d->setGiftAid($me->getId(), $period, $fullname, $homeaddress);
+                    $id = $d->setGiftAid($me->getId(), $period, $fullname, $homeaddress);
 
                     $ret = [
                         'ret' => 0,
-                        'status' => 'Success'
+                        'status' => 'Success',
+                        'id' => $id
                     ];
                 }
             }
@@ -80,10 +81,11 @@ function giftaid() {
                 $period = presdef('period', $_REQUEST, NULL);
                 $fullname = presdef('fullname', $_REQUEST, NULL);
                 $homeaddress = presdef('homeaddress', $_REQUEST, NULL);
+                $postcode = presdef('postcode', $_REQUEST, NULL);
                 $reviewed  = array_key_exists('reviewed', $_REQUEST) ? filter_var($_REQUEST['reviewed'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
                 $d = new Donations($dbhr, $dbhm);
-                $d->editGiftAid($id, $period, $fullname, $homeaddress, $reviewed);
+                $d->editGiftAid($id, $period, $fullname, $homeaddress, $postcode, $reviewed);
 
                 $ret = [
                     'ret' => 0,

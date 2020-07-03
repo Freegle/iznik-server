@@ -28,6 +28,11 @@ class giftaidAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
+        # Get a valid postcode.
+        $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses LIMIT 1;");
+        self::assertEquals(1, count($pafadds));
+        $pafid = $pafadds[0]['id'];
+
         # Logged out - error
         $ret = $this->call('giftaid', 'GET', []);
         assertEquals(1, $ret['ret']);
@@ -37,6 +42,12 @@ class giftaidAPITest extends IznikAPITestCase
         $uid = $u->create('Test', 'User', NULL);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+
+        # Give them an address we will recognise the postcode for
+        $a = new Address($this->dbhr, $this->dbhm);
+        $aid = $a->create($uid, $pafid);
+        $a = new Address($this->dbhr, $this->dbhm, $aid);
+        $pc = $a->getPublic()['postcode']['name'];
 
         # No consent yet
         $ret = $this->call('giftaid', 'GET', []);
@@ -54,15 +65,21 @@ class giftaidAPITest extends IznikAPITestCase
         $ret = $this->call('giftaid', 'POST', [
             'period' => Donations::PERIOD_THIS,
             'fullname' => 'Test User',
-            'homeaddress' => 'Somewhere'
+            'homeaddress' => "Somewhere $pc"
         ]);
 
         assertEquals(0, $ret['ret']);
+        $gid = $ret['id'];
+        assertNotNull($gid);
 
         # Get it back.
         $ret = $this->call('giftaid', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertEquals('Test User', $ret['giftaid']['fullname']);
+
+        # Set up the postcode.
+        $d = new Donations($this->dbhr, $this->dbhm);
+        assertEquals(1, $d->identifyGiftAidPostcode($gid));
 
         # List without permission - will return ours.
         $ret = $this->call('giftaid', 'GET', [
@@ -70,6 +87,8 @@ class giftaidAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals('Test User', $ret['giftaid']['fullname']);
+
+        assertEquals($pc, $ret['giftaid']['postcode']);
 
         $u->setPrivate('permissions', User::PERM_GIFTAID);
         $ret = $this->call('giftaid', 'GET', [
@@ -109,5 +128,49 @@ class giftaidAPITest extends IznikAPITestCase
         $ret = $this->call('giftaid', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertFalse(array_key_exists('giftaid', $ret));
+    }
+
+    public function testPostcode()
+    {
+        # Get a valid postcode.
+        $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses LIMIT 1;");
+        self::assertEquals(1, count($pafadds));
+        $pafid = $pafadds[0]['id'];
+
+        # Create user
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # Get the postcode but don't have it as an address.
+        $a = new Address($this->dbhr, $this->dbhm);
+        $aid = $a->create($uid, $pafid);
+        $a = new Address($this->dbhr, $this->dbhm, $aid);
+        $pc = $a->getPublic()['postcode']['name'];
+        $a->delete();
+
+        # Add it with valid parameters
+        $ret = $this->call('giftaid', 'POST', [
+            'period' => Donations::PERIOD_THIS,
+            'fullname' => 'Test User',
+            'homeaddress' => "Somewhere $pc"
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $gid = $ret['id'];
+        assertNotNull($gid);
+
+        # Set up the postcode.
+        $d = new Donations($this->dbhr, $this->dbhm);
+        assertEquals(1, $d->identifyGiftAidPostcode($gid));
+
+        # List without permission - will return ours.
+        $ret = $this->call('giftaid', 'GET', [
+            'all' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('Test User', $ret['giftaid']['fullname']);
+        assertEquals($pc, $ret['giftaid']['postcode']);
     }
 }

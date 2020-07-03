@@ -4,14 +4,19 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/misc/Donations.php');
 
 $lockh = lockScript(basename(__FILE__));
+
+# Set up any missing postcodes we can identify.
+$d = new Donations($dbhr, $dbhm);
+$count = $d->identifyGiftAidPostcode();
 
 # As of 2020-07-03 we can claim gift aid back to 2020-04-06.  Look for donations from PayPal Donate (which doesn't
 # handle gift aid), where we don't have gift aid consent and where the donation was a couple of days ago (to give
 # the initial ask time to work).
 $start = date('Y-m-d', strtotime("48 hours ago"));
-$donations = $dbhr->preQuery("SELECT users_donations.* FROM `users_donations` LEFT JOIN giftaid ON giftaid.userid = users_donations.userid WHERE users_donations.timestamp >= '2016-04-06' AND users_donations.timestamp <= '$start' AND source = 'DonateWithPaypal' AND giftaidconsent = 0 AND giftaid.userid IS NULL AND giftaidchaseup IS NULL;");
+$donations = $dbhr->preQuery("SELECT users_donations.* FROM `users_donations` LEFT JOIN giftaid ON giftaid.userid = users_donations.userid WHERE users_donations.timestamp >= '2016-04-06' AND users_donations.timestamp <= '$start' AND source = 'DonateWithPaypal' AND giftaidconsent = 0 AND giftaid.userid IS NULL AND giftaidchaseup IS NULL AND users_donations.userid IS NOT NULL;");
 
 $sentto = [];
 

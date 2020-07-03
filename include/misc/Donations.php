@@ -2,6 +2,8 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/user/Address.php');
+require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 class Donations
 {
@@ -82,7 +84,7 @@ class Donations
         return $giftaids[0]['count'];
     }
 
-    public function editGiftAid($id, $period, $fullname, $homeaddress, $reviewed) {
+    public function editGiftAid($id, $period, $fullname, $homeaddress, $postcode, $reviewed) {
         if ($period) {
             $this->dbhm->preExec("UPDATE giftaid SET period = ? WHERE id = ?;", [
                 $period,
@@ -104,6 +106,13 @@ class Donations
             ]);
         }
 
+        if ($postcode) {
+            $this->dbhm->preExec("UPDATE giftaid SET postcode = ? WHERE id = ?;", [
+                $postcode,
+                $id
+            ]);
+        }
+
         if ($reviewed) {
             $this->dbhm->preExec("UPDATE giftaid SET reviewed = NOW() WHERE id = ?;", [
                 $id
@@ -112,7 +121,7 @@ class Donations
     }
 
     public function setGiftAid($userid, $period, $fullname, $homeaddress) {
-        $this->dbhm->preExec("INSERT INTO giftaid (userid, period, fullname, homeaddress) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE period = ?, fullname = ?, homeaddress = ?, deleted = NULL;", [
+        $this->dbhm->preExec("INSERT INTO giftaid (userid, period, fullname, homeaddress) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), period = ?, fullname = ?, homeaddress = ?, deleted = NULL;", [
             $userid,
             $period,
             $fullname,
@@ -121,11 +130,59 @@ class Donations
             $fullname,
             $homeaddress
         ]);
+
+        return $this->dbhm->lastInsertId();
     }
 
     public function deleteGiftAid($userid) {
         $this->dbhm->preExec("UPDATE giftaid SET deleted = NOW() WHERE userid = ?", [
             $userid
         ]);
+    }
+
+    public function identifyGiftAidPostcode($id = NULL) {
+        $idq = $id ? " AND id = $id " : '';
+        $found = 0;
+
+        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE postcode IS NULL AND deleted IS NULL $idq;");
+        $a = new Address($this->dbhr, $this->dbhm);
+
+        foreach ($giftaids as $giftaid) {
+            $addresses = $a->listForUser($giftaid['userid']);
+            $possible = NULL;
+
+            foreach ($addresses as $address) {
+                $pc = $address['postcode']['name'];
+
+                if (stripos($giftaid['homeaddress'], $pc) !== FALSE) {
+                    # We've found the postcode in one of their addresses, so we can record it.
+                    $possible = $pc;
+                    break;
+                }
+            }
+
+            if (!$possible) {
+                # We didn't find it in one of their addresses.  See if we can find a postcode using the government
+                # regex;
+                if (preg_match('/([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})/mi', $giftaid['homeaddress'], $matches)) {
+                    $possible = strtoupper($matches[0]);
+                }
+            }
+
+            if ($possible) {
+                $l = new Location($this->dbhr, $this->dbhm);
+                $locs = $l->typeahead($possible);
+
+                if (count($locs)) {
+                    $found++;
+                    $this->dbhm->preExec("UPDATE giftaid SET postcode = ? WHERE id = ?;", [
+                        $locs[0]['name'],
+                        $giftaid['id']
+                    ]);
+                }
+            }
+        }
+
+        return $found;
     }
 }
