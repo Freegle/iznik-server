@@ -29,7 +29,10 @@ class giftaidAPITest extends IznikAPITestCase
     public function testBasic()
     {
         # Get a valid postcode.
-        $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses LIMIT 1;");
+        $locid = $this->dbhr->preQuery("SELECT id FROM locations WHERE name LIKE 'EH3 6SS';")[0]['id'];
+        $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses WHERE postcodeid = ? LIMIT 1;", [
+            $locid
+        ]);
         self::assertEquals(1, count($pafadds));
         $pafid = $pafadds[0]['id'];
 
@@ -132,29 +135,16 @@ class giftaidAPITest extends IznikAPITestCase
 
     public function testPostcode()
     {
-        # Get a valid postcode.
-        $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses LIMIT 1;");
-        self::assertEquals(1, count($pafadds));
-        $pafid = $pafadds[0]['id'];
-
-        # Create user
         $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', NULL);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        # Get the postcode but don't have it as an address.
-        $a = new Address($this->dbhr, $this->dbhm);
-        $aid = $a->create($uid, $pafid);
-        $a = new Address($this->dbhr, $this->dbhm, $aid);
-        $pc = $a->getPublic()['postcode']['name'];
-        $a->delete();
-
-        # Add it with valid parameters
+        # Add address.  EH3 6SS is set up in testenv.
         $ret = $this->call('giftaid', 'POST', [
             'period' => Donations::PERIOD_THIS,
             'fullname' => 'Test User',
-            'homeaddress' => "Somewhere $pc"
+            'homeaddress' => "Somewhere EH36SS"
         ]);
 
         assertEquals(0, $ret['ret']);
@@ -171,6 +161,6 @@ class giftaidAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals('Test User', $ret['giftaid']['fullname']);
-        assertEquals($pc, $ret['giftaid']['postcode']);
+        assertEquals("EH3 6SS", $ret['giftaid']['postcode']);
     }
 }
