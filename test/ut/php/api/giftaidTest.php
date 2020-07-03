@@ -64,6 +64,43 @@ class giftaidAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals('Test User', $ret['giftaid']['fullname']);
 
+        # List without permission - will return ours.
+        $ret = $this->call('giftaid', 'GET', [
+            'all' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('Test User', $ret['giftaid']['fullname']);
+
+        $u->setPrivate('permissions', User::PERM_GIFTAID);
+        $ret = $this->call('giftaid', 'GET', [
+            'all' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $found = NULL;
+        foreach ($ret['giftaids'] as $giftaid) {
+            if ($giftaid['userid'] == $uid) {
+                $found = $giftaid['id'];
+            }
+        }
+
+        assertNotNull($found);
+
+        # Edit it
+        $ret = $this->call('giftaid', 'PATCH', [
+            'id' => $found,
+            'period' => 'This',
+            'fullname' => 'Real Name',
+            'homeaddress' => 'Somewhere',
+            'reviewed' => TRUE
+        ]);
+
+        # Check it's changed.
+        $ret = $this->call('giftaid', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals('Real Name', $ret['giftaid']['fullname']);
+        assertNotNull(presdef('reviewed', $ret['giftaid'], NULL));
+
         # Delete it
         $ret = $this->call('giftaid', 'DELETE', []);
         assertEquals(0, $ret['ret']);

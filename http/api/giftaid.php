@@ -8,15 +8,25 @@ function giftaid() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
+            $all = array_key_exists('all', $_REQUEST) ? filter_var($_REQUEST['all'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
             if ($me) {
                 $d = new Donations($dbhr, $dbhm);
 
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'giftaid' => $d->getGiftAid($me->getId())
-                ];
+                if ($all && ($me->isAdmin() || $me->hasPermission(User::PERM_GIFTAID))) {
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'giftaids' => $d->listGiftAidReview($me->getId())
+                    ];
+                } else {
+                    # Just get ours
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'giftaid' => $d->getGiftAid($me->getId())
+                    ];
+                }
             }
 
             break;
@@ -52,6 +62,28 @@ function giftaid() {
             if ($me) {
                 $d = new Donations($dbhr, $dbhm);
                 $d->deleteGiftAid($me->getId());
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
+            }
+
+            break;
+        }
+
+        case 'PATCH': {
+            $ret = ['ret' => 1, 'status' => 'Not logged in'];
+
+            if ($me && ($me->isAdmin() || $me->hasPermission(User::PERM_GIFTAID))) {
+                $id = intval(presdef('id', $_REQUEST, 0));
+                $period = presdef('period', $_REQUEST, NULL);
+                $fullname = presdef('fullname', $_REQUEST, NULL);
+                $homeaddress = presdef('homeaddress', $_REQUEST, NULL);
+                $reviewed  = array_key_exists('reviewed', $_REQUEST) ? filter_var($_REQUEST['reviewed'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+
+                $d = new Donations($dbhr, $dbhm);
+                $d->editGiftAid($id, $period, $fullname, $homeaddress, $reviewed);
 
                 $ret = [
                     'ret' => 0,

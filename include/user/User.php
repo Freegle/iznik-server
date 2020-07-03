@@ -61,6 +61,7 @@ class User extends Entity
     const PERM_NEWSLETTER = 'Newsletter';
     const PERM_NATIONAL_VOLUNTEERS = 'NationalVolunteers';
     const PERM_TEAMS = 'Teams';
+    const PERM_GIFTAID = 'GiftAid';
 
     const HAPPY = 'Happy';
     const FINE = 'Fine';
@@ -6673,6 +6674,11 @@ memberships.groupid IN $groupq
         $s = new Story($this->dbhr, $this->dbhm);
         $ret['stories'] = $s->getReviewCount(FALSE, $this);
         $ret['newsletterstories'] = $this->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
+
+        if ($this->hasPermission(User::PERM_GIFTAID)) {
+            $d = new Donations($this->dbhr, $this->dbhm);
+            $ret['giftaid'] = $d->countGiftAidReview();
+        }
 
         if (!$groups) {
             # When the user posts, MODTOOLS will be FALSE but we need to notify mods.
