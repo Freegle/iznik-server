@@ -86,7 +86,7 @@ class Donations
     }
 
     public function listGiftAidReview() {
-        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE reviewed IS NULL ORDER BY timestamp ASC;", NULL, FALSE, FALSE);
+        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE reviewed IS NULL AND deleted IS NULL ORDER BY timestamp ASC;", NULL, FALSE, FALSE);
 
         $uids = array_column($giftaids, 'userid');
         $u = new User($this->dbhr, $this->dbhm);
