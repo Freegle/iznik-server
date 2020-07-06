@@ -165,7 +165,8 @@ function user() {
                                     $ret = [
                                         'ret' => 0,
                                         'status' => 'Success',
-                                        'id' => $id
+                                        'id' => $id,
+                                        'password' => $pwtomail
                                     ];
                                 }
                             }
