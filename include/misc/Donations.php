@@ -101,7 +101,7 @@ class Donations
 
     }
     public function countGiftAidReview() {
-        $giftaids = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM giftaid WHERE reviewed IS NULL ORDER BY timestamp ASC;", NULL, FALSE, FALSE);
+        $giftaids = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM giftaid WHERE reviewed IS NULL AND deleted IS NULL ORDER BY timestamp ASC;", NULL, FALSE, FALSE);
         return $giftaids[0]['count'];
     }
 
