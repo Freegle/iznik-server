@@ -39,7 +39,8 @@ foreach ($transaction as $key => $value) {
 if ($transaction['mc_gross'] > 0) {
     $eid = $u->findByEmail($transaction['payer_email']);
 
-    $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
+    $d = new Donations($dbhr, $dbhm);
+    $d->add(
         $eid,
         $transaction['payer_email'],
         "{$transaction['first_name']} {$transaction['last_name']}",
@@ -48,9 +49,8 @@ if ($transaction['mc_gross'] > 0) {
         $transaction['mc_gross'],
         $eid,
         date("Y-m-d H:i:s", strtotime($transaction['payment_date']))
-    ]);
+    );
 
-    $d = new Donations($dbhr, $dbhm);
     $giftaid = $d->getGiftAid($u->getId());
 
     if (!$giftaid || $giftaid['period'] == Donations::PERIOD_THIS) {

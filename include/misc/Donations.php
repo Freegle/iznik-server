@@ -18,6 +18,27 @@ class Donations
         $this->groupid = $groupid;
     }
 
+    public function add($eid, $email, $name, $date, $txnid, $gross) {
+        $this->dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
+            $eid,
+            $email,
+            $name,
+            $date,
+            $txnid,
+            $gross,
+            $eid,
+            $date
+        ]);
+
+        return $this->dbhm->lastInsertId();
+    }
+
+    public function delete($id) {
+        $this->dbhm->preExec("DELETE FROM users_donations WHERE id = ?;", [
+            $id
+        ]);
+    }
+
     public function get() {
         $target = $this->groupid ? $this->dbhr->preQuery("SELECT fundingtarget FROM groups WHERE id = {$this->groupid};")[0]['fundingtarget'] : DONATION_TARGET;
         $ret = [
@@ -138,6 +159,53 @@ class Donations
         $this->dbhm->preExec("UPDATE giftaid SET deleted = NOW() WHERE userid = ?", [
             $userid
         ]);
+    }
+
+    public function identifyGiftAidedDonations($id = NULl) {
+        $idq = $id ? " AND id = $id " : '';
+        $found = 0;
+
+        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE reviewed IS NOT NULL $idq;");
+
+        foreach ($giftaids as $giftaid) {
+            switch ($giftaid['period']) {
+                case Donations::PERIOD_SINCE: {
+                    # Earliest we can claim is 6th April 2016.
+                    $this->dbhm->preExec("UPDATE users_donations SET giftaidconsent = 1 WHERE userid = ? AND giftaidconsent = 0 AND timestamp >= '2016-04-06';", [
+                        $giftaid['userid']
+                    ]);
+
+                    $found += $this->dbhm->rowsAffected();
+                    break;
+                }
+
+                case Donations::PERIOD_THIS: {
+                    # Only donations on the same day.
+                    $mysqltime = date("Y-m-d", strtotime($giftaid['timestamp']));
+                    $this->dbhm->preExec("UPDATE users_donations SET giftaidconsent = 1 WHERE userid = ? AND giftaidconsent = 0 AND timestamp >= '2016-04-06' AND date(timestamp) = ?;", [
+                        $giftaid['userid'],
+                        $mysqltime
+                    ]);
+
+                    $found += $this->dbhm->rowsAffected();
+                    break;
+                }
+
+                case Donations::PERIOD_FUTURE: {
+                    # Only donations on or after the day of consent.
+                    $mysqltime = date("Y-m-d", strtotime($giftaid['timestamp']));
+                    $this->dbhm->preExec("UPDATE users_donations SET giftaidconsent = 1 WHERE userid = ? AND giftaidconsent = 0 AND timestamp >= '2016-04-06' AND date(timestamp) >= ?;", [
+                        $giftaid['userid'],
+                        $mysqltime
+                    ]);
+
+                    $found += $this->dbhm->rowsAffected();
+                    break;
+                }
+            }
+        }
+
+        return $found;
     }
 
     public function identifyGiftAidPostcode($id = NULL) {

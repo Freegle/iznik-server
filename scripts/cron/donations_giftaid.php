@@ -12,6 +12,9 @@ $lockh = lockScript(basename(__FILE__));
 $d = new Donations($dbhr, $dbhm);
 $count = $d->identifyGiftAidPostcode();
 
+# Mark any donations we can as having gift aid consent.
+$d->identifyGiftAidedDonations();
+
 # As of 2020-07-03 we can claim gift aid back to 2020-04-06.  Look for donations from PayPal Donate (which doesn't
 # handle gift aid), where we don't have gift aid consent and where the donation was a couple of days ago (to give
 # the initial ask time to work).
