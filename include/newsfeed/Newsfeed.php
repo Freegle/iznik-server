@@ -629,7 +629,7 @@ class Newsfeed extends Entity
                 $last = $entry;
             }
 
-            $ctx['pinned'] = array_column($topitems, 'id');
+            $ctx['pinned'] = implode(',', array_column($topitems, 'id'));
         }
 
         return([$users, array_merge($topitems, $bottomitems)]);
