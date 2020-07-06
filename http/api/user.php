@@ -97,7 +97,16 @@ function user() {
         case 'PUT': {
             $u = new User($dbhr, $dbhm);
             $email = presdef('email', $_REQUEST, NULL);
-            $password = presdef('password', $_REQUEST, $u->inventPassword());
+            $password = presdef('password', $_REQUEST, NULL);
+
+            $pwtomail = NULL;
+
+            if (!$password) {
+                # If we invent a password we want to mail it.
+                $pwtomail = $u->inventPassword();
+                $password = $pwtomail;
+            }
+
             $firstname = presdef('firstname', $_REQUEST, NULL);
             $lastname = presdef('lastname', $_REQUEST, NULL);
 
@@ -146,8 +155,7 @@ function user() {
                         $rc = $u->addEmail($email);
 
                         if ($rc) {
-                            # Don't mail the password
-                            $u->welcome($email, NULL);
+                            $u->welcome($email, $pwtomail);
                             $rc = $u->addLogin(User::LOGIN_NATIVE, $id, $password);
 
                             if ($rc) {
