@@ -1427,5 +1427,17 @@ class userTest extends IznikTestCase {
         $u = new User($this->dbhm, $this->dbhm, $uid);
         assertEquals(1, $u->getPrivate('inventedname'));
     }
+
+    public function testResurrect() {
+        $u = new User($this->dbhm, $this->dbhm);
+        $uid = $u->create(NULL, NULL, "Deleted User #1");
+        $name = $u->getName();
+        assertNotFalse(strpos($name, 'Deleted User'));
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $name = $u->getName();
+        assertFalse(strpos($name, 'Deleted User'));
+    }
 }
 

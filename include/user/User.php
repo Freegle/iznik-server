@@ -317,10 +317,14 @@ class User extends Entity
         # Make sure we don't return an email if somehow one has snuck in.
         $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
 
+        # If we are logged in as this user and it's showing deleted then we've resurrected it; give it a new name.
+        $resurrect = presdef('id', $_SESSION, NULL) == $this->id && strpos($name, 'Deleted User') === 0;
+
         if ($default &&
             $this->id &&
             (strlen(trim($name)) === 0 ||
                 $name == 'A freegler' ||
+                $resurrect ||
                 (strlen($name) == 32 && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $name)) ||
                 strpos($name, 'FBUser') !== FALSE)
         ) {
