@@ -254,7 +254,7 @@ WHERE chat_rooms.id IN $idlist;";
     }
 
     # This can be overridden in UT.
-    public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html, $fromuid = NULL)
+    public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html, $fromuid = NULL, $groupid = NULL)
     {
         $_SERVER['SERVER_NAME'] = USER_DOMAIN;
         $message = Swift_Message::newInstance()
@@ -283,6 +283,10 @@ WHERE chat_rooms.id IN $idlist;";
 
             if ($fromuid) {
                 $headers->addTextHeader('X-Freegle-From-UID', $fromuid);
+            }
+
+            if ($groupid) {
+                $headers->addTextHeader('X-Freegle-Group-Volunteer', $groupid);
             }
         } catch (Exception $e) {
             # Flag the email as bouncing.
@@ -1915,6 +1919,8 @@ WHERE chat_rooms.id IN $idlist;";
                             ]);
                             #error_log(var_export($subjs, TRUE));
 
+                            $groupid = NULL;
+
                             switch ($chattype) {
                                 case ChatRoom::TYPE_USER2USER:
                                     $subject = count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject']));
@@ -1926,6 +1932,9 @@ WHERE chat_rooms.id IN $idlist;";
                                     if ($member['role'] == User::ROLE_MEMBER) {
                                         $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
                                         $site = USER_SITE;
+
+                                        # The groupid is useful for TN.
+                                        $groupid = $chat['groupid'];
                                     } else {
                                         $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
                                         $site = MOD_SITE;
@@ -2066,7 +2075,8 @@ WHERE chat_rooms.id IN $idlist;";
                                         $subject,
                                         $textsummary,
                                         $includehtml ? $html : NULL,
-                                        $fromuid);
+                                        $fromuid,
+                                        $groupid);
 
                                     if ($message) {
                                         if ($chattype == ChatRoom::TYPE_USER2USER) {

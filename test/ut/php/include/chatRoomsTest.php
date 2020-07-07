@@ -557,10 +557,20 @@ class chatRoomsTest extends IznikTestCase {
 
     public function mailer(Swift_Message $message) {
         $this->log("Send " . $message->getSubject() . " to " . var_export($message->getTo(), TRUE));
+        $groupid  = NULL;
+        $headers = $message->getHeaders()->getAll();
+
+        foreach ($headers as $header) {
+            if ($header->getFieldName() == 'X-Freegle-Group-Volunteer') {
+                $groupid = intval($header->getValue());
+            }
+        }
+
         $this->msgsSent[] = [
             'subject' => $message->getSubject(),
             'to' => $message->getTo(),
-            'body' => $message->getBody()
+            'body' => $message->getBody(),
+            'groupid' => $groupid
         ];
     }
 
@@ -612,6 +622,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->msgsSent = [];
         assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
+        assertNull($this->msgsSent[0]['groupid']);
 
         # Chase up mods after unreasonably short interval
         self::assertEquals(1, count($r->chaseupMods($id, 0)));
@@ -624,8 +635,8 @@ class chatRoomsTest extends IznikTestCase {
         $this->msgsSent = [];
         assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("Your conversation with the testgroup volunteers", $this->msgsSent[0]['subject']);
-
-        }
+        assertEquals($this->groupid, $this->msgsSent[0]['groupid']);
+    }
 
     public function testEmojiSplit()
     {
