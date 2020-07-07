@@ -23,6 +23,10 @@ do {
         # Sleep for more to arrive, otherwise keep going.
         $max--;
         sleep(1);
+
+        if (file_exists('/tmp/iznik.chatnotify.abort')) {
+            exit(0);
+        }
     }
 } while ($max > 0);
 
