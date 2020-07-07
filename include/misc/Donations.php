@@ -270,8 +270,8 @@ class Donations
         foreach ($giftaids as $giftaid) {
             # Look for a house number, possibly with a letter, e.g. 13a.
             #error_log("Check {$giftaid['homeaddress']}");
-            if (preg_match('/^([\d\/\\-]+[a-z]{0,1})\w/im', $giftaid['homeaddress'], $matches)) {
-                $number = $matches[0];
+            if (preg_match('/^([\d\/\\-]+[a-z]{0,1})[\w\s]/im', $giftaid['homeaddress'], $matches)) {
+                $number = trim($matches[0]);
                 #error_log("Found $number " . var_export($matches, TRUE));
 
                 $this->dbhm->preExec("UPDATE giftaid SET housenameornumber = ? WHERE id = ?;", [

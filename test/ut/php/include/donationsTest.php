@@ -58,7 +58,7 @@ class donationsTest extends IznikTestCase {
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_SINCE, 'Test User', 'Nowheresville');
-        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, TRUE);
+        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE);
 
         # All three have consent
         assertEquals(3, $d->identifyGiftAidedDonations($gid));
@@ -89,7 +89,7 @@ class donationsTest extends IznikTestCase {
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_THIS, 'Test User', 'Nowheresville');
-        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, TRUE);
+        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE);
 
         assertEquals(1, $d->identifyGiftAidedDonations($gid));
 
@@ -119,7 +119,7 @@ class donationsTest extends IznikTestCase {
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_FUTURE, 'Test User', 'Nowheresville');
-        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, TRUE);
+        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE);
 
         assertEquals(2, $d->identifyGiftAidedDonations($gid));
 
