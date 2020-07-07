@@ -861,7 +861,7 @@ memberships.groupid IN $groupq
             foreach ([ User::HAPPY, User::UNHAPPY, User::FINE] as $val) {
                 if ($filter == $val) {
                     if ($val === 'Fine') {
-                        $filterq = " AND (messages_outcomes IS NULL OR messages_outcomes.happiness = '$val') ";
+                        $filterq = " AND (messages_outcomes.outcome IS NULL OR messages_outcomes.happiness = '$val') ";
                     } else {
                         $filterq = " AND messages_outcomes.happiness = '$val' ";
                     }
