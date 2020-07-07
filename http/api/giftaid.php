@@ -82,10 +82,11 @@ function giftaid() {
                 $fullname = presdef('fullname', $_REQUEST, NULL);
                 $homeaddress = presdef('homeaddress', $_REQUEST, NULL);
                 $postcode = presdef('postcode', $_REQUEST, NULL);
+                $housenameornumber = presdef('housenameornumber', $_REQUEST, NULL);
                 $reviewed  = array_key_exists('reviewed', $_REQUEST) ? filter_var($_REQUEST['reviewed'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
                 $d = new Donations($dbhr, $dbhm);
-                $d->editGiftAid($id, $period, $fullname, $homeaddress, $postcode, $reviewed);
+                $d->editGiftAid($id, $period, $fullname, $homeaddress, $postcode, $housenameornumber, $reviewed);
 
                 $ret = [
                     'ret' => 0,

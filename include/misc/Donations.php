@@ -105,7 +105,7 @@ class Donations
         return $giftaids[0]['count'];
     }
 
-    public function editGiftAid($id, $period, $fullname, $homeaddress, $postcode, $reviewed) {
+    public function editGiftAid($id, $period, $fullname, $homeaddress, $postcode, $housenameornumber, $reviewed) {
         if ($period) {
             $this->dbhm->preExec("UPDATE giftaid SET period = ? WHERE id = ?;", [
                 $period,
@@ -130,6 +130,13 @@ class Donations
         if ($postcode) {
             $this->dbhm->preExec("UPDATE giftaid SET postcode = ? WHERE id = ?;", [
                 $postcode,
+                $id
+            ]);
+        }
+
+        if ($housenameornumber) {
+            $this->dbhm->preExec("UPDATE giftaid SET housenameornumber = ? WHERE id = ?;", [
+                $housenameornumber,
                 $id
             ]);
         }
@@ -248,6 +255,31 @@ class Donations
                         $giftaid['id']
                     ]);
                 }
+            }
+        }
+
+        return $found;
+    }
+
+    public function identifyGiftAidHouse($id = NULL) {
+        $idq = $id ? " AND id = $id " : '';
+        $found = 0;
+
+        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE housenameornumber IS NULL AND deleted IS NULL $idq;");
+
+        foreach ($giftaids as $giftaid) {
+            # Look for a house number, possibly with a letter, e.g. 13a.
+            #error_log("Check {$giftaid['homeaddress']}");
+            if (preg_match('/^([\d\/\\-]+[a-z]{0,1})\w/im', $giftaid['homeaddress'], $matches)) {
+                $number = $matches[0];
+                #error_log("Found $number " . var_export($matches, TRUE));
+
+                $this->dbhm->preExec("UPDATE giftaid SET housenameornumber = ? WHERE id = ?;", [
+                    $number,
+                    $giftaid['id']
+                ]);
+
+                $found++;
             }
         }
 

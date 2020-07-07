@@ -8,9 +8,10 @@ require_once(IZNIK_BASE . '/include/misc/Donations.php');
 
 $lockh = lockScript(basename(__FILE__));
 
-# Set up any missing postcodes we can identify.
+# Set up any missing postcodes and houses we can identify.
 $d = new Donations($dbhr, $dbhm);
 $count = $d->identifyGiftAidPostcode();
+$count = $d->identifyGiftAidHouse();
 
 # Mark any donations we can as having gift aid consent.
 $d->identifyGiftAidedDonations();

@@ -162,4 +162,35 @@ class giftaidAPITest extends IznikAPITestCase
         assertEquals('Test User', $ret['giftaid']['fullname']);
         assertEquals("EH3 6SS", $ret['giftaid']['postcode']);
     }
+
+    public function testHouse()
+    {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # Add address.  EH3 6SS is set up in testenv.
+        $ret = $this->call('giftaid', 'POST', [
+            'period' => Donations::PERIOD_THIS,
+            'fullname' => 'Test User',
+            'homeaddress' => "13-14a Somewhere EH36SS"
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $gid = $ret['id'];
+        assertNotNull($gid);
+
+        # Set up the postcode.
+        $d = new Donations($this->dbhr, $this->dbhm);
+        assertEquals(1, $d->identifyGiftAidHouse($gid));
+
+        # List without permission - will return ours.
+        $ret = $this->call('giftaid', 'GET', [
+            'all' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('Test User', $ret['giftaid']['fullname']);
+        assertEquals("13-14a", $ret['giftaid']['housenameornumber']);
+    }
 }
