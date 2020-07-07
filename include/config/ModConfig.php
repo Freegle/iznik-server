@@ -287,7 +287,12 @@ class ModConfig extends Entity
     }
 
     public function inUse() {
-        $uses = $this->dbhr->preQuery("SELECT * FROM memberships WHERE configid = ?;", [ $this->id ]);
+        $uses = $this->dbhr->preQuery("SELECT * FROM memberships WHERE configid = ? AND role IN (?, ?);", [
+            $this->id,
+            User::ROLE_MODERATOR,
+            User::ROLE_OWNER
+        ]);
+
         return(count($uses) > 0);
     }
 
