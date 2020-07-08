@@ -3374,6 +3374,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 $rid = $r->createUser2Mod($this->id, $groupid);
 
                 if ($rid) {
+                    # Create the message.  Mark it as needing review to prevent timing window.
                     $m = new ChatMessage($this->dbhr, $this->dbhm);
                     list ($mid, $banned) = $m->create($rid,
                         $myid,
@@ -3381,7 +3382,12 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                         ChatMessage::TYPE_MODMAIL,
                         NULL,
                         TRUE,
-                        NULL);
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        TRUE);
 
                     $this->mailer($me, TRUE, $this->getName(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->id . " $to)\n\n" . $body);
 
@@ -3396,6 +3402,9 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     # Mark the message as seen, because have mailed it.
                     $r->updateRoster($myid, $this->id);
                 }
+
+                # Allow mailing to happen.
+                $m->setPrivate('reviewrequired', 0);
             }
         }
     }

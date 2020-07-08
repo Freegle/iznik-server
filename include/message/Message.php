@@ -2908,6 +2908,7 @@ ORDER BY lastdate DESC;";
             $rid = $r->createUser2Mod($this->getFromuser(), $groupid);
 
             if ($rid) {
+                # Create the message.  Mark it as needing review to prevent timing window.
                 $m = new ChatMessage($this->dbhr, $this->dbhm);
                 list ($mid, $banned) = $m->create($rid,
                     $myid,
@@ -2915,7 +2916,12 @@ ORDER BY lastdate DESC;";
                     ChatMessage::TYPE_MODMAIL,
                     $this->id,
                     TRUE,
-                    NULL);
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL,
+                    TRUE);
 
                 $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->getFromuser() . " $to)\n\n" . $body);
 
@@ -2931,6 +2937,9 @@ ORDER BY lastdate DESC;";
                 # Mark the message as seen, because have mailed it.
                 $r->updateRoster($myid, $this->getFromuser());
             }
+
+            # Allow mailing to happen.
+            $m->setPrivate('reviewrequired', 0);
         }
     }
 
