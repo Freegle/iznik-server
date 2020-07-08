@@ -3372,6 +3372,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 # because they would get confused by a mail in our notification format.
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
                 $rid = $r->createUser2Mod($this->id, $groupid);
+                $m = NULL;
 
                 if ($rid) {
                     # Create the message.  Mark it as needing review to prevent timing window.
@@ -3403,8 +3404,10 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $r->updateRoster($myid, $this->id);
                 }
 
-                # Allow mailing to happen.
-                $m->setPrivate('reviewrequired', 0);
+                if ($m) {
+                    # Allow mailing to happen.
+                    $m->setPrivate('reviewrequired', 0);
+                }
             }
         }
     }

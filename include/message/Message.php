@@ -2906,6 +2906,7 @@ ORDER BY lastdate DESC;";
             # because they would get confused by a mail in our notification format.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
             $rid = $r->createUser2Mod($this->getFromuser(), $groupid);
+            $m = NULL;
 
             if ($rid) {
                 # Create the message.  Mark it as needing review to prevent timing window.
@@ -2938,8 +2939,10 @@ ORDER BY lastdate DESC;";
                 $r->updateRoster($myid, $this->getFromuser());
             }
 
-            # Allow mailing to happen.
-            $m->setPrivate('reviewrequired', 0);
+            if ($m) {
+                # Allow mailing to happen.
+                $m->setPrivate('reviewrequired', 0);
+            }
         }
     }
 
