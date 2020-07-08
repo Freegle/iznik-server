@@ -1678,7 +1678,11 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
                         }
                     }
 
-                    $group['recentautoapprovespercent'] = $group['recentmanualapproves'] ? (round(100 * $group['recentautoapproves']) / $group['recentmanualapproves']) : 0;
+                    if (pres('recentautoapproves', $group)) {
+                        $group['recentautoapprovespercent'] = $group['recentmanualapproves'] ? (round(100 * $group['recentautoapproves']) / $group['recentmanualapproves']) : 0;
+                    } else {
+                        $group['recentautoapprovespercent'] = 0;
+                    }
                 }
 
                 $ret[] = $group;
