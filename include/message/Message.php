@@ -2936,7 +2936,7 @@ ORDER BY lastdate DESC;";
                 $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
 
                 # Mark the message as seen, because have mailed it.
-                $r->updateRoster($myid, $this->getFromuser());
+                $r->updateRoster($this->getFromuser(), $mid);
             }
 
             if ($m) {

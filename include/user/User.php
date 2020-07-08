@@ -3401,7 +3401,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $this->mailer($me, TRUE, $this->getName(), $to, NULL, $name, $g->getModsEmail(), $subject, $body);
 
                     # Mark the message as seen, because have mailed it.
-                    $r->updateRoster($myid, $this->id);
+                    $r->updateRoster($this->id, $myid);
                 }
 
                 if ($m) {
