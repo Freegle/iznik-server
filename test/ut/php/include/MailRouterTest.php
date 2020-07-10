@@ -1210,6 +1210,31 @@ class MailRouterTest extends IznikTestCase {
 
     }
 
+    public function testReplyToMissing() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, 'Test User');
+
+        # Send a purported reply to that user.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply2'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test2@test.com', "user-$uid1@" . USER_DOMAIN, $msg);
+        assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNotNull($m->getFromuser());
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        # Check marked as spam
+        $uid2 = $u->findByEmail('from2@test.com');
+        assertNotNull($uid2);
+        $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid = ?;", [
+            $uid2
+        ], FALSE, FALSE);
+        assertEquals(1, count($msgs));
+        assertEquals(1, $msgs[0]['reviewrejected']);
+    }
+
     public function testTNHeader() {
         # Create a user for a reply.
         $u = User::get($this->dbhr, $this->dbhm);

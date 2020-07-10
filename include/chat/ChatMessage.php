@@ -194,6 +194,13 @@ class ChatMessage extends Entity
                 }
             }
 
+            if ($review && $type === ChatMessage::TYPE_INTERESTED && !$refmsgid) {
+                # This looks like spam, and it claims to be a reply - but not to a message we can identify.  We get
+                # periodic floods of these in spam attacks.
+                $spam = 1;
+                $review = 0;
+            }
+
             # Even if it's spam, we still create the message, so that if we later decide that it wasn't spam after all
             # it's still around to unblock.
             $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);", [
