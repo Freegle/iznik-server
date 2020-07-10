@@ -285,6 +285,8 @@ class chatMessagesTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('OFFER: a test item (location)', 'Testing', $msg);
+
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -303,9 +305,9 @@ class chatMessagesTest extends IznikTestCase {
         $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', $email, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
-        $chatmessages = $this->dbhr->preQuery("SELECT chat_messages.id, chatid, reviewrequired FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_rooms.user2 = ?", [
+        $chatmessages = $this->dbhr->preQuery("SELECT chat_messages.id, chatid, reviewrequired, reviewrejected FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_rooms.user2 = ?", [
             $m->getFromuser()
-        ]);
+        ], FALSE, FALSE);
         assertEquals(1, count($chatmessages));
         $chatid = NULL;
         foreach ($chatmessages as $c) {
