@@ -3,12 +3,12 @@
     <mj-style>
       a { color: #288c0a; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; }
 
-      @media only screen and (max-width: 480px) {
+      @media only screen and (max-width: 479px) {
       *[class~=hide_on_mobile]  { display: none !important;}
       *[class~=show_on_mobile] { display: block !important;}
       }
 
-      @media only screen and (min-width: 480px) {
+      @media only screen and (min-width: 481px) {
       *[class~=hide_on_mobile]  { display: block !important;}
       *[class~=show_on_mobile] { display: none !important;}
       }
