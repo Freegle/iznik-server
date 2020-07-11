@@ -665,7 +665,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['messages'][0]['id']);
         $this->log("Indeed it is");
 
-        # We should have a chat message, but marked as seen.
+        # We should have a chat message.
         $ret = $this->call('chatrooms', 'GET', [
             'chattypes' => [ ChatRoom::TYPE_USER2MOD ]
         ]);
@@ -678,7 +678,20 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatmessages']));
-        assertEquals(1, $ret['chatmessages'][0]['seenbyall']);
+        $chatmsgid = $ret['chatmessages'][0]['id'];
+
+        # And it should be flagged as mailed.
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+        $roster = $r->getRoster();
+        $found = FALSE;
+
+        foreach ($roster as $rost) {
+            if ($rost['userid'] == $uid) {
+                $found = TRUE;
+                assertEquals($chatmsgid, $rost['lastmsgemailed']);
+            }
+        }
+        assertEquals(TRUE, $found);
 
         # Try to convert it back to a draft.
         $this->log("Back to draft");

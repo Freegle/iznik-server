@@ -3400,8 +3400,8 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 if (!ourDomain($to)) {
                     $this->mailer($me, TRUE, $this->getName(), $to, NULL, $name, $g->getModsEmail(), $subject, $body);
 
-                    # Mark the message as seen, because have mailed it.
-                    $r->updateRoster($this->id, $myid);
+                    # We've mailed the message out so they are up to date with this chat.
+                    $r->upToDate($this->id);
                 }
 
                 if ($m) {

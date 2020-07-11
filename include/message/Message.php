@@ -2935,8 +2935,8 @@ ORDER BY lastdate DESC;";
                 # Mail it out, naked of any of our notification wrapping.
                 $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
 
-                # Mark the message as seen, because have mailed it.
-                $r->updateRoster($this->getFromuser(), $mid);
+                # We've mailed the message out so they are up to date with this chat.
+                $r->upToDate($this->getFromuser());
             }
 
             if ($m) {
