@@ -28,6 +28,7 @@ function chatmessages() {
 
             if ($me) {
                 $ret = ['ret' => 2, 'status' => "$roomid Not visible to you"];
+
                 if ($roomid && $r->canSee($me->getId())) {
                     if ($id) {
                         $userlist = NULL;

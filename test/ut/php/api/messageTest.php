@@ -665,6 +665,21 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['messages'][0]['id']);
         $this->log("Indeed it is");
 
+        # We should have a chat message, but marked as seen.
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2MOD ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        $chatid = $ret['chatrooms'][0]['id'];
+
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $chatid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatmessages']));
+        assertEquals(1, $ret['chatmessages'][0]['seenbyall']);
+
         # Try to convert it back to a draft.
         $this->log("Back to draft");
 //        $this->dbhm->errorLog = TRUE;
