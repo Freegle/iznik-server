@@ -639,7 +639,7 @@ class MailRouter
                                         $ret = MailRouter::PENDING;
                                     }
                                 } else {
-                                    if ($log) { error_log("Approved member? $appmemb"); }
+                                    if ($log) { error_log("Approved member " . $u->getEmailPreferred() . " on {$group['groupid']}? $appmemb"); }
                                     if ($appmemb) {
                                         # Worrying messages always go to Pending.
                                         #
@@ -651,14 +651,14 @@ class MailRouter
                                         # this has been requested by volunteers.
                                         $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
 
-                                        error_log("Check big switch " . $g->getPrivate('overridemoderation'));
+                                        if ($log) { error_log("Check big switch " . $g->getPrivate('overridemoderation')); }
                                         if ($g->getPrivate('overridemoderation') == Group::OVERRIDE_MODERATION_ALL) {
                                             # The Big Switch is in operation.
                                             $ps = Group::POSTING_MODERATED;
                                         } else {
                                             $ps = ($u->isModOrOwner($group['groupid']) || $g->getSetting('moderated', 0)) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
                                             $ps = $ps ? $ps : Group::POSTING_MODERATED;
-                                            if ($log) { error_log("Member, Our PS is $ps"); }
+                                            if ($log) { error_log("Member of {$group['groupid']}, Our PS is $ps"); }
                                         }
 
                                         if ($ps == Group::POSTING_PROHIBITED) {
