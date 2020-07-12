@@ -360,66 +360,6 @@ class messagesTest extends IznikAPITestCase {
 
     }
 
-    public function testPut() {
-        $this->log(__METHOD__ . " start");
-        
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-
-        $ret = $this->call('messages', 'PUT', [
-            'groupid' => $this->gid,
-            'source' => Message::EMAIL,
-            'from' => 'test@test.com',
-            'yahoopendingid' => 833,
-            'message' => $this->unique($msg)
-        ]);
-
-        # Should fail - not a mod
-        assertEquals(2, $ret['ret']);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid, User::ROLE_MODERATOR);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        $ret = $this->call('messages', 'PUT', [
-            'groupid' => $this->gid,
-            'source' => Message::EMAIL,
-            'from' => 'test@test.com',
-            'yahoopendingid' => 833,
-            'message' => $this->unique($msg)
-        ]);
-
-        # Should work
-        assertEquals(0, $ret['ret']);
-        assertEquals(MailRouter::PENDING, $ret['routed']);
-
-        # Should fail - invalid source
-        $ret = $this->call('messages', 'PUT', [
-            'groupid' => $this->gid,
-            'source' => 'wibble',
-            'from' => 'test@test.com',
-            'yahooapprovedid' => 833,
-            'message' => $this->unique($msg)
-        ]);
-
-        assertEquals(2, $ret['ret']);
-
-        $ret = $this->call('messages', 'PUT', [
-            'groupid' => $this->gid,
-            'source' => Message::YAHOO_APPROVED,
-            'from' => 'test@test.com',
-            'yahooapprovedid' => 833,
-            'message' => $this->unique($msg)
-        ]);
-
-        # Should work
-        assertEquals(0, $ret['ret']);
-        assertEquals(MailRouter::APPROVED, $ret['routed']);
-
-        }
-
     public function testNear() {
         # Need a location and polygon for near testing.
         $this->group->setPrivate('lng', 179.15);
