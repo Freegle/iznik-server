@@ -62,11 +62,6 @@ class MailRouterTest extends IznikTestCase {
 
     public function testHam() {
         $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->setPrivate('yahooUserId', -1);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Create a different user which will cause a merge.
         $u2 = User::get($this->dbhr, $this->dbhm);
@@ -84,7 +79,7 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals($uid, $m->getFromuser());
+        assertEquals($this->uid, $m->getFromuser());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/fromyahoo'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -115,9 +110,8 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals($uid, $m->getFromuser());
-
-        }
+        assertEquals($this->uid, $m->getFromuser());
+    }
 
     public function testHamNoGroup() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -628,6 +622,8 @@ class MailRouterTest extends IznikTestCase {
     public function testMultipleGroups() {
         $g = Group::get($this->dbhr, $this->dbhm);
 
+        $this->user->removeMembership($this->gid);
+
         for ($i = 0; $i < Spam::GROUP_THRESHOLD + 2; $i++) {
             $this->log("Group $i");
             $gid = $g->create("testgroup$i", Group::GROUP_OTHER);
@@ -741,11 +737,6 @@ class MailRouterTest extends IznikTestCase {
 
     public function testLargeAttachment() {
         # Large attachments should get scaled down during the save.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
-
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment_large');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -809,14 +800,6 @@ class MailRouterTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
 
-        # Create the sending user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
@@ -845,9 +828,9 @@ class MailRouterTest extends IznikTestCase {
 
         # Now get the chat room that this should have been placed into.
         assertNotNull($uid2);
-        assertNotEquals($uid, $uid2);
+        assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($uid, $uid2);
+        $rid = $c->createConversation($this->uid, $uid2);
         assertNotNull($rid);
 
         list($msgs, $users) = $c->getMessages();
@@ -868,7 +851,7 @@ class MailRouterTest extends IznikTestCase {
         $roster = $c->getRoster();
         $this->log("Roster " . var_export($roster, TRUE));
         foreach ($roster as $rost) {
-            if ($rost['user']['id'] == $uid) {
+            if ($rost['user']['id'] == $this->uid) {
                 self::assertEquals($msgs[0]['id'], $rost['lastmsgemailed']);
             }
         }
@@ -877,7 +860,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $origid);
         $atts = $m->getPublic(FALSE, FALSE, FALSE);
         assertEquals(0, count($atts['replies']));
-        assertTrue($u->login('testpw'));
+        assertTrue($this->user->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm, $origid);
         $atts = $m->getPublic(FALSE, FALSE, FALSE);
         assertEquals(1, count($atts['replies']));
@@ -898,9 +881,9 @@ class MailRouterTest extends IznikTestCase {
 
         # Now get the chat room that this should have been placed into.
         assertNotNull($uid2);
-        assertNotEquals($uid, $uid2);
+        assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhm, $this->dbhm);
-        $rid = $c->createConversation($uid, $uid2);
+        $rid = $c->createConversation($this->uid, $uid2);
         assertNotNull($rid);
         list($msgs, $users) = $c->getMessages();
 
@@ -959,13 +942,6 @@ class MailRouterTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
 
-        # Create the sending user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
-
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
@@ -993,13 +969,6 @@ class MailRouterTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
 
-        # Create the sending user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
-
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
@@ -1024,9 +993,9 @@ class MailRouterTest extends IznikTestCase {
 
         # Now get the chat room that this should have been placed into.
         assertNotNull($uid2);
-        assertNotEquals($uid, $uid2);
+        assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($uid, $uid2);
+        $rid = $c->createConversation($this->uid, $uid2);
         assertNotNull($rid);
 
         list($msgs, $users) = $c->getMessages();
@@ -1050,13 +1019,6 @@ class MailRouterTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid3 = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test3@test.com');
-
-        # Create the sending user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -1083,9 +1045,9 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(MailRouter::TO_USER, $rc);
 
         # Now get the chat room that this should have been placed into.
-        assertNotEquals($uid, $uid2);
+        assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($uid, $uid2);
+        $rid = $c->createConversation($this->uid, $uid2);
         assertNotNull($rid);
 
         list($msgs, $users) = $c->getMessages();
@@ -1099,12 +1061,11 @@ class MailRouterTest extends IznikTestCase {
         $roster = $c->getRoster();
         $this->log("Roster " . var_export($roster, TRUE));
         foreach ($roster as $rost) {
-            if ($rost['user']['id'] == $uid) {
+            if ($rost['user']['id'] == $this->uid) {
                 self::assertEquals($msgs[0]['id'], $rost['lastmsgemailed']);
             }
         }
-
-        }
+    }
 
     public function testMailOff() {
         # Create the sending user
@@ -1494,14 +1455,8 @@ class MailRouterTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
-        # Create a user not on moderation.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
-        $u->addMembership($gid);
-        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $this->user->addMembership($gid);
+        $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
@@ -1547,16 +1502,9 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testBanned() {
-        $u1 = User::get($this->dbhr, $this->dbhr);
-        $uid1 = $u1->create(NULL, NULL, 'Test User');
-        assertNotNull($uid1);
-        $u1->addEmail('test@test.com');
-
         # Ban u1
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
-        $u1->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
-        $u1->removeMembership($gid, TRUE);
+        $this->user->addMembership($this->gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+        $this->user->removeMembership($this->gid, TRUE);
 
         # u1 shouldn't be able to post by email.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
