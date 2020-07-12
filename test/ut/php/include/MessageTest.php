@@ -86,7 +86,7 @@ class messageTest extends IznikTestCase {
         # TAKEN after OFFER - should match
         $msg = str_replace('OFFER: Test item', 'TAKEN: Test item', $msg);
         $msg = str_replace('22 Aug 2015', '22 Aug 2016', $msg);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
         assertEquals($id1, $atts['related'][0]['id']);
@@ -96,19 +96,19 @@ class messageTest extends IznikTestCase {
 
         # TAKEN before OFFER - shouldn't match
         $msg = str_replace('22 Aug 2016', '22 Aug 2014', $msg);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals(0, $m->recordRelated());
 
         # TAKEN after OFFER but for other item - shouldn't match
         $msg = str_replace('22 Aug 2014', '22 Aug 2016', $msg);
         $msg = str_replace('TAKEN: Test item', 'TAKEN: Something completely different', $msg);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals(0, $m->recordRelated());
 
         # TAKEN with similar wording - should match
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Test items (location)', $msg);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
 
         }
@@ -128,7 +128,7 @@ class messageTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
         assertEquals($id1, $atts['related'][0]['id']);
@@ -138,7 +138,7 @@ class messageTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
         assertEquals($id1, $atts['related'][0]['id']);
@@ -305,7 +305,7 @@ class messageTest extends IznikTestCase {
 =?windows-1255?B?yfog7MjgxuHA6cnwxOnt?=', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -805,7 +805,7 @@ class messageTest extends IznikTestCase {
 //        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special');
 //
 //        $m = new Message($this->dbhr, $this->dbhm);
-//        $rc = $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+//        $rc = $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
 //        assertTrue($rc);
 //        list($id, $already) = $m->save();
 //        $m = new Message($this->dbhr, $this->dbhm, $id);

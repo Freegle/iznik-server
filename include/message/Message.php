@@ -2064,26 +2064,6 @@ ORDER BY lastdate DESC;";
         $this->yahooapprove = NULL;
         $this->yahooreject = NULL;
 
-        if ($source == Message::YAHOO_PENDING) {
-            # This is an APPROVE mail; we need to extract the included copy of the original message.
-            $this->yahooapprove = $Parser->getHeader('reply-to');
-            if (preg_match('/^(.*-reject-.*yahoogroups.*?)($| |=)/im', $msg, $matches)) {
-                $this->yahooreject = trim($matches[1]);
-            }
-
-            $atts = $this->getParsedAttachments();
-            if (count($atts) >= 1 && $atts[0]->getContentType() == 'message/rfc822') {
-                $attachedmsg = $atts[0]->getContent();
-
-                # Remove the old attachments as we're overwriting them.
-                $this->removeAttachDir();
-
-                $Parser->setText($attachedmsg);
-                $this->attach_files = $Parser->saveAttachments($this->attach_dir);
-                $this->attachments = $Parser->getAttachments();
-            }
-        }
-
         # Get IP
         $ip = $this->getHeader('x-freegle-ip');
         $ip = $ip ? $ip : $this->getHeader('x-trash-nothing-user-ip');
@@ -2148,7 +2128,7 @@ ORDER BY lastdate DESC;";
             }
         }
 
-        if (($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED) && !$this->groupid) {
+        if ($source == Message::YAHOO_APPROVED && !$this->groupid) {
             # This is a message from Yahoo, but not for a group we host.  We don't want it.
             $this->removeAttachDir();
             return (FALSE);
@@ -2296,7 +2276,7 @@ ORDER BY lastdate DESC;";
             $this->type = Message::TYPE_OTHER;
         }
 
-        if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED  || $source == Message::EMAIL) {
+        if ($source == Message::YAHOO_APPROVED  || $source == Message::EMAIL) {
             # Make sure we have a user for the sender.
             $u = User::get($this->dbhr, $this->dbhm);
 
@@ -2360,7 +2340,7 @@ ORDER BY lastdate DESC;";
                 # We might not have this email associated with this user.
                 $emailid = $u->addEmail($this->fromaddr, 0, FALSE);
 
-                if ($emailid && ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED)) {
+                if ($emailid && $source == Message::YAHOO_APPROVED) {
                     # Make sure we have a membership for the originator of this message; they were a member
                     # at the time they sent this.  If they have since left we'll pick that up later via a sync.
                     if (!$u->isApprovedMember($this->groupid)) {
@@ -3215,9 +3195,7 @@ ORDER BY lastdate DESC;";
                 // @codeCoverageIgnoreStart
                 /* @cov $collection */
                 $collection = NULL;
-                if ($this->getSource() == Message::YAHOO_PENDING) {
-                    $collection = MessageCollection::PENDING;
-                } else if ($this->getSource() == Message::YAHOO_APPROVED) {
+                if ($this->getSource() == Message::YAHOO_APPROVED) {
                     $collection = MessageCollection::APPROVED;
                 } else if ($this->getSource() == Message::EMAIL && $this->groupid) {
                     $collection = MessageCollection::INCOMING;
@@ -3311,15 +3289,6 @@ ORDER BY lastdate DESC;";
                     ]);
 
                 $changed = $rc ? ' approvedby' : $changed;
-
-                # This message might have moved from pending to approved.
-                if ($m->getSource() == Message::YAHOO_PENDING && $this->getSource() == Message::YAHOO_APPROVED) {
-                    $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ? AND groupid = ?;", [
-                        $msg['id'],
-                        $this->groupid
-                    ]);
-                    $changed = TRUE;
-                }
 
                 if ($changed != '') {
                     $me = whoAmI($this->dbhr, $this->dbhm);

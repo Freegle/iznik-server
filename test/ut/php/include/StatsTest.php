@@ -91,10 +91,8 @@ class statsTest extends IznikTestCase {
 
         assertEquals([ 'FDv2' => 1 ], $stats['PostMethodBreakdown']);
         assertEquals([ 'Other' => 1 ], $stats['MessageBreakdown']);
-        assertEquals([ 'MODERATED' => 1 ], $stats['YahooPostingBreakdown']);
 
         $multistats = $s->getMulti($date, [ $gid ], "30 days ago", "tomorrow");
-        var_dump($multistats);
         assertEquals([
             [
                 'date' => $date,

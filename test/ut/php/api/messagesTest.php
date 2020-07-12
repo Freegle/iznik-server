@@ -220,7 +220,7 @@ class messagesTest extends IznikAPITestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Spam msgid $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
@@ -291,7 +291,7 @@ class messagesTest extends IznikAPITestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -366,7 +366,7 @@ class messagesTest extends IznikAPITestCase {
 
         $ret = $this->call('messages', 'PUT', [
             'groupid' => $group1,
-            'source' => Message::YAHOO_PENDING,
+            'source' => Message::EMAIL,
             'from' => 'test@test.com',
             'yahoopendingid' => 833,
             'message' => $this->unique($msg)
@@ -384,7 +384,7 @@ class messagesTest extends IznikAPITestCase {
 
         $ret = $this->call('messages', 'PUT', [
             'groupid' => $group1,
-            'source' => Message::YAHOO_PENDING,
+            'source' => Message::EMAIL,
             'from' => 'test@test.com',
             'yahoopendingid' => 833,
             'message' => $this->unique($msg)

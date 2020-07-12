@@ -134,7 +134,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -156,7 +156,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -209,7 +209,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Created spam message $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
@@ -416,7 +416,7 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail('from@test.com');
         $u->addEmail($email);
 
-        $id = $r->received(Message::YAHOO_PENDING, $email, 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $this->dbhm->preExec("UPDATE messages_groups SET yahooapprove = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
@@ -521,7 +521,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Subject: Basic test', 'Subject: OFFER: thing (place)', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -700,7 +700,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -774,7 +774,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1, yahooapprovedid = NULL WHERE msgid = $id;");
@@ -850,7 +850,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $origmsg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -927,7 +927,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $origmsg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -957,7 +957,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
@@ -1054,7 +1054,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertFalse($m->isEdited());
         $rc = $r->route();
@@ -2279,12 +2279,12 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id1 = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id1 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
         $msg = str_ireplace('testgroup1', 'testgroup2', $msg);
-        $id2 = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id2 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -3239,7 +3239,7 @@ class messageAPITest extends IznikAPITestCase
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 

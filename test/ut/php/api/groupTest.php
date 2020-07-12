@@ -346,7 +346,7 @@ class groupAPITest extends IznikAPITestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'test@test.com', 'test@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 

@@ -36,12 +36,7 @@ $rc = MailRouter::DROPPED;
 
 $groupname = NULL;
 
-if (preg_match('/^Subject: MODERATE -- (.*) posted to (.*)/m', $msg, $matches)) {
-    # This is a moderation notification for a pending message.
-    error_log("MODERATE");
-    $r->received(Message::YAHOO_PENDING, NULL, $envto, $msg);
-    $rc = $r->route();
-} else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE && (stripos($envfrom, "sentto-") !== FALSE)) {
+if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE && (stripos($envfrom, "sentto-") !== FALSE)) {
     # This is a message sent out to us as a user on the group, so it's an approved message.
     error_log("Approved message to $envto");
     $r->received(Message::YAHOO_APPROVED, NULL, $envto, $msg);

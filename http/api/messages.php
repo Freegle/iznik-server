@@ -189,51 +189,6 @@ function messages() {
         }
         break;
 
-        case 'PUT': {
-            # We are trying to sync a message.
-            switch ($source) {
-                case Message::YAHOO_PENDING:
-                case Message::YAHOO_APPROVED:
-                    break;
-                default:
-                    $source = NULL;
-                    break;
-            }
-
-            $g = Group::get($dbhr, $dbhm, $groupid);
-            $ret = ['ret' => 2, 'status' => 'Permission denied'];
-
-            if ($source && $g && $me && $me->isModOrOwner($groupid)) {
-                # We might already have this message, in which case it might be rejected.  We don't want to resync
-                # such messages as it would put them back to Pending.
-                $m = new Message($dbhr, $dbhm);
-                list ($msgid, $collection) = $m->findEarlierCopy($groupid, $yahoopendingid, $yahooapprovedid);
-
-                $ret = ['ret' => 3, 'status' => 'Not new or pending'];
-
-                if (!$msgid || $collection == MessageCollection::PENDING || $collection == MessageCollection::INCOMING) {
-                    # This message is new to us, or we are updating an existing pending message, or one we've previously
-                    # not managed to route properly.
-                    $r = new MailRouter($dbhr, $dbhm);
-                    $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message, $groupid);
-                    $ret = ['ret' => 3, 'status' => 'Failed to create message - possible duplicate'];
-
-                    if ($id) {
-                        $rc = $r->route();
-                        $m = new Message($dbhr, $dbhm, $id);
-
-                        $ret = [
-                            'ret' => 0,
-                            'status' => 'Success',
-                            'routed' => $rc,
-                            'id' => $id
-                        ];
-                    }
-                }
-            }
-        }
-        break;
-
         case 'POST': {
             $action = presdef('action', $_REQUEST, NULL);
             $ret = [ 'ret' => 4, 'status' => 'Unknown action' ];

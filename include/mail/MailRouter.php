@@ -569,7 +569,7 @@ class MailRouter
 
                     $oldyahooauto = FALSE;
 
-                    if ($source == Message::YAHOO_APPROVED || $source == Message::YAHOO_PENDING) {
+                    if ($source == Message::YAHOO_APPROVED) {
                         # The group might have previous been on Yahoo but no longer.  In that case we don't want to
                         # accept any automatic posts from the Yahoo Group, such as regular files.  This helps with
                         # groups we can't close down properly for lack of access.
@@ -584,7 +584,7 @@ class MailRouter
                     if ($oldyahooauto) {
                         if ($log) { error_log("For group no longer on Yahoo - drop"); }
                         $ret = MailRouter::DROPPED;
-                    } else if ($source == Message::YAHOO_PENDING || ($notspam && $source == Message::PLATFORM)) {
+                    } else if ($notspam && $source == Message::PLATFORM) {
                         if ($log) { error_log("Source header " . $this->msg->getSourceheader());}
                         $handled = FALSE;
 

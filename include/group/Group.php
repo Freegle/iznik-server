@@ -1522,7 +1522,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
                     # include that.
                     $source = $msg['source'];
                     #error_log("Consider {$msg['id']} missing on client $pending, $approved, $source");
-                    if (($pending && ($source == Message::YAHOO_PENDING || ($msg['yahoopendingid'] && $source == Message::YAHOO_APPROVED))) ||
+                    if (($pending && ($msg['yahoopendingid'] && $source == Message::YAHOO_APPROVED)) ||
                         ($approved && $source == Message::YAHOO_APPROVED)) {
                         $missingonclient[] = [
                             'id' => $msg['id'],

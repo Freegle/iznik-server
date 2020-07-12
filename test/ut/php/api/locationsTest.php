@@ -84,7 +84,7 @@ class locationsAPITest extends IznikAPITestCase
         $msg = str_ireplace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -152,7 +152,7 @@ class locationsAPITest extends IznikAPITestCase
         $msg = str_ireplace('Basic test', 'OFFER: Test (TV13 1HH)', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 

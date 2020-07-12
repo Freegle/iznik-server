@@ -98,7 +98,7 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -119,7 +119,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_replace("FreeglePlayground <freegleplayground@yahoogroups.com>", "Nowhere <nogroup@yahoogroups.com>", $msg);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -201,7 +201,7 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamcam');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -262,7 +262,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = str_replace('Hey', "Please reply to $email", $msg);
 
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -299,7 +299,7 @@ class MailRouterTest extends IznikTestCase {
     public function testPending() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -312,7 +312,7 @@ class MailRouterTest extends IznikTestCase {
         assertNull($pend->getFromhost());
         assertNotNull($pend->getGroups()[0]);
         assertEquals($id, $pend->getID());
-        assertEquals(Message::YAHOO_PENDING, $pend->getSource());
+        assertEquals(Message::EMAIL, $pend->getSource());
         assertEquals('from@test.com', $pend->getEnvelopefrom());
         assertEquals('to@test.com', $pend->getEnvelopeto());
         assertNotNull($pend->getTextbody());
@@ -334,7 +334,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -369,7 +369,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Now TN post");
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());
         assertEquals('TN-email', $m->getSourceheader());
         list($id, $already) = $m->save();
@@ -392,7 +392,7 @@ class MailRouterTest extends IznikTestCase {
         # Force a TN message to spam
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -436,7 +436,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Now to pending, which is possible Yahoo is slow.
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id2 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $r->route();
 
         assertEquals($id1, $id2);
@@ -518,7 +518,7 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 
-        $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 
@@ -763,7 +763,7 @@ class MailRouterTest extends IznikTestCase {
     public function testNullFromUser() {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nullfromuser');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->log("Fromuser " . $m->getFromuser());
         assertNotNull($m->getFromuser());
 

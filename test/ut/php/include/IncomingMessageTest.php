@@ -160,7 +160,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testPending() {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approve');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
 
         assertEquals('Test pending', $m->getSubject());
         assertEquals('Test User', $m->getFromname());

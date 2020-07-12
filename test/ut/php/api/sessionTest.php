@@ -385,7 +385,7 @@ class sessionTest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -395,7 +395,7 @@ class sessionTest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
