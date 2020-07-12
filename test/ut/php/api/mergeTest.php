@@ -47,8 +47,6 @@ class mergeAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         assertTrue($this->user->login('testpw'));
-
-        $this->plugin = new Plugin($this->dbhr, $this->dbhm);
     }
 
     public function testMerge() {

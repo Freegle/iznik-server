@@ -48,7 +48,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
-        $a->setYahooApprovedId($group1, 42);
         $a->setPrivate('sourceheader', Message::PLATFORM);
 
         # Should be able to see this message even logged out.
@@ -78,7 +77,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
-        $a->setYahooApprovedId($group1, 42);
         $a->setPrivate('sourceheader', Message::PLATFORM);
 
         # Should be able to see this message even logged out.
@@ -446,9 +444,6 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(2, $ret['ret']);
 
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(1, $ret['ret']);
-
         # Now join - shouldn't be able to approve as a member
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -511,21 +506,6 @@ class messageAPITest extends IznikAPITestCase
         $this->log("After approval " . var_export($p, TRUE));
         assertEquals('Approved', $p['groups'][0]['collection']);
         assertEquals($uid, $p['groups'][0]['approvedby']['id']);
-
-        # Plugin work should exist
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['plugin']));
-        assertEquals($group1, $ret['plugin'][0]['groupid']);
-        assertEquals('{"type":"ApprovePendingMessage","id":"1"}', $ret['plugin'][0]['data']);
-        $pid = $ret['plugin'][0]['id'];
-
-        $ret = $this->call('plugin', 'DELETE', [
-            'id' => $pid
-        ]);
-        assertEquals(0, $ret['ret']);
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, count($ret['plugin']));
 
         # Should be gone
         $ret = $this->call('message', 'POST', [
@@ -619,14 +599,6 @@ class messageAPITest extends IznikAPITestCase
         $s->delete();
         $c->delete();
 
-        # Plugin work should exist
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['plugin']));
-        assertEquals($group1, $ret['plugin'][0]['groupid']);
-        assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
-        $pid = $ret['plugin'][0]['id'];
-
         # User should have modmails.
         $this->waitBackground();
         $u->updateModMails($senduser);
@@ -717,15 +689,6 @@ class messageAPITest extends IznikAPITestCase
         $m2 = new Message($this->dbhr, $this->dbhm);
         assertFalse($m2->backToDraft());
 
-        # Now delete it.
-        $this->log("Delete");
-        $ret = $this->call('plugin', 'DELETE', [
-            'id' => $pid
-        ]);
-        assertEquals(0, $ret['ret']);
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, count($ret['plugin']));
-
         # Should be gone from the messages we can see as a mod
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -734,8 +697,7 @@ class messageAPITest extends IznikAPITestCase
             'duplicate' => 2
         ]);
         assertEquals(3, $ret['ret']);
-
-        }
+    }
 
     public function testReply()
     {
@@ -809,13 +771,7 @@ class messageAPITest extends IznikAPITestCase
 
         $s->delete();
         $c->delete();
-
-        # Plugin work shouldn't exist
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['plugin']));
-
-        }
+    }
 
     public function testDelete()
     {
@@ -866,22 +822,6 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        # Plugin work should exist
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        $this->log("Plugin work after delete " . var_export($ret['plugin'], TRUE));
-        assertEquals(1, count($ret['plugin']));
-        assertEquals($group1, $ret['plugin'][0]['groupid']);
-        assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
-        $pid = $ret['plugin'][0]['id'];
-
-        $ret = $this->call('plugin', 'DELETE', [
-            'id' => $pid
-        ]);
-        assertEquals(0, $ret['ret']);
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, count($ret['plugin']));
-
         # Should be gone
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -929,9 +869,6 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'NotSpam'
         ]);
         assertEquals(2, $ret['ret']);
-
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(1, $ret['ret']);
 
         # Now join - shouldn't be able to do this as a member
         $u = User::get($this->dbhr, $this->dbhm);

@@ -222,14 +222,6 @@ function messages() {
                         $rc = $r->route();
                         $m = new Message($dbhr, $dbhm, $id);
 
-                        if ($yahoopendingid) {
-                            $m->setYahooPendingId($groupid, $yahoopendingid);
-                        }
-
-                        if ($yahooapprovedid) {
-                            $m->setYahooApprovedId($groupid, $yahooapprovedid);
-                        }
-
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
@@ -237,16 +229,6 @@ function messages() {
                             'id' => $id
                         ];
                     }
-                } else if ($msgid && $collection == MessageCollection::APPROVED && $yahoopendingid) {
-                    # This is a message which is on Pending on Yahoo but has already been approved on here.
-                    # Approve it again - which should result in plugin work which will remove it from Yahoo.
-                    $m = new Message($dbhr, $dbhm, $msgid);
-                    $m->setYahooPendingId($groupid, $yahoopendingid);
-                    $m->approve($groupid);
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Already approved - do so again'
-                    ];
                 }
             }
         }

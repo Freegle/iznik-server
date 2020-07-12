@@ -1130,15 +1130,8 @@ class User extends Entity
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
             if ($email['email']) {
                 if ($g->getPrivate('onyahoo')) {
-                    $p = new Plugin($this->dbhr, $this->dbhm);
-                    $p->add($groupid, [
-                        'type' => $type,
-                        'email' => $email['email']
-                    ]);
-
                     if (ourDomain($email['email'])) {
-                        # This is an email address we host, so we can email an unsubscuribe request.  We do both this and
-                        # the plugin work because Yahoo is as flaky as all get out.
+                        # This is an email address we host, so we can email an unsubscuribe request.
                         for ($i = 0; $i < 10; $i++) {
                             list ($transport, $mailer) = getMailer();
                             $message = Swift_Message::newInstance()
@@ -3452,22 +3445,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 # We can trigger rejection by email - do so.
                 $this->mailer($member['yahooreject'], "My name is Iznik and I reject this member", "", NULL, '-f' . MODERATOR_EMAIL);
             }
-
-            if (pres('yahooUserId', $this->user)) {
-                $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
-                $emails = $this->dbhr->preQuery($sql, [$this->id]);
-                $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
-
-                # It would be odd for them to be on Yahoo with no email but handle it anyway.
-                if ($email) {
-                    $p = new Plugin($this->dbhr, $this->dbhm);
-                    $p->add($groupid, [
-                        'type' => 'RejectPendingMember',
-                        'id' => $this->user['yahooUserId'],
-                        'email' => $email
-                    ]);
-                }
-            }
         }
 
         $this->notif->notifyGroupMods($groupid);
@@ -3516,27 +3493,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             'stdmsgid' => $stdmsgid,
             'text' => $subject
         ]);
-
-        $sql = "SELECT memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE userid = ? AND groupid = ? AND memberships_yahoo.collection = ?;";
-        $members = $this->dbhr->preQuery($sql, [$this->id, $groupid, MembershipCollection::PENDING]);
-
-        foreach ($members as $member) {
-            if (pres('yahooUserId', $this->user)) {
-                $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
-                $emails = $this->dbhr->preQuery($sql, [$this->id]);
-                $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
-
-                # It would be odd for them to be on Yahoo with no email but handle it anyway.
-                if ($email) {
-                    $p = new Plugin($this->dbhr, $this->dbhm);
-                    $p->add($groupid, [
-                        'type' => 'ApprovePendingMember',
-                        'id' => $this->user['yahooUserId'],
-                        'email' => $email
-                    ]);
-                }
-            }
-        }
 
         $sql = "UPDATE memberships SET collection = ? WHERE userid = ? AND groupid = ?;";
         $this->dbhm->preExec($sql, [

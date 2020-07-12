@@ -678,23 +678,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $ctx = NULL;
         $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::APPROVED, [ $this->groupid ]);
         assertEquals(1, count($members));
-
-        # Plugin work should exist
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['plugin']));
-        assertEquals($this->groupid, $ret['plugin'][0]['groupid']);
-        assertEquals('{"type":"RejectPendingMember","id":"1","email":"test2@test.com"}', $ret['plugin'][0]['data']);
-        $pid = $ret['plugin'][0]['id'];
-
-        $ret = $this->call('plugin', 'DELETE', [
-            'id' => $pid
-        ]);
-        assertEquals(0, $ret['ret']);
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, count($ret['plugin']));
-
-        }
+    }
 
     public function testDelete() {
         $u = User::get($this->dbhr, $this->dbhm);
@@ -844,23 +828,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $ctx = NULL;
         $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::APPROVED, [ $this->groupid ]);
         assertEquals(2, count($members));
-
-        # Plugin work should exist
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['plugin']));
-        assertEquals($this->groupid, $ret['plugin'][0]['groupid']);
-        assertEquals('{"type":"ApprovePendingMember","id":"1","email":"test2@test.com"}', $ret['plugin'][0]['data']);
-        $pid = $ret['plugin'][0]['id'];
-
-        $ret = $this->call('plugin', 'DELETE', [
-            'id' => $pid
-        ]);
-        assertEquals(0, $ret['ret']);
-        $ret = $this->call('plugin', 'GET', []);
-        assertEquals(0, count($ret['plugin']));
-
-        }
+    }
 
     public function testHold() {
         $u = User::get($this->dbhr, $this->dbhm);

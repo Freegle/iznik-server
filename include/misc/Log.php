@@ -18,7 +18,6 @@ class Log
     const TYPE_GROUP = 'Group';
     const TYPE_USER = 'User';
     const TYPE_MESSAGE = 'Message';
-    const TYPE_PLUGIN = 'Plugin';
     const TYPE_CONFIG = 'Config';
     const TYPE_STDMSG = 'StdMsg';
     const TYPE_BULKOP = 'BulkOp';

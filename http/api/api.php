@@ -104,7 +104,6 @@ require_once(IZNIK_BASE . '/include/misc/AdView.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
 require_once(IZNIK_BASE . '/include/misc/Polls.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
-require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/misc/Shortlink.php');
@@ -148,7 +147,6 @@ require_once(IZNIK_BASE . '/http/api/supporters.php');
 require_once(IZNIK_BASE . '/http/api/group.php');
 require_once(IZNIK_BASE . '/http/api/groups.php');
 require_once(IZNIK_BASE . '/http/api/communityevent.php');
-require_once(IZNIK_BASE . '/http/api/plugin.php');
 require_once(IZNIK_BASE . '/http/api/user.php');
 require_once(IZNIK_BASE . '/http/api/chatrooms.php');
 require_once(IZNIK_BASE . '/http/api/chatmessages.php');
@@ -365,9 +363,6 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     break;
                 case 'spammers':
                     $ret = spammers();
-                    break;
-                case 'plugin':
-                    $ret = plugin();
                     break;
                 case 'session':
                     $ret = session();

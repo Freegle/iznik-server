@@ -2,7 +2,6 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
-require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
@@ -216,28 +215,6 @@ class Message
 
     public function setAttachments($attachments) {
         $this->attachments = $attachments;
-    }
-
-    public function setYahooPendingId($groupid, $id) {
-        # Don't set for deleted messages, otherwise there's a timing window where we can end up with a deleted
-        # message with an id that blocks inserts of subequent messages.
-        $sql = "UPDATE messages_groups SET yahoopendingid = ? WHERE msgid = {$this->id} AND groupid = ? AND deleted = 0;";
-        $rc = $this->dbhm->preExec($sql, [ $id, $groupid ]);
-
-        if ($rc) {
-            $this->yahoopendingid = $id;
-        }
-    }
-
-    public function setYahooApprovedId($groupid, $id) {
-        # Don't set for deleted messages, otherwise there's a timing window where we can end up with a deleted
-        # message with an id that blocks inserts of subequent messages.
-        $sql = "UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = {$this->id} AND groupid = ? AND deleted = 0;";
-        $rc = $this->dbhm->preExec($sql, [ $id, $groupid ]);
-
-        if ($rc) {
-            $this->yahooapprovedid = $id;
-        }
     }
 
     public function setPrivate($att, $val, $always = FALSE) {
@@ -2968,15 +2945,6 @@ ORDER BY lastdate DESC;";
                 # We can trigger rejection by email - do so.
                 $this->mailer($me, TRUE, $group['yahooreject'], $group['yahooreject'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
             }
-
-            if ($group['yahoopendingid']) {
-                # We can trigger rejection via the plugin - do so.
-                $p = new Plugin($this->dbhr, $this->dbhm);
-                $p->add($groupid, [
-                    'type' => 'RejectPendingMessage',
-                    'id' => $group['yahoopendingid']
-                ]);
-            }
         }
 
         # When rejecting, we put it in the appropriate collection, which means the user can potentially edit and
@@ -3024,15 +2992,6 @@ ORDER BY lastdate DESC;";
             if ($group['yahooapprove']) {
                 # We can trigger approval by email - do so.
                 $this->mailer($me, TRUE, $group['yahooapprove'], $group['yahooapprove'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
-            }
-
-            if ($group['yahoopendingid']) {
-                # We can trigger approval via the plugin - do so.
-                $p = new Plugin($this->dbhr, $this->dbhm);
-                $p->add($groupid, [
-                    'type' => 'ApprovePendingMessage',
-                    'id' => $group['yahoopendingid']
-                ]);
             }
         }
 
@@ -3159,27 +3118,11 @@ ORDER BY lastdate DESC;";
 
                 if (!$localonly) {
                     # We might be deleting an approved message or spam.
-                    if ($group['yahooapprovedid']) {
-                        # We can trigger deleted via the plugin - do so.
-                        $p = new Plugin($this->dbhr, $this->dbhm);
-                        $p->add($groupid, [
-                            'type' => 'DeleteApprovedMessage',
-                            'id' => $group['yahooapprovedid']
-                        ]);
-                    } else {
+                    if (!$group['yahooapprovedid']) {
                         # Or we might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
                         if ($group['yahooreject']) {
                             # We can trigger rejection by email - do so.
                             $this->mailer($me, TRUE, $group['yahooreject'], $group['yahooreject'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
-                        }
-
-                        if ($group['yahoopendingid']) {
-                            # We can trigger rejection via the plugin - do so.
-                            $p = new Plugin($this->dbhr, $this->dbhm);
-                            $p->add($groupid, [
-                                'type' => 'RejectPendingMessage',
-                                'id' => $group['yahoopendingid']
-                            ]);
                         }
                     }
                 }
@@ -3360,7 +3303,7 @@ ORDER BY lastdate DESC;";
 
                 # Pick up any new approvedby, unless we already have one.  If we have one it's because it was
                 # approved on here, which is an authoritative record, whereas the Yahoo approval might have been
-                # done via plugin work and another mod.
+                # done via another mod.
                 $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ?, approvedat = NOW() WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
                     [
                         $approvedby,

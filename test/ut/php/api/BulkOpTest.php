@@ -118,13 +118,6 @@ class bulkOpAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        # This bulk op should now be due
-        $ret = $this->call('plugin', 'GET', []);
-        $bulkops = $ret['bulkops'];
-        $this->log("Bulk ops due " . var_export($ret, TRUE));
-        assertEquals(1, count($bulkops));
-        assertEquals('Unbounce', $bulkops[0]['action']);
-
         # Start it
         $date = isodate("@" . time());
 
@@ -144,13 +137,7 @@ class bulkOpAPITest extends IznikAPITestCase {
             'runfinished' => $date
         ]);
         assertEquals(0, $ret['ret']);
-
-        # No longer due
-        $ret = $this->call('plugin', 'GET', []);
-        $this->log("Bulk ops not due " . var_export($ret, TRUE));
-        assertEquals(0, count($ret['bulkops']));
-
-        }
+    }
 
     public function testPatch() {
         assertTrue($this->user->login('testpw'));

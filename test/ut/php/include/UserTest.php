@@ -292,15 +292,6 @@ class userTest extends IznikTestCase {
         assertEquals(1, count($membs));
         assertEquals($group2, $membs[0]['id']);
 
-        # Plugin work should exist
-        $p = new Plugin($this->dbhr, $this->dbhm);
-        $work = $p->get([$group1]);
-        assertEquals(1, count($work));
-        assertEquals($group1, $work[0]['groupid']);
-        assertEquals('{"type":"RemoveApprovedMember","email":"test@test.com"}', $work[0]['data']);
-        $pid = $work[0]['id'];
-        $p->delete($pid);
-
         // Support and admin users have a mod role on the group even if not a member
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));

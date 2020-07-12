@@ -180,7 +180,6 @@ function user() {
 
         case 'PATCH': {
             $u = User::get($dbhr, $dbhm, $id);
-            $p = new Plugin($dbhr, $dbhm);
             $l = new Log($dbhr, $dbhm);
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
@@ -219,15 +218,6 @@ function user() {
                         'user' => $id,
                         'text' => $yahooDeliveryType
                     ]);
-
-                    $emails = $u->getEmails();
-                    foreach ($emails as $email) {
-                        $p->add($groupid, [
-                            'type' => 'DeliveryType',
-                            'email' => $email['email'],
-                            'deliveryType' => $yahooDeliveryType
-                        ]);
-                    }
                 }
 
                 if ($yahooPostingStatus) {

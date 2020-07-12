@@ -7,7 +7,6 @@ require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
 require_once IZNIK_BASE . '/include/message/WorryWords.php';
-require_once IZNIK_BASE . '/include/misc/plugin.php';
 require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
 require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
@@ -553,15 +552,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id1);
         $this->log(var_export($m->getPublic(), TRUE));
         assertEquals(MessageCollection::APPROVED, $m->getPublic()['groups'][0]['collection']);
-//        $m->delete("UT");
-//
-//        $p = new Plugin($this->dbhr, $this->dbhm);
-//        $work = $p->get($gid);
-//        $this->log("Work " . var_export($work, TRUE));
-//        $data = json_decode($work[0]['data'], TRUE);
-//        assertEquals('DeletePendingMessage', $data['type']);
-
-        }
+    }
 
     public function testSpamIP() {
         # Sorry, Cameroon folk.
