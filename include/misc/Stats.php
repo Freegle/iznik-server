@@ -18,8 +18,6 @@ class Stats
     CONST SPAM_MEMBER_COUNT = 'SpamMemberCount';
     CONST MESSAGE_BREAKDOWN = 'MessageBreakdown';
     CONST POST_METHOD_BREAKDOWN = 'PostMethodBreakdown';
-    CONST YAHOO_DELIVERY_BREAKDOWN = 'YahooDeliveryBreakdown';
-    CONST YAHOO_POSTING_BREAKDOWN = 'YahooPostingBreakdown';
     CONST OUR_POSTING_BREAKDOWN = 'OurPostingBreakdown';
     CONST SUPPORTQUERIES_COUNT = 'SupportQueries';
     CONST FEEDBACK_HAPPY = 'Happy';
@@ -215,37 +213,6 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $this->setBreakdown($date, Stats::MESSAGE_BREAKDOWN, json_encode($srcs));
         }
 
-        if ($type === NULL || in_array(Stats::YAHOO_DELIVERY_BREAKDOWN, $type)) {
-            # Settings breakdowns don't have a date restriction
-            $sql = "SELECT memberships_yahoo.yahooDeliveryType, COUNT(*) AS count FROM memberships_yahoo INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' AND groupid = ? GROUP BY memberships_yahoo.yahooDeliveryType;";
-            $sources = $this->dbhr->preQuery($sql,
-                [
-                    $this->groupid
-                ]);
-
-            $srcs = [];
-            foreach ($sources as $src) {
-                $srcs[$src['yahooDeliveryType']] = $src['count'];
-            }
-
-            $this->setBreakdown($date, Stats::YAHOO_DELIVERY_BREAKDOWN, json_encode($srcs));
-        }
-
-        if ($type === NULL || in_array(Stats::YAHOO_POSTING_BREAKDOWN, $type)) {
-            $sql = "SELECT memberships_yahoo.yahooPostingStatus, COUNT(*) AS count FROM memberships_yahoo INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' AND groupid = ? GROUP BY memberships_yahoo.yahooPostingStatus;";
-            $sources = $this->dbhr->preQuery($sql,
-                [
-                    $this->groupid
-                ]);
-
-            $srcs = [];
-            foreach ($sources as $src) {
-                $srcs[$src['yahooPostingStatus']] = $src['count'];
-            }
-
-            $this->setBreakdown($date, Stats::YAHOO_POSTING_BREAKDOWN, json_encode($srcs));
-        }
-
         if ($type === NULL || in_array(Stats::OUR_POSTING_BREAKDOWN, $type)) {
             $sql = "SELECT memberships.ourPostingStatus, COUNT(*) AS count FROM memberships WHERE groupid = ? GROUP BY memberships.ourPostingStatus;";
             $sources = $this->dbhr->preQuery($sql,
@@ -347,9 +314,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                 Stats::WEIGHT => 0,
                 Stats::REPLIES => 0,
                 Stats::MESSAGE_BREAKDOWN => [],
-                Stats::POST_METHOD_BREAKDOWN => [],
-                Stats::YAHOO_DELIVERY_BREAKDOWN => [],
-                Stats::YAHOO_POSTING_BREAKDOWN => []
+                Stats::POST_METHOD_BREAKDOWN => []
         ];
 
         foreach ($stats as $stat) {
@@ -370,8 +335,6 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                     break;
                 case Stats::MESSAGE_BREAKDOWN:
                 case Stats::POST_METHOD_BREAKDOWN:
-                case Stats::YAHOO_DELIVERY_BREAKDOWN:
-                case Stats::YAHOO_POSTING_BREAKDOWN:
                     $ret[$stat['type']] = json_decode($stat['breakdown'], TRUE);
                     break;
             }
@@ -452,9 +415,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
 
         if (MODTOOLS && $me && ($me->isModerator() || $me->isAdmin())) {
             $types = [
-                Stats::MESSAGE_BREAKDOWN,
-                Stats::YAHOO_POSTING_BREAKDOWN,
-                Stats::YAHOO_DELIVERY_BREAKDOWN
+                Stats::MESSAGE_BREAKDOWN
             ];
         }
 
