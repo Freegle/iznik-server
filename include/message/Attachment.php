@@ -201,6 +201,7 @@ class Attachment
                 $rem = "/var/www/iznik/images/$fn";
                 $rc = ssh2_scp_send($connection, $temp, $rem, 0644);
                 $failed |= !$rc;
+                unlink($temp);
                 error_log("scp $temp to $host $rem returned $rc");
             } else {
                 $failed = TRUE;
