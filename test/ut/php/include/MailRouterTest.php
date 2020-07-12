@@ -769,11 +769,14 @@ class MailRouterTest extends IznikTestCase {
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($id);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        assertEquals(MailRouter::PENDING, $rc);
 
         }
     
     public function testReply() {
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        User::clearCache();
+
         # Create a user for a reply.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
@@ -781,6 +784,7 @@ class MailRouterTest extends IznikTestCase {
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $origid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($origid);
