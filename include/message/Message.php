@@ -1830,7 +1830,6 @@ ORDER BY lastdate DESC;";
     const EMAIL = 'Email';
     const YAHOO_APPROVED = 'Yahoo Approved';
     const YAHOO_PENDING = 'Yahoo Pending';
-    const YAHOO_SYSTEM = 'Yahoo System';
     const PLATFORM = 'Platform'; // Us
 
     /**

@@ -49,15 +49,6 @@ if (stripos($envfrom, "@comms.yahoo.net") !== FALSE) {
     error_log("Approved message to $envto");
     $r->received(Message::YAHOO_APPROVED, NULL, $envto, $msg);
     $rc = $r->route();
-} else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE ||
-    stripos($envfrom, "notify@yahoogroups.com") !== FALSE ||
-    stripos($envfrom, "confirm-unsub") !== FALSE ||
-    (($envto == MODERATOR_EMAIL || ourDomain($envto)) && stripos($msg, 'Reply-To: confirm-invite') !== FALSE) ||
-    stripos($envto, "modconfirm-") !== FALSE) {
-    # This is a system message.
-    error_log("From Yahoo System");
-    $id = $r->received(Message::YAHOO_SYSTEM, $envfrom, $envto, $msg);
-    $rc = $r->route();
 } else if (stripos($envfrom, 'devnull@yahoo.com') !== FALSE &&
     (stripos($msg, 'your membership has not been approved') !== FALSE ||
      stripos($msg, 'You are already subscribed') !== FALSE ||
