@@ -88,14 +88,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['message']['id']);
         assertFalse(array_key_exists('fromuser', $ret['message']));
 
-        # We should be able to see it using the legacy id.
-        $ret = $this->call('message', 'GET', [
-            'id' => "L42",
-            'groupid' => $group1
-        ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals($id, $ret['message']['id']);
-
         # When logged in should be able to see message history.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');

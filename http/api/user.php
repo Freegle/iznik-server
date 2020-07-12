@@ -209,37 +209,6 @@ function user() {
                     $u->setPrivate('suspectreason', $suspectreason);
                 }
 
-                if ($yahooDeliveryType) {
-                    $l->log([
-                        'type' => Log::TYPE_USER,
-                        'subtype' => Log::SUBTYPE_YAHOO_DELIVERY_TYPE,
-                        'groupid' => $groupid,
-                        'byuser' => $me->getId(),
-                        'user' => $id,
-                        'text' => $yahooDeliveryType
-                    ]);
-                }
-
-                if ($yahooPostingStatus) {
-                    $l->log([
-                        'type' => Log::TYPE_USER,
-                        'subtype' => Log::SUBTYPE_YAHOO_POSTING_STATUS,
-                        'groupid' => $groupid,
-                        'user' => $id,
-                        'byuser' => $me->getId(),
-                        'text' => $yahooPostingStatus
-                    ]);
-
-                    $emails = $u->getEmails();
-                    foreach ($emails as $email) {
-                        $p->add($groupid, [
-                            'type' => 'PostingStatus',
-                            'email' => $email['email'],
-                            'postingStatus' => $yahooPostingStatus
-                        ]);
-                    }
-                }
-
                 if ($ourPostingStatus) {
                     $g = new Group($dbhr, $dbhm);
                     $ourPostingStatus = $g->ourPS($ourPostingStatus);
