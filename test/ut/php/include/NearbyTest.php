@@ -75,6 +75,12 @@ class nearbyTest extends IznikTestCase {
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
 
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addMembership($gid);
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
         # Create a message at this location on this group.
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));

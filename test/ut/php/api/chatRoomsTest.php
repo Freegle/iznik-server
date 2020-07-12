@@ -43,6 +43,10 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         assertNotNull($this->groupid);
 
+        $this->user->addEmail('test@test.com');
+        $this->user->addMembership($this->groupid);
+        $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
         $_SESSION['id'] = NULL;
     }
 

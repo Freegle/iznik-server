@@ -32,6 +32,7 @@ class messageAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM messages_drafts WHERE (SELECT fromuser FROM messages WHERE id = msgid) IS NULL;");
         $dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");
+        $dbhm->preExec("DELETE FROM messages WHERE messageid LIKE 'GTUBE1.1010101@example.net';");
 
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
@@ -44,12 +45,12 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail('sender@example.net');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($this->gid);
-        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $this->user = $u;
     }
 
     public function testLoggedOut() {
         # Create a group with a message on it
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -75,6 +76,7 @@ class messageAPITest extends IznikAPITestCase
     public function testApproved()
     {
         # Create a group with a message on it
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -286,6 +288,7 @@ class messageAPITest extends IznikAPITestCase
         $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Created spam message $id");
         $rc = $r->route();
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -322,21 +325,11 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Should be in approved " . var_export($ret['message']['groups'], TRUE));
         assertEquals('Approved', $ret['message']['groups'][0]['collection']);
 
-        # Now send it again - should stay in approved.
+        # Now send it again - should fail as duplicate message id.
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id2 = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
-        $this->log("Created spam message $id");
-        $rc = $r->route();
-        #assertEquals(MailRouter::INCOMING_SPAM, $rc);
-        self::assertEquals($id, $id2);
-
-        $ret = $this->call('message', 'GET', [
-            'id' => $id
-        ]);
-        $this->log("Should still be in approved " . var_export($ret['message']['groups'], TRUE));
-        assertEquals('Approved', $ret['message']['groups'][0]['collection']);
-
-        }
+        assertNull($id2);
+    }
 
     public function testSpamNoLongerMember()
     {
@@ -398,11 +391,8 @@ class messageAPITest extends IznikAPITestCase
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
         # Send from a user at our domain, so that we can cover the reply going back to them
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $u->addEmail('from@test.com');
-        $u->addEmail($email);
+        $this->user->addEmail($email);
 
         $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
@@ -750,6 +740,7 @@ class messageAPITest extends IznikAPITestCase
     {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -802,13 +793,15 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(3, $ret['ret']);
 
         # Route and delete approved.
+        error_log("Set def");
         $this->log("Route and delete approved");
         $msg = $this->unique($msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->approve($this->gid);
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -1514,312 +1507,6 @@ class messageAPITest extends IznikAPITestCase
 
         }
 
-    public function testSubmit()
-    {
-        assertTrue(TRUE);
-
-        if (!getenv('STANDALONE')) {
-            # Set a fake IP for coverage reasons; choose the BBC.  No license fee required.
-            $_SERVER['REMOTE_ADDR'] = '212.58.244.22';
-
-            $email = 'test-' . rand() . '@blackhole.io';
-
-            # This is similar to the actions on the client
-            # - find a location close to a lat/lng
-            # - upload a picture
-            # - create a draft with a location
-            # - find the closest group to that location
-            # - submit it
-            $this->group->setPrivate('onyahoo', 1);
-            $this->group->setPrivate('lat', 8.5);
-            $this->group->setPrivate('lng', 179.3);
-            $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
-            $this->group->setPrivate('publish', 1);
-
-            $l = new Location($this->dbhr, $this->dbhm);
-            $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
-
-            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-            file_put_contents("/tmp/chair.jpg", $data);
-
-            $ret = $this->call('image', 'POST', [
-                'photo' => [
-                    'tmp_name' => '/tmp/chair.jpg',
-                    'type' => 'image/jpeg'
-                ],
-                'identify' => TRUE
-            ]);
-
-            #$this->log("Create attachment " . var_export($ret, TRUE));
-            assertEquals(0, $ret['ret']);
-            assertNotNull($ret['id']);
-            $attid = $ret['id'];
-
-            # Submit to the playground group explicitly.
-            $g = Group::get($this->dbhr, $this->dbhm);
-            $gid = $g->findByShortName('FreeglePlayground');
-
-            $ret = $this->call('message', 'PUT', [
-                'collection' => 'Draft',
-                'locationid' => $locid,
-                'messagetype' => 'Offer',
-                'item' => 'a thing',
-                'groupid' => $gid,
-                'textbody' => 'Text body',
-                'attachments' => [ $attid ]
-            ]);
-            assertEquals(0, $ret['ret']);
-            $id = $ret['id'];
-            $this->log("Created draft $id");
-
-            # This will get sent; will get queued, as we don't have a membership for the group
-            $ret = $this->call('message', 'POST', [
-                'id' => $id,
-                'action' => 'JoinAndPost',
-                'email' => $email,
-                'ignoregroupoverride' => true
-            ]);
-
-            $this->log("Message #$id should be queued " . var_export($ret, TRUE));
-            assertEquals(0, $ret['ret']);
-            assertEquals('Queued for group membership', $ret['status']);
-            $applied = $ret['appliedemail'];
-
-            $u = User::get($this->dbhr, $this->dbhm);
-            $uid = $u->findByEmail($email);
-
-            # This assumes the playground group is set to auto-approve and moderate new messages.
-            #
-            # Now when that approval gets notified to us, it should trigger submission of the
-            # messages from that user.
-            $count = 0;
-            $found = FALSE;
-
-            do {
-                $this->log("...waiting for pending message from $applied #$uid, try $count");
-                sleep(1);
-                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
-                    [ $gid, MessageCollection::PENDING, $uid ]);
-                foreach ($msgs as $msg) {
-                    $this->log("Reached pending " . var_export($msg, TRUE));
-                    $found = TRUE;
-                }
-                $count++;
-            } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
-
-            assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
-
-            $m = new Message($this->dbhr, $this->dbhm, $id);
-            $m->delete("UT delete");
-
-            # And again, now that the user exists.  Set an invalid from IP which will
-            # fail to resolve.
-            $_SERVER['REMOTE_ADDR'] = '1.1.1.1';
-
-            $ret = $this->call('message', 'PUT', [
-                'collection' => 'Draft',
-                'locationid' => $locid,
-                'groupid' => $this->groupid,
-                'messagetype' => 'Offer',
-                'item' => 'a thing',
-                'textbody' => 'Text body',
-                'attachments' => [ $attid ]
-            ]);
-            assertEquals(0, $ret['ret']);
-            $id = $ret['id'];
-            $this->log("Created draft $id");
-
-            # This will get queued, as we don't have a membership for the group
-            $ret = $this->call('message', 'POST', [
-                'id' => $id,
-                'action' => 'JoinAndPost',
-                'email' => $email,
-                'ignoregroupoverride' => true
-            ]);
-
-            $this->log("Message #$id should be queued 2 " . var_export($ret, TRUE));
-            assertEquals(0, $ret['ret']);
-            assertEquals('Queued for group membership', $ret['status']);
-
-            $count = 0;
-            $found = FALSE;
-
-            do {
-                $this->log("...waiting for pending message from $applied #$uid, try $count");
-                sleep(1);
-                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
-                    [ $gid, MessageCollection::PENDING, $uid ]);
-                foreach ($msgs as $msg) {
-                    $this->log("Reached pending " . var_export($msg, TRUE));
-                    $found = TRUE;
-                    $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-                    $m->delete('UT');
-                }
-                $count++;
-            } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
-
-            assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
-
-            $m = new Message($this->dbhr, $this->dbhm, $id);
-            $m->delete("UT delete");
-
-            # And once again, now that the user exists and will be a member of the group.
-            $ret = $this->call('message', 'PUT', [
-                'collection' => 'Draft',
-                'locationid' => $locid,
-                'groupid' => $gid,
-                'messagetype' => 'Offer',
-                'item' => 'a thing',
-                'textbody' => 'Text body',
-                'attachments' => [ $attid ]
-            ]);
-            assertEquals(0, $ret['ret']);
-            $id = $ret['id'];
-            $this->log("Created draft $id");
-
-            $ret = $this->call('message', 'POST', [
-                'id' => $id,
-                'action' => 'JoinAndPost',
-                'email' => $email,
-                'ignoregroupoverride' => true
-            ]);
-
-            assertEquals(0, $ret['ret']);
-            assertEquals('Success', $ret['status']);
-
-            $count = 0;
-            $found = FALSE;
-
-            do {
-                $this->log("...waiting for pending message from $applied #$uid, try $count");
-                sleep(1);
-                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
-                    [ $gid, MessageCollection::PENDING, $uid ]);
-                foreach ($msgs as $msg) {
-                    $this->log("Reached pending " . var_export($msg, TRUE));
-                    $found = TRUE;
-                    $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-                    $m->delete('UT');
-                }
-                $count++;
-            } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
-
-            assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
-
-            # Now approve the message and wait for it to reach the group.
-            $m = new Message($this->dbhr, $this->dbhm, $id);
-            $m->approve($gid, NULL, NULL, NULL);
-
-            do {
-                $this->log("...waiting for approved message from $applied #$uid, try $count");
-                sleep(1);
-                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
-                    [ $gid, MessageCollection::APPROVED, $uid ]);
-                foreach ($msgs as $msg) {
-                    $this->log("Reached approved" . var_export($msg, TRUE));
-                    $found = TRUE;
-                    $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-
-                    # Check that the attachment is present.
-                    $atts = $m->getAttachments();
-                    assertEquals(1, count($atts));
-
-                    $m->delete('UT');
-                }
-                $count++;
-            } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
-
-            assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
-        }
-
-        }
-
-    public function testSubmit2()
-    {
-        assertTrue(TRUE);
-
-        if (!getenv('STANDALONE')) {
-            $email = 'test-' . rand() . '@blackhole.io';
-
-            # This is similar to the actions on the client
-            # - find a location close to a lat/lng
-            # - upload a picture
-            # - create a draft with a location
-            # - find the closest group to that location
-            # - submit it
-            $this->group->setPrivate('lat', 8.5);
-            $this->group->setPrivate('lng', 179.3);
-            $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
-
-            $l = new Location($this->dbhr, $this->dbhm);
-            $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
-
-            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-            file_put_contents("/tmp/chair.jpg", $data);
-
-            $ret = $this->call('image', 'POST', [
-                'photo' => [
-                    'tmp_name' => '/tmp/chair.jpg',
-                    'type' => 'image/jpeg'
-                ],
-                'identify' => TRUE
-            ]);
-
-            #$this->log("Create attachment " . var_export($ret, TRUE));
-            assertEquals(0, $ret['ret']);
-            assertNotNull($ret['id']);
-            $attid = $ret['id'];
-
-            # Find a location
-            $ret = $this->call('message', 'PUT', [
-                'collection' => 'Draft',
-                'locationid' => $locid,
-                'messagetype' => 'Offer',
-                'item' => 'a thing',
-                'groupid' => $this->gid,
-                'textbody' => 'Text body',
-                'attachments' => [ $attid ]
-            ]);
-            assertEquals(0, $ret['ret']);
-            $id = $ret['id'];
-            $this->log("Created draft $id");
-
-            # This will get sent; will get queued, as we don't have a membership for the group
-            $ret = $this->call('message', 'POST', [
-                'id' => $id,
-                'action' => 'JoinAndPost',
-                'email' => $email,
-                'ignoregroupoverride' => true
-            ]);
-
-            $this->log("Message #$id should be queued " . var_export($ret, TRUE));
-            assertEquals(0, $ret['ret']);
-            assertEquals('Queued for group membership', $ret['status']);
-            $applied = $ret['appliedemail'];
-
-            # Now to get coverage, invoke the submission arm in here, rather than on the separate mail server.  This
-            # assumes we run tests faster than Yahoo responds.
-            $u = User::get($this->dbhr, $this->dbhm);
-            $uid = $u->findByEmail($email);
-            $u = User::get($this->dbhr, $this->dbhm, $uid);
-            $this->log("User id $uid");
-//        $eid = $u->addEmail($applied);
-//        $this->log("Added email $eid");
-            $emails = $u->getEmails();
-            $this->log("Email " . var_export($emails, TRUE));
-            $gemail = NULL;
-            foreach ($emails as $anemail) {
-                if ($anemail['email'] != $email) {
-                    $gemail = $anemail['id'];
-                }
-            }
-            $u->addMembership($this->gid, User::ROLE_MEMBER, $gemail);
-
-            $rc = $u->submitYahooQueued($this->gid);
-            assertEquals(1, $rc);
-        }
-    }
-
     public function testSubmitNative() {
         $email = 'test-' . rand() . '@blackhole.io';
 
@@ -2130,6 +1817,7 @@ class messageAPITest extends IznikAPITestCase
     
     public function testPromise() {
         $u = $this->user;
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $uid3 = $u->create(NULL, NULL, 'Test User');
@@ -2235,6 +1923,8 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
@@ -2318,6 +2008,8 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
@@ -2370,6 +2062,8 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
@@ -2413,6 +2107,8 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
@@ -2454,6 +2150,8 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
@@ -2495,6 +2193,8 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
@@ -2536,6 +2236,8 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
@@ -2595,13 +2297,13 @@ class messageAPITest extends IznikAPITestCase
 
     public function testChatSource()
     {
-        # Create a group we're on
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($this->gid);
 
         # Put a message on the group.
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);

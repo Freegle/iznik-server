@@ -2588,30 +2588,34 @@ ORDER BY lastdate DESC;";
         $this->suggestedsubject = $this->suggestSubject($this->groupid, $this->subject);
 
         # Save into the messages table.
-        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
-        $rc = $this->dbhm->preExec($sql, [
-            $this->date,
-            $this->source,
-            $this->sourceheader,
-            $this->message,
-            $this->fromuser,
-            $this->envelopefrom,
-            $this->envelopeto,
-            $this->fromname,
-            $this->fromaddr,
-            $this->replyto,
-            $this->fromip,
-            $this->subject,
-            $this->suggestedsubject,
-            $this->messageid,
-            $this->tnpostid,
-            $this->textbody,
-            $this->htmlbody,
-            $this->type,
-            $this->lat,
-            $this->lng,
-            $this->locationid
-        ]);
+        try {
+            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            $rc = $this->dbhm->preExec($sql, [
+                $this->date,
+                $this->source,
+                $this->sourceheader,
+                $this->message,
+                $this->fromuser,
+                $this->envelopefrom,
+                $this->envelopeto,
+                $this->fromname,
+                $this->fromaddr,
+                $this->replyto,
+                $this->fromip,
+                $this->subject,
+                $this->suggestedsubject,
+                $this->messageid,
+                $this->tnpostid,
+                $this->textbody,
+                $this->htmlbody,
+                $this->type,
+                $this->lat,
+                $this->lng,
+                $this->locationid
+            ]);
+        } catch (Exception $e) {
+            $rc = FALSE;
+        }
 
         if ($rc) {
             $this->id = $this->dbhm->lastInsertId();

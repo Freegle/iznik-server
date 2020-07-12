@@ -162,6 +162,8 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $this->user2->addEmail('test@test.com');
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $this->user2->addMembership($this->groupid);
+        $this->user2->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
