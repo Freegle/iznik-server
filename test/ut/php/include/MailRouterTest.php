@@ -1256,12 +1256,8 @@ class MailRouterTest extends IznikTestCase {
 
     public function testSubMailUnsub() {
         # Subscribe
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 0);
-
         # Post by email when not a member.
+        $this->user->removeMembership($this->gid);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
@@ -1290,9 +1286,9 @@ class MailRouterTest extends IznikTestCase {
         $_SESSION['id'] = $uid;
         $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
         $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs);
-        assertEquals($gid, $log['group']['id']);
+        assertEquals($this->gid, $log['group']['id']);
 
-        # Mail - first to pending for new member, noderated by default, then to approved for group settings.
+        # Mail - first to pending for new member, moderated by default, then to approved for group settings.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
@@ -1300,10 +1296,10 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
         assertEquals(MailRouter::PENDING, $rc);
-        assertTrue($m->isPending($gid));
+        assertTrue($m->isPending($this->gid));
 
-        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
-        self::assertEquals(MessageCollection::APPROVED, $u->postToCollection($gid));
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        self::assertEquals(MessageCollection::APPROVED, $u->postToCollection($this->gid));
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
@@ -1311,10 +1307,10 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
         assertEquals(MailRouter::APPROVED, $rc);
-        assertTrue($m->isApproved($gid));
+        assertTrue($m->isApproved($this->gid));
 
         # Test moderated
-        $g->setSettings([ 'moderated' => TRUE ]);
+        $this->group->setSettings([ 'moderated' => TRUE ]);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
@@ -1322,7 +1318,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
         assertEquals(MailRouter::PENDING, $rc);
-        assertTrue($m->isPending($gid));
+        assertTrue($m->isPending($this->gid));
 
         # Unsubscribe
 
@@ -1345,7 +1341,7 @@ class MailRouterTest extends IznikTestCase {
         $_SESSION['id'] = $uid;
         $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
         $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_LEFT, $logs);
-        assertEquals($gid, $log['group']['id']);
+        assertEquals($this->gid, $log['group']['id']);
 
         }
 
@@ -1449,9 +1445,6 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testModChat() {
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail(MODERATOR_EMAIL);
 
@@ -1461,7 +1454,7 @@ class MailRouterTest extends IznikTestCase {
         }
 
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($gid, User::ROLE_MEMBER);
+        $u->addMembership($this->gid, User::ROLE_MEMBER);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>', 'To: ' . MODERATOR_EMAIL, $msg);
@@ -1522,10 +1515,7 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testBigSwitch() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 0);
-        $g->setPrivate('overridemoderation', Group::OVERRIDE_MODERATION_ALL);
+        $this->group->setPrivate('overridemoderation', Group::OVERRIDE_MODERATION_ALL);
 
         # Now subscribe.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
@@ -1544,7 +1534,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(1, count($membs));
 
         # Mail - should be pending because of big switch.
-        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1553,7 +1543,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
         assertEquals(MailRouter::PENDING, $rc);
-        assertTrue($m->isPending($gid));
+        assertTrue($m->isPending($this->gid));
     }
 
     public function testBanned() {
@@ -1580,11 +1570,7 @@ class MailRouterTest extends IznikTestCase {
     public function testSubMailApproved()
     {
         # Subscribe
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 0);
-        $g->setSettings([
+        $this->group->setSettings([
             'approvemembers' => TRUE
         ]);
 
@@ -1599,16 +1585,12 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         $ctx = NULL;
-        $members = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING);
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING);
         assertEquals(1, count($members));
     }
 
     public function testCantPost() {
         # Subscribe
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 0);
 
         # Now subscribe.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
@@ -1624,7 +1606,7 @@ class MailRouterTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail('test@test.com');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_PROHIBITED);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_PROHIBITED);
 
         # Mail - should be dropped.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));

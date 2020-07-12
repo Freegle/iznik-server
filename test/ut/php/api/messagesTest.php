@@ -42,10 +42,6 @@ class messagesTest extends IznikAPITestCase {
     }
 
     public function testApproved() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onhere', 1);
-
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: OFFER: Thing (Place)', $msg);
@@ -425,14 +421,11 @@ class messagesTest extends IznikAPITestCase {
         }
 
     public function testNear() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
-
         # Need a location and polygon for near testing.
-        $g->setPrivate('lng', 179.15);
-        $g->setPrivate('lat', 8.4);
-        $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
-        $g->setPrivate('onhere', 1);
+        $this->group->setPrivate('lng', 179.15);
+        $this->group->setPrivate('lat', 8.4);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('onhere', 1);
 
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -467,16 +460,7 @@ class messagesTest extends IznikAPITestCase {
 
     public function testPendingWithdraw() {
         # Set up a pending message on a native group.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 0);
-
-        $u = new User($this->dbhr, $this->dbhm);
-        $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@test.com');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-        $u->addMembership($gid);
+        assertTrue($this->user->login('testpw'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -504,18 +488,15 @@ class messagesTest extends IznikAPITestCase {
         $email = 'ut-' . rand() . '@test.com';
         $u->addEmail($email, 0, FALSE);
 
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onhere', 1);
-        $u->addMembership($gid);
-        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_UNMODERATED);
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_UNMODERATED);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace("test@test.com", $email, $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        $id = $r->received(Message::EMAIL, $email, 'testgroup@' . GROUP_DOMAIN, $msg, $gid);
+        $id = $r->received(Message::EMAIL, $email, 'testgroup@' . GROUP_DOMAIN, $msg, $this->gid);
 
         assertNotNull($id);
         $this->log("Created message $id");
@@ -525,7 +506,7 @@ class messagesTest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'collection' => MessageCollection::APPROVED,
             'summary' => TRUE,
-            'groupid' => $gid
+            'groupid' => $this->gid
         ]);
 
         assertEquals(1, count($ret['messages'][0]['attachments']));
