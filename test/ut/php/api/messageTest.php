@@ -32,13 +32,22 @@ class messageAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM messages_drafts WHERE (SELECT fromuser FROM messages WHERE id = msgid) IS NULL;");
         $dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");
+
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
+        $this->group->setPrivate('onhere', 1);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addEmail('sender@example.net');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addMembership($this->gid);
+        $this->user = $u;
     }
 
     public function testLoggedOut() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onhere', 1);
-
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -64,10 +73,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testApproved()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onhere', TRUE);
-
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -92,7 +97,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
@@ -121,15 +126,12 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Basic test', $atts['fromuser']['messagehistory'][0]['subject']);
 
         $a->delete();
-        $g->delete();
+        $this->group->delete();
 
         }
 
     public function testBadColl()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -149,9 +151,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testPending()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -173,24 +172,24 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promote to mod - should be able to see it.
-        $u->setRole(User::ROLE_MODERATOR, $group1);
+        $u->setRole(User::ROLE_MODERATOR, $this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
         assertEquals(0, $ret['ret']);
@@ -202,9 +201,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testSpam()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         # Create a group with a message on it
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
@@ -221,7 +217,7 @@ class messageAPITest extends IznikAPITestCase
         # Shouldn't be able to see spam logged out
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
         assertEquals(1, $ret['ret']);
@@ -230,42 +226,42 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to see it.
-        $u->setRole(User::ROLE_OWNER, $group1);
+        $u->setRole(User::ROLE_OWNER, $this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
 
         # Delete it - as a user should fail
-        $u->setRole(User::ROLE_MEMBER, $group1);
+        $u->setRole(User::ROLE_MEMBER, $this->gid);
         $ret = $this->call('message', 'DELETE', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Approved'
         ]);
         assertEquals(2, $ret['ret']);
 
-        $u->setRole(User::ROLE_OWNER, $group1);
+        $u->setRole(User::ROLE_OWNER, $this->gid);
         $ret = $this->call('message', 'DELETE', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
@@ -273,7 +269,7 @@ class messageAPITest extends IznikAPITestCase
         # Try again to see it - should be gone
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
         assertEquals(3, $ret['ret']);
@@ -282,9 +278,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testSpamToApproved()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         # Create a group with a message on it
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
@@ -301,13 +294,13 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1, User::ROLE_OWNER);
+        $u->addMembership($this->gid, User::ROLE_OWNER);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
@@ -316,7 +309,7 @@ class messageAPITest extends IznikAPITestCase
         # Mark as not spam.
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'NotSpam'
         ]);
         assertEquals(0, $ret['ret']);
@@ -346,9 +339,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testSpamNoLongerMember()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         # Create a group with a message on it
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
@@ -365,13 +355,13 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1, User::ROLE_OWNER);
+        $u->addMembership($this->gid, User::ROLE_OWNER);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
@@ -381,12 +371,12 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $fromuid = $m->getFromuser();
         $fromu = new User($this->dbhr, $this->dbhm, $fromuid);
-        $fromu->removeMembership($group1);
+        $fromu->removeMembership($this->gid);
 
         # Mark as not spam.
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'NotSpam'
         ]);
         assertEquals(0, $ret['ret']);
@@ -401,9 +391,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testApprove()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
@@ -431,7 +418,7 @@ class messageAPITest extends IznikAPITestCase
         # Shouldn't be able to approve logged out
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Approve'
         ]);
         assertEquals(2, $ret['ret']);
@@ -440,20 +427,20 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Approve',
             'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to approve it.  Suppress the mail.
-        $u->setRole(User::ROLE_OWNER, $group1);
+        $u->setRole(User::ROLE_OWNER, $this->gid);
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('Test');
@@ -466,7 +453,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Approve',
             'duplicate' => 1,
             'subject' => 'Test',
@@ -493,7 +480,7 @@ class messageAPITest extends IznikAPITestCase
         # Message should now exist but approved.
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $groups = $m->getGroups();
-        assertEquals($group1, $groups[0]);
+        assertEquals($this->gid, $groups[0]);
         $p = $m->getPublic();
         $this->log("After approval " . var_export($p, TRUE));
         assertEquals('Approved', $p['groups'][0]['collection']);
@@ -502,7 +489,7 @@ class messageAPITest extends IznikAPITestCase
         # Should be gone
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Approve',
             'duplicate' => 2
         ]);
@@ -512,10 +499,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testReject()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onhere', 1);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Subject: Basic test', 'Subject: OFFER: thing (place)', $msg);
@@ -544,7 +527,7 @@ class messageAPITest extends IznikAPITestCase
         # Shouldn't be able to reject logged out
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Reject'
         ]);
         assertEquals(2, $ret['ret']);
@@ -553,20 +536,20 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Reject',
             'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to reject it.  Suppress the mail.
-        $u->setRole(User::ROLE_OWNER, $group1);
+        $u->setRole(User::ROLE_OWNER, $this->gid);
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('Test');
@@ -579,7 +562,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'stdmsgid' => $sid,
             'action' => 'Reject',
             'subject' => 'Test reject',
@@ -622,7 +605,7 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Message $id should now be rejected");
         $ret = $this->call('messages', 'GET', [
             'collection' => MessageCollection::REJECTED,
-            'groupid' => $group1
+            'groupid' => $this->gid
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['messages']));
@@ -684,7 +667,7 @@ class messageAPITest extends IznikAPITestCase
         # Should be gone from the messages we can see as a mod
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Reject',
             'duplicate' => 2
         ]);
@@ -693,9 +676,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testReply()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_OTHER);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
@@ -716,7 +696,7 @@ class messageAPITest extends IznikAPITestCase
         # Shouldn't be able to mail logged out
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Reply'
         ]);
         assertEquals(2, $ret['ret']);
@@ -725,20 +705,20 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Reply',
             'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to reply.  Suppress the mail.
-        $u->setRole(User::ROLE_OWNER, $group1);
+        $u->setRole(User::ROLE_OWNER, $this->gid);
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('Test');
@@ -752,7 +732,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Reply',
             'stdmsgid' => $sid,
             'subject' => 'Test reply',
@@ -767,9 +747,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testDelete()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
@@ -782,7 +759,7 @@ class messageAPITest extends IznikAPITestCase
         # Shouldn't be able to delete logged out
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Delete'
         ]);
         assertEquals(2, $ret['ret']);
@@ -791,24 +768,24 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Delete',
             'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to delete it.
-        $u->setRole(User::ROLE_OWNER, $group1);
+        $u->setRole(User::ROLE_OWNER, $this->gid);
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Delete',
             'duplicate' => 1
         ]);
@@ -817,7 +794,7 @@ class messageAPITest extends IznikAPITestCase
         # Should be gone
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Reject',
             'duplicate' => 2
         ]);
@@ -834,7 +811,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Delete'
         ]);
         assertEquals(0, $ret['ret']);
@@ -843,9 +820,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testNotSpam()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $origmsg);
 
@@ -857,7 +831,7 @@ class messageAPITest extends IznikAPITestCase
         # Shouldn't be able to do this logged out
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'NotSpam'
         ]);
         assertEquals(2, $ret['ret']);
@@ -866,24 +840,24 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'NotSpam',
             'dup' => 2
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to do this it.
-        $u->setRole(User::ROLE_OWNER, $group1);
+        $u->setRole(User::ROLE_OWNER, $this->gid);
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'NotSpam',
             'duplicate' => 1
         ]);
@@ -891,7 +865,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Message should now be in pending.
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
         $msgs = $ret['messages'];
@@ -900,7 +874,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Spam should be empty.
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
         $msgs = $ret['messages'];
@@ -908,14 +882,14 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
 
         # Pending should be empty.
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
         $msgs = $ret['messages'];
@@ -933,14 +907,14 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
 
         # Pending should be empty.
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
         $msgs = $ret['messages'];
@@ -950,9 +924,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testHold()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
@@ -965,7 +936,7 @@ class messageAPITest extends IznikAPITestCase
         # Shouldn't be able to hold logged out
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Hold'
         ]);
         assertEquals(2, $ret['ret']);
@@ -974,24 +945,24 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Hold',
             'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to hold it.
-        $u->setRole(User::ROLE_OWNER, $group1);
+        $u->setRole(User::ROLE_OWNER, $this->gid);
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Hold',
             'duplicate' => 1
         ]);
@@ -999,13 +970,13 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1
+            'groupid' => $this->gid
         ]);
         assertEquals($uid, $ret['message']['heldby']['id']);
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'action' => 'Release',
             'duplicate' => 2
         ]);
@@ -1013,7 +984,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
-            'groupid' => $group1
+            'groupid' => $this->gid
         ]);
         assertFalse(pres('heldby', $ret['message']));
 
@@ -1040,13 +1011,11 @@ class messageAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $attid = $ret['id'];
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_OTHER);
-        $g->setPrivate('onyahoo', 1);
-        $g->setPrivate('lat', 8.5);
-        $g->setPrivate('lng', 179.3);
-        $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
-        $g->setPrivate('publish', 1);
+        $this->group->setPrivate('onyahoo', 1);
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
@@ -1063,7 +1032,7 @@ class messageAPITest extends IznikAPITestCase
         # Shouldn't be able to edit logged out
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'subject' => 'Test edit',
             'attachments' => []
         ]);
@@ -1075,23 +1044,23 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'subject' => 'Test edit'
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to edit it.
-        $u->setRole(User::ROLE_OWNER, $group1);
+        $u->setRole(User::ROLE_OWNER, $this->gid);
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'subject' => 'Test edit long'
         ]);
         assertEquals(0, $ret['ret']);
@@ -1109,7 +1078,7 @@ class messageAPITest extends IznikAPITestCase
         # Now edit a platform subject.
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'msgtype' => 'Offer',
             'item' => 'Test item',
             'location' => 'TV1 1AA'
@@ -1124,7 +1093,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'msgtype' => 'Offer',
             'item' => 'Test item',
             'location' => 'TV1 1BB'
@@ -1134,7 +1103,7 @@ class messageAPITest extends IznikAPITestCase
         # Attachments
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'textbody' => 'Test edit',
             'attachments' => [ $attid ]
         ]);
@@ -1156,7 +1125,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'htmlbody' => 'Test edit',
             'FOP' => 0
         ]);
@@ -1176,24 +1145,20 @@ class messageAPITest extends IznikAPITestCase
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onyahoo', 0);
-
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
         $memberid = $u->create('Test','User', 'Test User');
         $member = User::get($this->dbhr, $this->dbhm, $memberid);
         assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $member->addMembership($gid, User::ROLE_MEMBER);
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $member->addEmail($email);
 
         $modid = $u->create('Test','User', 'Test User');
         $mod = User::get($this->dbhr, $this->dbhm, $modid);
         assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $mod->addMembership($gid, User::ROLE_MODERATOR);
+        $mod->addMembership($this->gid, User::ROLE_MODERATOR);
 
         $this->log("Created member $memberid and mod $modid");
 
@@ -1205,7 +1170,7 @@ class messageAPITest extends IznikAPITestCase
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body'
         ]);
 
@@ -1230,12 +1195,12 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MessageCollection::PENDING, $ret['message']['groups'][0]['collection']);
 
         # Disable edits for moderated members.
-        $settings = json_decode($g->getPrivate('settings'), TRUE);
+        $settings = json_decode($this->group->getPrivate('settings'), TRUE);
         $settings['allowedits'] = [
             'moderated' => FALSE,
             'group' => TRUE
         ] ;
-        $g->setPrivate('settings', json_encode($settings));
+        $this->group->setPrivate('settings', json_encode($settings));
 
         # Shouldn't be allowed to edit now.
         $ret = $this->call('message', 'GET', [
@@ -1253,7 +1218,7 @@ class messageAPITest extends IznikAPITestCase
         # Now approve
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'action' => 'Approve'
         ]);
         assertEquals(0, $ret['ret']);
@@ -1263,7 +1228,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'item' => 'Edited',
             'textbody' => 'Another text body'
         ]);
@@ -1272,7 +1237,7 @@ class messageAPITest extends IznikAPITestCase
         # Again but with no actual change
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'item' => 'Edited',
             'textbody' => 'Another text body'
         ]);
@@ -1294,13 +1259,13 @@ class messageAPITest extends IznikAPITestCase
 
         # This message should also show up in edits.
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'collection' => MessageCollection::EDITS
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['messages']));
         assertEquals($mid, $ret['messages'][0]['id']);
-        assertEquals($gid, $ret['messages'][0]['groups'][0]['groupid']);
+        assertEquals($this->gid, $ret['messages'][0]['groups'][0]['groupid']);
 
         # Will have a collection of approved, because it is.
         assertEquals(MessageCollection::APPROVED, $ret['messages'][0]['groups'][0]['collection']);
@@ -1312,7 +1277,7 @@ class messageAPITest extends IznikAPITestCase
         # And also in the counts.
         $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
-        assertEquals($gid, $ret['groups'][0]['id']);
+        assertEquals($this->gid, $ret['groups'][0]['id']);
         assertEquals(1, $ret['groups'][0]['work']['editreview']);
         assertEquals(1, $ret['work']['editreview']);
 
@@ -1326,7 +1291,7 @@ class messageAPITest extends IznikAPITestCase
 
         # No longer showing for review.
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'collection' => MessageCollection::EDITS
         ]);
         assertEquals(0, $ret['ret']);
@@ -1354,17 +1319,13 @@ class messageAPITest extends IznikAPITestCase
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onyahoo', 0);
-
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
         $memberid = $u->create('Test','User', 'Test User');
         $member = User::get($this->dbhr, $this->dbhm, $memberid);
         assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $member->addMembership($gid, User::ROLE_MEMBER);
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $member->addEmail($email);
 
@@ -1378,7 +1339,7 @@ class messageAPITest extends IznikAPITestCase
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body'
         ]);
 
@@ -1399,7 +1360,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'item' => 'Edited',
             'textbody' => 'Another text body'
         ]);
@@ -1408,9 +1369,6 @@ class messageAPITest extends IznikAPITestCase
 
     public function testDraft()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         # Can create drafts when not logged in.
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         file_put_contents("/tmp/chair.jpg", $data);
@@ -1449,7 +1407,7 @@ class messageAPITest extends IznikAPITestCase
             'item' => 'a thing',
             'textbody' => 'Text body',
             'locationid' => $locid,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'attachments' => [ $attid ]
         ]);
         $this->log(var_export($ret, TRUE));
@@ -1466,7 +1424,7 @@ class messageAPITest extends IznikAPITestCase
             'item' => 'a thing',
             'textbody' => 'Text body',
             'locationid' => $locid,
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'attachments' => [ $attid ]
         ]);
         $this->log(var_export($ret, TRUE));
@@ -1571,8 +1529,6 @@ class messageAPITest extends IznikAPITestCase
             # - create a draft with a location
             # - find the closest group to that location
             # - submit it
-            $this->group = Group::get($this->dbhr, $this->dbhm);
-            $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
             $this->group->setPrivate('onyahoo', 1);
             $this->group->setPrivate('lat', 8.5);
             $this->group->setPrivate('lng', 179.3);
@@ -1790,8 +1746,6 @@ class messageAPITest extends IznikAPITestCase
             # - create a draft with a location
             # - find the closest group to that location
             # - submit it
-            $this->group = Group::get($this->dbhr, $this->dbhm);
-            $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
             $this->group->setPrivate('lat', 8.5);
             $this->group->setPrivate('lng', 179.3);
             $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
@@ -1816,15 +1770,12 @@ class messageAPITest extends IznikAPITestCase
             $attid = $ret['id'];
 
             # Find a location
-            $g = Group::get($this->dbhr, $this->dbhm);
-            $gid = $g->findByShortName('FreeglePlayground');
-
             $ret = $this->call('message', 'PUT', [
                 'collection' => 'Draft',
                 'locationid' => $locid,
                 'messagetype' => 'Offer',
                 'item' => 'a thing',
-                'groupid' => $gid,
+                'groupid' => $this->gid,
                 'textbody' => 'Text body',
                 'attachments' => [ $attid ]
             ]);
@@ -1861,9 +1812,9 @@ class messageAPITest extends IznikAPITestCase
                     $gemail = $anemail['id'];
                 }
             }
-            $u->addMembership($gid, User::ROLE_MEMBER, $gemail);
+            $u->addMembership($this->gid, User::ROLE_MEMBER, $gemail);
 
-            $rc = $u->submitYahooQueued($gid);
+            $rc = $u->submitYahooQueued($this->gid);
             assertEquals(1, $rc);
         }
     }
@@ -1877,13 +1828,6 @@ class messageAPITest extends IznikAPITestCase
         # - create a draft with a location
         # - find the closest group to that location
         # - submit it
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-
-        $this->group->setPrivate('onyahoo', 0);
-
-        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
-
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
         $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
@@ -1893,14 +1837,12 @@ class messageAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         # Find a location
-        $g = Group::get($this->dbhr, $this->dbhm);
-
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $this->groupid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body'
         ]);
 
@@ -1922,23 +1864,23 @@ class messageAPITest extends IznikAPITestCase
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
-        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
 
         # Now approve the message and wait for it to reach the group.
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        $m->approve($this->groupid, NULL, NULL, NULL);
+        $m->approve($this->gid, NULL, NULL, NULL);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
-        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         assertEquals(0, count($msgs));
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::APPROVED);
         $ctx = NULL;
-        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
 
@@ -1954,17 +1896,13 @@ class messageAPITest extends IznikAPITestCase
         # - create a draft with a location
         # - find the closest group to that location
         # - submit it
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-
-        $this->group->setPrivate('onyahoo', 0);
-
+        #
         # Set the group to approve members
         $this->group->setSettings([
             'approvemembers' => TRUE
         ]);
 
-        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+        $this->log("Set private for {$this->gid} to " . $this->group->getPrivate('onyahoo'));
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -1975,14 +1913,12 @@ class messageAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         # Find a location
-        $g = Group::get($this->dbhr, $this->dbhm);
-
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $this->groupid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body'
         ]);
 
@@ -2003,7 +1939,7 @@ class messageAPITest extends IznikAPITestCase
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::QUEUED_USER);
         $ctx = NULL;
-        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
@@ -2012,11 +1948,11 @@ class messageAPITest extends IznikAPITestCase
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail($email);
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        $u->approve($this->groupid,NULL, NULL, NULL);
+        $u->approve($this->gid,NULL, NULL, NULL);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
-        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
@@ -2033,17 +1969,13 @@ class messageAPITest extends IznikAPITestCase
         # - create a draft with a location
         # - find the closest group to that location
         # - submit it
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-
-        $this->group->setPrivate('onyahoo', 0);
-
+        #
         # Set the group to approve members
         $this->group->setSettings([
             'approvemembers' => TRUE
         ]);
 
-        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+        $this->log("Set private for {$this->gid} to " . $this->group->getPrivate('onyahoo'));
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -2054,14 +1986,12 @@ class messageAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         # Find a location
-        $g = Group::get($this->dbhr, $this->dbhm);
-
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $this->groupid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body'
         ]);
 
@@ -2082,7 +2012,7 @@ class messageAPITest extends IznikAPITestCase
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::QUEUED_USER);
         $ctx = NULL;
-        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
@@ -2091,13 +2021,13 @@ class messageAPITest extends IznikAPITestCase
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail($email);
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        $u->reject($this->groupid,NULL, NULL, NULL);
+        $u->reject($this->gid,NULL, NULL, NULL);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $gs = $m->getGroups(TRUE, FALSE);
         $this->log("Groups " . var_export($gs, TRUE));
         self::assertEquals(1, count($gs));
-        self::assertEquals($this->groupid, $gs[0]['groupid']);
+        self::assertEquals($this->gid, $gs[0]['groupid']);
         self::assertEquals(MessageCollection::REJECTED, $gs[0]['collection']);
 
         }
@@ -2112,13 +2042,6 @@ class messageAPITest extends IznikAPITestCase
         # - create a draft with a location
         # - find the closest group to that location
         # - submit it
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-
-        $this->group->setPrivate('onyahoo', 0);
-
-        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
-
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
         $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
@@ -2128,8 +2051,6 @@ class messageAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         # Find a location
-        $g = Group::get($this->dbhr, $this->dbhm);
-
         # ...but ban them first.
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail($email);
@@ -2140,16 +2061,16 @@ class messageAPITest extends IznikAPITestCase
         }
 
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        $this->log("Ban $uid from {$this->groupid}");
-        $u->removeMembership($this->groupid, TRUE);
-        assertFalse($u->addMembership($this->groupid));
+        $this->log("Ban $uid from {$this->gid}");
+        $u->removeMembership($this->gid, TRUE);
+        assertFalse($u->addMembership($this->gid));
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $this->groupid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body'
         ]);
 
@@ -2171,7 +2092,7 @@ class messageAPITest extends IznikAPITestCase
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
-        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
 
@@ -2192,8 +2113,8 @@ class messageAPITest extends IznikAPITestCase
             # - create a draft with a location
             # - find the closest group to that location
             # - submit it
-            $g = Group::get($this->dbhr, $this->dbhm);
-            $gid = $g->findByShortName('FreeglePlayground');
+            $this->group = Group::get($this->dbhr, $this->dbhm);
+            $this->gid = $this->group->findByShortName('FreeglePlayground');
 
             $locationid = $this->dbhr->preQuery("SELECT id FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 LIMIT 1;")[0]['id'];
             $this->log("Use location $locationid");
@@ -2203,7 +2124,7 @@ class messageAPITest extends IznikAPITestCase
                 'locationid' => $locationid,
                 'messagetype' => 'Offer',
                 'item' => 'a double moderation test',
-                'groupid' => $gid,
+                'groupid' => $this->gid,
                 'textbody' => 'Text body'
             ]);
             assertEquals(0, $ret['ret']);
@@ -2244,7 +2165,7 @@ class messageAPITest extends IznikAPITestCase
 
             # Now it's pending - approve it on the platform, before Yahoo has seen it.
             $this->log("Approve");
-            $m->approve($gid, NULL, NULL, NULL);
+            $m->approve($this->gid, NULL, NULL, NULL);
 
             # We will then get notified of the message being pending on Yahoo, which will trigger an approval, and then
             # we will get the approved message back. At that point the message will acquire a yahooapprovedid - so that's
@@ -2272,9 +2193,9 @@ class messageAPITest extends IznikAPITestCase
 
     public function testCrosspost() {
         # At the moment a crosspost results in two separate messages - see comment in Message::save().
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
-        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $this->group->create('testgroup2', Group::GROUP_REUSE);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
@@ -2297,14 +2218,8 @@ class messageAPITest extends IznikAPITestCase
         }
     
     public function testPromise() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $u = $this->user;
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid1 = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $uid3 = $u->create(NULL, NULL, 'Test User');
 
@@ -2320,13 +2235,13 @@ class messageAPITest extends IznikAPITestCase
         # Shouldn't be able to promise logged out
         $ret = $this->call('message', 'POST', [
             'id' => $id,
-            'userid' => $uid1,
+            'userid' => $this->uid,
             'action' => 'Promise'
         ]);
         assertEquals(2, $ret['ret']);
 
         # Promise it to the other user.
-        $u = User::get($this->dbhr, $this->dbhm, $uid1);
+        $u = User::get($this->dbhr, $this->dbhm, $this->uid);
         assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2404,9 +2319,6 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
@@ -2423,6 +2335,7 @@ class messageAPITest extends IznikAPITestCase
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(Message::TYPE_OFFER, $m->getType());
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2471,11 +2384,11 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # Now get the happiness back.
-        $u->setRole(User::ROLE_MODERATOR, $group1);
+        $u->setRole(User::ROLE_MODERATOR, $this->gid);
         assertTrue($u->login('testpw'));
         $ret = $this->call('memberships', 'GET', [
             'collection' => 'Happiness',
-            'groupid' => $group1
+            'groupid' => $this->gid
         ]);
         $this->log("Happiness " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
@@ -2488,9 +2401,6 @@ class messageAPITest extends IznikAPITestCase
     public function testMarkAsMod()
     {
         $email = 'test-' . rand() . '@blackhole.io';
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -2515,7 +2425,7 @@ class messageAPITest extends IznikAPITestCase
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
-        $u->addMembership($group1, User::ROLE_MEMBER);
+        $u->addMembership($this->gid, User::ROLE_MEMBER);
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2524,7 +2434,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(2, $ret['ret']);
 
-        $u->addMembership($group1, User::ROLE_MODERATOR);
+        $u->addMembership($this->gid, User::ROLE_MODERATOR);
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2543,9 +2453,6 @@ class messageAPITest extends IznikAPITestCase
     public function testExpired()
     {
         $email = 'test-' . rand() . '@blackhole.io';
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -2590,9 +2497,6 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
@@ -2633,9 +2537,6 @@ class messageAPITest extends IznikAPITestCase
     public function testIntendedReceived()
     {
         $email = 'test-' . rand() . '@blackhole.io';
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -2678,9 +2579,6 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
@@ -2721,9 +2619,6 @@ class messageAPITest extends IznikAPITestCase
     public function testIntendedRepost()
     {
         $email = 'test-' . rand() . '@blackhole.io';
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -2790,13 +2685,10 @@ class messageAPITest extends IznikAPITestCase
     public function testChatSource()
     {
         # Create a group we're on
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
 
         # Put a message on the group.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
@@ -2834,7 +2726,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Try as mod
         $this->log("As mod");
-        $u->addMembership($group1, User::ROLE_MODERATOR);
+        $u->addMembership($this->gid, User::ROLE_MODERATOR);
         $ret = $this->call('message', 'GET', [
             'id' => $replyid,
             'collection' => 'Chat'
@@ -2851,12 +2743,7 @@ class messageAPITest extends IznikAPITestCase
         # - create a draft with a location
         # - find the closest group to that location
         # - submit it
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-
-        $this->group->setPrivate('onyahoo', 0);
-
-        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+        $this->log("Set private for {$this->gid} to " . $this->group->getPrivate('onyahoo'));
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -2867,14 +2754,12 @@ class messageAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         # Find a location
-        $g = Group::get($this->dbhr, $this->dbhm);
-
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $this->groupid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body with viagra'
         ]);
 
@@ -2896,7 +2781,7 @@ class messageAPITest extends IznikAPITestCase
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::SPAM);
         $ctx = NULL;
-        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
@@ -2915,13 +2800,6 @@ class messageAPITest extends IznikAPITestCase
         # - create a draft with a location
         # - find the closest group to that location
         # - submit it
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-
-        $this->group->setPrivate('onyahoo', 0);
-
-        $this->log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
-
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
         $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
@@ -2931,14 +2809,12 @@ class messageAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         # Find a location
-        $g = Group::get($this->dbhr, $this->dbhm);
-
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $this->groupid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body with uttest2'
         ]);
 
@@ -2960,7 +2836,7 @@ class messageAPITest extends IznikAPITestCase
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
-        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         assertEquals(1, count($msgs));
         self::assertEquals($id, $msgs[0]['id']);
         self::assertTrue(array_key_exists('worry', $msgs[0]));
@@ -3092,19 +2968,16 @@ class messageAPITest extends IznikAPITestCase
     {
         assertTrue(TRUE);
 
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
-        $this->group->setPrivate('onyahoo', 0);
         $this->group->setPrivate('overridemoderation', Group::OVERRIDE_MODERATION_ALL);
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail($email);
-        $u->addMembership($this->groupid);
+        $u->addMembership($this->gid);
 
         # Take off moderation.
-        $u->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
@@ -3114,7 +2987,7 @@ class messageAPITest extends IznikAPITestCase
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $this->groupid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body'
         ]);
 
@@ -3135,7 +3008,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Should be pending because of the big switch.
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertTrue($m->isPending($this->groupid));
+        assertTrue($m->isPending($this->gid));
     }
 
     public function testCantPost()
@@ -3143,22 +3016,18 @@ class messageAPITest extends IznikAPITestCase
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onyahoo', 0);
-
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
         $memberid = $u->create('Test','User', 'Test User');
         $member = User::get($this->dbhr, $this->dbhm, $memberid);
         assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $member->addMembership($gid, User::ROLE_MEMBER);
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $member->addEmail($email);
 
         # Forbid us from posting.
-        $member->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_PROHIBITED);
+        $member->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_PROHIBITED);
 
         # Submit a message from the member - should fail
         assertTrue($member->login('testpw'));
@@ -3168,7 +3037,7 @@ class messageAPITest extends IznikAPITestCase
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body'
         ]);
 
@@ -3186,8 +3055,8 @@ class messageAPITest extends IznikAPITestCase
     }
 
     public function testMergeDuringSubmit() {
-        $g = Group::get($this->dbhm, $this->dbhm);
-        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        $this->group = Group::get($this->dbhm, $this->dbhm);
+        $this->gid = $this->group->create('testgroup1', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhm, $this->dbhm);
         $id1 = $u->create(NULL, NULL, 'Test User');
@@ -3202,7 +3071,7 @@ class messageAPITest extends IznikAPITestCase
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
-            'groupid' => $gid,
+            'groupid' => $this->gid,
             'textbody' => 'Text body'
         ]);
 
