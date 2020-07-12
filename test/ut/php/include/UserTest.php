@@ -300,7 +300,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
-        list($mid, $already) = $m->save();
+        $mid = $m->save();
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
         # Make it not from us else we'll have moderator role.
@@ -1182,7 +1182,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        list($mid, $already) = $m->save();
+        $mid = $m->save();
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
@@ -1275,7 +1275,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        list($mid, $already) = $m->save();
+        $mid = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('sourceheader', Message::PLATFORM);
         $m->setPrivate('fromuser', $uid);
@@ -1327,7 +1327,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        list($mid, $already) = $m->save();
+        $mid = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1338,7 +1338,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        list($mid, $already) = $m->save();
+        $mid = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1349,7 +1349,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        list($mid, $already) = $m->save();
+        $mid = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);

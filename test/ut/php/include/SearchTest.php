@@ -29,6 +29,15 @@ class searchTest extends IznikTestCase
         $this->dbhm->preExec("DELETE FROM words WHERE word = 'zzzutzzz';");
         $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $this->dbhm->preExec("DELETE FROM words_cache WHERE search LIKE 'zzzutzzz';");
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@test.com', 0, FALSE);
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
     }
 
     protected function tearDown()
@@ -39,16 +48,13 @@ class searchTest extends IznikTestCase
 
     public function testBasic()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id1, $already) = $m->save();
+        $id1 = $m->save();
         $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->setSearch($this->s);
@@ -69,12 +75,12 @@ class searchTest extends IznikTestCase
 
         # Test restricting by filter.
         $ctx = NULL;
-        $this->log("Restrict to $gid");
-        $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $gid ]);
+        $this->log("Restrict to {$this->gid}");
+        $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $this->gid ]);
         assertEquals($id1, $ret[0]['id']);
 
         $ctx = NULL;
-        $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $gid+1 ]);
+        $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $this->gid+1 ]);
         assertEquals(0, count($ret));
 
         # Test fuzzy
@@ -138,7 +144,7 @@ class searchTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id1, $already) = $m->save();
+        $id1 = $m->save();
         $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->setSearch($this->s);
@@ -149,7 +155,7 @@ class searchTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id2, $already) = $m->save();
+        $id2 = $m->save();
         $m->index();
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         $m2->setSearch($this->s);

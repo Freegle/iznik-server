@@ -67,6 +67,19 @@ class RelevantTest extends IznikTestCase
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
 
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
+        $g->setPrivate('lat', 8.53333);
+        $g->setPrivate('lng', 179.2167);
+        $g->setPrivate('poly', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
+        $g->setPrivate('onhere', 1);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@test.com', 0, FALSE);
+        $u->addMembership($gid);
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
         # Create a user
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -79,12 +92,9 @@ class RelevantTest extends IznikTestCase
         $this->log("Emails before first " . var_export($u->getEmails(), TRUE));
 
         # Post a WANTED, an OFFER and a search.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
-        $g->setPrivate('lat', 8.53333);
-        $g->setPrivate('lng', 179.2167);
-        $g->setPrivate('poly', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        $g->setPrivate('onhere', 1);
+        $u->addMembership($gid);
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));

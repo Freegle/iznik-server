@@ -75,7 +75,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id1, $already) = $m->save();
+        $id1 = $m->save();
 
         # TAKEN after OFFER - should match
         $msg = str_replace('OFFER: Test item', 'TAKEN: Test item', $msg);
@@ -112,13 +112,13 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id1, $already) = $m->save();
+        $id1 = $m->save();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] Offer - Pedestal Fan - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id2, $already) = $m->save();
+        $id2 = $m->save();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
@@ -154,14 +154,14 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id1, $already) = $m->save();
+        $id1 = $m->save();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id2, $already) = $m->save();
+        $id2 = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
@@ -173,7 +173,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id3, $already) = $m->save();
+        $id3 = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
@@ -185,7 +185,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id4, $already) = $m->save();
+        $id4 = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
@@ -222,7 +222,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
-        list($mid, $already) = $m->save();
+        $mid = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $atts = $m->getPublic();
         $this->log("Public " . var_export($atts, true));
@@ -546,7 +546,7 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list ($id, $already) = $m->save();
+        $id = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('fromaddr', 'notify@yahoogroups.com');
         assertTrue($m->isAutoreply());
@@ -766,7 +766,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@user.trashnothing.com', 'to@test.com', $msg);
-        list($id1, $already) = $m->save();
+        $id1 = $m->save();
         $atts = $m->getPublic();
         assertTrue($m->canSee($atts));
         $m->delete();

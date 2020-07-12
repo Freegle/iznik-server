@@ -40,6 +40,7 @@ class statsTest extends IznikTestCase {
         $this->log("Created user $uid");
         $u->addEmail('test@test.com');
         $u->addMembership($g->getId(), User::ROLE_MEMBER);
+
         $rc = $g->setMembers([
             [
                 'uid' => $uid,
@@ -57,19 +58,11 @@ class statsTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals($gid, $m->getGroups()[0]);
         $this->log("Created message $id on $gid");
-
-        # Now send the same message again; this should replace the first, but shouldn't appear in the counts as a
-        # separate message.
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals($gid, $m->getGroups()[0]);
-        $this->log("Created message $id on $gid");
+        $m->approve($gid);
 
         # Need to be a mod to see all.
         $u = User::get($this->dbhr, $this->dbhm);
