@@ -42,6 +42,10 @@ class activityAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
+        $u->addEmail('test@test.com');
+        $u->addMembership($group1);
+        $u->setMembershipAtt($group1, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);

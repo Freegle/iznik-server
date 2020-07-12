@@ -39,6 +39,8 @@ class membershipsAPITest extends IznikAPITestCase {
         assertNotNull($this->uid);
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
+        $this->user->addMembership($this->groupid);
+        $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $this->uid2 = $u->create(NULL, NULL, 'Test User');
         assertNotNull($this->uid);
         $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);

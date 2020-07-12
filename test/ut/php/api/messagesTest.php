@@ -38,6 +38,7 @@ class messagesTest extends IznikAPITestCase {
         $u->addEmail('sender@example.net');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $this->user = $u;
     }
 

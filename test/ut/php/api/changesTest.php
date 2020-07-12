@@ -39,6 +39,10 @@ class changesAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
+        $u->addEmail('test@test.com');
+        $u->addMembership($group1);
+        $u->setMembershipAtt($group1, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 

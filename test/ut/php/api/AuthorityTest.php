@@ -33,6 +33,7 @@ class authorityAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM authorities WHERE name LIKE 'UTAuth%';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV1 %';");
     }
 
     protected function tearDown()
@@ -63,6 +64,12 @@ class authorityAPITest extends IznikAPITestCase
         $this->group->setPrivate('defaultlocation', $fullpcid);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
+
+        $this->user = User::get($this->dbhr, $this->dbhm);
+        $this->user->create(NULL, NULL, 'Test User');
+        $this->user->addEmail('test@test.com');
+        $this->user->addMembership($this->groupid);
+        $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Add an OFFER and a WANTED
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
