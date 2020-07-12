@@ -36,6 +36,10 @@ class visualiseTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
         $this->log("Created user $uid");
         $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addEmail('test@test.com');
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $u->addMembership($gid);
+
         assertGreaterThan(0, $u->addEmail('test@test.com'));
         $u->setPrivate('settings', json_encode([
             'mylocation' => [
@@ -55,7 +59,9 @@ class visualiseTest extends IznikTestCase {
 
         assertNotNull($origid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        assertEquals(MailRouter::PENDING, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
+        $m->approve($gid);
 
         # Create a user to receive it.
         $u = User::get($this->dbhr, $this->dbhm);

@@ -29,7 +29,6 @@ class chatMessagesTest extends IznikTestCase {
             $dbhm->preExec("DELETE FROM users WHERE id = ?;", [ $user['userid']]);
         }
 
-
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -37,6 +36,10 @@ class chatMessagesTest extends IznikTestCase {
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+
+        $this->user->addMembership($this->groupid);
+        $this->user->addEmail('test@test.com');
+        $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
     }
 
     public function testGroup() {
@@ -69,9 +72,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -90,15 +90,11 @@ class chatMessagesTest extends IznikTestCase {
         # Check got flagged.
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
         assertEquals(1, $msgs[0]['reviewrequired']);
-
-        }
+    }
 
     public function testSpamReply2() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -123,9 +119,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply5() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -149,9 +142,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testReplyFromSpammer() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -192,9 +182,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testStripOurFooter() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -230,9 +217,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply4() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -258,9 +242,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply3() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -280,9 +261,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply6() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('OFFER: a test item (location)', 'Testing', $msg);
@@ -359,9 +337,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testReplyJobSpam() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -380,9 +355,6 @@ class chatMessagesTest extends IznikTestCase {
     }
 
     public function testPairing() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('OFFER: a test item (location)', 'OFFER: A spade and broom handle (Conniburrow MK14', $msg);
@@ -508,8 +480,7 @@ class chatMessagesTest extends IznikTestCase {
             # general public DNS server.
             assertTrue($m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
         }
-
-        }
+    }
 
     public function testReferToSpammer() {
         $u = new User($this->dbhr, $this->dbhm);
@@ -533,9 +504,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testReplyWithAttachment() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
