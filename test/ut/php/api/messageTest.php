@@ -2194,8 +2194,11 @@ class messageAPITest extends IznikAPITestCase
     public function testCrosspost() {
         # At the moment a crosspost results in two separate messages - see comment in Message::save().
         $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $this->group->create('testgroup1', Group::GROUP_REUSE);
+        $group1= $this->group->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $this->group->create('testgroup2', Group::GROUP_REUSE);
+
+        $this->user->addMembership($group1);
+        $this->user->addMembership($group2);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
@@ -3107,6 +3110,7 @@ class messageAPITest extends IznikAPITestCase
         assertNotNull($id);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();

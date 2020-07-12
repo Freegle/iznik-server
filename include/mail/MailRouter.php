@@ -634,6 +634,8 @@ class MailRouter
                         }
                     } else if ($this->msg->getSource() == Message::YAHOO_APPROVED) {
                         if ($log) { error_log("Mark as approved"); }
+                        $ret = MailRouter::FAILURE;
+
                         if ($this->markApproved()) {
                             $ret = MailRouter::APPROVED;
                         }
@@ -694,6 +696,8 @@ class MailRouter
                                             }
                                         } else {
                                             if ($log) { error_log("Mark as approved"); }
+                                            $ret = MailRouter::FAILURE;
+
                                             if ($this->markApproved()) {
                                                 $ret = MailRouter::APPROVED;
                                             }

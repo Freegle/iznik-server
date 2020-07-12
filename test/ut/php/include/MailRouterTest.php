@@ -37,6 +37,19 @@ class MailRouterTest extends IznikTestCase {
         $gid = $g->findByShortName('FreeglePlayground');
         $sql = "DELETE FROM messages_groups WHERE groupid = $gid AND yahooapprovedid < 500;";
         $this->dbhm->preExec($sql);
+
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
+        $this->group->setPrivate('onhere', 1);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addEmail('sender@example.net');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addMembership($this->gid);
+        $this->user = $u;
     }
 
     protected function tearDown() {
@@ -121,8 +134,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace("FreeglePlayground <freegleplayground@yahoogroups.com>", "Nowhere <nogroup@yahoogroups.com>", $msg);
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
-
+        assertEquals(MailRouter::DROPPED, $rc);
     }
 
     public function testSpamSubject() {
@@ -298,6 +310,7 @@ class MailRouterTest extends IznikTestCase {
 
     public function testPending() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
@@ -318,7 +331,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($pend->getTextbody());
         assertNotNull($pend->getHtmlbody());
         assertEquals($pend->getSubject(), $pend->getHeader('subject'));
-        assertEquals('freegleplayground@yahoogroups.com', $pend->getTo()[0]['address']);
+        assertEquals('testgroup@yahoogroups.com', $pend->getTo()[0]['address']);
         assertEquals('Test User', $pend->getFromname());
         $this->log("Delete $id from " . var_export($pend->getGroups(), true));
         $pend->delete(NULL, $pend->getGroups()[0]);
@@ -326,9 +339,7 @@ class MailRouterTest extends IznikTestCase {
         }
 
     function testPendingToApproved() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $this->log("First copy on $gid");
+        $this->log("First copy on $this->gid");
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
@@ -347,11 +358,11 @@ class MailRouterTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $u->addMembership($gid, User::ROLE_OWNER);
+        $u->addMembership($this->gid, User::ROLE_OWNER);
         assertTrue($u->login('testpw'));
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        $m->approve($gid, NULL, NULL, NULL);
+        $m->approve($this->gid, NULL, NULL, NULL);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id2 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -368,6 +379,7 @@ class MailRouterTest extends IznikTestCase {
         # Now the same, but with a TN post which has no messageid.
         $this->log("Now TN post");
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
+        $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());
@@ -382,11 +394,11 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Pending id $id");
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
+        $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id2 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals($id, $id2);
-
-        }
+    }
 
     function testTNSpamToApproved() {
         # Force a TN message to spam
@@ -504,6 +516,10 @@ class MailRouterTest extends IznikTestCase {
 
     public function testFailHam() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
+
+        # Set us unmoderated so that we route to approved.
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Make the attempt to mark the message as approved
         $r = $this->getMockBuilder('MailRouter')

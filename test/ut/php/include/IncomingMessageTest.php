@@ -157,25 +157,6 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         }
 
-    public function testPending() {
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approve');
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-
-        assertEquals('Test pending', $m->getSubject());
-        assertEquals('Test User', $m->getFromname());
-        assertEquals('test@ilovefreegle.org', $m->getFromaddr());
-        assertEquals('Test', $m->getTextbody());
-        assertEquals('from@test.com', $m->getEnvelopefrom());
-        assertEquals('to@test.com', $m->getEnvelopeto());
-        assertEquals('Yahoo-Email', $m->getSourceheader());
-        assertEquals('freegleplayground-accept-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com', $m->getYahooapprove());
-        assertEquals('freegleplayground-reject-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com', $m->getYahooreject());
-
-        $m->delete();
-
-        }
-
     public function testTN() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn'));
         $m = new Message($this->dbhr, $this->dbhm);

@@ -26,6 +26,19 @@ class messagesTest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
+        $this->group->setPrivate('onhere', 1);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addEmail('sender@example.net');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addMembership($this->gid);
+        $this->user = $u;
     }
 
     public function testApproved() {
@@ -50,7 +63,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Should be able to see this message even logged out, as this is a Freegle group.
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1
+            'groupid' => $this->gid
         ]);
         $this->log("Get when logged out with permission" . var_export($ret, true));
         assertEquals(0, $ret['ret']);
@@ -63,7 +76,7 @@ class messagesTest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $id);
-        $u->addMembership($group1, User::ROLE_OWNER);
+        $u->addMembership($this->gid, User::ROLE_OWNER);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
@@ -76,10 +89,10 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(1, count($msgs));
 
         # Test search by word
-        $u->addMembership($group1, User::ROLE_MEMBER);
+        $u->addMembership($this->gid, User::ROLE_MEMBER);
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'searchmess',
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'search' => 'thing'
         ]);
         assertEquals(0, $ret['ret']);
@@ -92,7 +105,7 @@ class messagesTest extends IznikAPITestCase {
         $this->log("Test by id");
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'searchmess',
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'search' => $a->getID()
         ]);
         assertEquals(0, $ret['ret']);
@@ -103,7 +116,7 @@ class messagesTest extends IznikAPITestCase {
         # Test search by member
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'searchmemb',
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'search' => 'test@test.com'
         ]);
         assertEquals(0, $ret['ret']);
@@ -124,7 +137,7 @@ class messagesTest extends IznikAPITestCase {
         assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Check the log.
-        $u->setRole(User::ROLE_MODERATOR, $group1);
+        $u->setRole(User::ROLE_MODERATOR, $this->gid);
 
         # Get messages for our logged in groups.
         $ret = $this->call('messages', 'GET', [
@@ -186,7 +199,7 @@ class messagesTest extends IznikAPITestCase {
         $this->log("Logs".  var_export($ret, true));
         $log = $this->findLog('Message', 'Received', $ret['user']['logs']);
         $this->log("Got log " . var_export($log, TRUE));
-        assertEquals($group1, $log['group']['id']);
+        assertEquals($this->gid, $log['group']['id']);
         assertEquals($a->getFromuser(), $log['user']['id']);
         assertEquals($a->getID(), $log['message']['id']);
 
@@ -206,16 +219,13 @@ class messagesTest extends IznikAPITestCase {
             'logs' => TRUE
         ]);
         $log = $this->findLog('Message', 'Received', $ret['user']['logs']);
-        assertEquals($group1, $log['group']['id']);
+        assertEquals($this->gid, $log['group']['id']);
         assertEquals($a->getFromuser(), $log['user']['id']);
         assertEquals(1, $log['message']['deleted']);
 
         }
 
     public function testSpam() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         # Create a group with a message on it
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
@@ -230,7 +240,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Shouldn't be able to see spam
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
 
@@ -242,10 +252,10 @@ class messagesTest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $id);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
 
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
@@ -253,12 +263,12 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, count($msgs));
 
         # Promote to owner - should be able to see it.
-        $u->setRole(User::ROLE_OWNER, $group1);
-        assertEquals(User::ROLE_OWNER, $u->getRoleForGroup($group1));
+        $u->setRole(User::ROLE_OWNER, $this->gid);
+        assertEquals(User::ROLE_OWNER, $u->getRoleForGroup($this->gid));
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Spam',
             'start' => '2100-01-01T06:00:00Z'
         ]);
@@ -284,9 +294,6 @@ class messagesTest extends IznikAPITestCase {
         }
 
     public function testPending() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -300,7 +307,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Shouldn't be able to see pending logged out.
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
         self::assertEquals(1, $ret['ret']);
@@ -313,7 +320,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Shouldn't be able to see pending logged in but not a member.
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
 
@@ -326,12 +333,12 @@ class messagesTest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $id);
-        $u->addMembership($group1);
+        $u->addMembership($this->gid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
         assertEquals(0, $ret['ret']);
@@ -340,17 +347,17 @@ class messagesTest extends IznikAPITestCase {
 
         # Promote to mod - should be able to see it.
         $this->log("Check as mod for " . $a->getID());
-        $u->setRole(User::ROLE_MODERATOR, $group1);
-        assertEquals(User::ROLE_MODERATOR, $u->getRoleForGroup($group1));
+        $u->setRole(User::ROLE_MODERATOR, $this->gid);
+        assertEquals(User::ROLE_MODERATOR, $u->getRoleForGroup($this->gid));
         $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
         assertEquals($a->getID(), $msgs[0]['id']);
-        assertEquals($group1, $msgs[0]['groups'][0]['groupid']);
+        assertEquals($this->gid, $msgs[0]['groups'][0]['groupid']);
         assertTrue(array_key_exists('source', $msgs[0])); # A mod, should see mod att
 
         $a->delete();
@@ -359,13 +366,11 @@ class messagesTest extends IznikAPITestCase {
 
     public function testPut() {
         $this->log(__METHOD__ . " start");
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+        
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
 
         $ret = $this->call('messages', 'PUT', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'source' => Message::EMAIL,
             'from' => 'test@test.com',
             'yahoopendingid' => 833,
@@ -378,12 +383,12 @@ class messagesTest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($group1, User::ROLE_MODERATOR);
+        $u->addMembership($this->gid, User::ROLE_MODERATOR);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $ret = $this->call('messages', 'PUT', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'source' => Message::EMAIL,
             'from' => 'test@test.com',
             'yahoopendingid' => 833,
@@ -396,7 +401,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Should fail - invalid source
         $ret = $this->call('messages', 'PUT', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'source' => 'wibble',
             'from' => 'test@test.com',
             'yahooapprovedid' => 833,
@@ -406,7 +411,7 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(2, $ret['ret']);
 
         $ret = $this->call('messages', 'PUT', [
-            'groupid' => $group1,
+            'groupid' => $this->gid,
             'source' => Message::YAHOO_APPROVED,
             'from' => 'test@test.com',
             'yahooapprovedid' => 833,
