@@ -36,10 +36,7 @@ $rc = MailRouter::DROPPED;
 
 $groupname = NULL;
 
-if (stripos($envfrom, "@comms.yahoo.net") !== FALSE) {
-    error_log("Yahoo Announcement");
-    $rc = MailRouter::DROPPED;
-} else if (preg_match('/^Subject: MODERATE -- (.*) posted to (.*)/m', $msg, $matches)) {
+if (preg_match('/^Subject: MODERATE -- (.*) posted to (.*)/m', $msg, $matches)) {
     # This is a moderation notification for a pending message.
     error_log("MODERATE");
     $r->received(Message::YAHOO_PENDING, NULL, $envto, $msg);
@@ -49,14 +46,6 @@ if (stripos($envfrom, "@comms.yahoo.net") !== FALSE) {
     error_log("Approved message to $envto");
     $r->received(Message::YAHOO_APPROVED, NULL, $envto, $msg);
     $rc = $r->route();
-} else if (stripos($envfrom, 'devnull@yahoo.com') !== FALSE &&
-    (stripos($msg, 'your membership has not been approved') !== FALSE ||
-     stripos($msg, 'You are already subscribed') !== FALSE ||
-     stripos($msg, 'by invitation only') !== FALSE ||
-     stripos($msg, 'The email address used to send your message is not subscribed ') !== FALSE)) {
-    # System message about things going awry, e.g. not subscribed, not yet approved.  Don't clog the DB with
-    # these.
-    error_log("Yahoo System awry from $envfrom");
 } else {
     # Chat reply or email submission.  We don't want to log chat replies - there are a lot and they clutter up
     # the logs.
