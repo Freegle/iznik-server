@@ -292,6 +292,7 @@ class messagesTest extends IznikAPITestCase {
 
     public function testPending() {
         # Create a group with a message on it
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -403,6 +404,7 @@ class messagesTest extends IznikAPITestCase {
         # Set up a pending message on a native group.
         assertTrue($this->user->login('testpw'));
 
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
