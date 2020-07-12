@@ -91,7 +91,7 @@ class RelevantTest extends IznikTestCase
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'testgroup@yahoogroups.com', $msg, $gid);
+        $id = $r->received(Message::EMAIL, $email, 'testgroup@yahoogroups.com', $msg, $gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -104,7 +104,7 @@ class RelevantTest extends IznikTestCase
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'WANTED: Another thing (location)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'testgroup@yahoogroups.com', $msg, $gid);
+        $id = $r->received(Message::EMAIL, $email, 'testgroup@yahoogroups.com', $msg, $gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -141,7 +141,7 @@ class RelevantTest extends IznikTestCase
         $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: ' . gmdate(DATE_RFC822, time()), $msg);
         $msg = str_replace('420816297', '420816298', $msg);
         $msg = str_replace('edwhuk', 'edwhuk1', $msg);
-        $id1 = $r->received(Message::YAHOO_APPROVED, 'from2@test.com', 'to2@test.com', $msg, $gid);
+        $id1 = $r->received(Message::EMAIL, 'from2@test.com', 'to2@test.com', $msg, $gid);
         $m = new Message($this->dbhr, $this->dbhm, $id1);
         $this->log("Relevant $id1 from " . $m->getFromuser());
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
@@ -155,7 +155,7 @@ class RelevantTest extends IznikTestCase
         $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: ' . gmdate(DATE_RFC822, time()), $msg);
         $msg = str_replace('420816297', '42081629', $msg);
         $msg = str_replace('edwhuk', 'edwhuk2', $msg);
-        $id2 = $r->received(Message::YAHOO_APPROVED, 'from2@test.com', 'to2@test.com', $msg, $gid);
+        $id2 = $r->received(Message::EMAIL, 'from2@test.com', 'to2@test.com', $msg, $gid);
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $this->log("Relevant $id2 from " . $m->getFromuser());
         assertNotNull($id2);

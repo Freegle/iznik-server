@@ -191,7 +191,7 @@ class storiesAPITest extends IznikAPITestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $origid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($origid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);

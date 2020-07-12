@@ -117,8 +117,8 @@ class chatRoomsTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        list($msgid, $already) = $m->save();
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $msgid = $m->save();
 
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);

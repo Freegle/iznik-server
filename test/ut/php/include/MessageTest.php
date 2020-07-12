@@ -61,12 +61,6 @@ class messageTest extends IznikTestCase {
                 $dbhm->preExec("INSERT IGNORE INTO locations_grids_touches (gridid, touches) VALUES (?, ?);", [ $grid['id'], $touch['id'] ]);
             }
         }
-
-        # Delete any UT playground messages
-        $g = Group::get($dbhr, $dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
-        $sql = "DELETE FROM messages_groups WHERE groupid = $gid AND yahooapprovedid < 500;";
-        $this->dbhm->preExec($sql);
     }
 
     public function testSetFromIP() {
@@ -80,7 +74,7 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
 
         # TAKEN after OFFER - should match
@@ -117,13 +111,13 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] Offer - Pedestal Fan - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id2, $already) = $m->save();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -159,14 +153,14 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id2, $already) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
@@ -178,7 +172,7 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id3, $already) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
@@ -190,7 +184,7 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id4, $already) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
@@ -205,7 +199,7 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
-        $rc = $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertFalse($rc);
 
         }
@@ -227,7 +221,7 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
         list($mid, $already) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $atts = $m->getPublic();
@@ -274,7 +268,7 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -285,7 +279,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_ireplace('test@test.com', 'test2@test.com', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from2@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from2@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -328,7 +322,7 @@ class messageTest extends IznikTestCase {
     public function testPrune() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -336,7 +330,7 @@ class messageTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune2'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -349,13 +343,13 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', '[StevenageFreegle] OFFER: Ninky nonk train and night garden characters St NIcks [1 Attachment]', $msg);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: Ninky nonk train and night garden characters St NIcks', $m->reverseSubject());
 
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -366,7 +360,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -376,13 +370,13 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'Bexley Freegle OFFER: compost bin (Bexley DA5)', $msg);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: compost bin (Bexley DA5)', $m->reverseSubject());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'OFFER/CYNNIG: Windows 95 & 98 on DVD (Criccieth LL52)', $msg);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: Windows 95 & 98 on DVD (Criccieth LL52)', $m->reverseSubject());
 
         }
@@ -597,7 +591,7 @@ class messageTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $id1 = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id1 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id1);
         $m->setPrivate('sourceheader', 'Platform');
         $rc = $r->route();
@@ -609,7 +603,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $this->log("Due message $id2");
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $m->setPrivate('sourceheader', 'Platform');
@@ -683,7 +677,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $mid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $mid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($mid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -725,7 +719,7 @@ class messageTest extends IznikTestCase {
     public function testTN() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tnatt2'));
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m->save();
         $atts = $m->getAttachments();
         assertEquals(1, count($atts));
@@ -771,7 +765,7 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('test@test.com', 'test@user.trashnothing.com', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'test@user.trashnothing.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'test@user.trashnothing.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
         $atts = $m->getPublic();
         assertTrue($m->canSee($atts));
@@ -804,7 +798,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list($id, $already) = $m->save();
+        $id = $m->save();
 
         $m->quickDelete($schema, $id);
 
@@ -821,7 +815,7 @@ class messageTest extends IznikTestCase {
 //        $m = new Message($this->dbhr, $this->dbhm);
 //        $rc = $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
 //        assertTrue($rc);
-//        list($id, $already) = $m->save();
+//        $id = $m->save();
 //        $m = new Message($this->dbhr, $this->dbhm, $id);
 //        $this->log("IP " . $m->getFromIP());
 //        $s = new Spam($this->dbhr, $this->dbhm);

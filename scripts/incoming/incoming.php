@@ -36,20 +36,13 @@ $rc = MailRouter::DROPPED;
 
 $groupname = NULL;
 
-if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE && (stripos($envfrom, "sentto-") !== FALSE)) {
-    # This is a message sent out to us as a user on the group, so it's an approved message.
-    error_log("Approved message to $envto");
-    $r->received(Message::YAHOO_APPROVED, NULL, $envto, $msg);
-    $rc = $r->route();
-} else {
-    # Chat reply or email submission.  We don't want to log chat replies - there are a lot and they clutter up
-    # the logs.
-    $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
+# Chat reply or email submission.  We don't want to log chat replies - there are a lot and they clutter up
+# the logs.
+$chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
 
-    error_log("Email");
-    $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
-    $rc = $r->route();
-}
+error_log("Email");
+$id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
+$rc = $r->route();
 
 error_log("CPU cost " . getCpuUsage() . " rc $rc");
 fwrite($logh, "Route returned $rc\n");

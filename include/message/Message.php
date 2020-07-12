@@ -512,7 +512,7 @@ class Message
 
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $suggestedsubject, $fromname, $fromaddr,
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
-        $fromhost, $type, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
+        $fromhost, $type, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
         $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP, $publishconsent, $isdraft, $itemid, $itemname;
 
@@ -1828,8 +1828,6 @@ ORDER BY lastdate DESC;";
     }
 
     const EMAIL = 'Email';
-    const YAHOO_APPROVED = 'Yahoo Approved';
-    const YAHOO_PENDING = 'Yahoo Pending';
     const PLATFORM = 'Platform'; // Us
 
     /**
@@ -2128,27 +2126,8 @@ ORDER BY lastdate DESC;";
             }
         }
 
-        if ($source == Message::YAHOO_APPROVED && !$this->groupid) {
-            # This is a message from Yahoo, but not for a group we host.  We don't want it.
-            $this->removeAttachDir();
-            return (FALSE);
-        }
-        
         $this->envelopefrom = $envelopefrom;
         $this->envelopeto = $envelopeto;
-        $this->yahoopendingid = NULL;
-        $this->yahooapprovedid = NULL;
-
-        # Get Yahoo pending message id
-        if (preg_match('/pending\?view=1&msg=(\d*)/im', $msg, $matches)) {
-            $this->yahoopendingid = $matches[1];
-        }
-
-        # Get Yahoo approved message id
-        $newmanid = $Parser->getHeader('x-yahoo-newman-id');
-        if ($newmanid && preg_match('/.*\-m(\d*)/', $newmanid, $matches)) {
-            $this->yahooapprovedid = $matches[1];
-        }
 
         # Yahoo posts messages from the group address, but with a header showing the
         # original from address.
@@ -2276,7 +2255,7 @@ ORDER BY lastdate DESC;";
             $this->type = Message::TYPE_OTHER;
         }
 
-        if ($source == Message::YAHOO_APPROVED  || $source == Message::EMAIL) {
+        if ($source == Message::EMAIL) {
             # Make sure we have a user for the sender.
             $u = User::get($this->dbhr, $this->dbhm);
 
@@ -2326,27 +2305,6 @@ ORDER BY lastdate DESC;";
 
                 # Use the m handle to make sure we find it later.
                 $this->dbhr = $this->dbhm;
-            }
-
-            if ($userid) {
-                # We have a user.
-                $u = User::get($this->dbhm, $this->dbhm, $userid);
-
-                # We might not have this yahoo user id associated with this user.
-                if ($yahoouid) {
-                    $u->setPrivate('yahooUserId', $yahoouid);
-                }
-
-                # We might not have this email associated with this user.
-                $emailid = $u->addEmail($this->fromaddr, 0, FALSE);
-
-                if ($emailid && $source == Message::YAHOO_APPROVED) {
-                    # Make sure we have a membership for the originator of this message; they were a member
-                    # at the time they sent this.  If they have since left we'll pick that up later via a sync.
-                    if (!$u->isApprovedMember($this->groupid)) {
-                        $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::APPROVED, NULL, NULL, FALSE);
-                    }
-                }
             }
 
             $this->fromuser = $userid;
@@ -2623,98 +2581,76 @@ ORDER BY lastdate DESC;";
         # Reduce the size of the message source
         $this->message = $this->pruneMessage();
 
-        $oldid = NULL;
-
-        # A message we are saving as approved may previously have been in the system:
-        # - a message we receive as approved will usually have been here as pending
-        # - a message we receive as pending may have been here as approved if it was approved elsewhere before it
-        #   reached is.
-        $already = FALSE;
         $this->id = NULL;
-        $oldid = $this->checkEarlierCopies($approvedby);
 
-        if ($oldid) {
-            # Existing message.
-            $this->id = $oldid;
+        # Trigger mapping and get subject suggestion.
+        $this->suggestedsubject = $this->suggestSubject($this->groupid, $this->subject);
 
-            # We might not have matched the related messages earlier, if things arrived in a strange order.
+        # Save into the messages table.
+        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $rc = $this->dbhm->preExec($sql, [
+            $this->date,
+            $this->source,
+            $this->sourceheader,
+            $this->message,
+            $this->fromuser,
+            $this->envelopefrom,
+            $this->envelopeto,
+            $this->fromname,
+            $this->fromaddr,
+            $this->replyto,
+            $this->fromip,
+            $this->subject,
+            $this->suggestedsubject,
+            $this->messageid,
+            $this->tnpostid,
+            $this->textbody,
+            $this->htmlbody,
+            $this->type,
+            $this->lat,
+            $this->lng,
+            $this->locationid
+        ]);
+
+        if ($rc) {
+            $this->id = $this->dbhm->lastInsertId();
+            $this->saveAttachments($this->id);
+
+            if ($log) {
+                $l = new Log($this->dbhr, $this->dbhm);
+                $l->log([
+                    'type' => Log::TYPE_MESSAGE,
+                    'subtype' => Log::SUBTYPE_RECEIVED,
+                    'msgid' => $this->id,
+                    'user' => $this->fromuser,
+                    'text' => $this->messageid,
+                    'groupid' => $this->groupid
+                ]);
+            }
+
+            # Now that we have a ID, record which messages are related to this one.
             $this->recordRelated();
 
-            $already = TRUE;
-        } else {
-            # New message.  Trigger mapping and get subject suggestion.
-            $this->suggestedsubject = $this->suggestSubject($this->groupid, $this->subject);
-
-            # Save into the messages table.
-            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
-            $rc = $this->dbhm->preExec($sql, [
-                $this->date,
-                $this->source,
-                $this->sourceheader,
-                $this->message,
-                $this->fromuser,
-                $this->envelopefrom,
-                $this->envelopeto,
-                $this->fromname,
-                $this->fromaddr,
-                $this->replyto,
-                $this->fromip,
-                $this->subject,
-                $this->suggestedsubject,
-                $this->messageid,
-                $this->tnpostid,
-                $this->textbody,
-                $this->htmlbody,
-                $this->type,
-                $this->lat,
-                $this->lng,
-                $this->locationid
-            ]);
-
-            if ($rc) {
-                $this->id = $this->dbhm->lastInsertId();
-                $this->saveAttachments($this->id);
-
-                if ($log) {
-                    $l = new Log($this->dbhr, $this->dbhm);
-                    $l->log([
-                        'type' => Log::TYPE_MESSAGE,
-                        'subtype' => Log::SUBTYPE_RECEIVED,
-                        'msgid' => $this->id,
-                        'user' => $this->fromuser,
-                        'text' => $this->messageid,
-                        'groupid' => $this->groupid
-                    ]);
-                }
-
-                # Now that we have a ID, record which messages are related to this one.
-                $this->recordRelated();
-
-                if ($this->groupid) {
-                    # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
-                    # given the perf cost of a transaction.
-                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby,arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
-                        $this->id,
-                        $this->groupid,
-                        $this->type,
-                        $this->yahoopendingid,
-                        $this->yahooapprovedid,
-                        $this->yahooreject,
-                        $this->yahooapprove,
-                        MessageCollection::INCOMING,
-                        $approvedby
-                    ]);
-                }
-
-                # Also save into the history table, for spam checking.
-                $this->addToMessageHistory();
+            if ($this->groupid) {
+                # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
+                # given the perf cost of a transaction.
+                $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, collection, approvedby,arrival) VALUES (?,?,?,?,?,NOW());", [
+                    $this->id,
+                    $this->groupid,
+                    $this->type,
+                    MessageCollection::INCOMING,
+                    $approvedby
+                ]);
             }
+
+            # Also save into the history table, for spam checking.
+            $this->addToMessageHistory();
         }
 
         # Attachments now safely stored in the DB
         $this->removeAttachDir();
 
-        return([ $this->id, $already ]);
+        return $this->id;
     }
 
     public function addToMessageHistory() {
@@ -3088,23 +3024,10 @@ ORDER BY lastdate DESC;";
 
                 # The message has been allocated to a group; mark it as deleted.  We keep deleted messages for
                 # PD.
-                #
-                # We must zap the Yahoo IDs as we have a unique index on them.
-                $rc = $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1, yahooapprovedid = NULL, yahoopendingid = NULL WHERE msgid = ? AND groupid = ?;", [
+                $rc = $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid = ? AND groupid = ?;", [
                     $this->id,
                     $groupid
                 ]);
-
-                if (!$localonly) {
-                    # We might be deleting an approved message or spam.
-                    if (!$group['yahooapprovedid']) {
-                        # Or we might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
-                        if ($group['yahooreject']) {
-                            # We can trigger rejection by email - do so.
-                            $this->mailer($me, TRUE, $group['yahooreject'], $group['yahooreject'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
-                        }
-                    }
-                }
 
                 if ($groupid) {
                     $this->notif->notifyGroupMods($groupid);
@@ -3138,173 +3061,6 @@ ORDER BY lastdate DESC;";
 
     public function deindex() {
         $this->s->delete($this->id);
-    }
-
-    public function findEarlierCopy($groupid, $pendingid, $approvedid) {
-        $sql = "SELECT msgid, collection FROM messages_groups WHERE groupid = ? AND " . ($pendingid ? 'yahoopendingid' : 'yahooapprovedid') . " = ?;";
-        $msgs = $this->dbhr->preQuery($sql, [
-            $groupid,
-            $pendingid ? $pendingid : $approvedid
-        ]);
-
-        $msgid = count($msgs) == 0 ? NULL : $msgs[0]['msgid'];
-        $collection = count($msgs) == 0 ? NULL : $msgs[0]['collection'];
-
-        return([ $msgid, $collection ]);
-    }
-
-    public function checkEarlierCopies($approvedby) {
-        # We don't need a transaction for this - transactions aren't great for scalability and worst case we
-        # leave a spurious message around which a mod will handle.
-        $ret = NULL;
-        $sql = "SELECT * FROM messages WHERE messageid = ? ";
-        if ($this->groupid) {
-            # We might have a message already present which doesn't match on Message-ID (because Yahoo doesn't
-            # always put it in) but matches on the approved/pending id.
-            if ($this->yahooapprovedid) {
-                $sql .= " OR id = (SELECT msgid FROM messages_groups WHERE groupid = {$this->groupid} AND yahooapprovedid = {$this->yahooapprovedid}) ";
-            }
-            if ($this->yahoopendingid) {
-                $sql .= " OR id = (SELECT msgid FROM messages_groups WHERE groupid = {$this->groupid} AND yahoopendingid = {$this->yahoopendingid}) ";
-            }
-        }
-
-        $msgs = $this->dbhr->preQuery($sql, [ $this->getMessageID() ]);
-        #error_log($sql . $this->getMessageID());
-
-        foreach ($msgs as $msg) {
-            #error_log("In #{$this->id} found {$msg['id']} with " . $this->getMessageID());
-            $ret = $msg['id'];
-            $changed = '';
-            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
-
-            # We want the new message to have the spam type of the old message, because we check this to ensure
-            # we don't move messages back from not spam to spam.
-            $this->spamtype = $m->getPrivate('spamtype');
-            
-            # We want the old message to be on whatever group this message was sent to.
-            #
-            # We want to see the message on the group even if it's been deleted, otherwise we'll go ahead and try
-            # to re-add it and get an exception.
-            $oldgroups = $m->getGroups(TRUE);
-            #error_log("Compare groups $this->groupid vs " . var_export($oldgroups, TRUE));
-            if (!in_array($this->groupid, $oldgroups)) {
-                // This code is here for future handling of the same message on multiple groups, but since we
-                // currently make the message id per-group, we can't reach it.  Keep it for later use but don't
-                // worry that we can't cover it.
-                // @codeCoverageIgnoreStart
-                /* @cov $collection */
-                $collection = NULL;
-                if ($this->getSource() == Message::YAHOO_APPROVED) {
-                    $collection = MessageCollection::APPROVED;
-                } else if ($this->getSource() == Message::EMAIL && $this->groupid) {
-                    $collection = MessageCollection::INCOMING;
-                }
-                #error_log("Not on group, add to $collection");
-
-                if ($collection) {
-                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby, arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
-                        $msg['id'],
-                        $this->groupid,
-                        $m->getType(),
-                        $this->yahoopendingid,
-                        $this->yahooapprovedid,
-                        $this->yahooreject,
-                        $this->yahooapprove,
-                        $collection,
-                        $approvedby
-                    ]);
-                }
-            } else {
-                // @codeCoverageIgnoreEnd
-                # Already on the group; pick up any new and better info.
-                #error_log("Already on group, pick ");
-                $gatts = $this->dbhr->preQuery("SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;", [
-                    $msg['id'],
-                    $this->groupid
-                ]);
-
-                foreach ($gatts as $gatt) {
-                    foreach (['yahooapprovedid', 'yahoopendingid'] as $newatt) {
-                        #error_log("Compare old {$gatt[$newatt]} vs new {$this->$newatt}");
-                        if (!$gatt[$newatt] || ($this->$newatt && $gatt[$newatt] != $this->$newatt)) {
-                            #error_log("Update mesages_groups for $newatt");
-                            $this->dbhm->preExec("UPDATE messages_groups SET $newatt = ? WHERE msgid = ? AND groupid = ?;", [
-                                $this->$newatt,
-                                $msg['id'],
-                                $this->groupid
-                            ]);
-                        }
-                    }
-                }
-            }
-
-            # For pending messages which come back to us as approved, it might not be the same.
-            # This can happen if a message is handled on another system, e.g. moderated directly on Yahoo.
-            # But if it's been edited on here, we don't want to take the Yahoo versions, which might be older.
-            #
-            # For approved messages which only reach us as pending later, we don't want to change the approved
-            # version.
-            if ($this->source == Message::YAHOO_APPROVED && !$this->isEdited()) {
-                # Subject is a special case because Yahoo can add a subject tag in.
-                #
-                # We would never really want to have a subject that was empty (once we've stripped the tag).
-                # This seems to happen sometimes due to Yahoo oddities when editing.
-                $subj = $this->getPrivate('subject');
-                $subj = trim(preg_replace('/^\[.*?\]\s*/', '', $subj));
-
-                if (strlen($subj) && $subj != $m->getPrivate('subject')) {
-                    # The new subject isn't empty.
-                    $m->setPrivate('subject', $this->getPrivate('subject'));
-                    $changed .= ' subject';
-                }
-
-                # Other atts which we want the latest version of.
-                foreach (['date', 'message', 'textbody', 'htmlbody'] as $att) {
-                    $oldval = $m->getPrivate($att);
-                    $newval = $this->getPrivate($att);
-
-                    if (!$oldval || ($newval && $oldval != $newval)) {
-                        $changed .= ' $att';
-                        #error_log("Update messages for $att, value len " . strlen($oldval) . " vs " . strlen($newval));
-                        $m->setPrivate($att, $newval);
-                    }
-                }
-
-                # We might need a new suggested subject, and mapping.
-                $m->setPrivate('suggestedsubject', NULL);
-                $m->suggestedsubject = $m->suggestSubject($this->groupid, $this->subject);
-
-                # We keep the old set of attachments, because they might be mentioned in (for example) the text
-                # of the message.  This means that we don't support editing of the attachments on Yahoo.
-
-                # Pick up any new approvedby, unless we already have one.  If we have one it's because it was
-                # approved on here, which is an authoritative record, whereas the Yahoo approval might have been
-                # done via another mod.
-                $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ?, approvedat = NOW() WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
-                    [
-                        $approvedby,
-                        $msg['id'],
-                        $this->groupid
-                    ]);
-
-                $changed = $rc ? ' approvedby' : $changed;
-
-                if ($changed != '') {
-                    $me = whoAmI($this->dbhr, $this->dbhm);
-
-                    $this->log->log([
-                        'type' => Log::TYPE_MESSAGE,
-                        'subtype' => Log::SUBTYPE_EDIT,
-                        'msgid' => $msg['id'],
-                        'byuser' => $me ? $me->getId() : NULL,
-                        'text' => "Updated from new incoming message ($changed)"
-                    ]);
-                }
-            }
-        }
-
-        return($ret);
     }
 
     /**

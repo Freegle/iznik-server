@@ -40,12 +40,6 @@ class spammersAPITest extends IznikAPITestCase {
         $this->user->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-
-        # Delete any UT playground messages
-        $g = Group::get($dbhr, $dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
-        $sql = "DELETE FROM messages_groups WHERE groupid = $gid AND yahooapprovedid < 500;";
-        $this->dbhm->preExec($sql);
     }
 
     public function testBasic() {
@@ -60,8 +54,8 @@ class spammersAPITest extends IznikAPITestCase {
         # And create a message from them, so that gets removed too.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        list($id, $already) = $m->save();
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
         $this->log("Created message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);

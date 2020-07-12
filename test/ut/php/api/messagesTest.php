@@ -48,7 +48,7 @@ class messagesTest extends IznikAPITestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
@@ -372,7 +372,7 @@ class messagesTest extends IznikAPITestCase {
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");

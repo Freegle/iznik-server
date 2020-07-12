@@ -50,7 +50,7 @@ class visualiseTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $origid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->log("Message id #$origid");
 
         assertNotNull($origid);

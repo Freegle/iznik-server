@@ -84,8 +84,7 @@ class MailRouter
         $rc = $this->msg->parse($source, $from, $to, $msg, $groupid);
         
         if ($rc) {
-            list($id, $already) = $this->msg->save($log);
-            $ret = $id;
+            $ret = $this->msg->save($log);
         }
         
         return($ret);
@@ -567,24 +566,7 @@ class MailRouter
                     $ret = MailRouter::FAILURE;
                     $source = $this->msg->getSource();
 
-                    $oldyahooauto = FALSE;
-
-                    if ($source == Message::YAHOO_APPROVED) {
-                        # The group might have previous been on Yahoo but no longer.  In that case we don't want to
-                        # accept any automatic posts from the Yahoo Group, such as regular files.  This helps with
-                        # groups we can't close down properly for lack of access.
-                        foreach ($groups as $group) {
-                            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                            if (!$g->onYahoo() && strpos($this->msg->getFromaddr(), '@yahoogroups.co') !== FALSE) {
-                                $oldyahooauto = TRUE;
-                            }
-                        }
-                    }
-
-                    if ($oldyahooauto) {
-                        if ($log) { error_log("For group no longer on Yahoo - drop"); }
-                        $ret = MailRouter::DROPPED;
-                    } else if ($notspam && $source == Message::PLATFORM) {
+                    if ($notspam && $source == Message::PLATFORM) {
                         if ($log) { error_log("Source header " . $this->msg->getSourceheader());}
                         $handled = FALSE;
 
@@ -631,13 +613,6 @@ class MailRouter
                             if ($this->markPending($notspam, TRUE)) {
                                 $ret = MailRouter::PENDING;
                             }
-                        }
-                    } else if ($this->msg->getSource() == Message::YAHOO_APPROVED) {
-                        if ($log) { error_log("Mark as approved"); }
-                        $ret = MailRouter::FAILURE;
-
-                        if ($this->markApproved()) {
-                            $ret = MailRouter::APPROVED;
                         }
                     } else if ($this->msg->getSource() == Message::EMAIL) {
                         $uid = $this->msg->getFromuser();

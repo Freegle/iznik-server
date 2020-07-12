@@ -47,7 +47,7 @@ class searchTest extends IznikTestCase
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
         $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
@@ -137,7 +137,7 @@ class searchTest extends IznikTestCase
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
         $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
@@ -148,7 +148,7 @@ class searchTest extends IznikTestCase
         $msg = str_replace('Basic test', 'OFFER: Test yyyutyyy', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list($id2, $already) = $m->save();
         $m->index();
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);

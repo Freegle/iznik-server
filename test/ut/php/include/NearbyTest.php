@@ -84,7 +84,7 @@ class nearbyTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $mid = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $mid = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('locationid', $lid);
         $rc = $r->route();

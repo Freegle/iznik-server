@@ -55,7 +55,7 @@ class statsTest extends IznikTestCase {
         $msg = str_ireplace('FreeglePlayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -64,7 +64,7 @@ class statsTest extends IznikTestCase {
 
         # Now send the same message again; this should replace the first, but shouldn't appear in the counts as a
         # separate message.
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);

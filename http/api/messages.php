@@ -14,11 +14,6 @@ function messages() {
     $fromuser = presdef('fromuser', $_REQUEST, NULL);
     $hasoutcome = array_key_exists('hasoutcome', $_REQUEST) ? filter_var($_REQUEST['hasoutcome'], FILTER_VALIDATE_BOOLEAN) : NULL;
     $types = presdef('types', $_REQUEST, NULL);
-    $message = presdef('message', $_REQUEST, NULL);
-    $yahoopendingid = presdef('yahoopendingid', $_REQUEST, NULL);
-    $yahooapprovedid = presdef('yahooapprovedid', $_REQUEST, NULL);
-    $collections = presdef('collections', $_REQUEST, [ MessageCollection::APPROVED, MessageCollection::SPAM ]);
-    $messages = presdef('messages', $_REQUEST, NULL);
     $subaction = presdef('subaction', $_REQUEST, NULL);
     $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -206,21 +201,6 @@ function messages() {
                         $date
                     );
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                    break;
-                default:
-                    # Correlation.
-                    $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
-                    if ($me) {
-                        # Check if we're logged in and have rights.
-                        $g = Group::get($dbhr, $dbhm, $groupid);
-                        $ret = [ 'ret' => 3, 'status' => 'Permission denied' ];
-
-                        if ($me->isModOrOwner($groupid)) {
-                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                            list($ret['missingonserver'], $ret['missingonclient']) = $g->correlate($collections, $messages);
-                        }
-                    }
-
                     break;
             }
         }

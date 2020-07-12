@@ -29,7 +29,7 @@ class IncomingMessageTest extends IznikTestCase {
         $t = "TestUser" . microtime(true) . "@test.com";
         $msg = str_replace('From: "Test User" <test@test.com>', 'From: "' . $t . '" <test@test.com>', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('Basic test', $m->getSubject());
         assertEquals($t, $m->getFromname());
         assertEquals('test@test.com', $m->getFromaddr());
@@ -50,7 +50,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('FDv2', $m->getSourceheader());
 
         # Save it
-        list($id, $already) = $m->save();
+        $id = $m->save();
         assertNotNull($id);
 
         # Read it back
@@ -79,7 +79,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testAttachment() {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('MessageMaker', $m->getSourceheader());
 
         # Check the parsed attachments
@@ -91,7 +91,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('image/png', $atts[1]->getContentType());
 
         # Save it
-        list($id, $already) = $m->save();
+        $id = $m->save();
         assertNotNull($id);
 
         # Check the saved attachment.  Only one - other stripped for aspect ratio.
@@ -110,9 +110,9 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testAttachmentDup() {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachmentdup');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
 
-        list($id, $already) = $m->save();
+        $id = $m->save();
         assertNotNull($id);
 
         # Check the returned attachment.  Only one - other stripped for aspect ratio.
@@ -126,14 +126,14 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testEmbedded() {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/inlinephoto');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
 
         # Check the parsed inline images
         $imgs = $m->getInlineimgs();
         assertEquals(2, count($imgs));
 
         # Save it and check they show up as attachments
-        list($id, $already) = $m->save();
+        $id = $m->save();
         $a = new Attachment($this->dbhr, $this->dbhm);
         $atts = $a->getById($id);
         assertEquals(2, count($atts));
@@ -143,14 +143,14 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         # Test invalid embedded image
         $msg = str_replace("https://www.google.co.uk/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png", "http://google.com", $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
 
         # Check the parsed inline images - should be none
         $imgs = $m->getInlineimgs();
         assertEquals(0, count($imgs));
 
         # Save it and check they don't show up as attachments
-        list($id, $already) = $m->save();
+        $id = $m->save();
         $a = new Attachment($this->dbhr, $this->dbhm);
         $atts = $a->getById($id);        
         assertEquals(0, count($atts));
@@ -160,11 +160,11 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testTN() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn'));
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());
 
         # Save it
-        list($id, $already) = $m->save();
+        $id = $m->save();
         assertNotNull($id);
 
         $m->delete();

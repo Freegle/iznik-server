@@ -194,8 +194,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
-        list($mid, $already) = $m->save();
+        $m->parse(Message::EMAIL, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
+        $mid = $m->save();
         $this->dbhm->preExec("UPDATE newsfeed SET msgid = ? WHERE id = ?;", [
             $mid,
             $nid

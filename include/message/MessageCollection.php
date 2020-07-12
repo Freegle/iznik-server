@@ -422,40 +422,6 @@ class MessageCollection
         return ([$groups, $msgs]);
     }
 
-    function findByYahooApprovedId($groupid, $id)
-    {
-        # We need to include deleted messages, otherwise we could delete something and then recreate it during a
-        # sync, before our delete had hit Yahoo.
-        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ?;";
-        $msglist = $this->dbhr->preQuery($sql, [
-            $groupid,
-            $id
-        ]);
-
-        if (count($msglist) == 1) {
-            return ($msglist[0]['msgid']);
-        } else {
-            return NULL;
-        }
-    }
-
-    function findByYahooPendingId($groupid, $id)
-    {
-        # We need to include deleted messages, otherwise we could delete something and then recreate it during a
-        # sync, before our delete had hit Yahoo.
-        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahoopendingid = ? AND collection = 'Pending';";
-        $msglist = $this->dbhr->preQuery($sql, [
-            $groupid,
-            $id
-        ]);
-
-        if (count($msglist) == 1) {
-            return ($msglist[0]['msgid']);
-        } else {
-            return NULL;
-        }
-    }
-
     function getRecentMessages($type = Group::GROUP_FREEGLE)
     {
         $groupq = $type ? " AND groups.type = '$type' " : "";

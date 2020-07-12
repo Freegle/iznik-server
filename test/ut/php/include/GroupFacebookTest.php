@@ -98,8 +98,8 @@ class groupFacebookTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        list($id, $already) = $m->save();
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();

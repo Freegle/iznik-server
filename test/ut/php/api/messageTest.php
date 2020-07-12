@@ -52,7 +52,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -77,7 +77,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -282,7 +282,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Created spam message $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
@@ -323,7 +323,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Now send it again - should stay in approved.
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
+        $id2 = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Created spam message $id");
         $rc = $r->route();
         #assertEquals(MailRouter::INCOMING_SPAM, $rc);
@@ -754,7 +754,7 @@ class messageAPITest extends IznikAPITestCase
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1, yahooapprovedid = NULL WHERE msgid = $id;");
+        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com' WHERE msgid = $id;");
 
         # Shouldn't be able to delete logged out
         $ret = $this->call('message', 'POST', [
@@ -804,7 +804,7 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Route and delete approved");
         $msg = $this->unique($msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -1712,7 +1712,7 @@ class messageAPITest extends IznikAPITestCase
             do {
                 $this->log("...waiting for approved message from $applied #$uid, try $count");
                 sleep(1);
-                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ? AND yahooapprovedid IS NOT NULL;",
+                $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
                     [ $gid, MessageCollection::APPROVED, $uid ]);
                 foreach ($msgs as $msg) {
                     $this->log("Reached approved" . var_export($msg, TRUE));
@@ -2098,99 +2098,6 @@ class messageAPITest extends IznikAPITestCase
 
         }
 
-    public function testDoubleModeration() {
-        assertTrue(TRUE);
-
-        if (!getenv('STANDALONE')) {
-            # We set up a pending message, then approve it, then get a notification from Yahoo that it's pending.
-            #
-            # This should result in the message remaining approved, and us trying to approve it on Yahoo.
-            $email = 'test-' . rand() . '@blackhole.io';
-
-            # This is similar to the actions on the client
-            # - find a location close to a lat/lng
-            # - upload a picture
-            # - create a draft with a location
-            # - find the closest group to that location
-            # - submit it
-            $this->group = Group::get($this->dbhr, $this->dbhm);
-            $this->gid = $this->group->findByShortName('FreeglePlayground');
-
-            $locationid = $this->dbhr->preQuery("SELECT id FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 LIMIT 1;")[0]['id'];
-            $this->log("Use location $locationid");
-
-            $ret = $this->call('message', 'PUT', [
-                'collection' => 'Draft',
-                'locationid' => $locationid,
-                'messagetype' => 'Offer',
-                'item' => 'a double moderation test',
-                'groupid' => $this->gid,
-                'textbody' => 'Text body'
-            ]);
-            assertEquals(0, $ret['ret']);
-            $id = $ret['id'];
-            $this->log("Created draft $id");
-
-            # This will get sent; will get queued, as we don't have a membership for the group
-            $ret = $this->call('message', 'POST', [
-                'id' => $id,
-                'action' => 'JoinAndPost',
-                'email' => $email,
-                'ignoregroupoverride' => true
-            ]);
-
-            $this->log("Message #$id should be queued " . var_export($ret, TRUE));
-            assertEquals(0, $ret['ret']);
-            assertEquals('Queued for group membership', $ret['status']);
-
-            # Now we will apply for a membership, get it, and then call submitYahooQueued.  At that point the message
-            # will become pending.
-            $m = new Message($this->dbhr, $this->dbhm, $id);
-            $this->log("Wait for submit");
-            $count = 0;
-            do {
-                $stop = FALSE;
-                $groups = $m->getGroups(FALSE, FALSE);
-                $this->log(var_export($groups, TRUE));
-                $this->log("Check $count pending...");
-                if (MessageCollection::PENDING == $groups[0]['collection']) {
-                    $stop = TRUE;
-                } else {
-                    sleep(1);
-                }
-                $count++;
-            } while (!$stop && $count < IznikTestCase::YAHOO_PATIENCE);
-
-            assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count);
-
-            # Now it's pending - approve it on the platform, before Yahoo has seen it.
-            $this->log("Approve");
-            $m->approve($this->gid, NULL, NULL, NULL);
-
-            # We will then get notified of the message being pending on Yahoo, which will trigger an approval, and then
-            # we will get the approved message back. At that point the message will acquire a yahooapprovedid - so that's
-            # what we wait for to show this whole process works.
-            $this->log("Wait for Yahoo approved");
-            $count = 0;
-            do {
-                $stop = FALSE;
-                $groups = $m->getGroups(FALSE, FALSE);
-                $this->log(var_export($groups, TRUE));
-                $this->log("Check $count approved id {$groups[0]['yahooapprovedid']}...");
-                #assertEquals(MessageCollection::APPROVED, $groups[0]['collection']);
-                if ($groups[0]['yahooapprovedid']) {
-                    $stop = TRUE;
-                } else {
-                    sleep(1);
-                }
-                $count++;
-            } while (!$stop && $count < IznikTestCase::YAHOO_PATIENCE);
-
-            assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count, "Yahoo slow?");
-        }
-
-        }
-
     public function testCrosspost() {
         # At the moment a crosspost results in two separate messages - see comment in Message::save().
         $this->group = Group::get($this->dbhr, $this->dbhm);
@@ -2231,7 +2138,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('Basic test', 'OFFER: A thing (A place)', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -2334,7 +2241,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2360,7 +2267,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2417,7 +2324,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2469,7 +2376,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2512,7 +2419,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2553,7 +2460,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2594,7 +2501,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2635,7 +2542,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2697,7 +2604,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -2850,8 +2757,8 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        list($id, $already) = $m->save();
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');

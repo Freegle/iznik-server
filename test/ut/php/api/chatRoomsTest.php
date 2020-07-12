@@ -395,7 +395,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $msgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $msgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 

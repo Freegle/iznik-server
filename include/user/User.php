@@ -3532,63 +3532,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         }
     }
 
-    public function markYahooApproved($groupid, $emailid)
-    {
-        # Move a member from pending to approved in response to a Yahoo notification mail.
-        #
-        # Note that we will not always have a pending member application.  For example, suppose we have an
-        # existing Yahoo membership with an email address which isn't one of ours; then when we post a message
-        # we will trigger an application with one we do host, which will then get confirmed.
-        #
-        # Perhaps we can get a notification mail for a member not in Pending because their application hasn't been
-        # sync'd to us, but this is less of an issue as we will not have work which we are pestering mods to do.
-        # We'll pick them up on the next sync or when they post.
-        #
-        # No need for a transaction - if things go wrong, the member will remain in pending, which is recoverable.
-        $emails = $this->dbhr->preQuery("SELECT email FROM users_emails WHERE id = ?;", [$emailid]);
-        $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
-
-        $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $members = $this->dbhr->preQuery($sql, [$this->id, $groupid, MembershipCollection::PENDING]);
-
-        foreach ($members as $member) {
-            $this->log->log([
-                'type' => Log::TYPE_USER,
-                'subtype' => Log::SUBTYPE_APPROVED,
-                'msgid' => $this->id,
-                'user' => $this->getId(),
-                'groupid' => $groupid,
-                'text' => "Move from Pending to Approved after Yahoo notification mail for $email"
-            ]);
-
-            # Set the membership to be approved.
-            $sql = "UPDATE memberships SET collection = ? WHERE userid = ? AND groupid = ?;";
-            $this->dbhm->preExec($sql, [
-                MembershipCollection::APPROVED,
-                $this->id,
-                $groupid
-            ]);
-        }
-
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_YAHOO_JOINED,
-            'user' => $this->getId(),
-            'groupid' => $groupid,
-            'text' => $email
-        ]);
-
-        # The Yahoo membership should always exist as we'll have created it when we triggered the application, but
-        # using REPLACE will fix it if we've deleted it (which we did when fixing a bug, if not otherwise).
-        $sql = "REPLACE INTO memberships_yahoo (collection, emailid, membershipid) VALUES (?, ?, (SELECT id FROM memberships WHERE userid = ? AND groupid = ?));";
-        $rc = $this->dbhm->preExec($sql, [
-            MembershipCollection::APPROVED,
-            $emailid,
-            $this->id,
-            $groupid
-        ]);
-    }
-
     function hold($groupid)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);

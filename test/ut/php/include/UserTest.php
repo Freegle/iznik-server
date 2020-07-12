@@ -299,7 +299,7 @@ class userTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
         list($mid, $already) = $m->save();
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
@@ -1181,7 +1181,7 @@ class userTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
+        $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
         list($mid, $already) = $m->save();
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
@@ -1326,7 +1326,7 @@ class userTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item 1 (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
+        $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
         list($mid, $already) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
@@ -1337,7 +1337,7 @@ class userTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item 2 (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
+        $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
         list($mid, $already) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
@@ -1348,7 +1348,7 @@ class userTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'WANTED: Test item 1 (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
+        $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
         list($mid, $already) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 

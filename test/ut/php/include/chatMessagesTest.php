@@ -75,7 +75,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -102,7 +102,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -129,7 +129,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -155,7 +155,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -198,7 +198,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -236,7 +236,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -264,7 +264,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -288,7 +288,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('OFFER: a test item (location)', 'Testing', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -365,7 +365,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -387,7 +387,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('OFFER: a test item (location)', 'OFFER: A spade and broom handle (Conniburrow MK14', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid1 = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid1 = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -395,7 +395,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('OFFER: a test item (location)', 'Wanted: bike (Conniburrow MK14', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid2 = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid2 = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -539,7 +539,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $fromuid = $m->getFromuser();
         $rc = $r->route();
