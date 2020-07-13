@@ -51,9 +51,6 @@ class Log
     const SUBTYPE_SPLIT = 'Split';
     const SUBTYPE_LICENSED = 'Licensed';
     const SUBTYPE_LICENSE_PURCHASE = 'LicensePurchase';
-    const SUBTYPE_YAHOO_APPLIED = 'YahooApplied';
-    const SUBTYPE_YAHOO_CONFIRMED = 'YahooConfirmed';
-    const SUBTYPE_YAHOO_JOINED = 'YahooJoined';
     const SUBTYPE_MAILOFF = 'MailOff';
     const SUBTYPE_EVENTSOFF = 'EventsOff';
     const SUBTYPE_NEWSLETTERSOFF = 'NewslettersOff';

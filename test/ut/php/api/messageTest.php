@@ -397,7 +397,6 @@ class messageAPITest extends IznikAPITestCase
         $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        $this->dbhm->preExec("UPDATE messages_groups SET yahooapprove = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
 
         # Suppress mails.
         $m = $this->getMockBuilder('Message')
@@ -498,8 +497,6 @@ class messageAPITest extends IznikAPITestCase
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-
-        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
 
         # Suppress mails.
         $m = $this->getMockBuilder('Message')
@@ -746,7 +743,6 @@ class messageAPITest extends IznikAPITestCase
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com' WHERE msgid = $id;");
 
         # Shouldn't be able to delete logged out
         $ret = $this->call('message', 'POST', [
@@ -925,7 +921,6 @@ class messageAPITest extends IznikAPITestCase
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
 
         # Shouldn't be able to hold logged out
         $ret = $this->call('message', 'POST', [

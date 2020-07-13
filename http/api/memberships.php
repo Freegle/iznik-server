@@ -103,74 +103,66 @@ function memberships() {
                     }
 
                     if ($proceed) {
-                        if (count($groupids) == 1 && $action == 'exportyahoo') {
+                        if ($collection == MembershipCollection::HAPPINESS) {
+                            # This is handled differently - including a different processing for filter.
+                            $members = $g->getHappinessMembers($groupids, $ctx, presdef('filter', $_REQUEST, NULL));
+                        } else if ($collection == MembershipCollection::NEARBY) {
+                            $members = [];
+
+                            if ($me->isModerator()) {
+                                # At the moment only mods can see this, and they can see all mods..
+                                $n = new Nearby($dbhr, $dbhm);
+                                list ($lat, $lng, $loc) = $me->getLatLng();
+                                $members = $n->getUsersNear($lat, $lng, TRUE);
+                            }
+                        } else if ($filter == Group::FILTER_MOSTACTIVE) {
+                            # So is this
+                            $members = $groupid ? $u->mostActive($groupid) : NULL;
+                        } else if ($collection == MembershipCollection::RELATED) {
+                            # So is this
+                            if ($groupids == [-2] && $me->isAdminOrSupport()) {
+                                # We can fetch them systemwide.
+                                $groupids = NULL;
+                            }
+
+                            $members = $me->isModerator() ? $u->listRelated($groupids, $ctx, $limit) : [];
+                        } else if ($filter == Group::FILTER_BANNED) {
+                            # So is this
+                            $members = $groupid ? $g->getBanned($groupid, $ctx) : NULL;
+                        } else {
+                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
+                        }
+
+                        if ($userid) {
                             $ret = [
-                                'members' => $g->exportYahoo($groupids[0]),
+                                'member' => count($members) == 1 ? $members[0] : NULL,
+                                'context' => $ctx,
                                 'ret' => 0,
                                 'status' => 'Success'
                             ];
-                        } else {
-                            if ($collection == MembershipCollection::HAPPINESS) {
-                                # This is handled differently - including a different processing for filter.
-                                $members = $g->getHappinessMembers($groupids, $ctx, presdef('filter', $_REQUEST, NULL));
-                            } else if ($collection == MembershipCollection::NEARBY) {
-                                $members = [];
 
-                                if ($me->isModerator()) {
-                                    # At the moment only mods can see this, and they can see all mods..
-                                    $n = new Nearby($dbhr, $dbhm);
-                                    list ($lat, $lng, $loc) = $me->getLatLng();
-                                    $members = $n->getUsersNear($lat, $lng, TRUE);
-                                }
-                            } else if ($filter == Group::FILTER_MOSTACTIVE) {
-                                # So is this
-                                $members = $groupid ? $u->mostActive($groupid) : NULL;
-                            } else if ($collection == MembershipCollection::RELATED) {
-                                # So is this
-                                if ($groupids == [-2] && $me->isAdminOrSupport()) {
-                                    # We can fetch them systemwide.
-                                    $groupids = NULL;
-                                }
-
-                                $members = $me->isModerator() ? $u->listRelated($groupids, $ctx, $limit) : [];
-                            } else if ($filter == Group::FILTER_BANNED) {
-                                # So is this
-                                $members = $groupid ? $g->getBanned($groupid, $ctx) : NULL;
-                            } else {
-                                $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
+                            if ($logs) {
+                                $u = User::get($dbhr, $dbhm, $userid);
+                                $atts = $u->getPublic(NULL, TRUE, $logs, $logctx, FALSE, FALSE, FALSE, $modmailsonly);
+                                $ret['member']['logs'] = $atts['logs'];
+                                $ret['member']['merges'] = $atts['merges'];
+                                $ret['logcontext'] = $logctx;
                             }
+                        } else {
+                            # Get some/all.
+                            $ret = [
+                                'members' => $members,
+                                'groups' => [],
+                                'context' => $ctx,
+                                'ret' => 0,
+                                'status' => 'Success'
+                            ];
 
-                            if ($userid) {
-                                $ret = [
-                                    'member' => count($members) == 1 ? $members[0] : NULL,
-                                    'context' => $ctx,
-                                    'ret' => 0,
-                                    'status' => 'Success'
-                                ];
-
-                                if ($logs) {
-                                    $u = User::get($dbhr, $dbhm, $userid);
-                                    $atts = $u->getPublic(NULL, TRUE, $logs, $logctx, FALSE, FALSE, FALSE, $modmailsonly);
-                                    $ret['member']['logs'] = $atts['logs'];
-                                    $ret['member']['merges'] = $atts['merges'];
-                                    $ret['logcontext'] = $logctx;
-                                }
-                            } else {
-                                # Get some/all.
-                                $ret = [
-                                    'members' => $members,
-                                    'groups' => [],
-                                    'context' => $ctx,
-                                    'ret' => 0,
-                                    'status' => 'Success'
-                                ];
-
-                                foreach ($members as $m) {
-                                    if (pres('groupid', $m)) {
-                                        if (!pres($m['groupid'], $ret['groups'])) {
-                                            $g = Group::get($dbhr, $dbhm, $m['groupid']);
-                                            $ret['groups'][$m['groupid']] = $g->getPublic();
-                                        }
+                            foreach ($members as $m) {
+                                if (pres('groupid', $m)) {
+                                    if (!pres($m['groupid'], $ret['groups'])) {
+                                        $g = Group::get($dbhr, $dbhm, $m['groupid']);
+                                        $ret['groups'][$m['groupid']] = $g->getPublic();
                                     }
                                 }
                             }
@@ -231,20 +223,6 @@ function memberships() {
 
                     if (!$userid || $role != User::ROLE_NONMEMBER) {
                         $u->addMembership($groupid, $role, $emailid, $addtocoll, $message);
-
-                        if ($g->onYahoo()) {
-                            # This group is on Yahoo too, so we should trigger a membership application to there if we
-                            # don't already have one of our emails on the group.
-                            #
-                            # If this application is rejected then we will get removed from this group on the next sync.
-                            # Any message we submit will get queued for Yahoo, and then eventually purged if the
-                            # membership is not accepted.
-                            list ($eid, $alreadymail) = $u->getEmailForYahooGroup($groupid, TRUE, FALSE);
-
-                            if (!$eid) {
-                                $u->triggerYahooApplication($groupid);
-                            }
-                        }
 
                         $ret = [
                             'ret' => 0,
@@ -423,22 +401,6 @@ function memberships() {
 
                         if ($emailfrequency !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));
-
-                            # We will only actually send emails if we have a membership with our own email domain.
-                            # This is to avoid memberships we know about from Yahoo getting emails they won't
-                            # understand.  If someone has previously used Yahoo and then uses FD, they'll see
-                            # the email frequency set to Never, because we filter that out in User.php using the
-                            # $pernickety parameter.  However if they then change the email frequency, we trigger
-                            # an application, as a way of ensuring that we will then send emails.
-                            $g = Group::get($dbhr, $dbhm, $groupid);
-
-                            if ($g->getPrivate('onyahoo')) {
-                                $membershipmail = $u->getEmailForYahooGroup($groupid, TRUE, TRUE)[1];
-
-                                if (!$membershipmail) {
-                                    $u->triggerYahooApplication($groupid);
-                                }
-                            }
                         }
 
                         if ($eventsallowed !== NULL) {

@@ -987,32 +987,6 @@ class User extends Entity
         }
     }
 
-    public function isRejected($groupid)
-    {
-        # We use this to check if a member has recently been rejected.  We call it when we are dealing with a
-        # member that we think should be pending, to check that they haven't been rejected and therefore
-        # we shouldn't continue processing them.
-        #
-        # This is rather than checking the current collection they're in, because there are some awkward timing
-        # windows.  For example:
-        # - Trigger Yahoo application
-        # - Member sync via plugin - not yet on Pending on Yahoo
-        # - Delete membership
-        # - Then asked to confirm application
-        #
-        # TODO This lasts forever.  Probably it shouldn't.
-        $logs = $this->dbhr->preQuery("SELECT id FROM logs WHERE user = ? AND groupid = ? AND type = ? AND subtype = ?;", [
-            $this->id,
-            $groupid,
-            Log::TYPE_USER,
-            Log::SUBTYPE_REJECTED
-        ]);
-
-        $ret = count($logs) > 0;
-
-        return ($ret);
-    }
-
     public function isPendingMember($groupid)
     {
         $ret = false;
@@ -1069,19 +1043,6 @@ class User extends Entity
             $val,
             $groupid,
             $this->id
-        ]);
-
-        return ($rc);
-    }
-
-    public function setYahooMembershipAtt($groupid, $emailid, $att, $val)
-    {
-        $sql = "UPDATE memberships_yahoo SET $att = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?) AND emailid = ?;";
-        $rc = $this->dbhm->preExec($sql, [
-            $val,
-            $this->id,
-            $groupid,
-            $emailid
         ]);
 
         return ($rc);
@@ -1198,7 +1159,6 @@ class User extends Entity
         $groupobjs = $gc->get();
         $getworkids = [];
         $groupsettings = [];
-        $syncpendingids = [];
 
         for ($i = 0; $i < count($groupids); $i++) {
             $group = $groups[$i];
@@ -1233,12 +1193,6 @@ class User extends Entity
                 if ($amod) {
                     $getworkids[] = $group['groupid'];
                 }
-
-                $one['syncpending'] = 0;
-
-                if ($group['onyahoo']) {
-                    $syncpendingids[] = $group['groupid'];
-                }
             }
 
             $ret[] = $one;
@@ -1253,18 +1207,6 @@ class User extends Entity
                 foreach ($ret as &$group) {
                     if ($group['id'] == $groupid) {
                         $group['work'] = $work[$groupid];
-                    }
-                }
-            }
-        }
-
-        if ($syncpendingids) {
-            # See if there is a membersync pending
-            $syncpendings = $this->dbhr->preQuery("SELECT groupid, lastupdated, lastprocessed FROM memberships_yahoo_dump WHERE groupid IN (" . implode(',', $syncpendingids) . ") AND (lastprocessed IS NULL OR lastupdated > lastprocessed);");
-            foreach ($syncpendings as $syncgroup) {
-                foreach ($ret as &$group) {
-                    if ($group['id'] == $syncgroup['groupid']) {
-                        $group['syncpending'] = TRUE;
                     }
                 }
             }
@@ -3438,15 +3380,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             'stdmsgid' => $stdmsgid
         ]);
 
-        $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $members = $this->dbhr->preQuery($sql, [$this->id, $groupid, MembershipCollection::PENDING]);
-        foreach ($members as $member) {
-            if (pres('yahooreject', $member)) {
-                # We can trigger rejection by email - do so.
-                $this->mailer($member['yahooreject'], "My name is Iznik and I reject this member", "", NULL, '-f' . MODERATOR_EMAIL);
-            }
-        }
-
         $this->notif->notifyGroupMods($groupid);
 
         $this->maybeMail($groupid, $subject, $body, 'Reject Member');
@@ -4117,89 +4050,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         return ($email);
     }
 
-    public function triggerYahooApplication($groupid, $log = TRUE)
-    {
-        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-        $email = $this->inventEmail();
-        $emailid = $this->addEmail($email, 0);
-        #error_log("Added email $email id $emailid");
-
-        # We might already have a membership with an email which isn't one of ours.  If so, we don't want to
-        # trash that membership by turning it into a pending one.
-        $membid = $this->isApprovedMember($groupid);
-        if (!$membid) {
-            # Set up a pending membership - will be converted to approved when we process the approval notification.
-            $this->addMembership($groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING);
-        } else if ($g->onYahoo()) {
-            # We are already an approved member on Yahoo, but perhaps not with the right Yahoo ID.
-            $yahoos = $this->dbhr->preQuery("SELECT * FROM memberships_yahoo WHERE membershipid = ? AND emailid = ?;", [
-                $membid,
-                $emailid
-            ]);
-
-            if (count($yahoos) == 0) {
-                error_log("{$this->id} already a member of $groupid but not with email $email");
-                $this->addYahooMembership($membid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING);
-            }
-        }
-
-        $headers = "From: $email>\r\n";
-
-        # Yahoo isn't very reliable, so it's tempting to send the subscribe multiple times.  But this can lead
-        # to a situation where we subscribe, the member is rejected on Yahoo, then a later subscribe attempt
-        # that was greylisted gets through again.  This annoys mods.  So we only subscribe once, and rely on
-        # the cron jobs to retry if this doesn't work.
-        list ($transport, $mailer) = getMailer();
-        $message = Swift_Message::newInstance()
-            ->setSubject("I'm $email, please let me join at " . date(DATE_RSS))
-            ->setFrom([$email])
-            ->setTo($g->getGroupSubscribe())
-            ->setDate(time())
-            ->setBody("It's " . date(DATE_RSS) . " and I'd like to join as $email");
-        $this->sendIt($mailer, $message);
-
-        if ($log) {
-            $this->log->log([
-                'type' => Log::TYPE_USER,
-                'subtype' => Log::SUBTYPE_YAHOO_APPLIED,
-                'user' => $this->id,
-                'groupid' => $groupid,
-                'text' => $email
-            ]);
-        }
-
-        return ($email);
-    }
-
-    public function submitYahooQueued($groupid)
-    {
-        # Get an email address we can use on the group.
-        $submitted = 0;
-        list ($eid, $email) = $this->getEmailForYahooGroup($groupid, TRUE);
-        #error_log("Got email $email for {$this->id} on $groupid, eid $eid");
-
-        if ($email) {
-            # We want to send to Yahoo any messages we have not previously sent, as long as they have not had
-            # an outcome in the mean time.  Only send recent ones in case we flood the group with old stuff.
-            #
-            # If we are doing an autorepost we will already have a membership and therefore won't come through here.
-            $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
-            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL AND messages_groups.arrival >= '$mysqltime';";
-            $msgs = $this->dbhr->preQuery($sql, [
-                $groupid,
-                $this->id
-            ]);
-
-            foreach ($msgs as $msg) {
-                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-                $m->submit($this, $email, $groupid);
-                $submitted++;
-            }
-        }
-
-        return ($submitted);
-    }
-
     public function delete($groupid = NULL, $subject = NULL, $body = NULL, $log = TRUE)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -4365,8 +4215,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                 case Log::SUBTYPE_REJECTED:
                 case Log::SUBTYPE_APPLIED:
                 case Log::SUBTYPE_LEFT:
-                case Log::SUBTYPE_YAHOO_APPLIED:
-                case Log::SUBTYPE_YAHOO_JOINED:
                     {
                         $thisone = $log['subtype'];
                         break;

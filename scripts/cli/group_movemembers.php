@@ -29,12 +29,6 @@ if (count($opts) < 2) {
             $already = count($membs2) > 0;
             if (!$already) {
                 $dbhm->preQuery("UPDATE memberships SET groupid = ? WHERE groupid = ? AND userid = ?;", [$dstid, $srcid, $memb['userid']]);
-
-                if ($dstg->getPrivate('onyahoo')) {
-                    $u = new User($dbhr, $dbhm, $memb['userid']);
-                    $u->triggerYahooApplication($dstid, FALSE);
-                }
-
                 $moved++;
             } else {
                 $alreadys++;

@@ -671,15 +671,6 @@ memberships.groupid IN $groupq
         return($atts);
     }
 
-    public function exportYahoo($groupid) {
-        $members = $this->dbhr->preQuery("SELECT members FROM memberships_yahoo_dump WHERE groupid = ?;", [ $groupid ]);
-        foreach ($members as $member) {
-            return(json_decode($member['members'], TRUE));
-        }
-
-        return(NULL);
-    }
-
     public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL, $ops = NULL, $filter = Group::FILTER_NONE) {
         $ret = [];
         $limit = intval($limit);

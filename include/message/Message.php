@@ -403,13 +403,6 @@ class Message
                 $this->id
             ]);
 
-            # If we edit a message and then approve it by email, Yahoo breaks the message.  So prevent that happening by
-            # removing the email approval info.
-            $sql = "UPDATE messages_groups SET yahooapprove = NULL, yahooreject = NULL WHERE msgid = ?;";
-            $this->dbhm->preExec($sql, [
-                $this->id
-            ]);
-
             # Record the edit history.
             $newitems = $item ? json_encode([ intval($iid) ]) : NULL;
             $newlocation = $location ? $this->getPrivate('locationid') : NULL;
@@ -495,14 +488,6 @@ class Message
         $this->dbhm->preExec($sql, [
             $this->id
         ]);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getYahooreject()
-    {
-        return $this->yahooreject;
     }
 
     /** @var  $dbhr LoggedPDO */
@@ -2059,9 +2044,6 @@ ORDER BY lastdate DESC;";
             $this->attachments = [];
         }
 
-        $this->yahooapprove = NULL;
-        $this->yahooreject = NULL;
-
         # Get IP
         $ip = $this->getHeader('x-freegle-ip');
         $ip = $ip ? $ip : $this->getHeader('x-trash-nothing-user-ip');
@@ -2857,15 +2839,6 @@ ORDER BY lastdate DESC;";
             'text' => $subject,
             'stdmsgid' => $stdmsgid
         ]);
-
-        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ? AND deleted = 0;";
-        $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
-        foreach ($groups as $group) {
-            if ($group['yahooreject']) {
-                # We can trigger rejection by email - do so.
-                $this->mailer($me, TRUE, $group['yahooreject'], $group['yahooreject'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
-            }
-        }
 
         # When rejecting, we put it in the appropriate collection, which means the user can potentially edit and
         # resend.

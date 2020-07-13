@@ -597,9 +597,6 @@ class membershipsAPITest extends IznikAPITestCase {
         $ctx = NULL;
         $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
         assertEquals(1, count($members));
-        $this->dbhm->preExec("UPDATE memberships_yahoo SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE membershipid = (SELECT id FROM memberships WHERE userid = $uid);");
-        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
-        User::clearCache($uid);
 
         $u->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
@@ -766,10 +763,6 @@ class membershipsAPITest extends IznikAPITestCase {
         $ctx = NULL;
         $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
         assertEquals(1, count($members));
-        $this->dbhm->preExec("UPDATE memberships_yahoo SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE  membershipid = (SELECT id FROM memberships WHERE userid = $uid);");
-
-        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
-        User::clearCache($uid);
         $u->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
 
