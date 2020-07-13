@@ -222,7 +222,8 @@ ORDER BY groups_facebook_toshare.id DESC;";
 
     public function performSocialAction($id) {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $ret = [];
+        $ret = FALSE;
+
         if ($me) {
             # We need to be a mod on the relevant group.
             $modships = $me->getModeratorships();
@@ -257,13 +258,20 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         #error_log("Like returned " . var_export($res, true));
                     }
 
-                    $a = explode('_', $action['postid']);
-                    $params['link'] = 'https://www.facebook.com/' . $a[0] . '/posts/' . $a[1];
-                    $result = $fb->post($this->id . '/feed', $params, $this->token);
-                    error_log("Share via " . json_encode($params) . " returned " . var_export($result, TRUE));
+                    try {
+                        $a = explode('_', $action['postid']);
+                        $params['link'] = 'https://www.facebook.com/' . $a[0] . '/posts/' . $a[1];
+                        $result = $fb->post($this->id . '/feed', $params, $this->token);
+                        error_log("Share via " . json_encode($params) . " returned " . var_export($result, TRUE));
+                        $ret = TRUE;
+                    } catch (Exception $e) {
+                        error_log("Share failed with " . $e->getMessage());
+                    }
                 }
             }
         }
+
+        return $ret;
     }
 
     public function hideSocialAction($id) {

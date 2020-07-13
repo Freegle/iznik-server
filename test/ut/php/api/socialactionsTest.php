@@ -37,8 +37,9 @@ class socialactionsAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
-        $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
+        $u->addMembership($gid, User::ROLE_MODERATOR);
 
+        $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
         $fbs = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
 
         if (!getenv('STANDALONE')) {
@@ -97,14 +98,13 @@ class socialactionsAPITest extends IznikAPITestCase
 
             $this->dbhm->preExec("UPDATE groups_facebook SET token = '{$tokens[0]['token']}' WHERE groupid = $gid");
 
-            assertEquals(0, $ret['ret']);
+            assertEquals(2, $ret['ret']);
 
             # Get again for coverage.
             $ret = $this->call('socialactions', 'GET', []);
             assertEquals(0, $ret['ret']);
         }
-
-        }
+    }
 
     public function testHide()
     {

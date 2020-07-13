@@ -28,17 +28,27 @@ function socialactions() {
 
             switch ($action) {
                 case GroupFacebook::ACTION_DO:
-                    $f->performSocialAction($id);
+                    if ($f->performSocialAction($id)) {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    } else {
+                        $ret = [
+                            'ret' => 2,
+                            'status' => 'Failed'
+                        ];
+                    }
                     break;
                 case GroupFacebook::ACTION_HIDE:
                     $f->hideSocialAction($id);
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
                     break;
             }
 
-            $ret = [
-                'ret' => 0,
-                'status' => 'Success'
-            ];
             break;
     }
 
