@@ -7,6 +7,7 @@ require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/group/CommunityEvent.php';
+require_once IZNIK_BASE . '/include/group/Group.php';
 
 /**
  * @backupGlobals disabled
@@ -63,6 +64,9 @@ class teamAPITest extends IznikAPITestCase {
         $id = $ret['id'];
         self::assertNotNull($id);
 
+        $t = new Team($this->dbhr, $this->dbhm);
+        assertEquals($id, $t->findByName('UTTest'));
+
         # Check this appears in the list.
         $ret = $this->call('team', 'GET', []);
         assertEquals(0, $ret['ret']);
@@ -108,7 +112,6 @@ class teamAPITest extends IznikAPITestCase {
         $ret = $this->call('team', 'DELETE', [
             'id' => $id
         ]);
-
-        }
+    }
 }
 
