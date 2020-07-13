@@ -321,11 +321,6 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', '=?windows-1255?B?UkU6IE1hdGFub3MgTGFFdnlvbmltIFB1cmltIDIwMTYg7sf6yMzw5Q==?=
 =?windows-1255?B?yfog7MjgxuHA6cnwxOnt?=', $msg);
 
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
-        $this->group->setPrivate('onhere', 1);
-
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail('test@test.com');
@@ -337,9 +332,8 @@ class messageTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
-
-        }
+        assertEquals(MailRouter::APPROVED, $rc);
+    }
     
     public function testPrune() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
