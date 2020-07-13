@@ -372,6 +372,7 @@ class sessionTest extends IznikAPITestCase
         $this->log("Created user $id");
         assertNotNull($u->addEmail('test@test.com'));
         $u = User::get($this->dbhm, $this->dbhm, $id);
+        $u->setPrivate('permissions', json_encode([ User::PERM_NATIONAL_VOLUNTEERS, User::PERM_GIFTAID ]));
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
