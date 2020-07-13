@@ -948,57 +948,6 @@ class membershipsAPITest extends IznikAPITestCase {
 
         }
 
-    public function testExportYahoo() {
-        assertTrue($this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($this->user->login('testpw'));
-
-        # Export with no entry in the table.
-        $ret = $this->call('memberships', 'GET', [
-            'groupid' => $this->groupid,
-            'action' => 'exportyahoo'
-        ]);
-        assertEquals(0, $ret['ret']);
-        assertFalse(pres('members', $ret));
-
-        $members = [
-            [
-                'email' => 'test@test.com',
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'MODERATED',
-                'yahooDeliveryType' => 'ANNOUNCEMENT',
-                'yahooModeratorStatus' => 'MODERATOR',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ]
-        ];
-
-        for ($i = 0; $i < 10; $i++) {
-            $members[] = [
-                'email' => "test$i@test.com",
-                'yahooUserId' => "-$i",
-                'yahooPostingStatus' => 'UNMODERATED',
-                'yahooDeliveryType' => 'SINGLE',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ];
-        };
-
-        $ret = $this->call('memberships', 'PATCH', [
-            'groupid' => $this->groupid,
-            'members' => $members
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        $ret = $this->call('memberships', 'GET', [
-            'groupid' => $this->groupid,
-            'action' => 'exportyahoo'
-        ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals(11, count($ret['members']));
-
-        }
-
     public function testFilter() {
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         assertTrue($this->user->login('testpw'));
@@ -1055,7 +1004,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         }
 
-    public function testYahooThenFD() {
+    public function testNotOurDomain() {
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addMembership($this->groupid);
@@ -1064,20 +1013,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         # We don't send emails if we don't have our own domain.
         assertFalse($u->sendOurMails($this->group));
-
-        # Now change our email frequency - this should trigger a membership.
-        $ret = $this->call('memberships', 'PATCH', [
-            'groupid' => $this->groupid,
-            'userid' => $id,
-            'emailfrequency' => 8,
-            'eventsallowed' => 0,
-            'ourpostingstatus' => 'DEFAULT'
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        assertTrue($u->sendOurMails($this->group));
-
-        }
+    }
 
     function testHappiness() {
         # Create the sending user
