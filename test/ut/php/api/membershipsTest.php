@@ -434,29 +434,18 @@ class membershipsAPITest extends IznikAPITestCase {
         $members = [
             [
                 'email' => 'test@test.com',
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'MODERATED',
-                'yahooDeliveryType' => 'ANNOUNCEMENT',
-                'yahooModeratorStatus' => 'MODERATOR',
                 'name' => 'Test User',
                 'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
             ],
             [
                 'email' => 'test2@test.com',
-                'yahooUserId' => 2,
                 'yahooid' => '-testid',
-                'yahooPostingStatus' => 'UNMODERATED',
-                'yahooDeliveryType' => 'SINGLE',
                 'name' => 'Test User',
                 'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
             ],
             [
                 'email' => 'test3@test.com',
-                'yahooUserId' => 3,
-                'yahooPostingStatus' => 'PROHIBITED',
-                'yahooDeliveryType' => 'DIGEST',
                 'name' => 'Test User',
-                'yahooModeratorStatus' => 'OWNER',
                 'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
             ]
         ];
@@ -467,23 +456,6 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         
-        # Fake background job.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        User::clearCache();
-        Group::clearCache();
-        $g->processSetMembers($this->groupid);
-        User::clearCache();
-        Group::clearCache();
-        $this->dbhr->clearCache();
-
-        # Test user search - here as we want to check the Yahoo details too.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $ctx = NULL;
-        $users = $u->search('test@test.com', $ctx);
-        $this->log("Search returned " . var_export($users, TRUE));
-        self::assertEquals(1, count($users));
-        assertEquals('ANNOUNCEMENT', $users[0]['memberof'][0]['yahooDeliveryType']);
-
         $ret = $this->call('memberships', 'GET', []);
 
         assertEquals(3, count($ret['members']));
@@ -495,42 +467,24 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals('Moderator', $ret['members'][2]['role']);
         $savemembs = $ret['members'];
 
-        # Again - should get ignored
-        $ret = $this->call('memberships', 'PATCH', [
-            'groupid' => $this->groupid,
-            'members' => $members
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        # Test merge by yahooid and yahooUserId
+        # Test merge by yahooid
         $this->log("Test merge");
         $this->group = Group::get($this->dbhr, $this->dbhm, $this->groupid);
-        $this->group->setPrivate('lastyahoomembersync', NULL);
 
         $members = [
             [
                 'email' => 'test4@test.com',
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'MODERATED',
-                'yahooDeliveryType' => 'ANNOUNCEMENT',
-                'yahooModeratorStatus' => 'MODERATOR',
                 'name' => 'Test User',
                 'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
             ],
             [
                 'email' => 'test5@test.com',
                 'yahooid' => '-testid',
-                'yahooPostingStatus' => 'UNMODERATED',
-                'yahooDeliveryType' => 'SINGLE',
                 'name' => 'Test User',
                 'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
             ],
             [
                 'email' => 'test@test.com',
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'MODERATED',
-                'yahooDeliveryType' => 'ANNOUNCEMENT',
-                'yahooModeratorStatus' => 'MODERATOR',
                 'name' => 'Test User',
                 'date' => isodate('Sat, 22 Aug 2016 10:45:58 +0000')
             ]
@@ -548,8 +502,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->log("Returned " . var_export($ret, TRUE));
 
         assertEquals(3, count($ret['members']));
-
-        }
+    }
 
     public function testPendingMembers() {
         assertTrue($this->user->login('testpw'));
@@ -894,57 +847,6 @@ class membershipsAPITest extends IznikAPITestCase {
             'collection' => 'Pending'
         ]);
         assertFalse(pres('heldby', $ret['member']));
-
-        }
-
-    public function testLarge() {
-        $size = 1000;
-
-        assertTrue($this->user->login('testpw'));
-        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));
-
-        $members = [
-            [
-                'email' => 'test@test.com',
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'MODERATED',
-                'yahooDeliveryType' => 'ANNOUNCEMENT',
-                'yahooModeratorStatus' => 'MODERATOR',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ]
-        ];
-
-        for ($i = 0; $i < $size; $i++) {
-            if ($i % 1000 == 0) {
-                $this->log("...$i");
-            }
-            $members[] = [
-                'email' => "test$i@test.com",
-                'yahooUserId' => "-$i",
-                'yahooPostingStatus' => 'UNMODERATED',
-                'yahooDeliveryType' => 'SINGLE',
-                'yahooModeratorStatus' => 'OWNER',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ];
-        };
-
-        $this->log("Do PATCH");
-        $ret = $this->call('memberships', 'PATCH', [
-            'groupid' => $this->groupid,
-            'members' => $members
-        ]);
-        assertEquals(0, $ret['ret']);
-        $this->log("Done PATCH");
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $g->processSetMembers($this->groupid);
-        User::clearCache();
-        
-        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
-        $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);
-        assertEquals($size + 1, $counts[0]['count']);
 
         }
 

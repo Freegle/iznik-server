@@ -1087,25 +1087,6 @@ class User extends Entity
             } else {
                 $type = $this->isPendingMember($groupid) ? 'RejectPendingMember' : 'RemoveApprovedMember';
             }
-
-            # It would be odd for them to be on Yahoo with no email but handle it anyway.
-            if ($email['email']) {
-                if ($g->getPrivate('onyahoo')) {
-                    if (ourDomain($email['email'])) {
-                        # This is an email address we host, so we can email an unsubscuribe request.
-                        for ($i = 0; $i < 10; $i++) {
-                            list ($transport, $mailer) = getMailer();
-                            $message = Swift_Message::newInstance()
-                                ->setSubject('Please release me')
-                                ->setFrom([$email['email']])
-                                ->setTo($g->getGroupUnsubscribe())
-                                ->setDate(time())
-                                ->setBody('Let me go');
-                            $this->sendIt($mailer, $message);
-                        }
-                    }
-                }
-            }
         }
 
         if ($ban) {

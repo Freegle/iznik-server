@@ -363,32 +363,6 @@ function memberships() {
 
                             unset($settings['configid']);
                         }
-
-                        if ($members !== NULL) {
-                            $synctime = presdef('synctime', $_REQUEST, ISODate("@" . time()));
-                            $mysqltime = date("Y-m-d H:i:s", strtotime($synctime));
-
-                            if ($collection == MembershipCollection::APPROVED) {
-                                # Check when the last member sync was.  If it's within the last few minutes, don't
-                                # bother resyncing.  This helps with the case where the client times out waiting, and
-                                # then retries forever but the sync has actually happened.
-                                $last = $g->getPrivate('lastyahoomembersync');
-                                $time = strtotime('now') - strtotime($last);
-                                #error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
-
-                                if ($time > 600) {
-                                    # It's been a little while since we did this.  Queue it (the actual sync happens
-                                    # in a background script).
-                                    $g->queueSetMembers($members, $mysqltime);
-                                } else {
-                                    $ret = [ 'ret' => 0, 'status' => 'Ignore member sync as happened recently'];
-                                    #error_log("Ignore member sync for " . $g->getPrivate('nameshort') . " as last sync at $last");
-                                }
-                            } else {
-                                # For other collections, which aren't large, we do the work inline.
-                                $ret = $g->setMembers($members, $collection, $mysqltime);
-                            }
-                        }
                     }
 
                     if ($me->isModOrOwner($groupid) || $me->getId() == $userid) {

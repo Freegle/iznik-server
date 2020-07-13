@@ -45,10 +45,7 @@ class groupTest extends IznikTestCase {
         assertEquals(1, $atts['settings']['duplicates']['check']);
 
         assertGreaterThan(0 ,$g->delete());
-
-        assertGreaterThan(0, strpos($g->getGroupUnsubscribe(), 'unsub'));
-
-        }
+    }
 
     public function testBasic() {
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -59,158 +56,8 @@ class groupTest extends IznikTestCase {
         assertEquals($atts['id'], $g->getPrivate('id'));
         assertNull($g->getPrivate('invalidid'));
 
-        # Test set members.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $c = new ModConfig($this->dbhr, $this->dbhm);
-        $cid = $c->create('TestConfig');
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
-        $this->user->addMembership($g->getId(), User::ROLE_MODERATOR);
-        $mods = $g->getMods();
-        assertTrue(in_array($this->uid, $mods));
-        $this->user->setMembershipAtt($g->getId(), 'configid', $cid);
-        $rc = $g->setMembers([
-            [
-                'uid' => $this->uid,
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-        $membs = $g->getMembers();
-
-        # Can't set owner status as not logged in as an owner.
-        assertEquals(User::ROLE_MODERATOR, $membs[0]['role']);
-
-        # Now try as an owner.
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $u->addMembership($gid, User::ROLE_OWNER);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        $rc = $g->setMembers([
-            [
-                'uid' => $this->uid,
-                'yahooid' => 'testid',
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-        $membs = $g->getMembers();
-        assertEquals(User::ROLE_OWNER, $membs[0]['role']);
-
-        $membs = $this->user->getMemberships();
-        $this->log("Got members" . var_export($membs, true));
-        assertEquals(1, count($membs));
-        assertEquals($cid, $membs[0]['configid']);
-
         assertGreaterThan(0 ,$g->delete());
-        $c->delete();
-
-        }
-
-    public function testMerge() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        assertNotNull($gid);
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
-
-        # Create owner
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $eid = $u->addEmail('test@test.com');
-        $this->log("Create owner $id with email $eid");
-        $u->addMembership($gid, User::ROLE_OWNER, $eid);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        # Test merging by Yahoo ID.
-        $rc = $g->setMembers([
-            [
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ],
-            [
-                'yahooid' => '-testid1',
-                'email' => 'test1@test.com'
-            ],
-            [
-                'email' => 'test2@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-
-        $this->log("Before merge " . var_export($g->getMembers(), TRUE));
-
-        $this->dbhm->preExec("UPDATE users_emails SET preferred = 1 WHERE email IN ('test1@test.com', 'test2@test.com')");
-
-        $rc = $g->setMembers([
-            [
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ],
-            [
-                'yahooid' => '-testid1',
-                'email' => 'test2@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-
-        $membs = $g->getMembers();
-        $this->log("Got " . count($membs) . " now");
-        $this->log(var_export($membs, TRUE));
-        assertEquals('-testid1', $membs[0]['yahooid']);
-        assertEquals('test1@test.com', $membs[0]['otheremails'][0]['email']);
-
-        # Test merging by Yahoo User ID.
-        $this->log("Test merge by Yahoo User ID");
-        $rc = $g->setMembers([
-            [
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ],
-            [
-                'yahooUserId' => '-testid1',
-                'email' => 'test11@test.com'
-            ],
-            [
-                'email' => 'test12@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-
-        $rc = $g->setMembers([
-            [
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ],
-            [
-                'yahooUserId' => '-testid1',
-                'email' => 'test12@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-
-        $membs = $g->getMembers();
-        $this->log(var_export($membs, TRUE));
-        assertEquals('-testid1', $membs[0]['yahooUserId']);
-        assertTrue('test11@test.com' == $membs[0]['email'] && 'test12@test.com' == $membs[0]['otheremails'][0]['email'] ||
-            'test12@test.com' == $membs[0]['email'] && 'test11@test.com' == $membs[0]['otheremails'][0]['email']);
-
-        # Test that the merge history is there.
-        $this->waitBackground();
-        $this->log("Check merge history for {$membs[0]['userid']}");
-        $u = User::get($this->dbhm, $this->dbhm, $membs[0]['userid']);
-        $ctx = NULL;
-        $atts = $u->getPublic(NULL, FALSE, TRUE, $ctx);
-        $this->log("Merge history " . var_export($atts, TRUE));
-        assertEquals(1, count($atts['merges']));
-        assertTrue($membs[0]['userid'] == $atts['merges'][0]['from'] || $membs[0]['userid'] == $atts['merges'][0]['to']);
-
-        }
+    }
 
     public function testSplit() {
         $u = User::get($this->dbhm, $this->dbhm);
@@ -266,57 +113,7 @@ class groupTest extends IznikTestCase {
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $eid = $this->user->addEmail('test@test.com');
         $this->user->addMembership($id);
-
-        # Error in preExec
-        $g = Group::get($this->dbhm, $this->dbhm, $id);
-        $mock = $this->getMockBuilder('LoggedPDO')
-            ->setConstructorArgs([
-                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
-                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
-            ])
-            ->setMethods(array('preExec'))
-            ->getMock();
-        $mock->method('preExec')->willThrowException(new Exception());
-        $g->setDbhm($mock);
-        $rc = $g->setMembers([
-            [
-                'uid' => $this->uid,
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertNotEquals(0, $rc['ret']);
-
-        # Error in exec
-        $members = $g->getMembers();
-        assertEquals(1, count($members));
-        $this->log("Members " . var_export($members, true));
-        assertEquals(0, count($members[0]['otheremails']));
-
-        $mock = $this->getMockBuilder('LoggedPDO')
-            ->setConstructorArgs([
-                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
-                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
-            ])
-            ->setMethods(array('exec'))
-            ->getMock();
-        $mock->method('exec')->willThrowException(new Exception());
-        $g->setDbhm($mock);
-
-        $rc = $g->setMembers([
-            [
-                'uid' => $this->uid,
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertNotEquals(0, $rc['ret']);
-
-        $members = $g->getMembers();
-        assertEquals(1, count($members));
-        assertEquals(0, count($members[0]['otheremails']));
-
-        }
+    }
 
     public function testVoucher() {
         $this->log(__METHOD__ );
@@ -351,47 +148,7 @@ class groupTest extends IznikTestCase {
 
         # Might not be any legacy groups in the DB.
         assertTrue(TRUE);
-
-        }
-
-    public function testNativeRoles()
-    {
-        # Create a group with a mod and a member.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $modid = $u->create(NULL, NULL, 'Test User');
-        $mod = User::get($this->dbhr, $this->dbhm, $modid);
-        $mod->addEmail('test1@test.com');
-        $this->log("Created mod $modid");
-        $ownid = $u->create(NULL, NULL, 'Test User');
-        $own = User::get($this->dbhr, $this->dbhm, $ownid);
-        $own->addEmail('test2@test.com');
-        $this->log("Created owner $ownid");
-
-        $rc = $g->setMembers([
-            [
-                'yahooModeratorStatus' => 'MODERATOR',
-                'email' => 'test1@test.com'
-            ],
-            [
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test2@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-
-        # Should both be mods until we switch.
-        self::assertEquals(User::ROLE_MODERATOR, $mod->getMembershipAtt($gid, 'role'));
-        self::assertEquals(User::ROLE_MODERATOR, $own->getMembershipAtt($gid, 'role'));
-        $g->setNativeRoles();
-        $mod->clearMembershipCache();
-        $own->clearMembershipCache();
-        self::assertEquals(User::ROLE_MODERATOR, $mod->getMembershipAtt($gid, 'role'));
-        self::assertEquals(User::ROLE_OWNER, $own->getMembershipAtt($gid, 'role'));
-
-        }
+    }
 
     public function testOurPS() {
         $this->log(__METHOD__ );

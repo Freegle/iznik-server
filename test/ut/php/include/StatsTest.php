@@ -34,24 +34,6 @@ class statsTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
 
-        # Test set members.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->log("Created user $uid");
-        $u->addEmail('test@test.com');
-        $u->addMembership($g->getId(), User::ROLE_MEMBER);
-
-        $rc = $g->setMembers([
-            [
-                'uid' => $uid,
-                'email' => 'test@test.com',
-                'yahooModeratorStatus' => 'OWNER',
-                'yahooPostingStatus' => 'MODERATED',
-                'yahooDeliveryType' => 'DIGEST'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('FreeglePlayground', 'testgroup', $msg);
 

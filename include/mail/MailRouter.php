@@ -689,16 +689,6 @@ class MailRouter
                             }
                         }
                     }
-
-                    # Check for getting group mails to our individual users, which we want to turn off because
-                    # otherwise we'd get swamped.  We get group mails via the modtools@ and republisher@ users.
-                    if (strpos($envto, '@' . USER_DOMAIN) !== FALSE || (ourDomain($envto) && stripos($envto, 'fbuser') === 0)) {
-                        foreach ($groups as $group) {
-                            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                            if ($log) { error_log("Turn off mails for $envto via " . $g->getGroupNoEmail()); }
-                            $this->mail($g->getGroupNoEmail(), $envto, "Turning off mails", "I don't want these");
-                        }
-                    }
                 } else {
                     # It's not to one of our groups - but it could be a reply to one of our users, in several ways:
                     # - to the reply address we put in our What's New mails
