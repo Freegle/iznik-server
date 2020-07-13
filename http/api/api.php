@@ -170,7 +170,6 @@ require_once(IZNIK_BASE . '/http/api/logs.php');
 require_once(IZNIK_BASE . '/http/api/visualise.php');
 require_once(IZNIK_BASE . '/http/api/domains.php');
 require_once(IZNIK_BASE . '/http/api/team.php');
-require_once(IZNIK_BASE . '/http/api/stroll.php');
 
 use GeoIp2\Database\Reader;
 
@@ -456,9 +455,6 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     break;
                 case 'src':
                     $ret = src();
-                    break;
-                case 'stroll':
-                    $ret = stroll();
                     break;
                 case 'visualise':
                     $ret = visualise();
