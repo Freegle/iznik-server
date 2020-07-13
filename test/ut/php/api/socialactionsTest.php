@@ -116,6 +116,8 @@ class socialactionsAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+
         $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
 
         foreach ($ids as $uid) {
