@@ -330,9 +330,11 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                 case 'image':
                     $ret = image();
                     break;
+                // @codeCoverageIgnoreStart
                 case 'catalogue':
                     $ret = catalogue();
                     break;
+                // @codeCoverageIgnoreEnd
                 case 'profile':
                     $ret = profile();
                     break;

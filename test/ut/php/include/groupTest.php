@@ -9,7 +9,6 @@ require_once IZNIK_BASE . '/include/user/MembershipCollection.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/config/ModConfig.php';
 
-
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
@@ -58,19 +57,6 @@ class groupTest extends IznikTestCase {
 
         assertGreaterThan(0 ,$g->delete());
     }
-
-    public function testSplit() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $u->setPrivate('yahooid', '-testyahooid');
-        $u->setPrivate('yahooUserId', '-testyahoouserid');
-        assertNotNull($u->addEmail('test@test.com'));
-        $u->split('test@test.com');
-        assertNotNull($u->findByEmail('test@test.com'));
-        assertNull($u->findByYahooId('-testyahooid'));
-        assertNull($u->findByYahooUserId('-testyahoouserid'));
-
-        }
 
     public function testErrors() {
         $dbconfig = array (

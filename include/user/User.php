@@ -3729,10 +3729,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $this->removeEmail($email);
         }
 
-        # Reset the Yahoo IDs in case they're wrong.  If they're right they'll get set on the next sync.
-        $this->setPrivate('yahooid', NULL);
-        $this->setPrivate('yahooUserId', NULL);
-
         $l->log([
             'type' => Log::TYPE_USER,
             'subtype' => Log::SUBTYPE_SPLIT,
@@ -3767,6 +3763,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                     $chat['id']
                 ]);
             }
+
             if ($chat['user2'] == $this->id) {
                 $this->dbhm->preExec("UPDATE chat_rooms SET user2 = ? WHERE id = ?;", [
                     $uid2,

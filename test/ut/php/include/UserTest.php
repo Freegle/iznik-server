@@ -9,6 +9,8 @@ require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
 require_once IZNIK_BASE . '/include/newsfeed/Newsfeed.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
+require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 
 /**
  * @backupGlobals disabled
@@ -1428,6 +1430,57 @@ class userTest extends IznikTestCase {
         assertTrue($u->login('testpw'));
         $name = $u->getName();
         assertFalse(strpos($name, 'Deleted User'));
+    }
+
+    public function testSplit() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->setPrivate('yahooid', '-testyahooid');
+        assertNotNull($u->addEmail('test@test.com'));
+        $u->split('test@test.com');
+        assertNotNull($u->findByEmail('test@test.com'));
+        assertNotNull($u->findByYahooId('-testyahooid'));
+    }
+
+    public function testSplitWithChats() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id1 = $u->create('Test', 'User', NULL);
+        $u->setPrivate('yahooid', '-testyahooid');
+        assertNotNull($u->addEmail('test@test.com'));
+
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
+        $this->group->setPrivate('onhere', 1);
+        $u->addMembership($this->gid);
+
+        # Create a message, so we can reference it from chats, so that those chats get split.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $id2 = $u->create('Test', 'User', NULL);
+        $id3 = $u->create('Test', 'User', NULL);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid1 = $r->createConversation($id1, $id2);
+        $rid2 = $r->createConversation($id3, $id1);
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $mid1 = $cm->create($rid1, $id1, 'Test', ChatMessage::TYPE_INTERESTED, $id);
+        $mid2 = $cm->create($rid2, $id1, 'Test', ChatMessage::TYPE_INTERESTED, $id);
+
+        $u = User::get($this->dbhm, $this->dbhm, $id1);
+        $newid = $u->split('test@test.com');
+
+        assertNotNull($u->findByEmail('test@test.com'));
+        assertNotNull($u->findByYahooId('-testyahooid'));
+
+        $chats = $r->listForUser($newid);
+        assertEquals(2, count($chats));
     }
 }
 

@@ -1,4 +1,6 @@
 <?php
+// @codeCoverageIgnoreStart
+// This is a proof of concept for another project, it isn't tested as part of Freegle.
 
 function catalogue() {
     global $dbhr, $dbhm;
@@ -101,3 +103,5 @@ function catalogue() {
 
     return($ret);
 }
+
+// @codeCoverageIgnoreEnd

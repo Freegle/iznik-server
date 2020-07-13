@@ -1,4 +1,6 @@
 <?php
+// @codeCoverageIgnoreStart
+// This is a proof of concept for another project, it isn't tested as part of Freegle.
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
@@ -328,3 +330,5 @@ class Catalogue
         return NULL;
     }
 }
+
+// @codeCoverageIgnoreEnd
