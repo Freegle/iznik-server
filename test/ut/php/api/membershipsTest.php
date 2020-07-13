@@ -34,6 +34,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('onyahoo', TRUE);
         $this->group->setPrivate('onhere', TRUE);
+
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($this->uid);
@@ -41,6 +42,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->user->addEmail('test@test.com');
         $this->user->addMembership($this->groupid);
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
         $this->uid2 = $u->create(NULL, NULL, 'Test User');
         assertNotNull($this->uid);
         $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
@@ -431,77 +433,6 @@ class membershipsAPITest extends IznikAPITestCase {
 
         # Mod - should see members list
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));
-        $members = [
-            [
-                'email' => 'test@test.com',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ],
-            [
-                'email' => 'test2@test.com',
-                'yahooid' => '-testid',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ],
-            [
-                'email' => 'test3@test.com',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ]
-        ];
-
-        $ret = $this->call('memberships', 'PATCH', [
-            'groupid' => $this->groupid,
-            'members' => $members
-        ]);
-        assertEquals(0, $ret['ret']);
-        
-        $ret = $this->call('memberships', 'GET', []);
-
-        assertEquals(3, count($ret['members']));
-        assertEquals('test3@test.com', $ret['members'][0]['email']);
-        assertEquals('Owner', $ret['members'][0]['role']);
-        assertEquals('test2@test.com', $ret['members'][1]['email']);
-        assertEquals('Member', $ret['members'][1]['role']);
-        assertEquals('test@test.com', $ret['members'][2]['email']);
-        assertEquals('Moderator', $ret['members'][2]['role']);
-        $savemembs = $ret['members'];
-
-        # Test merge by yahooid
-        $this->log("Test merge");
-        $this->group = Group::get($this->dbhr, $this->dbhm, $this->groupid);
-
-        $members = [
-            [
-                'email' => 'test4@test.com',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ],
-            [
-                'email' => 'test5@test.com',
-                'yahooid' => '-testid',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ],
-            [
-                'email' => 'test@test.com',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2016 10:45:58 +0000')
-            ]
-        ];
-
-        $ret = $this->call('memberships', 'PATCH', [
-            'groupid' => $this->groupid,
-            'members' => $members,
-            'dup' => 1
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        $ret = $this->call('memberships', 'GET', []);
-        $this->log("Saved " .var_export( $savemembs, TRUE));
-        $this->log("Returned " . var_export($ret, TRUE));
-
-        assertEquals(3, count($ret['members']));
     }
 
     public function testPendingMembers() {
@@ -514,33 +445,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->log("Returned " . var_export($ret, TRUE));
 
         assertEquals(1, count($ret['members']));
-
-        $this->log("Pending members on {$this->groupid}");
-
-        $members = [
-            [
-                'email' => 'test1@test.com'
-            ],
-            [
-                'email' => 'test2@test.com'
-            ]
-        ];
-
-        $ret = $this->call('memberships', 'PATCH', [
-            'groupid' => $this->groupid,
-            'members' => $members,
-            'collection' => MembershipCollection::PENDING
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        $ret = $this->call('memberships', 'GET', [
-            'collection' => MembershipCollection::PENDING
-        ]);
-        $this->log("Returned " . var_export($ret, TRUE));
-
-        assertEquals(2, count($ret['members']));
-
-        }
+    }
 
     public function testReject() {
         $u = User::get($this->dbhr, $this->dbhm);
