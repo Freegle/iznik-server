@@ -12,7 +12,7 @@ require_once IZNIK_BASE . '/include/group/Group.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class teamAPITest extends IznikTestCase {
+class teamTest extends IznikTestCase {
     public $dbhr, $dbhm;
 
     private $count = 0;
