@@ -19,10 +19,6 @@ if (!defined('IZNIK_BASE')) {
     define('BROWSERTRACKING', TRUE);
     define('INCLUDE_TEMPLATE_NAME', TRUE);
 
-    if (!defined('SQLLOG')) {
-        define('SQLLOG', FALSE);
-    }
-
     define('SQLCACHE', FALSE);
     define('EVENTLOG', TRUE);
     define('TWIG_CACHE', '/tmp/twig_cache');
@@ -38,6 +34,10 @@ if (!defined('IZNIK_BASE')) {
 
     # Per-machine config or overrides
     require_once('/etc/iznik.conf');
+
+    if (!defined('SQLLOG')) {
+        define('SQLLOG', FALSE);
+    }
 
     # There are some historical domains.
     define('OURDOMAINS', USER_DOMAIN . ",direct.ilovefreegle.org,republisher.freegle.in");
