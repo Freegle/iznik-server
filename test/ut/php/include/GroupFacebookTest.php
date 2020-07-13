@@ -97,6 +97,15 @@ class groupFacebookTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addEmail('sender@example.net');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addMembership($gid);
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $this->user = $u;
+
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $id = $m->save();
@@ -118,7 +127,6 @@ class groupFacebookTest extends IznikTestCase {
             ->getMock();
 
         $mock->method('getFB')->willThrowException(new Exception('Test', 100));
-
-        }
+    }
 }
 

@@ -61,6 +61,21 @@ class messageTest extends IznikTestCase {
                 $dbhm->preExec("INSERT IGNORE INTO locations_grids_touches (gridid, touches) VALUES (?, ?);", [ $grid['id'], $touch['id'] ]);
             }
         }
+
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
+        $this->group->setPrivate('onhere', 1);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addEmail('sender@example.net');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertEquals(1, $u->addMembership($this->gid));
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        User::clearCache();
+        $this->user = $u;
     }
 
     public function testSetFromIP() {
@@ -257,13 +272,15 @@ class messageTest extends IznikTestCase {
         assertEquals("Offered: Test (Tuvalu High Street)", $m->suggestSubject($gid,$goodsubj));
 
         assertEquals("OFFER: Thing need (Tuvalu High Street)", "OFFER: Thing need (Tuvalu High Street)");
-
-        }
+    }
 
     public function testMerge() {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
+
+        $this->user->addMembership($gid);
+        $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
@@ -275,6 +292,12 @@ class messageTest extends IznikTestCase {
 
         # Now from a different email but the same Yahoo UID.  This shouldn't trigger a merge as we should identify
         # them by the UID.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test2@test.com');
+        $u->addMembership($gid);
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_ireplace('test@test.com', 'test2@test.com', $msg);
@@ -290,8 +313,7 @@ class messageTest extends IznikTestCase {
         $sql = "SELECT * FROM logs WHERE user = ? AND type = 'User' AND subtype = 'Merged';";
         $logs = $this->dbhr->preQuery($sql, [ $fromuser ]);
         assertEquals(0, count($logs));
-
-        }
+    }
 
     public function testHebrew() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -321,6 +343,8 @@ class messageTest extends IznikTestCase {
     
     public function testPrune() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -329,6 +353,7 @@ class messageTest extends IznikTestCase {
         assertGreaterThan(0, strlen($m->getMessage()));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune2'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -336,17 +361,18 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->log("Pruned to " . $m->getMessage());
         assertLessThan(20000, strlen($m->getMessage()));
-
-        }
+    }
 
     public function testReverseSubject() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', '[StevenageFreegle] OFFER: Ninky nonk train and night garden characters St NIcks [1 Attachment]', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -355,6 +381,9 @@ class messageTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
+
+        $this->user->addMembership($gid);
+        $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
@@ -574,14 +603,10 @@ class messageTest extends IznikTestCase {
         }
 
     public function testAutoRepost() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onyahoo', 1);
-        $g->setPrivate('onhere', 1);
-
         $m = new Message($this->dbhr, $this->dbhm);
 
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
 
         # Put two messages on the group - one eligible for autorepost, the other not yet.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -591,6 +616,7 @@ class messageTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
         $id1 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id1);
         $m->setPrivate('sourceheader', 'Platform');
@@ -614,7 +640,7 @@ class messageTest extends IznikTestCase {
 
         # Should get nothing - first message is not due and too old to generate a warning.
         $this->log("Expect nothing");
-        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-03-01', $gid);
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
         assertEquals(0, $count);
         assertEquals(0, $warncount);
 
@@ -623,13 +649,13 @@ class messageTest extends IznikTestCase {
         $mysqltime = date("Y-m-d H:i:s", strtotime('59 hours ago'));
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
 
-        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $gid);
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
         assertEquals(0, $count);
         assertEquals(1, $warncount);
 
         # Again - no action.
         $this->log("Expect nothing");
-        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $gid);
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
         assertEquals(0, $count);
         assertEquals(0, $warncount);
 
@@ -650,7 +676,7 @@ class messageTest extends IznikTestCase {
         $this->log("Can repost {$atts['canrepost']} {$atts['canrepostat']}");
         self::assertEquals(TRUE, $atts['canrepost']);
 
-        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $gid);
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
         assertEquals(1, $count);
         assertEquals(0, $warncount);
 
@@ -663,18 +689,13 @@ class messageTest extends IznikTestCase {
     }
 
     public function testChaseup() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onyahoo', 1);
-
-        $m = new Message($this->dbhr, $this->dbhm);
-
-        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('test@test.com', $email, $msg);
         $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+        $msg = str_replace('test@test.com', $email, $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $mid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -694,7 +715,7 @@ class messageTest extends IznikTestCase {
         assertNotNull($cid);
 
         # Chaseup - expect none as too recent.
-        $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $gid);
+        $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
         assertEquals(0, $count);
 
         # Make it older.
@@ -707,14 +728,13 @@ class messageTest extends IznikTestCase {
         $c->setPrivate('date', $mysqltime);
 
         # Chaseup again - should get one.
-        $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $gid);
+        $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
         assertEquals(1, $count);
 
         # And again - shouldn't, as the last chaseup was too recent.
-        $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $gid);
+        $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
         assertEquals(0, $count);
-
-        }
+    }
 
     public function testTN() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tnatt2'));

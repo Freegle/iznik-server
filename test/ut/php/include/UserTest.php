@@ -286,12 +286,6 @@ class userTest extends IznikTestCase {
         $membs = $u->getMemberships();
         assertEquals(2, count($membs));
 
-        $u->removeMembership($group1);
-        assertEquals($u->getRoleForGroup($group1), User::ROLE_NONMEMBER);
-        $membs = $u->getMemberships();
-        assertEquals(1, count($membs));
-        assertEquals($group2, $membs[0]['id']);
-
         // Support and admin users have a mod role on the group even if not a member
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -324,7 +318,7 @@ class userTest extends IznikTestCase {
         $membs = $u->getMemberships();
         $this->log("Memberships after ban " . var_export($membs, TRUE));
 
-        # Should have the membership of group1, implicitly added because we sent a message from that group.
+        # Should have the membership of group1.
         assertEquals(1, count($membs));
         assertFalse($u->addMembership($group2));
 
@@ -335,8 +329,7 @@ class userTest extends IznikTestCase {
 
         $membs = $u->getMemberships();
         assertEquals(0, count($membs));
-
-        }
+    }
 
     public function testMerge() {
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -1319,8 +1312,17 @@ class userTest extends IznikTestCase {
     }
 
     public function testActiveCounts() {
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addEmail('sender@example.net');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->user = $u;
+
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        assertEquals(1, $u->addMembership($group1));
+        $u->setMembershipAtt($group1, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item 1 (Tuvalu High Street)', $msg);
@@ -1355,9 +1357,6 @@ class userTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->route($m);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->findByEmail('test@test.com');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
         $info = $u->getInfo();
         assertEquals(2, $info['offers']);
         assertEquals(1, $info['wanteds']);
