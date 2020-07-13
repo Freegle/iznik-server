@@ -53,27 +53,27 @@ class mergeAPITest extends IznikAPITestCase {
         $u1 = User::get($this->dbhm, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
         $u1->addMembership($this->groupid);
+        $u1->addEmail('test11@test.com', 0);
         $u2 = User::get($this->dbhm, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
         $u2->addMembership($this->groupid);
-        $u2->addEmail('test2@test.com', 0);
+        $u2->addEmail('test12@test.com', 0);
         $u3 = User::get($this->dbhm, $this->dbhm);
         $id3 = $u3->create('Test', 'User', NULL);
-        $u3->addEmail('test3@test.com', 0);
+        $u3->addEmail('test13@test.com', 0);
         $u3->addMembership($this->groupid);
         $u4 = User::get($this->dbhm, $this->dbhm);
 
         $id4 = $u4->create('Test', 'User', NULL);
         $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $u4->addEmail('test4@test.com', 0);
+        $u4->addEmail('test14@test.com', 0);
         assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u4->login('testpw'));
 
         # Request a merge as a mod.
         $ret = $this->call('merge', 'PUT', [
             'user1' => $id1,
-            'user2' => $id2,
-            'email' => FALSE // For UT
+            'user2' => $id2
         ]);
         assertEquals(0, $ret['ret']);
         $mid = $ret['id'];
@@ -158,6 +158,34 @@ class mergeAPITest extends IznikAPITestCase {
         assertNull($u1->getId());
         $u2 = new User($this->dbhr, $this->dbhm, $id2);
         assertEquals($id2, $u2->getId());
+    }
+
+    public function testDelete() {
+        $u1 = User::get($this->dbhm, $this->dbhm);
+        $id1 = $u1->create('Test', 'User', NULL);
+        $u1->addMembership($this->groupid);
+        $u2 = User::get($this->dbhm, $this->dbhm);
+        $id2 = $u2->create('Test', 'User', NULL);
+        $u2->addMembership($this->groupid);
+        $u2->addEmail('test2@test.com', 0);
+        $u3 = User::get($this->dbhm, $this->dbhm);
+        $id3 = $u3->create('Test', 'User', NULL);
+        $u3->addEmail('test3@test.com', 0);
+        $u3->addMembership($this->groupid);
+        $u4 = User::get($this->dbhm, $this->dbhm);
+
+        $id4 = $u4->create('Test', 'User', NULL);
+        $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $u4->addEmail('test4@test.com', 0);
+        assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u4->login('testpw'));
+
+        # Request a merge as a mod.
+        $ret = $this->call('merge', 'DELETE', [
+            'user1' => $id1,
+            'user2' => $id2
+        ]);
+        assertEquals(0, $ret['ret']);
     }
 }
 
