@@ -32,6 +32,10 @@ fputcsv(STDOUT, [
 $invalid = 0;
 $total = 0;
 
+# Exclude donations from the same user for the same amount on the same day.  Some of these may be legitimate but
+# some may be duplicates.
+$dups = [];
+
 foreach ($donations as $donation) {
     $p = strpos($donation['fullname'], ' ');
 
@@ -44,23 +48,32 @@ foreach ($donations as $donation) {
 
         $invalid++;
     } else {
-        fputcsv(STDOUT, [
-            '',
-            substr($donation['fullname'], 0, $p),
-            substr($donation['fullname'], $p + 1),
-            $donation['housenameornumber'],
-            $donation['postcode'],
-            '',
-            '',
-            date("d/m/y", strtotime($donation['timestamp'])),
-            $donation['GrossAmount']
+        $date = date("d/m/y", strtotime($donation['timestamp']));
+        $key = "{$donation['userid']}-{$donation['GrossAmount']}-$date";
+
+        if (!pres($key, $dups)) {
+            $dups[$key] = TRUE;
+
+            fputcsv(STDOUT, [
+                '',
+                substr($donation['fullname'], 0, $p),
+                substr($donation['fullname'], $p + 1),
+                $donation['housenameornumber'],
+                $donation['postcode'],
+                '',
+                '',
+                $date,
+                $donation['GrossAmount']
+            ]);
+
+            $total += $donation['GrossAmount'];
+        } else {
+            error_log("Skip duplicate donation from {$donation['fullname']} #{$donation['userid']} on $date");
+        }
+
+        $dbhm->preExec("UPDATE users_donations SET giftaidclaimed = NOW() WHERE id = ?;", [
+            $donation['id']
         ]);
-
-        $total += $donation['GrossAmount'];
-
-//        $dbhm->preExec("UPDATE users_donations SET giftaidclaimed = NOW() WHERE id = ?;", [
-//            $donation['id']
-//        ]);
     }
 }
 
