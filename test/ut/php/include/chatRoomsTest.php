@@ -100,6 +100,11 @@ class chatRoomsTest extends IznikTestCase {
         $u->addMembership($this->groupid);
         $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);
+
+        # The "please introduce yourself" one.
+        list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
+        assertEquals("Why not introduce yourself to other freeglers?  You'll get a better response.", $title);
+
         $u2 = $u->create(NULL, NULL, "Test User 2");
         $u->addMembership($this->groupid);
         $u->addEmail('test2@test.com');
@@ -132,6 +137,10 @@ class chatRoomsTest extends IznikTestCase {
 
         assertNull($r->replyTime($u1));
         assertNull($r->replyTime($u2));
+
+        # Check notification payload - the 2 chat messages and the "please introduce yourself" one.
+        list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
+        assertEquals("You have 2 new messages and 1 notification", $title);
 
         # Exception first for coverage.
         $this->log("Fake exception");
@@ -233,6 +242,11 @@ class chatRoomsTest extends IznikTestCase {
         #
         # Then notify u2.  Check that it contains both messages.
         list ($cm1id, $banned) = $m->create($id, $u1, "Test u1 -> u2 1");
+
+        # Check notification payload.
+        $uu2 = new User($this->dbhr, $this->dbhm, $u2);
+        list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $uu2->getNotificationPayload(FALSE);
+        assertEquals("Test User 1", $title);
 
         $cm1 = new ChatMessage($this->dbhr, $this->dbhm, $cm1id);
         assertEquals(0, $cm1->getPrivate('mailedtoall'));
