@@ -198,9 +198,12 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
 
-        $a->delete();
+        # Pending message should show in notification.
+        list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload(TRUE);
+        assertEquals("1 pending message\n", $title);
 
-        }
+        $a->delete();
+    }
 
     public function testSpam()
     {
