@@ -116,7 +116,10 @@ class userTest extends IznikTestCase {
         $u->linkLogin($key);
         self::assertEquals($id, $_SESSION['id']);
 
-        }
+        # Should not see the login link.
+        $atts = $u->getPublic();
+        assertFalse(pres('loginlink', $atts));
+    }
 
     public function testEmails() {
         $u = User::get($this->dbhm, $this->dbhm);
@@ -1322,13 +1325,24 @@ class userTest extends IznikTestCase {
 
         # Test we can search on UID.
         $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
-        $enc = User::encodeId($uid);
-        assertEquals($uid, User::decodeId($enc));
+        $uid1 = $u->create('Test', 'User', 'Test User');
+        $uid2 = $u->create('Test', 'User', 'Test User');
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($uid1, $uid2);
+        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        $_SESSION['id'] = $uid2;
+        $enc = User::encodeId($uid1);
+        assertEquals($uid1, User::decodeId($enc));
         $ctx = NULL;
         $search = $u->search($enc, $ctx);
         assertEquals(1, count($search));
-        assertEquals($uid, $search[0]['id']);
+        assertEquals($uid1, $search[0]['id']);
+
+        # Should see the login link.
+        assertNotNull(presdef('loginlink', $search[0], NULL));
+
+        # Should see the chat rooms.
+        assertEquals(1, count(pres('chatrooms', $search[0], NULL)));
     }
 
     public function testActiveCounts() {

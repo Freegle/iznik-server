@@ -4267,23 +4267,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $thisone['email'] = $u->getEmailPreferred();
             $thisone['emails'] = $u->getEmails();
 
-            # We also want the Yahoo details.  Get them all in a single query for performance.
-            $sql = "SELECT DISTINCT memberships.id AS membershipid, memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ? AND onyahoo = 1;";
-            #error_log("$sql {$user['userid']}");
-            $membs = $this->dbhr->preQuery($sql, [$user['userid']]);
-
-            if (pres('memberof', $thisone)) {
-                foreach ($thisone['memberof'] as &$member) {
-                    foreach ($membs as $memb) {
-                        if ($memb['membershipid'] == $member['membershipid']) {
-                            foreach (['yahooAlias', 'yahooPostingStatus', 'yahooDeliveryType'] as $att) {
-                                $member[$att] = $memb[$att];
-                            }
-                        }
-                    }
-                }
-            }
-
             $thisone['membershiphistory'] = $u->getMembershipHistory();
 
             # Make sure there's a link login as admin/support can use that to impersonate.
