@@ -80,8 +80,26 @@ class userTest extends IznikTestCase {
         assertEquals('Test User', $u->getName());
         assertEquals($id, $u->getPrivate('id'));
         assertGreaterThan(0, $u->delete());
+    }
 
-        }
+    public function testInfos()
+    {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', null);
+        $this->log("Created $id");
+
+        assertNotNull($u->setAboutMe('UT'));
+        assertNotNull($u->getAboutMe());
+
+        $users = [
+            [
+                'id' => $id
+            ]
+        ];
+
+        $u->getInfos($users);
+        assertEquals(0, $users[0]['info']['offers']);
+    }
 
     public function testLinkLogin() {
         $u = User::get($this->dbhm, $this->dbhm);
