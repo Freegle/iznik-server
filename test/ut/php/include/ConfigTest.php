@@ -74,8 +74,29 @@ class configTest extends IznikTestCase {
         $this->log("Sleep redis");
         sleep(REDIS_TTL+1);
         $this->log("Slept redis");
+
+        # Should show in our list of all configs.
         $configs = $u2->getConfigs(TRUE);
         $this->log("Got configs " . count($configs));
+        $found = FALSE;
+        foreach ($configs as $config) {
+            if ($config['id'] == $id) {
+                $found = TRUE;
+            }
+        }
+        assertTrue($found);
+
+        # Should also show in our active configs.
+        $configs = $u2->getConfigs(FALSE);
+        $this->log("Got configs " . count($configs));
+        $found = FALSE;
+        foreach ($configs as $config) {
+            if ($config['id'] == $id) {
+                $found = TRUE;
+            }
+        }
+        assertTrue($found);
+
         unset($_SESSION['id']);
 
         $this->log("New StdMessage");
