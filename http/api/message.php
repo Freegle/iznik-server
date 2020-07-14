@@ -258,19 +258,18 @@ function message() {
                     ];
 
                     if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
-                        if ($partner) {
-                            $m->deleteAllAttachments();
-                            $m->scrapePhotos();
-                            $m->saveAttachments($id);
-                        }
-
-                        # Now remove any reference to TN photos in the text body.
+                        # Remove any reference to TN photos in the text body.
                         $textbody = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $textbody);
 
                         $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments, TRUE, ($partner || $me->isApprovedMember($groupid)) ? $groupid : NULL);
                         $ret = $rc ? $ret : ['ret' => 2, 'status' => 'Edit failed'];
 
                         if ($rc) {
+                            if ($partner) {
+                                $m->deleteAllAttachments();
+                                $m->scrapePhotos();
+                                $m->saveAttachments($id);
+                            }
 
                             $ret = [
                                 'ret' => 0,
