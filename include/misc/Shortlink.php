@@ -76,7 +76,6 @@ class Shortlink extends Entity
         $groupq = $groupid ? " WHERE groupid = $groupid " : "";
         $links = $this->dbhr->preQuery("SELECT * FROM shortlinks $groupq ORDER BY LOWER(name) ASC;");
         foreach ($links as &$link) {
-            $id = $link['id'];
             if ($link['type'] == Shortlink::TYPE_GROUP) {
                 $g = new Group($this->dbhr, $this->dbhm, $link['groupid']);
                 $link['nameshort'] = $g->getPrivate('nameshort');
