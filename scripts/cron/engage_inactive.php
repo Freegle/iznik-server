@@ -13,6 +13,6 @@ $uids = $e->findUsers(NULL, Engage::FILTER_INACTIVE);
 $e->checkSuccess();
 $e->sendUsers(Engage::ATTEMPT_INACTIVE, $uids, "We'll stop sending you emails soon...", "It looks like you’ve not been active on Freegle for a while. So that we don’t clutter your inbox, and to reduce the load on our servers, we’ll stop sending you emails soon.
 
-If you’d still like to get them, then we’d love to have you back - just come back to www.ilovefreegle.org and log in.
+If you’d still like to get them, then just go to www.ilovefreegle.org and log in to keep your account active.
 
 Maybe you’ve got something lying around that someone else could use, or perhaps there’s something someone else might have?", 'inactive.html');
