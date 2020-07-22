@@ -2292,12 +2292,14 @@ ORDER BY lastdate DESC;";
         return(TRUE);
     }
 
-    public function scrapePhotos() {
+    public function scrapePhotos($textbody = NULL) {
+        $textbody = $textbody ? $textbody : $this->textbody;
+
         # Trash Nothing sends attachments too, but just as links - get those.
         #
         # - links to flic.kr, for groups which for some reason don't like images hosted on TN
         # - links to TN itself
-        if (preg_match_all('/(http:\/\/flic\.kr.*)$/m', $this->textbody, $matches)) {
+        if (preg_match_all('/(http:\/\/flic\.kr.*)$/m', $textbody, $matches)) {
             $urls = [];
             foreach ($matches as $val) {
                 foreach ($val as $url) {
@@ -2344,7 +2346,7 @@ ORDER BY lastdate DESC;";
             }
         }
 
-        if (preg_match_all('/(https:\/\/trashnothing\.com\/pics\/.*)$/m', $this->textbody, $matches)) {
+        if (preg_match_all('/(https:\/\/trashnothing\.com\/pics\/.*)$/m', $textbody, $matches)) {
             $urls = [];
             foreach ($matches as $val) {
                 foreach ($val as $url) {
@@ -2400,7 +2402,7 @@ ORDER BY lastdate DESC;";
         }
 
         # Return text without photos.
-        return preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $this->textbody);
+        return preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $textbody);
     }
 
     public function pruneMessage() {

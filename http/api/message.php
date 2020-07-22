@@ -261,7 +261,7 @@ function message() {
                         if ($partner) {
                             # Photos might have changed.
                             $m->deleteAllAttachments();
-                            $textbody = $m->scrapePhotos();
+                            $textbody = $m->scrapePhotos($textbody);
                             $m->saveAttachments($id);
                         }
 
