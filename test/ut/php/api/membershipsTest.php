@@ -811,17 +811,6 @@ class membershipsAPITest extends IznikAPITestCase {
 
         }
 
-    public function testNotOurDomain() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $u->addMembership($this->groupid);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        # We don't send emails if we don't have our own domain.
-        assertFalse($u->sendOurMails($this->group));
-    }
-
     function testHappiness() {
         # Create the sending user
         $u = User::get($this->dbhr, $this->dbhm);
