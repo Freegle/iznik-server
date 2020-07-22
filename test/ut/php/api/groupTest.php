@@ -39,9 +39,6 @@ class groupAPITest extends IznikAPITestCase {
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
 
-        # This plus the test below ensure that if an attribute is 0 we still get it back.
-        $g->setPrivate('showonyahoo', 0);
-
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -95,7 +92,6 @@ class groupAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($this->groupid, $ret['group']['id']);
         assertFalse(pres('members', $ret['group']));
-        assertTrue(array_key_exists('showonyahoo', $ret['group']));
 
         # Duff shortname
         $ret = $this->call('group', 'GET', [
