@@ -4010,22 +4010,6 @@ ORDER BY lastdate DESC;";
                 'groupid' => $groupid,
                 'text' => "$outcome $comment"
             ]);
-
-            if ($g->getPrivate('onyahoo')) {
-                # For Yahoo, we send a TAKEN/RECEIVED message.  Not for native.
-                list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
-                $this->mailer(
-                    $u,
-                    FALSE,
-                    $g->getGroupEmail(),
-                    $g->getGroupEmail(),
-                    NULL,
-                    $u->getName(),
-                    $email,
-                    $subj,
-                    ($happiness === NULL || $happiness == User::HAPPY || $happiness == User::FINE) ? $comment : ''
-                );
-            }
         }
 
         # Let anyone who was interested, and who didn't get it, know.

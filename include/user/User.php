@@ -522,49 +522,6 @@ class User extends Entity
         return (count($emails) > 0 ? $emails[0]['ago'] : NULL);
     }
 
-    public function getEmailForYahooGroup($groupid, $oursonly = FALSE, $approvedonly = TRUE)
-    {
-        # Any of the emails will do.
-        $emails = $this->getEmailsForYahooGroup($groupid, $oursonly, $approvedonly);
-        $eid = count($emails) > 0 ? $emails[0][0] : NULL;
-        $email = count($emails) > 0 ? $emails[0][1] : NULL;
-        return ([$eid, $email]);
-    }
-
-    public function getEmailsForYahooGroup($groupid, $oursonly = FALSE, $approvedonly)
-    {
-        $emailq = "";
-
-        # We must check memberships_yahoo rather than memberships, because memberships can get set to Approved by
-        # someone approving the user on the platform, whereas memberships_yahoo only gets set when we really
-        # know that the member has been approved onto Yahoo.
-        $collq = $approvedonly ? " AND memberships_yahoo.collection = 'Approved' " : '';
-
-        if ($oursonly) {
-            # We are looking for a group email which we host.
-            foreach (explode(',', OURDOMAINS) as $domain) {
-                $emailq .= $emailq == "" ? " email LIKE '%$domain'" : " OR email LIKE '%$domain'";
-            }
-
-            $emailq = " AND ($emailq)";
-        }
-
-        # Return most recent first.  This helps in the message_waitingforyahoo case where we add extra emails.
-        $sql = "SELECT memberships_yahoo.emailid, users_emails.email FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id WHERE memberships.userid = ? AND groupid = ? $emailq $collq ORDER BY users_emails.id DESC;";
-        #error_log($sql . ", {$this->id}, $groupid");
-        $emails = $this->dbhr->preQuery($sql, [
-            $this->id,
-            $groupid
-        ]);
-
-        $ret = [];
-        foreach ($emails as $email) {
-            $ret[] = [$email['emailid'], $email['email']];
-        }
-
-        return ($ret);
-    }
-
     public function getIdForEmail($email)
     {
         # Email is a unique key but conceivably we could be called with an email for another user.
@@ -829,17 +786,6 @@ class User extends Entity
         return ($coll);
     }
 
-    private function addYahooMembership($membershipid, $role, $emailid, $collection)
-    {
-        $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
-        $this->dbhm->preExec($sql, [
-            $membershipid,
-            $role,
-            $emailid,
-            $collection
-        ]);
-    }
-
     public function isBanned($groupid) {
         $sql = "SELECT * FROM users_banned WHERE userid = ? AND groupid = ?;";
         $banneds = $this->dbhr->preQuery($sql, [
@@ -890,10 +836,6 @@ class User extends Entity
 
         # We added it if it wasn't there before and the INSERT worked.
         $added = $this->dbhm->rowsAffected() && $existing[0]['count'] == 0;
-
-        if ($rc && $emailid && $g->onYahoo()) {
-            $this->addYahooMembership($membershipid, $role, $emailid, $collection);
-        }
 
         # Record the operation for abuse detection.
         $this->dbhm->preExec("INSERT INTO memberships_history (userid, groupid, collection) VALUES (?,?,?);", [
@@ -3254,13 +3196,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
             $me = whoAmI($this->dbhr, $this->dbhm);
             $myid = $me->getId();
 
-            list ($eid, $to) = $this->getEmailForYahooGroup($groupid, FALSE, FALSE);
-
-            # If this is one of our domains, then we should send directly to the preferred email, to avoid
-            # the mail coming back to us and getting added into a chat.
-            if (!$to || ourDomain($to)) {
-                $to = $this->getEmailPreferred();
-            }
+            $to = $this->getEmailPreferred();
 
             if ($to) {
                 $g = Group::get($this->dbhr, $this->dbhm, $groupid);

@@ -110,7 +110,6 @@ class Log
         $myid = $me ? $me->getId() : NULL;
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-        $onyahoo = $g->onYahoo();
 
         if ($uid) {
             $sql = "SELECT logs.* FROM logs 

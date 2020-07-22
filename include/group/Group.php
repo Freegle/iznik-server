@@ -738,7 +738,6 @@ memberships.groupid IN $groupq
                 (SELECT id FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id FROM users WHERE yahooid LIKE $q) UNION
                 $namesearch
-                (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)
               ) t) AND 
               $groupq $collectionq $addq $opsq";
         } else {
@@ -962,12 +961,6 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         }
 
         return($yahoorole);
-    }
-
-    public function queueSetMembers($members, $synctime) {
-        # This is used for Approved members only, and will be picked up by a background script which calls
-        # setMembers.  This is used to move this expensive processing off the application server.
-        $this->dbhm->preExec("REPLACE INTO memberships_yahoo_dump (groupid, members, lastupdated, synctime) VALUES (?,?,NOW(),?);", [$this->id, json_encode($members), $synctime]);
     }
 
     public function ourPS($status) {

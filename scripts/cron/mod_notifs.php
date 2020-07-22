@@ -85,9 +85,8 @@ if ($hour >= 8 && $hour <= 21)
                 $nonzero = [];
 
                 foreach ($work as $key => $val) {
-                    # We want work with a non-zero count, except for pending work on Yahoo where we don't
-                    # notify because Yahoo would too.
-                    if ($val && (($key != 'Pending Messages' && $key != 'Pending Members')) || !$g->onYahoo()) {
+                    # We want work with a non-zero count.
+                    if ($val) {
                         $total += $val;
                         $nonzero[$key] = $val;
                     }

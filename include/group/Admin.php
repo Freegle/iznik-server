@@ -129,7 +129,6 @@ class Admin extends Entity
         $atts = $g->getPublic();
 
         $groupname = $atts['namedisplay'];
-        $onyahoo = $atts['onyahoo'];
         $userq = $userid ? " AND userid = $userid " : '';
 
         $sql = "SELECT userid FROM memberships WHERE groupid = ? $userq;";
@@ -158,10 +157,7 @@ class Admin extends Entity
 
             $preferred = $u->getEmailPreferred();
 
-            # We send to members who have joined via our platform, or to all users if we host the group.
-            list ($eid, $ouremail) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
-
-            if ($preferred && ($ouremail || !$onyahoo)) {
+            if ($preferred) {
                 try {
                     $msg = $this->constructMessage($groupname, $preferred, $u->getName(), $g->getAutoEmail(), $this->admin['subject'], $this->admin['text']);
 

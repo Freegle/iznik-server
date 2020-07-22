@@ -186,15 +186,11 @@ class userTest extends IznikTestCase {
         $emailid3 = $u->getIdForEmail('test3@test.com')['id'];
         $this->log("emailid1 $emailid1 emailid3 $emailid3");
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid1);
-        assertEquals($emailid1, $u->getEmailForYahooGroup($group1, FALSE, TRUE)[0]);
         $u->removeMembership($group1);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
-        assertEquals($emailid3, $u->getEmailForYahooGroup($group1, FALSE, TRUE)[0]);
         assertNull($u->getIdForEmail('wibble@test.com'))['id'];
-        assertNull($u->getEmailForYahooGroup(-1)[0]);
-
-        }
+    }
 
     public function testLogins() {
         $u = User::get($this->dbhm, $this->dbhm);
