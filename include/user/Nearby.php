@@ -59,7 +59,7 @@ class Nearby
                         foreach ($users as $user) {
                             $u2 = new User($this->dbhr, $this->dbhm, $user['id']);
 
-                            if ($u2->getPrivate('relevantallowed')) {
+                            if ($u2->getPrivate('relevantallowed') && $u2->sendOurMails()) {
                                 $miles = $u2->getDistance($lat, $lng);
                                 $miles = round($miles);
 
