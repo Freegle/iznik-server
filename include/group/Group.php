@@ -727,7 +727,7 @@ memberships.groupid IN $groupq
             $q = $this->dbhr->quote("$search%");
             $bq = $this->dbhr->quote(strrev($search) . "%");
             $p = strpos($search, ' ');
-            $namesearch = $p === FALSE ? '' : ("(SELECT id FROM users WHERE firstname LIKE " . $this->dbhr->quote(substr($search, 0, $p) . '%') . " AND lastname LIKE " . $this->dbhr->quote(substr($search, $p + 1) . '%')) . ') UNION';
+            $namesearch = $p === FALSE ? '' : ("UNION (SELECT id FROM users WHERE firstname LIKE " . $this->dbhr->quote(substr($search, 0, $p) . '%') . " AND lastname LIKE " . $this->dbhr->quote(substr($search, $p + 1) . '%')) . ') ';
             $sql = "$sqlpref 
               INNER JOIN users ON users.id = memberships.userid 
               LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
@@ -736,7 +736,7 @@ memberships.groupid IN $groupq
                 (SELECT userid FROM users_emails WHERE backwards LIKE $bq) UNION
                 (SELECT id FROM users WHERE id = " . $this->dbhr->quote($search) . ") UNION
                 (SELECT id FROM users WHERE fullname LIKE $q) UNION
-                (SELECT id FROM users WHERE yahooid LIKE $q) UNION
+                (SELECT id FROM users WHERE yahooid LIKE $q)
                 $namesearch
               ) t) AND 
               $groupq $collectionq $addq $opsq";

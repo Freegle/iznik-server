@@ -475,42 +475,8 @@ class userTest extends IznikTestCase {
 
         $membershipid = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ?;", [ $id1 ])[0]['id'];
         $this->log("Membershipid $membershipid");
+    }
 
-        # Should have both Yahoo memberships.
-        $yahoomembers = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo WHERE membershipid = ? ORDER BY emailid;", [ $membershipid ]);
-        $this->log("Yahoo memberships " . var_export($yahoomembers, TRUE));
-        assertEquals($eid1, $yahoomembers[0]['emailid']);
-        assertEquals($eid2, $yahoomembers[1]['emailid']);
-
-        }
-
-
-    public function testDoubleAdd() {
-        # Simulates processing from real emails migration script.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group = $g->create('testgroup', Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 1);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id1 = $u->create(NULL, NULL, 'Test User');
-        $eid1 = $u->addEmail('test1@test.com');
-        $eid2 = $u->addEmail('test2@test.com');
-
-        # Set up membership with two emails
-        $u->addMembership($group, User::ROLE_MEMBER, $eid1);
-        $u->addMembership($group, User::ROLE_MEMBER, $eid2);
-
-        $membershipid = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ?;", [ $id1 ])[0]['id'];
-        $this->log("Membershipid $membershipid");
-
-        # Should have both Yahoo memberships.
-        $yahoomembers = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo WHERE membershipid = ? ORDER BY emailid;", [ $membershipid ]);
-        $this->log("Yahoo memberships " . var_export($yahoomembers, TRUE));
-        self::assertEquals(2, count($yahoomembers));
-        assertEquals($eid1, $yahoomembers[0]['emailid']);
-        assertEquals($eid2, $yahoomembers[1]['emailid']);
-
-        }
 
     public function testMergeError() {
         $g = Group::get($this->dbhr, $this->dbhm);
