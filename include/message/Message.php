@@ -2221,11 +2221,7 @@ ORDER BY lastdate DESC;";
         }
 
         $this->textbody = $this->stripSigs($this->textbody);
-
-        $this->scrapePhotos();
-
-        # Now remove any reference to TN photos in the text body.
-        $this->textbody = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $this->textbody);
+        $this->textbody = $this->scrapePhotos();
 
         # If this is a reuse group, we need to determine the type.
         $g = Group::get($this->dbhr, $this->dbhm, $this->groupid);
@@ -2402,6 +2398,9 @@ ORDER BY lastdate DESC;";
                 }
             }
         }
+
+        # Return text without photos.
+        return preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $this->textbody);
     }
 
     public function pruneMessage() {
