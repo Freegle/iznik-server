@@ -617,8 +617,6 @@ memberships.groupid IN $groupq
 
         # Add in derived properties.
         $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];
-        $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
-        $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
         $settings = json_decode($atts['settings'], true);
 
         if ($settings) {

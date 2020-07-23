@@ -494,7 +494,7 @@ class Message
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
-        $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP, $publishconsent, $isdraft, $itemid, $itemname;
+        $s, $editedby, $editedat, $modmail, $FOP, $publishconsent, $isdraft, $itemid, $itemname;
 
     # These are used in the summary case only where a minimal message is constructed from MessageCollaction.
 
@@ -538,7 +538,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr', 'isdraft'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'FOP', 'fromaddr', 'isdraft'
     ];
 
     public $memberAtts = [
@@ -3822,9 +3822,8 @@ ORDER BY lastdate DESC;";
 
                     $mailer->send($message);
 
-                    # This message is now pending.  That means it will show up in ModTools; if it is approved before
-                    # it reaches Yahoo and we get notified then we will handle that in submitYahooQueued.
-                    $this->dbhm->preExec("UPDATE messages_groups SET senttoyahoo = 1, collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
+                    # This message is now pending.  That means it will show up in ModTools.
+                    $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
 
                     # Add to message history for spam checking.
                     $this->addToMessageHistory();

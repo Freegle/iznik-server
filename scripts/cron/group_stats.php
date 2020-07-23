@@ -60,7 +60,7 @@ $fundingcalc = 0;
 foreach ($totalact as $total) {
     $tot = $total['total'];
 
-    $groups = $dbhr->preQuery("SELECT groups.*, DATEDIFF(NOW(), lastyahoomembersync) AS lastsync FROM groups WHERE type = ? AND publish = 1 AND onhere = 1 ORDER BY LOWER(nameshort) ASC;", [
+    $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = ? AND publish = 1 AND onhere = 1 ORDER BY LOWER(nameshort) ASC;", [
         Group::GROUP_FREEGLE
     ]);
 

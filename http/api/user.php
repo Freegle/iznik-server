@@ -24,8 +24,6 @@ function user() {
     $u = User::get($dbhr, $dbhm, $id);
     $sysrole = $u->getPrivate('systemrole');
 
-    $yahooDeliveryType = presdef('yahooDeliveryType', $_REQUEST, NULL);
-    $yahooPostingStatus = presdef('yahooPostingStatus', $_REQUEST, NULL);
     $ourPostingStatus = presdef('ourPostingStatus', $_REQUEST, NULL);
     $ourEmailFrequency = presdef('emailfrequency', $_REQUEST, NULL);
     $chatmodstatus = presdef('chatmodstatus', $_REQUEST, NULL);

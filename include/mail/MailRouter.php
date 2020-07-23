@@ -136,8 +136,7 @@ class MailRouter
             #error_log("MarkPending " . $this->msg->getID() . " from collection $overq");
         }
 
-        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending', senttoyahoo = ? WHERE msgid = ? $overq;", [
-            $onyahoo ? 1 : 0,
+        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ? $overq;", [
             $this->msg->getID()
         ]);
 
