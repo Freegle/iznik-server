@@ -200,11 +200,6 @@ class Message
     /**
      * @return mixed
      */
-    public function getYahooapprove()
-    {
-        return $this->yahooapprove;
-    }
-
     public function setGroups($groups) {
         $this->groups = $groups;
     }
@@ -2880,36 +2875,25 @@ ORDER BY lastdate DESC;";
             ]);
         }
 
-        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ? AND deleted = 0;";
-        $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
-        foreach ($groups as $group) {
-            if ($group['yahooapprove']) {
-                # We can trigger approval by email - do so.
-                $this->mailer($me, TRUE, $group['yahooapprove'], $group['yahooapprove'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
-            }
-        }
+        # Update the arrival time to NOW().  This is because otherwise we will fail to send out messages which
+        # were held for moderation to people who are on immediate emails.
+        #
+        # Make sure we don't approve multiple times, as this will lead to the same message being sent
+        # out multiple times.
+        $sql = "UPDATE messages_groups SET collection = ?, approvedby = ?, approvedat = NOW(), arrival = NOW() WHERE msgid = ? AND groupid = ? AND collection != ?;";
+        $rc = $this->dbhm->preExec($sql, [
+            MessageCollection::APPROVED,
+            $myid,
+            $this->id,
+            $groupid,
+            MessageCollection::APPROVED
+        ]);
 
-        if (!$yahooonly) {
-            # Update the arrival time to NOW().  This is because otherwise we will fail to send out messages which
-            # were held for moderation to people who are on immediate emails.
-            #
-            # Make sure we don't approve multiple times, as this will lead to the same message being sent
-            # out multiple times.
-            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ?, approvedat = NOW(), arrival = NOW() WHERE msgid = ? AND groupid = ? AND collection != ?;";
-            $rc = $this->dbhm->preExec($sql, [
-                MessageCollection::APPROVED,
-                $myid,
-                $this->id,
-                $groupid,
-                MessageCollection::APPROVED
-            ]);
+        #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
 
-            #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
+        $this->notif->notifyGroupMods($groupid);
 
-            $this->notif->notifyGroupMods($groupid);
-
-            $this->maybeMail($groupid, $subject, $body, 'Approve');
-        }
+        $this->maybeMail($groupid, $subject, $body, 'Approve');
 
         $this->index();
     }
