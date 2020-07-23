@@ -68,6 +68,7 @@ class Yahoo
         curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
         $json_response = curl_exec($curl);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        error_log("Yahoo login status 1 $status");
 
         if ($status == 200) {
             $json = json_decode($json_response, TRUE);
@@ -93,7 +94,7 @@ class Yahoo
                     $guid = $matches[1];
 
                     $curl = curl_init();
-                    curl_setopt($curl, CURLOPT_URL, 'https://social.yahooapis.com/v1/user/' . $guid . '/profile?format=json');
+                    curl_setopt($curl, CURLOPT_URL, 'https://api.login.yahoo.com/openid/v1/userinfo');
                     curl_setopt($curl, CURLOPT_TIMEOUT, 60);
                     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($curl, CURLOPT_HTTPHEADER, [
@@ -102,25 +103,17 @@ class Yahoo
 
                     $json_response = curl_exec($curl);
                     $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                    error_log("Yahoo login status 2 $status");
                 }
 
                 if ($status == 200) {
+                    error_log("Got user info $json_response");
                     $attrs = json_decode($json_response, TRUE);
-                    $email = NULL;
+                    $givenName = presdef('given_name', $attrs, NULL);
+                    $familyName = presdef('family_name', $attrs, NULL);
+                    $email = presdef('email', $attrs, NULL);
 
-                    if (pres('profile', $attrs)) {
-                        $attrs = $attrs['profile'];
-                        $givenName = presdef('givenName', $attrs, NULL);
-                        $familyName = presdef('familyName', $attrs, NULL);
-
-                        foreach (presdef('emails', $attrs, []) as $e) {
-                            if (!$email || pres('primary', $e)) {
-                                $email = $e['handle'];
-                            }
-                        }
-
-                        error_log("$givenName, $familyName, $email");
-                    }
+                    error_log("$givenName, $familyName, $email");
 
                     if ($email) {
                         # We're in.
