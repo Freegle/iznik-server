@@ -561,6 +561,9 @@ function message() {
                                             }
                                         }
                                     }
+
+                                    # This user has been active recently.
+                                    $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = " . $u->getId() . ";");
                                 }
                             }
                         }
