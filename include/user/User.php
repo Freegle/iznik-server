@@ -2256,7 +2256,6 @@ class User extends Entity
                             'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
                             'collection' => $group['coll'],
                             'role' => $group['role'],
-                            'emailid' => $group['emailid'] ? $group['emailid'] : $ourEmailId,
                             'emailfrequency' => $group['emailfrequency'],
                             'eventsallowed' => $group['eventsallowed'],
                             'volunteeringallowed' => $group['volunteeringallowed'],
