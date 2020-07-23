@@ -87,7 +87,7 @@ class alertAPITest extends IznikAPITestCase
         $a = new Alert($this->dbhr, $this->dbhm);
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
         $this->user->addEmail('test-' . rand() . '@blackhole.io');
-        assertEquals(2, $a->process($id));
+        assertEquals(1, $a->process($id));
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         $ret = $this->call('alert', 'GET', [ 'id' => $id ]);
@@ -100,7 +100,7 @@ class alertAPITest extends IznikAPITestCase
                           array (
                               'mods' => 1,
                               'modemails' => 1,
-                              'owneremails' => 1,
+                              'owneremails' => 0,
                           ),
                       'responses' =>
                           array (
@@ -110,7 +110,7 @@ class alertAPITest extends IznikAPITestCase
                                           array (
                                               'summary' => [ 0 =>
                                                   array (
-                                                      'count' => 2,
+                                                      'count' => 1,
                                                       'rsp' => 'None',
                                                   )
                                               ],
@@ -126,7 +126,7 @@ class alertAPITest extends IznikAPITestCase
                                   ),
                               'owner' =>
                                   array (
-                                      'none' => 1,
+                                      'none' => 0,
                                       'reached' => 0
                                   ),
                           )
@@ -137,7 +137,7 @@ class alertAPITest extends IznikAPITestCase
 
         $ret = $this->call('alert', 'POST', [
             'action' => 'clicked',
-            'trackid' => $tracks[1]['id']
+            'trackid' => $tracks[0]['id']
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -162,7 +162,7 @@ class alertAPITest extends IznikAPITestCase
                 array (
                     'mods' => 1,
                     'modemails' => 1,
-                    'owneremails' => 1,
+                    'owneremails' => 0,
                 ),
             'responses' =>
                 array (
@@ -172,7 +172,7 @@ class alertAPITest extends IznikAPITestCase
                                 array (
                                     'summary' => [ 0 =>
                                         array (
-                                            'count' => 2,
+                                            'count' => 1,
                                             'rsp' => 'Reached',
                                         )
                                     ],
@@ -189,7 +189,7 @@ class alertAPITest extends IznikAPITestCase
                     'owner' =>
                         array (
                             'none' => 0,
-                            'reached' => 1
+                            'reached' => 0
                         ),
                 )
         ), $stats);        

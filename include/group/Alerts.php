@@ -313,7 +313,7 @@ class Alert extends Entity
 
         if ($g->getPrivate('contactmail')) {
             try {
-                # This group is on Yahoo - so mail the owner address too.
+                # Mail the contact address.
                 $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, `type`) VALUES (?,?,?);",
                     [
                         $this->id,
@@ -341,13 +341,12 @@ class Alert extends Entity
                         'https://' . USER_SITE . "/alert/viewed/$trackid";
                 }
 
-                error_log("Mail " . $g->getModsEmail());
-                $msg = $this->constructMessage($g->getModsEmail(), $toname, NULL, $from, $this->alert['subject'], $text, $html);
+                $msg = $this->constructMessage($g->getPrivate('contactmail'), $toname, NULL, $from, $this->alert['subject'], $text, $html);
                 Mail::addHeaders($msg, Mail::ALERT);
                 $mailer->send($msg);
                 $done++;
             } catch (Exception $e) {
-                error_log("Owner mail failed with " . $e->getMessage());
+                error_log("Contact mail failed with " . $e->getMessage());
             }
         }
 
