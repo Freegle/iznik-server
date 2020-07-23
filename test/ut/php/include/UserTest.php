@@ -1146,6 +1146,10 @@ class userTest extends IznikTestCase {
         $u->setPrivate('yahooid', 'test');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
+        # Log in to generate log.
+        $u->login('testpw');
+        $_SESSION['id'] = NULL;
+
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $u->addMembership($group1);
@@ -1158,21 +1162,27 @@ class userTest extends IznikTestCase {
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $cid1 = $c->createConversation($uid1, $uid1);
+        $cid1 = $c->createConversation($uid, $uid1);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         $str = "Test";
         list ($mid1, $banned) = $cm->create($cid1, $uid, $str);
 
         $u->forget('Test');
 
+        User::clearCache();
         $this->waitBackground();
+
         $atts = $u->getPublic(NULL, FALSE, TRUE);
         $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_DELETED, $atts['logs']);
         assertNotNull($log);
 
-        # Check we zapped things
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        # Get logs for coverage.
+        $u = User::get($this->dbhm, $this->dbhm, $uid);
 
+        $atts = $u->getPublic(NULL, FALSE, TRUE);
+        assertEquals(0, strpos($atts['logs'][0]['user']['fullname'], 'Deleted User'));
+
+        # Check we zapped things
         $emails = $u->getEmails();
         self::assertEquals(1, count($emails));
         self::assertEquals($email, $emails[0]['email']);
@@ -1182,8 +1192,7 @@ class userTest extends IznikTestCase {
         self::assertEquals(NULL, $u->getPrivate('yahooid'));
         self::assertEquals(0, count($u->getLogins()));
         self::assertEquals(0, count($u->getMemberships()));
-
-        }
+    }
 
     public function testRetention() {
         $u = User::get($this->dbhm, $this->dbhm);
@@ -1469,6 +1478,24 @@ class userTest extends IznikTestCase {
 
         $chats = $r->listForUser($newid);
         assertEquals(2, count($chats));
+    }
+
+    public function testEmailHistory() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $this->dbhm->preExec("INSERT IGNORE INTO logs_emails (timestamp, eximid, userid, `from`, `to`, messageid, subject, status) VALUES (NOW(),?,?,?,?,?,?,?);", [
+            randstr(32),
+            $id,
+            'test@test.com',
+            'test@test.com',
+            randstr(32),
+            randstr(32),
+            randstr(32)
+        ], FALSE);
+
+        $ctx = NULL;
+        $atts = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE, [ MessageCollection::APPROVED ], FALSE);
+        assertEquals(1, count($atts['emailhistory']));
     }
 }
 
