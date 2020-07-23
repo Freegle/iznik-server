@@ -13,9 +13,6 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 $opts = getopt('i:o:');
 
-$reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-$spreadsheet = $reader->load("authority_stats.xlsx");
-
 if (count($opts) < 1) {
     echo "Usage: php authority_stats -i <authority IDs in a CSL>\n";
 } else {
@@ -56,6 +53,9 @@ if (count($opts) < 1) {
         $atts = $a->getPublic();
         $groups = $atts['groups'];
         $gids = array_column($groups, 'id');
+
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        $spreadsheet = $reader->load("authority_stats.xlsx");
 
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setCellValue('A1', "Freegle in " . $atts['name']);
