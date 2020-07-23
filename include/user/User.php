@@ -2179,7 +2179,6 @@ class User extends Entity
                         'added' => ISODate($group['added']),
                         'collection' => $group['coll'],
                         'role' => $group['role'],
-                        'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
                         'volunteeringallowed' => $group['volunteeringallowed'],
@@ -2651,22 +2650,6 @@ class User extends Entity
         }
 
         return ($rets);
-    }
-
-    public function getOurEmailId()
-    {
-        # For groups we host, we need to know our own email for this user so that we can return it as the
-        # email used on the group.
-        if (!$this->ouremailid) {
-            $emails = $this->getEmails();
-            foreach ($emails as $thisemail) {
-                if (strpos($thisemail['email'], USER_DOMAIN) !== FALSE) {
-                    $this->ouremailid = $thisemail['id'];
-                }
-            }
-        }
-
-        return ($this->ouremailid);
     }
 
     public function isAdmin()
