@@ -40,7 +40,6 @@ class alertAPITest extends IznikAPITestCase
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $g->setPrivate('onyahoo', 1);
     }
 
     public function testBasic()

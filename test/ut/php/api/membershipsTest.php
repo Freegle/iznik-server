@@ -31,7 +31,6 @@ class membershipsAPITest extends IznikAPITestCase {
 
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-        $this->group->setPrivate('onyahoo', TRUE);
         $this->group->setPrivate('onhere', TRUE);
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -110,8 +109,6 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->group->setSettings([
             'approvemembers' => TRUE
         ]);
-
-        $this->group->setPrivate('onyahoo', 0);
 
         $_SESSION['id'] = $this->uid2;
 

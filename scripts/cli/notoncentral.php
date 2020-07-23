@@ -12,7 +12,7 @@ $centralid = $g->findByShortName('FreegleUK-Central');
 
 error_log("Central id is $centralid");
 
-$groups = $dbhr->preQuery("SELECT groups.* FROM groups WHERE type = ? AND publish = 1 AND (onyahoo OR onhere) AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort) ASC;", [
+$groups = $dbhr->preQuery("SELECT groups.* FROM groups WHERE type = ? AND publish = 1 AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort) ASC;", [
     Group::GROUP_FREEGLE
 ]);
 

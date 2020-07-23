@@ -35,7 +35,6 @@ class AlertTest extends IznikTestCase {
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
         $g->setPrivate('contactmail', 'test@test.com');
-        $g->setPrivate('onyahoo', 0);
 
         $a = new Alert($this->dbhr, $this->dbhm);
         $id = $a->create(NULL, 'geeks', Alert::MODS, 'UT - please ignore', 'UT', 'UT', FALSE, FALSE);
@@ -87,7 +86,6 @@ class AlertTest extends IznikTestCase {
         $mock->method('lastInsertId')->willThrowException(new Exception());
         $a->setDbhm($mock);
 
-        $g->setPrivate('onyahoo', 1);
         self::assertEquals(0, $a->mailMods($id, $gid, FALSE));
     }
 }

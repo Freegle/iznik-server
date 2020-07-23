@@ -3786,59 +3786,10 @@ ORDER BY lastdate DESC;";
                 $subject = trim($matches[1]);
             }
 
-            if ($g->getPrivate('onyahoo')) {
-                # This group is on Yahoo so we need to send the email there.  Now construct the actual message to send.
-                try {
-                    list ($transport, $mailer) = getMailer();
-
-                    $message = Swift_Message::newInstance()
-                        ->setSubject($subject)
-                        ->setFrom([$fromemail => $fromuser->getName()])
-                        ->setTo([$g->getGroupEmail()])
-                        ->setDate(time())
-                        ->setId($messageid)
-                        ->setBody($txtbody);
-
-                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                    # Outlook.
-                    $htmlPart = Swift_MimePart::newInstance();
-                    $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                    $htmlPart->setContentType('text/html');
-                    $htmlPart->setBody($htmlbody);
-                    $message->attach($htmlPart);
-
-                    # We add some headers so that if we receive this back, we can identify it as a mod mail.
-                    $headers = $message->getHeaders();
-                    $headers->addTextHeader('X-Iznik-MsgId', $this->id);
-                    $headers->addTextHeader('X-Iznik-From-User', $fromuser->getId());
-
-                    # Store away the constructed message.
-                    $this->setPrivate('message', $message->toString());
-
-                    # Reset the message id we have in the DB to be per-group.  This is so that we recognise it when
-                    # it comes back - see save() code above.
-                    $this->setPrivate('messageid', "$messageid-$groupid");
-
-                    $mailer->send($message);
-
-                    # This message is now pending.  That means it will show up in ModTools.
-                    $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
-
-                    # Add to message history for spam checking.
-                    $this->addToMessageHistory();
-
-                    $rc = TRUE;
-                } catch (Exception $e) {
-                    error_log("Send failed with " . $e->getMessage());
-                    $rc = FALSE;
-                }
-            } else {
-                # No need to submit by email.  Just notify the group mods.
-                $rc = TRUE;
-                $n = new PushNotifications($this->dbhr, $this->dbhm);
-                $n->notifyGroupMods($groupid);
-            }
+            # Notify the group mods.
+            $rc = TRUE;
+            $n = new PushNotifications($this->dbhr, $this->dbhm);
+            $n->notifyGroupMods($groupid);
 
             # This message is now not a draft.
             $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);

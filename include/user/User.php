@@ -1059,7 +1059,7 @@ class User extends Entity
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $publishq = MODTOOLS ? "" : "AND groups.publish = 1";
-        $sql = "SELECT onyahoo, type, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
+        $sql = "SELECT type, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [$id]);
         #error_log("getMemberships $sql {$id} " . var_export($groups, TRUE));
 
@@ -2164,21 +2164,8 @@ class User extends Entity
 
                 # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
                 # the case where you have two emails and one is approved and the other pending.
-                #
-                # For groups which have moved from Yahoo we might have multiple entries in memberships_yahoo.  We
-                # don't want this to manifest as multiple memberships on the group once it's native.  So we do
-                # a union of two queries - one for groups on Yahoo and one not.
-                $sql = "SELECT memberships.*,CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, 
-memberships_yahoo.emailid, memberships_yahoo.added AS yadded, 
-groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships 
-LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyahoo = 1
-UNION
-SELECT memberships.*, memberships.collection AS coll,
-NULL AS emailid, NULL AS yadded, 
-groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships 
-INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyahoo = 0
-;";
-                $groups = $this->dbhr->preQuery($sql, [$this->id, $this->id]);
+                $sql = "SELECT memberships.*, memberships.collection AS coll, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                $groups = $this->dbhr->preQuery($sql, [$this->id]);
 
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
@@ -2189,7 +2176,7 @@ INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyaho
                         'membershipid' => $group['id'],
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
-                        'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
+                        'added' => ISODate($group['added']),
                         'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
@@ -2198,7 +2185,6 @@ INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyaho
                         'volunteeringallowed' => $group['volunteeringallowed'],
                         'ourPostingStatus' => $group['ourPostingStatus'],
                         'type' => $group['type'],
-                        'onyahoo' => $group['onyahoo'],
                         'onhere' => $group['onhere']
                     ];
 
@@ -2242,14 +2228,7 @@ INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND onyaho
             $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
             $modids = array_merge([0], $me->getModeratorships());
             $freegleq = $freeglemod ? " OR groups.type = 'Freegle' " : '';
-            $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, 
-memberships_yahoo.emailid, memberships_yahoo.added AS yadded, 
-groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq) AND onyahoo = 1 
-UNION
-SELECT DISTINCT memberships.*, memberships.collection AS coll, 
-NULL AS emailid, NULL AS yadded, 
-groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq) AND onyahoo = 0
-;";
+            $sql = "SELECT DISTINCT memberships.*, memberships.collection AS coll, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq);";
             $groups = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
             #error_log("Get groups $sql, {$this->id}");
 
@@ -2283,7 +2262,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
                             'volunteeringallowed' => $group['volunteeringallowed'],
                             'ourpostingstatus' => $group['ourPostingStatus'],
                             'type' => $group['type'],
-                            'onyahoo' => $group['onyahoo'],
                             'onhere' => $group['onhere']
                         ];
 

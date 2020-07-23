@@ -21,7 +21,7 @@ class Group extends Entity
 
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo', 'publish',
-        'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
+        'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation',
         'moderationstatus', 'maxagetoshow');
@@ -259,11 +259,10 @@ class Group extends Entity
                 return(NULL);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded, licenserequired, onyahoo, polyindex) VALUES (?, ?, NOW(),?,?,POINT(0, 0))", [
+            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded, licenserequired, polyindex) VALUES (?, ?, NOW(),?,POINT(0, 0))", [
                 $shortname,
                 $type,
-                $type != Group::GROUP_FREEGLE ? 0 : 1,
-                $type != Group::GROUP_FREEGLE ? 1 : 0
+                $type != Group::GROUP_FREEGLE ? 0 : 1
             ]);
 
             $id = $this->dbhm->lastInsertId();
@@ -316,8 +315,6 @@ class Group extends Entity
         # This is an address used when we are sending to volunteers, or in response to an action by a volunteer.
         if (pres('contactmail', $this->group)) {
             $ret = $this->group['contactmail'];
-        } else if (pres('onyahoo', $this->group)) {
-            $ret = $this->group['nameshort'] . "-owner@yahoogroups.com";
         } else {
             $ret = $this->group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
         }
@@ -337,12 +334,7 @@ class Group extends Entity
     }
 
     public function getGroupEmail() {
-        if ($this->group['onyahoo']) {
-            $ret = $this->group['nameshort'] . "@yahoogroups.com";
-        } else {
-            $ret = $this->group['nameshort'] . '@' . GROUP_DOMAIN;
-        }
-
+        $ret = $this->group['nameshort'] . '@' . GROUP_DOMAIN;
         return($ret);
     }
 
@@ -714,7 +706,7 @@ memberships.groupid IN $groupq
             }
         }
 
-        $sqlpref = "SELECT DISTINCT memberships.*, groups.onyahoo FROM memberships 
+        $sqlpref = "SELECT DISTINCT memberships.* FROM memberships 
               INNER JOIN groups ON groups.id = memberships.groupid
               $uq
               $filterq";
@@ -1078,10 +1070,6 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         return($ret);
     }
 
-    public function onYahoo() {
-        return(pres('onyahoo', $this->group));
-    }
-
     public function getName() {
         return($this->group['namefull'] ? $this->group['namefull'] : $this->group['nameshort']);
     }
@@ -1092,7 +1080,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         $suppfields = $support ? ", founded, lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
-        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, mentored, onhere, onyahoo, ontn, onmap, external, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
+        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
 
@@ -1122,8 +1110,6 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
 
                 if ($group['contactmail']) {
                     $group['modsmail'] = $group['contactmail'];
-                } else if ($group['onyahoo']) {
-                    $group['modsmail'] = $group['nameshort'] . "-owner@yahoogroups.com";
                 } else {
                     $group['modsmail'] = $group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
                 }

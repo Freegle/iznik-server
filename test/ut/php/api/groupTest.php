@@ -36,7 +36,6 @@ class groupAPITest extends IznikAPITestCase {
         $this->group = $g;
 
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 1);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');

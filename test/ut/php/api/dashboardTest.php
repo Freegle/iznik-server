@@ -117,7 +117,6 @@ class dashboardTest extends IznikAPITestCase {
         $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onhere', 1);
-        $g->setPrivate('onyahoo', 0);
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');

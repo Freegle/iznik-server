@@ -168,7 +168,7 @@ function group() {
                         }
 
                         # Other settable attributes
-                        foreach (['onyahoo', 'onhere', 'publish'] as $att) {
+                        foreach (['onhere', 'publish'] as $att) {
                             $val = presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);

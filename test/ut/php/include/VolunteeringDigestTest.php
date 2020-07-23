@@ -47,8 +47,7 @@ class volunteeringDigestTest extends IznikTestCase {
         # Create a group with two opportunities on it.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', TRUE);
-        
+
         # And two users, one who wants them and one who doesn't.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, "Test User");
@@ -118,54 +117,6 @@ class volunteeringDigestTest extends IznikTestCase {
             $e->sendOne($mock, NULL);
             assertTrue(FALSE);
         } catch (Exception $e){}
-
-        }
-
-//    public function testNewVols() {
-//        //
-//        # Create a group with two volunteer op on it.
-//        $g = Group::get($this->dbhr, $this->dbhm);
-//        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-//        $g->setPrivate('onyahoo', 0);
-//
-//        $u = User::get($this->dbhm, $this->dbhm);
-//        #$uid = $u->findByEmail('edward@ehibbert.org.uk');
-//        $uid = $u->findByEmail('activate@liveintent.com');
-//
-//        if (!$uid) {
-//            $uid = $u->create("Live", "Intent", "Live Intent");
-//            $u->addEmail('activate@liveintent.com');
-//        }
-//
-//        $this->log("Found uid $uid");
-//        $u = User::get($this->dbhm, $this->dbhm, $uid);
-//        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
-//            $u->getEmailPreferred()
-//        ]);
-//
-//        foreach ($emails as $email) {
-//            $eid = $email['id'];
-//            $this->log("Found eid $eid");
-//            $u->addMembership($gid, User::ROLE_MEMBER, $eid);
-//
-//            $e = new Volunteering($this->dbhr, $this->dbhm);
-//            $eid = $e->create($uid, 'Test Op 1', FALSE, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'A few hours');
-//            $this->log("Created op $eid");
-//            $e->addGroup($gid);
-//            $e->setPrivate('pending', 0);
-//
-//            $eid = $e->create($uid, 'Test Op 2', FALSE, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'A few hours');
-//            $this->log("Created event $eid");
-//            $e->addGroup($gid);
-//            $e->setPrivate('pending', 0);
-//
-//            # Now test.
-//            $this->log("Now send");
-//
-//            $d = new VolunteeringDigest($this->dbhr, $this->dbhm, TRUE);
-//            assertEquals(1, $d->send($gid));
-//        }
-//
-//        //    }
+    }
 }
 

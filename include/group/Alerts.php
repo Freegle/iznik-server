@@ -244,77 +244,74 @@ class Alert extends Entity
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $from = $this->getFrom();
 
-        if ($tryhard || !$g->getPrivate('onyahoo')) {
-            # Mail the mods individually if we're asked to, or if it's for a native group where we don't go via
-            # the owner address.  We only want to mail each emailid once per alert, otherwise it's horrible for
-            # people on many groups.
-            $sql = "SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');";
-            $mods = $this->dbhr->preQuery($sql, [ $groupid ]);
-            error_log("..." . count($mods) . " volunteers");
+        # Mail the mods individually.  We only want to mail each emailid once per alert, otherwise it's horrible for
+        # people on many groups.
+        $sql = "SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');";
+        $mods = $this->dbhr->preQuery($sql, [ $groupid ]);
+        error_log("..." . count($mods) . " volunteers");
 
-            foreach ($mods as $mod) {
-                $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
+        foreach ($mods as $mod) {
+            $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
 
-                # Get emails excluding bouncing.
-                $emails = $u->getEmails(FALSE, TRUE);
+            # Get emails excluding bouncing.
+            $emails = $u->getEmails(FALSE, TRUE);
 
-                foreach ($emails as $email) {
-                    try {
-                        error_log("check {$email['email']} real " . realEmail($email['email']));
+            foreach ($emails as $email) {
+                try {
+                    error_log("check {$email['email']} real " . realEmail($email['email']));
 
-                        if (realEmail($email['email'])) {
-                            # Check if we have already mailed them.
-                            $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
-                            $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
-                            $gotprevious = count($previous) > 0;
+                    if (realEmail($email['email'])) {
+                        # Check if we have already mailed them.
+                        $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
+                        $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
+                        $gotprevious = count($previous) > 0;
 
-                            # Record for tracking that we have processed this group.
-                            $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
-                                [
-                                    $this->id,
-                                    $groupid,
-                                    $mod['userid'],
-                                    $email['id'],
-                                    Alert::TYPE_MODEMAIL
-                                ]
-                            );
-                            
-                            if (!$gotprevious) {
-                                # We don't want to send to a personal email if they've already been mailed at that email - even
-                                # if it was on another group.  This is because some people are on many groups, with many emails,
-                                # and this can flood them.  They may get a copy via the owner address, though.
-                                $trackid = $this->dbhm->lastInsertId();
-                                $html = alert_tpl(
-                                    $g->getPrivate('nameshort'),
-                                    $u->getName(),
-                                    USER_SITE,
-                                    USERLOGO,
-                                    $this->alert['subject'],
-                                    $this->alert['html'] ? $this->alert['html'] : nl2br($this->alert['text']),
-                                    NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
-                                    $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
-                                    'https://' . USER_SITE . "/beacon/$trackid");
+                        # Record for tracking that we have processed this group.
+                        $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
+                            [
+                                $this->id,
+                                $groupid,
+                                $mod['userid'],
+                                $email['id'],
+                                Alert::TYPE_MODEMAIL
+                            ]
+                        );
 
-                                $text = $this->alert['text'];
-                                if ($this->alert['askclick']) {
-                                    $text .=  "\r\n\r\nPlease click to confirm you got this:\r\n\r\n" .
-                                        'https://' . USER_SITE . "/alert/viewed/$trackid";
-                                }
+                        if (!$gotprevious) {
+                            # We don't want to send to a personal email if they've already been mailed at that email - even
+                            # if it was on another group.  This is because some people are on many groups, with many emails,
+                            # and this can flood them.  They may get a copy via the owner address, though.
+                            $trackid = $this->dbhm->lastInsertId();
+                            $html = alert_tpl(
+                                $g->getPrivate('nameshort'),
+                                $u->getName(),
+                                USER_SITE,
+                                USERLOGO,
+                                $this->alert['subject'],
+                                $this->alert['html'] ? $this->alert['html'] : nl2br($this->alert['text']),
+                                NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
+                                $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
+                                'https://' . USER_SITE . "/beacon/$trackid");
 
-                                $msg = $this->constructMessage($email['email'], $u->getName(), $u->getId(), $from, $this->alert['subject'], $text, $html);
-                                Mail::addHeaders($msg, Mail::ALERT, $u->getId());
-                                $mailer->send($msg);
-                                $done++;
+                            $text = $this->alert['text'];
+                            if ($this->alert['askclick']) {
+                                $text .=  "\r\n\r\nPlease click to confirm you got this:\r\n\r\n" .
+                                    'https://' . USER_SITE . "/alert/viewed/$trackid";
                             }
+
+                            $msg = $this->constructMessage($email['email'], $u->getName(), $u->getId(), $from, $this->alert['subject'], $text, $html);
+                            Mail::addHeaders($msg, Mail::ALERT, $u->getId());
+                            $mailer->send($msg);
+                            $done++;
                         }
-                    } catch (Exception $e) {
-                        error_log("Failed with " . $e->getMessage());
                     }
+                } catch (Exception $e) {
+                    error_log("Failed with " . $e->getMessage());
                 }
             }
         }
 
-        if ($g->getPrivate('onyahoo') || $g->getPrivate('contactmail')) {
+        if ($g->getPrivate('contactmail')) {
             try {
                 # This group is on Yahoo - so mail the owner address too.
                 $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, `type`) VALUES (?,?,?);",

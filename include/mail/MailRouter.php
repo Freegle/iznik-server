@@ -118,7 +118,7 @@ class MailRouter
     }
 
     # Public for UT
-    public function markPending($force, $onyahoo) {
+    public function markPending($force) {
         # Set the message as pending.
         #
         # If we're forced we just do it.  The force is to allow us to move from Spam to Pending.
@@ -388,7 +388,7 @@ class MailRouter
             $gid = $g->findByShortName($matches[1]);
             $g = new Group($this->dbhr, $this->dbhm, $gid);
 
-            if ($gid && !$g->getPrivate('onyahoo')) {
+            if ($gid) {
                 # It's one of our groups.  Find the user this is from.
                 $envfrom = $this->msg->getEnvelopeFrom();
                 $u = new User($this->dbhr, $this->dbhm);
@@ -421,7 +421,7 @@ class MailRouter
             $g = new Group($this->dbhr, $this->dbhm);
             $gid = $g->findByShortName($matches[1]);
 
-            if ($gid && !$g->getPrivate('onyahoo')) {
+            if ($gid) {
                 # It's one of our groups.  Find the user this is from.
                 $envfrom = $this->msg->getEnvelopeFrom();
                 $u = new User($this->dbhr, $this->dbhm);
@@ -603,13 +603,12 @@ class MailRouter
                         }
 
                         if (!$handled) {
-                            # It's not already been approved to it should go into pending on here to match where
-                            # it is on Yahoo.
+                            # It's not already been approved to it should go into pending on here.
                             if ($log) {
                                 error_log("Mark as pending");
                             }
 
-                            if ($this->markPending($notspam, TRUE)) {
+                            if ($this->markPending($notspam)) {
                                 $ret = MailRouter::PENDING;
                             }
                         }
@@ -634,7 +633,7 @@ class MailRouter
 
                                 if (($appmemb || $ispendingmember) && $worry) {
                                     if ($log) { error_log("Worrying => pending"); }
-                                    if ($this->markPending($notspam, FALSE)) {
+                                    if ($this->markPending($notspam)) {
                                         $ret = MailRouter::PENDING;
                                     }
                                 } else {
@@ -665,7 +664,7 @@ class MailRouter
                                             $ret = MailRouter::DROPPED;
                                         } else if ($ps == Group::POSTING_MODERATED) {
                                             if ($log) { error_log("Mark as pending"); }
-                                            if ($this->markPending($notspam, FALSE)) {
+                                            if ($this->markPending($notspam)) {
                                                 $ret = MailRouter::PENDING;
                                             }
                                         } else {

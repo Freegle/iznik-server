@@ -1401,7 +1401,6 @@ class MailRouterTest extends IznikTestCase {
         $u->setPrivate('yahooid', 'testid');
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 0);
         $u->addMembership($gid, User::ROLE_MODERATOR);
 
         $msg = str_replace('test@test.com', 'from@yahoogroups.com', $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approved')));
@@ -1442,7 +1441,6 @@ class MailRouterTest extends IznikTestCase {
         $u->setPrivate('yahooid', 'testid');
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
-        $g->setPrivate('onyahoo', 0);
         $u->addMembership($gid, User::ROLE_MODERATOR);
 
         $msg = str_replace('test@test.com', 'support@twitter.com', $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/twitterappeal')));

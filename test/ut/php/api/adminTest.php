@@ -40,9 +40,7 @@ class adminAPITest extends IznikAPITestCase
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_UT);
-        $g->setPrivate('onyahoo', 0);
         $this->groupid2 = $g->create('testgroup2', Group::GROUP_UT);
-        $g->setPrivate('onyahoo', 0);
     }
 
     protected function tearDown()
