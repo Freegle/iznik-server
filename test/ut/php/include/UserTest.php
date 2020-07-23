@@ -1100,8 +1100,8 @@ class userTest extends IznikTestCase {
 
         $settings = [
             'mylocation' => [
-                'lat' => 8.5,
-                'lng' => 179.1
+                'lat' => 8.51111,
+                'lng' => 179.11111
             ],
             'modnotifs' => $modnotifs,
             'backupmodnotifs' => $backupmodnotifs
@@ -1111,6 +1111,13 @@ class userTest extends IznikTestCase {
         $u->addPhone('1234');
 
         $u->setPrivate('settings', json_encode($settings));
+
+        # Get blurred location.
+        $atts = $u->getPublic();
+        $latlngs = $u->getLatLngs([ $atts ], TRUE, TRUE, TRUE, NULL, User::BLUR_1K);
+        assertEquals(8.511, $latlngs[$u->getId()]['lat']);
+        assertEquals(179.111, $latlngs[$u->getId()]['lng']);
+
         $nid = $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
 
         if ($background) {
