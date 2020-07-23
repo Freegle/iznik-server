@@ -27,7 +27,6 @@ class mergeAPITest extends IznikAPITestCase {
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
 
         # Create a moderator and log in as them
         $this->group = Group::get($this->dbhr, $this->dbhm);

@@ -25,7 +25,6 @@ class exportAPITest extends IznikAPITestCase {
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
 
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);

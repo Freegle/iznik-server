@@ -27,7 +27,6 @@ class membershipsAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM users WHERE yahooid LIKE '-testid%';");
-        $dbhm->preExec("DELETE FROM users WHERE yahooUserId LIKE '-testid%';");
         $dbhm->preExec("DELETE FROM users_emails WHERE backwards LIKE 'moctset%';");
 
         $this->group = Group::get($this->dbhr, $this->dbhm);

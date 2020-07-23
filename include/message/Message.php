@@ -2251,15 +2251,6 @@ ORDER BY lastdate DESC;";
             }
 
             if (!$userid) {
-                # They might have posted from Yahoo.
-                $gp = $Parser->getHeader('x-yahoo-group-post');
-                if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
-                    $yahoouid = $matches[1];
-                    $userid = $u->findByYahooUserId($yahoouid);
-                }
-            }
-
-            if (!$userid) {
                 # Or we might have their email.
                 $userid = $u->findByEmail($this->fromaddr);
             }

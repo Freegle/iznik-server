@@ -44,7 +44,6 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'em01169273-046c-46be-b8f7-69ad036067d0@edward-x1' ]);
         $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'em47d9afc0-8c92-4fc8-b791-f63ff69360a2@edward-x1' ]);
         $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'GTUBE1.1010101@example.net' ]);
-        $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
         $this->dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE subscription = 'Test';");
         $this->dbhm->preExec("DELETE FROM users_emails WHERE users_emails.backwards LIKE 'moctset%';");

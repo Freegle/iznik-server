@@ -48,7 +48,7 @@ class User extends Entity
     const RATING_UNKNOWN = 'Unknown';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -354,14 +354,14 @@ class User extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($firstname, $lastname, $fullname, $reason = '', $yahooUserId = NULL, $yahooid = NULL)
+    public function create($firstname, $lastname, $fullname, $reason = '', $yahooid = NULL)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         try {
             $src = presdef('src', $_SESSION, NULL);
-            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooUserId, yahooid, source) VALUES (?, ?, ?, ?, ?, ?)",
-                [$firstname, $lastname, $fullname, $yahooUserId, $yahooid, $src]);
+            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooid, source) VALUES (?, ?, ?, ?, ?)",
+                [$firstname, $lastname, $fullname, $yahooid, $src]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -414,17 +414,6 @@ class User extends Entity
 
         $pw = strtolower($pw);
         return ($pw);
-    }
-
-    public function findByYahooUserId($id)
-    {
-        # Take care not to pick up empty or null else that will cause is to overmerge.
-        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooUserId = ? AND yahooUserId IS NOT NULL AND LENGTH(yahooUserId) > 0;", [$id]);
-        if (count($users) == 1) {
-            return ($users[0]['id']);
-        }
-
-        return (NULL);
     }
 
     public function getEmails($recent = FALSE, $nobouncing = FALSE)
@@ -2053,7 +2042,6 @@ class User extends Entity
                 $showmod = $ismod && presdef('showmod', $rets[$user['id']]['settings'], FALSE);
                 $rets[$user['id']]['settings'] = ['showmod' => $showmod];
                 $rets[$user['id']]['yahooid'] = NULL;
-                $rets[$user['id']]['yahooUserId'] = NULL;
             }
 
             if (pres('deleted', $rets[$user['id']])) {
@@ -3029,7 +3017,7 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
 
                     # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
                     # keys, so update to delete them.
-                    foreach (['fullname', 'firstname', 'lastname', 'yahooUserId', 'yahooid'] as $att) {
+                    foreach (['fullname', 'firstname', 'lastname', 'yahooid'] as $att) {
                         $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = $id2;");
                         foreach ($users as $user) {
                             $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = $id2;");
@@ -4954,7 +4942,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $d['Your_full_name'] = $this->getPrivate('fullname');
         $d['Your_first_name'] = $this->getPrivate('firstname');
         $d['Your_last_name'] = $this->getPrivate('lastname');
-        $d['Yahoo_internal_ID_for_you'] = $this->getPrivate('yahooUserId');
         $d['Your_Yahoo_ID'] = $this->getPrivate('yahooid');
         $d['Your_role_on_the_system'] = $this->getPrivate('systemrole');
         $d['When_you_joined_the_site'] = ISODate($this->getPrivate('added'));
@@ -5544,7 +5531,6 @@ groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, gr
         $this->setPrivate('fullname', "Deleted User #" . $this->id);
         $this->setPrivate('settings', NULL);
         $this->setPrivate('yahooid', NULL);
-        $this->setPrivate('yahooUserId', NULL);
 
         # Delete emails which aren't ours.
         $emails = $this->getEmails();

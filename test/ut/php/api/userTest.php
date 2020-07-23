@@ -33,7 +33,6 @@ class userAPITest extends IznikAPITestCase {
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
 
         # Create a moderator and log in as them
         $this->group = Group::get($this->dbhr, $this->dbhm);
@@ -129,18 +128,15 @@ class userAPITest extends IznikAPITestCase {
 
     public function testPostingStatus() {
         $ret = $this->call('user', 'PATCH', [
-            'yahooUserId' => 1,
             'groupid' => $this->groupid,
             'yahooPostingStatus' => 'PROHIBITED'
         ]);
         assertEquals(2, $ret['ret']);
 
-        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = ?;", [ $this->uid ]);
         User::clearCache($this->uid);
 
         # Shouldn't be able to do this as a member
         $ret = $this->call('user', 'PATCH', [
-            'yahooUserId' => 1,
             'groupid' => $this->groupid,
             'yahooPostingStatus' => 'PROHIBITED',
             'duplicate' => 0
@@ -150,7 +146,6 @@ class userAPITest extends IznikAPITestCase {
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
 
         $ret = $this->call('user', 'PATCH', [
-            'yahooUserId' => 1,
             'groupid' => $this->groupid,
             'yahooPostingStatus' => 'PROHIBITED',
             'duplicate' => 1
@@ -217,7 +212,6 @@ class userAPITest extends IznikAPITestCase {
         ]);
         assertEquals(2, $ret['ret']);
 
-        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = ?;", [ $this->uid ]);
         User::clearCache($this->uid);
 
         # Shouldn't be able to do this as a member

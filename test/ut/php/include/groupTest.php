@@ -27,8 +27,6 @@ class groupTest extends IznikTestCase {
         $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $this->dbhm->preExec("DELETE FROM users WHERE yahooid = '-testid1';");
         $this->dbhm->preExec("DELETE FROM users WHERE yahooid = '-testyahooid';");
-        $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '-testid1';");
-        $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '-testyahoouserid';");
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'moctset%';");
         $dbhm->preExec("DELETE FROM users_emails WHERE users_emails.backwards LIKE 'moctset%';");

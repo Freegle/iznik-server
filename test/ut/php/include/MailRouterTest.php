@@ -67,7 +67,6 @@ class MailRouterTest extends IznikTestCase {
         $u2 = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
-        $u2->setPrivate('yahooUserId', -time());
         assertGreaterThan(0, $u->addEmail('test2@test.com'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));

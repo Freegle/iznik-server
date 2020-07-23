@@ -251,11 +251,9 @@ class userTest extends IznikTestCase {
 
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
-        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $id;");
         User::clearCache($id);
         $eid = $u->addEmail('test@test.com');
         assertGreaterThan(0, $eid);
-        $u->setPrivate('yahooUserId', 1);
         $u = User::get($this->dbhm, $this->dbhm, $id);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
         assertEquals($u->getRoleForGroup($group1), User::ROLE_NONMEMBER);

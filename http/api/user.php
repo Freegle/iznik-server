@@ -6,7 +6,6 @@ function user() {
 
     $id = intval(presdef('id', $_REQUEST, NULL));
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $yahooUserId = presdef('yahooUserId', $_REQUEST, NULL);
     $subject = presdef('subject', $_REQUEST, NULL);
     $body = presdef('body', $_REQUEST, NULL);
     $action = presdef('action', $_REQUEST, NULL);
@@ -14,12 +13,6 @@ function user() {
     $suspectreason = presdef('suspectreason', $_REQUEST, NULL);
     $search = presdef('search', $_REQUEST, NULL);
     $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
-
-    if (!$id && $yahooUserId) {
-        # We don't know our unique ID, but we do know the Yahoo one. Find it.
-        $u = new User($dbhr, $dbhm);
-        $id = $u->findByYahooUserId($yahooUserId);
-    }
 
     $email = presdef('email', $_REQUEST, NULL);
     if (!$id && $email) {
