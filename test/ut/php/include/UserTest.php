@@ -970,6 +970,14 @@ class userTest extends IznikTestCase {
         $u->ensureAvatar($atts);
         $this->log("atrusty " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['TN']);
+
+        $uid = $u->create("Test", "User", "Test User");
+        $this->log("Created user $uid");
+        $eid = $u->addEmail('test@gmail.com');
+        $this->log("Email $eid");
+        $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
+        assertTrue($atts['profile']['gravatar']);
     }
 
     public function testBadYahooId() {
