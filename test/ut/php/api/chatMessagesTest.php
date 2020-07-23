@@ -349,6 +349,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
         assertTrue($this->user->login('testpw'));
 
+        # Make the originating user be on the group so we can test groupfrom.
+        $this->user->addMembership($this->groupid);
+
         # Add some mods on the recipient's group, so they can be notified.
         $u = new User($this->dbhr, $this->dbhm);
         $modid = $u->create('Test', 'User', 'Test User');
@@ -457,6 +460,8 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
         assertEquals($mid2, $ret['chatmessages'][1]['id']);
         assertEquals($mid3, $ret['chatmessages'][2]['id']);
+        assertEquals($this->groupid, $ret['chatmessages'][0]['group']['id']);
+        assertEquals($this->groupid, $ret['chatmessages'][0]['groupfrom']['id']);
 
         # Test hold/unhold.
         $this->log("Hold");

@@ -1346,16 +1346,18 @@ WHERE chat_rooms.id IN $idlist;";
         $msgid = $ctx ? intval($ctx['msgid']) : 0;
         $groupq = $groupid ? " AND groupid = $groupid " : '';
 
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, memberships.groupid, chat_messages_held.userid AS heldby, chat_messages_held.timestamp 
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp 
         FROM chat_messages 
         LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid 
         LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id 
         INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
-        INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) 
-              AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq) 
-        INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' 
-        ORDER BY chat_messages.id, memberships.added ASC;";
-        $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid]);
+        INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) 
+              AND m1.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq) 
+        LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid 
+              AND m2.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq) 
+        INNER JOIN groups ON m1.groupid = groups.id AND groups.type = 'Freegle' 
+        ORDER BY chat_messages.id, m1.added ASC;";
+        $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid, $msgid, $userid]);
         $ret = [];
         $userlist = NULL;
 
@@ -1397,6 +1399,11 @@ WHERE chat_rooms.id IN $idlist;";
 
             $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
             $thisone['group'] = $g->getPublic();
+
+            if ($msg['groupidfrom']) {
+                $g = Group::get($this->dbhr, $this->dbhm, $msg['groupidfrom']);
+                $thisone['groupfrom'] = $g->getPublic();
+            }
 
             $thisone['date'] = ISODate($thisone['date']);
             $thisone['msgid'] = $msg['msgid'];
