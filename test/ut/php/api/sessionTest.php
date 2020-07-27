@@ -681,10 +681,6 @@ class sessionTest extends IznikAPITestCase
             $t->set('FreeglePlaygrnd', getenv('PLAYGROUND_TOKEN'), getenv('PLAYGROUND_SECRET'));
         }
 
-        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
-        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        $t->tweet('Test - ignore', $data);
-
         $gid = $g->create('testgroup', Group::GROUP_UT);
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);
         $t->set('test', 'test', 'test');
