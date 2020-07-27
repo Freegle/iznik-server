@@ -940,19 +940,6 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         return $ret;
     }
 
-    private function getYahooRole($memb) {
-        $yahoorole = User::ROLE_MEMBER;
-        if (pres('yahooModeratorStatus', $memb)) {
-            if ($memb['yahooModeratorStatus'] == 'MODERATOR') {
-                $yahoorole = User::ROLE_MODERATOR;
-            } else if ($memb['yahooModeratorStatus'] == 'OWNER') {
-                $yahoorole = User::ROLE_OWNER;
-            }
-        }
-
-        return($yahoorole);
-    }
-
     public function ourPS($status) {
         # For historical reasons, the ourPostingStatus field has various values, equivalent to those on Yahoo.  But
         # we only support three settings - MODERATED, DEFAULT aka Group Settings, and PROHIBITED aka Can't Post.
@@ -1141,20 +1128,5 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         }
 
         return($ret);
-    }
-
-    public function moveToNative() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        $email = $me ? $me->getEmailPreferred() : MODERATOR_EMAIL;
-
-        # We are switching a group over from being on Yahoo to not being.  Enshrine the owner/
-        # mod roles and moderation status.
-        $this->setNativeRoles();
-        $this->setNativeModerationStatus();
-
-        #  Notify TrashNothing so that it can also do that, and talk to us rather than Yahoo.
-        $url = "https://trashnothing.com/modtools/api/switch-to-freegle-direct?key=" . TNKEY . "&group_id=" . $this->getPrivate('nameshort') . "&moderator_email=" . $email;
-        $rsp = file_get_contents($url);
-        error_log("Move to FD on TN " . var_export($rsp, TRUE));
     }
 }
