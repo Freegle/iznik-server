@@ -58,7 +58,7 @@ foreach ($donations as $donation) {
                 '',
                 substr($donation['fullname'], 0, $p),
                 substr($donation['fullname'], $p + 1),
-                $donation['housenameornumber'],
+                $donation['housenameornumber'] . "\t",  // Add tab to force quoting.
                 $donation['postcode'],
                 '',
                 '',
