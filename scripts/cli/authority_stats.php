@@ -19,41 +19,40 @@ if (count($opts) < 1) {
     $ids = explode(',', $opts['i']);
     $q = ceil(date("n") / 3);
 
-    # Read the template
+    foreach ($ids as $id) {
+        $months = [];
 
-    $months = [];
+        # Find start of last full quarter
+        $start_date = strtotime('3 months ago');
+        $start_quarter = ceil(date('m', $start_date) / 3);
+        $start_month = ($start_quarter * 3) - 2;
+        $start_year = date('Y', $start_date);
+        $start_timestamp = mktime(0, 0, 0, $start_month, 1, $start_year);
 
-    # Find start of last full quarter
-    $start_date = strtotime('3 months ago');
-    $start_quarter = ceil(date('m', $start_date) / 3);
-    $start_month = ($start_quarter * 3) - 2;
-    $start_year = date('Y', $start_date);
-    $start_timestamp = mktime(0, 0, 0, $start_month, 1, $start_year);
-
-    $stattypes = [
-        Stats::APPROVED_MEMBER_COUNT,
-        Stats::WEIGHT,
-        Stats::OUTCOMES
-    ];
-
-    # Get the months in this quarter.
-    for ($i = 0; $i < 3; $i++) {
-        $end_timestamp = strtotime("+1 month", $start_timestamp);
-        $months[] = [
-            'start' => date('Y-m-d', $start_timestamp),
-            'end' => date('Y-m-d', $end_timestamp),
-            'formatted' => date('M-y', $start_timestamp)
+        $stattypes = [
+            Stats::APPROVED_MEMBER_COUNT,
+            Stats::WEIGHT,
+            Stats::OUTCOMES
         ];
 
-        $start_timestamp = $end_timestamp;
-    }
+        # Get the months in this quarter.
+        for ($i = 0; $i < 3; $i++) {
+            $end_timestamp = strtotime("+1 month", $start_timestamp);
+            $months[] = [
+                'start' => date('Y-m-d', $start_timestamp),
+                'end' => date('Y-m-d', $end_timestamp),
+                'formatted' => date('M-y', $start_timestamp)
+            ];
 
-    foreach ($ids as $id) {
+            $start_timestamp = $end_timestamp;
+        }
+
         $a = new Authority($dbhr, $dbhm, $id);
         $atts = $a->getPublic();
         $groups = $atts['groups'];
         $gids = array_column($groups, 'id');
 
+        # Read the template
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
         $spreadsheet = $reader->load("authority_stats.xlsx");
 
@@ -132,13 +131,31 @@ if (count($opts) < 1) {
         $sheet->setCellValue('D14', round($months[2][Stats::OUTCOMES]));
         $sheet->setCellValue('E14', round($months[0][Stats::OUTCOMES] + $months[1][Stats::OUTCOMES] + $months[2][Stats::OUTCOMES]));
 
+        $sheet->setCellValue('B19', $months[0]['formatted']);
+        $sheet->setCellValue('C19', $months[1]['formatted']);
+        $sheet->setCellValue('D19', $months[2]['formatted']);
+        $sheet->setCellValue('F19', $months[0]['formatted']);
+        $sheet->setCellValue('G19', $months[1]['formatted']);
+        $sheet->setCellValue('H19', $months[2]['formatted']);
+        $sheet->setCellValue('J19', $months[0]['formatted']);
+        $sheet->setCellValue('K19', $months[1]['formatted']);
+        $sheet->setCellValue('L19', $months[2]['formatted']);
+        $sheet->setCellValue('N19', $months[0]['formatted']);
+        $sheet->setCellValue('O19', $months[1]['formatted']);
+        $sheet->setCellValue('P19', $months[2]['formatted']);
+        $sheet->setCellValue('R19', $months[0]['formatted']);
+        $sheet->setCellValue('S19', $months[1]['formatted']);
+        $sheet->setCellValue('T19', $months[2]['formatted']);
+
         $grouprow = 20;
 
         $links = [];
         
         foreach ($groups as $group) {
-            if ($group['overlap'] >= 0.05) {
-                $gid = $group['id'];
+            $gid = $group['id'];
+
+            # Only include if we have some members.  This excludes tiny overlaps.
+            if ($months[2][$gid][Stats::APPROVED_MEMBER_COUNT]) {
                 $sheet->setCellValue("A$grouprow", $group['namedisplay'] . ($group['overlap'] < 1 ? " *" : ''));
 
                 $sheet->setCellValue("B$grouprow", round($months[0][$gid][Stats::APPROVED_MEMBER_COUNT]));

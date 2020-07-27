@@ -6,6 +6,8 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/user/PushNotifications.php';
+require_once IZNIK_BASE . '/include/group/Twitter.php';
+require_once IZNIK_BASE . '/include/group/Facebook.php';
 
 /**
  * @backupGlobals disabled
@@ -667,6 +669,57 @@ class sessionTest extends IznikAPITestCase
         }
 
         assertTrue($found);
+    }
+
+    public function testTwitter() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
+        if (!$gid) {
+            $gid = $g->create('FreeglePlayground', Group::GROUP_REUSE);
+            $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+            $t->set('FreeglePlaygrnd', getenv('PLAYGROUND_TOKEN'), getenv('PLAYGROUND_SECRET'));
+        }
+
+        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $t->tweet('Test - ignore', $data);
+
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+        $t->set('test', 'test', 'test');
+        $atts = $t->getPublic();
+        assertEquals('test', $atts['name']);
+        assertEquals('test', $atts['token']);
+        assertEquals('test', $atts['secret']);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $_SESSION['id'] = $uid;
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+
+        assertEquals('test', $ret['groups'][0]['twitter']['name']);
+    }
+
+    public function testFacebookPage() {
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $f = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
+        $f->add($gid, '123', 'test', 123, GroupFacebook::TYPE_PAGE);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $_SESSION['id'] = $uid;
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+
+        assertEquals('test', $ret['groups'][0]['facebook'][0]['name']);
     }
 //
 //    public function testSheila() {
