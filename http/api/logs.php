@@ -33,7 +33,7 @@ function logs() {
                     }
                     case 'memberships': {
                         $types = [ Log::TYPE_GROUP, Log::TYPE_USER ];
-                        $subtypes = $logsubtype ? [ $logsubtype ] : [ Log::SUBTYPE_JOINED, Log::SUBTYPE_REJECTED, Log::SUBTYPE_APPROVED, Log::SUBTYPE_APPLIED, Log::SUBTYPE_AUTO_APPROVED, Log::SUBTYPE_LEFT, Log::SUBTYPE_YAHOO_APPLIED, Log::SUBTYPE_YAHOO_CONFIRMED, Log::SUBTYPE_YAHOO_JOINED ];
+                        $subtypes = $logsubtype ? [ $logsubtype ] : [ Log::SUBTYPE_JOINED, Log::SUBTYPE_REJECTED, Log::SUBTYPE_APPROVED, Log::SUBTYPE_APPLIED, Log::SUBTYPE_AUTO_APPROVED, Log::SUBTYPE_LEFT ];
                         break;
                     }
                 }
