@@ -3562,11 +3562,12 @@ class User extends Entity
         # Can only edit comments for a group on which we're a mod.  This code isn't that efficient but it doesn't
         # happen often.
         $rc = NULL;
-        $groups = $me ? $me->getModeratorships() : [0];
-        foreach ($groups as $modgroupid) {
-            $sql = "SELECT id FROM users_comments WHERE id = ? AND groupid = ?;";
-            $comments = $this->dbhr->preQuery($sql, [$id, $modgroupid]);
-            foreach ($comments as $comment) {
+        $comments = $this->dbhr->preQuery("SELECT id, groupid FROM users_comments WHERE id = ?;", [
+            $id
+        ]);
+
+        foreach ($comments as $comment) {
+            if ($me && ($me->isAdminOrSupport() || $me->isModOrOwner($comment['groupid']))) {
                 $sql = "UPDATE users_comments SET byuserid = ?, user1 = ?, user2 = ?, user3 = ?, user4 = ?, user5 = ?, user6 = ?, user7 = ?, user8 = ?, user9 = ?, user10 = ?, user11 = ? WHERE id = ?;";
                 $rc = $this->dbhm->preExec($sql, [
                     $byuserid,
@@ -3585,9 +3586,15 @@ class User extends Entity
 
         # Can only delete comments for a group on which we're a mod.
         $rc = FALSE;
-        $groups = $me ? $me->getModeratorships() : [];
-        foreach ($groups as $modgroupid) {
-            $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE id = ? AND groupid = ?;", [$id, $modgroupid]);
+
+        $comments = $this->dbhr->preQuery("SELECT id, groupid FROM users_comments WHERE id = ?;", [
+            $id
+        ]);
+
+        foreach ($comments as $comment) {
+            if ($me && ($me->isAdminOrSupport() || $me->isModOrOwner($comment['groupid']))) {
+                $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE id = ?;", [$id]);
+            }
         }
 
         return ($rc);
