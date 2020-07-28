@@ -38,9 +38,12 @@ if (count($opts) < 1) {
         # Get the months in this quarter.
         for ($i = 0; $i < 3; $i++) {
             $end_timestamp = strtotime("+1 month", $start_timestamp);
+            $last_timestamp = strtotime("-1 day", $end_timestamp);
+
             $months[] = [
                 'start' => date('Y-m-d', $start_timestamp),
                 'end' => date('Y-m-d', $end_timestamp),
+                'last' => date('Y-m-d', $last_timestamp),
                 'formatted' => date('M-y', $start_timestamp)
             ];
 
@@ -60,15 +63,34 @@ if (count($opts) < 1) {
         $sheet->setCellValue('A1', "Freegle in " . $atts['name']);
         $sheet->setCellValue('A9', $atts['name']);
 
+        # In the web we exclude groups which don't have > 1 kg per month on average.  Duplicate that logic here
+        # so that the values match.
+        $nontrivialgroups = [];
+
+        foreach ($groups as $group) {
+            $s = new Stats($dbhr, $dbhm);
+            $stats = $s->getMulti(NULL, [ $group['id'] ], $months[0]['start'],  $months[2]['end'], FALSE, [ Stats::WEIGHT ]);
+            $totweight = 0;
+
+            foreach ($stats[Stats::WEIGHT] as $stat) {
+                $totweight += $stat['count'] * $group['overlap'];
+            }
+
+            if ($totweight > 3) {
+                $nontrivialgroups[] = $group;
+            }
+        }
+
         for ($month = 0; $month < 3; $month++) {
             $months[$month]['groups'] = [];
+
             foreach ($stattypes as $stattype) {
                 $months[$month][$stattype] = 0;
             }
 
             $months[$month][Stats::APPROVED_MEMBER_COUNT] = 0;
 
-            foreach ($groups as $group) {
+            foreach ($nontrivialgroups as $key => $group) {
                 $s = new Stats($dbhr, $dbhm);
                 $gid = $group['id'];
                 $stats = $s->getMulti(NULL, [ $gid ], $months[$month]['start'],  $months[$month]['end'], FALSE, $stattypes);
@@ -79,7 +101,7 @@ if (count($opts) < 1) {
                     foreach ($stats[$stattype] as $stat) {
                         if ($stattype == Stats::APPROVED_MEMBER_COUNT) {
                             # We want the last value
-                            $months[$month][$gid][$stattype] = $stat['count'] * $group['overlap'];
+                            $months[$month][$gid][$stattype] = round($stat['count'] * $group['overlap']);
                         } else {
                             # We want to sum.
                             $months[$month][$gid][$stattype] += $stat['count'] * $group['overlap'];
@@ -88,7 +110,7 @@ if (count($opts) < 1) {
                     }
                 }
 
-                $months[$month][Stats::APPROVED_MEMBER_COUNT] += $months[$month][$gid][Stats::APPROVED_MEMBER_COUNT];
+                $months[$month][Stats::APPROVED_MEMBER_COUNT] += round($months[$month][$gid][Stats::APPROVED_MEMBER_COUNT]);
             }
         }
 
@@ -151,7 +173,7 @@ if (count($opts) < 1) {
 
         $links = [];
         
-        foreach ($groups as $group) {
+        foreach ($nontrivialgroups as $group) {
             $gid = $group['id'];
 
             # Only include if we have some members.  This excludes tiny overlaps.
