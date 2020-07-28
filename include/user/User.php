@@ -62,6 +62,7 @@ class User extends Entity
     const PERM_NATIONAL_VOLUNTEERS = 'NationalVolunteers';
     const PERM_TEAMS = 'Teams';
     const PERM_GIFTAID = 'GiftAid';
+    const PERM_SPAM_ADMIN = 'SpamAdmin';
 
     const HAPPY = 'Happy';
     const FINE = 'Fine';

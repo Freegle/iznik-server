@@ -183,7 +183,7 @@ CREATE TABLE `admins` (
   KEY `editedby` (`editedby`),
   KEY `heldby` (`heldby`),
   CONSTRAINT `admins_ibfk_1` FOREIGN KEY (`editedby`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=26422 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Try all means to reach people with these';
+) ENGINE=InnoDB AUTO_INCREMENT=26532 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Try all means to reach people with these';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -232,7 +232,7 @@ CREATE TABLE `alerts` (
   KEY `createdby` (`createdby`),
   CONSTRAINT `alerts_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
   CONSTRAINT `alerts_ibfk_2` FOREIGN KEY (`createdby`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=10274 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Try all means to reach people with these';
+) ENGINE=InnoDB AUTO_INCREMENT=10277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Try all means to reach people with these';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -261,7 +261,7 @@ CREATE TABLE `alerts_tracking` (
   CONSTRAINT `alerts_tracking_ibfk_1` FOREIGN KEY (`alertid`) REFERENCES `alerts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `alerts_tracking_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `alerts_tracking_ibfk_4` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=462194 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=462248 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -281,7 +281,7 @@ CREATE TABLE `authorities` (
   UNIQUE KEY `name` (`name`,`area_code`),
   SPATIAL KEY `polygon` (`polygon`),
   KEY `name_2` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=117454 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Counties and Unitary Authorities.  May be multigeometries';
+) ENGINE=InnoDB AUTO_INCREMENT=117464 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Counties and Unitary Authorities.  May be multigeometries';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -374,7 +374,7 @@ CREATE TABLE `booktastic_images` (
   KEY `incomingid` (`ocrid`),
   KEY `hash` (`hash`),
   CONSTRAINT `booktastic_images_ibfk_1` FOREIGN KEY (`ocrid`) REFERENCES `booktastic_ocr` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=927 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
+) ENGINE=InnoDB AUTO_INCREMENT=929 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -450,7 +450,7 @@ CREATE TABLE `bounces` (
   `msg` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2706067 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bounce messages received by email';
+) ENGINE=InnoDB AUTO_INCREMENT=3097608 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bounce messages received by email';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -470,7 +470,7 @@ CREATE TABLE `bounces_emails` (
   PRIMARY KEY (`id`),
   KEY `emailid` (`emailid`,`date`),
   CONSTRAINT `bounces_emails_ibfk_1` FOREIGN KEY (`emailid`) REFERENCES `users_emails` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=97133929 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=97213857 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -492,7 +492,7 @@ CREATE TABLE `chat_images` (
   KEY `incomingid` (`chatmsgid`),
   KEY `hash` (`hash`),
   CONSTRAINT `_chat_images_ibfk_1` FOREIGN KEY (`chatmsgid`) REFERENCES `chat_messages` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=619930 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
+) ENGINE=InnoDB AUTO_INCREMENT=635409 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -547,7 +547,7 @@ CREATE TABLE `chat_messages` (
   CONSTRAINT `_chat_messages_ibfk_5` FOREIGN KEY (`refchatid`) REFERENCES `chat_rooms` (`id`) ON DELETE SET NULL,
   CONSTRAINT `chat_messages_ibfk_1` FOREIGN KEY (`imageid`) REFERENCES `chat_images` (`id`) ON DELETE SET NULL,
   CONSTRAINT `chat_messages_ibfk_2` FOREIGN KEY (`scheduleid`) REFERENCES `users_schedules` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=33190057 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=1;
+) ENGINE=InnoDB AUTO_INCREMENT=34251129 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -566,7 +566,7 @@ CREATE TABLE `chat_messages_byemail` (
   KEY `msgid` (`msgid`),
   CONSTRAINT `chat_messages_byemail_ibfk_1` FOREIGN KEY (`chatmsgid`) REFERENCES `chat_messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chat_messages_byemail_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8767669 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9149625 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -586,7 +586,7 @@ CREATE TABLE `chat_messages_held` (
   KEY `userid` (`userid`),
   CONSTRAINT `chat_messages_held_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `chat_messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chat_messages_held_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=487 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=470 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -626,7 +626,7 @@ CREATE TABLE `chat_rooms` (
   CONSTRAINT `chat_rooms_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chat_rooms_ibfk_2` FOREIGN KEY (`user1`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chat_rooms_ibfk_3` FOREIGN KEY (`user2`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8694448 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8917551 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -656,7 +656,7 @@ CREATE TABLE `chat_roster` (
   KEY `status` (`status`),
   CONSTRAINT `chat_roster_ibfk_1` FOREIGN KEY (`chatid`) REFERENCES `chat_rooms` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chat_roster_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2656080229 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3046422735 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -689,7 +689,7 @@ CREATE TABLE `communityevents` (
   KEY `heldby` (`heldby`),
   CONSTRAINT `communityevents_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `communityevents_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=154972 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=155016 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -709,7 +709,7 @@ CREATE TABLE `communityevents_dates` (
   KEY `eventid` (`eventid`),
   KEY `end` (`end`),
   CONSTRAINT `communityevents_dates_ibfk_1` FOREIGN KEY (`eventid`) REFERENCES `communityevents` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=169090 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=169212 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -750,7 +750,7 @@ CREATE TABLE `communityevents_images` (
   KEY `incomingid` (`eventid`),
   KEY `hash` (`hash`),
   CONSTRAINT `communityevents_images_ibfk_1` FOREIGN KEY (`eventid`) REFERENCES `communityevents` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=21247 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
+) ENGINE=InnoDB AUTO_INCREMENT=21297 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -771,7 +771,7 @@ CREATE TABLE `domains` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `domain` (`domain`),
   KEY `problem` (`problem`)
-) ENGINE=InnoDB AUTO_INCREMENT=90325 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Statistics on email domains we''ve sent to recently';
+) ENGINE=InnoDB AUTO_INCREMENT=92139 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Statistics on email domains we''ve sent to recently';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -787,7 +787,7 @@ CREATE TABLE `domains_common` (
   `count` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `domain` (`domain`)
-) ENGINE=InnoDB AUTO_INCREMENT=15244 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15621 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -824,7 +824,7 @@ CREATE TABLE `engage` (
   KEY `userid` (`userid`),
   KEY `timestamp` (`timestamp`),
   CONSTRAINT `engage_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=50023 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User re-engagement attempts';
+) ENGINE=InnoDB AUTO_INCREMENT=245729 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User re-engagement attempts';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -849,7 +849,7 @@ CREATE TABLE `giftaid` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid` (`userid`),
   CONSTRAINT `giftaid_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2638 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3276 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -997,7 +997,7 @@ CREATE TABLE `groups_facebook` (
   KEY `eventid` (`eventid`),
   KEY `groupid` (`groupid`),
   CONSTRAINT `groups_facebook_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7036 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7058 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1039,7 +1039,7 @@ CREATE TABLE `groups_facebook_toshare` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `postid` (`postid`),
   KEY `date` (`date`)
-) ENGINE=InnoDB AUTO_INCREMENT=74181532 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stores central posts for sharing out to group pages';
+) ENGINE=InnoDB AUTO_INCREMENT=74444637 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stores central posts for sharing out to group pages';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1061,7 +1061,7 @@ CREATE TABLE `groups_images` (
   KEY `incomingid` (`groupid`),
   KEY `hash` (`hash`),
   CONSTRAINT `groups_images_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5673 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
+) ENGINE=InnoDB AUTO_INCREMENT=5687 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1088,7 +1088,7 @@ CREATE TABLE `groups_sponsorship` (
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`,`startdate`,`enddate`,`visible`) USING BTREE,
   CONSTRAINT `groups_sponsorship_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1137,7 +1137,7 @@ CREATE TABLE `items` (
   `suggestfromtypeahead` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'We can exclude from typeahead',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=4989340 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=5118156 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1175,7 +1175,7 @@ CREATE TABLE `items_non` (
   `lastexample` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=8967964 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Not considered items by us, but by image recognition';
+) ENGINE=InnoDB AUTO_INCREMENT=9178247 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Not considered items by us, but by image recognition';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1191,7 +1191,7 @@ CREATE TABLE `jobs_keywords` (
   `count` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `keyword` (`keyword`)
-) ENGINE=InnoDB AUTO_INCREMENT=14522695 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18189117 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1211,7 +1211,7 @@ CREATE TABLE `link_previews` (
   `spam` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `url` (`url`)
-) ENGINE=InnoDB AUTO_INCREMENT=4636363 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4636757 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1251,7 +1251,7 @@ CREATE TABLE `locations` (
   KEY `gridid` (`gridid`,`osm_place`),
   KEY `timestamp` (`timestamp`),
   CONSTRAINT `locations_ibfk_1` FOREIGN KEY (`gridid`) REFERENCES `locations_grids` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=9633904 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Location data, the bulk derived from OSM';
+) ENGINE=InnoDB AUTO_INCREMENT=9635153 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Location data, the bulk derived from OSM';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1276,7 +1276,7 @@ CREATE TABLE `locations_excluded` (
   CONSTRAINT `_locations_excluded_ibfk_1` FOREIGN KEY (`locationid`) REFERENCES `locations` (`id`) ON DELETE CASCADE,
   CONSTRAINT `locations_excluded_ibfk_3` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `locations_excluded_ibfk_4` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=228103 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Stops locations being suggested on a group';
+) ENGINE=InnoDB AUTO_INCREMENT=228180 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Stops locations being suggested on a group';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1295,7 +1295,7 @@ CREATE TABLE `locations_grids` (
   `box` geometry NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `swlat` (`swlat`,`swlng`,`nelat`,`nelng`)
-) ENGINE=InnoDB AUTO_INCREMENT=872701 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Used to map lat/lng to gridid for location searches';
+) ENGINE=InnoDB AUTO_INCREMENT=875435 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Used to map lat/lng to gridid for location searches';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1377,7 +1377,7 @@ CREATE TABLE `logs` (
   KEY `user` (`user`),
   KEY `msgid` (`msgid`),
   KEY `timestamp_2` (`timestamp`,`type`,`subtype`)
-) ENGINE=InnoDB AUTO_INCREMENT=341783509 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Logs.  Not guaranteed against loss';
+) ENGINE=InnoDB AUTO_INCREMENT=346991930 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Logs.  Not guaranteed against loss';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1401,7 +1401,7 @@ CREATE TABLE `logs_api` (
   KEY `date` (`date`),
   KEY `userid` (`userid`),
   KEY `ip` (`ip`)
-) ENGINE=InnoDB AUTO_INCREMENT=55785670 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses';
+) ENGINE=InnoDB AUTO_INCREMENT=61634699 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1426,7 +1426,7 @@ CREATE TABLE `logs_emails` (
   KEY `userid` (`userid`),
   KEY `timestamp_2` (`eximid`) USING BTREE,
   CONSTRAINT `logs_emails_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=400968970 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=421742613 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1496,7 +1496,7 @@ CREATE TABLE `logs_jobs` (
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `timestamp` (`timestamp`)
-) ENGINE=InnoDB AUTO_INCREMENT=66226 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=87441 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1561,7 +1561,7 @@ CREATE TABLE `logs_src` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`),
   KEY `src` (`src`)
-) ENGINE=InnoDB AUTO_INCREMENT=108638023 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Record which mails we sent generated website traffic';
+) ENGINE=InnoDB AUTO_INCREMENT=110248883 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Record which mails we sent generated website traffic';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1600,7 +1600,7 @@ CREATE TABLE `memberships` (
   CONSTRAINT `memberships_ibfk_3` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `memberships_ibfk_4` FOREIGN KEY (`heldby`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `memberships_ibfk_5` FOREIGN KEY (`configid`) REFERENCES `mod_configs` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=47971711 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Which groups users are members of';
+) ENGINE=InnoDB AUTO_INCREMENT=48081462 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Which groups users are members of';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1622,7 +1622,7 @@ CREATE TABLE `memberships_history` (
   KEY `userid` (`userid`,`groupid`),
   CONSTRAINT `memberships_history_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `memberships_history_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=37705900 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Used to spot multijoiners';
+) ENGINE=InnoDB AUTO_INCREMENT=37815450 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Used to spot multijoiners';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1656,7 +1656,7 @@ CREATE TABLE `memberships_yahoo` (
   KEY `yahooAlias` (`yahooAlias`),
   CONSTRAINT `_memberships_yahoo_ibfk_1` FOREIGN KEY (`membershipid`) REFERENCES `memberships` (`id`) ON DELETE CASCADE,
   CONSTRAINT `memberships_yahoo_ibfk_1` FOREIGN KEY (`emailid`) REFERENCES `users_emails` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=28656078 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Which groups users are members of';
+) ENGINE=InnoDB AUTO_INCREMENT=28655004 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Which groups users are members of';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1681,7 +1681,7 @@ CREATE TABLE `memberships_yahoo_dump` (
   KEY `lastupdated` (`lastupdated`,`lastprocessed`),
   KEY `needsprocessing` (`needsprocessing`),
   CONSTRAINT `memberships_yahoo_dump_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1853744 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Copy of last member sync from Yahoo';
+) ENGINE=InnoDB AUTO_INCREMENT=1546144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Copy of last member sync from Yahoo';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1701,7 +1701,7 @@ CREATE TABLE `merges` (
   `offeredby` bigint(20) unsigned NOT NULL,
   `uid` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4714 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Offers of merges to members';
+) ENGINE=InnoDB AUTO_INCREMENT=5613 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Offers of merges to members';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1769,7 +1769,7 @@ CREATE TABLE `messages` (
   CONSTRAINT `_messages_ibfk_1` FOREIGN KEY (`heldby`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `_messages_ibfk_2` FOREIGN KEY (`fromuser`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `_messages_ibfk_3` FOREIGN KEY (`locationid`) REFERENCES `locations` (`id`) ON DELETE SET NULL ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=68418796 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8 COMMENT='All our messages';
+) ENGINE=InnoDB AUTO_INCREMENT=69259575 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8 COMMENT='All our messages';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1791,7 +1791,7 @@ CREATE TABLE `messages_attachments` (
   KEY `incomingid` (`msgid`),
   KEY `hash` (`hash`),
   CONSTRAINT `_messages_attachments_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=14768887 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
+) ENGINE=InnoDB AUTO_INCREMENT=14993370 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1810,7 +1810,7 @@ CREATE TABLE `messages_attachments_items` (
   KEY `itemid` (`itemid`),
   CONSTRAINT `messages_attachments_items_ibfk_1` FOREIGN KEY (`attid`) REFERENCES `messages_attachments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `messages_attachments_items_ibfk_2` FOREIGN KEY (`itemid`) REFERENCES `items` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10234936 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=10658535 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1850,7 +1850,7 @@ CREATE TABLE `messages_drafts` (
   CONSTRAINT `messages_drafts_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `messages_drafts_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `messages_drafts_ibfk_3` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4476628 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=4590078 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1886,7 +1886,7 @@ CREATE TABLE `messages_edits` (
   KEY `timestamp` (`timestamp`,`reviewrequired`),
   CONSTRAINT `messages_edits_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `messages_edits_ibfk_2` FOREIGN KEY (`byuser`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=347317 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=367653 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1972,7 +1972,7 @@ CREATE TABLE `messages_history` (
   KEY `fromuser` (`fromuser`),
   CONSTRAINT `_messages_history_ibfk_1` FOREIGN KEY (`fromuser`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `_messages_history_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=21580063 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Message arrivals, used for spam checking';
+) ENGINE=InnoDB AUTO_INCREMENT=22315011 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Message arrivals, used for spam checking';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2059,7 +2059,7 @@ CREATE TABLE `messages_outcomes` (
   KEY `timestamp_3` (`reviewed`,`timestamp`,`happiness`) USING BTREE,
   CONSTRAINT `messages_outcomes_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `messages_outcomes_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4117300 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4257102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2081,7 +2081,7 @@ CREATE TABLE `messages_outcomes_intended` (
   KEY `timestamp_2` (`timestamp`,`outcome`),
   KEY `msgid_3` (`msgid`),
   CONSTRAINT `messages_outcomes_intended_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=925627 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='When someone starts telling us an outcome but doesn''t finish';
+) ENGINE=InnoDB AUTO_INCREMENT=948408 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='When someone starts telling us an outcome but doesn''t finish';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2103,7 +2103,7 @@ CREATE TABLE `messages_postings` (
   KEY `groupid` (`groupid`),
   CONSTRAINT `messages_postings_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `messages_postings_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6167095 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6350493 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2124,7 +2124,7 @@ CREATE TABLE `messages_promises` (
   KEY `promisedat` (`promisedat`),
   CONSTRAINT `messages_promises_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `messages_promises_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=456460 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=474156 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2163,7 +2163,7 @@ CREATE TABLE `messages_reneged` (
   KEY `timestamp` (`timestamp`),
   CONSTRAINT `messages_reneged_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `messages_reneged_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=58432 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=60426 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2181,7 +2181,7 @@ CREATE TABLE `messages_spamham` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `msgid` (`msgid`),
   CONSTRAINT `messages_spamham_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=85714 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='User feedback on messages ';
+) ENGINE=InnoDB AUTO_INCREMENT=87309 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='User feedback on messages ';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2203,7 +2203,7 @@ CREATE TABLE `mod_bulkops` (
   UNIQUE KEY `uniqueid` (`id`),
   KEY `configid` (`configid`),
   CONSTRAINT `mod_bulkops_ibfk_1` FOREIGN KEY (`configid`) REFERENCES `mod_configs` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=32266 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=32285 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2261,7 +2261,7 @@ CREATE TABLE `mod_configs` (
   KEY `createdby` (`createdby`),
   KEY `default` (`default`),
   CONSTRAINT `mod_configs_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=71355 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Configurations for use by moderators';
+) ENGINE=InnoDB AUTO_INCREMENT=71619 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Configurations for use by moderators';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2288,7 +2288,7 @@ CREATE TABLE `mod_stdmsgs` (
   UNIQUE KEY `id` (`id`),
   KEY `configid` (`configid`),
   CONSTRAINT `mod_stdmsgs_ibfk_1` FOREIGN KEY (`configid`) REFERENCES `mod_configs` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=208708 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=209292 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2306,7 +2306,7 @@ CREATE TABLE `modnotifs` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid` (`userid`),
   CONSTRAINT `modnotifs_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=822769 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=852927 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2360,7 +2360,7 @@ CREATE TABLE `newsfeed` (
   CONSTRAINT `newsfeed_ibfk_5` FOREIGN KEY (`volunteeringid`) REFERENCES `volunteering` (`id`) ON DELETE CASCADE,
   CONSTRAINT `newsfeed_ibfk_6` FOREIGN KEY (`publicityid`) REFERENCES `groups_facebook_toshare` (`id`) ON DELETE CASCADE,
   CONSTRAINT `newsfeed_ibfk_7` FOREIGN KEY (`storyid`) REFERENCES `users_stories` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=203368 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=205695 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2381,7 +2381,7 @@ CREATE TABLE `newsfeed_images` (
   PRIMARY KEY (`id`),
   KEY `incomingid` (`newsfeedid`),
   KEY `hash` (`hash`)
-) ENGINE=InnoDB AUTO_INCREMENT=11617 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
+) ENGINE=InnoDB AUTO_INCREMENT=11670 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2441,7 +2441,7 @@ CREATE TABLE `newsfeed_unfollow` (
   KEY `newsfeedid` (`newsfeedid`),
   CONSTRAINT `newsfeed_unfollow_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `newsfeed_unfollow_ibfk_2` FOREIGN KEY (`newsfeedid`) REFERENCES `newsfeed` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5095 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5114 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2459,7 +2459,7 @@ CREATE TABLE `newsfeed_users` (
   UNIQUE KEY `userid` (`userid`),
   KEY `newsfeedid` (`newsfeedid`),
   CONSTRAINT `newsfeed_users_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=323220643 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=323220657 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2481,7 +2481,7 @@ CREATE TABLE `newsletters` (
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   CONSTRAINT `newsletters_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=780 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=782 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2504,7 +2504,7 @@ CREATE TABLE `newsletters_articles` (
   KEY `photo` (`photoid`),
   CONSTRAINT `newsletters_articles_ibfk_1` FOREIGN KEY (`newsletterid`) REFERENCES `newsletters` (`id`) ON DELETE CASCADE,
   CONSTRAINT `newsletters_articles_ibfk_2` FOREIGN KEY (`photoid`) REFERENCES `newsletters_images` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=3300 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3332 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2575,7 +2575,7 @@ CREATE TABLE `noticeboards` (
   KEY `addedby` (`addedby`),
   KEY `thanked` (`thanked`),
   CONSTRAINT `noticeboards_ibfk_1` FOREIGN KEY (`addedby`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2653 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2666 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2787,7 +2787,7 @@ CREATE TABLE `partners_keys` (
   `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `domain` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=85 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For site-to-site integration';
+) ENGINE=InnoDB AUTO_INCREMENT=167 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For site-to-site integration';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2805,7 +2805,7 @@ CREATE TABLE `plugin` (
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   CONSTRAINT `plugin_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5816346 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Outstanding work required to be performed by the plugin';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Outstanding work required to be performed by the plugin';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2911,7 +2911,7 @@ CREATE TABLE `ratings` (
   KEY `ratee` (`ratee`),
   CONSTRAINT `ratings_ibfk_1` FOREIGN KEY (`rater`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `ratings_ibfk_2` FOREIGN KEY (`ratee`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=603715 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=644766 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2954,7 +2954,7 @@ CREATE TABLE `search_history` (
   KEY `date` (`date`),
   KEY `locationid` (`locationid`),
   CONSTRAINT `search_history_ibfk_1` FOREIGN KEY (`locationid`) REFERENCES `locations` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=71934406 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=72290937 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2991,7 +2991,7 @@ CREATE TABLE `sessions` (
   KEY `date` (`date`),
   KEY `userid` (`userid`),
   CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13989472 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=14137857 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3009,7 +3009,7 @@ CREATE TABLE `shortlink_clicks` (
   KEY `shortlinkid` (`shortlinkid`),
   KEY `shortlinkid_2` (`shortlinkid`,`timestamp`),
   CONSTRAINT `shortlink_clicks_ibfk_1` FOREIGN KEY (`shortlinkid`) REFERENCES `shortlinks` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1453864 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1547403 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3088,7 +3088,7 @@ CREATE TABLE `spam_users` (
   KEY `collection` (`collection`),
   CONSTRAINT `spam_users_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `spam_users_ibfk_2` FOREIGN KEY (`byuserid`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=29377 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Users who are spammers or trusted';
+) ENGINE=InnoDB AUTO_INCREMENT=29499 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Users who are spammers or trusted';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3126,7 +3126,7 @@ CREATE TABLE `spam_whitelist_links` (
   UNIQUE KEY `domain` (`domain`),
   KEY `userid` (`userid`),
   CONSTRAINT `spam_whitelist_links_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=431749 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Whitelisted domains for URLs';
+) ENGINE=InnoDB AUTO_INCREMENT=434454 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Whitelisted domains for URLs';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3144,7 +3144,7 @@ CREATE TABLE `spam_whitelist_subjects` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ip` (`subject`)
-) ENGINE=InnoDB AUTO_INCREMENT=15106 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Whitelisted subjects';
+) ENGINE=InnoDB AUTO_INCREMENT=15111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Whitelisted subjects';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3181,7 +3181,7 @@ CREATE TABLE `stats` (
   KEY `groupid` (`groupid`),
   KEY `type` (`type`,`date`,`groupid`),
   CONSTRAINT `_stats_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=86066509 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Stats information used for dashboard';
+) ENGINE=InnoDB AUTO_INCREMENT=86822925 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Stats information used for dashboard';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3200,7 +3200,7 @@ CREATE TABLE `stats_outcomes` (
   UNIQUE KEY `groupid_2` (`groupid`,`date`),
   KEY `groupid` (`groupid`) USING BTREE,
   CONSTRAINT `stats_outcomes_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=16967443 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='For efficient stats calculations, refreshed via cron';
+) ENGINE=InnoDB AUTO_INCREMENT=17420067 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='For efficient stats calculations, refreshed via cron';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3323,7 +3323,7 @@ CREATE TABLE `teams` (
   `active` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=134 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Users who have particular roles in the organisation';
+) ENGINE=InnoDB AUTO_INCREMENT=137 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Users who have particular roles in the organisation';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3347,7 +3347,7 @@ CREATE TABLE `teams_members` (
   KEY `teamid` (`teamid`),
   CONSTRAINT `teams_members_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `teams_members_ibfk_2` FOREIGN KEY (`teamid`) REFERENCES `teams` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=821 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=842 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3399,7 +3399,7 @@ CREATE TABLE `users` (
   `lastrelevantcheck` timestamp NULL DEFAULT NULL,
   `lastidlechaseup` timestamp NULL DEFAULT NULL,
   `bouncing` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Whether preferred email has been determined to be bouncing',
-  `permissions` set('BusinessCardsAdmin','Newsletter','NationalVolunteers','Teams','GiftAid') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `permissions` set('BusinessCardsAdmin','Newsletter','NationalVolunteers','Teams','GiftAid','SpamAdmin') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `invitesleft` int(10) unsigned DEFAULT '10',
   `source` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `chatmodstatus` enum('Moderated','Unmoderated','Fully') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Moderated',
@@ -3422,7 +3422,7 @@ CREATE TABLE `users` (
   KEY `lastlocation` (`lastlocation`),
   KEY `lastrelevantcheck` (`lastrelevantcheck`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`lastlocation`) REFERENCES `locations` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=40123378 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=40266516 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3441,7 +3441,7 @@ CREATE TABLE `users_aboutme` (
   KEY `userid` (`userid`),
   KEY `userid_2` (`userid`,`timestamp`),
   CONSTRAINT `users_aboutme_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=80581 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=82248 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3459,7 +3459,7 @@ CREATE TABLE `users_active` (
   UNIQUE KEY `userid_2` (`userid`,`timestamp`),
   KEY `timestamp` (`timestamp`),
   CONSTRAINT `users_active_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=62461486 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Track when users are active hourly';
+) ENGINE=InnoDB AUTO_INCREMENT=64171029 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Track when users are active hourly';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3481,7 +3481,7 @@ CREATE TABLE `users_addresses` (
   KEY `pafid` (`pafid`),
   CONSTRAINT `users_addresses_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_addresses_ibfk_3` FOREIGN KEY (`pafid`) REFERENCES `paf_addresses` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=49978 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=50823 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3501,7 +3501,7 @@ CREATE TABLE `users_approxlocs` (
   UNIQUE KEY `userid` (`userid`),
   SPATIAL KEY `position` (`position`),
   CONSTRAINT `users_approxlocs_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=31003 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=45798 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3543,7 +3543,7 @@ CREATE TABLE `users_builddates` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid` (`userid`),
   CONSTRAINT `users_builddates_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=21339352 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Used to spot old clients';
+) ENGINE=InnoDB AUTO_INCREMENT=25923335 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Used to spot old clients';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3624,7 +3624,7 @@ CREATE TABLE `users_comments` (
   CONSTRAINT `users_comments_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_comments_ibfk_2` FOREIGN KEY (`byuserid`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `users_comments_ibfk_3` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=191473 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Comments from mods on members';
+) ENGINE=InnoDB AUTO_INCREMENT=193233 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Comments from mods on members';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3651,7 +3651,7 @@ CREATE TABLE `users_dashboard` (
   KEY `systemwide` (`systemwide`),
   CONSTRAINT `users_dashboard_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_dashboard_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3760 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cached copy of mod dashboard, gen in cron';
+) ENGINE=InnoDB AUTO_INCREMENT=3915 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cached copy of mod dashboard, gen in cron';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3682,7 +3682,7 @@ CREATE TABLE `users_donations` (
   KEY `timestamp_2` (`timestamp`,`userid`,`GrossAmount`),
   KEY `source` (`source`),
   CONSTRAINT `users_donations_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=5006773 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5293812 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3699,7 +3699,7 @@ CREATE TABLE `users_donations_asks` (
   PRIMARY KEY (`id`),
   KEY `userid` (`userid`),
   CONSTRAINT `users_donations_asks_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=539266 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=564402 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3733,7 +3733,7 @@ CREATE TABLE `users_emails` (
   KEY `viewed` (`viewed`),
   KEY `md5hash` (`md5hash`),
   CONSTRAINT `users_emails_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=126122353 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=126330270 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3793,7 +3793,7 @@ CREATE TABLE `users_expected` (
   CONSTRAINT `users_expected_ibfk_1` FOREIGN KEY (`expecter`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_expected_ibfk_2` FOREIGN KEY (`expectee`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_expected_ibfk_3` FOREIGN KEY (`chatmsgid`) REFERENCES `chat_messages` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1281134938 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1522288218 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3815,7 +3815,7 @@ CREATE TABLE `users_exports` (
   KEY `userid` (`userid`),
   KEY `completed` (`completed`),
   CONSTRAINT `users_exports_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3784 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3870 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3839,7 +3839,7 @@ CREATE TABLE `users_images` (
   KEY `incomingid` (`userid`),
   KEY `hash` (`hash`),
   CONSTRAINT `users_images_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4366504 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
+) ENGINE=InnoDB AUTO_INCREMENT=4409055 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3861,7 +3861,7 @@ CREATE TABLE `users_invitations` (
   KEY `userid` (`userid`),
   KEY `email` (`email`),
   CONSTRAINT `users_invitations_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=24568 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24726 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3886,7 +3886,7 @@ CREATE TABLE `users_kudos` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid` (`userid`),
   CONSTRAINT `users_kudos_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1280185 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1520670 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3913,7 +3913,7 @@ CREATE TABLE `users_logins` (
   KEY `userid` (`userid`),
   KEY `validated` (`lastaccess`),
   CONSTRAINT `users_logins_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8761513 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=8818302 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3932,7 +3932,7 @@ CREATE TABLE `users_modmails` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `logid` (`logid`),
   KEY `userid_2` (`userid`,`groupid`)
-) ENGINE=InnoDB AUTO_INCREMENT=2605954 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2718642 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3983,7 +3983,7 @@ CREATE TABLE `users_notifications` (
   CONSTRAINT `users_notifications_ibfk_1` FOREIGN KEY (`fromuser`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_notifications_ibfk_2` FOREIGN KEY (`newsfeedid`) REFERENCES `newsfeed` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_notifications_ibfk_3` FOREIGN KEY (`touser`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8490001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8757198 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4004,7 +4004,7 @@ CREATE TABLE `users_nudges` (
   KEY `touser` (`touser`),
   CONSTRAINT `users_nudges_ibfk_1` FOREIGN KEY (`fromuser`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_nudges_ibfk_2` FOREIGN KEY (`touser`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=229921 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=233028 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4030,7 +4030,7 @@ CREATE TABLE `users_phones` (
   KEY `number` (`number`),
   KEY `laststatus` (`laststatus`,`valid`) USING BTREE,
   CONSTRAINT `users_phones_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=135577 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=136362 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4053,7 +4053,7 @@ CREATE TABLE `users_push_notifications` (
   KEY `userid` (`userid`,`type`),
   KEY `type` (`type`),
   CONSTRAINT `users_push_notifications_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=29471674 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For sending push notifications to users';
+) ENGINE=InnoDB AUTO_INCREMENT=30019245 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For sending push notifications to users';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4077,7 +4077,7 @@ CREATE TABLE `users_related` (
   KEY `notified` (`notified`),
   CONSTRAINT `users_related_ibfk_1` FOREIGN KEY (`user1`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_related_ibfk_2` FOREIGN KEY (`user2`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=135136 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=164004 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4095,7 +4095,7 @@ CREATE TABLE `users_replytime` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid` (`userid`) USING BTREE,
   CONSTRAINT `users_replytime_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=17978365 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19074948 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4125,7 +4125,7 @@ CREATE TABLE `users_requests` (
   CONSTRAINT `users_requests_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_requests_ibfk_2` FOREIGN KEY (`addressid`) REFERENCES `users_addresses` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_requests_ibfk_3` FOREIGN KEY (`completedby`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=6394 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6391 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4143,7 +4143,7 @@ CREATE TABLE `users_schedules` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid` (`userid`),
   CONSTRAINT `users_schedules_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=241831 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=245022 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4167,7 +4167,7 @@ CREATE TABLE `users_searches` (
   KEY `userid_2` (`userid`),
   KEY `maxmsg` (`maxmsg`),
   KEY `userid_3` (`userid`,`date`)
-) ENGINE=InnoDB AUTO_INCREMENT=35241454 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35602149 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4201,7 +4201,7 @@ CREATE TABLE `users_stories` (
   CONSTRAINT `users_stories_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `users_stories_ibfk_2` FOREIGN KEY (`reviewedby`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_stories_ibfk_3` FOREIGN KEY (`reviewedby`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7726 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7848 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4224,7 +4224,7 @@ CREATE TABLE `users_stories_images` (
   PRIMARY KEY (`id`),
   KEY `incomingid` (`storyid`),
   KEY `hash` (`hash`)
-) ENGINE=InnoDB AUTO_INCREMENT=799 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
+) ENGINE=InnoDB AUTO_INCREMENT=843 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4260,7 +4260,7 @@ CREATE TABLE `users_stories_requested` (
   UNIQUE KEY `id` (`id`),
   KEY `userid` (`userid`),
   CONSTRAINT `users_stories_requested_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=205618 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=210201 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4277,7 +4277,7 @@ CREATE TABLE `users_thanks` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid` (`userid`),
   CONSTRAINT `users_thanks_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=20317 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20919 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4308,7 +4308,7 @@ CREATE TABLE `visualise` (
   CONSTRAINT `visualise_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `visualise_ibfk_2` FOREIGN KEY (`fromuser`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `visualise_ibfk_3` FOREIGN KEY (`touser`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6298081 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Data to allow us to visualise flows of items to people';
+) ENGINE=InnoDB AUTO_INCREMENT=6450750 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Data to allow us to visualise flows of items to people';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4346,7 +4346,7 @@ CREATE TABLE `volunteering` (
   KEY `heldby` (`heldby`),
   CONSTRAINT `volunteering_ibfk_1` FOREIGN KEY (`deletedby`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `volunteering_ibfk_2` FOREIGN KEY (`heldby`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=13963 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14007 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4367,7 +4367,7 @@ CREATE TABLE `volunteering_dates` (
   KEY `eventid` (`volunteeringid`),
   KEY `end` (`end`),
   CONSTRAINT `volunteering_dates_ibfk_1` FOREIGN KEY (`volunteeringid`) REFERENCES `volunteering` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4606 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4611 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4408,7 +4408,7 @@ CREATE TABLE `volunteering_images` (
   KEY `incomingid` (`opportunityid`),
   KEY `hash` (`hash`),
   CONSTRAINT `volunteering_images_ibfk_1` FOREIGN KEY (`opportunityid`) REFERENCES `volunteering` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4693 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
+) ENGINE=InnoDB AUTO_INCREMENT=4745 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4431,7 +4431,7 @@ CREATE TABLE `vouchers` (
   KEY `userid` (`userid`),
   CONSTRAINT `vouchers_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE SET NULL,
   CONSTRAINT `vouchers_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4352 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For licensing groups';
+) ENGINE=InnoDB AUTO_INCREMENT=4353 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For licensing groups';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4636,7 +4636,7 @@ CREATE TABLE `words` (
   KEY `word` (`word`,`popularity`),
   KEY `soundex` (`soundex`,`popularity`),
   KEY `firstthree` (`firstthree`,`popularity`)
-) ENGINE=InnoDB AUTO_INCREMENT=13282657 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Unique words for searches';
+) ENGINE=InnoDB AUTO_INCREMENT=13312812 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Unique words for searches';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4653,7 +4653,7 @@ CREATE TABLE `words_cache` (
   `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `search` (`search`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=677410 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=687525 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -5042,4 +5042,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-07 11:30:51
+-- Dump completed on 2020-07-28  7:44:07
