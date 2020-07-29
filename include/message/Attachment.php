@@ -199,7 +199,7 @@ class Attachment
                 $temp = tempnam(sys_get_temp_dir(), "img_archive_$fn");
                 file_put_contents($temp, $data);
                 $rem = "/var/www/iznik/images/$fn";
-                $rc = ssh2_scp_send($connection, $temp, $rem, 0644);
+                $rc = @ssh2_scp_send($connection, $temp, $rem, 0644);
                 $failed |= !$rc;
                 unlink($temp);
                 error_log("scp $temp to $host $rem returned $rc");

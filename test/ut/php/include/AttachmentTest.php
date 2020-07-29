@@ -110,7 +110,13 @@ class AttachmentTest extends IznikTestCase {
         $a1 = new Attachment($this->dbhr, $this->dbhm, $attid1, Attachment::TYPE_GROUP);
         $a2 = new Attachment($this->dbhr, $this->dbhm, $attid2, Attachment::TYPE_GROUP);
         assertEquals($a1->getHash(), $a2->getHash());
+    }
 
-        }
+    public function testSCP() {
+        $failed = FALSE;
+        $a = new Attachment($this->dbhr, $this->dbhm);
+        $a->scp('localhost', 'testdata', 'unittest', $failed);
+        assertEquals(1, $failed);
+    }
 }
 
