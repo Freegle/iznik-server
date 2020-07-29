@@ -35,7 +35,6 @@ before_install:
   - sudo sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
   - sudo service spamassassin start
   - sudo apt-get install php-ssh2
-  - sudo phpenmod ssh2
 
   # GeoIP
   - sudo apt-get install php-geoip
@@ -59,6 +58,7 @@ before_install:
   # PHP extensions
   - travis_retry pecl install mailparse
   - echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - echo "extension = ssh2.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
   # Redis listens on localhost on travis, whereas we use a unix socket on the live servers.
   - sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' include/config.php
