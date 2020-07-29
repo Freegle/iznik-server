@@ -220,6 +220,8 @@ class PAF
         $l = new Location($this->dbhr, $this->dbhm);
         $pcid = $l->findByName($pc);
 
+        error_log("$pcid for $pc");
+
         $ids = $this->dbhr->preQuery("SELECT id FROM paf_addresses WHERE postcodeid = $pcid;");
         foreach ($ids as $id) {
             $ret[] = $id['id'];
