@@ -75,8 +75,8 @@ class PAFTest extends IznikTestCase {
         $csv = file_get_contents('/tmp/ut_paf0000000000.csv');
         $this->log("CSV is $csv");
 
-        $this->log("Update - postcodes 4 diffs (2 in same UDPRN)");
-        self::assertEquals(4, $p->update(UT_DIR . '/php/misc/pc.csv'));
+        $this->log("Update - postcodes 3 diffs");
+        self::assertEquals(3, $p->update(UT_DIR . '/php/misc/pc.csv'));
 
         # Load a version where fields have changed and there's a new one.
         $t = file_get_contents(UT_DIR . '/php/misc/pc2.csv');
