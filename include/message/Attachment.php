@@ -193,7 +193,7 @@ class Attachment
         $connection = ssh2_connect($host, 22);
 
         if ($connection) {
-            if (ssh2_auth_pubkey_file($connection, CDN_SSH_USER,
+            if (@ssh2_auth_pubkey_file($connection, CDN_SSH_USER,
                 CDN_SSH_PUBLIC_KEY,
                 CDN_SSH_PRIVATE_KEY)) {
                 $temp = tempnam(sys_get_temp_dir(), "img_archive_$fn");

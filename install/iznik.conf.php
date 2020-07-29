@@ -140,9 +140,9 @@ define('IMAGE_DOMAIN', 'dev.modtools.org');
 define('IMAGE_ARCHIVED_DOMAIN', 'cdn.ilovefreegle.org');
 define('CDN_HOST_1', 'xxx1.ilovefreegle.org');
 define('CDN_HOST_2', 'xxx2.ilovefreegle.org');
-define('CDN_SSH_USER', 'XXX');
-define('CDN_SSH_PUBLIC_KEY', 'XXX');
-define('CDN_SSH_PRIVATE_KEY', 'XXX');
+define('CDN_SSH_USER', 'root');
+define('CDN_SSH_PUBLIC_KEY', '/root/.ssh/id_rsa.pub');
+define('CDN_SSH_PRIVATE_KEY', '/root/.ssh/id_rsa');
 
 # Domain for email addresses for our users
 define('USER_DOMAIN', 'users.ilovefreegle.org');

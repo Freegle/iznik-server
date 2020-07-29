@@ -35,6 +35,7 @@ before_install:
   - sudo sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
   - sudo service spamassassin start
   - sudo apt-get install php-ssh2
+  - sudo ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 
   # GeoIP
   - sudo apt-get install php-geoip
