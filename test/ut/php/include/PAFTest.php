@@ -54,10 +54,6 @@ class PAFTest extends IznikTestCase {
             $pcid = $l->create(NULL, 'AB10 1AB', 'Postcode', 'POINT(-2.097262456 57.1493033629)');
         }
 
-        if (!$l->findByName('FISHGUARD')) {
-            $pcid = $l->create(NULL, 'Fishguard', 'Point', 'POINT(-4.976810 51.993835)');
-        }
-
         if (file_exists('/tmp/ut_paf0000000000.csv')) {
             unlink('/tmp/ut_paf0000000000.csv');
         }
@@ -80,7 +76,7 @@ class PAFTest extends IznikTestCase {
         $this->log("CSV is $csv");
 
         $this->log("Update - postcodes 3 diffs");
-        self::assertEquals(3, $p->update(UT_DIR . '/php/misc/pc.csv'));
+        assertGreaterThanOrEqual(3, $p->update(UT_DIR . '/php/misc/pc.csv'));
 
         # Load a version where fields have changed and there's a new one.
         $t = file_get_contents(UT_DIR . '/php/misc/pc2.csv');
@@ -91,11 +87,11 @@ class PAFTest extends IznikTestCase {
         $this->log("Update with changes");
         self::assertEquals(5, $p->update('/tmp/ut.csv'));
 
-        $ids = $p->listForPostcode('SA65 9ET');
+        $ids = $p->listForPostcode('AB10 1AB');
         assertGreaterThan(0, count($ids));
         $line = $p->getSingleLine($ids[0]);
         $this->log($line);
-        self::assertEquals("FISHGUARD SA65 9ET", $line);
+        self::assertEquals("Marischal College Broad Street, ABERDEEN AB10 1AB", $line);
     }
 }
 
