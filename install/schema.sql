@@ -3081,7 +3081,7 @@ CREATE TABLE `spam_users` (
   `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `collection` enum('Spammer','Whitelisted','PendingAdd','PendingRemove') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Spammer',
   `reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `heldby` bigint(20) unsigned DEFAULT '0',
+  `heldby` bigint(20) unsigned DEFAULT NULL,
   `heldat` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid` (`userid`),
@@ -5046,4 +5046,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-29 10:36:48
+-- Dump completed on 2020-07-29 11:19:08
