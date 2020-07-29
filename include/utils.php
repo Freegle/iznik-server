@@ -12,18 +12,6 @@ function getProtocol() {
     return(pres('HTTPS', $_SERVER) ? 'https://' : 'http://');
 }
 
-function get_current_url() {
-    $current_url  = 'http';
-    $server_https = pres('HTTPS', $_SERVER);
-    $server_name  = pres('SERVER_NAME', $_SERVER);
-    $request_uri  = pres('REQUEST_URI', $_SERVER);
-    if ($server_https == "on") $current_url .= "s";
-    $current_url .= "://";
-    $current_url .= $server_name . $request_uri;
-    #error_log("Current url $current_url");
-    return $current_url;
-}
-
 function pres($key, $arr) {
     return($arr && is_array($arr) && array_key_exists($key, $arr) && $arr[$key] ? $arr[$key] : FALSE);
 }
@@ -82,11 +70,7 @@ function getCpuUsage() {
     $time = (microtime(true) - $tusage) * 1000000;
 
     // cpu per request
-    if($time > 0) {
-        $cpu = $dat["ru_utime.tv_usec"] / $time / 1000;
-    } else {
-        $cpu = 0;
-    }
+    $cpu = $time > 0 ? $dat["ru_utime.tv_usec"] / $time / 1000 : 0;
 
     return $cpu;
 }
@@ -94,22 +78,7 @@ function getCpuUsage() {
 // equiv to rand, mt_rand
 // returns int in *closed* interval [$min,$max]
 function devurandom_rand($min = 1, $max = 0x7FFFFFFF) {
-    if (function_exists('mcrypt_create_iv')) {
-        $diff = $max - $min;
-        if ($diff < 0 || $diff > 0x7FFFFFFF) {
-            throw new RuntimeException("Bad range");
-        }
-        $bytes = mcrypt_create_iv(4, MCRYPT_DEV_URANDOM);
-        if ($bytes === false || strlen($bytes) != 4) {
-            throw new RuntimeException("Unable to get 4 bytes");
-        }
-        $ary = unpack("Nint", $bytes);
-        $val = $ary['int'] & 0x7FFFFFFF;   // 32-bit safe
-        $fp = (float)$val / 2147483647.0; // convert to [0,1]
-        return round($fp * $diff) + $min;
-    } else {
-        return mt_rand($min, $max);
-    }
+    return mt_rand($min, $max);
 }
 
 if (!function_exists('ISODate')) {
@@ -123,15 +92,6 @@ if (!function_exists('ISODate')) {
 
         return ($date);
     }
-}
-
-function ISODateFromFloat($t) {
-    $s = floor($t);
-    $micro = sprintf("%06d",($t - $s) * 1000000);
-    $d = new DateTime(date('Y-m-d H:i:s.'.$micro, $t));
-    $date = $d->format(DateTime::ISO8601);
-    $date = str_replace('+0000', 'Z', $date);
-    return($date);
 }
 
 function code_to_country( $code ){
