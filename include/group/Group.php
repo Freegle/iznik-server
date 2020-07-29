@@ -392,7 +392,7 @@ INNER JOIN users ON users.id = memberships.userid AND suspectcount > 0
 WHERE groupid IN $groupq
 GROUP BY memberships.groupid, held
 UNION
-SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships
+SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
 INNER JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.collection = '" . Spam::TYPE_SPAMMER . "'
 WHERE groupid IN $groupq
 GROUP BY memberships.groupid, held;

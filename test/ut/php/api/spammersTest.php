@@ -179,11 +179,57 @@ class spammersAPITest extends IznikAPITestCase {
         # Look at the pending queue
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
 
+        # Hold and release.
+        $ret = $this->call('spammers', 'PATCH', [
+            'id' => $sid,
+            'collection' => Spam::TYPE_PENDING_ADD,
+            'reason' => 'Test reason',
+            'dup' => 5,
+            'heldby' => $this->user->getId()
+        ]);
+
+        $ret = $this->call('spammers', 'GET', [
+            'collection' => Spam::TYPE_PENDING_ADD,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $found = FALSE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && $spammer['user']['heldby']['id'] == $this->user->getId()) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
+
+        $ret = $this->call('spammers', 'PATCH', [
+            'id' => $sid,
+            'collection' => Spam::TYPE_PENDING_ADD,
+            'reason' => 'Test reason',
+            'dup' => 6
+        ]);
+
+        $ret = $this->call('spammers', 'GET', [
+            'collection' => Spam::TYPE_PENDING_ADD,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $found = TRUE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && array_key_exists('heldby', $spammer['user'])) {
+                $found = FALSE;
+            }
+        }
+
+        assertTrue($found);
+
         $ret = $this->call('spammers', 'PATCH', [
             'id' => $sid,
             'collection' => Spam::TYPE_SPAMMER,
             'reason' => 'Test reason',
-            'dup' => 5
+            'dup' => 7,
         ]);
 
         $ret = $this->call('spammers', 'GET', [
@@ -410,6 +456,6 @@ class spammersAPITest extends IznikAPITestCase {
 
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
 
-        }
+    }
 }
 

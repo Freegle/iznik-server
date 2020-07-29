@@ -556,6 +556,16 @@ class Spam {
                 }
             }
 
+            if ($collection === Spam::TYPE_PENDING_ADD) {
+                if (pres('heldby', $spammer)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $spammer['heldby']);
+                    $spammer['user']['heldby'] = $u->getPublic();
+                    $spammer['user']['heldat'] = ISODate($spammer['heldat']);
+                    unset($spammer['heldby']);
+                    unset($spammer['heldat']);
+                }
+            }
+
             $spammer['added'] = ISODate($spammer['added']);
             $context['id'] = $spammer['id'];
         }
@@ -694,7 +704,7 @@ class Spam {
         }
 
         if ($proceed) {
-            $sql = "REPLACE INTO spam_users (userid, collection, reason, byuserid) VALUES (?,?,?,?);";
+            $sql = "REPLACE INTO spam_users (userid, collection, reason, byuserid, heldby, heldat) VALUES (?,?,?,?, NULL, NULL);";
             $rc = $this->dbhm->preExec($sql, [
                 $userid,
                 $collection,
@@ -708,7 +718,7 @@ class Spam {
         return($id);
     }
 
-    public function updateSpammer($id, $userid, $collection, $reason) {
+    public function updateSpammer($id, $userid, $collection, $reason, $heldby) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         switch ($collection) {
@@ -735,18 +745,20 @@ class Spam {
             'subtype' => Log::SUBTYPE_SUSPECT,
             'byuser' => $me ? $me->getId() : NULL,
             'user' => $userid,
-            'text' => $text
+            'text' => $text . ", held $heldby"
         ]);
 
         # Don't want to lose any existing reason, but update the user when removal is requested so that we
         # know who's asking.
         $spammers = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE id = ?;", [ $id ]);
         foreach ($spammers as $spammer) {
-            $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid = ? WHERE id = ?;";
+            $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid = ?, heldby = ?, heldat = CASE WHEN ? IS NOT NULL THEN NOW() ELSE NULL END WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [
                 $collection,
                 $reason ? $reason : $spammer['reason'],
                 $collection == Spam::TYPE_PENDING_REMOVE && $me ? $me->getId() : $spammer['byuserid'],
+                $heldby,
+                $heldby,
                 $id
             ]);
         }

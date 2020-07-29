@@ -10,6 +10,7 @@ function spammers() {
     $reason = presdef('reason', $_REQUEST, NULL);
     $context = presdef('context', $_REQUEST, NULL);
     $search = presdef('search', $_REQUEST, NULL);
+    $heldby = array_key_exists('heldby', $_REQUEST) ? intval($_REQUEST['heldby']) : NULL;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -61,14 +62,14 @@ function spammers() {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
                 if ($spammer) {
-                    if ($me->isAdminOrSupport()) {
+                    if ($me->isAdminOrSupport() || $me->hasPermission(User::PERM_SPAM_ADMIN)) {
                         # Admin/Support can do anything
-                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($id, $spammer['userid'], $collection, $reason)];
+                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($id, $spammer['userid'], $collection, $reason, $heldby)];
                     } else if ($me->isModerator() &&
                         ($spammer['collection'] == Spam::TYPE_SPAMMER) &&
                         ($collection == Spam::TYPE_PENDING_REMOVE)) {
                         # Mods can request removal
-                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($id, $spammer['userid'], $collection, $reason)];
+                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($id, $spammer['userid'], $collection, $reason, NULL)];
                     }
                 }
             }
