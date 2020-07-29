@@ -74,6 +74,8 @@ class AttachmentTest extends IznikTestCase {
             ->setMethods(array('scp'))
             ->getMock();
 
+        assertNotNull($a->getPath());
+
         $a->method('scp')->will($this->returnCallback(function ($host, $data, $fn, &$failed) {
             $this->blobCount++;
         }));

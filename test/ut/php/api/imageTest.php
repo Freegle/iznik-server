@@ -176,8 +176,6 @@ class imageAPITest extends IznikAPITestCase
                 'ocr' => TRUE
             ]);
 
-            var_dump($ret);
-
             assertTrue(strpos($ret['ocr'], 'ANYONE CAN COME ALONG') !== FALSE);
         }
 

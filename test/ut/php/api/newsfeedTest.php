@@ -90,10 +90,27 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, count((array)$ret['ret']['newsfeed']));
         assertEquals(0, count((array)$ret['ret']['users']));
 
+        # Create an attachment.
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/giveandtake.jpg');
+        file_put_contents("/tmp/giveandtake.jpg", $data);
+
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/giveandtake.jpg',
+                'type' => 'image/jpeg'
+            ],
+            'newsfeed' => TRUE,
+            'ocr' => FALSE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $attid = $ret['id'];
+
         # Post something.
         $this->log("Post something as {$this->uid}");
         $ret = $this->call('newsfeed', 'POST', [
-            'message' => 'Test with url https://google.co.uk'
+            'message' => 'Test with url https://google.co.uk',
+            'imageid' => $attid
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
@@ -107,13 +124,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         # Get this individual one
-        error_log("Get the individual");
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
         ]);
-        error_log("Got " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals($nid, $ret['newsfeed']['id']);
+        assertEquals($attid, $ret['newsfeed']['imageid']);
         self::assertEquals('Google', $ret['newsfeed']['preview']['title']);
         self::assertEquals('Test with url https://google.co.uk', $ret['newsfeed']['message']);
         assertEquals($this->user->getId(), $ret['newsfeed']['user']['id']);
