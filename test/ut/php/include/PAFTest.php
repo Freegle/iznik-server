@@ -87,11 +87,11 @@ class PAFTest extends IznikTestCase {
         $this->log("Update with changes");
         self::assertEquals(5, $p->update('/tmp/ut.csv'));
 
-        $ids = $p->listForPostcode('AB10 1AB');
+        $ids = $p->listForPostcode('TV10 1AF');
         assertGreaterThan(0, count($ids));
         $line = $p->getSingleLine($ids[0]);
         $this->log($line);
-        self::assertEquals("Marischal College Broad Street, ABERDEEN AB10 1AB", $line);
+        self::assertEquals("Marischal College Broad Street, ABERDEEN TV10 1AF", $line);
     }
 }
 
