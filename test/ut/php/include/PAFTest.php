@@ -54,6 +54,10 @@ class PAFTest extends IznikTestCase {
             $pcid = $l->create(NULL, 'AB10 1AB', 'Postcode', 'POINT(-2.097262456 57.1493033629)');
         }
 
+        if (!$l->findByName('FISHGUARD')) {
+            $pcid = $l->create(NULL, 'Fishguard', 'Point', 'POINT(-4.976810 51.993835)');
+        }
+
         if (file_exists('/tmp/ut_paf0000000000.csv')) {
             unlink('/tmp/ut_paf0000000000.csv');
         }
