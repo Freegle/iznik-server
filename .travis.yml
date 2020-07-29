@@ -34,7 +34,7 @@ before_install:
   - sudo sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/spamassassin
   - sudo sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
   - sudo service spamassassin start
-  - sudo apt-get install libssh2-php
+  - sudo apt-get install php-ssh2
 
   # GeoIP
   - sudo apt-get install php-geoip
