@@ -473,6 +473,9 @@ class messageAPITest extends IznikAPITestCase
         $log = $this->findLog('Message', 'Approved', $ret['user']['logs']);
         assertEquals($sid, $log['stdmsgid']);
 
+        $groups = $u->getModGroupsByActivity();
+        assertEquals('testgroup', $groups[0]['namedisplay']);
+
         $s->delete();
         $c->delete();
 

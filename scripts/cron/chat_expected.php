@@ -19,49 +19,8 @@ foreach ($ids as $id) {
     ]);
 }
 
-$oldest = date("Y-m-d", strtotime("Midnight 31 days ago"));
-$expecteds = $dbhr->preQuery("SELECT chat_messages.*, user1, user2 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_messages.date>= '$oldest' AND replyexpected = 1 AND replyreceived = 0 AND chat_rooms.chattype = 'User2User';");
-$received = 0;
-$waiting = 0;
-
-foreach ($expecteds as $expected) {
-    $afters = $dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND id > ? AND userid != ?;",
-        [
-            $expected['chatid'],
-            $expected['id'],
-            $expected['userid']
-        ]);
-
-    $count = $afters[0]['count'];
-    $other = $expected['userid'] == $expected['user1'] ? $expected['user2'] : $expected['user1'];
-
-    if ($count) {
-        #error_log("Expected received to {$expected['date']} {$expected['id']} from user #{$expected['userid']}");
-        $dbhm->preExec("UPDATE chat_messages SET replyreceived = 1 WHERE id = ?;", [
-            $expected['id']
-        ]);
-
-        $dbhm->preExec("INSERT INTO users_expected (expecter, expectee, chatmsgid, value) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE value = ?;", [
-            $expected['userid'],
-            $other,
-            $expected['id'],
-            1,
-            1
-        ]);
-
-        $received++;
-    } else {
-        $dbhm->preExec("INSERT INTO users_expected (expecter, expectee, chatmsgid, value) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE value = ?;", [
-            $expected['userid'],
-            $other,
-            $expected['id'],
-            -1,
-            -1
-        ]);
-
-        $waiting++;
-    }
-}
+$r = new ChatRoom($dbhr, $dbhm);
+$waiting = $r->updateExpected();
 
 error_log("Received $received waiting $waiting");
 error_log("\nWorst:\n");

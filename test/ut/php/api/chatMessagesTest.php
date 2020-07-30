@@ -250,6 +250,17 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($this->cid, $ret['id']);
 
+        # Check no reply expected shows for sender.
+        $this->waitBackground();
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $r->updateExpected();
+        $replies = $this->user->getExpectedReplies([ $this->user->getId() ], ChatRoom::ACTIVELIM, -1);
+        assertEquals(0, $replies[0]['count']);
+
+        # Reply expected should show for recipient.
+        $replies = $this->user->getExpectedReplies([ $this->uid2 ], ChatRoom::ACTIVELIM, -1);
+        assertEquals(1, $replies[0]['count']);
+
         # Should see the messages
         $ret = $this->call('chatmessages', 'GET', [
             'roomid' => $this->cid,
