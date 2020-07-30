@@ -501,6 +501,38 @@ class userAPITest extends IznikAPITestCase {
 
     }
 
+    public function testCantMerge() {
+        $u1 = User::get($this->dbhm, $this->dbhm);
+        $id1 = $u1->create('Test', 'User', NULL);
+        $u1->addMembership($this->groupid);
+        $u2 = User::get($this->dbhm, $this->dbhm);
+        $id2 = $u2->create('Test', 'User', NULL);
+        $u2->addMembership($this->groupid);
+        $u2->addEmail('test2@test.com', 0);
+        $u3 = User::get($this->dbhm, $this->dbhm);
+        $id3 = $u3->create('Test', 'User', NULL);
+        $u3->addEmail('test3@test.com', 0);
+        $u3->addMembership($this->groupid);
+        $u3->setSetting('canmerge', FALSE);
+        $u4 = User::get($this->dbhm, $this->dbhm);
+        $id4 = $u4->create('Test', 'User', NULL);
+        $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $u4->addEmail('test4@test.com', 0);
+
+        assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u4->login('testpw'));
+
+        User::clearCache();
+
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Merge',
+            'email1' => 'test2@test.com',
+            'email2' => 'test3@test.com',
+            'reason' => 'UT'
+        ]);
+        assertNotEquals(0, $ret['ret']);
+    }
+
     public function testUnbounce() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
