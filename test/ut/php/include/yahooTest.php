@@ -92,7 +92,26 @@ class yahooTest extends IznikTestCase {
         list($session, $ret) = $y->login();
         assertNotNull($session);
         assertEquals(0, $ret['ret']);
+    }
 
-        }
+    public function testYahooLoginWithCode() {
+        $_SERVER['HTTP_HOST'] = 'localhost';
+        $_SERVER['REQUEST_URI'] = '/';
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->setPrivate('publishconsent', 1);
+        $u->addEmail('test@test.com');
+
+        $u->addEmail('test@test.com');
+        $y = Yahoo::getInstance($this->dbhr, $this->dbhm);
+        list ($session, $ret) = $y->loginWithCode('invalid',
+          json_encode([ 'access_token' => '1234' ]),
+          '{"guid":{"value":"1234","uri":"https://social.yahooapis.com/v1/me/guid"}}',
+          '{"sub":"1234","name":"Test User","given_name":"Test","family_name":"User","locale":"en-GB","email":"test@test.com"}'
+        );
+
+        assertEquals(0, $ret['ret']);
+    }
 }
 

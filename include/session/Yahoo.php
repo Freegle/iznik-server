@@ -47,7 +47,9 @@ class Yahoo
         $this->openid = $openid;
     }
 
-    function loginWithCode($code) {
+    function loginWithCode($code, $loginoverride = NULL, $guidoverride = NULL, $userinfooverride = NULL) {
+        $ret = NULL;
+
         # New style Yahoo login as of 2020.  The client has obtained an authorization code from Yahoo using the flow
         # in https://developer.yahoo.com/oauth2/guide/flows_authcode/.  We now try to convert that code to an Access
         # Token which we can use to obtain the user info.
@@ -66,8 +68,8 @@ class Yahoo
         $params = 'client_id=' . urlencode(YAHOO_CLIENT_ID) . '&client_secret=' . urlencode(YAHOO_CLIENT_SECRET) . '&redirect_uri=oob&code=' . $code . '&grant_type=authorization_code';
         error_log("Login with code $code params $params");
         curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
-        $json_response = curl_exec($curl);
-        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $json_response = $loginoverride ? $loginoverride : curl_exec($curl);
+        $status = $loginoverride ? 200 : curl_getinfo($curl, CURLINFO_HTTP_CODE);
         error_log("Yahoo login status 1 $status");
 
         if ($status == 200) {
@@ -84,15 +86,13 @@ class Yahoo
                     "Authorization: Bearer $token"
                 ]);
 
-                $guid_response = curl_exec($curl);
-                $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                $guid_response = $guidoverride ? $guidoverride : curl_exec($curl);
+                $status = $guidoverride ? 200 : curl_getinfo($curl, CURLINFO_HTTP_CODE);
                 error_log("Get GUID $status $guid_response");
 
                 if (preg_match('/.*\<value\>(.*)\<\/value\>/', $guid_response, $matches) ||
                     preg_match('/.*\"value":"(.*?)"/', $guid_response, $matches)) {
                     error_log("Got matches " . var_export($matches, TRUE));
-                    $guid = $matches[1];
-
                     $curl = curl_init();
                     curl_setopt($curl, CURLOPT_URL, 'https://api.login.yahoo.com/openid/v1/userinfo');
                     curl_setopt($curl, CURLOPT_TIMEOUT, 60);
@@ -101,8 +101,8 @@ class Yahoo
                         "Authorization: Bearer $token"
                     ]);
 
-                    $json_response = curl_exec($curl);
-                    $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                    $json_response = $userinfooverride ? $userinfooverride : curl_exec($curl);
+                    $status = $userinfooverride ? 200 : curl_getinfo($curl, CURLINFO_HTTP_CODE);
                     error_log("Yahoo login status 2 $status");
                 }
 
@@ -183,12 +183,14 @@ class Yahoo
                             ]);
 
                             error_log("Returning success");
-                            return ([$s, ['ret' => 0, 'status' => 'Success']]);
+                            $ret = [$s, ['ret' => 0, 'status' => 'Success']];
                         }
                     }
                 }
             }
         }
+
+        return $ret;
     }
 
     function login($returnto = '/')
