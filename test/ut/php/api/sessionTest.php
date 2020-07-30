@@ -447,15 +447,19 @@ class sessionTest extends IznikAPITestCase
 
     public function testPartner()
     {
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+
         $key = randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
         assertNotNull($id);
-        assertFalse(partner($this->dbhr, 'wibble'));
-        assertTrue(partner($this->dbhr, $key));
+        list ($partner, $domain) = partner($this->dbhr, 'wibble');
+        assertFalse($partner);
+        list ($partner, $domain) = partner($this->dbhr, $key);
+        assertTrue($partner);
 
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
-
-        }
+    }
 
     public function testPushCreds()
     {

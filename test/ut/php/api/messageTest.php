@@ -2751,6 +2751,9 @@ class messageAPITest extends IznikAPITestCase
     }
 
     public function testPartner() {
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+
         $key = randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'test.com']);
         assertNotNull($id);
