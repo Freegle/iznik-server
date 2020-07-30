@@ -236,11 +236,21 @@ function message() {
             $ret = ['ret' => 3, 'status' => 'Message does not exist'];
 
             if ($m->getID()) {
-                # We can edit this if we're logged in and a mod or the sender, or for TN if it's a TN user.
-                $partnerkey = presdef('partner', $_REQUEST, NULL);
-                $partner = $partnerkey ? partner($dbhr, $partnerkey) : FALSE;
+                # See if we can modify.
+                $canmod = $myid == $m->getFromuser();
 
-                if (($me && ($me->isModerator() || $m->getFromuser() == $me->getId())) || $partner) {
+                if (!$canmod) {
+                    $role = $m->getRoleForMessage()[0];
+                    $canmod = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
+
+                    if ($role == User::ROLE_OWNER && pres('partner', $_SESSION)) {
+                        # We have acquired owner rights by virtue of being a partner.  Pretend to be that user for the
+                        # rest of the call.
+                        $_SESSION['id'] = $m->getFromuser();
+                    }
+                }
+
+                if ($canmod) {
                     # Ignore the canedit flag here - the client will either show or not show the edit button on this
                     # basis but editing is part of the repost flow and therefore needs to work.
                     $subject = presdef('subject', $_REQUEST, NULL);
@@ -258,7 +268,7 @@ function message() {
                     ];
 
                     if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
-                        if ($partner) {
+                        if (pres('partner', $_SESSION)) {
                             # Photos might have changed.
                             $m->deleteAllAttachments();
                             $textbody = $m->scrapePhotos($textbody);
@@ -622,6 +632,13 @@ function message() {
             if (!$canmod) {
                 $role = $m->getRoleForMessage()[0];
                 $canmod = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
+
+                if ($role == User::ROLE_OWNER && pres('partner', $_SESSION)) {
+                    # We have acquired owner rights by virtue of being a partner.  Pretend to be that user for the
+                    # rest of the call.
+                    $_SESSION['id'] = $m->getFromuser();
+                    $myid = $m->getFromuser();
+                }
             }
 
             if ($canmod) {

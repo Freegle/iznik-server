@@ -667,6 +667,7 @@ class Message
         $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
         $ret = [];
         $groups = NULL;
+        $groupid = NULL;
 
         foreach ($msgs as $msg) {
             # Our role for a message is the highest role we have on any group that this message is on.  That means that
@@ -674,8 +675,16 @@ class Message
             # if the message is on our group.
             #
             # We might also be a partner, which allows us to appear like a member rather than a non-member.
-            $role = pres('partner', $_SESSION) ? User::ROLE_MEMBER : User::ROLE_NONMEMBER;
-            $groupid = NULL;
+            $role = User::ROLE_NONMEMBER;
+
+            if (pres('partner', $_SESSION)) {
+                # Partners always get at least member rights.
+                $role = User::ROLE_MEMBER;
+
+                if (strpos($msg['fromaddr'], '@' . $_SESSION['partnerdomain']) !== FALSE) {
+                    $role = User::ROLE_OWNER;
+                }
+            }
 
             if ($me) {
                 if ($me->getId() == $msg['fromuser']) {

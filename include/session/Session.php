@@ -46,8 +46,13 @@ function prepareSession($dbhr, $dbhm) {
 
         # We might have a partner key which allows us access to the API when not logged in as a user.
         $_SESSION['partner'] = FALSE;
+        error_log("Consider session");
+
         if (pres('partner', $_REQUEST)) {
-            $_SESSION['partner'] = partner($dbhr, $_REQUEST['partner']);
+            list ($partner, $domain) = partner($dbhr, $_REQUEST['partner']);
+            $_SESSION['partner'] = $partner;
+            $_SESSION['partnerdomain'] = $domain;
+            error_log("Partnerr, $partner, $domain");
         }
 
         # Always verify the persistent session if passed.  This guards against
@@ -107,12 +112,15 @@ function prepareSession($dbhr, $dbhm) {
 
 function partner($dbhr, $key) {
     $ret = FALSE;
+    $domain = NULL;
+
     $partners = $dbhr->preQuery("SELECT * FROM partners_keys WHERE `key` = ?;", [ $key ]);
     foreach ($partners as $partner) {
         $ret = TRUE;
+        $domain = $partner['domain'];
     }
 
-    return($ret);
+    return([$ret, $domain]);
 }
 
 function whoAmI(LoggedPDO $dbhr, $dbhm)

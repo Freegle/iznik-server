@@ -48,6 +48,12 @@ class messageAPITest extends IznikAPITestCase
         $this->user = $u;
     }
 
+    protected function tearDown()
+    {
+        $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
+        parent::tearDown();
+    }
+
     public function testLoggedOut() {
         # Create a group with a message on it
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -1805,8 +1811,7 @@ class messageAPITest extends IznikAPITestCase
         assertNotEquals($m1->getMessageID(), $m2->getMessageID());
         $m1->delete("UT delete");
         $m2->delete("UT delete");
-
-        }
+    }
     
     public function testPromise() {
         $u = $this->user;
@@ -1904,8 +1909,48 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'Renege'
         ]);
         assertEquals(2, $ret['ret']);
+    }
 
-        }
+    public function testPromisePartner() {
+        $key = randstr(64);
+        $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'test.com']);
+        assertNotNull($id);
+
+        $u = $this->user;
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('Basic test', 'OFFER: A thing (A place)', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Promise it to the other user.
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+        error_log("Promise");
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid2,
+            'action' => 'Promise',
+            'partner' => $key
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Renege
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid2,
+            'action' => 'Renege',
+            'partner' => $key
+        ]);
+        assertEquals(0, $ret['ret']);
+    }
 
     public function testMark()
     {

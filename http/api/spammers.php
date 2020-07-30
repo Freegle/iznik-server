@@ -30,9 +30,11 @@ function spammers() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
+            $cansee = $me && $me->isModerator();
+            $cansee = $cansee ? $cansee : partner($dbhr, presdef('partner', $_REQUEST, NULL))[0];
 
-            if (($me && $me->isModerator()) || partner($dbhr, presdef('partner', $_REQUEST, NULL))) {
-                # Only mods can see the list.
+            if ($cansee) {
+                # Only mods or partners can see the list.
                 if (presdef('action', $_REQUEST, NULL) == 'export') {
                     $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->exportSpammers() ];
                 } else {
