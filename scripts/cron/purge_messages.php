@@ -112,6 +112,14 @@ try {
 
     error_log("Deleted $total");
 
+    # Any drafts which are also on groups are not really drafts.  This must be due to a bug.
+    $msgids = $dbhm->query("SELECT messages_drafts.msgid FROM messages_drafts INNER JOIN messages_groups ON messages_groups.msgid = messages_drafts.msgid");
+    foreach ($msgids as $msgid) {
+        $dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [
+            $msgid['msgid']
+        ]);
+    }
+
     # Purge old drafts.
     $start = date('Y-m-d', strtotime("midnight 31 days ago"));
     error_log("Purge old drafts before $start");
