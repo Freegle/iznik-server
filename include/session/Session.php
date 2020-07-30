@@ -46,13 +46,11 @@ function prepareSession($dbhr, $dbhm) {
 
         # We might have a partner key which allows us access to the API when not logged in as a user.
         $_SESSION['partner'] = FALSE;
-        error_log("Consider session");
 
         if (pres('partner', $_REQUEST)) {
             list ($partner, $domain) = partner($dbhr, $_REQUEST['partner']);
             $_SESSION['partner'] = $partner;
             $_SESSION['partnerdomain'] = $domain;
-            error_log("Partnerr, $partner, $domain");
         }
 
         # Always verify the persistent session if passed.  This guards against

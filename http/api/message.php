@@ -268,7 +268,9 @@ function message() {
                     ];
 
                     if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
-                        if (pres('partner', $_SESSION)) {
+                        $partner = pres('partner', $_SESSION);
+
+                        if ($partner) {
                             # Photos might have changed.
                             $m->deleteAllAttachments();
                             $textbody = $m->scrapePhotos($textbody);
