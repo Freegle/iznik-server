@@ -300,6 +300,11 @@ class userTest extends IznikTestCase {
         $membs = $u->getMemberships();
         assertEquals(2, count($membs));
 
+        // Check history.
+        $this->waitBackground();
+        $hist = $u->getMembershipHistory();
+        assertEquals($group2, $hist[0]['group']['id']);
+
         // Support and admin users have a mod role on the group even if not a member
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
