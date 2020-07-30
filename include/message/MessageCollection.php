@@ -100,7 +100,7 @@ class MessageCollection
 
                 $summjoin = $summary ? ", messages.subject, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
 
-                $sql = $userids ? ("SELECT msgid AS id, 1 AS isdraft, messages.arrival, messages.type AS type, fromuser $summjoin FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) $oldest ORDER BY messages.id DESC LIMIT $limit;") : "SELECT msgid AS id, messages.type AS type, fromuser $summjoin FROM messages_drafts INNER JOIN messages ON messages_drafts.msgid = messages.id  WHERE session = ? $oldest ORDER BY messages.id DESC LIMIT $limit;";
+                $sql = $userids ? ("SELECT messages_drafts.msgid AS id, 1 AS isdraft, messages.arrival, messages.type AS type, fromuser $summjoin FROM messages_drafts LEFT JOIN messages_groups ON messages_groups.msgid = messages_drafts.msgid INNER JOIN messages ON messages_drafts.msgid = messages.id WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) AND messages_groups.msgid IS NULL $oldest ORDER BY messages.id DESC LIMIT $limit;") : "SELECT messages_drafts.msgid AS id, messages.type AS type, fromuser $summjoin FROM messages_drafts LEFT JOIN messages_groups ON messages_groups.msgid = messages_drafts.msgid INNER JOIN messages ON messages_drafts.msgid = messages.id  WHERE session = ? AND messages_groups.msgid IS NULL $oldest ORDER BY messages.id DESC LIMIT $limit;";
                 $tofill = $this->dbhr->preQuery($sql, [
                     session_id()
                 ]);
@@ -308,7 +308,7 @@ class MessageCollection
             $msgids = array_filter(array_column($msglist, 'id'));
 
             if (count($msgids)) {
-                $sql = "SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id IN (" . implode(',', $msgids) . ");";
+                $sql = "SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL AND messages_groups.msgid IS NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id IN (" . implode(',', $msgids) . ");";
                 $vals = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
                 foreach ($vals as $val) {
                     foreach ($msglist as &$msg) {
