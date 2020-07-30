@@ -872,7 +872,6 @@ class User extends Entity
                 'byuser' => $me ? $me->getId() : NULL,
                 'groupid' => $groupid
             ]);
-            error_log("Added {$this->id}");
         }
 
         # Check whether this user now counts as a possible spammer.
@@ -4029,8 +4028,8 @@ class User extends Entity
     public function getMembershipHistory()
     {
         # We get this from our logs.
-        $sql = "SELECT * FROM logs WHERE user = ? AND `type` = 'Group' ORDER BY id DESC;";
-        $logs = $this->dbhr->preQuery($sql, [$this->id]);
+        $sql = "SELECT * FROM logs WHERE user = ? AND `type` = ? ORDER BY id DESC;";
+        $logs = $this->dbhr->preQuery($sql, [$this->id, Log::TYPE_GROUP]);
 
         $ret = [];
         foreach ($logs as $log) {
