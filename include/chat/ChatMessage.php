@@ -192,6 +192,18 @@ class ChatMessage extends Entity
                     # If we decided it was spam then it doesn't need reviewing.
                     $review = $spam ? 0 : $review;
                 }
+
+                if (!$review && $type === ChatMessage::TYPE_INTERESTED && $refmsgid) {
+                    # Check if this user is suspicious, e.g. replying to many messages across a large area.
+                    $msg = $this->dbhr->preQuery("SELECT lat, lng FROM messages WHERE id = ?;", [
+                        $refmsgid
+                    ]);
+
+                    foreach ($msg as $m) {
+                        $s = new Spam($this->dbhr, $this->dbhm);
+                        $review = $s->checkUser($userid, $m['lat'], $m['lng']);
+                    }
+                }
             }
 
             if ($review && $type === ChatMessage::TYPE_INTERESTED) {

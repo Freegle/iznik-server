@@ -22,6 +22,7 @@ class Spam {
     # For checking users as suspect.
     CONST SEEN_THRESHOLD = 16; // Number of groups to join or apply to before considered suspect
     CONST ESCALATE_THRESHOLD = 2; // Level of suspicion before a user is escalated to support/admin for review
+    CONST DISTANCE_THRESHOLD = 100; // Replies to items further apart than this is suspicious.  In miles.
 
     CONST REASON_NOT_SPAM = 'NotSpam';
     CONST REASON_COUNTRY_BLOCKED = 'CountryBlocked';
@@ -452,7 +453,7 @@ class Spam {
         $this->dbhm->preExec($sql, [ $subj ]);
     }
 
-    public function checkUser($userid) {
+    public function checkUser($userid, $lat = NULL, $lng = NULL) {
         # Called when something has happened to a user which makes them more likely to be a spammer, and therefore
         # needs rechecking.
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -467,6 +468,30 @@ class Spam {
         if ($counts[0]['count'] > Spam::SEEN_THRESHOLD) {
             $suspect = TRUE;
             $reason = "Seen on many groups";
+        } else {
+            # Check if they've replied to multiple posts across a wide area recently
+            $since = date('Y-m-d', strtotime("midnight 90 days ago"));
+            $dists = $this->dbhm->preQuery("SELECT DISTINCT MAX(lat) AS maxlat, MIN(lat) AS minlat, MAX(lng) AS maxlng, MIN(lng) AS minlng FROM chat_messages INNER JOIN messages ON messages.id = chat_messages.refmsgid WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ?;", [
+                $userid,
+                $since,
+                ChatMessage::TYPE_INTERESTED
+            ], FALSE, FALSE);
+
+            if ($dists[0]['maxlat'] || $dists[0]['minlat'] || $dists[0]['maxlng'] || $dists[0]['minlng']) {
+                # Add the lat/lng we're interested in into the mix.
+                $maxlat = max($dists[0]['maxlat'], $lat);
+                $minlat = min($dists[0]['minlat'], $lat);
+                $maxlng = max($dists[0]['maxlng'], $lng);
+                $minlng = min($dists[0]['minlng'], $lng);
+
+                $dist = GreatCircle::getDistance($minlat, $minlng, $maxlat, $maxlng);
+                $dist = round($dist * 0.000621371192);
+
+                if ($dist >= Spam::DISTANCE_THRESHOLD) {
+                    $suspect = TRUE;
+                    $reason = "Replied to posts $dist miles apart";
+                }
+            }
         }
 
         if ($suspect) {
@@ -487,6 +512,8 @@ class Spam {
                 ]);
             User::clearCache($userid);
         }
+
+        return $suspect;
     }
 
     public function collectionCounts() {

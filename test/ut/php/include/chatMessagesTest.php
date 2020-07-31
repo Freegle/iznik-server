@@ -8,6 +8,8 @@ require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
 require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+require_once IZNIK_BASE . '/include/message/Message.php';
+require_once IZNIK_BASE . '/include/user/User.php';
 
 /**
  * @backupGlobals disabled
@@ -570,8 +572,55 @@ class chatMessagesTest extends IznikTestCase {
 
         # Should be unseen by mod even though spam.
         self::assertEquals(1, $r->unseenCountForUser($uid1));
+    }
 
-        }
+    public function testWidespreadReplies() {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_replace('OFFER: a test item (location)', 'OFFER: spade', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid1 = $r->received(Message::EMAIL, 'test1@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_replace('OFFER: a test item (location)', 'OFFER: fork', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid2 = $r->received(Message::EMAIL, 'test2@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Create two messages very far apart but still within walking distance.
+        $m1 = new Message($this->dbhr, $this->dbhm, $refmsgid1);
+        $m2 = new Message($this->dbhr, $this->dbhm, $refmsgid2);
+        $m1->setPrivate('lat', 50.0657);
+        $m1->setPrivate('lng', -5.7132);
+        $m2->setPrivate('lat', 58.6373);
+        $m2->setPrivate('lng', -3.0689);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
+        $msg = str_replace('Re: Basic test', 'Re: OFFER: spade (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $replyid1 = $r->received(Message::EMAIL, 'from2@test.com', $m1->getFromaddr(), $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
+        $msg = str_replace('Re: Basic test', 'Re: OFFER: fork (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $replyid2 = $r->received(Message::EMAIL, 'from2@test.com', $m2->getFromaddr(), $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $replyid1);
+        $uid = $m->getFromuser();
+
+        $review = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE userid = ? AND reviewrequired = 1;", [
+            $uid
+        ]);
+        assertEquals(1, $review[0]['count']);
+    }
 }
 
 
