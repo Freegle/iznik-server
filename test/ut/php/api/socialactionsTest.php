@@ -118,6 +118,18 @@ class socialactionsAPITest extends IznikAPITestCase
         $f = new GroupFacebook($this->dbhr, $this->dbhm);
         $f->getPostsToShare(134117207097);
 
+        $token = getenv('FREEGLEPLAYGROUND_TOKEN');
+        if ($token) {
+            # Running on Travis - set up the token.
+            $this->dbhm->preExec("INSERT INTO groups_facebook (groupid, name, type, id, token, authdate) VALUES (?, ?, ?, ?, ?, NOW());", [
+                $gid,
+                'FreeglePlayground',
+                'Page',
+                getenv('FREEGLEPLAYGROUND_PAGEID'),
+                $token
+            ]);
+        }
+
         # Log in as a mod of the Playground group, which has a Facebook page.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
@@ -129,6 +141,7 @@ class socialactionsAPITest extends IznikAPITestCase
         $u->addMembership($gid, User::ROLE_MODERATOR);
 
         $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
+        assertGreaterThan(0, count($ids));
 
         foreach ($ids as $uid) {
             # Delete the last share so that there will be at least one.
