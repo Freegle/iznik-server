@@ -283,6 +283,16 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
 
+        # We have now replied.
+        $r->updateExpected();
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $this->cid,
+            'id' => $mid1
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($mid1, $ret['chatmessage']['id']);
+        assertEquals(1, $ret['chatmessage']['replyreceived']);
+
         # Now log in as a third user
         assertTrue($this->user3->login('testpw'));
 
@@ -297,8 +307,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'id' => $mid1
         ]);
         assertEquals(2, $ret['ret']);
-
-        }
+    }
 
     public function testImage() {
         assertTrue($this->user->login('testpw'));

@@ -113,6 +113,8 @@ class chatRoomsTest extends IznikTestCase {
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $id = $r->createConversation($u1, $u2);
         $this->log("Chat room $id for $u1 <-> $u2");
+        $name = $r->getPublic()['name'];
+        assertEquals('Test User 1', $name);
         assertNotNull($id);
 
         assertNull($r->replyTime($u1));
