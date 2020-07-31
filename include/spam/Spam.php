@@ -471,7 +471,7 @@ class Spam {
         } else {
             # Check if they've replied to multiple posts across a wide area recently
             $since = date('Y-m-d', strtotime("midnight 90 days ago"));
-            $dists = $this->dbhm->preQuery("SELECT DISTINCT MAX(lat) AS maxlat, MIN(lat) AS minlat, MAX(lng) AS maxlng, MIN(lng) AS minlng FROM chat_messages INNER JOIN messages ON messages.id = chat_messages.refmsgid WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ?;", [
+            $dists = $this->dbhm->preQuery("SELECT DISTINCT MAX(lat) AS maxlat, MIN(lat) AS minlat, MAX(lng) AS maxlng, MIN(lng) AS minlng FROM chat_messages INNER JOIN messages ON messages.id = chat_messages.refmsgid WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL;", [
                 $userid,
                 $since,
                 ChatMessage::TYPE_INTERESTED
