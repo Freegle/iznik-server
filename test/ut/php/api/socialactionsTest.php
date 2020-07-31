@@ -125,7 +125,7 @@ class socialactionsAPITest extends IznikAPITestCase
             ]);
 
             # Get some posts to share.
-            $this->dbhm->preExec("DELETE FROM groups_facebook_toshore WHERE 1;");
+            $this->dbhm->preExec("DELETE FROM groups_facebook_toshare WHERE 1;");
             $f = new GroupFacebook($this->dbhr, $this->dbhm);
             $f->getPostsToShare(134117207097);
         }
