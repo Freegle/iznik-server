@@ -116,7 +116,7 @@ class socialactionsAPITest extends IznikAPITestCase
 
         if ($token) {
             # Running on Travis - set up the token.
-            $this->dbhm->preExec("INSERT INTO groups_facebook (groupid, name, type, id, token, authdate) VALUES (?, ?, ?, ?, ?, NOW());", [
+            $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook (groupid, name, type, id, token, authdate) VALUES (?, ?, ?, ?, ?, NOW());", [
                 $gid,
                 'FreeglePlayground',
                 'Page',
