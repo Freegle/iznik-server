@@ -29,6 +29,11 @@ class socialactionsAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
+        # Scrape some posts, in case we don't have any (e.g. travis).
+        $token = FBGRAFFITIAPP_ID . '|' . FBGRAFFITIAPP_SECRET;
+        $f = new GroupFacebook($this->dbhr, $this->dbhm);
+        $f->getPostsToShare(134117207097);
+
         # Log in as a mod of the Playground group, which has a Facebook page.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
@@ -108,6 +113,11 @@ class socialactionsAPITest extends IznikAPITestCase
 
     public function testHide()
     {
+        # Scrape some posts, in case we don't have any (e.g. travis).
+        $token = FBGRAFFITIAPP_ID . '|' . FBGRAFFITIAPP_SECRET;
+        $f = new GroupFacebook($this->dbhr, $this->dbhm);
+        $f->getPostsToShare(134117207097);
+
         # Log in as a mod of the Playground group, which has a Facebook page.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
