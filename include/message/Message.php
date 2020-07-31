@@ -197,21 +197,6 @@ class Message
         return $this->groupid;
     }
 
-    /**
-     * @return mixed
-     */
-    public function setGroups($groups) {
-        $this->groups = $groups;
-    }
-
-    public function setOutcomes($outcomes) {
-        $this->outcomes = $outcomes;
-    }
-
-    public function setAttachments($attachments) {
-        $this->attachments = $attachments;
-    }
-
     public function setPrivate($att, $val, $always = FALSE) {
         if ($this->$att != $val || $always) {
             $rc = $this->dbhm->preExec("UPDATE messages SET $att = ? WHERE id = {$this->id};", [$val]);

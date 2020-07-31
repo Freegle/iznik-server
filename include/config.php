@@ -53,8 +53,10 @@ if (!defined('RETURN_PATH')) {
     define('RETURN_PATH', TRUE);
 }
 
-if (file_exists('/usr/share/GeoIP/GeoLite2-Country.mmdb')) {
-    define('MMDB', '/usr/share/GeoIP/GeoLite2-Country.mmdb');
-} else {
-    define('MMDB', '/var/lib/GeoIP/GeoLite2-Country.mmdb');
+if (!defined('MMDB')) {
+    if (file_exists('/usr/share/GeoIP/GeoLite2-Country.mmdb')) {
+        define('MMDB', '/usr/share/GeoIP/GeoLite2-Country.mmdb');
+    } else {
+        define('MMDB', '/var/lib/GeoIP/GeoLite2-Country.mmdb');
+    }
 }
