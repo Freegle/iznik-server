@@ -22,7 +22,7 @@ class Spam {
     # For checking users as suspect.
     CONST SEEN_THRESHOLD = 16; // Number of groups to join or apply to before considered suspect
     CONST ESCALATE_THRESHOLD = 2; // Level of suspicion before a user is escalated to support/admin for review
-    CONST DISTANCE_THRESHOLD = 100; // Replies to items further apart than this is suspicious.  In miles.
+    CONST DISTANCE_THRESHOLD = 30; // Replies to items further apart than this is suspicious.  In miles.
 
     CONST REASON_NOT_SPAM = 'NotSpam';
     CONST REASON_COUNTRY_BLOCKED = 'CountryBlocked';
