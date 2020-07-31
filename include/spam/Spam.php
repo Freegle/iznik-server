@@ -477,7 +477,7 @@ class Spam {
                 ChatMessage::TYPE_INTERESTED
             ], FALSE, FALSE);
 
-            if ($dists[0]['maxlat'] || $dists[0]['minlat'] || $dists[0]['maxlng'] || $dists[0]['minlng']) {
+            if (($dists[0]['maxlat'] || $dists[0]['minlat'] || $dists[0]['maxlng'] || $dists[0]['minlng']) && ($lat || $lng)) {
                 # Add the lat/lng we're interested in into the mix.
                 $maxlat = max($dists[0]['maxlat'], $lat);
                 $minlat = min($dists[0]['minlat'], $lat);
