@@ -73,6 +73,8 @@ before_install:
   - sudo sed -ie "s/'AZURE_CONNECTION_STRING', 'zzzz'/'AZURE_CONNECTION_STRING', '$AZURE_CONNECTION_STRING'/g" /etc/iznik.conf
   - sudo sed -ie "s/'PLAYGROUND_TOKEN', 'zzzz'/'PLAYGROUND_TOKEN', '$PLAYGROUND_TOKEN'/g" /etc/iznik.conf
   - sudo sed -ie "s/'PLAYGROUND_SECRET', 'zzzz'/'PLAYGROUND_SECRET', '$PLAYGROUND_SECRET'/g" /etc/iznik.conf
+  - sudo sed -ie "s/'FBGRAFFITIAPP_ID', 'zzz'/'FBGRAFFITIAPP_ID', '$FBGRAFFITIAPP_ID'/g" /etc/iznik.conf
+  - sudo sed -ie "s/'FBGRAFFITIAPP_SECRET', 'zzz'/'FBGRAFFITIAPP_SECRET', '$FBGRAFFITIAPP_SECRET'/g" /etc/iznik.conf
   - sudo sed -ie "s/'CHAT_HOST', 'users.ilovefreegle.org'/'CHAT_HOST', NULL/g" /etc/iznik.conf
   - echo "define('SQLLOG', TRUE);" >> /etc/iznik.conf
 
