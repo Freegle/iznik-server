@@ -29,10 +29,7 @@ class socialactionsAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        # Scrape some posts, in case we don't have any (e.g. travis).
-        $token = FBGRAFFITIAPP_ID . '|' . FBGRAFFITIAPP_SECRET;
-        $f = new GroupFacebook($this->dbhr, $this->dbhm);
-        $f->getPostsToShare(134117207097);
+        $this->scrapePosts();
 
         # Log in as a mod of the Playground group, which has a Facebook page.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -111,17 +108,12 @@ class socialactionsAPITest extends IznikAPITestCase
         }
     }
 
-    public function testHide()
-    {
-        # Scrape some posts, in case we don't have any (e.g. travis).
-        $token = FBGRAFFITIAPP_ID . '|' . FBGRAFFITIAPP_SECRET;
-        $f = new GroupFacebook($this->dbhr, $this->dbhm);
-        $f->getPostsToShare(134117207097);
-
+    private function scrapePosts() {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
         $token = getenv('FREEGLEPLAYGROUND_TOKEN');
+
         if ($token) {
             # Running on Travis - set up the token.
             $this->dbhm->preExec("INSERT INTO groups_facebook (groupid, name, type, id, token, authdate) VALUES (?, ?, ?, ?, ?, NOW());", [
@@ -131,7 +123,20 @@ class socialactionsAPITest extends IznikAPITestCase
                 getenv('FREEGLEPLAYGROUND_PAGEID'),
                 $token
             ]);
+
+            # Get some posts to share.
+            $this->dbhm->preExec("DELETE FROM groups_facebook_toshore WHERE 1;");
+            $f = new GroupFacebook($this->dbhr, $this->dbhm);
+            $f->getPostsToShare(134117207097);
         }
+    }
+
+    public function testHide()
+    {
+        $this->scrapePosts();
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
 
         # Log in as a mod of the Playground group, which has a Facebook page.
         $u = User::get($this->dbhr, $this->dbhm);
