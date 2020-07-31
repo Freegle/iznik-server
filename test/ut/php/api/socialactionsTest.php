@@ -118,6 +118,9 @@ class socialactionsAPITest extends IznikAPITestCase
         $f = new GroupFacebook($this->dbhr, $this->dbhm);
         $f->getPostsToShare(134117207097);
 
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
         $token = getenv('FREEGLEPLAYGROUND_TOKEN');
         if ($token) {
             # Running on Travis - set up the token.
@@ -134,9 +137,6 @@ class socialactionsAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
 
         $u->addMembership($gid, User::ROLE_MODERATOR);
 
