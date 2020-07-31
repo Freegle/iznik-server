@@ -154,7 +154,7 @@ class Request extends Entity
                     $this->sendIt($mailer, $message);
 
                     $this->notifyMods();
-                } catch (Exception $e) {}
+                } catch (Exception $e) { error_log("Failed " . $e->getMessage()); }
 
                 break;
             }
@@ -199,7 +199,7 @@ class Request extends Entity
                     ]);
                 }
             }
-        } catch (Exception $e) {}
+        } catch (Exception $e) { error_log("Failed 2 " . $e->getMessage()); }
     }
 
     public function delete() {
