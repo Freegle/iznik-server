@@ -135,5 +135,11 @@ class groupFacebookTest extends IznikTestCase {
 
         $mock->method('getFB')->willThrowException(new Exception('Test', 100));
     }
+
+    public function testGetFB() {
+        $f = new GroupFacebook($this->dbhr, $this->dbhm);
+        $fb = $f->getFB(TRUE, TRUE);
+        assertNotNull($fb);
+    }
 }
 

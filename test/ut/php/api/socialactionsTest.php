@@ -148,6 +148,5 @@ class socialactionsAPITest extends IznikAPITestCase
 
             assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
         }
-
-        }
+    }
 }

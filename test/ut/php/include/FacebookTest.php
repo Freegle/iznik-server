@@ -212,5 +212,11 @@ class FacebookTest extends IznikTestCase {
         assertEquals(2, $ret['ret']);
         $this->asArrayException = FALSE;
     }
+
+    public function testFB() {
+        $f = new Facebook($this->dbhr, $this->dbhm);
+        $fb = $f->getFB();
+        assertNotNull($fb);
+    }
 }
 
