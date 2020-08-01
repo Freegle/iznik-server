@@ -7,8 +7,6 @@ function logs() {
     $logtype = presdef('logtype', $_REQUEST, NULL);
     $logsubtype = presdef('logsubtype', $_REQUEST, NULL);
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $msgid = intval(presdef('msgid', $_REQUEST, NULL));
-    $userid = intval(presdef('useridid', $_REQUEST, NULL));
     $date = intval(presdef('date', $_REQUEST, NULL));
     $search = presdef('search', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
@@ -20,10 +18,13 @@ function logs() {
         case 'GET': {
             $ret = [ 'ret' => 2, 'status' => 'Not moderator' ];
 
-            if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
+            if ($me && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid))) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                 $l = new Log($dbhr, $dbhm);
+
+                $types = [];
+                $subtypes = [];
 
                 switch ($logtype) {
                     case 'messages': {
@@ -42,6 +43,7 @@ function logs() {
 
                 $ret['logs'] = $l->get($types, $subtypes, $groupid, $date, $search, $limit, $ctx);
             }
+
             $ret['context'] = $ctx;
         }
         break;
