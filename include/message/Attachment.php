@@ -191,6 +191,7 @@ class Attachment
 
     public function scp($host, $data, $fn, &$failed) {
         $connection = ssh2_connect($host, 22);
+        $failed = TRUE;
 
         if ($connection) {
             if (@ssh2_auth_pubkey_file($connection, CDN_SSH_USER,
@@ -203,11 +204,7 @@ class Attachment
                 $failed |= !$rc;
                 unlink($temp);
                 error_log("scp $temp to $host $rem returned $rc");
-            } else {
-                $failed = TRUE;
             }
-        } else {
-            $failed = TRUE;
         }
     }
 
@@ -272,6 +269,10 @@ class Attachment
         ]);
     }
 
+    public function fgc($url, $use_include_path, $ctx) {
+        return @file_get_contents($url, $use_include_path, $ctx);
+    }
+
     public function getData() {
         $ret = NULL;
 
@@ -287,7 +288,7 @@ class Attachment
             ));
 
             if (pres('url', $data)) {
-                $ret = @file_get_contents($data['url'], false, $ctx);
+                $ret = $this->fgc($data['url'], false, $ctx);
             } else if ($data['archived']) {
                 # This attachment has been archived out of our database, to a CDN.  Normally we would expect
                 # that we wouldn't come through here, because we'd serve up an image link directly to the CDN, but
@@ -307,7 +308,7 @@ class Attachment
 
                 $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
 
-                $ret = @file_get_contents($url, false, $ctx);
+                $ret = $this->fgc($url, false, $ctx);
             } else {
                 $ret = $data['data'];
             }

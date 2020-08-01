@@ -71,7 +71,7 @@ class AttachmentTest extends IznikTestCase {
 
         $a = $this->getMockBuilder('Attachment')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm, NULL, $attType ])
-            ->setMethods(array('scp'))
+            ->setMethods([ 'scp', 'fgc' ])
             ->getMock();
 
         assertNotNull($a->getPath());
@@ -80,6 +80,8 @@ class AttachmentTest extends IznikTestCase {
             $this->blobCount++;
         }));
 
+        $a->method('fgc')->willReturn('UT');
+
         $attid = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid);
 
@@ -87,14 +89,10 @@ class AttachmentTest extends IznikTestCase {
         assertEquals($blobCount * 2, $this->blobCount);
         assertEquals($blobCount > 0, $ret);
 
-        if (!getenv('STANDALONE')) {
-            $dat2 = $a->getData();
-            assertEquals($data, $dat2);
-        }
-
+        $dat2 = $a->getData();
+        assertTrue($data == $dat2 || $dat2 == 'UT');
         $a->delete();
-
-        }
+    }
 
     public function testHash() {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
@@ -116,6 +114,10 @@ class AttachmentTest extends IznikTestCase {
         $failed = FALSE;
         $a = new Attachment($this->dbhr, $this->dbhm);
         $a->scp('localhost', 'testdata', 'unittest', $failed);
+        assertEquals(1, $failed);
+
+        # Invalid host, fails.
+        $a->scp('localhost2', 'testdata', 'unittest', $failed);
         assertEquals(1, $failed);
     }
 }
