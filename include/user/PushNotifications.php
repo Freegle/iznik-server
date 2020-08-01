@@ -245,7 +245,7 @@ class PushNotifications
                 case PushNotifications::PUSH_FIREFOX:
                     $params = $params ? $params : [];
                     $webPush = new WebPush($params);
-                    ##error_log("Send params " . var_export($params, TRUE));
+                    #error_log("Send params " . var_export($params, TRUE) . " " . ($payload['count'] > 0) . "," . (!is_null($payload['title'])));
                     if (($payload['count'] > 0) && (!is_null($payload['title']))) {
                         $rc = $webPush->sendNotification($endpoint, $payload['title'], NULL, TRUE);
                     } else
@@ -269,6 +269,8 @@ class PushNotifications
             # Don't log - lots of these.
             $this->dbhm->preExec("UPDATE users_push_notifications SET lastsent = NOW() WHERE userid = ? AND subscription = ?;", [$userid, $endpoint], FALSE);
         }
+
+        return $rc;
     }
 
     public function notify($userid, $modtools = MODTOOLS)

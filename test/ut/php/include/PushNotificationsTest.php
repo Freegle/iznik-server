@@ -60,7 +60,7 @@ class pushNotificationsTest extends IznikTestCase {
 
         }
 
-    public function testExecute() {
+    public function testExecuteOld() {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $this->log("Created $id");
@@ -76,12 +76,60 @@ class pushNotificationsTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('uthook'))
             ->getMock();
-        $mock->method('uthook')->willThrowException(new Exception());
+        $mock->method('uthook')->willThrowException(new Exception('UT'));
+
+        $rc = $mock->executeSend(0, PushNotifications::PUSH_GOOGLE, [], 'test', NULL);
+        assertEquals('UT', $rc['exception']);
+
+        $mock->executeSend(0, PushNotifications::PUSH_GOOGLE, [], 'test', [
+            'count' => 1,
+            'title' => 'UT'
+        ]);
+        assertEquals('UT', $rc['exception']);
+    }
+
+    public function testExecuteFCM() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $this->log("Created $id");
+
+        $mock = $this->getMockBuilder('PushNotifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('uthook'))
+            ->getMock();
+        $mock->method('uthook')->willReturn(TRUE);
         $mock->executeSend(0, PushNotifications::PUSH_GOOGLE, [], 'test', NULL);
 
-        assertTrue(TRUE);
+        $mock = $this->getMockBuilder('PushNotifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('uthook'))
+            ->getMock();
+        $mock->method('uthook')->willThrowException(new Exception('UT'));
 
-        }
+        $rc = $mock->executeSend(0, PushNotifications::PUSH_FCM_ANDROID, [], 'test', [
+            'count' => 1,
+            'title' => 'UT',
+            'message' => 'UT',
+            'chatids' => [ 1 ]
+        ]);
+        assertEquals('The registration token is not a valid FCM registration token', $rc['exception']);
+
+        $rc = $mock->executeSend(0, PushNotifications::PUSH_FCM_IOS, [], 'test', [
+            'count' => 1,
+            'title' => 'UT',
+            'message' => 'UT',
+            'chatids' => [ 1 ]
+        ]);
+        assertEquals('The registration token is not a valid FCM registration token', $rc['exception']);
+
+        $rc = $mock->executeSend(0, PushNotifications::PUSH_FCM_IOS, [], 'test', [
+            'count' => 1,
+            'title' => 'UT',
+            'message' => '',
+            'chatids' => [ 1 ]
+        ]);
+        assertEquals('The registration token is not a valid FCM registration token', $rc['exception']);
+    }
 
     public function testPoke() {
         $u = User::get($this->dbhr, $this->dbhm);
@@ -137,7 +185,6 @@ class pushNotificationsTest extends IznikTestCase {
         $mock->executePoke($id, [ 'ut' => 1 ], FALSE);
 
         assertTrue(TRUE);
-
-        }
+    }
 }
 
