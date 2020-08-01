@@ -1407,7 +1407,7 @@ ORDER BY lastdate DESC;";
                         # Assume anything this old is no longer available.
                         $rets[$msg['id']]['outcomes'] = [
                             [
-                                'timestamp' => $rets[$msg['id']]['arrival'],
+                                'timestamp' => $group['arrival'],
                                 'outcome' => Message::OUTCOME_EXPIRED
                             ]
                         ];
