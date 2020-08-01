@@ -566,51 +566,13 @@ class MailRouter
                     $source = $this->msg->getSource();
 
                     if ($notspam && $source == Message::PLATFORM) {
-                        if ($log) { error_log("Source header " . $this->msg->getSourceheader());}
-                        $handled = FALSE;
-
-                        if ($this->msg->getSourceheader() == Message::PLATFORM) {
-                            # Platform messages might already have been approved on here before we received them back.  In
-                            # that case we need to approve them on Yahoo too.
-                            foreach ($groups as $group) {
-                                if ($this->log) { error_log("{$group['groupid']} collection {$group['collection']}");}
-
-                                if ($group['collection'] == MessageCollection::APPROVED) {
-                                    # We've approved it on here.  Let Yahoo know to approve it too.
-                                    if ($log) { error_log("Already approved - do so on Yahoo"); }
-                                    $this->msg->approve($group['groupid'], NULL, NULL, NULL, TRUE);
-                                    $handled = TRUE;
-                                    $ret = MailRouter::APPROVED;
-                                }
-                            }
-                        } else {
-                            # This is a notification of a message on Yahoo pending.  It's possible that the message
-                            # has been synchronised via the plugin and already approved before we receive this -
-                            # Yahoo is slow.  In that case we just want to ignore this notification.  Otherwise
-                            # this goes into pending if it's not spam.
-                            if ($log) { error_log("From Yahoo pending"); }
-
-                            foreach ($groups as $group) {
-                                if ($this->log) { error_log("{$group['groupid']} collection {$group['collection']}");}
-
-                                if ($group['collection'] == MessageCollection::APPROVED) {
-                                    # We've approved it on here.
-                                    if ($log) { error_log("Already approved"); }
-                                    $handled = TRUE;
-                                    $ret = MailRouter::APPROVED;
-                                }
-                            }
+                        # It should go into pending on here.
+                        if ($log) {
+                            error_log("Mark as pending");
                         }
 
-                        if (!$handled) {
-                            # It's not already been approved to it should go into pending on here.
-                            if ($log) {
-                                error_log("Mark as pending");
-                            }
-
-                            if ($this->markPending($notspam)) {
-                                $ret = MailRouter::PENDING;
-                            }
+                        if ($this->markPending($notspam)) {
+                            $ret = MailRouter::PENDING;
                         }
                     } else if ($this->msg->getSource() == Message::EMAIL) {
                         $uid = $this->msg->getFromuser();
