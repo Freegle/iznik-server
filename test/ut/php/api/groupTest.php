@@ -238,34 +238,6 @@ class groupAPITest extends IznikAPITestCase {
 
         }
 
-    public function testAddLicense() {
-        # Not logged in
-        $ret = $this->call('group', 'POST', [
-            'action' => 'AddLicense',
-            'id' => $this->groupid,
-            'voucher' => 'wibble'
-        ]);
-        assertEquals(1, $ret['ret']);
-
-        # Invalid voucher
-        assertTrue($this->user->login('testpw'));
-        $ret = $this->call('group', 'POST', [
-            'action' => 'AddLicense',
-            'id' => $this->groupid,
-            'voucher' => 'wibble2'
-        ]);
-        assertEquals(2, $ret['ret']);
-
-        $voucher = $this->group->createVoucher();
-        $ret = $this->call('group', 'POST', [
-            'action' => 'AddLicense',
-            'id' => $this->groupid,
-            'voucher' => $voucher
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        }
-
     public function testList() {
         $ret = $this->call('groups', 'GET', [
             'grouptype' => 'Freegle'

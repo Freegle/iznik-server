@@ -99,25 +99,6 @@ class groupTest extends IznikTestCase {
         $this->user->addMembership($id);
     }
 
-    public function testVoucher() {
-        $this->log(__METHOD__ );
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $id = $g->create('testgroup', Group::GROUP_REUSE);
-        assertNotNull($id);
-        assertNull($g->getPrivate('licensed'));
-        assertNull($g->getPrivate('licenseduntil'));
-
-        $voucher = $g->createVoucher();
-        assertNotNull($voucher);
-        assertFalse($g->redeemVoucher('wibble'));
-        assertTrue($g->redeemVoucher($voucher));
-        $g = Group::get($this->dbhr, $this->dbhm, $id);
-        assertNotNull($g->getPrivate('licensed'));
-        assertNotNull($g->getPrivate('licenseduntil'));
-
-        }
-
     public function testLegacy() {
         $this->log(__METHOD__ );
 
