@@ -12,6 +12,8 @@ class Schedule extends Entity
     protected $schedule = NULL;
     protected $allowpast = FALSE;
 
+    const TEXTS = ['morning', 'afternoon', 'evening'];
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $userid = NULL, $allowpast = false)
     {
         $this->dbhr = $dbhr;
@@ -125,15 +127,7 @@ class Schedule extends Entity
             foreach ($schedule as $s) {
                 if ($s['available']) {
                     $t = strtotime($s['date']);
-                    $str = date("l", $t) . " ";
-
-                    switch($s['hour']) {
-                        case 0: $str .= 'morning'; break;
-                        case 1: $str .= 'afternoon'; break;
-                        case 2: $str .= 'evening'; break;
-                    }
-
-                    $slots[$t] = $str;
+                    $slots[$t] = date("l", $t) . " " . self::TEXTS[$s['hour']];
                 }
             }
 
