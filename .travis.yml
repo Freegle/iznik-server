@@ -74,8 +74,8 @@ before_install:
   - sudo sed -ie "s/'FBGRAFFITIAPP_ID', 'zzz'/'FBGRAFFITIAPP_ID', '$FBGRAFFITIAPP_ID'/g" /etc/iznik.conf
   - sudo sed -ie "s/'FBGRAFFITIAPP_SECRET', 'zzz'/'FBGRAFFITIAPP_SECRET', '$FBGRAFFITIAPP_SECRET'/g" /etc/iznik.conf
   - sudo sed -ie "s/'CHAT_HOST', 'users.ilovefreegle.org'/'CHAT_HOST', NULL/g" /etc/iznik.conf
-  - sudo sed -ie "s/'CDN_SSH_PRIVATE_KEY', '/root/.ssh/id_rsa'/'CDN_SSH_PUBLIC_KEY', '/home/travis/.ssh/id_rsa'/g" /etc/iznik.conf
-  - sudo sed -ie "s/'CDN_SSH_PUBLIC_KEY', '/root/.ssh/id_rsa.pub'/'CDN_SSH_PUBLIC_KEY', '/home/travis/.ssh/id_rsa.pub'/g" /etc/iznik.conf
+  - sudo sed -ie "s/'CDN_SSH_PRIVATE_KEY', '/root/.ssh/id_rsa'/'CDN_SSH_PUBLIC_KEY', '\/home\/travis\/.ssh\/id_rsa'/g" /etc/iznik.conf
+  - sudo sed -ie "s/'CDN_SSH_PUBLIC_KEY', '/root/.ssh/id_rsa.pub'/'CDN_SSH_PUBLIC_KEY', '\/home\/travis\/.ssh\/id_rsa.pub'/g" /etc/iznik.conf
   - echo "define('SQLLOG', TRUE);" >> /etc/iznik.conf
 
   # phpunit.xml is set up for running tests on our debug server.
