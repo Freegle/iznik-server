@@ -155,6 +155,19 @@ class imageAPITest extends IznikAPITestCase
             'w' => 100
         ], FALSE);
 
+        # Get as a circle.
+        $origdata = $this->call('image', 'GET', [
+            'id' => $id,
+            'w' => 100
+        ], FALSE);
+
+        $newdata = $this->call('image', 'GET', [
+            'id' => $id,
+            'w' => 100,
+            'circle' => TRUE
+        ], FALSE);
+        assertNotEquals($origdata, $newdata);
+
         $ret = $this->call('image', 'DELETE', [
             'id' => $id
         ]);

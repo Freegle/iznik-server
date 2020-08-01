@@ -6,7 +6,6 @@ function image() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
     $id = intval(presdef('id', $_REQUEST, 0));
     $msgid = pres('msgid', $_REQUEST) ? intval($_REQUEST['msgid']) : NULL;
-    $fn = presdef('filename', $_REQUEST, NULL);
     $identify = array_key_exists('identify', $_REQUEST) ? filter_var($_REQUEST['identify'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ocr = array_key_exists('ocr', $_REQUEST) ? filter_var($_REQUEST['ocr'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $group = presdef('group', $_REQUEST, NULL);
