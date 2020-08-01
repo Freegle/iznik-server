@@ -665,8 +665,8 @@ class Location extends Entity
 
     public function withinBox($swlat, $swlng, $nelat, $nelng) {
         # Return the areas within the box, along with a polygon which shows their shape.  This allows us to
-        # display our areas on a map.
-        $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND locations_excluded.locationid IS NULL;";
+        # display our areas on a map.  Put a limit on this so that the API can't kill us.
+        $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND locations_excluded.locationid IS NULL LIMIT 500;";
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
         $ret = [];
 
