@@ -190,7 +190,7 @@ class Attachment
     }
 
     public function scp($host, $data, $fn, &$failed) {
-        $connection = ssh2_connect($host, 22);
+        $connection = @ssh2_connect($host, 22);
         $failed = TRUE;
 
         if ($connection) {
