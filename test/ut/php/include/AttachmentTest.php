@@ -24,22 +24,17 @@ class AttachmentTest extends IznikTestCase {
     }
 
     public function testIdentify() {
-        if (!getenv('STANDALONE')) {
-            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-            $a = new Attachment($this->dbhr, $this->dbhm);
-            $attid = $a->create(NULL, 'image/jpeg', $data);
-            assertNotNull($attid);
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm);
+        $attid = $a->create(NULL, 'image/jpeg', $data);
+        assertNotNull($attid);
 
-            $a = new Attachment($this->dbhr, $this->dbhm, $attid);
+        $a = new Attachment($this->dbhr, $this->dbhm, $attid);
 
-            $idents = $a->identify();
-            $this->log("Identify returned " . var_export($idents, TRUE));
-            assertEquals('chair', trim(strtolower($idents[0]['name'])));
-        }
-
-        assertTrue(TRUE);
-
-        }
+        $idents = $a->identify();
+        $this->log("Identify returned " . var_export($idents, TRUE));
+        assertEquals('chair', trim(strtolower($idents[0]['name'])));
+    }
 
     private $blobCount = 0;
 
