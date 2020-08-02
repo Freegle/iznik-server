@@ -110,6 +110,30 @@ class AttachmentTest extends IznikTestCase {
         assertEquals($a1->getHash(), $a2->getHash());
     }
 
+    public function testUrl() {
+        $url = 'https://www.ilovefreegle.org/user_logo_vector.svg';
+
+        $this->dbhm->preExec("INSERT INTO users_images (url) VALUES (?);", [
+            $url
+        ]);
+
+        $id = $this->dbhm->lastInsertId();
+
+        $data = file_get_contents($url);
+        $a = new Attachment($this->dbhr, $this->dbhm, $id, Attachment::TYPE_USER);
+        assertEquals($data, $a->getData());
+    }
+
+    public function testGetByImageIds() {
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
+        $attid1 = $a->create(NULL, 'image/jpeg', $data);
+        assertNotNull($attid1);
+
+        $atts = $a->getByImageIds([ $attid1 ]);
+        assertEquals($attid1, $atts[0]->getId());
+    }
+
     public function testSCP() {
         $failed = FALSE;
         $a = new Attachment($this->dbhr, $this->dbhm);

@@ -177,23 +177,19 @@ class imageAPITest extends IznikAPITestCase
         }
 
     public function testOCR() {
-        if (!getenv('STANDALONE')) {
-            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/giveandtake.jpg');
-            file_put_contents("/tmp/giveandtake.jpg", $data);
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/giveandtake.jpg');
+        file_put_contents("/tmp/giveandtake.jpg", $data);
 
-            $ret = $this->call('image', 'POST', [
-                'photo' => [
-                    'tmp_name' => '/tmp/giveandtake.jpg',
-                    'type' => 'image/jpeg'
-                ],
-                'ocr' => TRUE
-            ]);
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/giveandtake.jpg',
+                'type' => 'image/jpeg'
+            ],
+            'ocr' => TRUE
+        ]);
 
-            assertTrue(strpos($ret['ocr'], 'ANYONE CAN COME ALONG') !== FALSE);
-        }
-
+        assertTrue(strpos($ret['ocr'], 'ANYONE CAN COME ALONG') !== FALSE);
         assertTrue(TRUE);
-
     }
 
     public function testHEIC()
