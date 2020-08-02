@@ -138,6 +138,28 @@ class bulkOpAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
     }
 
+    public function testDue() {
+        # Create as moderator
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+        assertTrue($this->user->login('testpw'));
+
+        # Use the config on the group.
+        $c = new ModConfig($this->dbhr, $this->dbhm, $this->cid);
+        $c->useOnGroup($this->uid, $this->groupid);
+
+        $ret = $this->call('bulkop', 'POST', [
+            'title' => 'UTTest2',
+            'configid' => $this->cid
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+
+        $b = new BulkOp($this->dbhr, $this->dbhm);
+        $due = $b->checkDue($id);
+        assertEquals(1, count($due));
+        assertEquals($id, $due[0]['id']);
+    }
+
     public function testPatch() {
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
@@ -263,7 +285,6 @@ class bulkOpAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
         assertEquals(2, $ret['ret']);
-
-        }
+    }
 }
 

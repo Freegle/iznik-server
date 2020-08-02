@@ -89,15 +89,17 @@ class BulkOp extends Entity
         return($c->canSee());
     }
 
-    public function checkDue() {
+    public function checkDue($id = NULL) {
         # See which (if any) bulk ops are due to start.
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $id = $me ? $me->getId() : NULL;
+        $myid = $me ? $me->getId() : NULL;
+
+        $idq = $id ? " WHERE mod_bulkops.id = $id " : "";
 
         # Look for groups we moderate, find configs used on those groups, find bulk ops in those configs.
-        $sql = "SELECT mod_bulkops.*, memberships.groupid, mod_bulkops_run.runstarted, mod_bulkops_run.runfinished FROM mod_bulkops INNER JOIN mod_configs ON mod_bulkops.configid = mod_configs.id INNER JOIN memberships ON memberships.configid = mod_configs.id AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') LEFT JOIN mod_bulkops_run ON mod_bulkops.id = mod_bulkops_run.bulkopid AND memberships.groupid = mod_bulkops_run.groupid INNER JOIN groups ON groups.id = memberships.groupid;";
+        $sql = "SELECT mod_bulkops.*, memberships.groupid, mod_bulkops_run.runstarted, mod_bulkops_run.runfinished FROM mod_bulkops INNER JOIN mod_configs ON mod_bulkops.configid = mod_configs.id INNER JOIN memberships ON memberships.configid = mod_configs.id AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') LEFT JOIN mod_bulkops_run ON mod_bulkops.id = mod_bulkops_run.bulkopid AND memberships.groupid = mod_bulkops_run.groupid INNER JOIN groups ON groups.id = memberships.groupid $idq;";
         $bulkops = $this->dbhr->preQuery($sql, [
-            $id
+            $myid
         ]);
 
         $due = [];
