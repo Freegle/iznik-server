@@ -50,7 +50,7 @@ class Catalogue
         if ($uid) {
             $already = $this->dbhr->preQuery("SELECT id, text FROM booktastic_ocr WHERE uid = ?;", [
                 $uid
-            ], FALSE, FALSE);
+            ], FALSE);
         }
 
         #$this->log("Check for uid $uid = " . count($already));
@@ -172,7 +172,7 @@ class Catalogue
 
         $results = $this->dbhr->preQuery("SELECT * FROM booktastic_results WHERE ocrid = ?;", [
             $id
-        ], FALSE, FALSE);
+        ], FALSE);
 
         foreach ($results as $result) {
             $spines = json_decode($result['spines'], TRUE);
@@ -194,7 +194,7 @@ class Catalogue
         $results = $this->dbhr->preQuery("SELECT * FROM booktastic_books WHERE author LIKE ? AND TITLE LIKE ?;", [
             $author,
             $title
-        ], FALSE, FALSE);
+        ], FALSE);
 
         foreach ($results as $result) {
             $this->dbhm->background("UPDATE booktastic_books SET popularity = popularity + 1 WHERE id = {$result['id']};");

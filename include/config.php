@@ -19,7 +19,10 @@ if (!defined('IZNIK_BASE')) {
     define('BROWSERTRACKING', TRUE);
     define('INCLUDE_TEMPLATE_NAME', TRUE);
 
+    # SQL caching is disabled at the moment.  Caching operations in redis is fairly expensive, and we've had
+    # more benefit in reducing the number of ops in the first place.  Not quite ready to remove the code yet.
     define('SQLCACHE', FALSE);
+
     define('EVENTLOG', TRUE);
     define('TWIG_CACHE', '/tmp/twig_cache');
 

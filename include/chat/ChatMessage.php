@@ -246,7 +246,7 @@ class ChatMessage extends Entity
                 $earliers = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? AND userid != ? AND seenbyall = 0 AND mailedtoall = 0 ORDER BY id DESC LIMIT 1;", [
                     $chatid,
                     $userid
-                ], FALSE, FALSE);
+                ]);
 
                 if (!count($earliers)) {
                     $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
@@ -291,7 +291,7 @@ class ChatMessage extends Entity
                     $chatid,
                     ChatRoom::STATUS_CLOSED,
                     ChatRoom::STATUS_BLOCKED
-                ], FALSE, FALSE);
+                ]);
 
                 foreach ($closeds as $closed) {
                     if ($closed['status'] == ChatRoom::STATUS_CLOSED) {

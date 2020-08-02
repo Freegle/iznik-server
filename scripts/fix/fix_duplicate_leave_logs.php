@@ -35,7 +35,7 @@ while ($log = $sth->fetch()) {
         $log['user'],
         $log['groupid'],
         $log['timestamp']
-    ], FALSE, FALSE);
+    ]);
 
     if (count($logs2) > 1) {
         $save = NULL;

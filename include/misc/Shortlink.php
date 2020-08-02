@@ -102,7 +102,7 @@ class Shortlink extends Entity
 
         $clickhistory = $this->dbhr->preQuery("SELECT DATE(timestamp) AS date, COUNT(*) AS count FROM `shortlink_clicks` WHERE shortlinkid = ? GROUP BY date ORDER BY date ASC", [
             $this->id
-        ], FALSE, FALSE);
+        ]);
         foreach ($clickhistory as &$c) {
             $c['date'] = ISODate($c['date']);
         }

@@ -931,7 +931,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($uid2);
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid = ?;", [
             $uid2
-        ], FALSE, FALSE);
+        ]);
         assertEquals(1, count($msgs));
         assertEquals(1, $msgs[0]['reviewrejected']);
     }

@@ -12,7 +12,7 @@ $msgs = $dbhr->preQuery($sql);
 foreach ($msgs as $msg) {
     $maxs = $dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [
         $msg['chatid']
-    ], FALSE, FALSE);
+    ]);
 
     foreach ($maxs as $max) {
         if ($max['max'] == $msg['id']) {
@@ -20,7 +20,7 @@ foreach ($msgs as $msg) {
             $chats = $dbhr->preQuery("SELECT * FROM chat_rooms WHERE id = ? AND chattype = ? AND user1 != user2;", [
                 $msg['chatid'],
                 ChatRoom::TYPE_USER2USER
-            ], FALSE, FALSE);
+            ]);
 
             foreach ($chats as $chat) {
                 $otheru = $chat['user1'] == $msg['userid'] ? $chat['user2'] : $chat['user1'];

@@ -20,7 +20,7 @@ $stats = [];
 foreach ($msgs as $msg) {
     $reposts = $dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_postings WHERE msgid = ?;", [
         $msg['msgid']
-    ], FALSE, FALSE);
+    ]);
 
     $num = $reposts[0]['count'];
 
@@ -28,7 +28,7 @@ foreach ($msgs as $msg) {
         $msg['msgid'],
         Message::OUTCOME_TAKEN,
         Message::OUTCOME_RECEIVED
-    ], FALSE, FALSE);
+    ]);
 
     $succeeded = $success[0]['count'];
 

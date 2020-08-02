@@ -27,14 +27,14 @@ foreach ($emails as $email) {
         if (count($domains) === 0) {
             # This is not a common domain.  It may be a typo.  See if there are suggestions we can make.,
             $sql = "SELECT * FROM domains_common WHERE damlevlim(`domain`, ?, " . strlen($domain) . ") < 2 ORDER BY count DESC LIMIT 1;";
-            $suggestions = $dbhr->preQuery($sql, [ $domain ], FALSE, FALSE);
+            $suggestions = $dbhr->preQuery($sql, [ $domain ]);
 
             foreach ($suggestions as $suggestion) {
                 $newemail = substr($email['email'], 0, $p + 1) . $suggestion['domain'];
                 error_log("Consider {$email['email']} => $newemail");
                 $existing = $dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;", [
                     $newemail
-                ], FALSE, FALSE);
+                ]);
 
                 $u = new User($dbhr, $dbhm, $email['userid']);
 

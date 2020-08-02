@@ -158,7 +158,7 @@ class Nearby
                 User::SYSTEMROLE_MODERATOR,
                 User::SYSTEMROLE_SUPPORT,
                 User::SYSTEMROLE_ADMIN
-            ], FALSE, FALSE);
+            ]);
 
             foreach ($users as $user) {
                 $name = NULL;

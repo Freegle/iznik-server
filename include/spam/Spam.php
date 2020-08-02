@@ -475,7 +475,7 @@ class Spam {
                 $userid,
                 $since,
                 ChatMessage::TYPE_INTERESTED
-            ], FALSE, FALSE);
+            ]);
 
             if (($dists[0]['maxlat'] || $dists[0]['minlat'] || $dists[0]['maxlng'] || $dists[0]['minlng']) && ($lat || $lng)) {
                 # Add the lat/lng we're interested in into the mix.
@@ -492,7 +492,7 @@ class Spam {
                     $rounded = round($dist / 5) * 5;
                     $existing = $this->dbhr->preQuery("SELECT replyambit FROM users WHERE id = ?;", [
                         $userid
-                    ], FALSE, FALSE);
+                    ]);
 
                     if ($rounded > $existing[0]['replyambit']) {
                         $this->dbhm->preExec("UPDATE users SET replyambit = ? WHERE id = ?;", [

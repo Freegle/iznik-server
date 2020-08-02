@@ -15,7 +15,7 @@ foreach ($recents as $recent) {
     # Find biggest gap between post.
     $logs = $dbhr->preQuery("SELECT arrival FROM messages WHERE fromuser = ? ORDER BY id DESC LIMIT 1000;", [
         $recent['fromuser']
-    ], FALSE, FALSE);
+    ]);
 
     if (count($logs)) {
         # Someone who has posted.

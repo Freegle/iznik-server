@@ -155,7 +155,7 @@ class User extends Entity
 
             $users = $dbhr->preQuery($sql, [
                 $id
-            ], FALSE, FALSE);
+            ]);
 
             foreach ($users as $user) {
                 $this->user = $user;
@@ -272,7 +272,7 @@ class User extends Entity
             $ret = FALSE;
 
             $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ? AND credentials = ?;";
-            $logins = $this->dbhr->preQuery($sql, [$this->id, User::LOGIN_LINK, $key], FALSE, FALSE);
+            $logins = $this->dbhr->preQuery($sql, [$this->id, User::LOGIN_LINK, $key]);
             foreach ($logins as $login) {
                 # We found a match - log them in.
                 $s = new Session($this->dbhr, $this->dbhm);
@@ -1510,7 +1510,7 @@ class User extends Entity
             $counts = $this->dbhr->preQuery("SELECT messages.fromuser AS userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.fromuser, messages.type, messages_outcomes.outcome;", [
                 $start,
                 MessageCollection::APPROVED
-            ], FALSE, FALSE);
+            ]);
 
             foreach ($users as $user) {
                 $offers = 0;
@@ -1560,7 +1560,7 @@ class User extends Entity
             $start,
             ChatMessage::TYPE_INTERESTED,
             Message::OUTCOME_TAKEN
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($users as $uid => $user) {
             $users[$uid]['info']['replies'] = 0;
@@ -1589,7 +1589,7 @@ class User extends Entity
         $counts = $this->dbhr->preQuery($sql, [
             $start,
             MessageCollection::APPROVED
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($users as $uid => $user) {
             $users[$uid]['info']['offers'] = 0;
@@ -1693,7 +1693,7 @@ class User extends Entity
             $this->id,
             $this->id,
             $this->id
-        ], FALSE, FALSE);
+        ]);
 
         $ret['replies'] = $replies[0]['replycount'];
         $ret['taken'] = $replies[0]['takencount'];
@@ -1712,7 +1712,7 @@ class User extends Entity
             $this->id,
             $start,
             MessageCollection::APPROVED
-        ], FALSE, FALSE);
+        ]);
 
         $ret['offers'] = 0;
         $ret['wanteds'] = 0;
@@ -3264,7 +3264,7 @@ class User extends Entity
             $this->id,
             $groupid,
             MessageCollection::QUEUED_USER
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($msgs as $msg) {
             $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?;", [
@@ -3322,7 +3322,7 @@ class User extends Entity
             $this->id,
             $groupid,
             MessageCollection::QUEUED_USER
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($msgs as $msg) {
             $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?;", [
@@ -4145,7 +4145,7 @@ class User extends Entity
 
             $push = $this->dbhr->preQuery("SELECT MAX(lastsent) AS lastpush FROM users_push_notifications WHERE userid = ?;", [
                 $user['userid']
-            ], FALSE, FALSE);
+            ]);
 
             foreach ($push as $p) {
                 $thisone['lastpush'] = ISODate($p['lastpush']);
@@ -5625,14 +5625,14 @@ class User extends Entity
         $sql = "SELECT users.id FROM users LEFT JOIN memberships ON users.id = memberships.userid LEFT JOIN spam_users ON users.id = spam_users.userid LEFT JOIN users_comments ON users.id = users_comments.userid WHERE $userq memberships.userid IS NULL AND spam_users.userid IS NULL AND spam_users.userid IS NULL AND users.lastaccess < '$mysqltime' AND systemrole = ?;";
         $users = $this->dbhr->preQuery($sql, [
             User::SYSTEMROLE_USER
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($users as $user) {
             $logs = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), timestamp) AS logsago FROM logs WHERE user = ? AND (type != ? OR subtype != ?) ORDER BY id DESC LIMIT 1;", [
                 $user['id'],
                 Log::TYPE_USER,
                 Log::SUBTYPE_CREATED
-            ], FALSE, FALSE);
+            ]);
 
             error_log("#{$user['id']} Found logs " . count($logs) . " age " . (count($logs) > 0 ? $logs['0']['logsago'] : ' none '));
 
@@ -5656,7 +5656,7 @@ class User extends Entity
         $already = $this->dbhr->preQuery("SELECT * FROM users_active WHERE userid = ? AND timestamp = ?;", [
             $this->id,
             $now
-        ], FALSE, FALSE);
+        ]);
 
         if (count($already) == 0) {
             $this->dbhm->background("INSERT IGNORE INTO users_active (userid, timestamp) VALUES ({$this->id}, '$now');");
@@ -5665,7 +5665,7 @@ class User extends Entity
 
     public function getActive()
     {
-        $active = $this->dbhr->preQuery("SELECT * FROM users_active WHERE userid = ?;", [$this->id], FALSE, FALSE);
+        $active = $this->dbhr->preQuery("SELECT * FROM users_active WHERE userid = ?;", [$this->id]);
         return ($active);
     }
 
@@ -5839,7 +5839,7 @@ class User extends Entity
 
         # We show visible ratings, or ones we have made ourselves.
         $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' AND (rater = ? OR visible = 1) GROUP BY rating, ratee;";
-        $ratings = $this->dbhr->preQuery($sql, [ $myid ], FALSE, FALSE);
+        $ratings = $this->dbhr->preQuery($sql, [ $myid ]);
 
         foreach ($uids as $uid) {
             $ret[$uid] = [
@@ -5857,7 +5857,7 @@ class User extends Entity
 
         $ratings = $this->dbhr->preQuery("SELECT rating, ratee FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND rater = ? AND timestamp >= '$mysqltime';", [
             $myid
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($uids as $uid) {
             if ($myid != $this->id) {
@@ -5892,7 +5892,7 @@ class User extends Entity
         $ids = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ? AND added <= ?;", [
             $sincetime,
             $beforetime
-        ], FALSE, FALSE);
+        ]);
 
         return(count($ids) ? array_filter(array_column($ids, 'id')) : []);
     }
@@ -5920,7 +5920,7 @@ class User extends Entity
         list ($lat, $lng, $loc) = $this->getLatLng();
         $sql = "SELECT id, name, ST_distance(position, Point(?, ?)) AS dist FROM towns WHERE position IS NOT NULL ORDER BY dist ASC LIMIT 1;";
         #error_log("Get $sql, $lng, $lat");
-        $towns = $this->dbhr->preQuery($sql, [$lng, $lat], FALSE, FALSE);
+        $towns = $this->dbhr->preQuery($sql, [$lng, $lat]);
 
         foreach ($towns as $town) {
             $city = $town['name'];
@@ -5987,7 +5987,7 @@ class User extends Entity
 
         $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND byuser != user $uidq;", [
             $mysqltime
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($logs as $log) {
             $this->dbhm->preExec("INSERT IGNORE INTO users_modmails (userid, logid, timestamp, groupid) VALUES (?,?,?,?);", [
@@ -6004,7 +6004,7 @@ class User extends Entity
 
         $logs = $this->dbhr->preQuery("SELECT id FROM users_modmails WHERE timestamp < ? $uidq2;", [
             $mysqltime
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($logs as $log) {
             $this->dbhm->preExec("DELETE FROM users_modmails WHERE id = ?;", [ $log['id'] ], FALSE);
@@ -6264,7 +6264,7 @@ memberships.groupid IN $groupq
 
         $ratings = $this->dbhr->preQuery("SELECT * FROM ratings WHERE timestamp >= ?;", [
             $mysqltime
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($ratings as $rating) {
             # A rating is visible to others if there is a chat between the two members, and
@@ -6280,12 +6280,12 @@ memberships.groupid IN $groupq
                 $rating['ratee'],
                 $rating['rater'],
                 $rating['ratee'],
-            ], FALSE, FALSE);
+            ]);
 
             foreach ($chats as $chat) {
                 $distincts = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count FROM chat_messages WHERE chatid = ?;", [
                     $chat['id']
-                ], FALSE, FALSE);
+                ]);
 
                 if ($distincts[0]['count'] >= 2) {
                     $visible = TRUE;
@@ -6293,7 +6293,7 @@ memberships.groupid IN $groupq
                     $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND userid = ? AND refmsgid IS NOT NULL;", [
                         $chat['id'],
                         $rating['ratee']
-                    ], FALSE, FALSE);
+                    ]);
 
                     if ($replies[0]['count']) {
                         $visible = TRUE;

@@ -76,7 +76,7 @@ class Donations
     public function getGiftAid($userid) {
         $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE userid = ? AND deleted IS NULL;", [
             $userid
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($giftaids as &$giftaid) {
             $giftaid['timestamp'] = ISODate($giftaid['timestamp']);

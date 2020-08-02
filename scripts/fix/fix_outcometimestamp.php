@@ -26,7 +26,7 @@ $count = 0;
 while ($outcome = $sth->fetch()) {
     $exists = $dbhr->preQuery("SELECT timestamp FROM messages_outcomes WHERE id = ?", [
         $outcome['id']
-    ], FALSE, FALSE);
+    ]);
 
     foreach ($exists as $exist) {
         if ($exist['timestamp'] != $outcome['timestamp']) {

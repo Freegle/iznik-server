@@ -108,7 +108,7 @@ class Story extends Entity
 
         $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_stories_likes WHERE storyid = ?;", [
             $this->id
-        ], FALSE, FALSE);
+        ]);
 
         $ret['likes'] = $likes[0]['count'];
         $ret['liked'] = FALSE;
@@ -116,7 +116,7 @@ class Story extends Entity
             $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_stories_likes WHERE storyid = ? AND userid = ?;", [
                 $this->id,
                 $me->getId()
-            ], FALSE, FALSE);
+            ]);
             $ret['liked'] = $likes[0]['count'] > 0;
         }
 

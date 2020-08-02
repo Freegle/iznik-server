@@ -42,7 +42,7 @@ if (count($opts) > 1) {
 
     foreach ($schemas as $schema) {
         do {
-            $counts = $dbhr->preQuery("SELECT COUNT(*) AS count FROM {$schema['TABLE_NAME']} WHERE {$schema['COLUMN_NAME']} = $gid", [], FALSE, FALSE);
+            $counts = $dbhr->preQuery("SELECT COUNT(*) AS count FROM {$schema['TABLE_NAME']} WHERE {$schema['COLUMN_NAME']} = $gid", []);
             $count = $counts[0]['count'];
 
             if ($count) {

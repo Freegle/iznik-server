@@ -27,7 +27,7 @@ foreach ($groups as $group) {
             if ($isarea[0]['count'] > 0) {
                 $areas = $dbhr->preQuery("SELECT ST_AREA(COALESCE(ourgeometry, geometry)) AS area, COALESCE(ourgeometry, geometry) AS geom FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE id = ? AND locations_excluded.locationid IS NULL;", [
                     $loc['id']
-                ], FALSE, FALSE);
+                ]);
                 foreach ($areas as $area) {
                     #error_log("...#{$loc['id']} {$loc['name']}, area {$area['area']}");
 
@@ -36,12 +36,12 @@ foreach ($groups as $group) {
                         $overlaps = $dbhr->preQuery("SELECT locations_spatial.locationid, ST_AREA(geometry) AS area FROM locations_spatial LEFT JOIN locations_excluded ON locations_excluded.locationid = locations_spatial.locationid WHERE ST_Contains(geometry, ?) AND locations_spatial.locationid != ? AND locations_excluded.locationid IS NULL HAVING area < 0.001 AND area > 0.00001 ORDER BY ST_AREA(geometry) ASC LIMIT 1;", [
                             $area['geom'],
                             $loc['id']
-                        ], FALSE, FALSE);
+                        ]);
 
                         foreach ($overlaps as $overlap) {
                             $overlocs = $dbhr->preQuery("SELECT id, name FROM locations WHERE id = ?;", [
                                 $overlap['locationid']
-                            ], FALSE, FALSE);
+                            ]);
 
                             foreach ($overlocs as $overloc) {
                                 error_log("...hide #{$loc['id']} {$loc['name']}, area {$area['area']} as overlapped by #{$overloc['id']} {$overloc['name']}, area {$overlap['area']}");

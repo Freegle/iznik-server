@@ -131,7 +131,7 @@ class Engage
         $sql = "SELECT engage.id, userid, lastaccess FROM engage INNER JOIN users ON users.id = engage.userid WHERE engage.timestamp >= ? AND engage.timestamp <= users.lastaccess AND succeeded IS NULL $uq;";
         $users = $this->dbhr->preQuery($sql, [
             $since
-        ], FALSE, FALSE);
+        ]);
 
         $count = 0;
 

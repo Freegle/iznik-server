@@ -108,7 +108,7 @@ if (TRUE) {
     foreach ($msgs as $msg) {
         $atts = $dbhr->preQuery("SELECT id FROM messages_attachments WHERE msgid = ? AND archived = 1;", [
             $msg['id'],
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($atts as $att) {
             $attcount++;

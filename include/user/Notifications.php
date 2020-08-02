@@ -408,7 +408,7 @@ class Notifications
             $uid,
             $type,
             $mysqltime
-        ], FALSE, FALSE);
+        ]);
 
         $count = $notifs[0]['count'];
         return($count > 0);

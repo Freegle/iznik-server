@@ -239,7 +239,7 @@ class Dashboard {
             if (in_array(Dashboard::COMPONENT_POPULAR_POSTS, $components)) {
                 $populars = $this->dbhr->preQuery("SELECT COUNT(*) AS views, messages.id, messages.subject FROM messages INNER JOIN messages_likes ON messages_likes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.collection = ? WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages_likes.type = 'View' GROUP BY messages.id HAVING views > 0 ORDER BY views DESC LIMIT 5", [
                     MessageCollection::APPROVED
-                ], FALSE, FALSE);
+                ]);
 
                 if (count($populars)) {
                     $msgids = array_filter(array_column($populars, 'id'));
@@ -296,7 +296,7 @@ WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq
 GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 $replies = $this->dbhr->preQuery($chatsql, [
                     ChatMessage::TYPE_INTERESTED
-                ], FALSE, FALSE);
+                ]);
 
                 $ret[Dashboard::COMPONENT_USERS_REPLYING] = [];
 

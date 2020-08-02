@@ -50,7 +50,7 @@ class worryWordsTest extends IznikTestCase
         assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
 
         $this->waitBackground();
-        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid], FALSE, FALSE);
+        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid]);
         $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_WORRYWORDS, $logs);
         error_log("Found log " . var_export($log, TRUE));
 
@@ -62,7 +62,7 @@ class worryWordsTest extends IznikTestCase
 //        assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
 //
 //        $this->waitBackground();
-//        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid], FALSE, FALSE);
+//        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid]);
 //        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_WORRYWORDS, $logs);
 //        error_log("Found log " . var_export($log, TRUE));
     }

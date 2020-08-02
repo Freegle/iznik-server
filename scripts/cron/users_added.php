@@ -12,7 +12,7 @@ $count = 0;
 foreach ($users as $user) {
     $mins = $dbhr->preQuery("SELECT MIN(added) AS minadd FROM memberships WHERE userid = ?;", [
         $user['id']
-    ], FALSE, FALSE);
+    ]);
 
     foreach ($mins as $min) {
         if ($min['minadd'] && (!$user['added'] || strtotime($min['minadd']) < strtotime($user['added']))) {

@@ -75,7 +75,7 @@ class GroupCollection
 
         if ($missing) {
             # We have some to fetch.  We want to get them all in a single DB query for performance.
-            $groups = $this->dbhr->preQuery("SELECT * FROM groups WHERE id IN (" . implode(',', $missing) . ");", [], FALSE, FALSE);
+            $groups = $this->dbhr->preQuery("SELECT * FROM groups WHERE id IN (" . implode(',', $missing) . ");", []);
 
             foreach ($groups as $group) {
                 # Create the group object, passing in the attributes so it won't do a DB op.

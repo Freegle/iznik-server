@@ -496,9 +496,6 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                 $ret['cpucost'] = getCpuUsage();
                 $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();
                 $ret['includetime'] = $includetime;
-                $ret['cachetime'] = $dbhr->getCacheTime();
-                $ret['cachequeries'] = $dbhr->getCacheQueries();
-                $ret['cachehits'] = $dbhr->getCacheHits();
 //                $ret['remoteaddr'] = presdef('REMOTE_ADDR', $_SERVER, '-');
 //                $ret['_server'] = $_SERVER;
 

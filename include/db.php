@@ -8,16 +8,6 @@ require_once(IZNIK_BASE . '/include/utils.php');
 # to fail due to conflict with other servers. In that case we retry a few times here, and then if that doesn't
 # work - which it may not if we are inside a transaction - then we throw an exception which will cause us to
 # retry the whole API call from scratch.
-#
-# We also do some caching of queries in this class, using Redis.   Queries made on the $dbhr handle can use this cache,
-# which is no more than a certain period out of date, and is invalidated if a modification operation is made on
-# this session.  That means that if we make a modification in our session, we'll see the most up to date data, but
-# otherwise we can use cached data which will be no more than a bit out of date. This is very beneficial for
-# performance since it keeps the many queries local to the application server, and reduces the load on the DB servers.
-#
-# We use aggregation rather than extension because otherwise we hit issues with PHPUnit, which finds
-# it hard to mock PDOs.
-
 $dbconfig = array (
     'host' => SQLHOST,
     'port_read' => SQLPORT_READ,
@@ -31,91 +21,6 @@ class DBException extends Exception
 {
 }
 
-class DBResults implements Iterator {
-    # This is our own class which we can construct from a PDOStatement but still be able to serialise.
-    private $position = 0;
-
-    private $querying = false;
-
-    public function __construct($results, $sql, $expiry) {
-        $this->sql = $sql;
-        $this->expiry = $expiry;
-
-        # Later versions of redis (or PHP) seem to spot that we are storing a float and lose precision.  Turn
-        # it into a string to avoid this.
-        $this->time = 't' . microtime(TRUE);
-        #error_log("Store results $sql {$this->time} " . gettype($this->time) );
-
-        if ($results) {
-            $this->array = $results;
-        } else {
-            $this->array = [];
-        }
-    }
-
-    public function checkValid($lastmodop) {
-        # We are passed the time of the last mod op on this session, if any.  If that is later than this
-        # time, we assume our cache is invalid.
-        #
-        # If we've not had any mod ops on this session then assume all our results are invalid.  This is
-        # because we might (for example) create a user with an email address, cache a search for that email,
-        # delete the user, delete the session, start a new session, search for that email address and get
-        # a result back, which would be wrong.  Ok, that's not really an example, it's what the UT does
-        # all the time.
-        $valid = $lastmodop && floatval($lastmodop) < $this->time;
-        #error_log("Check valid " . microtime(TRUE) . " vs " . $this->time . " and $lastmodop = $valid");
-        return($valid);
-    }
-
-    public function checkExpired() {
-        #error_log("Check expired " . microtime(TRUE) . " vs " . $this->time);
-        return(time() - $this->time > LoggedPDO::CACHE_EXPIRY * 0.75);
-    }
-
-    public function checkQuerying() {
-        # We don't want to claim to be querying if the query has gone on too long, otherwise if a query is
-        # interrupted we might end up with bad data in the cache which never clears.
-        $old = time() - $this->time > LoggedPDO::CACHE_EXPIRY * 2;
-        return $this->querying && !$old;
-    }
-
-    public function setQuerying($b = true) {
-        $this->querying = $b;
-    }
-
-    public function getExpiry() {
-        return $this->expiry;
-    }
-
-    public function getSQL() {
-        return($this->sql);
-    }
-
-    public function fetchAll() {
-        return($this->array);
-    }
-
-    function rewind() {
-        $this->position = 0;
-    }
-
-    function current() {
-        return $this->array[$this->position];
-    }
-
-    function key() {
-        return $this->position;
-    }
-
-    function next() {
-        ++$this->position;
-    }
-
-    function valid() {
-        return isset($this->array[$this->position]);
-    }
-}
-
 class LoggedPDO {
 
     public $_db;
@@ -126,23 +31,17 @@ class LoggedPDO {
     private $rowsAffected = NULL;
     private $transactionStart = NULL;
     private $dbwaittime = 0;
-    private $cachetime = 0;
-    private $cachequeries = 0;
-    private $cachehits = 0;
     private $pheanstalk = NULL;
     private $readonly;
     private $readconn;
-    private $querying = false;
     private $dsn = NULL;
     private $username = NULL;
     private $password = NULL;
     private $connected = FALSE;
+    private $sqllog = SQLLOG;
 
     const DUPLICATE_KEY = 1062;
     const MAX_LOG_SIZE = 100000;
-    const CACHE_MAX_SIZE = 50000;
-    const CACHE_EXPIRY = 45;  // We expect session polls every 30s, so this should cover that.
-
     const MAX_BACKGROUND_SIZE = 100000;  # Max size of sql that we can pass to beanstalk directly; larger goes in file
 
     /**
@@ -161,6 +60,11 @@ class LoggedPDO {
         $this->errorLog = $errorLog;
     }
 
+    public function setLog($log) {
+        // This allows us to turn the logging on in UT, even if it's turned off generally.
+        $this->sqllog = $log;
+    }
+
     /**
      * @param null $pheanstalk
      */
@@ -177,7 +81,6 @@ class LoggedPDO {
         $this->options = $options;
         $this->readonly = $readonly;
         $this->readconn = $readconn;
-        $this->cache = NULL;
 
         return $this;
     }
@@ -213,29 +116,8 @@ class LoggedPDO {
         }
     }
 
-    private function getRedis() {
-        if (!$this->cache) {
-            $this->cache = new Redis();
-            @$this->cache->pconnect(REDIS_CONNECT);
-        }
-
-        return($this->cache);
-    }
-
     public function getWaitTime() {
         return $this->dbwaittime;
-    }
-
-    public function getCacheTime() {
-        return $this->cachetime;
-    }
-
-    public function getCacheQueries() {
-        return $this->cachequeries;
-    }
-
-    public function getCacheHits() {
-        return $this->cachehits;
     }
 
     # Our most commonly used method is a combine prepare and execute, wrapped in
@@ -244,8 +126,8 @@ class LoggedPDO {
         return($this->prex($sql, $params, FALSE, $log));
     }
 
-    public function preQuery($sql, $params = NULL, $log = FALSE, $usecache = TRUE) {
-        return($this->prex($sql, $params, TRUE, $log, $usecache));
+    public function preQuery($sql, $params = NULL, $log = FALSE) {
+        return($this->prex($sql, $params, TRUE, $log));
     }
 
     public function parentPrepare($sql) {
@@ -265,21 +147,7 @@ class LoggedPDO {
         return($sth->execute($params));
     }
 
-    private function cacheKey($sql, $params) {
-        return("sql-3-" . md5($sql . var_export($params, TRUE)));
-    }
-
-    private function sessionKey() {
-        return("sqlsess" . session_id());
-    }
-
-    public function clearCache() {
-        $this->time = -1;
-
-        return($this->getRedis()->setex($this->sessionKey(), LoggedPDO::CACHE_EXPIRY, microtime(TRUE)));
-    }
-
-    private function prex($sql, $params = NULL, $select, $log, $usecache = TRUE) {
+    private function prex($sql, $params = NULL, $select, $log) {
         $this->doConnect();
         #error_log($sql);
         $try = 0;
@@ -288,181 +156,77 @@ class LoggedPDO {
         $worked = false;
         $start = microtime(true);
 
-        # We can enable/disable our cache.  Generally:
-        # - enable it if we have a bunch of DB operations we've made no particular effort to optimise.
-        # - disable it later when we have optimised DB usage, because this then reduces load on app servers.
-        $usecache = $usecache && SQLCACHE;
-
         do {
-            $gotcache = FALSE;
-            $cachekey = $this->cacheKey($sql, $params);
+            try {
+                $sth = $this->parentPrepare($sql);
+                $rc = $this->executeStatement($sth, $params);
 
-            if (preg_match('/INSERT|REPLACE|UPDATE|DELETE/', $sql)) {
-                # Ok, this is a modification op.  Zap our SQL cache.
-                #error_log("Invalidate cache with $sql");
-                $rc = $this->clearCache();
-            } else if ($this->readonly && $usecache) {
-                # This is a readonly connection, so it's acceptable for the data to be slightly out of date.  We can
-                # query our redis cache.
-                $this->cachequeries++;
+                if (!$select) {
+                    $this->lastInsert = $this->_db->lastInsertId();
+                    $this->rowsAffected = $sth->rowCount();
+                }
 
-                $cachestart = microtime(true);
-                #error_log("Read only query $cachekey $sql");
-                $mget = $this->getRedis()->mget([$cachekey, $this->sessionKey()]);
-                #error_log("Got keys " . var_export($mget, TRUE));
-
-                if ($mget[0]) {
-                    $cached = unserialize($mget[0]);
-                    #error_log("Got from cache");
-                    $cachedsql = $cached->getSQL();
-                    #error_log("Got cached SQL $cachedsql");
-
-                    if ($sql == $cachedsql) {
-                        #error_log("Matches");
-                        #error_log("Found $cachekey in cache, expired?" .  $cached->checkExpired());
-
-                        # We must check whether this cache entry has been invalidated by a subsequent modification op
-                        # within this session.
-                        if ($cached->checkValid(substr($mget[1], 1))) {
-                            if (!$cached->checkExpired()) {
-                                #error_log("Found valid entry in cache $cachekey");
-                                $gotcache = TRUE;
-                                $ret = $cached->fetchAll();
-                                $this->cachehits++;
-                            } else {
-                                # Our cache entry is past its expiry time.
-                                #error_log("Expired");
-                                if ($cached->checkQuerying()) {
-                                    # We are already updating our cache entry, in another request.  We will use this
-                                    # until that has completed - otherwise we might have a car crash where many requests
-                                    # all decide to refresh the same data at the same time.
-                                    $gotcache = TRUE;
-                                    $ret = $cached->fetchAll();
-                                    $this->cachehits++;
-                                    #error_log("Already updating cache entry $cachekey");
-                                } else {
-                                    # We are the first to notice that this has expired.  Take one for the team and
-                                    # refresh it.
-                                    #error_log("Refresh expired cache $cachekey");
-                                    $cached->setQuerying(true);
-                                    $tocache = serialize($cached);
-                                    $cachestart = microtime(true);
-                                    $rc = $this->getRedis()->setex($cachekey, LoggedPDO::CACHE_EXPIRY, $tocache);
-                                    $this->cachetime += microtime(true) - $cachestart;
-                                    #error_log("Time to refresh expired cache " . (microtime(true) - $cachestart));
-                                    #if ($rc) {
-                                    #    error_log("Return $rc replaced in cache $cachekey size " . strlen(serialize($cached)) . " $rc " . $this->cache->getLastError());
-                                    #} else {
-                                    #    error_log("Failed to store $rc " . $this->cache->getLastError());
-                                    #}
-                                }
-                            }
-                        }
+                if ($rc) {
+                    # For selects we return all the rows found; for updates we return the return value.
+                    $ret = $select ? $sth->fetchAll() : $rc;
+                    $worked = true;
+                } else {
+                    $msg = var_export($this->getErrorInfo($sth), true);
+                    if (stripos($msg, 'has gone away') !== FALSE) {
+                        # This can happen if we have issues with the DB, e.g. one server dies or the connection is
+                        # timed out.  We re-open the connection and try again.
+                        $try++;
+                        $this->_db = NULL;
+                        $this->_db = new PDO($this->dsn, $this->username, $this->password);
                     }
                 }
 
-                #error_log("Time to query cache " . (microtime(true) - $cachestart));
-                $this->cachetime += microtime(true) - $cachestart;
-            }
+                $try++;
+            } catch (Exception $e) {
+                if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
+                    # It's a Percona deadlock.
+                    #
+                    # If we're not in a transaction we can just retry and it's likely to work.
+                    #
+                    # If we're in a transaction, then there is a very nasty case we need to watch out for.
+                    # We're in a cluster, and it uses optimistic locking, which means that we can commit a
+                    # conflicting transaction on another node, and then get a deadlock error.  We can get this
+                    # on any operation partway through the transaction, even on a SELECT.  The deadline error
+                    # has aborted our transaction and everything up to this point, but if we retry then a SELECT
+                    # will work, and we will continue merrily on our way, implicitly committing as we go,
+                    # until the COMMIT; which may well work.  That means that we can do half of a transaction.
+                    # So instead we will give up, which will ripple up an exception causing either a retry of
+                    # the whole API request, or a failure of a script.  Either way we won't end up half doing stuff.
+                    #
+                    # We have observed this in practice due to user merges happening on different servers -
+                    # a background sync of the approved membership and a foreground sync of a pending membership
+                    # which both trigger a merge, but on different servers connected to different DB hosts in the
+                    # cluster.
+                    #
+                    # This is similar to https://ghostaldev.com/2016/05/22/galera-gotcha-mysql-users/
+                    $msg = $e->getMessage();
 
-            if (!$gotcache) {
-                #error_log("Not got from cache $sql");
-                try {
-                    $sth = $this->parentPrepare($sql);
-                    $rc = $this->executeStatement($sth, $params);
-
-                    if (!$select) {
-                        $this->lastInsert = $this->_db->lastInsertId();
-                        $this->rowsAffected = $sth->rowCount();
-                    }
-
-                    if ($rc) {
-                        # For selects we return all the rows found; for updates we return the return value.
-                        $ret = $select ? $sth->fetchAll() : $rc;
-                        $worked = true;
-                        
-                        if ($select && $usecache) {
-                            # Convert to our results to store in the cache.  We can store something in the cache
-                            # even if this is not a readonly connection - once we've read it, we might as well
-                            # have the most up to date value.
-                            try {
-                                $tocache = new DBResults($ret, $sql, LoggedPDO::CACHE_EXPIRY);
-                            } catch (Exception $e) { error_log("Failed " . $e->getMessage());}
-
-                            # Store this result in the cache
-                            $tocache = serialize($tocache);
-                            #error_log("Consider store $cachekey " . strlen($tocache));
-                            if (strlen($tocache) < LoggedPDO::CACHE_MAX_SIZE) {
-                                $cachestart = microtime(true);
-                                $this->getRedis()->setex($cachekey, LoggedPDO::CACHE_EXPIRY, $tocache);
-                                $this->cachetime += microtime(true) - $cachestart;
-                            }
-                        }
-
-                        if ($log) {
-                            $duration = microtime(true) - $start;
-                        }
-                    } else {
-                        $msg = var_export($this->getErrorInfo($sth), true);
-                        if (stripos($msg, 'has gone away') !== FALSE) {
-                            # This can happen if we have issues with the DB, e.g. one server dies or the connection is
-                            # timed out.  We re-open the connection and try again.
-                            $try++;
-                            $this->_db = NULL;
-                            $this->_db = new PDO($this->dsn, $this->username, $this->password);
-                        }
-                    }
-
-                    $try++;
-                } catch (Exception $e) {
-                    if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
-                        # It's a Percona deadlock.
-                        #
-                        # If we're not in a transaction we can just retry and it's likely to work.
-                        #
-                        # If we're in a transaction, then there is a very nasty case we need to watch out for.
-                        # We're in a cluster, and it uses optimistic locking, which means that we can commit a
-                        # conflicting transaction on another node, and then get a deadlock error.  We can get this
-                        # on any operation partway through the transaction, even on a SELECT.  The deadline error
-                        # has aborted our transaction and everything up to this point, but if we retry then a SELECT
-                        # will work, and we will continue merrily on our way, implicitly committing as we go,
-                        # until the COMMIT; which may well work.  That means that we can do half of a transaction.
-                        # So instead we will give up, which will ripple up an exception causing either a retry of
-                        # the whole API request, or a failure of a script.  Either way we won't end up half doing stuff.
-                        #
-                        # We have observed this in practice due to user merges happening on different servers -
-                        # a background sync of the approved membership and a foreground sync of a pending membership
-                        # which both trigger a merge, but on different servers connected to different DB hosts in the
-                        # cluster.
-                        #
-                        # This is similar to https://ghostaldev.com/2016/05/22/galera-gotcha-mysql-users/
-                        $msg = $e->getMessage();
-
-                        if (!$this->inTransaction) {
-                            $try++;
-                        } else {
-                            $msg = "Deadlock in transaction " . $e->getMessage() . " $sql";
-                            error_log($msg);
-                            $try = $this->tries;
-                        }
-                    } else if (stripos($e->getMessage(), 'has gone away') !== FALSE ||
-                        stripos($e->getMessage(), 'Lost connection to MySQL server') !== FALSE ||
-                        stripos($e->getMessage(), 'Call to a member function prepare() on a non-object (null)')
-                    ) {
-                        # Try re-opening the connection.
+                    if (!$this->inTransaction) {
                         $try++;
-                        sleep(1);
-                        $this->_db = NULL;
-                        $this->_db = new PDO($this->dsn, $this->username, $this->password);
                     } else {
-                        $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
+                        $msg = "Deadlock in transaction " . $e->getMessage() . " $sql";
                         error_log($msg);
                         $try = $this->tries;
                     }
+                } else if (stripos($e->getMessage(), 'has gone away') !== FALSE ||
+                    stripos($e->getMessage(), 'Lost connection to MySQL server') !== FALSE ||
+                    stripos($e->getMessage(), 'Call to a member function prepare() on a non-object (null)')
+                ) {
+                    # Try re-opening the connection.
+                    $try++;
+                    sleep(1);
+                    $this->_db = NULL;
+                    $this->_db = new PDO($this->dsn, $this->username, $this->password);
+                } else {
+                    $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
+                    error_log($msg);
+                    $try = $this->tries;
                 }
-            } else {
-                #error_log("Got from cache");
-                $worked = TRUE;
             }
         } while (!$worked && $try < $this->tries);
 
@@ -473,7 +237,7 @@ class LoggedPDO {
 
         $this->dbwaittime += microtime(true) - $start;
 
-        if ($log && SQLLOG) {
+        if ($log && $this->sqllog) {
             $mysqltime = date("Y-m-d H:i:s", time());
             $duration = microtime(true) - $start;
             $logret = $select ? count($ret) : ("$ret:" . $this->lastInsert);
@@ -522,9 +286,6 @@ class LoggedPDO {
 
                 if ($ret !== FALSE) {
                     $worked = true;
-
-                    # This is a modification op, so clear our cache.
-                    $this->getRedis()->setex($this->sessionKey(), LoggedPDO::CACHE_EXPIRY, microtime(TRUE));
                 } else {
                     $msg = var_export($this->errorInfo(), true);
                     $try++;
@@ -650,7 +411,7 @@ class LoggedPDO {
         $duration = microtime(true) - $time;
         $mysqltime = date("Y-m-d H:i:s", time());
 
-        if (SQLLOG) {
+        if ($this->sqllog) {
             $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('ROLLBACK;') . "," . $this->quote($rc) . ");";
             $this->background($logsql);
@@ -675,7 +436,7 @@ class LoggedPDO {
             error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $this->transactionStart) * 1000), 2) . "ms for beginTransaction");
         }
 
-        if (SQLLOG) {
+        if ($this->sqllog) {
             $mysqltime = date("Y-m-d H:i:s", time());
             $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('BEGIN TRANSACTION;') . "," . $this->quote($ret . ":" . $this->lastInsert) . ");";
@@ -702,7 +463,7 @@ class LoggedPDO {
             error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for commit");
         }
 
-        if (SQLLOG) {
+        if ($this->sqllog) {
             $mysqltime = date("Y-m-d H:i:s", time());
             $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('COMMIT;') . "," . $this->quote($rc) . ");";
@@ -722,7 +483,7 @@ class LoggedPDO {
 
         $duration = microtime(true) - $time;
 
-        if ($log && SQLLOG) {
+        if ($log && $this->sqllog) {
             $mysqltime = date("Y-m-d H:i:s", time());
             $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql) . "," . $this->quote($ret . ":" . $this->lastInsert) . ");";

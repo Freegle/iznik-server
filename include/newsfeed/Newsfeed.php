@@ -89,7 +89,7 @@ class Newsfeed extends Entity
             # bypasses the normal duplicate protection. So check.
             $last = $this->dbhm->preQuery("SELECT * FROM newsfeed WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
                 $userid
-            ], FALSE, FALSE);
+            ]);
 
             if (!count($last) || $last[0]['replyto'] != $replyto || $last[0]['type'] != $type || $last[0]['message'] != $message) {
                 $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position, hidden) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos, $hidden);", [
@@ -118,7 +118,7 @@ class Newsfeed extends Entity
                         do {
                             $parent = $this->dbhr->preQuery("SELECT replyto FROM newsfeed WHERE id = ?;", [
                                 $bump
-                            ], FALSE, FALSE);
+                            ]);
 
                             $this->dbhm->preExec("UPDATE newsfeed SET timestamp = NOW() WHERE id = ?;", [ $bump ]);
 
@@ -289,7 +289,7 @@ class Newsfeed extends Entity
             $likes = $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") GROUP BY newsfeedid;", NULL, FALSE, FALSE);
             $mylikes = $me ? $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") AND userid = ?;", [
                 $me->getId()
-            ], FALSE, FALSE) : [];
+            ]) : [];
 
             $imageids = array_filter(array_column($entries, 'imageid'));
             $images = [];
@@ -1120,7 +1120,7 @@ class Newsfeed extends Entity
         $unfollows = $this->dbhr->preQuery("SELECT id FROM newsfeed_unfollow WHERE userid = ? AND newsfeedid = ?;", [
             $userid,
             $newsfeedid
-        ], FALSE, FALSE);
+        ]);
 
         return(count($unfollows) > 0);
     }

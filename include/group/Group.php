@@ -380,11 +380,11 @@ class Group extends Entity
             $pendingspamcounts = $this->dbhr->preQuery("SELECT messages_groups.groupid, COUNT(*) AS count, messages_groups.collection, messages.heldby IS NOT NULL AS held FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid IN $groupq AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.deleted IS NULL AND messages_groups.arrival >= '$earliestmsg' GROUP BY messages_groups.groupid, messages_groups.collection, held;", [
                 MessageCollection::PENDING,
                 MessageCollection::SPAM
-            ], FALSE, FALSE);
+            ]);
 
             $heldmembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE collection = ? AND groupid IN $groupq GROUP BY memberships.groupid, collection, held;", [
                 MembershipCollection::PENDING
-            ], FALSE, FALSE);
+            ]);
 
             $spammembercounts = $this->dbhr->preQuery(
                 "SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships
@@ -396,7 +396,7 @@ SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS
 INNER JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.collection = '" . Spam::TYPE_SPAMMER . "'
 WHERE groupid IN $groupq
 GROUP BY memberships.groupid, held;
-", [], FALSE, FALSE);
+", []);
 
             $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
                 $eventsqltime
@@ -859,7 +859,7 @@ $ctxq
 $filterq
 ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messages_outcomes.id DESC LIMIT 10
 ";
-        $members = $this->dbhr->preQuery($sql, [], FALSE, FALSE);
+        $members = $this->dbhr->preQuery($sql, []);
 
         # Get the users in a single go for speed.
         $uids = array_column($members, 'fromuser');

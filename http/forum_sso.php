@@ -35,7 +35,7 @@ if (($sso->validatePayload($payload,$signature))) {
                 $persistent['id'],
                 $persistent['series'],
                 $persistent['token']
-            ], FALSE, FALSE);
+            ], FALSE);
 
             if( count($sessions)==0){
                 error_log('forum_sso - no login sessions');

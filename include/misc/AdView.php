@@ -64,7 +64,7 @@ class AdView
             # Find keywords I've clicked on.
             $logs = $this->dbhr->preQuery("SELECT * FROM logs_jobs WHERE userid = ?;", [
                 $userid
-            ], FALSE, FALSE);
+            ]);
 
             foreach ($logs as $log) {
                 if (preg_match('/.*\/(.*)\?/', $log['link'], $matches)) {

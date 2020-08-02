@@ -146,7 +146,7 @@ class Admin extends Entity
                 $sent = $this->dbhr->preQuery("SELECT * FROM admins_users WHERE adminid = ? AND userid = ?;", [
                     $this->admin['parentid'],
                     $member['userid']
-                ], FALSE, FALSE);
+                ]);
 
                 if (count($sent) > 0) {
                     # We have - skip

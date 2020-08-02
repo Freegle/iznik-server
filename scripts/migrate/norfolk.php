@@ -593,7 +593,7 @@ foreach ($messages as $message) {
 
     $tos = $dbhn->preQuery("SELECT ue_EmailAddress FROM ue_UserEmail WHERE ue_u_Id = ? AND ue_IsLogon = 1 AND ue_IsActivated = 1 AND ue_AddressProblem = 0;", [
         $message['g_u_IdTo']
-    ], FALSE, FALSE);
+    ]);
 
     foreach ($tos as $to) {
         $touid = $u->findByEmail($to['ue_EmailAddress']);
@@ -602,7 +602,7 @@ foreach ($messages as $message) {
     if ($message['g_u_IdFrom']) {
         $froms = $dbhn->preQuery("SELECT ue_EmailAddress FROM ue_UserEmail WHERE ue_u_Id = ? AND ue_IsLogon = 1 AND ue_IsActivated = 1 AND ue_AddressProblem = 0;", [
             $message['g_u_IdFrom']
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($froms as $from) {
             $fromuid = $u->findByEmail($from['ue_EmailAddress']);
@@ -610,7 +610,7 @@ foreach ($messages as $message) {
     } else if ($message['p_u_Id']) {
         $froms = $dbhn->preQuery("SELECT ue_EmailAddress FROM ue_UserEmail WHERE ue_u_Id = ? AND ue_IsLogon = 1 AND ue_IsActivated = 1 AND ue_AddressProblem = 0;", [
             $message['p_u_Id']
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($froms as $from) {
             $fromuid = $u->findByEmail($from['ue_EmailAddress']);

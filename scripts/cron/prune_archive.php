@@ -33,7 +33,7 @@ foreach (shuffle($hosts) as $host) {
                     $mid = $matches[2];
                     $msgs = $dbhr->preQuery("SELECT id FROM messages_attachments WHERE id = ?;", [
                         $mid
-                    ], FALSE, FALSE);
+                    ]);
 
                     $msgtotal++;
 
@@ -53,7 +53,7 @@ foreach (shuffle($hosts) as $host) {
                     $mid = $matches[2];
                     $msgs = $dbhr->preQuery("SELECT id FROM chat_images WHERE id = ?;", [
                         $mid
-                    ], FALSE, FALSE);
+                    ]);
 
                     $chattotal++;
 

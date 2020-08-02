@@ -74,7 +74,7 @@ if (count($opts) < 1) {
     error_log("Find messages...");
     $messages = $dbhr->preQuery("SELECT DISTINCT messages.id, messages_groups.arrival FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_groups.arrival >= '$mysqltime' AND messages_groups.collection = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL LIMIT 100;", [
         MessageCollection::APPROVED
-    ], FALSE, FALSE);
+    ]);
     error_log("..." . count($messages));
 
     foreach ($messages as $message) {

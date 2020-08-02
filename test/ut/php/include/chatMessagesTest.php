@@ -287,7 +287,7 @@ class chatMessagesTest extends IznikTestCase {
         assertEquals(MailRouter::TO_USER, $rc);
         $chatmessages = $this->dbhr->preQuery("SELECT chat_messages.id, chatid, reviewrequired, reviewrejected FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_rooms.user2 = ?", [
             $m->getFromuser()
-        ], FALSE, FALSE);
+        ]);
         assertEquals(1, count($chatmessages));
         $chatid = NULL;
         foreach ($chatmessages as $c) {

@@ -25,14 +25,15 @@ class dbTest extends IznikTestCase {
         assertNotNull($this->dbhr);
         assertNotNull($this->dbhm);
 
-        $this->dbhr->clearCache();
-        $this->dbhm->clearCache();
-
         $this->dbhm->exec('DROP TABLE IF EXISTS test;');
         $rc = $this->dbhm->exec('CREATE TABLE `test` (`id` int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=latin1;');
         assertEquals(0, $rc);
         $rc = $this->dbhm->exec('ALTER TABLE  `test` ADD  `val` INT NOT NULL ;');
         assertEquals(0, $rc);
+
+        // Turn on logging for this test.
+        $this->dbhm->setLog(TRUE);
+        $this->dbhm->setErrorLog(TRUE);
     }
 
     protected function tearDown() {
@@ -80,6 +81,8 @@ class dbTest extends IznikTestCase {
         $rc = $this->dbhm->rollBack();
         assertTrue($rc);
         assertFalse($this->dbhm->inTransaction());
+
+        $this->dbhm->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, TRUE);
 
         $counts = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM test;");
         assertEquals(0, $counts[0]['count']);
@@ -445,11 +448,7 @@ class dbTest extends IznikTestCase {
         assertEquals(1, $rc);
 
         $this->log("Select with read");
-        $ids = $this->dbhr->preQuery('SELECT * FROM test WHERE id > ?;', array(0));
-        assertEquals(1, count($ids));
-
-        # Select again to exercise cache.
-        $ids = $this->dbhr->preQuery('SELECT * FROM test WHERE id > ?;', array(0));
+        $ids = $this->dbhr->preQuery('SELECT * FROM test WHERE id > ?;', array(0), FALSE, TRUE, TRUE);
         assertEquals(1, count($ids));
     }
 

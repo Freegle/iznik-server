@@ -18,7 +18,7 @@ foreach ([1, 0] AS $osm) {
             $town['name'],
             str_replace(' ', '-', $town['name']),
             $osm
-        ], FALSE, FALSE);
+        ]);
 
         if (count($locs) == 1) {
             $loc = $locs[0];

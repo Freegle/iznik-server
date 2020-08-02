@@ -560,7 +560,7 @@ class Message
                 # This saves queries later, which is a round trip to the DB server.
                 #
                 # Don't try to cache message info - too many of them.
-                $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id = ?;", [$id], FALSE, FALSE);
+                $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id = ?;", [$id]);
                 foreach ($msgs as $msg) {
                     $this->id = $id;
 
@@ -1376,7 +1376,7 @@ ORDER BY lastdate DESC;";
 
                     if (count($msgids)) {
                         $sql = "SELECT * FROM messages_outcomes WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;";
-                        $outcomes = $this->dbhr->preQuery($sql, [ $msg['id'] ], FALSE, FALSE);
+                        $outcomes = $this->dbhr->preQuery($sql, [ $msg['id'] ]);
                     }
                 }
 
@@ -1589,7 +1589,7 @@ ORDER BY lastdate DESC;";
                 # Return any edit history, most recent first.
                 $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;", [
                     $this->id
-                ], FALSE, FALSE);
+                ]);
             }
 
             # We can't use foreach because then data is copied by reference.
@@ -1628,7 +1628,7 @@ ORDER BY lastdate DESC;";
                 # Return any edit history, most recent first.
                 $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;", [
                     $this->id
-                ], FALSE, FALSE);
+                ]);
             }
 
             # We can't use foreach because then data is copied by reference.
@@ -4496,6 +4496,6 @@ ORDER BY lastdate DESC;";
         return $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_likes WHERE msgid = ? AND type = ?;", [
             $this->id,
             $type
-        ], FALSE, FALSE)[0]['count'];
+        ])[0]['count'];
     }
 }

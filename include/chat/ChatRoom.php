@@ -371,18 +371,18 @@ WHERE chat_rooms.id IN $idlist;";
 
         $banned = $this->dbhr->preQuery("SELECT groupid FROM users_banned WHERE userid = ?;", [
             $user1
-        ], FALSE, FALSE);
+        ]);
 
         if (count($banned)) {
             $bannedon = array_column($banned, 'groupid');
 
             $user1groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
                 $user1
-            ], FALSE, FALSE);
+            ]);
 
             $user2groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
                 $user2
-            ], FALSE, FALSE);
+            ]);
 
             $user1ids = array_column($user1groups, 'groupid');
             $user2ids = array_column($user2groups, 'groupid');
@@ -698,7 +698,7 @@ WHERE chat_rooms.id IN $idlist;";
             $ret['replyexpected'] = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND replyexpected = 1 AND replyreceived = 0 AND userid != ? AND chat_messages.date >= '$oldest';", [
                 $this->chatroom['id'],
                 $myid
-            ], FALSE, FALSE)[0]['count'];
+            ])[0]['count'];
         }
 
         return ($ret);
@@ -822,7 +822,7 @@ WHERE chat_rooms.id IN $idlist;";
         if ($chatids) {
             $idq = implode(',', $chatids);
             $sql = "SELECT COUNT(chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0);";
-            $ret = $this->dbhr->preQuery($sql, [ $userid, $userid ], FALSE, FALSE)[0]['count'];
+            $ret = $this->dbhr->preQuery($sql, [ $userid, $userid ])[0]['count'];
         }
 
         return ($ret);
@@ -1276,7 +1276,7 @@ WHERE chat_rooms.id IN $idlist;";
                         $mods = $this->dbhr->preQuery("SELECT DISTINCT userid, settings FROM memberships WHERE groupid IN (" . implode(',', $groupids) . ") AND role IN (?, ?)", [
                             User::ROLE_MODERATOR,
                             User::ROLE_OWNER
-                        ], FALSE, FALSE);
+                        ]);
 
                         foreach ($mods as $mod) {
                             if (!pres('settings', $mod) || pres('active', json_decode($mod['settings']))) {
@@ -2141,7 +2141,7 @@ WHERE chat_rooms.id IN $idlist;";
         $mailedtoall = PHP_INT_MAX;
         $maxes = $this->dbhm->preQuery("SELECT lastmsgemailed, userid FROM chat_roster WHERE chatid = ? GROUP BY userid", [
             $chatid
-        ], FALSE, FALSE);
+        ]);
 
         foreach ($maxes as $max) {
             $mailedtoall = min($mailedtoall, $max['lastmsgemailed']);
@@ -2332,7 +2332,7 @@ WHERE chat_rooms.id IN $idlist;";
                 ChatRoom::TYPE_USER2USER,
                 ChatMessage::TYPE_INTERESTED,
                 ChatMessage::TYPE_DEFAULT
-            ], FALSE, FALSE);
+            ]);
 
             # Calculate typical reply time.
             foreach ($left as $userid) {
@@ -2347,7 +2347,7 @@ WHERE chat_rooms.id IN $idlist;";
                             $msg['chatid'],
                             $msg['id'],
                             $userid
-                        ], FALSE, FALSE);
+                        ]);
 
                         if (count($lasts) > 0 && $lasts[0]['max']) {
                             $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;

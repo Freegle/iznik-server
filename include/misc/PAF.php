@@ -44,7 +44,7 @@ class PAF
                 $id = $this->cache[$table][$val];
                 #error_log("Got cached $val for $att = $val in $table");
             } else {
-                $vals = $this->dbhr->preQuery("SELECT id FROM $table WHERE $att = ?;", [ $val ], FALSE, FALSE);
+                $vals = $this->dbhr->preQuery("SELECT id FROM $table WHERE $att = ?;", [ $val ]);
 
                 if (count($vals) > 0) {
                     $id = $vals[0]['id'];
@@ -143,7 +143,7 @@ class PAF
                     $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
                 }
 
-                $addresses = $this->dbhr->preQuery("SELECT * FROM paf_addresses WHERE udprn = ?;", [ $udprn ], FALSE, FALSE);
+                $addresses = $this->dbhr->preQuery("SELECT * FROM paf_addresses WHERE udprn = ?;", [ $udprn ]);
                 foreach ($addresses as $address) {
                     # Compare the values
                     foreach ($address as $key => $val) {
