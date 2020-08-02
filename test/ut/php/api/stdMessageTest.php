@@ -105,7 +105,30 @@ class stdMessageAPITest extends IznikAPITestCase {
         assertEquals($id, $ret['stdmsg']['id']);
         assertEquals('Reject Member', $ret['stdmsg']['action']);
 
+        # Should show up in config now.
+        $ret = $this->call('modconfig', 'GET', [
+            'id' => $this->cid
+        ]);
+
+        assertEquals(1, count($ret['config']['stdmsgs']));
+        assertEquals($id, $ret['config']['stdmsgs'][0]['id']);
+
+        # And if we get it via session.
+        $ret = $this->call('session', 'GET', [
+            'components' => [ 'allconfigs' ]
+        ]);
+
+        error_log("Returned " . count($ret['configs']));
+        $found = FALSE;
+        foreach ($ret['configs'] as $config) {
+            if ($config['id'] == $this->cid) {
+                assertEquals($id, $config['stdmsgs'][0]['id']);
+                $found = TRUE;
+            }
         }
+
+        assertTrue($found);
+    }
 
     public function testPatch() {
         assertTrue($this->user->login('testpw'));

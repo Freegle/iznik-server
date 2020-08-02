@@ -67,8 +67,21 @@ class configTest extends IznikTestCase {
         $u2->addMembership($group1, User::ROLE_OWNER);
         assertEquals($id, $c->getForGroup($uid, $group1));
         assertEquals($id, $c->getForGroup($uid2, $group1));
-
         assertTrue($u2->login('testpw'));
+
+        # Check the "cansee" shows shared.
+        $atts = $c->getPublic(TRUE, TRUE);
+        assertEquals(ModConfig::CANSEE_SHARED, $atts['cansee']);
+        assertEquals('Test User', $atts['sharedby']['displayname']);
+
+        # Check the username is right in different cases.
+        $u->setPrivate('fullname', NULL);
+        $u->setPrivate('firstname', 'Test');
+        $u->setPrivate('lastname', 'User');
+        User::clearCache();
+        $atts = $c->getPublic(TRUE, TRUE);
+        assertEquals(ModConfig::CANSEE_SHARED, $atts['cansee']);
+        assertEquals('Test User', $atts['sharedby']['displayname']);
 
         # Sleep for redis cache to expire
         $this->log("Sleep redis");
@@ -252,7 +265,6 @@ class configTest extends IznikTestCase {
         $m->setPrivate('action', 'Delete Approved Message');
         assertEquals('test-specific-follow@test.com', $c->getBcc('Delete Approved Message'));
         assertEquals(NULL, $c->getBcc('Delete Approved Member'));
-
-        }
+    }
 }
 
