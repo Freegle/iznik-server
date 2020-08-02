@@ -488,8 +488,21 @@ class Spam {
                 $dist = round($dist * 0.000621371192);
 
                 if ($dist >= Spam::DISTANCE_THRESHOLD) {
-                    $suspect = TRUE;
-                    $reason = "Replied to posts $dist miles apart";
+                    # Check if it is greater than the current distance, so we don't keep asking for the same user
+                    $rounded = round($dist / 5) * 5;
+                    $existing = $this->dbhr->preQuery("SELECT replyambit FROM users WHERE id = ?;", [
+                        $userid
+                    ], FALSE, FALSE);
+
+                    if ($rounded > $existing[0]['replyambit']) {
+                        $this->dbhm->preExec("UPDATE users SET replyambit = ? WHERE id = ?;", [
+                            $rounded,
+                            $userid
+                        ]);
+
+                        $suspect = TRUE;
+                        $reason = "Replied to posts $dist miles apart";
+                    }
                 }
             }
         }
