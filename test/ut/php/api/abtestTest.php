@@ -54,11 +54,6 @@ class abtestAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        # Wait for cache.
-        $this->log("Sleep " . (LoggedPDO::CACHE_EXPIRY + 1));
-        sleep(LoggedPDO::CACHE_EXPIRY + 1);
-        $this->log("Slept");
-
         # Now get until we've seen both.
         $seena = FALSE;
         $seenb = FALSE;
