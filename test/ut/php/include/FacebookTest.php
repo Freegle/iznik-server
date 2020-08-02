@@ -123,6 +123,13 @@ class FacebookTest extends IznikTestCase {
         $this->log("Logins " . var_export($logins, TRUE));
         assertEquals(1, $logins[0]['uid']);
 
+        # Ensure the full name is copied.
+        $me->setPrivate('fullname', NULL);
+        list($session, $ret) = $mock->login();
+        assertEquals(0, $ret['ret']);
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        assertEquals('Test User', $me->getPrivate('fullname'));
+
         # Log in again with a different email, triggering a merge.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, "Test User2");
@@ -217,6 +224,33 @@ class FacebookTest extends IznikTestCase {
         $f = new Facebook($this->dbhr, $this->dbhm);
         $fb = $f->getFB();
         assertNotNull($fb);
+    }
+
+    public function testNotify() {
+        $mock = $this->getMockBuilder('Facebook')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm])
+            ->setMethods(array('pheanPut'))
+            ->getMock();
+
+        $mock->method('pheanPut')->willReturn(42);
+        assertEquals(42, $mock->notify(NULL, NULL, NULL));
+
+        $mock->method('pheanPut')->willThrowException(new Exception());
+        assertNull($mock->notify(NULL, NULL, NULL));
+    }
+
+    public function testNotify2() {
+        $mock = $this->getMockBuilder('Facebook')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm])
+            ->setMethods(array('fbpost'))
+            ->getMock();
+
+        $mock->method('fbpost')->willReturn(42);
+        assertEquals(42, $mock->executeNotify(NULL, NULL, NULL));
+
+        $mock->method('fbpost')->willThrowException(new Exception("(#803) Some of the aliases you requested do not exist:"));
+        assertNull($mock->executeNotify(0, NULL, NULL));
+
     }
 }
 

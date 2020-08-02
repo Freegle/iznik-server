@@ -185,7 +185,7 @@ class Facebook
             # We have publish permissions for users who login via our platform.
             $u->setPrivate('publishconsent', 1);
 
-            # We might have syncd the membership without a good name.
+            # We might have have them without a good name.
             if (!$u->getPrivate('fullname')) {
                 $u->setPrivate('firstname', $firstname);
                 $u->setPrivate('lastname', $lastname);
@@ -259,21 +259,27 @@ class Facebook
         return([$s, $ret]);
     }
 
+    public function fbpost($fbid, $notif) {
+        $fb = new Facebook\Facebook([
+                                        'app_id' => FBAPP_ID,
+                                        'app_secret' => FBAPP_SECRET
+                                    ]);
+
+        $fb->setDefaultAccessToken(FBAPP_ID . '|' . FBAPP_SECRET);
+
+        return $fb->post("/$fbid/notifications", $notif);
+    }
+
     public function executeNotify($fbid, $message, $href) {
+        $result = NULL;
+
         try {
             $notif = [
                 'template' => $message,
                 'href' => $href
             ];
 
-            $fb = new Facebook\Facebook([
-                'app_id' => FBAPP_ID,
-                'app_secret' => FBAPP_SECRET
-            ]);
-
-            $fb->setDefaultAccessToken(FBAPP_ID . '|' . FBAPP_SECRET);
-
-            $result = $fb->post("/$fbid/notifications", $notif);
+            $result = $this->fbpost($fbid, $notif);
             error_log("...notified Facebook $fbid OK");
             #error_log("Notify returned " . var_export($result, TRUE));
         } catch (Exception $e) {
@@ -290,6 +296,8 @@ class Facebook
                 ]);
             }
         }
+
+        return $result;
     }
 
     public function uthook($rc = NULL) {
@@ -297,7 +305,13 @@ class Facebook
         return($rc);
     }
 
+    public function pheanPut($str) {
+        return $this->pheanstalk->put($str);
+    }
+
     public function notify($fbid, $message, $href) {
+        $id = NULL;
+
         try {
             $this->uthook();
 
@@ -313,11 +327,13 @@ class Facebook
                 'href' => $href
             ));
 
-            $id = $this->pheanstalk->put($str);
+            $id = $this->pheanPut($str);
         } catch (Exception $e) {
             # Try again in case it's a temporary error.
             error_log("Beanstalk exception " . $e->getMessage());
             $this->pheanstalk = NULL;
         }
+
+        return $id;
     }
 }
