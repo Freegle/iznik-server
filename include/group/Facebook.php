@@ -225,15 +225,19 @@ ORDER BY groups_facebook_toshare.id DESC;";
         $ret = FALSE;
 
         if ($me) {
+            error_log("me");
             # We need to be a mod on the relevant group.
             $modships = $me->getModeratorships();
 
             if (count($modships) > 0) {
+                error_log("Get");
                 $groupids = implode(',', $modships);
                 $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype, groups_facebook.uid, groups_facebook.groupid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND uid = ? AND groups_facebook_toshare.id = ?;";
+                error_log("$sql, {$this->uid}, $id");
                 $actions = $this->dbhr->preQuery($sql, [ $this->uid, $id ]);
 
                 foreach ($actions as $action) {
+                    error_log("mod");
                     # Whether or not this worked, remember that we've tried, so that we don't try again.
                     #error_log("Record INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES ({$action['uid']},{$action['groupid']},{$action['postid']});");
                     $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES (?,?,?);", [
@@ -266,6 +270,14 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         $ret = TRUE;
                     } catch (Exception $e) {
                         error_log("Share failed with " . $e->getMessage());
+                        $msg = $e->getMessage();
+
+                        if (strpos($msg, 'The user has not authorized') !== FALSE) {
+                            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterror = ?, lasterrortime = NOW() WHERE uid = ?", [
+                                $msg,
+                                $action['uid']
+                            ]);
+                        }
                     }
                 }
             }
