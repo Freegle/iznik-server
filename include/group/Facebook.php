@@ -272,12 +272,10 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         error_log("Share failed with " . $e->getMessage());
                         $msg = $e->getMessage();
 
-                        if (strpos($msg, 'The user has not authorized') !== FALSE) {
-                            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterror = ?, lasterrortime = NOW() WHERE uid = ?", [
-                                $msg,
-                                $action['uid']
-                            ]);
-                        }
+                        $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterror = ?, lasterrortime = NOW() WHERE uid = ?", [
+                            $msg,
+                            $action['uid']
+                        ]);
                     }
                 }
             }
