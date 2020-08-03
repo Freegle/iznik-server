@@ -365,8 +365,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $m = new ChatMessage($this->dbhr, $this->dbhm);;
 
         assertTrue($m->checkReview("Hi ↵↵repetitionbowie.com/sportscapping.php?meant=mus2x216xkrn0mpb↵↵↵↵↵Thank you!", FALSE, NULL));
-
-        }
+    }
 
     public function testReview() {
         $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
@@ -552,6 +551,72 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(2, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
         assertEquals($mid3, $ret['chatmessages'][1]['id']);
+    }
+
+    public function testReviewDup() {
+        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
+        assertTrue($this->user->login('testpw'));
+
+        # Make the originating user be on the group so we can test groupfrom.
+        $this->user->addMembership($this->groupid);
+
+        # Create a chat to the second user
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $this->uid2
+        ]);
+        assertEquals(0, $ret['ret']);
+        $this->cid = $ret['id'];
+        assertNotNull($this->cid);
+
+        # Create a chat to the third user
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $this->uid3
+        ]);
+        assertEquals(0, $ret['ret']);
+        $this->cid2 = $ret['id'];
+        assertNotNull($this->cid2);
+
+        # Create the same spam on each.
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test with link http://spam.wherever ',
+            'refchatid' => $this->cid
+        ]);
+        $this->log("Create message " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $mid1 = $ret['id'];
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid2,
+            'message' => 'Test with link http://spam.wherever ',
+            'refchatid' => $this->cid2
+        ]);
+        $this->log("Create message " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $mid2 = $ret['id'];
+
+        # Now log in as a mod.
+        assertTrue($this->user3->login('testpw'));
+        $this->user3->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        # Should see this now.
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(2, $ret['work']['chatreview']);
+
+        # Reject the first
+        $ret = $this->call('chatmessages', 'POST', [
+            'action' => 'Reject',
+            'id' => $mid1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Should have deleted the dup.
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['work']['chatreview']);
     }
 
     public function testReviewUnmod() {
