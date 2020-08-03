@@ -218,5 +218,26 @@ class notificationsTest extends IznikTestCase {
         assertEquals(1, count($nots));
         assertEquals(Notifications::TYPE_ABOUT_ME, $nots[0]['type']);
     }
+
+    public function testOff() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, 'Test Original Poster');
+        $this->log("Created user $uid1");
+        $u = User::get($this->dbhr, $this->dbhm, $uid1);
+        $email = 'test1@test.com';
+        $this->log("Added email " . $u->addEmail($email) . " vs " . $u->getEmailPreferred());
+
+        $n = $this->getMockBuilder('Notifications')
+            ->setConstructorArgs(array($this->dbhm, $this->dbhm))
+            ->setMethods(array('sendIt'))
+            ->getMock();
+
+        $n->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        $n->off($uid1);
+        assertEquals(1, count($this->msgsSent));
+    }
 }
 
