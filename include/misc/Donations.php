@@ -105,7 +105,7 @@ class Donations
         return $giftaids[0]['count'];
     }
 
-    public function editGiftAid($id, $period, $fullname, $homeaddress, $postcode, $housenameornumber, $reviewed) {
+    public function editGiftAid($id, $period, $fullname, $homeaddress, $postcode, $housenameornumber, $reviewed, $deleted) {
         if ($period) {
             $this->dbhm->preExec("UPDATE giftaid SET period = ? WHERE id = ?;", [
                 $period,
@@ -143,6 +143,12 @@ class Donations
 
         if ($reviewed) {
             $this->dbhm->preExec("UPDATE giftaid SET reviewed = NOW() WHERE id = ?;", [
+                $id
+            ]);
+        }
+
+        if ($deleted) {
+            $this->dbhm->preExec("UPDATE giftaid SET deleted = NOW() WHERE id = ?;", [
                 $id
             ]);
         }

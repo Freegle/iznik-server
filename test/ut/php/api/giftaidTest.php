@@ -132,6 +132,81 @@ class giftaidAPITest extends IznikAPITestCase
         assertFalse(array_key_exists('giftaid', $ret));
     }
 
+    public function testDelete()
+    {
+        # Get a valid postcode.
+        $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses WHERE postcodeid = ? LIMIT 1;", [
+            1687412
+        ]);
+        self::assertEquals(1, count($pafadds));
+        $pafid = $pafadds[0]['id'];
+
+        # Create user
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # Give them an address we will recognise the postcode for
+        $a = new Address($this->dbhr, $this->dbhm);
+        $aid = $a->create($uid, $pafid);
+        $a = new Address($this->dbhr, $this->dbhm, $aid);
+        $pc = $a->getPublic()['postcode']['name'];
+
+        # Add it with valid parameters
+        $ret = $this->call('giftaid', 'POST', [
+            'period' => Donations::PERIOD_THIS,
+            'fullname' => 'Test User',
+            'homeaddress' => "Somewhere $pc"
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $gid = $ret['id'];
+        assertNotNull($gid);
+
+        # Set up the postcode.
+        $d = new Donations($this->dbhr, $this->dbhm);
+        assertEquals(1, $d->identifyGiftAidPostcode($gid));
+
+        # Delete it.
+        $u->setPrivate('permissions', User::PERM_GIFTAID);
+
+        $ret = $this->call('giftaid', 'GET', [
+            'all' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $found = NULL;
+        foreach ($ret['giftaids'] as $giftaid) {
+            if ($giftaid['userid'] == $uid) {
+                $ret = $this->call('giftaid', 'PATCH', [
+                    'id' => $giftaid['id'],
+                    'deleted' => TRUE
+                ]);
+
+                $found = $giftaid;
+            }
+        }
+
+        assertNotNull($found);
+
+        # Should be absent from list.
+        $ret = $this->call('giftaid', 'GET', [
+            'all' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $found = NULL;
+
+        foreach ($ret['giftaids'] as $giftaid) {
+            if ($giftaid['userid'] == $uid) {
+                $found = $giftaid;
+            }
+        }
+
+        assertNull($found);
+    }
+
     public function testPostcode()
     {
         $u = User::get($this->dbhm, $this->dbhm);
