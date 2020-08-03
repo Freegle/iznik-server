@@ -126,6 +126,22 @@ class groupTest extends IznikTestCase {
         self::assertEquals(Group::POSTING_PROHIBITED, $g->ourPS(Group::POSTING_PROHIBITED));
         self::assertEquals(Group::POSTING_MODERATED, $g->ourPS(Group::POSTING_MODERATED));
 
+    }
+
+    public function testList() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+        $g->setPrivate('contactmail', 'test@test.com');
+        $groups = $g->listByType(Group::GROUP_UT, TRUE, FALSE);
+
+        $found = FALSE;
+        foreach ($groups as $group) {
+            if (strcmp($group['modsmail'], 'test@test.com') === 0) {
+                $found = TRUE;
+            }
         }
+
+        assertTrue($found);
+    }
 }
 
