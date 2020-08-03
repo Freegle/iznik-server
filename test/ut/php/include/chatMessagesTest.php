@@ -92,6 +92,9 @@ class chatMessagesTest extends IznikTestCase {
         # Check got flagged.
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
         assertEquals(1, $msgs[0]['reviewrequired']);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        assertEquals(1, $m->getReviewCount());
     }
 
     public function testSpamReply2() {
@@ -116,7 +119,22 @@ class chatMessagesTest extends IznikTestCase {
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
         assertEquals(1, $msgs[0]['reviewrequired']);
 
-        }
+        # Check review counts.
+        $_SESSION['id'] = $this->uid;
+        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        assertEquals(1, $m->getReviewCount($this->user)['chatreview']);
+        assertEquals(0, $m->getReviewCount($this->user)['chatreviewother']);
+        $this->user->setGroupSettings($this->groupid, [ 'active' => 0 ]);
+        assertEquals(0, $m->getReviewCount($this->user)['chatreview']);
+        assertEquals(1, $m->getReviewCount($this->user)['chatreviewother']);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid2 = $g->create('testgroup1', Group::GROUP_UT);
+        $this->user->addMembership($gid2, User::ROLE_MODERATOR);
+        assertEquals(0, $m->getReviewCount($this->user)['chatreview']);
+        assertEquals(1, $m->getReviewCount($this->user)['chatreviewother']);
+    }
 
     public function testSpamReply5() {
         # Put a valid message on a group.
