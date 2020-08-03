@@ -92,9 +92,6 @@ class chatMessagesTest extends IznikTestCase {
         # Check got flagged.
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
         assertEquals(1, $msgs[0]['reviewrequired']);
-
-        $m = new ChatMessage($this->dbhr, $this->dbhm);
-        assertEquals(1, $m->getReviewCount());
     }
 
     public function testSpamReply2() {
