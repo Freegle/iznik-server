@@ -78,10 +78,6 @@ class messageTest extends IznikTestCase {
         $this->user = $u;
     }
 
-    protected function tearDown()
-    {
-    }
-
     public function testSetFromIP() {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setFromIP('8.8.8.8');

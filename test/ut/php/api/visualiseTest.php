@@ -28,10 +28,6 @@ class visualiseAPITest extends IznikAPITestCase
         $this->dbhm = $dbhm;
     }
 
-    protected function tearDown()
-    {
-    }
-
     public function testBasic()
     {
         # Complete a message.

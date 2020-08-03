@@ -23,11 +23,6 @@ class CatalogueTest extends IznikTestCase
         $this->dbhm = $dbhm;
     }
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-    }
-
     public function testISBNDB()
     {
         if (!getenv('STANDALONE')) {
