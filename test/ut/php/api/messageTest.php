@@ -627,6 +627,13 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, count($ret['chatmessages']));
         $chatmsgid = $ret['chatmessages'][0]['id'];
 
+        # Test the last seen
+        $ret = $this->call('chatrooms', 'GET', [
+            'id' => $chatid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($chatmsgid, $ret['chatroom']['lastmsgseen']);
+
         # And it should be flagged as mailed.
         $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
         $roster = $r->getRoster();

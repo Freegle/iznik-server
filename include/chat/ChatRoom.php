@@ -865,12 +865,6 @@ WHERE chat_rooms.id IN $idlist;";
         }
     }
 
-    private function getKey($chattypes, $modtools) {
-        sort($chattypes);
-        $key = json_encode($chattypes) . "-" . ($modtools ? 1 : 0);
-        return($key);
-    }
-
     public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS, $chatid = NULL, $activelim = ChatRoom::ACTIVELIM)
     {
         $ret = [];
@@ -986,18 +980,6 @@ WHERE chat_rooms.id IN $idlist;";
         return (count($ret) == 0 ? NULL : $ret);
     }
 
-    public function filterCanSee($userid, $chatids)
-    {
-        $rooms = $this->listForUser($userid, [
-            ChatRoom::TYPE_GROUP,
-            ChatRoom::TYPE_MOD2MOD,
-            ChatRoom::TYPE_USER2USER,
-            ChatRoom::TYPE_USER2MOD
-        ], NULL);
-
-        return(array_intersect($chatids, $rooms));
-    }
-
     public function canSee($userid, $checkmod = TRUE)
     {
         if (!$this->id) {
@@ -1010,8 +992,6 @@ WHERE chat_rooms.id IN $idlist;";
             } else {
                 # If we ourselves have rights to see all chats, then we can speed things up by noticing that rather
                 # than doing more queries.
-                $cansee = FALSE;
-
                 $me = whoAmI($this->dbhr, $this->dbhm);
 
                 if ($me && $me->isAdminOrSupport()) {
@@ -1539,19 +1519,6 @@ WHERE chat_rooms.id IN $idlist;";
         }
 
         return ([$ret, $users]);
-    }
-
-    public function lastSeenByAll()
-    {
-        $sql = "SELECT MAX(id) AS maxid FROM chat_messages WHERE chatid = ? AND seenbyall = 1;";
-        $lasts = $this->dbhr->preQuery($sql, [$this->id]);
-        $ret = NULL;
-
-        foreach ($lasts as $last) {
-            $ret = $last['maxid'];
-        }
-
-        return ($ret);
     }
 
     public function lastMailedToAll()
@@ -2281,22 +2248,6 @@ WHERE chat_rooms.id IN $idlist;";
         }
 
         return ($chats);
-    }
-
-    public function referencesMessage($msgid) {
-        $refs = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND refmsgid = ?;", [
-            $this->id,
-            $msgid
-        ]);
-        return($refs[0]['count'] > 0);
-    }
-
-    public function containsFBComment($fbid) {
-        $refs = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND facebookid = ?;", [
-            $this->id,
-            $fbid
-        ]);
-        return($refs[0]['count'] > 0);
     }
 
     public function delete()
