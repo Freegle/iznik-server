@@ -683,7 +683,9 @@ class Newsfeed extends Entity
         }
     }
 
-    public function delete() {
+    public function delete($notifstoo = TRUE) {
+        $ret = FALSE;
+
         $me = whoAmI($this->dbhr, $this->dbhm);
         if ($me) {
             $this->dbhm->preExec("UPDATE newsfeed SET deleted = NOW(), deletedby = ? WHERE id = ?;", [
@@ -691,11 +693,17 @@ class Newsfeed extends Entity
                 $this->id
             ]);
 
-            # Don't want to show notifications to deleted items.
-            $this->dbhm->preExec("DELETE FROM users_notifications WHERE newsfeedid = ?;", [
-                $this->id
-            ]);
+            if ($notifstoo) {
+                # Don't want to show notifications to deleted items.
+                $this->dbhm->preExec("DELETE FROM users_notifications WHERE newsfeedid = ?;", [
+                    $this->id
+                ]);
+            }
+
+            $ret = TRUE;
         }
+
+        return $ret;
     }
 
     public function seen($userid) {

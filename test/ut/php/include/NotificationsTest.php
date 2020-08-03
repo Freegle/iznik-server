@@ -112,5 +112,111 @@ class notificationsTest extends IznikTestCase {
         sleep(1);
         self::assertEquals(3, $n->sendEmails($uid2, '0 seconds ago', '7 days ago'));
     }
+
+    public function testDeleted1() {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        assertNotNull($lid);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, 'Test Original Poster');
+        $this->log("Created user $uid1");
+        $u = User::get($this->dbhr, $this->dbhm, $uid1);
+        $u->setPrivate('lastlocation', $lid);
+        $email = 'test1@test.com';
+        $this->log("Added email " . $u->addEmail($email) . " vs " . $u->getEmailPreferred());
+
+        $uid2 = $u->create(NULL, NULL, 'Test Commenter');
+        $this->log("Created user $uid2");
+        $u = User::get($this->dbhr, $this->dbhm, $uid2);
+        $u->setPrivate('lastlocation', $lid);
+
+        $n = new Notifications($this->dbhr, $this->dbhm);
+
+        $f = new Newsfeed($this->dbhm, $this->dbhm);
+
+        $nid = $f->create(Newsfeed::TYPE_MESSAGE, $uid1, 'Test message');
+        $this->log("Reply by $uid2 to $nid should notify $uid1");
+        $rid = $f->create(Newsfeed::TYPE_MESSAGE, $uid2, 'Test reply', NULL, NULL, $nid);
+        $this->log("Reply $rid");
+        $n->add($uid1, $uid2, Notifications::TYPE_LOVED_COMMENT, $rid);
+
+        # Check notification counts for each.
+        $ctx = NULL;
+        $nots = $n->get($uid1, $ctx);
+        assertEquals(2, count($nots));
+
+        $ctx = NULL;
+        $nots = $n->get($uid2, $ctx);
+        assertEquals(2, count($nots));
+
+        # Delete the comment.
+        $_SESSION['id'] = $uid2;
+        $f = new Newsfeed($this->dbhr, $this->dbhm, $rid);
+        $f->delete();
+
+        # Notification for comment shouldn't appear.
+        $ctx = NULL;
+        $nots = $n->get($uid1, $ctx);
+        assertEquals(1, count($nots));
+
+        $ctx = NULL;
+        $nots = $n->get($uid2, $ctx);
+        assertEquals(1, count($nots));
+        assertEquals(Notifications::TYPE_ABOUT_ME, $nots[0]['type']);
+    }
+
+    public function testDeleted2() {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        assertNotNull($lid);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, 'Test Original Poster');
+        $this->log("Created user $uid1");
+        $u = User::get($this->dbhr, $this->dbhm, $uid1);
+        $u->setPrivate('lastlocation', $lid);
+        $email = 'test1@test.com';
+        $this->log("Added email " . $u->addEmail($email) . " vs " . $u->getEmailPreferred());
+
+        $uid2 = $u->create(NULL, NULL, 'Test Commenter');
+        $this->log("Created user $uid2");
+        $u = User::get($this->dbhr, $this->dbhm, $uid2);
+        $u->setPrivate('lastlocation', $lid);
+
+        $n = new Notifications($this->dbhr, $this->dbhm);
+
+        $f = new Newsfeed($this->dbhm, $this->dbhm);
+
+        $nid = $f->create(Newsfeed::TYPE_MESSAGE, $uid1, 'Test message');
+        $this->log("Reply by $uid2 to $nid should notify $uid1");
+        $rid = $f->create(Newsfeed::TYPE_MESSAGE, $uid2, 'Test reply', NULL, NULL, $nid);
+        $this->log("Reply $rid");
+        $n->add($uid1, $uid2, Notifications::TYPE_LOVED_COMMENT, $rid);
+
+        # Check notification counts for each.
+        $ctx = NULL;
+        $nots = $n->get($uid1, $ctx);
+        assertEquals(2, count($nots));
+
+        $ctx = NULL;
+        $nots = $n->get($uid2, $ctx);
+        assertEquals(2, count($nots));
+
+        # Delete the thread.  Don't delete the notifs, so that we can test coverage.
+        $_SESSION['id'] = $uid1;
+        $f = new Newsfeed($this->dbhr, $this->dbhm, $nid);
+        $f->delete(FALSE);
+
+        # Notification for comment shouldn't appear.
+        $ctx = NULL;
+        $nots = $n->get($uid1, $ctx);
+        assertEquals(1, count($nots));
+
+        $ctx = NULL;
+        $nots = $n->get($uid2, $ctx);
+        assertEquals(1, count($nots));
+        assertEquals(Notifications::TYPE_ABOUT_ME, $nots[0]['type']);
+    }
 }
 
