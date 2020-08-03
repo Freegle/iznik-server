@@ -793,6 +793,20 @@ class userAPITest extends IznikAPITestCase {
 
         $this->log("Get banned " . var_export($ret, TRUE));
         self::assertEquals($this->user->getId(), $ret['members'][0]['id']);
+
+        # Test again with context for coverage.
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::APPROVED,
+            'filter' => Group::FILTER_BANNED,
+            'groupid' => $this->groupid,
+            'context' => [
+                'date' => ISODate(date("Y-m-d H:i:s", strtotime('tomorrow')))
+            ]
+        ]);
+
+        $this->log("Get banned " . var_export($ret, TRUE));
+        self::assertEquals($this->user->getId(), $ret['members'][0]['id']);
+
     }
 
     public function  testGravatar() {

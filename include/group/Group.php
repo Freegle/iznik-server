@@ -1057,12 +1057,14 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
 
                     foreach ($manualapproves as $approve) {
                         if ($approve['groupid'] === $group['id']) {
-                            $group['recentmanualapproves'] = $approve['count'];
+                            # Exclude the autoapproves, which have an approved log as well as an autoapproved log.
+                            $group['recentmanualapproves'] = $approve['count'] - presdef('recentautoapproves', $group, 0);
                         }
                     }
 
                     if (pres('recentautoapproves', $group)) {
-                        $group['recentautoapprovespercent'] = $group['recentmanualapproves'] ? (round(100 * $group['recentautoapproves']) / $group['recentmanualapproves']) : 0;
+                        $total = $group['recentmanualapproves'] + $group['recentautoapproves'];
+                        $group['recentautoapprovespercent'] = $total ? (round(100 * $group['recentautoapproves']) / $total) : 0;
                     } else {
                         $group['recentautoapprovespercent'] = 0;
                     }

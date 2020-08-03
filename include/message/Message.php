@@ -4498,4 +4498,47 @@ ORDER BY lastdate DESC;";
             $type
         ])[0]['count'];
     }
+    
+    public function autoapprove($id = NULL) {
+        # Look for messages which have been pending for too long.  This fallback catches cases where the group is not being
+        # regularly moderated.
+        $ret = 0;
+        $idq = $id ? " AND msgid = $id " : "";
+        $sql = "SELECT msgid, groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS ago FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE collection = ? AND heldby IS NULL HAVING ago > 48 $idq;";
+        $messages = $this->dbhr->preQuery($sql, [
+            MessageCollection::PENDING
+        ]);
+
+        foreach ($messages as $message) {
+            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+            $uid = $m->getFromuser();
+            $u = new User($this->dbhr, $this->dbhm, $uid);
+
+            $gids = $m->getGroups();
+
+            foreach ($gids as $gid) {
+                $joined = $u->getMembershipAtt($gid, 'added');
+                $hoursago = round((time() - strtotime($joined)) / 3600);
+
+                error_log("{$message['msgid']} has been pending for {$message['ago']}, membership $hoursago");
+
+                if ($hoursago > 48) {
+                    error_log("...approve");
+                    $m->approve($message['groupid']);
+
+                    $this->log->log([
+                                'type' => Log::TYPE_MESSAGE,
+                                'subtype' => Log::SUBTYPE_AUTO_APPROVED,
+                                'groupid' => $message['groupid'],
+                                'msgid' => $message['msgid'],
+                                'user' => $m->getFromuser()
+                            ]);
+
+                    $ret++;
+                }
+            }
+        }
+
+        return $ret;
+    }
 }

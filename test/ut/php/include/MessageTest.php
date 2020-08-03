@@ -78,6 +78,10 @@ class messageTest extends IznikTestCase {
         $this->user = $u;
     }
 
+    protected function tearDown()
+    {
+    }
+
     public function testSetFromIP() {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setFromIP('8.8.8.8');
@@ -818,8 +822,53 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNull($m->getID());
+    }
 
+    public function testAutoApprove() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_UT);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+
+        $this->user->addMembership($gid);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        # Too soon to autoapprove.
+        assertEquals(0, $m->autoapprove($id));
+
+        # Age it.
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '2018-01-01' WHERE msgid = ?;", [
+            $id
+        ]);
+        $this->dbhm->preExec("UPDATE memberships SET added = '2018-01-01' WHERE userid = ?;", [
+            $m->getFromuser()
+        ]);
+
+        assertEquals(1, $m->autoapprove($id));
+
+        # Check logs.
+        $this->waitBackground();
+        $groups = $g->listByType(Group::GROUP_UT, TRUE, FALSE);
+
+        $found = FALSE;
+        foreach ($groups as $group) {
+            if ($group['id'] == $gid) {
+                assertEquals(1, $group['recentautoapproves']);
+                assertEquals(100, $group['recentautoapprovespercent']);
+                assertEquals(0, $group['recentmanualapproves']);
+                $found = TRUE;
+            }
         }
+
+        assertTrue($found);
+    }
 
     // For manual testing
 //    public function testSpecial() {
