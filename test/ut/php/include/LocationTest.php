@@ -99,8 +99,50 @@ class locationTest extends IznikTestCase {
         $atts = $l->getPublic();
         assertEquals($areaid, $atts['areaid']);
         assertEquals($pcid, $atts['postcodeid']);
+    }
 
-        }
+    public function testInvent() {
+        # Create an area with a point which should really be a polygon.
+        $l = new Location($this->dbhr, $this->dbhm);
+        $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POINT(179.2167 8.53333)');
+        $this->log("Postcode id $pcid");
+        assertNotNull($pcid);
+
+        $id1 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2162 8.53283)', 0);
+        $l->setPrivate('areaid', $pcid);
+        assertNotNull($id1);
+        $id2 = $l->create(NULL, 'TV13 2HH', 'Postcode', 'POINT(179.2162 8.53383)', 0);
+        $l->setPrivate('areaid', $pcid);
+        assertNotNull($id2);
+        $id3 = $l->create(NULL, 'TV13 3HH', 'Postcode', 'POINT(179.2172 8.53383)', 0);
+        $l->setPrivate('areaid', $pcid);
+        assertNotNull($id3);
+        $id4 = $l->create(NULL, 'TV13 4HH', 'Postcode', 'POINT(179.2162 8.53283)', 0);
+        $l->setPrivate('areaid', $pcid);
+        assertNotNull($id4);
+
+        # Call withinBox.  This will invent a small polygon around the point.
+        $this->log("$pcid, $id1, $id2, $id3");
+        $locs = $l->withinBox(8.4, 179.1, 8.7, 179.4);
+        $this->log(var_export($locs, TRUE));
+        $poly = 'POLYGON((179.2162 8.53283, 179.2162 8.53383, 179.2172 8.53383, 179.2172 8.53283, 179.2162 8.53283))';
+        assertEquals($poly, $locs[0]['polygon']);
+
+        # Change the geometry to something which isn't a point or a polygon.  We'll invent a polygon.  We need to
+        # mock this as the convex hull function relies on a PHP extension which is a faff to install.
+        error_log("Force invent");
+        $mock = $this->getMockBuilder('Location')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, FALSE])
+            ->setMethods(array('convexHull'))
+            ->getMock();
+        $mock->method('convexHull')->willReturn(geoPHP::load($poly));
+
+        $l = new Location($this->dbhr, $this->dbhm, $pcid);
+        $l->setGeometry('LINESTRING(179.2162 8.53283, 179.2162 8.53383)');
+        $locs = $mock->withinBox(8.4, 179.1, 8.7, 179.4);
+        $this->log(var_export($locs, TRUE));
+        assertEquals('POLYGON ((179.2162 8.53283, 179.2162 8.53383, 179.2172 8.53383, 179.2172 8.53283, 179.2162 8.53283))', $locs[0]['polygon']);
+    }
 
     public function testError() {
         $dbconfig = array (

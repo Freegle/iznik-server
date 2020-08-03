@@ -625,7 +625,13 @@ class Location extends Entity
         }
         return($rc);
     }
-    
+
+    public function convexHull($points) {
+        $mp = new MultiPoint($points);
+        $hull = $mp->convexHull();
+        return $hull;
+    }
+
     public function inventArea($areaid) {
         #  Invent our best guess based on the convex hull of the postcodes which we have
         # decided are in this area.
@@ -634,14 +640,13 @@ class Location extends Entity
         $points = [];
         foreach ($pcs as $pc) {
             $pstr = "POINT({$pc['lng']} {$pc['lat']})";
-            #error_log("...{$pc['name']} $pstr");
+            error_log("...{$pc['name']} $pstr");
             $points[] = $g::load($pstr);
         }
 
-        $mp = new MultiPoint($points);
-        $hull = $mp->convexHull();
+        $hull = $this->convexHull($points);
 
-        # We might not get a hull back if we're running in HHVM, because it relies on a PHP extension.
+        # We might not get a hull back, because it relies on a PHP extension.
         $geom = $hull ? $hull->asText() : NULL;
         #error_log("Set geom $geom");
 
@@ -687,7 +692,7 @@ class Location extends Entity
                     $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
                 }
 
-                #error_log("For {$area['areaid']} {$thisone['name']} geom $geom");
+                error_log("For {$area['areaid']} {$thisone['name']} geom $geom");
 
                 if (strpos($geom, 'POLYGON') === FALSE) {
                     # We don't have a polygon for this area.  This is common for OSM data, where many towns etc are just
