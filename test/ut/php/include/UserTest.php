@@ -445,9 +445,16 @@ class userTest extends IznikTestCase {
         $cid3a = $c->createUser2Mod($id1, $group1);
         self::assertEquals($cid3a, $cid3);
 
-        $mc->delete();
+        # Check the merge history shows.
+        $atts = $u1->getPublic(NULL, FALSE, TRUE);
+        error_log("Merges " . var_export($atts['merges']));
+        $found = FALSE;
+        assertEquals(1, count($atts['merges']));
+        assertEquals($id2, $atts['merges'][0]['from']);
+        assertEquals($id1, $atts['merges'][0]['to']);
 
-        }
+        $mc->delete();
+    }
 
     public function testMergeReal() {
         # Simulates processing from real emails migration script.
@@ -1093,6 +1100,7 @@ class userTest extends IznikTestCase {
      */
     public function testExport($background, $modnotifs, $backupmodnotifs) {
         $u = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u->create('Test', 'User', 'Test User');
         $uid = $u->create('Test', 'User', 'Test User');
         $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
 
@@ -1102,6 +1110,11 @@ class userTest extends IznikTestCase {
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, 'testid', 'testpw'));
         assertTrue($u->login('testpw'));
         $n = new Newsfeed($this->dbhr, $this->dbhm);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($uid, $uid2);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $mid = $m->create($rid, $uid, "Test");
 
         $settings = [
             'mylocation' => [
@@ -1152,7 +1165,7 @@ class userTest extends IznikTestCase {
 
         #file_put_contents('/tmp/export', $encoded);
 
-        }
+    }
 
     public function testForget() {
         $u = User::get($this->dbhr, $this->dbhm);
