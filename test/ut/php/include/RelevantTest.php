@@ -132,11 +132,8 @@ class RelevantTest extends IznikTestCase
 
         $rl = new Relevant($this->dbhr, $this->dbhm);
         $ints = $rl->interestedIn($uid, Group::GROUP_FREEGLE);
-//        $this->log("Found interested 1 " . var_export($ints, TRUE));
-//        assertEquals(1, count($ints));
-//        $ints = $rl->interestedIn($uid2, Group::GROUP_FREEGLE);
-//        $this->log("Found interested 2 " . var_export($ints, TRUE));
-//        assertEquals(2, count($ints));
+        $this->log("Found interested 1 " . var_export($ints, TRUE));
+        assertEquals(3, count($ints));
 
         # Now search - no relevant messages at the moment.
         $msgs = $rl->getMessages($uid, $ints, $earliest);
@@ -220,7 +217,25 @@ class RelevantTest extends IznikTestCase
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setPrivate('lastrelevantcheck', NULL);
         self::assertEquals(0, $mock->sendMessages($uid));
+    }
 
-        }
+    public function testOff() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->log("Created user $uid");
+        $email = 'ut-' . rand() . '@test.com';
+        $u->addEmail($email);
+
+        $mock = $this->getMockBuilder('Relevant')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
+            ->setMethods(array('sendOne'))
+            ->getMock();
+        $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        $mock->off($uid);
+        assertEquals(1, count($this->msgsSent));
+    }
 }
 

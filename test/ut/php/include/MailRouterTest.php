@@ -1160,8 +1160,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($id);
         $rc = $r->route();
         assertEquals($rc, MailRouter::TO_SYSTEM);
-
-        }
+    }
 
     public function testNewslettersOff() {
         # Create the sending user
