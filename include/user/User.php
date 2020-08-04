@@ -803,9 +803,9 @@ class User extends Entity
             return FALSE;
         }
 
-        # We don't want to use REPLACE INTO because the membershipid is a foreign key in some tables (such as
-        # memberships_yahoo), and if the membership already exists, then this would cause us to delete and re-add it,
-        # which would result in the row in the child table being deleted.
+        # We don't want to use REPLACE INTO because the membershipid is a foreign key in some tables, and if the
+        # membership already exists, then this would cause us to delete and re-add it, which would result in the
+        # row in the child table being deleted.
         #
         #error_log("Add membership role $role for {$this->id} to $groupid with $emailid collection $collection");
         $existing = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;", [
@@ -1006,20 +1006,6 @@ class User extends Entity
             $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreEnd
-
-        # Trigger removal of any Yahoo memberships.
-        $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ? AND memberships_yahoo.role = 'Member';";
-        $emails = $this->dbhr->preQuery($sql, [$groupid, $this->id]);
-        #error_log("$sql, $groupid, {$this->id}");
-
-        foreach ($emails as $email) {
-            #error_log("Remove #$groupid {$email['email']}");
-            if ($ban) {
-                $type = 'BanApprovedMember';
-            } else {
-                $type = $this->isPendingMember($groupid) ? 'RejectPendingMember' : 'RemoveApprovedMember';
-            }
-        }
 
         if ($ban) {
             $sql = "INSERT IGNORE INTO users_banned (userid, groupid, byuser) VALUES (?,?,?);";
@@ -2817,45 +2803,6 @@ class User extends Entity
                         $rc = $rc2 && $rc ? $rc2 : 0;
                     }
 
-                    # Now move any id2 Yahoo memberships over to refer to id1 before we delete it.
-                    # This might result in duplicates so we use IGNORE.
-                    $id2membs = $this->dbhm->preQuery("SELECT id, groupid FROM memberships WHERE userid = $id2;");
-                    #error_log("Memberships for $id2 " . var_export($id2membs, true));
-                    foreach ($id2membs as $id2memb) {
-                        $rc2 = $rc;
-                        #error_log("Yahoo membs $rc2");
-
-                        $id1membs = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [
-                            $id1,
-                            $id2memb['groupid']
-                        ]);
-
-                        #error_log("Memberships for $id1 on {$id2memb['groupid']} " . var_export($id1membs, true));
-
-                        foreach ($id1membs as $id1memb) {
-                            $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships_yahoo SET membershipid = ? WHERE membershipid = ?;", [
-                                $id1memb['id'],
-                                $id2memb['id']
-                            ]);
-                            #error_log("$rc2 from UPDATE IGNORE memberships_yahoo SET membershipid = {$id1memb['id']} WHERE membershipid = {$id2memb['id']};");
-                        }
-
-                        if ($rc2) {
-                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE membershipid = ?;", [
-                                $id2memb['id']
-                            ]);
-                            #error_log("$rc2 from delete {$id2memb['id']}");
-                        }
-
-                        if ($rc2) {
-                            # Now we just need to delete the id2 one.
-                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
-                            #error_log("Deleted old $id2 of {$id2memb['groupid']} $rc2");
-                        }
-
-                        $rc = $rc2 && $rc ? $rc2 : 0;
-                    }
-
                     # Merge the emails.  Both might have a primary address; if so then id1 wins.
                     # There is a unique index, so there can't be a conflict on email.
                     if ($rc) {
@@ -4092,8 +4039,7 @@ class User extends Entity
                 (SELECT id AS userid FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE yahooid LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE id = ?) UNION
-                (SELECT userid FROM users_logins WHERE uid LIKE $q) UNION
-                (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)) t WHERE userid > ? ORDER BY userid ASC";
+                (SELECT userid FROM users_logins WHERE uid LIKE $q)) t WHERE userid > ? ORDER BY userid ASC";
         $users = $this->dbhr->preQuery($sql, [$search, $id]);
 
         $ret = [];

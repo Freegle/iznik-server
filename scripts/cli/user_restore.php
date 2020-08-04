@@ -168,7 +168,6 @@ if (count($opts) < 1) {
             }
         }
 
-        # memberships_yahoo
         # locations_excluded
     }
 }
