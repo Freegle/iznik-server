@@ -195,6 +195,7 @@ class sessionTest extends IznikAPITestCase
             'email' => 'test2@test.com',
             'onholidaytill' => ISODate('@' . time()),
             'relevantallowed' => 0,
+            'newslettersallowed' => 0,
             'notifications' => [
                 'push' => [
                     'type' => 'Google',
@@ -222,6 +223,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals('Testing User', $ret['me']['displayname']);
         assertEquals('test@test.com', $ret['me']['email']);
         assertFalse(array_key_exists('relevantallowed', $ret['me']));
+        assertFalse(array_key_exists('newslettersallowed', $ret['me']));
 
         # Confirm it
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'test2@test.com';");
@@ -596,6 +598,12 @@ class sessionTest extends IznikAPITestCase
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test@test.com'));
 
+        # Set a location otherwise we won't add to the newsfeed.
+        $u->setSetting('mylocation', [
+            'lng' => 179.15,
+            'lat' => 8.5
+        ]);
+
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
@@ -605,7 +613,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('session', 'PATCH', [
-            'aboutme' => "Something about me"
+            'aboutme' => "Something long and interesting about me"
         ]);
         self::assertEquals(0, $ret['ret']);
 
@@ -614,7 +622,44 @@ class sessionTest extends IznikAPITestCase
             'info' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        self::assertEquals('Something about me', $ret['user']['info']['aboutme']['text']);
+        self::assertEquals('Something long and interesting about me', $ret['user']['info']['aboutme']['text']);
+
+        # Check if the newsfeed entry was added
+        $ret = $this->call('newsfeed', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        $newsfeedid = NULL;
+        foreach ($ret['newsfeed'] as $n) {
+            error_log(var_export($n, TRUE));
+            if (presdef('userid', $n, 0) == $id && $n['type'] == Newsfeed::TYPE_ABOUT_ME && strcmp($n['message'], 'Something long and interesting about me') === 0) {
+                $found = TRUE;
+                $newsfeedid = $n['id'];
+            }
+        }
+        assertTrue($found);
+
+        # Again for coverage.
+        $ret = $this->call('session', 'PATCH', [
+            'aboutme' => "Something else long and interesting about me"
+        ]);
+        self::assertEquals(0, $ret['ret']);
+        $ret = $this->call('user', 'GET', [
+            'id' => $id,
+            'info' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals('Something else long and interesting about me', $ret['user']['info']['aboutme']['text']);
+
+        # Check if the newsfeed entry was updated, as recent.
+        $ret = $this->call('newsfeed', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        $newsfeedid = NULL;
+        foreach ($ret['newsfeed'] as $n) {
+            error_log(var_export($n, TRUE));
+            if ($n['id'] == $newsfeedid && presdef('userid', $n, 0) == $id && $n['type'] == Newsfeed::TYPE_ABOUT_ME && strcmp($n['message'], 'Something else long and interesting about me') === 0) {
+                $found = TRUE;
+            }
+        }
+        assertTrue($found);
     }
 
     public function testAppVersion()
@@ -720,6 +765,29 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         assertEquals('test', $ret['groups'][0]['facebook'][0]['name']);
+    }
+
+    public function testPhone() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $_SESSION['id'] = $id;
+
+        $ret = $this->call('session', 'PATCH', [
+            'phone' => 123
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(44123, $ret['me']['phone']);
+
+        $ret = $this->call('session', 'PATCH', [
+            'phone' => NULL
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertFalse(pres('phone', $ret['me']));
     }
 //
 //    public function testSheila() {
