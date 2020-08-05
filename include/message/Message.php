@@ -860,30 +860,8 @@ class Message
         return($text ? $text : '');
     }
 
-    private function getUser($uid, $messagehistory, &$userlist, $info, $groupids = NULL, $obj = FALSE) {
-        # Get the user details, relative to the groups this message appears on.
-        $key = "$uid-$messagehistory-" . ($groupids ? implode(',', $groupids) : '');
-        if ($userlist && array_key_exists($key, $userlist)) {
-            $u = $userlist[$key][0];
-            $atts = $userlist[$key][1];
-        } else {
-            $u = User::get($this->dbhr, $this->dbhm, $uid);
-            $ctx = NULL;
-            $atts = $u->getPublic($groupids, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
-
-            if ($info) {
-                $atts['info'] = $u->getInfo();
-            }
-
-            # Save for next time.
-            $userlist[$key] = [ $u, $atts];
-        }
-
-        return($obj ? $u : $atts);
-    }
-
-    private function getLocation($locationid, &$locationlist) {
-        if (!$locationlist || !array_key_exists($locationid, $locationlist)) {
+    public function getLocation($locationid, &$locationlist) {
+        if (!$locationlist || !count($locationlist) || !array_key_exists($locationid, $locationlist)) {
             $locationlist[$locationid] = new Location($this->dbhr, $this->dbhm, $locationid);
         }
 
@@ -1128,7 +1106,7 @@ class Message
         }
     }
 
-    public function getPublicLocation($me, $myid, &$rets, $msgs, $roles, $seeall, &$locationlist) {
+    public function getPublicLocation($myid, &$rets, $msgs, $roles, $seeall, &$locationlist) {
         $l = new Location($this->dbhr, $this->dbhm);
 
         # Cache the locations we'll need efficiently.
@@ -1419,7 +1397,7 @@ ORDER BY lastdate DESC;";
         }
     }
 
-    public function getPublicFromUser(&$userlist, &$rets, $msgs, $roles, $messagehistory, $me, $myid) {
+    public function getPublicFromUser(&$rets, $msgs, $roles, $messagehistory, $me, $myid) {
         # Get all the fromusers in a single call - saves on DB ops.
         $u = new User($this->dbhr, $this->dbhm);
         $fromuids = [];
@@ -1509,10 +1487,12 @@ ORDER BY lastdate DESC;";
         }
     }
 
-    public function getPublicHeld(&$userlist, &$rets, $msgs, $messagehistory) {
+    public function getPublicHeld(&$rets, $msgs, $messagehistory) {
         foreach ($msgs as $msg) {
             if (pres('heldby', $rets[$msg['id']])) {
-                $rets[$msg['id']]['heldby'] = $this->getUser($rets[$msg['id']]['heldby'], FALSE, $userlist, FALSE);
+                $u = User::get($this->dbhr, $this->dbhm, $rets[$msg['id']]['heldby']);
+                $ctx = NULL;
+                $rets[$msg['id']]['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
                 filterResult($rets[$msg['id']]);
             }
         }
@@ -1580,7 +1560,7 @@ ORDER BY lastdate DESC;";
         }
     }
 
-    public function getPublicEditHistory(&$userlist, &$rets, $msgs, $me, $myid) {
+    public function getPublicEditHistory(&$rets, $msgs, $me, $myid) {
         $doit = MODTOOLS && $me && $me->isModerator();
         $msgids = array_filter(array_column($msgs, 'id'));
 
@@ -1710,12 +1690,12 @@ ORDER BY lastdate DESC;";
         $this->getPublicAttachments($rets, $msgs, $summary);
 
         if (!$summary) {
-            $this->getPublicLocation($me, $myid, $rets, $msgs, $roles, $seeall, $locationlist);
+            $this->getPublicLocation($myid, $rets, $msgs, $roles, $seeall, $locationlist);
             $this->getPublicItem($rets, $msgs);
-            $this->getPublicFromUser($userlist, $rets, $msgs, $roles, $messagehistory, $me, $myid);
-            $this->getPublicHeld($userlist, $rets, $msgs, $messagehistory);
+            $this->getPublicFromUser($rets, $msgs, $roles, $messagehistory, $me, $myid);
+            $this->getPublicHeld($rets, $msgs, $messagehistory);
             $this->getPublicPostingHistory($rets, $msgs, $me, $myid);
-            $this->getPublicEditHistory($userlist, $rets, $msgs, $me, $myid);
+            $this->getPublicEditHistory($rets, $msgs, $me, $myid);
             $this->getWorry($rets);
 
             if ($related) {

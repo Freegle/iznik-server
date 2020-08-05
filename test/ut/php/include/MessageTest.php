@@ -749,9 +749,18 @@ class messageTest extends IznikTestCase {
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
 
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm);
         $id = $m->createDraft();
         $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        # Check the can see code for our own messages.
+        $atts = $m->getPublic();
+        $atts['myrole'] = User::ROLE_NONMEMBER;
+        assertTrue($m->canSee($atts));
 
         $m->setPrivate('locationid', $fullpcid);
         $m->setPrivate('type', Message::TYPE_OFFER);
@@ -772,7 +781,11 @@ class messageTest extends IznikTestCase {
         $m->constructSubject($gid);
         self::assertEquals(strtolower('OFFER: test item (Tuvalu Central)'), strtolower($m->getSubject()));
 
-        }
+        # Test subject twice for location caching coverage.
+        $locationlist = [];
+        assertEquals($areaid, $m->getLocation($areaid, $locationlist)->getId());
+        assertEquals($areaid, $m->getLocation($areaid, $locationlist)->getId());
+    }
 
     public function testTNShow() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
