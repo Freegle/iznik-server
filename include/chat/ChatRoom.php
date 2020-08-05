@@ -1077,13 +1077,15 @@ WHERE chat_rooms.id IN $idlist;";
                     [
                         $chatid,
                         $myid,
-                        $current['maxmsg'],
-                        $current['maxmsg'],
-                        $current['maxmsg'],
-                        $current['maxmsg']
+                        0,
+                        0,
+                        0,
+                        0
                     ]);
             }
         }
+
+        return $found;
     }
 
     public function updateRoster($userid, $lastmsgseen, $status = ChatRoom::STATUS_ONLINE)

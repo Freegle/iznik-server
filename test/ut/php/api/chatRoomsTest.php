@@ -327,6 +327,8 @@ class chatRoomsAPITest extends IznikAPITestCase
             'action' => 'Nudge'
         ]);
         assertEquals(0, $ret['ret']);
+        $nudges = $c->nudges($uid);
+        assertEquals($uid, $nudges[0]['touser']);
 
         $ret = $this->call('user', 'GET', [
             'id' => $uid,

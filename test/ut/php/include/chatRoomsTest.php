@@ -54,6 +54,18 @@ class chatRoomsTest extends IznikTestCase {
         $id = $r->createConversation($u1, $u2);
         assertNotNull($id);
 
+        # Counts coverage.
+        $r->updateMessageCounts();
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
+        assertEquals(0, $r->getPrivate('msgvalid'));
+        assertEquals(0, $r->getPrivate('msginvalid'));
+
+        # There's some code to recover from a bug.  Force the bug.
+        $this->dbhm->preExec("DELETE FROM chat_roster WHERE userid = ?;", [
+            $u1
+        ]);
+        assertFalse($r->upToDateAll($u1));
+
         # Further creates should find the same one.
         $id2 = $r->createConversation($u1, $u2);
         assertEquals($id, $id2);
@@ -572,7 +584,8 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Chat room $id for $u1 <-> $u2");
         assertNull($id);
 
-        }
+        self::assertEquals(0, $r->lastSeenForUser($u2), $u1);
+    }
 
     private $msgsSent = [];
 
