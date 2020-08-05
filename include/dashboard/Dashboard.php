@@ -133,15 +133,9 @@ class Dashboard {
                 $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner');", [ $groupid ]);
                 $active = [];
                 foreach ($mods as $mod) {
-                    # A mod counts as active if they perform activity for this group on here, or if we know that they have
-                    # approved a message (which might be on Yahoo).
+                    # A mod counts as active if they perform activity for this group on here.
                     $logs = $this->dbhr->preQuery("SELECT MAX(timestamp) AS lastactive FROM logs WHERE groupid = ? AND byuser = ?;", [ $groupid, $mod['userid']] );
                     $lastactive = $logs[0]['lastactive'];
-
-                    if (!$lastactive) {
-                        $approved = $this->dbhr->preQuery("SELECT MAX(arrival) AS lastactive FROM messages_groups WHERE groupid = ? AND approvedby = ?;", [ $groupid, $mod['userid']] );
-                        $lastactive = $approved[0]['lastactive'];
-                    }
 
                     $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
 
