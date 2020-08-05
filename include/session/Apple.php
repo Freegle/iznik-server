@@ -44,14 +44,14 @@ class Apple
         $lastname = presdef('familyName', $fullName, NULL);
 
         if ($token) {
-            JWT::$leeway = 1000000;
-            $appleSignInPayload = $this->getPayload($token);
-
-            $email = $appleSignInPayload->getEmail();
-            $user = $appleSignInPayload->getUser();
-            $isValid = $appleSignInPayload->verifyUser($user);
-
             try {
+                JWT::$leeway = 1000000;
+                $appleSignInPayload = $this->getPayload($token);
+
+                $email = $appleSignInPayload->getEmail();
+                $user = $appleSignInPayload->getUser();
+                $isValid = $appleSignInPayload->verifyUser($user);
+
                 if ($isValid) {
                     # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
                     $u = User::get($this->dbhr, $this->dbhm);

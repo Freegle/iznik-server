@@ -72,9 +72,7 @@ class AppleTest extends IznikTestCase {
             "user" => "UT"
         ];
 
-        error_log("Login");
         list($session, $ret) = $mock->login($credentials);
-        error_log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
         assertEquals("Test User" , $me->getName());
@@ -106,7 +104,7 @@ class AppleTest extends IznikTestCase {
         assertEquals(2, count($emails));
 
         # Now delete the Apple login, and log in again - should trigger an add of the Appleid.
-        assertEquals(1, $me->removeLogin('Apple', 1));
+        assertEquals(1, $me->removeLogin('Apple', 'UT'));
         list($session, $ret) = $mock->login($credentials);
         assertEquals(0, $ret['ret']);
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -117,6 +115,53 @@ class AppleTest extends IznikTestCase {
         $this->log("Logins " . var_export($logins, TRUE));
         assertEquals(1, count($logins));
         assertEquals('UT', $logins[0]['uid']);
+    }
+
+    public function testException() {
+        $a = new Apple($this->dbhr, $this->dbhm);
+        list($session, $ret) = $a->login([]);
+        assertEquals(2, $ret['ret']);
+
+        # Basic successful login
+        $this->email = 'test@test.com';
+
+        $mock = $this->getMockBuilder('Apple')
+            ->setMethods(['getPayload'])
+            ->setConstructorArgs([$this->dbhr, $this->dbhm])
+            ->getMock();
+
+        $mock->method('getPayload')->willThrowException(new Exception());
+
+        $credentials = [
+            "authorizationCode" => "UT",
+            "email" => "",
+            "fullName" => [
+                "familyName" => "User",
+                "givenName" => "Test",
+                "middleName" => "",
+                "namePrefix" => "",
+                "nameSuffix" => "",
+                "nickname" => "",
+                "phoneticRepresentation" => []
+            ],
+            "identityToken" => "UT",
+            "state" => "",
+            "user" => "UT"
+        ];
+
+        list($session, $ret) = $mock->login($credentials);
+        assertEquals(2, $ret['ret']);
+    }
+
+    public function testPayload() {
+        $a = new Apple($this->dbhr, $this->dbhm);
+
+        try {
+            $a->getPayload("invalid");
+            assertFalse(TRUE);
+        } catch (Exception $e) {
+            assertEquals("Wrong number of segments", $e->getMessage());
+        }
     }
 }
 
