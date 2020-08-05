@@ -8,6 +8,8 @@ require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/Visualise.php';
+require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
+require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 
 /**
  * @backupGlobals disabled
@@ -48,6 +50,20 @@ class visualiseAPITest extends IznikAPITestCase
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
 
+        # Create another person who replied.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->setSetting('mylocation', [
+            'lng' => 179.15,
+            'lat' => 8.5
+        ]);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($uid, $m1->getFromuser());
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $cmid = $cm->create($rid, $uid, "Hello?", ChatMessage::TYPE_INTERESTED, $id1);
+        assertNotNull($cmid);
+        error_log("Created reply to $id1 from $uid");
+
         $v = new Visualise($this->dbhr, $this->dbhm);
         $mysqltime = date ("Y-m-d H:i:s");
         $vid = $v->create($id1, $attid, $mysqltime, $m1->getFromuser(), $m1->getFromuser(), 53.1, 1.1, 53.2, 1.2);
@@ -60,5 +76,6 @@ class visualiseAPITest extends IznikAPITestCase
             'swlng' => 1
         ]);
         assertEquals($id1, $ret['list'][0]['msgid']);
+        assertEquals(1, count($ret['list'][0]['others']));
     }
 }
