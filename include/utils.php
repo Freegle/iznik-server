@@ -411,17 +411,14 @@ function ourDomain($email) {
 }
 
 function getMailer($host = 'localhost', $spoolname = '/spool') {
-    # On Travis we don't have file permissions.
-    $dir = getenv('STANDALONE') ? '/tmp' : IZNIK_BASE;
-    
-    if (!file_exists($dir . $spoolname)) {
-        mkdir($dir . $spoolname);
-        chmod($dir . $spoolname, 755);
-        chgrp($dir . $spoolname, 'www-data');
-        chown($dir . $spoolname, 'www-data');
+    if (!file_exists(IZNIK_BASE . $spoolname)) {
+        @mkdir(IZNIK_BASE . $spoolname);
+        @chmod(IZNIK_BASE . $spoolname, 755);
+        @chgrp(IZNIK_BASE . $spoolname, 'www-data');
+        @chown(IZNIK_BASE . $spoolname, 'www-data');
     }
 
-    $spool = new Swift_FileSpool($dir . $spoolname);
+    $spool = new Swift_FileSpool(IZNIK_BASE . $spoolname);
     $spooltrans = Swift_SpoolTransport::newInstance($spool);
     $smtptrans = Swift_SmtpTransport::newInstance($host);
     $transport = Swift_FailoverTransport::newInstance([
