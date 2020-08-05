@@ -5,10 +5,7 @@ function adview() {
 
     $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
     $hdrs = getallheaders();
-    if (pres('X-Real-Ip', $hdrs)) {
-        // Passed using proxy protocol
-        $ip = $hdrs['X-Real-Ip'];
-    }
+    $ip = presdef('X-Real-Ip', $hdrs, $ip);
 
     $location = presdef('location', $_REQUEST, NULL);
     $link = presdef('link', $_REQUEST, NULL);
@@ -20,6 +17,11 @@ function adview() {
         case 'GET': {
             $data = NULL;
             $loc = NULL;
+
+            $ret = [
+                'ret' => 2,
+                'status' => 'Invalid parameters'
+            ];
 
             if ($ip && $location) {
                 # We might have a postcode search.  The AdView postcode search is unreliable, so we need to find
@@ -43,8 +45,19 @@ function adview() {
 
                 $data = @file_get_contents($url, FALSE, $ctx);
 
+                $ret = [
+                    'ret' => 3,
+                    'status' => 'No data returned'
+                ];
+
                 if ($data) {
                     $d = json_decode($data, TRUE);
+
+                    $ret = [
+                        'ret' => 4,
+                        'status' => 'Data returned has unexpected format.'
+                    ];
+
                     if (array_key_exists('data', $d)) {
                         $a = new AdView($dbhr, $dbhm);
                         $d['data'] = $a->sortJobs($d['data'], $me ? $me->getId() : NULL);
@@ -59,25 +72,8 @@ function adview() {
                             'searchedloc' => $location,
                             'ownlocation' => $loc
                         ];
-                    } else {
-                        error_log("AdView data unexpected format for $location");
-                        $ret = [
-                            'ret' => 4,
-                            'status' => 'Data returned has unexpected format.'
-                        ];
                     }
-                } else {
-                    error_log("AdView no data for $location");
-                    $ret = [
-                        'ret' => 3,
-                        'status' => 'No data returned'
-                    ];
                 }
-            } else {
-                $ret = [
-                    'ret' => 2,
-                    'status' => 'Invalid parameters'
-                ];
             }
             break;
         }
