@@ -38,6 +38,7 @@ define('INSPECTLET', 'zzz');
 # We support Facebook login, but you have to create your own app
 define('FBAPP_ID', 'zzz');
 define('FBAPP_SECRET', 'zzz');
+define('FBAPP_CLIENT_TOKEN', 'zzz');
 
 # We have a separate app for posting to group pages, in case this one gets blocked
 define('FBGRAFFITIAPP_ID', 'zzz');

@@ -1893,8 +1893,8 @@ class User extends Entity
                     if ($login['type'] == User::LOGIN_FACEBOOK) {
                         if (presdef('useprofile', $atts['settings'], TRUE)) {
                             $atts['profile'] = [
-                                'url' => "https://graph.facebook.com/{$login['uid']}/picture",
-                                'turl' => "https://graph.facebook.com/{$login['uid']}/picture",
+                                'url' => "https://graph.facebook.com/{$login['uid']}/picture?access_token=" . FBAPP_ID . "|" . FBAPP_CLIENT_TOKEN,
+                                'turl' => "https://graph.facebook.com/{$login['uid']}/picture?access_token=" . FBAPP_ID . "|" . FBAPP_CLIENT_TOKEN,
                                 'default' => FALSE,
                                 'facebook' => TRUE
                             ];
