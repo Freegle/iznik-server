@@ -189,7 +189,9 @@ class userAPITest extends IznikAPITestCase {
 
         $ret = $this->call('user', 'PATCH', [
             'id' => $uid,
-            'newslettersallowed' => 'FALSE'
+            'newslettersallowed' => 'FALSE',
+            'groupid' => $this->groupid,
+            'password' => 'testpw2'
         ]);
 
         # Should be allowed.
@@ -202,6 +204,33 @@ class userAPITest extends IznikAPITestCase {
         # Should have changed.
         assertEquals($uid, $ret['user']['id']);
         assertFalse(array_key_exists('newslettersallowed', $ret['user']));
+
+        # As the mod themselves for coverage,
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid,
+            'newslettersallowed' => 'FALSE',
+            'groupid' => $this->groupid,
+            'ourPostingStatus' => Group::POSTING_PROHIBITED,
+            'emailfrequency' => 1
+        ]);
+
+        # Should be allowed.
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid
+        ]);
+
+        # Should have changed.
+        assertEquals($this->uid, $ret['user']['id']);
+        assertFalse(array_key_exists('newslettersallowed', $ret['user']));
+        assertEquals(Group::POSTING_PROHIBITED, $ret['user']['memberof'][0]['ourpostingstatus']);
+        assertEquals(1, $ret['user']['memberof'][0]['emailfrequency']);
+
+        # Login with old password should fail as we changed it above.
+        $_SESSION['id'] = NULL;
+        assertFalse($u->login('testpw'));
+        assertTrue($u->login('testpw2'));
     }
 
     public function testHoliday() {
