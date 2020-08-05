@@ -4,8 +4,9 @@ function tmpdir() {
     $tempfile=tempnam(sys_get_temp_dir(),'');
     if (file_exists($tempfile)) { unlink($tempfile); }
     mkdir($tempfile);
-    if (is_dir($tempfile)) { return $tempfile; }
-    return null;
+    $ret = NULL;
+    if (is_dir($tempfile)) { $ret = $tempfile; }
+    return $ret;
 }
 
 function getProtocol() {
@@ -410,7 +411,7 @@ function ourDomain($email) {
 }
 
 function getMailer($host = 'localhost', $spoolname = '/spool') {
-    if (!getenv('STANDALONE') && !file_exists(IZNIK_BASE . $spoolname)) {
+    if (!file_exists(IZNIK_BASE . $spoolname)) {
         mkdir(IZNIK_BASE . $spoolname);
         chmod(IZNIK_BASE . $spoolname, 755);
         chgrp(IZNIK_BASE . $spoolname, 'www-data');
