@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
+require_once IZNIK_BASE . '/include/group/Facebook.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/MessageCollection.php';
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
@@ -348,6 +349,31 @@ class groupAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['group']['sponsors']));
         assertEquals('testsponsor', $ret['group']['sponsors'][0]['name']);
+    }
+
+    public function testRemoveFacebook() {
+        $gf = new GroupFacebook($this->dbhr, $this->dbhm);
+        $uid = $gf->add($this->groupid, 'UT', 'UT', 1);
+
+        $this->user->setPrivate('systemrole', User::ROLE_MODERATOR);
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid
+        ]);
+        assertEquals(1, count($ret['group']['facebook']));
+
+        $ret = $this->call('group', 'POST', [
+            'action' => 'RemoveFacebook',
+            'groupid' => $this->groupid,
+            'uid' => $uid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid
+        ]);
+        assertEquals(0, count($ret['group']['facebook']));
     }
 }
 

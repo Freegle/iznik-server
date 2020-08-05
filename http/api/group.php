@@ -24,7 +24,7 @@ function group() {
         $id = $g->findByShortName($nameshort);
     }
 
-    if ($id || ($action == 'Create') || ($action == 'Contact') || ($action == 'RecordFacebookShare')) {
+    if ($id || ($action == 'Create') || ($action == 'Contact') || ($action == 'RecordFacebookShare' || ($action == 'RemoveFacebook'))) {
         $g = new Group($dbhr, $dbhm, $id);
 
         switch ($_REQUEST['type']) {
