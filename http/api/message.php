@@ -327,7 +327,7 @@ function message() {
                         $ret = [ 'ret' => 0, 'status' => 'Success' ];
                     } else if ($action == 'View') {
                         $m->like($myid, Message::LIKE_VIEW);
-                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                        $ret = ['ret' => 0, 'status' => 'Success'];
                     }
                 } else if ($action == 'View') {
                     // We don't currently record logged out views.
@@ -373,6 +373,9 @@ function message() {
                             # We no longer want this message - for example because they're no longer a member.
                             $m->delete("Not spam but no longer a member", $groupid);
                         }
+                        break;
+                    case 'Move':
+                        $ret = $m->move($groupid);
                         break;
                     case 'Spam':
                         # Don't trust normal mods to categorise this correctly.  Often they will mark a message from

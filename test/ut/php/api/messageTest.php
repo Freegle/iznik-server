@@ -2640,4 +2640,55 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
     }
+
+    public function testMove() {
+        $group1 = $this->group->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $this->group->create('testgroup2', Group::GROUP_REUSE);
+
+        assertTrue($this->user->addMembership($group1));
+        assertTrue($this->user->addMembership($group2));
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        assertTrue($this->user->login('testpw'));
+
+        # Move as member - fail.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Move',
+            'groupid' => $group2
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->user->addMembership($group1, User::ROLE_MODERATOR);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Move',
+            'groupid' => $group2,
+            'dup' => 1
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Move as mod.
+        $this->user->addMembership($group2, User::ROLE_MODERATOR);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Move',
+            'groupid' => $group2,
+            'dup' => 3
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals($group2, $ret['message']['groups'][0]['groupid']);
+    }
 }

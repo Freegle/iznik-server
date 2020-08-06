@@ -4478,7 +4478,42 @@ ORDER BY lastdate DESC;";
             $type
         ])[0]['count'];
     }
-    
+
+    public function move($groupid) {
+        $ret = [ 'ret' => 2, 'status' => 'Permission denied' ];
+
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $groups = $this->getGroups(FALSE, TRUE);
+
+        if ($me->isModOrOwner($groups[0]) && $me->isModOrOwner($groupid)) {
+            # Always move to Pending, so the new group owner can review.
+            $ret = [ 'ret' => 3, 'status' => 'Failed' ];
+            $this->dbhm->beginTransaction();
+
+            $this->dbhm->preExec("DELETE FROM messages_groups WHERE msgid = ?;", [
+                $this->id
+            ]);
+
+            if ($this->dbhm->rowsAffected() == 1) {
+                $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, collection, arrival, msgtype) VALUES (?, ?, ?, NOW(), ?);", [
+                    $this->id,
+                    $groupid,
+                    MessageCollection::PENDING,
+                    $this->getType()
+                ]);
+
+                if ($this->dbhm->rowsAffected() == 1) {
+                    $rc = $this->dbhm->commit();
+
+                    $ret = $rc ? ['ret' => 0, 'status' => 'Success'] : FALSE;
+                }
+            }
+        }
+
+        $ret = $ret ? $ret : ($this->dbhm->rollBack() && FALSE);
+        return $ret;
+    }
+
     public function autoapprove($id = NULL) {
         # Look for messages which have been pending for too long.  This fallback catches cases where the group is not being
         # regularly moderated.
