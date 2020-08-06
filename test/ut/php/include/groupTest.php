@@ -132,6 +132,8 @@ class groupTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
         $g->setPrivate('contactmail', 'test@test.com');
+        assertEquals('test@test.com', $g->getModsEmail());
+        assertEquals('test@test.com', $g->getAutoEmail());
         $groups = $g->listByType(Group::GROUP_UT, TRUE, FALSE);
 
         $found = FALSE;

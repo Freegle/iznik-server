@@ -579,17 +579,41 @@ class membershipsAPITest extends IznikAPITestCase {
 
         assertEquals(2, $ret['ret']);
 
+        # Should get as mod.
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::HAPPINESS,
-            'groupid' => $this->groupid
+            'groupid' => $this->groupid,
+            'context' => [
+                'reviewed' => 0,
+                'timestamp' => '2050-01-01',
+                'id' => PHP_INT_MAX
+            ]
         ]);
 
         assertEquals(1, count($ret['members']));
         assertEquals(0, $ret['members'][0]['reviewed']);
+
+        # Test filter.
+        $ret2 = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::HAPPINESS,
+            'groupid' => $this->groupid,
+            'filter' => User::HAPPY
+        ]);
+
+        assertEquals(1, count($ret2['members']));
+        assertEquals(0, $ret2['members'][0]['reviewed']);
+
+        $ret2 = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::HAPPINESS,
+            'groupid' => $this->groupid,
+            'filter' => User::UNHAPPY
+        ]);
+
+        assertEquals(0, count($ret2['members']));
 
         $params = [
             'userid' => $ret['members'][0]['user']['id'],
