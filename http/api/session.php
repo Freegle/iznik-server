@@ -5,6 +5,8 @@ function session() {
     global $dbhr, $dbhm;
     $me = NULL;
 
+    $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : MODTOOLS;
+
     $sessionLogout = function($dbhr, $dbhm) {
         $id = pres('id', $_SESSION);
         if ($id) {
@@ -38,7 +40,7 @@ function session() {
             } else {
                 if (pres('id', $_SESSION)) {
                     # We're logged in.
-                    if (!MODTOOLS) {
+                    if (!$modtools) {
                         # ...but we are running an old version of the code, probably the app, because we have
                         # not indicated which version we have.
                         $last = presdef('lastversiontime', $_REQUEST, NULL);
@@ -100,7 +102,7 @@ function session() {
                         $ret['me']['notifications']['push'] = $n->get($ret['me']['id']);
                     }
 
-                    if (MODTOOLS) {
+                    if ($modtools) {
                         if (!$components || in_array('allconfigs', $components)) {
                             $me = $me ? $me : whoAmI($dbhm, $dbhm);
                             $ret['configs'] = $me->getConfigs(TRUE);
@@ -151,7 +153,7 @@ function session() {
                     if (!$components || in_array('groups', $components) || in_array('work', $components)) {
                         # Get groups including work when we're on ModTools; don't need that on the user site.
                         $u = new User($dbhr, $dbhm);
-                        $ret['groups'] = $u->getMemberships(FALSE, NULL, MODTOOLS, TRUE, $_SESSION['id']);
+                        $ret['groups'] = $u->getMemberships(FALSE, NULL, $modtools, TRUE, $_SESSION['id']);
 
                         $gids = [];
 
@@ -207,7 +209,7 @@ function session() {
                             }
                         }
 
-                        if (MODTOOLS) {
+                        if ($modtools) {
                             if (!$components || in_array('work', $components)) {
                                 $ret['work'] = $me->getWorkCounts($ret['groups']);
                             }

@@ -367,7 +367,26 @@ class sessionTest extends IznikAPITestCase
 
         $u->delete();
 
-        }
+    }
+
+    public function testConfigs() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertTrue(array_key_exists('configs', $ret));
+
+        $ret = $this->call('session', 'GET', [
+            'components' => [
+                'configs'
+            ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertTrue(array_key_exists('configs', $ret));
+    }
 
     public function testWork()
     {
@@ -789,6 +808,51 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertFalse(pres('phone', $ret['me']));
     }
+
+    public function testVersion() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $_SESSION['id'] = $id;
+
+        $ret = $this->call('session', 'GET', [
+            'modtools' => FALSE,
+            'webversion' => 1,
+            'appversion' => 2
+        ]);
+        assertEquals(123, $ret['ret']);
+
+        $ret = $this->call('session', 'GET', [
+            'modtools' => FALSE,
+            'webversion' => 1,
+            'appversion' => 3
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $versions = $this->dbhr->preQuery("SELECT * FROM users_builddates WHERE userid = ?;", [
+            $id
+        ]);
+        assertEquals(1, $versions[0]['webversion']);
+        assertEquals(3, $versions[0]['appversion']);
+    }
+
+    public function testDiscourseCookie() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('session', 'GET', []);
+        $persistent = $ret['persistent'];
+        $_SESSION['id'] = NULL;
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+        $ret = $this->call('session', 'GET', [
+            'persistent' => $persistent
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertTrue(array_key_exists('me', $ret));
+    }
+
 //
 //    public function testSheila() {
 //        $_SESSION['id'] = 25880780;
