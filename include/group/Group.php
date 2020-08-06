@@ -153,7 +153,6 @@ class Group extends Entity
             'newsletter' => 1,
             'businesscards' => 1,
             'autoadmins' => 1,
-            'approvemembers' => 0,
             'mentored' => 0
         ];
 
@@ -382,10 +381,6 @@ class Group extends Entity
                 MessageCollection::SPAM
             ]);
 
-            $heldmembercounts = $this->dbhr->preQuery("SELECT memberships.groupid, COUNT(*) AS count, collection, heldby IS NOT NULL AS held FROM memberships WHERE collection = ? AND groupid IN $groupq GROUP BY memberships.groupid, collection, held;", [
-                MembershipCollection::PENDING
-            ]);
-
             $spammembercounts = $this->dbhr->preQuery(
                 "SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships
 INNER JOIN users ON users.id = memberships.userid AND suspectcount > 0
@@ -484,16 +479,6 @@ memberships.groupid IN $groupq
                                 }
                             } else {
                                 $thisone['spam'] = $count['count'];
-                            }
-                        }
-                    }
-
-                    foreach ($heldmembercounts as $count) {
-                        if ($count['groupid'] == $groupid) {
-                            if ($count['held']) {
-                                $thisone['pendingmembersother'] = $count['count'];
-                            } else {
-                                $thisone['pendingmembers'] = $count['count'];
                             }
                         }
                     }

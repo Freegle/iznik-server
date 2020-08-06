@@ -489,22 +489,12 @@ function message() {
 
                                     # Assume this post is moderated unless we decide otherwise below.
                                     if (!$u->isApprovedMember($groupid)) {
-                                        # We're not yet a member.
-                                        if ($g->getSetting('approvemembers', FALSE)) {
-                                            # We approve members.  Add this member as pending.
-                                            $addworked = $u->addMembership($groupid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING);
+                                        # We're not yet a member.  Join the group.
+                                        $addworked = $u->addMembership($groupid);
 
-                                            # We can't put this in pending yet, as we need to approve the
-                                            # membership first.
-                                            $postcoll = MessageCollection::QUEUED_USER;
-                                        } else {
-                                            # We don't approve members.  Just join the group.
-                                            $addworked = $u->addMembership($groupid);
-
-                                            # This is now a member, and we always moderate posts from new members,
-                                            # so this goes to pending.
-                                            $postcoll = MessageCollection::PENDING;
-                                        }
+                                        # This is now a member, and we always moderate posts from new members,
+                                        # so this goes to pending.
+                                        $postcoll = MessageCollection::PENDING;
 
                                         if ($addworked === FALSE) {
                                             # We couldn't join - we're banned.  Suppress the message below.

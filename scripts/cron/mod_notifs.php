@@ -60,10 +60,6 @@ if ($hour >= 8 && $hour <= 21)
                         $group['id'],
                         MessageCollection::SPAM
                     ])[0]['count'],
-                    'Pending Members' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NULL " . ($minage > 0 ? " AND memberships.added < '$minageq'" : '') . ";", [
-                        $group['id'],
-                        MembershipCollection::PENDING
-                    ])[0]['count'],
                     'Pending Community Events' => $dbhr->preQuery("SELECT COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? " . ($minage > 0 ? "AND added < '$minageq'" : '') . ";", [
                         $group['id'],
                         $now

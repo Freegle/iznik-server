@@ -92,7 +92,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         $ret = $this->call('stdmsg', 'POST', [
             'title' => 'UTTest2',
             'configid' => $this->cid,
-            'action' => 'Reject Member'
+            'action' => 'Reject'
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
@@ -103,7 +103,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         $this->log("Returned " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['stdmsg']['id']);
-        assertEquals('Reject Member', $ret['stdmsg']['action']);
+        assertEquals('Reject', $ret['stdmsg']['action']);
 
         # Should show up in config now.
         $ret = $this->call('modconfig', 'GET', [

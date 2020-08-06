@@ -23,8 +23,6 @@ function memberships() {
     $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
     $message = presdef('message', $_REQUEST, NULL);
 
-    # TODO jQuery won't send an empty array, so we have a hack to ensure we can empty out the pending members.  What's
-    # the right way to do this?
     $members = presdef('members', $_REQUEST, presdef('memberspresentbutempty', $_REQUEST, 0) ? [] : NULL);
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -43,7 +41,6 @@ function memberships() {
 
     switch ($collection) {
         case MembershipCollection::APPROVED:
-        case MembershipCollection::PENDING:
         case MembershipCollection::BANNED:
         case MembershipCollection::SPAM:
         case MembershipCollection::HAPPINESS:
@@ -200,14 +197,8 @@ function memberships() {
                         # Make sure they're not banned - an explicit add should override that.
                         $u->unban($groupid);
                     } else if ($userid) {
-                        # We're adding ourselves, i.e. joining a group.  If the group approves members then we should
-                        # add to pending unless the member is already approved.  That can happen if the client keeps
-                        # sending the join for some reason.
-                        if ($g->getSetting('approvemembers', FALSE)) {
-                            $addtocoll =  $u->isApprovedMember($groupid) ? MembershipCollection::APPROVED: MembershipCollection::PENDING;
-                        } else {
-                            $addtocoll = MembershipCollection::APPROVED;
-                        }
+                        # We're adding ourselves, i.e. joining a group.
+                        $addtocoll = MembershipCollection::APPROVED;
 
                         # But joining shouldn't demote us - we can do that via PATCH.
                         $role = $me->roleMax($role, $myrole);
@@ -243,10 +234,6 @@ function memberships() {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                     switch ($action) {
-                        case 'Delete':
-                            # The reject call will handle any rejection on Yahoo if required.
-                            $u->reject($groupid, NULL, NULL, NULL);
-                            break;
                         case 'Delete Approved Member':
                             # We can remove them, but not if they are someone higher than us.
                             $myrole = $me->getRoleForGroup($groupid);
@@ -258,31 +245,9 @@ function memberships() {
                                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             }
                             break;
-                        case 'Reject':
-                        case 'Reject Member':
-                            if (!$u->isPendingMember($groupid)) {
-                                $ret = ['ret' => 3, 'status' => 'Member is not pending'];
-                            } else {
-                                $u->reject($groupid, $subject, $body, $stdmsgid);
-                            }
-                            break;
-                        case 'Approve':
-                        case 'Approve Member':
-                            if (!$u->isPendingMember($groupid)) {
-                                $ret = ['ret' => 3, 'status' => 'Member is not pending'];
-                            } else {
-                                $u->approve($groupid, $subject, $body, $stdmsgid);
-                            }
-                            break;
                         case 'Leave Member':
                         case 'Leave Approved Member':
                             $u->mail($groupid, $subject, $body, $stdmsgid, $action);
-                            break;
-                        case 'Hold':
-                            $u->hold($groupid);
-                            break;
-                        case 'Release':
-                            $u->release($groupid);
                             break;
                         case 'HappinessReviewed':
                             $u->happinessReviewed($happinessid);

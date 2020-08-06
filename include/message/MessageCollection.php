@@ -15,7 +15,6 @@ class MessageCollection
     const EDITS = 'Edit';
     const SPAM = 'Spam';
     const DRAFT = 'Draft';
-    const QUEUED_USER = 'QueuedUser'; # Awaiting a user on a native group before it can be sent
     const REJECTED = 'Rejected'; # Rejected by mod; user can see and resend.
     const ALLUSER = 'AllUser';
     const CHAT = 'Chat'; # Chat message
@@ -53,7 +52,6 @@ class MessageCollection
             case MessageCollection::EDITS:
             case MessageCollection::SPAM:
             case MessageCollection::DRAFT:
-            case MessageCollection::QUEUED_USER:
             case MessageCollection::REJECTED:
             case MessageCollection::VIEWED:
                 $this->collection = [$collection];
@@ -67,7 +65,6 @@ class MessageCollection
                     MessageCollection::APPROVED,
                     MessageCollection::PENDING,
                     MessageCollection::REJECTED,
-                    MessageCollection::QUEUED_USER
                 ];
                 break;
             default:
@@ -350,17 +347,11 @@ class MessageCollection
 
                     switch ($coll) {
                         case MessageCollection::DRAFT:
-                        case MessageCollection::QUEUED_USER:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners, or self (which returns a role of moderator).
                                 $n = $public;
                                 unset($n['message']);
                                 $msgs[] = $n;
-
-                                if ($coll !== MessageCollection::DRAFT) {
-                                    # We always want to return all drafts and a chunk of non-drafts.
-                                    $limit--;
-                                }
                             }
                             break;
                         case MessageCollection::APPROVED:

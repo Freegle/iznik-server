@@ -408,9 +408,7 @@ class MailRouter
 
                 # We should always find them as Message::parse should create them
                 if ($u->getId()) {
-                    # Might need to add to pending if the group approves members.
-                    $addtocoll = $g->getSetting('approvemembers', FALSE) ? MembershipCollection::PENDING : MembershipCollection::APPROVED;
-                    $u->addMembership($gid, User::ROLE_MEMBER, NULL, $addtocoll, NULL, $envfrom);
+                    $u->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, $envfrom);
                     $ret = MailRouter::TO_SYSTEM;
                 }
             }
@@ -591,9 +589,8 @@ class MailRouter
 
                             foreach ($groups as $group) {
                                 $appmemb = $u->isApprovedMember($group['groupid']);
-                                $ispendingmember = $u->isPendingMember($group['groupid']);
 
-                                if (($appmemb || $ispendingmember) && $worry) {
+                                if ($appmemb && $worry) {
                                     if ($log) { error_log("Worrying => pending"); }
                                     if ($this->markPending($notspam)) {
                                         $ret = MailRouter::PENDING;

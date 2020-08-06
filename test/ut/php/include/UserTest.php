@@ -633,7 +633,7 @@ class userTest extends IznikTestCase {
 
         $s = new StdMessage($this->dbhr, $this->dbhm);
         $sid = $s->create('Test', $cid);
-        $s->setPrivate('action', 'Reject Member');
+        $s->setPrivate('action', 'Reject');
 
         $u->mail($group, "test", "test", $sid);
 
@@ -932,10 +932,6 @@ class userTest extends IznikTestCase {
         $s->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
             return($this->sendMock($mailer, $message));
         }));
-
-        # No welcome mail sent on application.
-        $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING);
-        assertEquals(0, count($this->msgsSent));
 
         # Welcome mail is sent on approve.
         $s->approve($gid, NULL, NULL, NULL);

@@ -15,9 +15,6 @@ class Notifications
     const TYPE_LOVED_POST = 'LovedPost';
     const TYPE_LOVED_COMMENT = 'LovedComment';
     const TYPE_TRY_FEED = 'TryFeed';
-    const TYPE_MEMBERSHIP_PENDING = 'MembershipPending';
-    const TYPE_MEMBERSHIP_APPROVED = 'MembershipApproved';
-    const TYPE_MEMBERSHIP_REJECTED = 'MembershipRejected';
     const TYPE_ABOUT_ME = 'AboutMe';
     const TYPE_EXHORT = 'Exhort';
     const TYPE_GIFTAID = 'GiftAid';
@@ -363,24 +360,6 @@ class Notifications
                          }
                          $count++;
                          break;
-                    case Notifications::TYPE_MEMBERSHIP_PENDING:
-                        if (!$title) {
-                            $title = "Your application to {$notif['url']} requires approval; we'll let you know soon.";
-                        }
-                        $count++;
-                        break;
-                    case Notifications::TYPE_MEMBERSHIP_APPROVED:
-                        if (!$title) {
-                            $title = $fromname . " your application to {$notif['url']} was approved; you can now use the community.";
-                        }
-                        $count++;
-                        break;
-                    case Notifications::TYPE_MEMBERSHIP_REJECTED:
-                        if (!$title) {
-                            $title = $fromname . " your application to {$notif['url']} was denied.";
-                        }
-                        $count++;
-                        break;
                     case Notifications::TYPE_ABOUT_ME:
                         if (!$title) {
                             $title = "Why not introduce yourself to other freeglers?  You'll get a better response.";

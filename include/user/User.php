@@ -867,7 +867,7 @@ class User extends Entity
             $l = new Log($this->dbhr, $this->dbhm);
             $l->log([
                 'type' => Log::TYPE_GROUP,
-                'subtype' => $collection == MembershipCollection::PENDING ? Log::SUBTYPE_APPLIED : Log::SUBTYPE_JOINED,
+                'subtype' => Log::SUBTYPE_JOINED,
                 'user' => $this->id,
                 'byuser' => $me ? $me->getId() : NULL,
                 'groupid' => $groupid
@@ -877,12 +877,6 @@ class User extends Entity
         # Check whether this user now counts as a possible spammer.
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->checkUser($this->id);
-
-        if ($rc && $collection == MembershipCollection::PENDING && $g->getSetting('approvemembers', FALSE)) {
-            # Let the user know that they need to wait.
-            $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_PENDING, NULL, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
-        }
 
         return ($rc);
     }
@@ -917,19 +911,6 @@ class User extends Entity
 
             $this->sendIt($mailer, $message);
         }
-    }
-
-    public function isPendingMember($groupid)
-    {
-        $ret = false;
-        $sql = "SELECT userid FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $membs = $this->dbhr->preQuery($sql, [
-            $this->id,
-            $groupid,
-            MembershipCollection::PENDING
-        ]);
-
-        return (count($membs) > 0);
     }
 
     public function cacheMemberships($id = NULL)
@@ -3179,160 +3160,6 @@ class User extends Entity
         $this->maybeMail($groupid, $subject, $body, $action);
     }
 
-    public function reject($groupid, $subject, $body, $stdmsgid)
-    {
-        # No need for a transaction - if things go wrong, the member will remain in pending, which is the correct
-        # behaviour.
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => $subject ? Log::SUBTYPE_REJECTED : Log::SUBTYPE_DELETED,
-            'msgid' => $this->id,
-            'byuser' => $me ? $me->getId() : NULL,
-            'user' => $this->getId(),
-            'groupid' => $groupid,
-            'text' => $subject,
-            'stdmsgid' => $stdmsgid
-        ]);
-
-        $this->notif->notifyGroupMods($groupid);
-
-        $this->maybeMail($groupid, $subject, $body, 'Reject Member');
-
-        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-        if ($g->getSetting('approvemembers', FALSE)) {
-            # Let the user know.
-            $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_REJECTED, NULL,  NULL,'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
-        }
-
-        # We might have messages which are awaiting this membership.  Reject them.
-        $msgs = $this->dbhr->preQuery("SELECT messages.id FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND groupid = ? AND collection = ?;", [
-            $this->id,
-            $groupid,
-            MessageCollection::QUEUED_USER
-        ]);
-
-        foreach ($msgs as $msg) {
-            $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?;", [
-                MessageCollection::REJECTED,
-                $msg['id'],
-                $groupid
-            ]);
-        }
-
-        # Delete from memberships - after emailing, otherwise we won't find the right email for this grup.
-        $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $this->dbhm->preExec($sql, [$this->id, $groupid, MembershipCollection::PENDING]);
-    }
-
-    public function approve($groupid, $subject, $body, $stdmsgid)
-    {
-        # No need for a transaction - if things go wrong, the member will remain in pending, which is the correct
-        # behaviour.
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_APPROVED,
-            'msgid' => $this->id,
-            'user' => $this->getId(),
-            'byuser' => $me ? $me->getId() : NULL,
-            'groupid' => $groupid,
-            'stdmsgid' => $stdmsgid,
-            'text' => $subject
-        ]);
-
-        $sql = "UPDATE memberships SET collection = ? WHERE userid = ? AND groupid = ?;";
-        $this->dbhm->preExec($sql, [
-            MembershipCollection::APPROVED,
-            $this->id,
-            $groupid
-        ]);
-
-        $this->notif->notifyGroupMods($groupid);
-
-        $this->maybeMail($groupid, $subject, $body, 'Approve Member');
-
-        # Send any welcome message - we didn't send it when they were pending.
-        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-        $this->sendWelcome($g->getPrivate('welcomemail'), $groupid, $g);
-
-        # Let the user know.
-        if ($g->getSetting('approvemembers', FALSE)) {
-            # Let the user know.
-            $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add(NULL, $this->id, Notifications::TYPE_MEMBERSHIP_APPROVED, NULL, NULL, 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort'));
-        }
-
-        # We might have messages awaiting this membership.  Move them to pending - we always moderate new members.
-        $msgs = $this->dbhr->preQuery("SELECT messages.id FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND groupid = ? AND collection = ?;", [
-            $this->id,
-            $groupid,
-            MessageCollection::QUEUED_USER
-        ]);
-
-        foreach ($msgs as $msg) {
-            $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?;", [
-                MessageCollection::PENDING,
-                $msg['id'],
-                $groupid
-            ]);
-        }
-    }
-
-    function hold($groupid)
-    {
-        $me = whoAmI($this->dbhr, $this->dbhm);
-
-        $sql = "UPDATE memberships SET heldby = ? WHERE userid = ? AND groupid = ?;";
-        $rc = $this->dbhm->preExec($sql, [$me->getId(), $this->id, $groupid]);
-
-        if ($rc) {
-            $this->log->log([
-                'type' => Log::TYPE_USER,
-                'subtype' => Log::SUBTYPE_HOLD,
-                'user' => $this->id,
-                'byuser' => $me ? $me->getId() : NULL
-            ]);
-        }
-
-        $this->notif->notifyGroupMods($groupid);
-    }
-
-    function isHeld($groupid)
-    {
-        $me = whoAmI($this->dbhr, $this->dbhm);
-
-        $sql = "SELECT heldby FROM memberships WHERE userid = ? AND groupid = ?;";
-        $membs = $this->dbhm->preQuery($sql, [$this->id, $groupid]);
-        $ret = NULL;
-
-        foreach ($membs as $memb) {
-            $ret = $memb['heldby'];
-        }
-
-        return ($ret);
-    }
-
-    public function release($groupid)
-    {
-        $me = whoAmI($this->dbhr, $this->dbhm);
-
-        $sql = "UPDATE memberships SET heldby = NULL WHERE userid = ? AND groupid = ?;";
-        $rc = $this->dbhm->preExec($sql, [$this->id, $groupid]);
-
-        if ($rc) {
-            $this->log->log([
-                'type' => Log::TYPE_USER,
-                'subtype' => Log::SUBTYPE_RELEASE,
-                'user' => $this->id,
-                'byuser' => $me ? $me->getId() : NULL
-            ]);
-        }
-
-        $this->notif->notifyGroupMods($groupid);
-    }
-
     public function happinessReviewed($happinessid) {
         $this->dbhm->preExec("UPDATE messages_outcomes SET reviewed = 1 WHERE id = ?", [
             $happinessid
@@ -4229,7 +4056,6 @@ class User extends Entity
                 'pendingadmins' => [ 'admin', 'admins', '/modtools/admins' ],
                 'spammembers' => [ 'member to review', 'members to review', '/modtools/members/review' ],
                 'relatedmembers' => [ 'related member to review', 'related members to review', '/modtools/members/related' ],
-                'pendingmembers' => [ 'pending member', 'pending members', '/modtools/members/pending' ],
                 'editreview' => [ 'edit', 'edits', '/modtools/messages/review' ],
                 'spam' => [ 'message to review', 'messages to review', '/modtools/messages/review' ],
                 'pending' => [ 'pending message', 'pending messages', '/modtools/messages/pending' ]

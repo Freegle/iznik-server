@@ -401,8 +401,6 @@ class ModConfig extends Entity
             case 'Leave':
                 $ret = $this->evalIt('ccrejectto', 'ccrejectaddr');
                 break;
-            case 'Approve Member':
-            case 'Reject Member':
             case'Leave Member':
                 $ret = $this->evalIt('ccrejmembto', 'ccrejmembaddr');
                 break;

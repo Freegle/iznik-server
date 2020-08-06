@@ -1519,28 +1519,6 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(MailRouter::DROPPED, $rc);
     }
 
-    public function testSubMailApproved()
-    {
-        # Subscribe
-        $this->group->setSettings([
-            'approvemembers' => TRUE
-        ]);
-
-        # Now subscribe.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
-        $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
-        $this->log("Created $id");
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        $rc = $r->route($m);
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
-
-        $ctx = NULL;
-        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING);
-        assertEquals(1, count($members));
-    }
-
     public function testCantPost() {
         # Subscribe
 
