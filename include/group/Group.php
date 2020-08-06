@@ -549,15 +549,6 @@ memberships.groupid IN $groupq
                         }
                     }
 
-                    foreach ($heldmembercounts as $count) {
-                        if ($count['groupid'] == $groupid) {
-                            if ($count['collection'] == MembershipCollection::SPAM) {
-                            } else {
-                                $thisone['pendingmembersother'] = $count['count'];
-                            }
-                        }
-                    }
-
                     foreach ($spammembercounts as $count) {
                         if ($count['groupid'] == $groupid) {
                             $thisone['spammembersother'] = $count['count'];

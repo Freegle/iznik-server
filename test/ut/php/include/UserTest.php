@@ -911,33 +911,6 @@ class userTest extends IznikTestCase {
         assertEquals(1, count($this->msgsSent));
     }
 
-    public function testNativeWelcomeApproved() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
-
-        $g->setPrivate('welcomemail', "Test welcome");
-        $g->setSettings([
-            'approvemembers' => TRUE
-        ]);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
-        $u->addEmail('test@test.com');
-
-        $s = $this->getMockBuilder('User')
-            ->setConstructorArgs([ $this->dbhr, $this->dbhm, $uid ])
-            ->setMethods(array('sendIt'))
-            ->getMock();
-        $s->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
-            return($this->sendMock($mailer, $message));
-        }));
-
-        # Welcome mail is sent on approve.
-        $s->approve($gid, NULL, NULL, NULL);
-        assertEquals(1, count($this->msgsSent));
-    }
-
     public function testInvite() {
         $s = $this->getMockBuilder('User')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
