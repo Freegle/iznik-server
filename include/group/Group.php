@@ -545,6 +545,8 @@ memberships.groupid IN $groupq
                         if ($count['groupid'] == $groupid) {
                             if ($count['collection'] == MessageCollection::SPAM) {
                                 $thisone['spamother'] = $count['count'];
+                            } else {
+                                $thisone['pendingother'] = $count['count'];
                             }
                         }
                     }
