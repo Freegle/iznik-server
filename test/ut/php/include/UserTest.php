@@ -1499,5 +1499,16 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE, [ MessageCollection::APPROVED ], FALSE);
         assertEquals(1, count($atts['emailhistory']));
     }
+
+    public function testPurgedUserLogs() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id1 = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->forget("UT");
+        $atts = $u->getPublic(NULL, FALSE, TRUE);
+        assertEquals(0, strpos($atts['logs'][0]['user']['fullname'], 'Deleted User'));
+        assertEquals(0, strpos($atts['logs'][1]['byuser']['fullname'], 'Deleted User'));
+    }
 }
 

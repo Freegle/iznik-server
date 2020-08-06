@@ -410,9 +410,9 @@ class messageAPITest extends IznikAPITestCase
         # Suppress mails.
         $m = $this->getMockBuilder('Message')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
-            ->setMethods(array('mailer'))
+            ->setMethods(array('sendOne'))
             ->getMock();
-        $m->method('mailer')->willReturn(false);
+        $m->method('sendOne')->willReturn(false);
 
         # Shouldn't be able to approve logged out
         $ret = $this->call('message', 'POST', [
@@ -513,9 +513,9 @@ class messageAPITest extends IznikAPITestCase
         # Suppress mails.
         $m = $this->getMockBuilder('Message')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
-            ->setMethods(array('mailer'))
+            ->setMethods(array('sendOne'))
             ->getMock();
-        $m->method('mailer')->willReturn(false);
+        $m->method('sendOne')->willReturn(false);
 
         assertEquals(Message::TYPE_OFFER, $m->getType());
         $senduser = $m->getFromUser();
@@ -694,9 +694,9 @@ class messageAPITest extends IznikAPITestCase
         # Suppress mails.
         $m = $this->getMockBuilder('Message')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
-            ->setMethods(array('mailer'))
+            ->setMethods(array('sendOne'))
             ->getMock();
-        $m->method('mailer')->willReturn(false);
+        $m->method('sendOne')->willReturn(false);
 
         assertEquals(Message::TYPE_OTHER, $m->getType());
 

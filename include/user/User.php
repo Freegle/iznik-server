@@ -3025,7 +3025,10 @@ class User extends Entity
         return ($ret);
     }
 
-    # Default mailer is to use the standard PHP one, but this can be overridden in UT.
+    public function sendOne($mailer, $message) {
+        $mailer->send($message);
+    }
+
     public function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
         # These mails don't need tracking, so we don't call addHeaders.
         try {
@@ -3052,7 +3055,7 @@ class User extends Entity
                 $message->setBcc(explode(',', $bcc));
             }
 
-            $mailer->send($message);
+            $this->sendOne($mailer, $message);
 
             # Stop the transport, otherwise the message doesn't get sent until the UT script finishes.
             $transport->stop();
