@@ -521,28 +521,6 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                 error_log("API call $call worked after $apicallretries");
             }
 
-            $ip = presdef('REMOTE_ADDR', $_SERVER, '');
-
-            if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
-                (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
-                # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
-                # save GET calls as they don't change the DB and there are a lot of them.
-                #
-                # Beanstalk has a limit on the size of job that it accepts; no point trying to log absurdly large
-                # API requests.
-                $req = json_encode($_REQUEST);
-                $rsp = json_encode($ret);
-
-                if (strlen($req) + strlen($rsp) > 180000) {
-                    $req = substr($req, 0, 1000);
-                    $rsp = substr($rsp, 0, 1000);
-                }
-
-                $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '" . presdef('REMOTE_ADDR', $_SERVER, '') . "', " . $dbhr->quote(session_id()) .
-                    ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
-                $dbhm->background($sql);
-            }
-
             break;
         } catch (Exception $e) {
             # This is our retry handler - see apiheaders.
@@ -555,15 +533,18 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                 if ($apicallretries >= API_RETRIES) {
                     if (strpos($e->getMessage(), 'WSREP has not yet prepared node for application') !== FALSE) {
                         # Our cluster is sick.  Make it look like maintenance.
-                        echo json_encode(array('ret' => 111, 'status' => 'Cluster not operational'));
+                        $ret = ['ret' => 111, 'status' => 'Cluster not operational'];
+                        echo json_encode($ret);
                     } else {
-                        echo json_encode(array('ret' => 997, 'status' => 'DB operation failed after retry', 'exception' => $e->getMessage()));
+                        $ret = ['ret' => 997, 'status' => 'DB operation failed after retry', 'exception' => $e->getMessage()];
+                        echo json_encode($ret);
                     }
                 }
             } else {
                 # Something else.
                 error_log("Uncaught exception at " . $e->getFile() . " line " . $e->getLine() . " " . $e->getMessage());
-                echo json_encode(array('ret' => 998, 'status' => 'Unexpected error', 'exception' => $e->getMessage()));
+                $ret = ['ret' => 998, 'status' => 'Unexpected error', 'exception' => $e->getMessage()];
+                echo json_encode($ret);
                 break;
             }
 
@@ -571,6 +552,28 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
             $_REQUEST['retry'] = uniqid('', TRUE);
         }
     } while ($apicallretries < API_RETRIES);
+
+    $ip = presdef('REMOTE_ADDR', $_SERVER, '');
+
+    if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
+        (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
+        # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
+        # save GET calls as they don't change the DB and there are a lot of them.
+        #
+        # Beanstalk has a limit on the size of job that it accepts; no point trying to log absurdly large
+        # API requests.
+        $req = json_encode($_REQUEST);
+        $rsp = json_encode($ret);
+
+        if (strlen($req) + strlen($rsp) > 180000) {
+            $req = substr($req, 0, 1000);
+            $rsp = substr($rsp, 0, 1000);
+        }
+
+        $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '" . presdef('REMOTE_ADDR', $_SERVER, '') . "', " . $dbhr->quote(session_id()) .
+            ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
+        $dbhm->background($sql);
+    }
 
     # Any outstanding transaction is a bug; force a rollback to avoid locks lasting beyond this call.
     if ($dbhm->inTransaction()) {
