@@ -1548,6 +1548,31 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(MailRouter::DROPPED, $rc);
     }
 
+    public function testSwallowTaken() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('test@test.com');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
+        $msg = str_replace('Test native', 'OFFER: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        $this->log("Mail message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
+        $msg = str_replace('Test native', 'TAKEN: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        $this->log("Mail message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+    }
     //    public function testSpecial() {
 //        //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));

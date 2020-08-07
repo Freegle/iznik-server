@@ -119,8 +119,7 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'TAKEN: Test items (location)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
-
-        }
+     }
 
     public function testRelated2() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
