@@ -260,7 +260,7 @@ class digestTest extends IznikTestCase {
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
