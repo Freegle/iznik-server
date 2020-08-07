@@ -1056,4 +1056,31 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
 
         return($ret);
     }
+
+    public function welcomeReview($gid = NULL, $limit = 10) {
+        # Send copy of the welcome mail to mods for review.
+        $idq = $gid ? " AND id = $gid " : "";
+        $count = 0;
+
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE (welcomereview IS NULL OR DATEDIFF(NOW(), welcomereview) >= 365) AND welcomemail IS NOT NULL $idq LIMIT $limit;");
+        foreach ($groups as $group) {
+            $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
+            $mods = $g->getMods();
+            error_log($g->getName());
+            foreach ($mods as $mod) {
+                $u = new User($this->dbhr, $this->dbhm, $mod);
+                if ($u->sendOurMails() && $u->getEmailPreferred()) {
+                    error_log("..." . $u->getEmailPreferred());
+                    $u->sendWelcome($g->getPrivate('welcomemail'), $group['id'], NULL, NULL, TRUE);
+                    $count++;
+
+                    $this->dbhm->preExec("UPDATE groups SET welcomereview = NOW() WHERE id = ?;", [
+                        $group['id']
+                    ]);
+                }
+            }
+        }
+
+        return $count;
+    }
 }

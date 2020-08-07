@@ -20,7 +20,6 @@ require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/include/group/GroupCollection.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
-require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
@@ -881,17 +880,26 @@ class User extends Entity
         return ($rc);
     }
 
-    private function sendWelcome($welcome, $gid, $g = NULL, $atts = NULL) {
+    public function sendWelcome($welcome, $gid, $g = NULL, $atts = NULL, $review = FALSE) {
         $g = $g ? $g : Group::get($this->dbhr, $this->dbhm, $gid);
         $atts = $atts ? $atts : $g->getPublic();
 
         $to = $this->getEmailPreferred();
 
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');
+        $twig = new Twig_Environment($loader);
+
+        $html = $twig->render('group.html', [
+            'email' => $to,
+            'message' => $welcome,
+            'review' => $review,
+            'groupname' => $g->getName()
+        ]);
+
         if ($to) {
-            $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($welcome));
             list ($transport, $mailer) = getMailer();
             $message = Swift_Message::newInstance()
-                ->setSubject("Welcome to " . $atts['namedisplay'])
+                ->setSubject(($review ? "Please review: " : "") . "Welcome to " . $atts['namedisplay'])
                 ->setFrom([$g->getAutoEmail() => $atts['namedisplay'] . ' Volunteers'])
                 ->setReplyTo([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
                 ->setTo($to)
