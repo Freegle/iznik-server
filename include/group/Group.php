@@ -21,7 +21,7 @@ class Group extends Entity
 
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo', 'publish',
-        'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
+        'onhere', 'ontn', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation',
         'moderationstatus', 'maxagetoshow');
@@ -597,7 +597,7 @@ memberships.groupid IN $groupq
 
         $atts['founded'] = ISODate($this->group['founded']);
 
-        foreach (['trial', 'licensed', 'licenseduntil', 'affiliationconfirmed'] as $datefield) {
+        foreach (['affiliationconfirmed'] as $datefield) {
             $atts[$datefield] = pres($datefield, $atts) ? ISODate($atts[$datefield]) : NULL;
         }
 
