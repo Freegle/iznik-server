@@ -10,7 +10,7 @@ function message() {
 
     $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $id = presdef('id', $_REQUEST, NULL);
+    $id = intval(presdef('id', $_REQUEST, NULL));
     $reason = presdef('reason', $_REQUEST, NULL);
     $action = presdef('action', $_REQUEST, NULL);
     $subject = presdef('subject', $_REQUEST, NULL);
@@ -308,9 +308,9 @@ function message() {
         case 'POST': {
             $m = new Message($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied 7 '];
-            $role = $m ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
+            $role = $m && $id ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
-            if ($m->getID() == $id) {
+            if ($id && $m->getID() == $id) {
                 # These actions don't require permission, but they do need to be logged in as they record the userid.
                 if ($me) {
                     if ($action =='Love') {
@@ -621,120 +621,122 @@ function message() {
                 }
             }
 
-            # Other actions which we can do on our own messages.
-            $canmod = $myid == $m->getFromuser();
+            if ($id && $id == $m->getId()) {
+                # Other actions which we can do on our own messages.
+                $canmod = $myid == $m->getFromuser();
 
-            if (!$canmod) {
-                $role = $m->getRoleForMessage()[0];
-                $canmod = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
+                if (!$canmod) {
+                    $role = $m->getRoleForMessage()[0];
+                    $canmod = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
 
-                if ($role == User::ROLE_OWNER && pres('partner', $_SESSION)) {
-                    # We have acquired owner rights by virtue of being a partner.  Pretend to be that user for the
-                    # rest of the call.
-                    $_SESSION['id'] = $m->getFromuser();
-                    $myid = $m->getFromuser();
-                }
-            }
-
-            if ($canmod) {
-                if ($userid > 0) {
-                    $r = new ChatRoom($dbhr, $dbhm);
-                    $rid = $r->createConversation($myid, $userid);
-                    $cm = new ChatMessage($dbhr, $dbhm);
+                    if ($role == User::ROLE_OWNER && pres('partner', $_SESSION)) {
+                        # We have acquired owner rights by virtue of being a partner.  Pretend to be that user for the
+                        # rest of the call.
+                        $_SESSION['id'] = $m->getFromuser();
+                        $myid = $m->getFromuser();
+                    }
                 }
 
-                switch ($action) {
-                    case 'Promise':
-                        if ($userid) {
-                            # Userid is optional.
-                            $m->promise($userid);
-                            list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
-                            $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
-                        } else {
-                            $m->promise($m->getFromuser());
-                            $ret = ['ret' => 0, 'status' => 'Success'];
-                        }
-                        break;
-                    case 'Renege':
-                        # Userid is optional - TN doesn't use it.
-                        if ($userid > 0) {
-                            $m->renege($userid);
-                            list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
-                            $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
-                        } else {
-                            $m->renege($m->getFromuser());
-                            $ret = ['ret' => 0, 'status' => 'Success'];
-                        }
+                if ($canmod) {
+                    if ($userid > 0) {
+                        $r = new ChatRoom($dbhr, $dbhm);
+                        $rid = $r->createConversation($myid, $userid);
+                        $cm = new ChatMessage($dbhr, $dbhm);
+                    }
 
-                        break;
-                    case 'OutcomeIntended':
-                        # Ignore duplicate attempts by user to supply an outcome.
-                        if (!$m->hasOutcome()) {
-                            $outcome = presdef('outcome', $_REQUEST, NULL);
-                            $m->intendedOutcome($outcome);
-                        }
-                        $ret = ['ret' => 0, 'status' => 'Success'];
-                        break;
-                    case 'Outcome':
-                        # Ignore duplicate attempts by user to supply an outcome.
-                        if (!$m->hasOutcome()) {
-                            $outcome = presdef('outcome', $_REQUEST, NULL);
-                            $h = presdef('happiness', $_REQUEST, NULL);
-                            $happiness = NULL;
-
-                            switch ($h) {
-                                case User::HAPPY:
-                                case User::FINE:
-                                case User::UNHAPPY:
-                                    $happiness = $h;
-                                    break;
+                    switch ($action) {
+                        case 'Promise':
+                            if ($userid) {
+                                # Userid is optional.
+                                $m->promise($userid);
+                                list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
+                                $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
+                            } else {
+                                $m->promise($m->getFromuser());
+                                $ret = ['ret' => 0, 'status' => 'Success'];
+                            }
+                            break;
+                        case 'Renege':
+                            # Userid is optional - TN doesn't use it.
+                            if ($userid > 0) {
+                                $m->renege($userid);
+                                list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
+                                $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
+                            } else {
+                                $m->renege($m->getFromuser());
+                                $ret = ['ret' => 0, 'status' => 'Success'];
                             }
 
-                            $comment = presdef('comment', $_REQUEST, NULL);
+                            break;
+                        case 'OutcomeIntended':
+                            # Ignore duplicate attempts by user to supply an outcome.
+                            if (!$m->hasOutcome()) {
+                                $outcome = presdef('outcome', $_REQUEST, NULL);
+                                $m->intendedOutcome($outcome);
+                            }
+                            $ret = ['ret' => 0, 'status' => 'Success'];
+                            break;
+                        case 'Outcome':
+                            # Ignore duplicate attempts by user to supply an outcome.
+                            if (!$m->hasOutcome()) {
+                                $outcome = presdef('outcome', $_REQUEST, NULL);
+                                $h = presdef('happiness', $_REQUEST, NULL);
+                                $happiness = NULL;
 
-                            $ret = ['ret' => 1, 'status' => 'Odd action'];
-
-                            switch ($outcome) {
-                                case Message::OUTCOME_TAKEN: {
-                                    if ($m->getType() == Message::TYPE_OFFER) {
-                                        $m->mark($outcome, $comment, $happiness, $userid);
-                                        $ret = ['ret' => 0, 'status' => 'Success'];
-                                    };
-                                    break;
+                                switch ($h) {
+                                    case User::HAPPY:
+                                    case User::FINE:
+                                    case User::UNHAPPY:
+                                        $happiness = $h;
+                                        break;
                                 }
-                                case Message::OUTCOME_RECEIVED: {
-                                    if ($m->getType() == Message::TYPE_WANTED) {
-                                        $m->mark($outcome, $comment, $happiness, $userid);
-                                        $ret = ['ret' => 0, 'status' => 'Success'];
-                                    };
-                                    break;
-                                }
-                                case Message::OUTCOME_WITHDRAWN: {
-                                    $m->withdraw($comment, $happiness, $userid);
-                                    $ret = ['ret' => 0, 'status' => 'Success'];
 
-                                    # The message might still be pending.
-                                    $groups = $m->getGroups(FALSE, TRUE);
+                                $comment = presdef('comment', $_REQUEST, NULL);
 
-                                    foreach ($groups as $gid) {
-                                        if ($m->isPending($gid)) {
-                                            $g = Group::get($dbhr, $dbhm, $gid);
+                                $ret = ['ret' => 1, 'status' => 'Odd action'];
 
-                                            # If a message is withdrawn while it's pending we might as well delete it.
-                                            $m->delete("Withdrawn pending");
-                                            $ret['deleted'] = TRUE;
-                                        } else {
-                                            $m->withdraw($comment, $happiness, $userid);
-                                        }
+                                switch ($outcome) {
+                                    case Message::OUTCOME_TAKEN: {
+                                        if ($m->getType() == Message::TYPE_OFFER) {
+                                            $m->mark($outcome, $comment, $happiness, $userid);
+                                            $ret = ['ret' => 0, 'status' => 'Success'];
+                                        };
+                                        break;
                                     }
+                                    case Message::OUTCOME_RECEIVED: {
+                                        if ($m->getType() == Message::TYPE_WANTED) {
+                                            $m->mark($outcome, $comment, $happiness, $userid);
+                                            $ret = ['ret' => 0, 'status' => 'Success'];
+                                        };
+                                        break;
+                                    }
+                                    case Message::OUTCOME_WITHDRAWN: {
+                                        $m->withdraw($comment, $happiness, $userid);
+                                        $ret = ['ret' => 0, 'status' => 'Success'];
 
-                                    break;
+                                        # The message might still be pending.
+                                        $groups = $m->getGroups(FALSE, TRUE);
+
+                                        foreach ($groups as $gid) {
+                                            if ($m->isPending($gid)) {
+                                                $g = Group::get($dbhr, $dbhm, $gid);
+
+                                                # If a message is withdrawn while it's pending we might as well delete it.
+                                                $m->delete("Withdrawn pending");
+                                                $ret['deleted'] = TRUE;
+                                            } else {
+                                                $m->withdraw($comment, $happiness, $userid);
+                                            }
+                                        }
+
+                                        break;
+                                    }
                                 }
+                            } else {
+                                $ret = ['ret' => 0, 'status' => 'Success'];
                             }
-                        } else {
-                            $ret = ['ret' => 0, 'status' => 'Success'];
-                        }
-                        break;
+                            break;
+                    }
                 }
             }
         }

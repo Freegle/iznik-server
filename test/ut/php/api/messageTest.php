@@ -2709,4 +2709,15 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals($group2, $ret['message']['groups'][0]['groupid']);
     }
+
+    public function testPromiseError() {
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => 0,
+            'userid' => $this->uid,
+            'action' => 'Promise'
+        ]);
+        assertEquals(2, $ret['ret']);
+    }
 }
