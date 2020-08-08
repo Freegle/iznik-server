@@ -3793,10 +3793,12 @@ ORDER BY lastdate DESC;";
         # Unpromise this item.
         #
         # Record it - we use this to determine member reliability.
-        $this->dbhm->preExec("INSERT INTO messages_reneged (userid, msgid) VALUES (?, ?);", [
-            $userid,
-            $this->id
-        ]);
+        if ($userid !== $this->getFromuser()) {
+            $this->dbhm->preExec("INSERT INTO messages_reneged (userid, msgid) VALUES (?, ?);", [
+                $userid,
+                $this->id
+            ]);
+        }
 
         $sql = "DELETE FROM messages_promises WHERE msgid = ? AND userid = ?;";
         $this->dbhm->preExec($sql, [
