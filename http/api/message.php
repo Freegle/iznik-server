@@ -645,17 +645,27 @@ function message() {
 
                 switch ($action) {
                     case 'Promise':
-                        $ret = ['ret' => 2, 'status' => "Can't promise to nobody"];
                         if ($userid) {
+                            # Userid is optional.
                             $m->promise($userid);
                             list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
                             $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
+                        } else {
+                            $m->promise($m->getFromuser());
+                            $ret = ['ret' => 0, 'status' => 'Success'];
                         }
                         break;
                     case 'Renege':
-                        $m->renege($userid);
-                        list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
-                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
+                        # Userid is optional - TN doesn't use it.
+                        if ($userid > 0) {
+                            $m->renege($userid);
+                            list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
+                            $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
+                        } else {
+                            $m->renege($m->getFromuser());
+                            $ret = ['ret' => 0, 'status' => 'Success'];
+                        }
+
                         break;
                     case 'OutcomeIntended':
                         # Ignore duplicate attempts by user to supply an outcome.

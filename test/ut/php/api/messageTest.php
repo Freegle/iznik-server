@@ -1818,6 +1818,24 @@ class messageAPITest extends IznikAPITestCase
             'partner' => $key
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Promise it without a user id.
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+        error_log("Promise");
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Promise',
+            'partner' => $key
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Renege',
+            'partner' => $key
+        ]);
+        assertEquals(0, $ret['ret']);
     }
 
     public function testMark()
