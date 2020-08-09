@@ -891,7 +891,7 @@ class User extends Entity
 
         $html = $twig->render('group.html', [
             'email' => $to,
-            'message' => $welcome,
+            'message' => nl2br($welcome),
             'review' => $review,
             'groupname' => $g->getName()
         ]);
