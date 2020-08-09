@@ -324,6 +324,19 @@ class dashboardTest extends IznikAPITestCase {
         error_log("returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_OUTCOMES]));
+
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENTS_ACTIVE_USERS
+            ],
+            'start' => date('Y-m-d'),
+            'end' => date('Y-m-d', strtotime('tomorrow'))
+        ]);
+
+        error_log("returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_ACTIVE_USERS]));
     }
 
 //

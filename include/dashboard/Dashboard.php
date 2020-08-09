@@ -23,6 +23,7 @@ class Dashboard {
     const COMPONENTS_WEIGHT = 'Weight';
     const COMPONENTS_OUTCOMES = 'Outcomes';
     const COMPONENTS_DONATIONS = 'Donations';
+    const COMPONENTS_ACTIVE_USERS = 'ActiveUsers';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -382,6 +383,14 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                         $end
                     ]);
                 }
+            }
+
+            if (in_array(Dashboard::COMPONENTS_ACTIVE_USERS, $components) && $ismod) {
+                # Monthly active users.
+                $ret[Dashboard::COMPONENTS_ACTIVE_USERS] = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count, CONCAT(YEAR(timestamp), '-', LPAD(MONTH(timestamp),2,'0'), '-', '01') AS date FROM users_active WHERE timestamp >= ? AND timestamp <= ? GROUP BY date ORDER BY date ASC", [
+                    $start,
+                    $end
+                ]);
             }
         }
 
