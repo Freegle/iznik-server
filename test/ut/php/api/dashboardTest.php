@@ -344,7 +344,7 @@ class dashboardTest extends IznikAPITestCase {
 //        //
 //        $u = new User($this->dbhr, $this->dbhm);
 //
-//        $uid = $u->findByEmail('sheilasmail.cp@gmail.com');
+//        $uid = $u->findByEmail('');
 //        $_SESSION['id'] = $uid;
 //        $this->dbhr->errorLog = TRUE;
 //        $this->dbhm->errorLog = TRUE;
