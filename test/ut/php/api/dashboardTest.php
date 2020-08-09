@@ -336,7 +336,7 @@ class dashboardTest extends IznikAPITestCase {
 
         error_log("returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_ACTIVE_USERS]));
+        assertTrue(array_key_exists(Dashboard::COMPONENTS_ACTIVE_USERS, $ret['components']));
     }
 
 //
