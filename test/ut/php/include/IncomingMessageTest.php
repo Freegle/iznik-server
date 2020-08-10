@@ -127,15 +127,15 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
 
-        # Check the parsed inline images
+        # Check the parsed inline images.  Should only show one, as dupicate.
         $imgs = $m->getInlineimgs();
-        assertEquals(2, count($imgs));
+        assertEquals(1, count($imgs));
 
         # Save it and check they show up as attachments
         $id = $m->save();
         $a = new Attachment($this->dbhr, $this->dbhm);
         $atts = $a->getById($id);
-        assertEquals(2, count($atts));
+        assertEquals(1, count($atts));
 
         $m->delete();
 
