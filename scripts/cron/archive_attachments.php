@@ -20,7 +20,8 @@ $total = count($atts);
 foreach ($atts as $att) {
     $a = new Attachment($dbhr, $dbhm, $att['id'], Attachment::TYPE_CHAT_MESSAGE);
     if (!$a->archive()) {
-        $a->delete();
+        error_log("Failed to archive {$att['id']}");
+        //$a->delete();
     }
 
     $count++;
@@ -36,7 +37,8 @@ $total = count($atts);
 foreach ($atts as $att) {
     $a = new Attachment($dbhr, $dbhm, $att['id'], Attachment::TYPE_COMMUNITY_EVENT);
     if (!$a->archive()) {
-        $a->delete();
+        error_log("Failed to archive {$att['id']}");
+        //$a->delete();
     }
 
     $count++;
@@ -52,7 +54,8 @@ $total = count($atts);
 foreach ($atts as $att) {
     $a = new Attachment($dbhr, $dbhm, $att['id'], Attachment::TYPE_NEWSFEED);
     if (!$a->archive()) {
-        $a->delete();
+        error_log("Failed to archive {$att['id']}");
+        //$a->delete();
     }
 
     $count++;
@@ -88,7 +91,7 @@ foreach ($dups as $dup) {
     ]);
 }
 
-# We archive message photos out of the DB into Azure.  This reduces load on the servers because we don't have to serve
+# We archive message photos out of the DB.  This reduces load on the servers because we don't have to serve
 # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
 # place to store large amounts of image data);
 $sql = "SELECT id, contenttype FROM messages_attachments WHERE archived = 0;";
@@ -100,7 +103,8 @@ $total = count($atts);
 foreach ($atts as $att) {
     $a = new Attachment($dbhr, $dbhm, $att['id']);
     if (!$a->archive()) {
-        $a->delete();
+        error_log("Failed to archive {$att['id']}");
+        //$a->delete();
     }
 
     $count++;
@@ -116,7 +120,8 @@ $total = count($atts);
 foreach ($atts as $att) {
     $a = new Attachment($dbhr, $dbhm, $att['id'], Attachment::TYPE_BOOKTASTIC);
     if (!$a->archive()) {
-        $a->delete();
+        error_log("Failed to archive {$att['id']}");
+        //$a->delete();
     }
 
     $count++;
