@@ -47,7 +47,7 @@
           <mj-raw>
             {% endif %}
           </mj-raw>
-            <mj-text>{{ message }}</mj-text>
+          <mj-raw>{{ message }}</mj-raw>
             <mj-button href="http://www.ilovefreegle.org" background-color="#61AE24" font-size="12pt">Freegle something!</mj-button>
           </mj-column>
         </mj-section>
