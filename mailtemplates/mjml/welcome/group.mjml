@@ -36,18 +36,20 @@
         </mj-section>
         <mj-section background-color="#F7F6EC">
           <mj-column>
-          <mj-raw>
-          {% if review %}
-          </mj-raw>
-          <mj-text color="red">
-            This is a copy of the mail that gets sent when people join.  We'll send you this once a year so that
-            you can review it and make sure it's all still relevant and friendly.  There's advice
-            <a href="https://wiki.ilovefreegle.org/Best_Practice_Notes#New_Freeglers_need_an_easy_start">on the wiki</a>.
-          </mj-text>
-          <mj-raw>
-            {% endif %}
-          </mj-raw>
-          <mj-raw>{{ message }}</mj-raw>
+            <mj-raw>
+            {% if review %}
+            </mj-raw>
+            <mj-text color="red">
+              This is a copy of the mail that gets sent when people join.  We'll send you this once a year so that
+              you can review it and make sure it's all still relevant and friendly.  There's advice
+              <a href="https://wiki.ilovefreegle.org/Best_Practice_Notes#New_Freeglers_need_an_easy_start">on the wiki</a>.
+            </mj-text>
+            <mj-raw>
+              {% endif %}
+            </mj-raw>
+            <mj-text>
+              {{ message|raw }}
+            </mj-text>
             <mj-button href="http://www.ilovefreegle.org" background-color="#61AE24" font-size="12pt">Freegle something!</mj-button>
           </mj-column>
         </mj-section>
