@@ -238,8 +238,7 @@ class userTest extends IznikTestCase {
         $u->setDbhm($mock);
         $id = $u->create(NULL, NULL, 'Test User');
         assertNull($id);
-
-        }
+    }
 
     public function testMemberships() {
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -1509,6 +1508,30 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic(NULL, FALSE, TRUE);
         assertEquals(0, strpos($atts['logs'][0]['user']['fullname'], 'Deleted User'));
         assertEquals(0, strpos($atts['logs'][1]['byuser']['fullname'], 'Deleted User'));
+    }
+
+    public function testMailer() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@test.com');
+
+        $mock = $this->getMockBuilder('User')
+            ->disableOriginalConstructor()
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $mock->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+        $mock->mailer($u, NULL, "Test", "test@test.com", "test@test.com", "Test", "test@test.com", "Test", "Test");
+        assertEquals(1, count($this->msgsSent));
+
+        $mock = $this->getMockBuilder('User')
+            ->disableOriginalConstructor()
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $mock->method('sendIt')->willThrowException(new Exception());
+        $mock->mailer($u, NULL, "Test", "test@test.com", "test@test.com", "Test", "test@test.com", "Test", "Test");
+        assertEquals(1, count($this->msgsSent));
     }
 }
 
