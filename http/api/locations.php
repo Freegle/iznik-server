@@ -76,6 +76,11 @@ function locations() {
                     }
                 }
 
+                $name = presdef('name', $_REQUEST, NULL);
+                if ($name) {
+                    $l->setPrivate('name', $name);
+                }
+
                 if ($worked) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
                 }
