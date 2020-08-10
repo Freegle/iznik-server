@@ -2361,6 +2361,8 @@ ORDER BY lastdate DESC;";
             }
         }
 
+        $this->inlineimgs = array_unique($this->inlineimgs);
+
         # Return text without photos.
         return preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $textbody);
     }
@@ -3341,7 +3343,7 @@ ORDER BY lastdate DESC;";
 
             foreach ($messages as $message) {
                 $messsubj = Message::canonSubj($message['subject']);
-                error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
+                #error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
 
                 if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
                     (($datedir == -1) && strtotime($message['date']) <= $thistime)) {
@@ -3368,16 +3370,16 @@ ORDER BY lastdate DESC;";
                     $message['dist'] = $d->getSimilarity();
                     $mindist = min($mindist, $message['dist']);
 
-                    error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
+                    #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
 
                     if (strtolower($subj1) == strtolower($subj2)) {
                         # Exact match
-                        error_log("Exact");
+                        #error_log("Exact");
                         $match = TRUE;
                         $matchmsg = $message;
                     } else if ($message['dist'] <= $mindist && $message['dist'] <= strlen($subj1) * 3 / 4) {
                         # This is the closest match, but not utterly different.
-                        error_log("Closest");
+                        #error_log("Closest");
                         $match = TRUE;
                         $matchmsg = $message;
                     }
