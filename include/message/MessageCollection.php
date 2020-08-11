@@ -461,10 +461,12 @@ class MessageCollection
         $changes = $this->dbhm->preQuery("SELECT id, deleted AS timestamp, 'Deleted' AS `type` FROM messages WHERE deleted > ? 
 UNION SELECT msgid AS id, timestamp, outcome AS `type` FROM messages_outcomes WHERE timestamp > ? 
 UNION SELECT messages_edits.msgid AS id, timestamp, 'Edited' AS `type` FROM messages_edits INNER JOIN messages_groups ON messages_groups.msgid = messages_edits.msgid AND collection = ? WHERE timestamp > ?
-UNION SELECT msgid AS id, promisedat, type AS timestamp FROM messages_promises INNER JOIN messages ON messages.id = messages_promises.msgid WHERE promisedat > ?;", [
+UNION SELECT msgid AS id, promisedat AS timestamp, 'Promised' AS `type` FROM messages_promises WHERE promisedat > ?
+UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged WHERE timestamp > ?;", [
             $mysqltime,
             $mysqltime,
             MessageCollection::APPROVED,
+            $mysqltime,
             $mysqltime,
             $mysqltime
         ]);
