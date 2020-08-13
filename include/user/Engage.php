@@ -119,7 +119,7 @@ class Engage
     }
 
     public function recordEngage($userid, $attempt) {
-        $this->dbhm->preExec("INSERT INTO engage (userid, type, timestamp) VALUES (?, ?, NOW());", [
+        $this->dbhm->preExec("INSERT INTO engage (userid, type, timestamp) VALUES (?, ?, NOW()) ON DUPLICATE KEY UPDATE timestmp = NOW();", [
             $userid,
             $attempt
         ]);
