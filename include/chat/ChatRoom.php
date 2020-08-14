@@ -1338,7 +1338,7 @@ WHERE chat_rooms.id IN $idlist;";
         LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid 
               AND m2.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq) 
         INNER JOIN groups ON m1.groupid = groups.id AND groups.type = 'Freegle' 
-        ORDER BY chat_messages.id, m1.added ASC;";
+        ORDER BY chat_messages.id, m1.added ASC LIMIT 10;";
         $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid, $msgid, $userid]);
         $ret = [];
         $userlist = NULL;
