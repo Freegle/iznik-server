@@ -308,7 +308,7 @@ class Yahoo
                 $this->openid->required = array('contact/email', 'namePerson', 'namePerson/first', 'namePerson/last');
                 $this->openid->redirect_uri = $returnto;
                 error_log("Get redirect");
-                $url = "https://api.login.yahoo.com/oauth2/request_auth?client_id=dj0yJmk9TVo4T1dYYXc5WnJSJmQ9WVdrOVdYTkVWVFF5TjJjbWNHbzlNVFF3T1RBeE1UUTJNZy0tJnM9Y29uc3VtZXJzZWNyZXQmeD1hNw--&redirect_uri=" . urlencode($returnto) . "&response_type=code&language=en-us&scope=openid,sdps-r";
+                $url = "https://api.login.yahoo.com/oauth2/request_auth?client_id=dj0yJmk9TVo4T1dYYXc5WnJSJmQ9WVdrOVdYTkVWVFF5TjJjbWNHbzlNVFF3T1RBeE1UUTJNZy0tJnM9Y29uc3VtZXJzZWNyZXQmeD1hNw--&redirect_uri=" . urlencode($returnto) . "&response_type=code&language=en-us&scope=openid%20email%20profile";
 //                $url = $this->openid->authUrl() . "&key=Iznik";
                 error_log("Redirect to $url");
                 return [NULL, ['ret' => 1, 'redirect' => $url]];
