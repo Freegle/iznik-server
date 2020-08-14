@@ -146,8 +146,10 @@ class ModConfig extends Entity
             }
         } else {
             # It saves a lot of queries to get all the standard messages at once.
-            $sql = "SELECT * FROM mod_stdmsgs WHERE configid = {$this->id};";
-            $stdmsgs = $this->dbhr->query($sql);
+            $sql = "SELECT * FROM mod_stdmsgs WHERE configid = ?;";
+            $stdmsgs = $this->dbhr->preQuery($sql, [
+                $this->id
+            ]);
         }
 
         foreach ($stdmsgs as $stdmsg) {

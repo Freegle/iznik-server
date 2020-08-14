@@ -1328,32 +1328,43 @@ WHERE chat_rooms.id IN $idlist;";
         $msgid = $ctx ? intval($ctx['msgid']) : 0;
         $groupq = $groupid ? " AND groupid = $groupid " : '';
 
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp 
-        FROM chat_messages 
-        LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid 
-        LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id 
-        INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
-        INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) 
-              AND m1.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq) 
-        LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid 
-              AND m2.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq) 
-        INNER JOIN groups ON m1.groupid = groups.id AND groups.type = 'Freegle' 
-        ORDER BY chat_messages.id, m1.added ASC LIMIT 10;";
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
+FROM chat_messages
+LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
+LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
+INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid
+INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END)
+AND m1.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq)
+LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid
+AND m2.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq)
+INNER JOIN groups ON m1.groupid = groups.id AND groups.type = 'Freegle'
+ORDER BY chat_messages.id, m1.added ASC;";
         $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid, $msgid, $userid]);
         $ret = [];
-        $userlist = NULL;
 
         $ctx = $ctx ? $ctx : [];
 
         # We can get multiple copies of the same chat due to the join.
         $processed = [];
 
+        # Get all the users we might need.
+        $uids = array_filter(array_unique(array_merge(
+            array_column($msgs, 'heldby'),
+            array_column($msgs, 'userid'),
+            array_column($msgs, 'user1'),
+            array_column($msgs, 'user2')
+        )));
+
+        $ctx2 = NULL;
+        $u = new User($this->dbhr, $this->dbhm);
+        $userlist = $u->getPublicsById($uids, NULL, FALSE, FALSE, $ctx2, TRUE, FALSE, FAlSE, FALSE, FALSE);
+
         foreach ($msgs as $msg) {
             # Return whether we're an active or not - client can filter.
             $processed[$msg['id']] = TRUE;
 
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
-            $thisone = $m->getPublic(FALSE, $userlist);
+            $thisone = $m->getPublic(TRUE, $userlist);
 
             if (pres('heldby', $msg)) {
                 $u = User::get($this->dbhr, $this->dbhm, $msg['heldby']);
@@ -1367,17 +1378,18 @@ WHERE chat_rooms.id IN $idlist;";
                 unset($thisone['heldby']);
             }
 
+            # To avoid fetching the users again, ask for a summary and then fill them in from our in-hand copy.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
-            $thisone['chatroom'] = $r->getPublic();
+            $thisone['chatroom'] = $r->getPublic(NULL, NULL, TRUE);
+            $u1id = presdef('user1', $thisone['chatroom'], NULL);
+            $u2id = presdef('user2', $thisone['chatroom'], NULL);
+            $thisone['chatroom']['user1'] = $u1id ? $userlist[$u1id] : NULL;
+            $thisone['chatroom']['user2'] = $u2id ? $userlist[$u2id] : NULL;
 
-            $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
-            $ctx = NULL;
-            $thisone['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
+            $thisone['fromuser'] = $userlist[$msg['userid']];
 
             $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
-            $u = User::get($this->dbhr, $this->dbhm, $touserid);
-            $ctx = NULL;
-            $thisone['touser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, TRUE, FALSE, FALSE, FALSE, FALSE);
+            $thisone['touser'] = $userlist[$touserid];
 
             $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
             $thisone['group'] = $g->getPublic();

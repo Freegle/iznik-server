@@ -1667,9 +1667,8 @@ ORDER BY lastdate DESC;";
         # When getting an individual message we return an approx distance.
         $me = whoAmI($this->dbhr, $this->dbhm);
         if ($me && ($this->lat || $this->lng)) {
-            $u = new User($this->dbhr, $this->dbhm);
             list ($mylat, $mylng) = $me->getLatLng();
-            $rets[$this->id]['milesaway'] = $u->getDistanceBetween($mylat, $mylng, $this->lat, $this->lng);
+            $rets[$this->id]['milesaway'] = $me->getDistanceBetween($mylat, $mylng, $this->lat, $this->lng);
         }
 
         $ret = $rets[$this->id];
