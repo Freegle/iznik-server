@@ -45,7 +45,7 @@ class Visualise extends Entity
         $mysqltime = date("Y-m-d H:i:s", strtotime($ago));
 
         # Find messages which are known to have been taken, with photos.
-        $msgs = $this->dbhr->preQuery("SELECT DISTINCT messages.id, a.id AS attid, messages.fromuser, messages_outcomes.userid, messages.subject, messages_outcomes.timestamp FROM messages INNER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN messages_attachments a ON messages.id = a.msgid WHERE messages_outcomes.timestamp > ? AND outcome = ? AND userid IS NOT NULL;", [
+        $msgs = $this->dbhr->preQuery("SELECT DISTINCT messages.id, a.id AS attid, messages.fromuser, messages_outcomes.userid, messages.subject, messages_outcomes.timestamp FROM messages INNER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN messages_attachments a ON messages.id = a.msgid WHERE messages_outcomes.timestamp > ? AND outcome = ? AND userid IS NOT NULL ORDER BY messages_outcomes.timestamp DESC;", [
             $mysqltime,
             Message::OUTCOME_TAKEN
         ]);
