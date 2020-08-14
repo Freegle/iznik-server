@@ -708,21 +708,21 @@ class chatMessagesAPITest extends IznikAPITestCase
             assertEquals("Test message $i", $ret['chatmessages'][$i]['message']);
         }
     }
-
-    public function testEH2()
-    {
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->dbhr->errorLog = TRUE;
-        $this->dbhm->errorLog = TRUE;
-
-        $uid = $u->findByEmail('sheilamentor@gmail.com');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
-        $_SESSION['id'] = $uid;
-
-        $ret = $this->call('chatmessages', 'GET', [ 'limit' => 10, 'modtools' => TRUE ]);
-
-        assertEquals(0, $ret['ret']);
-        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-    }
+//
+//    public function testEH2()
+//    {
+//        $u = new User($this->dbhr, $this->dbhm);
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
+//
+//        $uid = $u->findByEmail('sheilamentor@gmail.com');
+//        $u = new User($this->dbhr, $this->dbhm, $uid);
+//        $_SESSION['id'] = $uid;
+//
+//        $ret = $this->call('chatmessages', 'GET', [ 'limit' => 10, 'modtools' => TRUE ]);
+//
+//        assertEquals(0, $ret['ret']);
+//        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//    }
 }
 
