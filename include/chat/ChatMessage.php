@@ -145,7 +145,7 @@ class ChatMessage extends Entity
         return($dup);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $forcereview = FALSE) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $forcereview = FALSE, $suppressmodnotif = FALSE) {
         try {
             if ($refmsgid) {
                 # If $userid is banned on the group that $refmsgid is on, then we shouldn't create a message.
@@ -314,8 +314,8 @@ class ChatMessage extends Entity
             if (!$spam && !$review && !$blocked) {
                 $r->pokeMembers();
 
-                # Notify mods if we have flagged this for review.
-                $r->notifyMembers($u->getName(), $message, $userid, $review);
+                # Notify mods if we have flagged this for review and we've not been asked to suppress it.
+                $r->notifyMembers($u->getName(), $message, $userid, $review && !$suppressmodnotif);
 
                 if ($r->getPrivate('synctofacebook') == ChatRoom::FACEBOOK_SYNC_REPLIED_ON_FACEBOOK) {
                     # We have had a reply from Facebook, which caused us to flag this conversation.
