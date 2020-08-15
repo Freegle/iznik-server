@@ -22,7 +22,7 @@ class Spam {
     # For checking users as suspect.
     CONST SEEN_THRESHOLD = 16; // Number of groups to join or apply to before considered suspect
     CONST ESCALATE_THRESHOLD = 2; // Level of suspicion before a user is escalated to support/admin for review
-    CONST DISTANCE_THRESHOLD = 50; // Replies to items further apart than this is suspicious.  In miles.
+    CONST DISTANCE_THRESHOLD = 100; // Replies to items further apart than this is suspicious.  In miles.
 
     CONST REASON_NOT_SPAM = 'NotSpam';
     CONST REASON_COUNTRY_BLOCKED = 'CountryBlocked';
@@ -471,7 +471,11 @@ class Spam {
         } else {
             # Check if they've replied to multiple posts across a wide area recently
             $since = date('Y-m-d', strtotime("midnight 90 days ago"));
-            $dists = $this->dbhm->preQuery("SELECT DISTINCT MAX(lat) AS maxlat, MIN(lat) AS minlat, MAX(lng) AS maxlng, MIN(lng) AS minlng FROM chat_messages INNER JOIN messages ON messages.id = chat_messages.refmsgid WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL;", [
+            $dists = $this->dbhm->preQuery("SELECT DISTINCT MAX(messages.lat) AS maxlat, MIN(messages.lat) AS minlat, MAX(messages.lng) AS maxlng, MIN(messages.lng) AS minlng, groups.settings FROM chat_messages 
+    INNER JOIN messages ON messages.id = chat_messages.refmsgid 
+    INNER JOIN messages_groups ON messages_groups.msgid = messages.id
+    INNER JOIN groups ON groups.id = messages_groups.groupid
+    WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL;", [
                 $userid,
                 $since,
                 ChatMessage::TYPE_INTERESTED
@@ -486,8 +490,14 @@ class Spam {
 
                 $dist = GreatCircle::getDistance($minlat, $minlng, $maxlat, $maxlng);
                 $dist = round($dist * 0.000621371192);
+                $settings = pres('settings', $dists[0]) ? json_decode($dists[0]['settings'], TRUE) : [
+                    'spammers' => [
+                        'replydistance' => Spam::DISTANCE_THRESHOLD
+                    ]
+                ];
+                $replydist = array_key_exists('spammers', $settings) && array_key_exists('replydistance', $settings['spammers']) ? $settings['spammers']['replydistance'] : Spam::DISTANCE_THRESHOLD;
 
-                if ($dist >= Spam::DISTANCE_THRESHOLD) {
+                if ($replydist > 0 && $dist >= $replydist) {
                     # Check if it is greater than the current distance, so we don't keep asking for the same user
                     $rounded = round($dist / 5) * 5;
                     $existing = $this->dbhr->preQuery("SELECT replyambit FROM users WHERE id = ?;", [
@@ -501,7 +511,7 @@ class Spam {
                         ]);
 
                         $suspect = TRUE;
-                        $reason = "Replied to posts $dist miles apart";
+                        $reason = "Replied to posts $dist miles apart (threshold $replydist)";
                     }
                 }
             }
