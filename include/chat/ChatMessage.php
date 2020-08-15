@@ -315,7 +315,8 @@ class ChatMessage extends Entity
                 $r->pokeMembers();
 
                 # Notify mods if we have flagged this for review and we've not been asked to suppress it.
-                $r->notifyMembers($u->getName(), $message, $userid, $review && !$suppressmodnotif);
+                $modstoo = $review && !$suppressmodnotif;
+                $r->notifyMembers($u->getName(), $message, $userid, $modstoo);
 
                 if ($r->getPrivate('synctofacebook') == ChatRoom::FACEBOOK_SYNC_REPLIED_ON_FACEBOOK) {
                     # We have had a reply from Facebook, which caused us to flag this conversation.

@@ -2742,9 +2742,7 @@ ORDER BY lastdate DESC;";
             # We can do a simple substitution in the from name.
             $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
-            # We add the message into chat.  For users who we host, we leave the message unseen; that will then
-            # later generate a notification to them.  Otherwise we mail them the message and mark it as seen,
-            # because they would get confused by a mail in our notification format.
+            # We add the message into chat.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
             $rid = $r->createUser2Mod($this->getFromuser(), $groupid);
             $m = NULL;
@@ -2763,17 +2761,16 @@ ORDER BY lastdate DESC;";
                     NULL,
                     NULL,
                     NULL,
+                    TRUE,
                     TRUE);
 
                 $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->getFromuser() . " $to)\n\n" . $body);
-
-                # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
-                # appearing as unread to us and other mods.
-                $r->updateRoster($myid, $mid);
             }
 
             if (!ourDomain($to)) {
-                # Mail it out, naked of any of our notification wrapping.
+                # For users who we host, we leave the message unseen; that will then later generate a notification
+                # to them.  Otherwise we mail them the message and mark it as seen, because they would get
+                # confused by a mail in our notification format.
                 $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
 
                 # We've mailed the message out so they are up to date with this chat.
@@ -2783,6 +2780,10 @@ ORDER BY lastdate DESC;";
             if ($m) {
                 # Allow mailing to happen.
                 $m->setPrivate('reviewrequired', 0);
+
+                # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
+                # appearing as unread to us and other mods.
+                $r->updateRoster($myid, $mid);
             }
         }
     }

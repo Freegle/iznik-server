@@ -3105,9 +3105,7 @@ class User extends Entity
                     $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
                 }
 
-                # We add the message into chat.  For users who we host, we leave the message unseen; that will then
-                # later generate a notification to them.  Otherwise we mail them the message and mark it as seen,
-                # because they would get confused by a mail in our notification format.
+                # We add the message into chat.
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
                 $rid = $r->createUser2Mod($this->id, $groupid);
                 $m = NULL;
@@ -3126,16 +3124,16 @@ class User extends Entity
                         NULL,
                         NULL,
                         NULL,
+                        TRUE,
                         TRUE);
 
                     $this->mailer($me, TRUE, $this->getName(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->id . " $to)\n\n" . $body);
-
-                    # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
-                    # appearing as unread to us and other mods.
-                    $r->updateRoster($myid, $mid);
                 }
 
                 if (!ourDomain($to)) {
+                    # For users who we host, we leave the message unseen; that will then later generate a notification
+                    # to them.  Otherwise we mail them the message and mark it as seen, because they would get
+                    # confused by a mail in our notification format.
                     $this->mailer($me, TRUE, $this->getName(), $to, NULL, $name, $g->getModsEmail(), $subject, $body);
 
                     # We've mailed the message out so they are up to date with this chat.
@@ -3145,6 +3143,10 @@ class User extends Entity
                 if ($m) {
                     # Allow mailing to happen.
                     $m->setPrivate('reviewrequired', 0);
+
+                    # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
+                    # appearing as unread to us and other mods.
+                    $r->updateRoster($myid, $mid);
                 }
             }
         }

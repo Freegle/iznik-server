@@ -671,6 +671,14 @@ class membershipsAPITest extends IznikAPITestCase {
 
         assertTrue($found);
     }
-
+//
+//    public function testEH() {
+//        $_SESSION['id'] = 420;
+//
+//        $ret = $this->call('memberships', 'POST', [
+//
+//            "action" => "Leave Approved Member","userid" => 37462787,"groupid" => 21662,"subject" => "Testing 2","stdmsgid" => 158574,"body" => "Testing again","modtools" => true
+//        ]);
+//    }
 }
 
