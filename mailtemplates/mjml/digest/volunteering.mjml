@@ -33,14 +33,14 @@
         </mj-section>
         <mj-section background-color="#FFF8DC" padding="0px">
           <mj-column>
-            <mj-text background-color="#FFF8DC" color="#1D6607" line-height="1.25em">
+            <mj-text background-color="#FFF8DC" color="#61AE24" line-height="1.25em">
               <br /> Charities, community organisations and good causes are welcome to ask our lovely freeglers for volunteers.  If
              you'd like to add one, click <a font-weight="bold" href="https://www.ilovefreegle.org/volunteering">here</a>.
             </mj-text>
             <mj-raw>
               {% for volunteering in volunteerings %}
             </mj-raw>
-            <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+            <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
               <a href="#msg-{{ volunteering.id }}">
                 {{ volunteering.title }}
               </a>
@@ -61,7 +61,7 @@
             <mj-text padding="0px">
               <a id="msg-{{ volunteering.id }}" name="msg-{{ volunteering.id }}" />
             </mj-text>
-            <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ volunteering.title }} </mj-text>
+            <mj-text padding-top="0px" padding-bottom="0px" color="#61AE24" font-size="18pt" line-height="1.25em">{{ volunteering.title }} </mj-text>
             <mj-text padding-top="0px" padding-bottom="0px" color="black" font-size="12pt" line-height="1.25em">{{ volunteering.location }} </mj-text>
             <mj-raw>
               {% if volunteering.photo is defined and volunteering.photo is not null %}
@@ -155,7 +155,7 @@
         </mj-raw>
         <mj-section background-color="#F7F6EC" padding=0>
           <mj-column>
-            <mj-text background-color="#FFF8DC" color="#1D6607" font-size="20pt" line-height="1.25em" padding-bottom="0px">
+            <mj-text background-color="#FFF8DC" color="#61AE24" font-size="20pt" line-height="1.25em" padding-bottom="0px">
               Jobs near you<br />
             </mj-text>
             <mj-text background-color="#FFF8DC">

@@ -14,7 +14,7 @@
         <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
           <mj-group>
             <mj-column vertical-align="middle" width="65%">
-              <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">
+              <mj-text color="#61AE24" font-size="18pt" line-height="1.25em">
                 Member posts on ChitChat</mj-text>
             </mj-column>
             <mj-column vertical-align="middle" width="35%">
@@ -37,13 +37,13 @@
         </mj-raw>
         <mj-section background-color="#F7F6EC">
           <mj-column width="66%">
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>{{ item.fromname }}</b>&nbsp;<font color="grey">:</font>&nbsp;<em><font color="black">{{ item.message|nl2br }}</font></em><br />
               </mj-text>
               <mj-raw>
                 {% for reply in item.replies %}
               </mj-raw>
-                <mj-text color="#1D6607" font-size="9pt" font-weight="bold" padding-top="0px" padding-bottom="2px" padding-left="50px">
+                <mj-text color="#61AE24" font-size="9pt" font-weight="bold" padding-top="0px" padding-bottom="2px" padding-left="50px">
                     <p><b>{{ reply.fromname }}</b>:&nbsp;<em><font color="black">{{ reply.message|nl2br }}</font></em></p>
                 </mj-text>
               <mj-raw>

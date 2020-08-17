@@ -17,11 +17,11 @@
               <mj-raw>
                 {% if count > 1 %}
               </mj-raw>
-              <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">You have&nbsp;{{ count }}&nbsp;notifications</mj-text>
+              <mj-text color="#61AE24" font-size="18pt" line-height="1.25em">You have&nbsp;{{ count }}&nbsp;notifications</mj-text>
               <mj-raw>
                 {% else %}
               </mj-raw>
-              <mj-text color="#1D6607" font-size="18pt" line-height="1.25em">You have&nbsp;{{ count }}&nbsp;notification</mj-text>
+              <mj-text color="#61AE24" font-size="18pt" line-height="1.25em">You have&nbsp;{{ count }}&nbsp;notification</mj-text>
               <mj-raw>
                 {% endif %}
               </mj-raw>
@@ -39,27 +39,27 @@
               <mj-raw>
                 {% if notification.type == 'CommentOnCommented' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>{{ notification.fromname }}</b> <font color="grey"> commented on "{{ notification.newsfeed.replyto.message }} ":</font>
                   <br /><br /><em>{{ notification.newsfeed.message }}</em>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'CommentOnYourPost' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>{{ notification.fromname }}</b> <font color="grey"> commented on your post:</font>
                   <br /><br /><em>{{ notification.newsfeed.message }}</em>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'GiftAid' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>Please could you complete a gift aid declaration?</b>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'LovedPost' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
               <mj-raw>
                   {% if notification.newsfeed.type == 'Noticeboard' %}
               </mj-raw>
@@ -76,39 +76,39 @@
               <mj-raw>
                 {% elseif notification.type == 'LovedComment' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>{{ notification.fromname }}</b> <font color="grey"> loved your comment:</font>
                   <br /><br /><em>{{ notification.newsfeed.message }}</em>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'Exhort' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>{{ notification.title }}</b> <font color="grey"></font>
                   <br /><br /><em>{{ notification.text }}</em>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'MembershipPending' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>Your application to&nbsp;{{ notification.url }}&nbsp;requires approval.  We'll let you know soon.</b>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'MembershipApproved' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>Your application to&nbsp;{{ notification.url }}&nbsp;has been approved!</b>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'AboutMe' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>Why not introduce yourself to other freeglers?</b>
               </mj-text>
               <mj-raw>
                 {% elseif notification.type == 'MembershipRejected' %}
               </mj-raw>
-              <mj-text color="#1D6607" font-weight="bold" padding-top="0px" padding-bottom="2px">
+              <mj-text color="#61AE24" font-weight="bold" padding-top="0px" padding-bottom="2px">
                   <b>Sorry, your application to&nbsp;{{ notification.url }}&nbsp;was rejected</b>
               </mj-text>
               <mj-raw>

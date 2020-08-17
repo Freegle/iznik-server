@@ -121,7 +121,7 @@
         </mj-section>
         <mj-section background-color="#F7F6EC" padding=0>
           <mj-column>
-            <mj-text background-color="#FFF8DC" color="#1D6607" font-size="20pt" line-height="1.25em" padding-bottom="0px">
+            <mj-text background-color="#FFF8DC" color="#61AE24" font-size="20pt" line-height="1.25em" padding-bottom="0px">
               Jobs near you<br />
             </mj-text>
             <mj-text background-color="#FFF8DC">

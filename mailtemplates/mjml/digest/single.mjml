@@ -33,7 +33,7 @@
         </mj-section>
         <mj-section background-color="#FFF8DC">
           <mj-column>
-            <mj-text padding-top="0px" padding-bottom="0px" color="#1D6607" font-size="18pt" line-height="1.25em">{{ subject }} </mj-text>
+            <mj-text padding-top="0px" padding-bottom="0px" color="#61AE24" font-size="18pt" line-height="1.25em">{{ subject }} </mj-text>
           </mj-column>
         </mj-section>
         <mj-raw>
@@ -54,7 +54,7 @@
         </mj-raw>
         <mj-section padding-top="0px" padding-bottom="0px" background-color="#FFF8DC">
           <mj-column>
-            <mj-text>
+            <mj-text font-size="18px">
               {{ textbody|nl2br }}
             </mj-text>
           </mj-column>
@@ -67,7 +67,7 @@
         </mj-raw>
         <mj-section background-color="#FFF8DC">
           <mj-column>
-            <mj-text>
+            <mj-text font-size="18px">
               {{ textbody|nl2br }}
             </mj-text>
           </mj-column>
@@ -98,7 +98,7 @@
         </mj-section>
         <mj-section background-color="#F7F6EC" padding=0>
           <mj-column>
-            <mj-text background-color="#FFF8DC" color="#1D6607" font-size="20pt" line-height="1.25em" padding-bottom="0px">
+            <mj-text background-color="#FFF8DC" color="#61AE24" font-size="20pt" line-height="1.25em" padding-bottom="0px">
               Jobs near you<br />
             </mj-text>
             <mj-text background-color="#FFF8DC">

@@ -1,7 +1,7 @@
 <mjml>
   <mj-head>
     <mj-style inline="inline">
-      a { color: #288c0a; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; }
+      a { color: #1d6607; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; }
     </mj-style>
     <mj-attributes>
       <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
@@ -12,7 +12,7 @@
     <mj-container>
       <mj-wrapper full-width="full-width">
         <!-- header section -->
-        <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
+        <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" border-top="5px solid #61AE24" padding="0px">
           <mj-group>
             <mj-column>
               <mj-text align="center">
@@ -150,7 +150,7 @@
             </mj-raw>
             <mj-section padding-top="0px" padding-bottom="0px">
               <mj-column>
-                <mj-text>
+                <mj-text font-size="18px">
                   {{ message.textbody|nl2br }}
                 </mj-text>
               </mj-column>
@@ -161,7 +161,7 @@
             <mj-raw>
               {% else %}
             </mj-raw>
-            <mj-text>
+            <mj-text font-size="18px">
               {{ message.textbody|nl2br }}
             </mj-text>
             <mj-raw>
@@ -223,7 +223,7 @@
             </mj-raw>
             <mj-section padding-top="0px" padding-bottom="0px">
               <mj-column>
-                <mj-text>
+                <mj-text font-size="18px">
                   {{ message.textbody|nl2br }}
                 </mj-text>
               </mj-column>
