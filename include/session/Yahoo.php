@@ -70,7 +70,7 @@ class Yahoo
         curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
         $json_response = $loginoverride ? $loginoverride : curl_exec($curl);
         $status = $loginoverride ? 200 : curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        error_log("Yahoo login status 1 $status");
+        error_log("Yahoo login status 1 $status, JSON $json_response");
 
         if ($status == 200) {
             $json = json_decode($json_response, TRUE);
@@ -78,33 +78,18 @@ class Yahoo
 
             if ($token) {
                 # We have an access token.  Success.  Now get the user info.
+                curl_close($curl);
                 $curl = curl_init();
-                curl_setopt($curl, CURLOPT_URL, 'https://social.yahooapis.com/v1/me/guid');
+                curl_setopt($curl, CURLOPT_URL, 'https://api.login.yahoo.com/openid/v1/userinfo');
                 curl_setopt($curl, CURLOPT_TIMEOUT, 60);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($curl, CURLOPT_HTTPHEADER, [
                     "Authorization: Bearer $token"
                 ]);
 
-                $guid_response = $guidoverride ? $guidoverride : curl_exec($curl);
-                $status = $guidoverride ? 200 : curl_getinfo($curl, CURLINFO_HTTP_CODE);
-                error_log("Get GUID $status $guid_response");
-
-                if (preg_match('/.*\<value\>(.*)\<\/value\>/', $guid_response, $matches) ||
-                    preg_match('/.*\"value":"(.*?)"/', $guid_response, $matches)) {
-                    error_log("Got matches " . var_export($matches, TRUE));
-                    $curl = curl_init();
-                    curl_setopt($curl, CURLOPT_URL, 'https://api.login.yahoo.com/openid/v1/userinfo');
-                    curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($curl, CURLOPT_HTTPHEADER, [
-                        "Authorization: Bearer $token"
-                    ]);
-
-                    $json_response = $userinfooverride ? $userinfooverride : curl_exec($curl);
-                    $status = $userinfooverride ? 200 : curl_getinfo($curl, CURLINFO_HTTP_CODE);
-                    error_log("Yahoo login status 2 $status");
-                }
+                $json_response = $userinfooverride ? $userinfooverride : curl_exec($curl);
+                $status = $userinfooverride ? 200 : curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                error_log("Yahoo login status 2 $status");
 
                 if ($status == 200) {
                     error_log("Got user info $json_response");
