@@ -354,12 +354,12 @@ class chatMessagesAPITest extends IznikAPITestCase
             'roomid' => $this->cid,
             'id' => $mid1
         ]);
-        $this->log("Get message " . var_export($ret, TRUE));
+        error_log("Get message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($mid1, $ret['chatmessage']['id']);
         assertEquals($iid, $ret['chatmessage']['image']['id']);
-
-        }
+        assertEquals($mid1, $ret['chatmessage']['image']['chatmsgid']);
+    }
 
     public function testLink() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);;

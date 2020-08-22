@@ -550,4 +550,8 @@ class Attachment
     public function delete() {
         $this->dbhm->preExec("DELETE FROM {$this->table} WHERE id = {$this->id};");
     }
+
+    public function getIdAtt() {
+        return $this->idatt;
+    }
 }

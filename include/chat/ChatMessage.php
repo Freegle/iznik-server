@@ -237,6 +237,15 @@ class ChatMessage extends Entity
 
             $id = $this->dbhm->lastInsertId();
 
+            if ($id && $imageid) {
+                # Update the chat image to link it to this chat message.  This also stops it being purged in
+                # purge_chats.
+                $this->dbhm->preExec("UPDATE chat_images SET chatmsgid = ? WHERE id = ?;", [
+                    $id,
+                    $imageid
+                ]);
+            }
+
             if (!$platform) {
                 # Reply by email.  We have obviously seen the message ourselves, but there might be earlier messages
                 # in the chat from other users which we have not seen because they have not yet been notified.
@@ -370,11 +379,7 @@ class ChatMessage extends Entity
         if (pres('imageid', $ret)) {
             # There is an image attached
             $a = new Attachment($this->dbhr, $this->dbhm, $ret['imageid'], Attachment::TYPE_CHAT_MESSAGE);
-            $ret['image'] = [
-                'id' => $ret['imageid'],
-                'path' => $a->getPath(FALSE),
-                'paththumb' => $a->getPath(TRUE)
-            ];
+            $ret['image'] = $a->getPublic();
             unset($ret['imageid']);
         }
 
