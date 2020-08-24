@@ -4411,8 +4411,8 @@ class User extends Entity
         }
 
         if ($userids && count($userids) && $usegroup) {
-            # Still some we haven't handled.  Get the last message posted on a group.
-            $membs = $this->dbhr->preQuery("SELECT fromuser AS userid, lat, lng FROM messages WHERE fromuser IN (" . implode(',', $userids) . ") ORDER BY arrival ASC;", NULL, FALSE, FALSE);
+            # Still some we haven't handled.  Get the last message posted on a group with a location, if any.
+            $membs = $this->dbhr->preQuery("SELECT fromuser AS userid, lat, lng FROM messages WHERE fromuser IN (" . implode(',', $userids) . ") AND lat IS NOT NULL AND lng IS NOT NULL ORDER BY arrival ASC;", NULL, FALSE, FALSE);
             foreach ($membs as $memb) {
                 $ret[$memb['userid']] = [
                     'lat' => $memb['lat'],
