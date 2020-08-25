@@ -56,8 +56,6 @@ function memberships() {
     if ($collection) {
         switch ($_REQUEST['type']) {
             case 'GET': {
-                $ret = ['ret' => 2, 'status' => 'Permission denied'];
-
                 if ($email) {
                     # We're getting a minimal set of membership information, typically from the unsubscribe page.
                     $ret = ['ret' => 3, 'status' => "We don't know that email" ];
@@ -71,95 +69,101 @@ function memberships() {
                             $ret['memberships'][] = [ 'id' => $membership['id'], 'namedisplay' => $membership['namedisplay'] ];
                         }
                     }
-                } else if ($me) {
-                    $groupids = [];
-                    $proceed = $collection === MembershipCollection::RELATED;
+                } else {
+                    $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                    if ($groupid && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
-                        # Get just one.  We can get this if we're a mod or it's our own.
-                        $groupids[] = $groupid;
-                        $limit = $userid ? 1 : $limit;
-                        $proceed = TRUE;
-                    } else if ($me->isModerator()) {
-                        # No group was specified - use the current memberships, if we have any, excluding those
-                        # that our preferences say shouldn't be in.  Use active memberships unless we're searching - if
-                        # we are searching we want to find everything.
-                        #
-                        # We always show spammers, because we want mods to act on them asap.
-                        $mygroups = $me->getMemberships(TRUE);
-                        foreach ($mygroups as $group) {
-                            $settings = $me->getGroupSettings($group['id']);
-                            if ($search || $me->activeModForGroup($group['id']) &&
-                                (!array_key_exists('showmembers', $settings) ||
-                                $settings['showmembers'] ||
-                                $collection == MembershipCollection::SPAM)) {
-                                $proceed = TRUE;
-                                $groupids[] = $group['id'];
+                    if ($me) {
+                        $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
+                        $groupids = [];
+                        $proceed = $collection === MembershipCollection::RELATED;
+
+                        if ($groupid && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
+                            # Get just one.  We can get this if we're a mod or it's our own.
+                            $groupids[] = $groupid;
+                            $limit = $userid ? 1 : $limit;
+                            $proceed = TRUE;
+                        } else if ($me->isModerator()) {
+                            # No group was specified - use the current memberships, if we have any, excluding those
+                            # that our preferences say shouldn't be in.  Use active memberships unless we're searching - if
+                            # we are searching we want to find everything.
+                            #
+                            # We always show spammers, because we want mods to act on them asap.
+                            $mygroups = $me->getMemberships(TRUE);
+                            foreach ($mygroups as $group) {
+                                $settings = $me->getGroupSettings($group['id']);
+                                if ($search || $me->activeModForGroup($group['id']) &&
+                                    (!array_key_exists('showmembers', $settings) ||
+                                        $settings['showmembers'] ||
+                                        $collection == MembershipCollection::SPAM)) {
+                                    $proceed = TRUE;
+                                    $groupids[] = $group['id'];
+                                }
                             }
                         }
-                    }
 
-                    if ($proceed) {
-                        if ($collection == MembershipCollection::HAPPINESS) {
-                            # This is handled differently - including a different processing for filter.
-                            $members = $g->getHappinessMembers($groupids, $ctx, presdef('filter', $_REQUEST, NULL));
-                        } else if ($collection == MembershipCollection::NEARBY) {
-                            $members = [];
+                        if ($proceed) {
+                            if ($collection == MembershipCollection::HAPPINESS) {
+                                # This is handled differently - including a different processing for filter.
+                                $members = $g->getHappinessMembers($groupids, $ctx, presdef('filter', $_REQUEST, NULL));
+                            } else if ($collection == MembershipCollection::NEARBY) {
+                                $members = [];
 
-                            if ($me->isModerator()) {
-                                # At the moment only mods can see this, and they can see all mods..
-                                $n = new Nearby($dbhr, $dbhm);
-                                list ($lat, $lng, $loc) = $me->getLatLng();
-                                $members = $n->getUsersNear($lat, $lng, TRUE);
+                                if ($me->isModerator()) {
+                                    # At the moment only mods can see this, and they can see all mods..
+                                    $n = new Nearby($dbhr, $dbhm);
+                                    list ($lat, $lng, $loc) = $me->getLatLng();
+                                    $members = $n->getUsersNear($lat, $lng, TRUE);
+                                }
+                            } else if ($filter == Group::FILTER_MOSTACTIVE) {
+                                # So is this
+                                $members = $groupid ? $u->mostActive($groupid) : NULL;
+                            } else if ($collection == MembershipCollection::RELATED) {
+                                # So is this
+                                if ($groupids == [-2] && $me->isAdminOrSupport()) {
+                                    # We can fetch them systemwide.
+                                    $groupids = NULL;
+                                }
+
+                                $members = $me->isModerator() ? $u->listRelated($groupids, $ctx, $limit) : [];
+                            } else if ($filter == Group::FILTER_BANNED) {
+                                # So is this
+                                $members = $groupid ? $g->getBanned($groupid, $ctx) : NULL;
+                            } else {
+                                $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
                             }
-                        } else if ($filter == Group::FILTER_MOSTACTIVE) {
-                            # So is this
-                            $members = $groupid ? $u->mostActive($groupid) : NULL;
-                        } else if ($collection == MembershipCollection::RELATED) {
-                            # So is this
-                            if ($groupids == [-2] && $me->isAdminOrSupport()) {
-                                # We can fetch them systemwide.
-                                $groupids = NULL;
-                            }
 
-                            $members = $me->isModerator() ? $u->listRelated($groupids, $ctx, $limit) : [];
-                        } else if ($filter == Group::FILTER_BANNED) {
-                            # So is this
-                            $members = $groupid ? $g->getBanned($groupid, $ctx) : NULL;
-                        } else {
-                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
-                        }
+                            if ($userid) {
+                                $ret = [
+                                    'member' => count($members) == 1 ? $members[0] : NULL,
+                                    'context' => $ctx,
+                                    'ret' => 0,
+                                    'status' => 'Success'
+                                ];
 
-                        if ($userid) {
-                            $ret = [
-                                'member' => count($members) == 1 ? $members[0] : NULL,
-                                'context' => $ctx,
-                                'ret' => 0,
-                                'status' => 'Success'
-                            ];
+                                if ($logs) {
+                                    $u = User::get($dbhr, $dbhm, $userid);
+                                    $atts = $u->getPublic(NULL, TRUE, $logs, $logctx, FALSE, FALSE, FALSE, $modmailsonly);
+                                    $ret['member']['logs'] = $atts['logs'];
+                                    $ret['member']['merges'] = $atts['merges'];
+                                    $ret['logcontext'] = $logctx;
+                                }
+                            } else {
+                                # Get some/all.
+                                $ret = [
+                                    'members' => $members,
+                                    'groups' => [],
+                                    'context' => $ctx,
+                                    'ret' => 0,
+                                    'status' => 'Success'
+                                ];
 
-                            if ($logs) {
-                                $u = User::get($dbhr, $dbhm, $userid);
-                                $atts = $u->getPublic(NULL, TRUE, $logs, $logctx, FALSE, FALSE, FALSE, $modmailsonly);
-                                $ret['member']['logs'] = $atts['logs'];
-                                $ret['member']['merges'] = $atts['merges'];
-                                $ret['logcontext'] = $logctx;
-                            }
-                        } else {
-                            # Get some/all.
-                            $ret = [
-                                'members' => $members,
-                                'groups' => [],
-                                'context' => $ctx,
-                                'ret' => 0,
-                                'status' => 'Success'
-                            ];
-
-                            foreach ($members as $m) {
-                                if (pres('groupid', $m)) {
-                                    if (!pres($m['groupid'], $ret['groups'])) {
-                                        $g = Group::get($dbhr, $dbhm, $m['groupid']);
-                                        $ret['groups'][$m['groupid']] = $g->getPublic();
+                                foreach ($members as $m) {
+                                    if (pres('groupid', $m)) {
+                                        if (!pres($m['groupid'], $ret['groups'])) {
+                                            $g = Group::get($dbhr, $dbhm, $m['groupid']);
+                                            $ret['groups'][$m['groupid']] = $g->getPublic();
+                                        }
                                     }
                                 }
                             }
