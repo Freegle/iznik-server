@@ -153,7 +153,8 @@ class Group extends Entity
             'newsletter' => 1,
             'businesscards' => 1,
             'autoadmins' => 1,
-            'mentored' => 0
+            'mentored' => 0,
+            'nearbygroups' => 5
         ];
 
         if (!$this->group['settings'] || strlen($this->group['settings']) == 0) {
