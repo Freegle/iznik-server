@@ -24,7 +24,7 @@ class Group extends Entity
         'onhere', 'ontn', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation',
-        'moderationstatus', 'maxagetoshow');
+        'moderationstatus', 'maxagetoshow', 'nearbygroups');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
