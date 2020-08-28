@@ -528,7 +528,7 @@ class Spam {
                 'text' => $reason
             ]);
 
-            $this->dbhm->preExec("UPDATE users SET suspectcount = suspectcount + 1, suspectreason = ? WHERE id = ?;",
+            $this->dbhm->preExec("UPDATE users SET suspectcount = suspectcount + 1, suspectreason = ?, suspectdate = NOW() WHERE id = ?;",
                 [
                     $reason,
                     $userid
