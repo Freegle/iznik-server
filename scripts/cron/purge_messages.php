@@ -31,6 +31,21 @@ try {
     $sql = "SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'messages' AND table_schema = '" . SQLDB . "';";
     $schema = $dbhschema->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
+    # Purge info about old admins which have been sent to completion.
+    $start = date('Y-m-d', strtotime("midnight 90 days ago"));
+    $sql = "SELECT DISTINCT(admins.id) FROM admins INNER JOIN admins_users ON admins_users.adminid = admins.id WHERE complete <= '$start';";
+    $admins = $dbhm->query($sql)->fetchAll();
+    $total = 0;
+
+    foreach ($admins as $admin) {
+        error_log("...admin {$admin['id']}");
+        do {
+            $any = $dbhr->preQuery("SELECT COUNT(*) AS count FROM admins_users WHERE adminid = {$admin['id']};");
+            error_log("...left {$any[0]['count']}");
+            $dbhm->exec("DELETE FROM admins_users WHERE adminid = {$admin['id']} LIMIT 10000;");
+        } while ($any[0]['count'] > 0);
+    }
+
     # Purge old users_nearby data - we only need the last 31 days, really, because that's used to avoid duplicates.
     $total = 0;
     do {
@@ -48,8 +63,6 @@ try {
             }
         }
     } while (count($msgs) > 0);
-
-    exit(0);
 
     # Purge Yahoo notify messages
     $start = date('Y-m-d', strtotime("midnight 2 days ago"));
