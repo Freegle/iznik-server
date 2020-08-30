@@ -12,6 +12,7 @@ class Location extends Entity
     const NEARBY = 50; // In miles.
     const QUITENEARBY = 15; // In miles.
     const TOO_LARGE = 0.3;
+    const TOO_SMALL = 0.001;
 
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'osm_id', 'name', 'type', 'popularity', 'gridid', 'postcodeid', 'areaid', 'lat', 'lng', 'maxdimension');
@@ -189,8 +190,9 @@ class Location extends Entity
                     do {
                         $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
 
-                        # Exclude locations which are very large, e.g. Greater London.
-                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id, AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS within, ST_Distance(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, GeomFromText('$poly')) AND osm_place = $osmonly AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " ORDER BY within DESC, dist ASC LIMIT 1;";
+                        # Exclude locations which are very large, e.g. Greater London or too small (probably just a
+                        # single building.
+                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id, AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS within, ST_Distance(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, GeomFromText('$poly')) AND osm_place = $osmonly AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) > " . Location::TOO_SMALL . " ORDER BY within DESC, dist ASC LIMIT 1;";
                         $nearbyes = $this->dbhr->preQuery($sql);
 
                         #error_log($sql . " gives " . var_export($nearbyes));
@@ -640,7 +642,7 @@ class Location extends Entity
         $points = [];
         foreach ($pcs as $pc) {
             $pstr = "POINT({$pc['lng']} {$pc['lat']})";
-            error_log("...{$pc['name']} $pstr");
+            #error_log("...{$pc['name']} $pstr");
             $points[] = $g::load($pstr);
         }
 
@@ -673,6 +675,7 @@ class Location extends Entity
         # display our areas on a map.  Put a limit on this so that the API can't kill us.
         $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND locations_excluded.locationid IS NULL LIMIT 500;";
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
+        error_log("SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= $swlat AND lng >= $swlng AND lat <= $nelat AND lng <= $nelng AND locations_excluded.locationid IS NULL LIMIT 500;");
         $ret = [];
 
         foreach ($areas as $area) {
@@ -692,7 +695,7 @@ class Location extends Entity
                     $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
                 }
 
-                error_log("For {$area['areaid']} {$thisone['name']} geom $geom");
+                #error_log("For {$area['areaid']} {$thisone['name']} geom $geom");
 
                 if (strpos($geom, 'POLYGON') === FALSE) {
                     # We don't have a polygon for this area.  This is common for OSM data, where many towns etc are just
