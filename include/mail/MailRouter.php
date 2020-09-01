@@ -586,6 +586,7 @@ class MailRouter
                                 ]
                             ];
 
+                            $relateds = [];
                             $this->msg->getPublicRelated($relateds, $tmps);
 
                             if (($this->msg->getType() == Message::TYPE_TAKEN || $this->msg->getType() == Message::TYPE_RECEIVED) &&
