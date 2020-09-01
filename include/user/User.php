@@ -2255,7 +2255,7 @@ class User extends Entity
         }
     }
 
-    public function getPublicApplied(&$rets, $me, $freeglemod, $applied, $systemrole, $groupids) {
+    public function getPublicApplied(&$rets, $me, $freeglemod, $applied, $systemrole) {
         $userids = array_keys($rets);
 
         if ($applied &&
@@ -2265,12 +2265,12 @@ class User extends Entity
         ) {
             # As well as being a member of a group, they might have joined and left, or applied and been rejected.
             # This is useful info for moderators.
-            $groupq = ($groupids && count($groupids) > 0) ? (" AND (DATEDIFF(NOW(), added) <= 31 OR groupid IN (" . implode(',', $groupids) . ")) ") : ' AND DATEDIFF(NOW(), added) <= 31 ';
-            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") $groupq ORDER BY added DESC;";
+            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND DATEDIFF(NOW(), added) <= 31 ORDER BY added DESC;";
             $membs = $this->dbhr->preQuery($sql);
 
             foreach ($rets as &$ret) {
                 $ret['applied'] = [];
+                $ret['activedistance'] = NULL;
 
                 foreach ($membs as $memb) {
                     if ($ret['id'] == $memb['userid']) {
@@ -2291,7 +2291,10 @@ class User extends Entity
                             ];
 
                             $ret['activearea'] = $box;
-                            $ret['activedistance'] = $box ? round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng'])) : NULL;
+
+                            if ($box) {
+                                $ret['activedistance'] = round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng']));
+                            }
                         }
 
                         $ret['applied'][] = $memb;
@@ -2613,7 +2616,7 @@ class User extends Entity
         if (MODTOOLS) {
             $this->getPublicSuspect($rets, $me, $systemrole, $freeglemod);
             $this->getPublicMemberOf($rets, $me, $freeglemod, $memberof, $systemrole);
-            $this->getPublicApplied($rets, $me, $freeglemod, $applied, $systemrole, $groupids);
+            $this->getPublicApplied($rets, $me, $freeglemod, $applied, $systemrole);
             $this->getPublicSpammer($rets, $me, $systemrole);
 
             if ($comments) {
