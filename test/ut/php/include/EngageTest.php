@@ -5,6 +5,8 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/user/Engage.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+require_once IZNIK_BASE . '/include/message/Message.php';
 
 /**
  * @backupGlobals disabled
@@ -53,13 +55,13 @@ class engageTest extends IznikTestCase {
             return ($this->sendMock($mailer, $message));
         }));
 
-        $uids = $e->findUsers($uid, Engage::FILTER_DONORS);
+        $uids = $e->findUsersByFilter($uid, Engage::FILTER_DONORS);
         assertEquals([ $uid ], $uids);
 
         assertEquals(1, $e->sendUsers(Engage::ATTEMPT_MISSING, $uids, "We miss you!", "We don't think you've freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org", 'missing.html'));
         assertEquals(1, count($this->msgsSent));
 
-        $uids = $e->findUsers($uid, Engage::FILTER_DONORS);
+        $uids = $e->findUsersByFilter($uid, Engage::FILTER_DONORS);
         assertEquals(0, count($uids));
 
         assertEquals(0, $e->checkSuccess($uid));
@@ -76,18 +78,93 @@ class engageTest extends IznikTestCase {
 
         $e = new Engage($this->dbhm, $this->dbhm);
 
-        $uids = $e->findUsers($uid, Engage::FILTER_INACTIVE);
+        $uids = $e->findUsersByFilter($uid, Engage::FILTER_INACTIVE);
         assertEquals(0, count($uids));
 
         $sqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 7 * 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
-        $uids = $e->findUsers($uid, Engage::FILTER_INACTIVE);
+        $uids = $e->findUsersByFilter($uid, Engage::FILTER_INACTIVE);
         assertEquals([ $uid ], $uids);
 
         $sqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE - 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
-        $uids = $e->findUsers($uid, Engage::FILTER_INACTIVE);
+        $uids = $e->findUsersByFilter($uid, Engage::FILTER_INACTIVE);
         assertEquals(0, count($uids));
+    }
+
+    public function testEngagement() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->addMembership($this->gid);
+
+        assertEquals(NULL, $u->getPrivate('engagement'));
+
+        # Created user - should update to null
+        $e = new Engage($this->dbhm, $this->dbhm);
+        $e->updateEngagement($uid);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertEquals(Engage::ENGAGEMENT_NEW, $u->getPrivate('engagement'));
+
+        # Idle - should update to inactive
+        $u->setPrivate('lastaccess', date("Y-m-d", strtotime("15 days ago")));
+        $e->updateEngagement($uid);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertEquals(Engage::ENGAGEMENT_INACTIVE, $u->getPrivate('engagement'));
+
+        # Dormant
+        $u->setPrivate('lastaccess', date("Y-m-d", strtotime("190 days ago")));
+        $e->updateEngagement($uid);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertEquals(Engage::ENGAGEMENT_DORMANT, $u->getPrivate('engagement'));
+
+        # Post, should become occasional.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Thing 1 (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id1 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $e->updateEngagement($uid);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertEquals(Engage::ENGAGEMENT_OCCASIONAL, $u->getPrivate('engagement'));
+
+        # Post more, should become frequent.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Thing 2 (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $id2 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+
+        assertEquals(MailRouter::PENDING, $rc);
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Thing 3 (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $id3 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Thing 4 (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $id4 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $e->updateEngagement($uid);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertEquals(Engage::ENGAGEMENT_OBSESSED, $u->getPrivate('engagement'));
+
+        # Remove posts so it looks like they've become less active.
+        $this->dbhm->preExec("DELETE FROM messages WHERE id in (?, ?);", [
+            $id1,
+            $id2
+        ]);
+        $e->updateEngagement($uid);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertEquals(Engage::ENGAGEMENT_FREQUENT, $u->getPrivate('engagement'));
     }
 }
 

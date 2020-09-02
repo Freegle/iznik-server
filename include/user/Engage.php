@@ -9,12 +9,20 @@ class Engage
     private $dbhr, $dbhm;
 
     const USER_INACTIVE = 365 * 24 * 60 * 60 / 2;
+    const LOOKBACK = 31;
 
     const FILTER_DONORS = 'Donors';
     const FILTER_INACTIVE = 'Inactive';
 
     const ATTEMPT_MISSING = 'Missing';
     const ATTEMPT_INACTIVE = 'Inactive';
+
+    const ENGAGEMENT_NEW = 'New';
+    const ENGAGEMENT_OCCASIONAL = 'Occasional';
+    const ENGAGEMENT_FREQUENT = 'Frequent';
+    const ENGAGEMENT_OBSESSED = 'Obsessed';
+    const ENGAGEMENT_INACTIVE = 'Inactive';
+    const ENGAGEMENT_DORMANT = 'Dormant';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -24,14 +32,14 @@ class Engage
         $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/engage');
         $this->twig = new Twig_Environment($loader);
     }
-
     # Split out for UT to override
+
     public function sendOne($mailer, $message) {
         Mail::addHeaders($message, Mail::MISSING);
         $mailer->send($message);
     }
 
-    public function findUsers($id = NULL, $filter) {
+    public function findUsersByFilter($id = NULL, $filter) {
         $userids = [];
 
         switch ($filter) {
@@ -67,6 +75,202 @@ class Engage
         }
 
         return $userids;
+    }
+
+    public function findUsersByEngagement($id = NULL, $engagement) {
+        $uq = $id ? " users.id = $id AND " : "";
+        $sql = "SELECT id FROM users WHERE $uq engagement = ?;";
+        $users = $this->dbhr->preQuery($sql, [
+            $engagement
+        ]);
+
+        $userids = array_column($users, 'id');
+        return $userids;
+    }
+
+    private function setEngagement($id, $engagement, &$count) {
+        #error_log("Set engagement $id = $engagement");
+        $count++;
+        $this->dbhm->preExec("UPDATE users SET engagement = ? WHERE id = ?;", [
+            $engagement,
+            $id
+        ], FALSE, FALSE);
+    }
+
+    private function postsSince($id, $time) {
+        $messages = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND messages.arrival >= ?;", [
+            $id,
+            date("Y-m-d", strtotime($time))
+        ]);
+
+        #error_log("Posts since {$messages[0]['count']}");
+        return $messages[0]['count'];
+    }
+
+    private function lastPostOrReply($id) {
+        $ret = NULL;
+
+        $reply = $this->dbhr->preQuery("SELECT MAX(date) AS date FROM chat_messages WHERE userid = ?;", [
+            $id
+        ]);
+
+        if (count($reply)) {
+            $ret = $reply[0]['date'];
+        }
+
+        $messages = $this->dbhr->preQuery("SELECT MAX(messages.arrival) AS date FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ?;", [
+            $id
+        ]);
+
+        if (count($messages)) {
+            if (!$ret || (strtotime($messages[0]['date']) > strtotime($ret))) {
+                $ret = $messages[0]['date'];
+            }
+        }
+
+        return $ret;
+    }
+
+    private function engagementProgress($total, &$count) {
+        $count++;
+
+        if ($count % 1000 == 0) {
+            error_log("...$count / $total");
+        }
+    }
+
+    public function updateEngagement($id = NULL) {
+        $ret = 0;
+        $uq = $id ? " users.id = $id AND " : "";
+
+        $lookback = date("Y-m-d", strtotime("midnight " . Engage::LOOKBACK . " days ago"));
+
+        # Set new users
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE $uq added >= ? AND engagement IS NULL ;", [
+            $lookback
+        ]);
+
+        error_log("NULL => New " . count($users));
+
+        $count = 0;
+        foreach ($users as $user) {
+            $this->engagementProgress(count($users), $count);
+            $this->setEngagement($user['id'], Engage::ENGAGEMENT_NEW, $ret);
+        }
+
+        # NULL => Inactive
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE $uq engagement IS NULL ;");
+
+        error_log("NULL => Inactive " . count($users));
+
+        $count = 0;
+        foreach ($users as $user) {
+            $this->engagementProgress(count($users), $count);
+            $this->setEngagement($user['id'], Engage::ENGAGEMENT_INACTIVE, $ret);
+        }
+
+        # New, Occasional => Inactive.
+        $mysqltime = date("Y-m-d", strtotime("midnight 14 days ago"));
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE $uq (lastaccess IS NULL OR lastaccess < ?) AND (engagement IS NULL OR engagement = ? OR engagement = ?);", [
+            $mysqltime,
+            Engage::ENGAGEMENT_NEW,
+            Engage::ENGAGEMENT_OCCASIONAL
+        ]);
+
+        error_log("New, Occasional => Inactive " . count($users));
+
+        $count = 0;
+        foreach ($users as $user) {
+            $this->engagementProgress(count($users), $count);
+            $this->setEngagement($user['id'], Engage::ENGAGEMENT_INACTIVE, $ret);
+        }
+
+        # Inactive => Dormant.
+        $activeon = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE)));
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE $uq (lastaccess IS NULL OR lastaccess < ?) AND engagement != ?;", [
+            $activeon,
+            self::ENGAGEMENT_DORMANT
+        ]);
+
+        error_log("Inactive => Dormant " . count($users));
+
+        $count = 0;
+        foreach ($users as $user) {
+            $this->engagementProgress(count($users), $count);
+            $this->setEngagement($user['id'], Engage::ENGAGEMENT_DORMANT, $ret);
+        }
+
+        # New, Inactive, Dormant => Occasional.
+        $activeon = date("Y-m-d", strtotime("midnight 14 days ago"));
+        $users = $this->dbhr->preQuery("SELECT DISTINCT userid AS id FROM chat_messages 
+    INNER JOIN users ON users.id = chat_messages.userid 
+    WHERE $uq chat_messages.date >= ? AND (engagement IS NULL OR engagement = ? OR engagement = ?  OR engagement = ?)
+    UNION
+    SELECT DISTINCT fromuser AS id FROM messages 
+    INNER JOIN users ON users.id = messages.fromuser
+    WHERE $uq messages.arrival >= ? AND (engagement IS NULL OR engagement = ? OR engagement = ?  OR engagement = ?);", [
+            $activeon,
+            Engage::ENGAGEMENT_NEW,
+            Engage::ENGAGEMENT_INACTIVE,
+            Engage::ENGAGEMENT_DORMANT,
+            $activeon,
+            Engage::ENGAGEMENT_NEW,
+            Engage::ENGAGEMENT_INACTIVE,
+            Engage::ENGAGEMENT_DORMANT,
+        ]);
+
+        error_log("New, Inactive, Dormant => Occasional " . count($users));
+        $count = 0;
+        foreach ($users as $user) {
+            $this->engagementProgress(count($users), $count);
+            $active = $this->lastPostOrReply($user['id']);
+            #error_log("Last active $active");
+            if ($active && strtotime($active) > time() - 14 * 24 * 60 *60) {
+                $this->setEngagement($user['id'], Engage::ENGAGEMENT_OCCASIONAL, $ret);
+            }
+        }
+
+        # Occasional => Frequent.
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE $uq engagement = ?;", [
+            Engage::ENGAGEMENT_OCCASIONAL
+        ]);
+
+        error_log("Occasional => Frequent " . count($users));
+        $count = 0;
+        foreach ($users as $user) {
+            $this->engagementProgress(count($users), $count);
+            if ($this->postsSince($user['id'], "90 days ago") > 3) {
+                $this->setEngagement($user['id'], Engage::ENGAGEMENT_FREQUENT, $ret);
+            }
+        }
+
+        # Frequent => Obsessed.
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE $uq engagement = ?;", [
+            Engage::ENGAGEMENT_FREQUENT
+        ]);
+
+        error_log("Frequent => Obsessed " . count($users));
+        $count = 0;
+        foreach ($users as $user) {
+            $this->engagementProgress(count($users), $count);
+            if ($this->postsSince($user['id'], "31 days ago") >= 4) {
+                $this->setEngagement($user['id'], Engage::ENGAGEMENT_OBSESSED, $ret);
+            }
+        }
+
+        # Obsessed => Frequent.
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE $uq engagement = ?;", [
+            Engage::ENGAGEMENT_OBSESSED
+        ]);
+
+        error_log("Obsessed => Frequent " . count($users));
+        $count = 0;
+        foreach ($users as $user) {
+            $this->engagementProgress(count($users), $count);
+            if ($this->postsSince($user['id'], "90 days ago") <= 3) {
+                $this->setEngagement($user['id'], Engage::ENGAGEMENT_FREQUENT, $ret);
+            }
+        }
     }
 
     public function sendUsers($attempt, $uids, $subject, $textbody, $template) {
@@ -110,7 +314,7 @@ class Engage
                     $this->sendOne($mailer, $m);
                     $count++;
 
-                    $this->recordEngage($uid, $attempt);
+                    $this->recordEngage($uid, $attempt, $u->getPrivate('engagement'));
                 }
             } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
         }
@@ -118,11 +322,13 @@ class Engage
         return $count;
     }
 
-    public function recordEngage($userid, $attempt) {
-        $this->dbhm->preExec("INSERT INTO engage (userid, type, timestamp) VALUES (?, ?, NOW()) ON DUPLICATE KEY UPDATE timestamp = NOW(), type = ?;", [
+    public function recordEngage($userid, $attempt, $engagement) {
+        $this->dbhm->preExec("INSERT INTO engage (userid, type, engagement, timestamp) VALUES (?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE timestamp = NOW(), type = ?, engagement = ?;", [
             $userid,
             $attempt,
-            $attempt
+            $engagement,
+            $attempt,
+            $engagement
         ]);
     }
 

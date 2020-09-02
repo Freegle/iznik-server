@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/Engage.php');
 
 $e = new Engage($dbhr, $dbhm);
-$uids = $e->findUsers(NULL, Engage::FILTER_INACTIVE);
+$uids = $e->findUsersByFilter(NULL, Engage::FILTER_INACTIVE);
 $e->checkSuccess();
 $e->sendUsers(Engage::ATTEMPT_INACTIVE, $uids, "We'll stop sending you emails soon...", "It looks like you’ve not been active on Freegle for a while. So that we don’t clutter your inbox, and to reduce the load on our servers, we’ll stop sending you emails soon.
 
