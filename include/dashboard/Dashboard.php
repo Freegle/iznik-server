@@ -24,6 +24,7 @@ class Dashboard {
     const COMPONENTS_OUTCOMES = 'Outcomes';
     const COMPONENTS_DONATIONS = 'Donations';
     const COMPONENTS_ACTIVE_USERS = 'ActiveUsers';
+    const COMPONENTS_HAPPINESS = 'Happiness';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -233,7 +234,7 @@ class Dashboard {
 
             if (in_array(Dashboard::COMPONENT_POPULAR_POSTS, $components)) {
                 $populars = $this->dbhr->preQuery("SELECT COUNT(*) AS views, messages.id, messages.subject FROM messages INNER JOIN messages_likes ON messages_likes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.collection = ? WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages_likes.type = 'View' GROUP BY messages.id HAVING views > 0 ORDER BY views DESC LIMIT 5", [
-                    MessageCollection::APPROVED
+                        MessageCollection::APPROVED
                 ]);
 
                 if (count($populars)) {
@@ -290,7 +291,7 @@ WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq
                 AND chat_messages.type = 'Interested' 
 GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 $replies = $this->dbhr->preQuery($chatsql, [
-                    ChatMessage::TYPE_INTERESTED
+                        ChatMessage::TYPE_INTERESTED
                 ]);
 
                 $ret[Dashboard::COMPONENT_USERS_REPLYING] = [];
@@ -333,71 +334,78 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 }
 
                 usort($users, function($mod1, $mod2) {
-                    return(strcmp($mod2['lastactive'], $mod1['lastactive']));
+                        return (strcmp($mod2['lastactive'], $mod1['lastactive']));
                 });
 
                 $ret[Dashboard::COMPONENT_MODERATORS_ACTIVE] = $users;
             }
 
             if (in_array(Dashboard::COMPONENTS_ACTIVITY, $components)) {
-                $ret = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::ACTIVITY ]);
-                $ret[Dashboard::COMPONENT_MODERATORS_ACTIVE] = $ret[ Stats::ACTIVITY ];
+                $ret = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [Stats::ACTIVITY]);
+                $ret[Dashboard::COMPONENT_MODERATORS_ACTIVE] = $ret[Stats::ACTIVITY];
             }
 
             if (in_array(Dashboard::COMPONENTS_REPLIES, $components)) {
-                $ret = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::REPLIES ]);
-                $ret[Dashboard::COMPONENTS_REPLIES] = $ret[ Stats::REPLIES ];
+                $ret = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [Stats::REPLIES]);
+                $ret[Dashboard::COMPONENTS_REPLIES] = $ret[Stats::REPLIES];
             }
 
             if (in_array(Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT, $components)) {
                 $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::APPROVED_MESSAGE_COUNT ]);
-                $ret[Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT] = $stats[ Stats::APPROVED_MESSAGE_COUNT ];
+                $ret[Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT] = $stats[Stats::APPROVED_MESSAGE_COUNT];
             }
 
             if (in_array(Dashboard::COMPONENTS_MESSAGE_BREAKDOWN, $components)) {
                 $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::MESSAGE_BREAKDOWN]);
-                $ret[Dashboard::COMPONENTS_MESSAGE_BREAKDOWN] = $stats[ Stats::MESSAGE_BREAKDOWN ];
+                $ret[Dashboard::COMPONENTS_MESSAGE_BREAKDOWN] = $stats[Stats::MESSAGE_BREAKDOWN];
             }
 
             if (in_array(Dashboard::COMPONENTS_WEIGHT, $components)) {
-                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::WEIGHT]);
-                $ret[Dashboard::COMPONENTS_WEIGHT] = $stats[ Stats::WEIGHT ];
+                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [Stats::WEIGHT]);
+                $ret[Dashboard::COMPONENTS_WEIGHT] = $stats[Stats::WEIGHT];
             }
 
             if (in_array(Dashboard::COMPONENTS_OUTCOMES, $components)) {
-                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::OUTCOMES]);
-                $ret[Dashboard::COMPONENTS_OUTCOMES] = $stats[ Stats::OUTCOMES ];
+                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [Stats::OUTCOMES]);
+                $ret[Dashboard::COMPONENTS_OUTCOMES] = $stats[Stats::OUTCOMES];
             }
 
             if (in_array(Dashboard::COMPONENTS_DONATIONS, $components)) {
                 if ($systemwide) {
                     $ret[Dashboard::COMPONENTS_DONATIONS] = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS count, DATE(timestamp) AS date FROM users_donations WHERE users_donations.timestamp >= ? AND users_donations.timestamp <= ? AND Payer NOT LIKE 'ppgfukpay@paypalgivingfund.org' GROUP BY date ORDER BY date ASC", [
-                        $start,
-                        $end
+                            $start,
+                            $end
                     ]);
                 } else {
                     $groupq = (" groupid IN (" . implode(', ', $groupids) . ") ");
 
                     $ret[Dashboard::COMPONENTS_DONATIONS] = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS count, DATE(timestamp) AS date FROM users_donations WHERE userid IN (SELECT DISTINCT userid FROM memberships WHERE $groupq) AND users_donations.timestamp >= ? AND users_donations.timestamp <= ? AND Payer NOT LIKE 'ppgfukpay@paypalgivingfund.org' GROUP BY date ORDER BY date ASC", [
-                        $start,
-                        $end
-                    ]);
+                            $start,
+                            $end
+                        ]
+                    );
                 }
             }
 
             if (in_array(Dashboard::COMPONENTS_ACTIVE_USERS, $components) && $ismod) {
                 # Monthly active users.
                 $ret[Dashboard::COMPONENTS_ACTIVE_USERS] = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count, CONCAT(YEAR(timestamp), '-', LPAD(MONTH(timestamp),2,'0'), '-', '01') AS date FROM users_active WHERE timestamp >= ? AND timestamp <= ? GROUP BY date ORDER BY date ASC", [
-                    $start,
-                    $end
+                        $start,
+                        $end
                 ]);
             }
         }
 
+        if (in_array(Dashboard::COMPONENTS_HAPPINESS, $components) && $ismod) {
+            $groupq = $groupid ? (" AND messages_groups.groupid IN (" . implode(', ', $groupids) . ") ") : '';
+            $sql = "SELECT COUNT(*) AS count, happiness FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid INNER JOIN memberships ON messages.fromuser = memberships.userid WHERE timestamp >= '$startq' AND timestamp <= '$endq' $groupq AND happiness IS NOT NULL GROUP BY happiness ORDER BY count DESC;";
+
+            $ret[Dashboard::COMPONENTS_HAPPINESS] = $this->dbhr->preQuery($sql, [
+                $start,
+                $end
+            ]);
+        }
+
         return($ret);
-    }
-
-    public function tearDown() {
-
     }
 }

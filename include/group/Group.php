@@ -434,9 +434,10 @@ memberships.groupid IN $groupq
             $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
             $editreviewcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT messages_edits.msgid) AS count FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid WHERE timestamp > '$mysqltime' AND reviewrequired = 1 AND messages_groups.groupid IN $groupq AND messages_groups.deleted = 0 GROUP BY groupid;");
 
-            # We only want to show happiness upto 31 days old - after that just let it slide.
+            # We only want to show happiness upto 31 days old - after that just let it slide.  We're only interested
+            # in ones with interesting comments.
             $mysqltime = date("Y-m-d", strtotime("Midnight 31 days ago"));
-            $sql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid WHERE messages_groups.arrival >= '$mysqltime' AND messages_outcomes.timestamp >= '$mysqltime' AND groupid IN $groupq AND reviewed = 0 AND happiness IN ('" . User::UNHAPPY . "') GROUP BY groupid;";
+            $sql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid WHERE messages_groups.arrival >= '$mysqltime' AND messages_outcomes.timestamp >= '$mysqltime' AND groupid IN $groupq AND reviewed = 0 AND messages_outcomes.comments IS NOT NULL GROUP BY groupid;";
             $happinesscounts = $this->dbhr->preQuery($sql);
 
             $c = new ChatMessage($this->dbhr, $this->dbhm);
@@ -837,6 +838,7 @@ INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid AN
 INNER JOIN messages ON messages.id = messages_outcomes.msgid
 $ctxq
 $filterq
+AND messages_outcomes.comments IS NOT NULL
 ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messages_outcomes.id DESC LIMIT 10
 ";
         $members = $this->dbhr->preQuery($sql, []);

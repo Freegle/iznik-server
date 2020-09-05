@@ -3413,7 +3413,7 @@ ORDER BY lastdate DESC;";
                         $outcome,
                         NULL,
                         NULL,
-                        $this->getTextbody()
+                        $this->interestingComment($this->getTextbody())
                     ]);
                 }
 
@@ -3888,7 +3888,7 @@ ORDER BY lastdate DESC;";
             $outcome,
             $happiness,
             $userid,
-            $comment
+            $this->interestingComment($comment)
         ]);
 
         # You might think that if we are passed a $userid then we could log a renege for any other users to whom
@@ -3939,7 +3939,7 @@ ORDER BY lastdate DESC;";
             $this->id,
             Message::OUTCOME_WITHDRAWN,
             $happiness,
-            $comment
+            $this->interestingComment($comment)
         ]);
 
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -4223,6 +4223,60 @@ ORDER BY lastdate DESC;";
         }
 
         return($count);
+    }
+
+    public function dullComment($comment) {
+        $dull = TRUE;
+
+        $comment = $comment ? trim($comment) : '';
+
+        if (strlen($comment)) {
+            $dull = FALSE;
+
+            foreach ([
+                         'Sorry, this is no longer available.',
+                         'Thanks, this has now been taken.',
+                         "Thanks, I'm no longer looking for this.",
+                         'Sorry, this has now been taken.',
+                         'Thanks for the interest, but this has now been taken.',
+                         'Thanks, these have now been taken.',
+                         'Thanks, this has now been received.'
+                     ] as $bland) {
+                if (strcmp($comment, $bland) === 0) {
+                    $dull = TRUE;
+                }
+            }
+        }
+
+        return $dull;
+    }
+
+    public function interestingComment($comment) {
+        return !$this->dullComment($comment) ? $comment : NULL;
+    }
+
+    public function tidyOutcomes($since) {
+        $count = 0;
+        $outcomes = $this->dbhr->preQuery("SELECT * FROM messages_outcomes WHERE timestamp >= '$since' AND comments IS NOT NULL;");
+        $total = count($outcomes);
+        $processed = 0;
+
+        foreach ($outcomes as $outcome) {
+            if ($this->dullComment($outcome['comments'])) {
+                $this->dbhm->preExec("UPDATE messages_outcomes SET comments = NULL WHERE id = ?;", [
+                    $outcome['id']
+                ]);
+                $count++;
+            }
+
+            $processed++;
+
+            if ($processed % 1000 === 0) {
+                error_log("...$processed / $total");
+            }
+        }
+
+        return $count;
     }
 
     public function processIntendedOutcomes($msgid = NULL) {

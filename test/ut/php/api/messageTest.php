@@ -2710,6 +2710,55 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($group2, $ret['message']['groups'][0]['groupid']);
     }
 
+    public function testTidyOutcomes() {
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
+        $msg = $this->unique($origmsg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_TAKEN,
+            'comment' => 'Thanks, this has now been taken.'
+        ]);
+
+        // Should have been stripped on input.
+        $atts = $m->getPublic();
+        assertNull($atts['outcomes'][0]['comments']);
+
+        // Fudge it back in.
+        $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, comments) VALUES (?, ?, ?);", [
+            $id,
+            Message::OUTCOME_TAKEN,
+            'Thanks, this has now been taken.'
+        ]);
+
+        $atts = $m->getPublic();
+        assertEquals('Thanks, this has now been taken.', $atts['outcomes'][0]['comments']);
+
+        // Now tidy the outcomes, which should zap that text.
+        $m->tidyOutcomes(date("Y-m-d", strtotime("24 hours ago")));
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $atts = $m->getPublic();
+        assertNull($atts['outcomes'][0]['comments']);
+    }
+
     public function testPromiseError() {
         assertTrue($this->user->login('testpw'));
 

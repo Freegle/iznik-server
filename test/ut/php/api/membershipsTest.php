@@ -7,6 +7,7 @@ require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+require_once IZNIK_BASE . '/include/dashboard/Dashboard.php';
 
 /**
  * @backupGlobals disabled
@@ -596,6 +597,14 @@ class membershipsAPITest extends IznikAPITestCase {
 
         assertEquals(1, count($ret['members']));
         assertEquals(0, $ret['members'][0]['reviewed']);
+
+        # Happiness count should show in dashboard.
+        $ret3 = $this->call('dashboard', 'GET', [
+            'components' => [ Dashboard::COMPONENTS_HAPPINESS ],
+            'group' => $this->groupid
+        ]);
+        assertEquals(1, count($ret3['components']['Happiness']));
+        assertEquals(1, $ret3['components']['Happiness'][0]['count']);
 
         # Test filter.
         $ret2 = $this->call('memberships', 'GET', [

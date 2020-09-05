@@ -13,6 +13,9 @@ $lockh = lockScript(basename(__FILE__));
 
 $m = new Message($dbhr, $dbhm);
 $mysqltime = date("Y-m-d", max(strtotime("06-sep-2016"), strtotime("Midnight 90 days ago")));
+$count = $m->tidyOutcomes('2001-01-01');
+error_log("Tidies $count outcomes");
+exit(0);
 $count = $m->processIntendedOutcomes();
 error_log("Processed $count intended");
 $count = $m->chaseUp(Group::GROUP_FREEGLE, $mysqltime);
