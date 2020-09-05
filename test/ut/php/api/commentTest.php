@@ -88,5 +88,24 @@ class commentAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
     }
+
+    public function testSupport() {
+        // Support can add comments which aren't on groups.
+        $ret = $this->call('comment', 'POST', [
+            'userid' => $this->uid2,
+            'user1' => 'Test comment'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $ret = $this->call('comment', 'POST', [
+            'userid' => $this->uid2,
+            'user1' => 'Test comment',
+            'dup' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        assertNotNull($id);
+    }
 }
 
