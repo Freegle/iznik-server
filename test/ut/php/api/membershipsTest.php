@@ -606,6 +606,11 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret3['components']['Happiness']));
         assertEquals(1, $ret3['components']['Happiness'][0]['count']);
 
+        $ret3 = $this->call('dashboard', 'GET', [
+            'components' => [ Dashboard::COMPONENTS_HAPPINESS ]
+        ]);
+        assertGreaterThanOrEqual(1, $ret3['components']['Happiness'][0]['count']);
+
         # Test filter.
         $ret2 = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::HAPPINESS,

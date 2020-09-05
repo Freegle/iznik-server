@@ -397,8 +397,12 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
         }
 
         if (in_array(Dashboard::COMPONENTS_HAPPINESS, $components) && $ismod) {
-            $groupq = $groupid ? (" AND messages_groups.groupid IN (" . implode(', ', $groupids) . ") ") : '';
-            $sql = "SELECT COUNT(*) AS count, happiness FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid INNER JOIN memberships ON messages.fromuser = memberships.userid WHERE timestamp >= '$startq' AND timestamp <= '$endq' $groupq AND happiness IS NOT NULL GROUP BY happiness ORDER BY count DESC;";
+            if ($groupid) {
+                $groupq = $groupid ? (" AND messages_groups.groupid IN (" . implode(', ', $groupids) . ") ") : '';
+                $sql = "SELECT COUNT(*) AS count, happiness FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid INNER JOIN memberships ON messages.fromuser = memberships.userid WHERE timestamp >= '$startq' AND timestamp <= '$endq' $groupq AND happiness IS NOT NULL GROUP BY happiness ORDER BY count DESC;";
+            } else {
+                $sql = "SELECT COUNT(*) AS count, happiness FROM messages_outcomes WHERE timestamp >= '$startq' AND timestamp <= '$endq' AND happiness IS NOT NULL GROUP BY happiness ORDER BY count DESC;";
+            }
 
             $ret[Dashboard::COMPONENTS_HAPPINESS] = $this->dbhr->preQuery($sql, [
                 $start,

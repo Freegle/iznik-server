@@ -4242,7 +4242,8 @@ ORDER BY lastdate DESC;";
                          'Sorry, this has now been taken.',
                          'Thanks for the interest, but this has now been taken.',
                          'Thanks, these have now been taken.',
-                         'Thanks, this has now been received.'
+                         'Thanks, this has now been received.',
+                         'Sorry, this is no longer available'
                      ] as $bland) {
                 if (strcmp($comment, $bland) === 0) {
                     $dull = TRUE;
