@@ -4263,7 +4263,8 @@ ORDER BY lastdate DESC;";
 
         foreach ($outcomes as $outcome) {
             if ($this->dullComment($outcome['comments'])) {
-                $this->dbhm->preExec("UPDATE messages_outcomes SET comments = NULL WHERE id = ?;", [
+                $this->dbhm->preExec("UPDATE messages_outcomes SET comments = NULL, timestamp = ? WHERE id = ?;", [
+                    $outcome['timestamp'],
                     $outcome['id']
                 ]);
                 $count++;
