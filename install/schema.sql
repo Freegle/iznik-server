@@ -3610,7 +3610,7 @@ DROP TABLE IF EXISTS `users_comments`;
 CREATE TABLE `users_comments` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userid` bigint(20) unsigned NOT NULL,
-  `groupid` bigint(20) unsigned NOT NULL,
+  `groupid` bigint(20) unsigned DEFAULT NULL,
   `byuserid` bigint(20) unsigned DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `reviewed` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
