@@ -842,5 +842,13 @@ class userAPITest extends IznikAPITestCase {
         $u = new User($this->dbhr, $this->dbhm);
         self::assertNotNull($u->gravatar('edward@ehibbert.org.uk'));
     }
+
+    public function testEngage() {
+        $ret = $this->call('user', 'POST', [
+            'id' => $this->user->getId(),
+            'engageid' => -1
+        ]);
+        assertEquals(0, $ret['ret']);
+    }
 }
 

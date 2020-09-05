@@ -36,7 +36,7 @@ class engageTest extends IznikTestCase {
         $this->msgsSent[] = $message->toString();
     }
 
-    public function testDonorsMissing() {
+    public function Missing() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', NULL);
         $u = new User($this->dbhr, $this->dbhm, $uid);
@@ -55,18 +55,7 @@ class engageTest extends IznikTestCase {
             return ($this->sendMock($mailer, $message));
         }));
 
-        $uids = $e->findUsersByFilter($uid, Engage::FILTER_DONORS);
-        assertEquals([ $uid ], $uids);
-
-        assertEquals(1, $e->sendUsers(Engage::ATTEMPT_MISSING, $uids, "We miss you!", "We don't think you've freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org", 'missing.html'));
-        assertEquals(1, count($this->msgsSent));
-
-        $uids = $e->findUsersByFilter($uid, Engage::FILTER_DONORS);
-        assertEquals(0, count($uids));
-
-        assertEquals(0, $e->checkSuccess($uid));
-        $u->setPrivate('lastaccess', date("Y-m-d H:i:s", time()));
-        assertEquals(1, $e->checkSuccess($uid));
+        assertEquals(1, $e->process($uid));
     }
 
     public function testInactive() {
@@ -78,18 +67,17 @@ class engageTest extends IznikTestCase {
 
         $e = new Engage($this->dbhm, $this->dbhm);
 
-        $uids = $e->findUsersByFilter($uid, Engage::FILTER_INACTIVE);
-        assertEquals(0, count($uids));
+        assertEquals(0, $e->process($uid));
 
         $sqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 7 * 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
-        $uids = $e->findUsersByFilter($uid, Engage::FILTER_INACTIVE);
-        assertEquals([ $uid ], $uids);
+        assertEquals(0, $e->process($uid));
+        $u->addMembership($this->gid);
+        assertEquals(1, $e->process($uid));
 
         $sqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE - 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
-        $uids = $e->findUsersByFilter($uid, Engage::FILTER_INACTIVE);
-        assertEquals(0, count($uids));
+        assertEquals(0, $e->process($uid));
     }
 
     public function testEngagement() {

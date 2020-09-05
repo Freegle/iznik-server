@@ -13,6 +13,7 @@ function user() {
     $suspectreason = presdef('suspectreason', $_REQUEST, NULL);
     $search = presdef('search', $_REQUEST, NULL);
     $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
+    $engageid = intval(presdef('engageid', $_REQUEST, NULL));
 
     $email = presdef('email', $_REQUEST, NULL);
     if (!$id && $email) {
@@ -245,88 +246,94 @@ function user() {
             $u = User::get($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            if ($action == 'Mail') {
-                $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
-            } else {
-                $role = $me->moderatorForUser($id) ? User::ROLE_MODERATOR : User::ROLE_NONMEMBER;
-            }
-
-            if ($me && $me->isAdminOrSupport() && $action == 'AddEmail') {
-                $ret = [ 'ret' => 3, 'status' => 'Email already used' ];
-                $uid = $u->findByEmail($email);
-
-                if (!$uid) {
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                    $u->addEmail($email);
-                }
-            }
-
-            if ($me && ($me->isAdminOrSupport() || $id == $me->getId()) && $action == 'RemoveEmail') {
-                # People can remove their own emails.
-                $ret = [ 'ret' => 3, 'status' => 'Not on same user' ];
-                $uid = $u->findByEmail($email);
-
-                if ($uid && $uid == $id) {
-                    # The email is on the same user.
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                    $u->removeEmail($email);
-                }
-            }
-
-            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+            if ($engageid) {
+                $e = new Engage($dbhr, $dbhm);
+                $e->recordSuccess($engageid);
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
-
-                switch ($action) {
-                    case 'Mail':
-                        $u->mail($groupid, $subject, $body, NULL);
-                        break;
-                    case 'Unbounce':
-                        $email = $u->getEmailPreferred();
-                        $eid = $u->getIdForEmail($email)['id'];
-                        $u->unbounce($eid, TRUE);
-                        break;
+            } else {
+                if ($action == 'Mail') {
+                    $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
+                } else {
+                    $role = $me->moderatorForUser($id) ? User::ROLE_MODERATOR : User::ROLE_NONMEMBER;
                 }
-            }
 
-            if ($me) {
-                if ($action == 'Merge') {
-                    $email1 = presdef('email1', $_REQUEST, NULL);
-                    $email2 = presdef('email2', $_REQUEST, NULL);
-                    $reason = presdef('reason', $_REQUEST, NULL);
-                    $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
+                if ($me && $me->isAdminOrSupport() && $action == 'AddEmail') {
+                    $ret = [ 'ret' => 3, 'status' => 'Email already used' ];
+                    $uid = $u->findByEmail($email);
 
-                    if (strlen($email1) && strlen($email2)) {
-                        $u = new User($dbhr, $dbhm);
-                        $uid1 = $u->findByEmail($email1);
-                        $uid2 = $u->findByEmail($email2);
+                    if (!$uid) {
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                        $u->addEmail($email);
+                    }
+                }
 
-                        $ret = ['ret' => 3, 'status' => "Can't find those users."];
+                if ($me && ($me->isAdminOrSupport() || $id == $me->getId()) && $action == 'RemoveEmail') {
+                    # People can remove their own emails.
+                    $ret = [ 'ret' => 3, 'status' => 'Not on same user' ];
+                    $uid = $u->findByEmail($email);
 
-                        if ($uid1 && $uid2) {
-                            $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
+                    if ($uid && $uid == $id) {
+                        # The email is on the same user.
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                        $u->removeEmail($email);
+                    }
+                }
 
-                            if ($me->isAdminOrSupport() ||
-                                ($me->moderatorForUser($uid1) && $me->moderatorForUser($uid2))) {
-                                $ret = $u->merge($uid2, $uid1, $reason);
+                if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
-                                if ($ret) {
-                                    $u = new User($dbhr, $dbhm, $uid2);
-                                    $u->addEmail($email2, 1, TRUE);
-                                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                                } else {
-                                    $ret = [ 'ret' => 6, 'status' => 'Merged failed'];
+                    switch ($action) {
+                        case 'Mail':
+                            $u->mail($groupid, $subject, $body, NULL);
+                            break;
+                        case 'Unbounce':
+                            $email = $u->getEmailPreferred();
+                            $eid = $u->getIdForEmail($email)['id'];
+                            $u->unbounce($eid, TRUE);
+                            break;
+                    }
+                }
+
+                if ($me) {
+                    if ($action == 'Merge') {
+                        $email1 = presdef('email1', $_REQUEST, NULL);
+                        $email2 = presdef('email2', $_REQUEST, NULL);
+                        $reason = presdef('reason', $_REQUEST, NULL);
+                        $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
+
+                        if (strlen($email1) && strlen($email2)) {
+                            $u = new User($dbhr, $dbhm);
+                            $uid1 = $u->findByEmail($email1);
+                            $uid2 = $u->findByEmail($email2);
+
+                            $ret = ['ret' => 3, 'status' => "Can't find those users."];
+
+                            if ($uid1 && $uid2) {
+                                $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
+
+                                if ($me->isAdminOrSupport() ||
+                                    ($me->moderatorForUser($uid1) && $me->moderatorForUser($uid2))) {
+                                    $ret = $u->merge($uid2, $uid1, $reason);
+
+                                    if ($ret) {
+                                        $u = new User($dbhr, $dbhm, $uid2);
+                                        $u->addEmail($email2, 1, TRUE);
+                                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                                    } else {
+                                        $ret = [ 'ret' => 6, 'status' => 'Merged failed'];
+                                    }
                                 }
                             }
                         }
-                    }
-                } else if ($action == 'Rate') {
-                    $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
-                    $ratee = intval(presdef('ratee', $_REQUEST, 0));
-                    $rating = presdef('rating', $_REQUEST, NULL);
+                    } else if ($action == 'Rate') {
+                        $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
+                        $ratee = intval(presdef('ratee', $_REQUEST, 0));
+                        $rating = presdef('rating', $_REQUEST, NULL);
 
-                    if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN || $rating === NULL)) {
-                        $me->rate($me->getId(), $ratee, $rating);
-                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                        if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN || $rating === NULL)) {
+                            $me->rate($me->getId(), $ratee, $rating);
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                        }
                     }
                 }
             }

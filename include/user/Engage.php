@@ -11,7 +11,6 @@ class Engage
     const USER_INACTIVE = 365 * 24 * 60 * 60 / 2;
     const LOOKBACK = 31;
 
-    const FILTER_DONORS = 'Donors';
     const FILTER_INACTIVE = 'Inactive';
 
     const ATTEMPT_MISSING = 'Missing';
@@ -39,32 +38,16 @@ class Engage
         $mailer->send($message);
     }
 
-    public function findUsersByFilter($id = NULL, $filter) {
+    public function findUsersByFilter($id = NULL, $filter, $limit = NULL) {
         $userids = [];
+        $limq = $limit ? " LIMIT $limit " : "";
 
         switch ($filter) {
-            case Engage::FILTER_DONORS: {
-                # Find people who have donated in the last year, who have not been active in the last two months.
-                $donatedsince = date("Y-m-d", strtotime("3 years ago"));
-                $activesince = date("Y-m-d", strtotime("2 months ago"));
-                $lastengage = date("Y-m-d", strtotime("1 month ago"));
-                $uq = $id ? " AND users_donations.userid = $id " : "";
-                $sql = "SELECT DISTINCT users_donations.userid, lastaccess FROM users_donations INNER JOIN users ON users.id = users_donations.userid LEFT JOIN engage ON engage.userid = users.id WHERE users_donations.timestamp >= ? AND users.lastaccess <= ? AND (engage.timestamp IS NULL OR engage.timestamp < ?) $uq;";
-                $users = $this->dbhr->preQuery($sql, [
-                    $donatedsince,
-                    $activesince,
-                    $lastengage
-                ]);
-
-                $userids = array_column($users, 'userid');
-                break;
-            }
-
             case Engage::FILTER_INACTIVE: {
                 # Find people who we'll stop sending mails to soon.  This time is related to sendOurMails in User.
                 $activeon = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 7 * 24 * 60 * 60)));
                 $uq = $id ? " AND users.id = $id " : "";
-                $sql = "SELECT id FROM users WHERE DATE(lastaccess) = ? $uq;";
+                $sql = "SELECT id FROM users WHERE DATE(lastaccess) = ? $uq $limq;";
                 $users = $this->dbhr->preQuery($sql, [
                     $activeon
                 ]);
@@ -77,9 +60,11 @@ class Engage
         return $userids;
     }
 
-    public function findUsersByEngagement($id = NULL, $engagement) {
+    public function findUsersByEngagement($id = NULL, $engagement, $limit = NULL) {
         $uq = $id ? " users.id = $id AND " : "";
-        $sql = "SELECT id FROM users WHERE $uq engagement = ?;";
+        $limq = $limit ? " LIMIT $limit " : "";
+
+        $sql = "SELECT id FROM users WHERE $uq engagement = ? $limq;";
         $users = $this->dbhr->preQuery($sql, [
             $engagement
         ]);
@@ -134,9 +119,7 @@ class Engage
     private function engagementProgress($total, &$count) {
         $count++;
 
-        if ($count % 1000 == 0) {
-            error_log("...$count / $total");
-        }
+        if ($count % 1000 == 0) { error_log("...$count / $total"); }
     }
 
     public function updateEngagement($id = NULL) {
@@ -278,77 +261,109 @@ class Engage
 
         foreach ($uids as $uid) {
             $u = new User($this->dbhr, $this->dbhm, $uid);
+            error_log("Consider $uid");
 
-            # Only send to users who have a membership, and who haven't disabled.
-            try {
-                $membs = $u->getMemberships(FALSE, Group::GROUP_FREEGLE);
+            # Only send to users who have not turned off this kind of mail.
+            if ($u->getPrivate('relevantallowed')) {
+                error_log("...allowed by user");
+                try {
+                    // ...and who have a membership.
+                    $membs = $u->getMemberships(FALSE, Group::GROUP_FREEGLE);
 
-                if (count($membs)) {
-                    list ($transport, $mailer) = getMailer();
-                    $m = Swift_Message::newInstance()
-                        ->setSubject($subject)
-                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                        ->setReplyTo(NOREPLY_ADDR)
-                        ->setTo($u->getEmailPreferred())
+                    if (count($membs)) {
+                        // ...and where that group allows engagement.
+                        error_log("...has membership");
+                        $allowed = FALSE;
+
+                        foreach ($membs as $memb) {
+                            if (!pres('engagement', $memb['settings']) || $memb['settings']['engagement']) {
+                                $allowed = TRUE;
+                                error_log("...allowed by a group");
+                            }
+                        }
+
+                        if ($allowed) {
+                            // ...and where we've not tried them in the last week.
+                            $last = $this->dbhr->preQuery("SELECT MAX(timestamp) AS last FROM engage WHERE userid = ?;", [
+                                $uid
+                            ]);
+
+                            if (!$last[0]['last'] || (time() - strtotime($last[0]['last']) > 7 * 24 * 60 * 60)) {
+                                error_log("...not tried recently");
+                                $eid = $this->recordEngage($uid, $attempt, $u->getPrivate('engagement'));
+
+                                list ($transport, $mailer) = getMailer();
+                                $m = Swift_Message::newInstance()
+                                    ->setSubject($subject)
+                                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                                    ->setReplyTo(NOREPLY_ADDR)
+                                    ->setTo($u->getEmailPreferred())
 //                        ->setTo('log@ehibbert.org.uk')
-                        ->setBody($textbody);
+                                    ->setBody($textbody);
 
-                    Mail::addHeaders($m, Mail::MISSING);
+                                Mail::addHeaders($m, Mail::MISSING);
 
-                    $html = $this->twig->render($template, [
-                        'name' => $u->getName(),
-                        'email' => $u->getEmailPreferred(),
-                        'subject' => $subject,
-                        'unsubscribe' => $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", NULL)
-                    ]);
+                                $html = $this->twig->render($template, [
+                                    'name' => $u->getName(),
+                                    'email' => $u->getEmailPreferred(),
+                                    'subject' => $subject,
+                                    'unsubscribe' => $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", NULL),
+                                    'engageid' => $eid
+                                ]);
 
-                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                    # Outlook.
-                    $htmlPart = Swift_MimePart::newInstance();
-                    $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                    $htmlPart->setContentType('text/html');
-                    $htmlPart->setBody($html);
-                    $m->attach($htmlPart);
+                                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                # Outlook.
+                                $htmlPart = Swift_MimePart::newInstance();
+                                $htmlPart->setCharset('utf-8');
+                                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                $htmlPart->setContentType('text/html');
+                                $htmlPart->setBody($html);
+                                $m->attach($htmlPart);
 
-                    $this->sendOne($mailer, $m);
-                    $count++;
-
-                    $this->recordEngage($uid, $attempt, $u->getPrivate('engagement'));
-                }
-            } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
+                                $this->sendOne($mailer, $m);
+                                $count++;
+                            }
+                        }
+                    }
+                } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
+            }
         }
 
         return $count;
     }
 
     public function recordEngage($userid, $attempt, $engagement) {
-        $this->dbhm->preExec("INSERT INTO engage (userid, type, engagement, timestamp) VALUES (?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE timestamp = NOW(), type = ?, engagement = ?;", [
+        $this->dbhm->preExec("INSERT INTO engage (userid, type, engagement, timestamp) VALUES (?, ?, ?, NOW());", [
             $userid,
-            $attempt,
-            $engagement,
             $attempt,
             $engagement
         ]);
+
+        return $this->dbhm->lastInsertId();
     }
 
-    public function checkSuccess($id = NULL) {
-        $since = date("Y-m-d", strtotime("1 month ago"));
-        $uq = $id ? " AND engage.userid = $id " : "";
-        $sql = "SELECT engage.id, userid, lastaccess FROM engage INNER JOIN users ON users.id = engage.userid WHERE engage.timestamp >= ? AND engage.timestamp <= users.lastaccess AND succeeded IS NULL $uq;";
-        $users = $this->dbhr->preQuery($sql, [
-            $since
+    public function recordSuccess($id) {
+        $this->dbhm->preExec("UPDATE engage SET succeeded = NOW() WHERE id = ?;", [
+            $id
         ]);
+    }
 
+    public function process($id = NULL) {
         $count = 0;
 
-        foreach ($users as $user) {
-            $count++;
-            $this->dbhm->preExec("UPDATE engage SET succeeded = ? WHERE id = ?;", [
-                $user['lastaccess'],
-                $user['id']
-            ]);
-        }
+        # Inactive users
+        #
+        # First the ones who will shortly become dormant.
+        $uids = $this->findUsersByFilter($id, Engage::FILTER_INACTIVE);
+        $count += $this->sendUsers(Engage::ATTEMPT_INACTIVE, $uids, "We'll stop sending you emails soon...", "It looks like you’ve not been active on Freegle for a while. So that we don’t clutter your inbox, and to reduce the load on our servers, we’ll stop sending you emails soon.
+
+If you’d still like to get them, then just go to www.ilovefreegle.org and log in to keep your account active.
+
+Maybe you’ve got something lying around that someone else could use, or perhaps there’s something someone else might have?", 'inactive.html');
+
+        # Then the other inactive ones.
+        $uids = $this->findUsersByEngagement($id, Engage::ENGAGEMENT_INACTIVE, 1000);
+        $count += $this->sendUsers(Engage::ATTEMPT_MISSING, $uids, "We miss you!", "We don't think you've freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org", 'missing.html');
 
         return $count;
     }
