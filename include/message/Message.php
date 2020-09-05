@@ -3881,6 +3881,7 @@ ORDER BY lastdate DESC;";
 
     public function mark($outcome, $comment, $happiness, $userid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
+        $intcomment = $this->interestingComment($comment);
 
         $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
         $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
@@ -3888,7 +3889,7 @@ ORDER BY lastdate DESC;";
             $outcome,
             $happiness,
             $userid,
-            $this->interestingComment($comment)
+            $intcomment
         ]);
 
         # You might think that if we are passed a $userid then we could log a renege for any other users to whom
@@ -3913,7 +3914,7 @@ ORDER BY lastdate DESC;";
                 'user' => $this->getFromuser(),
                 'byuser' => ($me && $me->getId()) != $this->getFromuser() ? $this->getFromuser() : NULL,
                 'groupid' => $groupid,
-                'text' => "$outcome $comment"
+                'text' => "$outcome $intcomment"
             ]);
         }
 
@@ -3933,13 +3934,14 @@ ORDER BY lastdate DESC;";
     }
 
     public function withdraw($comment, $happiness) {
+        $intcomment = $this->interestingComment($comment);
         $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
 
         $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
             $this->id,
             Message::OUTCOME_WITHDRAWN,
             $happiness,
-            $this->interestingComment($comment)
+            $intcomment
         ]);
 
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -3950,7 +3952,7 @@ ORDER BY lastdate DESC;";
             'msgid' => $this->id,
             'user' => $this->getFromuser(),
             'byuser' => $me ? $me->getId() : NULL,
-            'text' => "Withdrawn: $comment"
+            'text' => $intcomment ? "Withdrawn: $comment" : "Withdrawn"
         ]);
     }
 

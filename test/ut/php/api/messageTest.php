@@ -1873,6 +1873,7 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'Outcome',
             'outcome' => Message::OUTCOME_TAKEN,
             'happiness' => User::FINE,
+            'comment' => "I'm happy",
             'userid' => $uid
         ]);
         assertEquals(0, $ret['ret']);
@@ -1897,7 +1898,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        # Now withdraw it
+        # Now withdraw it.  Will be ignored as we have an outcome already.
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'Outcome',
@@ -1908,7 +1909,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        # Now get the happiness back.
+        # Now get the happiness back.  Should be 1 because we have one comment.
         $u->setRole(User::ROLE_MODERATOR, $this->gid);
         assertTrue($u->login('testpw'));
         $ret = $this->call('memberships', 'GET', [
@@ -1917,7 +1918,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
         $this->log("Happiness " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        self::assertEquals(2, count($ret['members']));
+        self::assertEquals(1, count($ret['members']));
 
         $m->delete("UT delete");
 
