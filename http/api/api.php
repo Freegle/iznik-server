@@ -532,9 +532,9 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
 
                 if ($apicallretries >= API_RETRIES) {
                     if (strpos($e->getMessage(), 'WSREP has not yet prepared node for application') !== FALSE) {
-                        # Our cluster is sick.  Make it look like maintenance.
-                        $ret = ['ret' => 111, 'status' => 'Cluster not operational'];
-                        echo json_encode($ret);
+                        # Our cluster is unwell.  This can happen if we are rebooting a DB server, so give ourselves
+                        # more time.
+                        $apicallretries = 0;
                     } else {
                         $ret = ['ret' => 997, 'status' => 'DB operation failed after retry', 'exception' => $e->getMessage()];
                         echo json_encode($ret);
