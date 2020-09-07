@@ -57,7 +57,18 @@
         </mj-section>
         <mj-section background-color="#E0E0E0">
           <mj-column>
-            <mj-text font-size="9pt" color="#707070">This mail was sent to&nbsp;{{ email }}&nbsp;because you're a volunteer on&nbsp;{{ groupname }}.
+            <mj-raw>
+            {% if review %}
+            </mj-raw>
+            <mj-text font-size="9pt" color="#707070">This mail was sent to&nbsp;{{ email }}&nbsp;because you're a volunteer on&nbsp;{{ groupname }}.</mj-text>
+            <mj-raw>
+            {% else %}
+            </mj-raw>
+            <mj-text font-size="9pt" color="#707070">This mail was sent to&nbsp;{{ email }}&nbsp;because you've joined&nbsp;{{ groupname }}.</mj-text>
+            <mj-raw>
+            {% endif %}
+            </mj-raw>
+            <mj-text>
               <hr style="border: 0; border-top: 1px solid #AAA; "/>
               Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
             </mj-text>

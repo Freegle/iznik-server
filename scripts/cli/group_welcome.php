@@ -5,14 +5,16 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+global $dbhr, $dbhm;
 
-$opts = getopt('g:e:');
+$opts = getopt('g:e:r:');
 
-if (count($opts) < 2) {
-    echo "Usage: php group_welcome -g <shortname of source group> -e <email>\n";
+if (count($opts) < 3) {
+    echo "Usage: php group_welcome -g <shortname of source group> -e <email> -r review\n";
 } else {
     $group = $opts['g'];
     $email = $opts['e'];
+    $review = $opts['r'];
 
     $g = Group::get($dbhr, $dbhm);
     $gid = $g->findByShortName($group);
@@ -22,5 +24,5 @@ if (count($opts) < 2) {
     $uid = $u->findByEmail($email);
     $u = new User($dbhr, $dbhm, $uid);
 
-    $u->sendWelcome($g->getPrivate('welcomemail'), $gid, NULL, NULL, TRUE);
+    $u->sendWelcome($g->getPrivate('welcomemail'), $gid, NULL, NULL, $review);
 }
