@@ -2715,6 +2715,7 @@ class User extends Entity
         $ret = FALSE;
 
         if ($id1 != $id2 && (($u1->canMerge() && $u2->canMerge()) || ($forcemerge))) {
+            error_log("Go merge");
             #
             # We want to merge two users.  At present we just merge the memberships, comments, emails and logs; we don't try to
             # merge any conflicting settings.
@@ -2742,8 +2743,8 @@ class User extends Entity
                     # Merge the top-level memberships
                     $id2membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = $id2;");
                     foreach ($id2membs as $id2memb) {
-                        # Jiggery-pokery with $rc for UT purposes.
                         $rc2 = $rc;
+                        # Jiggery-pokery with $rc for UT purposes.
                         #error_log("$id2 member of {$id2memb['groupid']} ");
                         $id1membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = $id1 AND groupid = {$id2memb['groupid']};");
 
