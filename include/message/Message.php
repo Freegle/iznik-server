@@ -2825,7 +2825,7 @@ ORDER BY lastdate DESC;";
             ]);
         }
 
-        if ($this->message['heldby']) {
+        if ($this->heldby) {
             # Delete any message hold, which clearly no longer applies.
             $this->release();
         }
@@ -2868,7 +2868,7 @@ ORDER BY lastdate DESC;";
             MessageCollection::APPROVED
         ]);
 
-        if ($this->message['heldby']) {
+        if ($this->heldby) {
             # Delete any message hold, which clearly no longer applies.
             $this->release();
         }
