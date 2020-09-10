@@ -13,7 +13,6 @@ require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
-require_once(IZNIK_BASE . '/mailtemplates/autorepost.php');
 require_once(IZNIK_BASE . '/mailtemplates/chaseup.php');
 
 # We include this directly because the composer version isn't quite right for us - see
@@ -4027,6 +4026,9 @@ ORDER BY lastdate DESC;";
 
                 $now = time();
 
+                $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+                $twig = new Twig_Environment($loader);
+
                 foreach ($messages as $message) {
                     if (ourDomain($message['fromaddr'])) {
                         if ($message['autoreposts'] < $reposts['max']) {
@@ -4069,15 +4071,14 @@ ORDER BY lastdate DESC;";
                                                 $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
                                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                                 $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
-                                                $html = autorepost_warning(USER_SITE,
-                                                    USERLOGO,
-                                                    $subj,
-                                                    $u->getName(),
-                                                    $to,
-                                                    $othertype,
-                                                    $completed,
-                                                    $withdraw
-                                                );
+                                                $html = $twig->render('autorepost.html', [
+                                                    'subject' => $subj,
+                                                    'name' => $u->getName(),
+                                                    'email' => $to,
+                                                    'type' => $othertype,
+                                                    'completed' => $completed,
+                                                    'withdraw' => $withdraw
+                                                ]);
 
                                                 list ($transport, $mailer) = getMailer();
 
@@ -4086,7 +4087,8 @@ ORDER BY lastdate DESC;";
                                                         ->setSubject("Re: " . $subj)
                                                         ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                                         ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
-                                                        ->setTo($to)
+//                                                        ->setTo($to)
+                                                            ->setTo('edward@ehibbert.org.uk')
                                                         ->setBody($text);
 
                                                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
@@ -4099,6 +4101,7 @@ ORDER BY lastdate DESC;";
                                                     $message->attach($htmlPart);
 
                                                     $mailer->send($message);
+                                                    exit(0);
                                                 }
                                             }
                                         }
