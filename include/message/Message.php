@@ -13,7 +13,6 @@ require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
-require_once(IZNIK_BASE . '/mailtemplates/chaseup.php');
 
 # We include this directly because the composer version isn't quite right for us - see
 # https://github.com/php-mime-mail-parser/php-mime-mail-parser/issues/163
@@ -4087,8 +4086,7 @@ ORDER BY lastdate DESC;";
                                                         ->setSubject("Re: " . $subj)
                                                         ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                                         ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
-//                                                        ->setTo($to)
-                                                            ->setTo('edward@ehibbert.org.uk')
+                                                        ->setTo($to)
                                                         ->setBody($text);
 
                                                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
@@ -4101,7 +4099,6 @@ ORDER BY lastdate DESC;";
                                                     $message->attach($htmlPart);
 
                                                     $mailer->send($message);
-                                                    exit(0);
                                                 }
                                             }
                                         }
@@ -4130,6 +4127,9 @@ ORDER BY lastdate DESC;";
 
         # Randomise the order in case the script gets killed or something - gives all groups a chance.
         $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
+
+        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new Twig_Environment($loader);
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
@@ -4188,16 +4188,16 @@ ORDER BY lastdate DESC;";
                                 $repost = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/repost", User::SRC_CHASEUP);
                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                 $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
-                                $html = chaseup(USER_SITE,
-                                    USERLOGO,
-                                    $subj,
-                                    $u->getName(),
-                                    $to,
-                                    $othertype,
-                                    $repost,
-                                    $completed,
-                                    $withdraw
-                                );
+
+                                $html = $twig->render('chaseup.html', [
+                                    'subject' => $subj,
+                                    'name' => $u->getName(),
+                                    'email' => $to,
+                                    'type' => $othertype,
+                                    'repost' => $repost,
+                                    'completed' => $completed,
+                                    'withdraw' => $withdraw
+                                ]);
 
                                 list ($transport, $mailer) = getMailer();
 
@@ -4315,8 +4315,7 @@ ORDER BY lastdate DESC;";
                         # We might get an intended outcome of repost multiple times if they click on the reminder
                         # multiple times with more than 30 minutes in between.  So we shouldn't repost if the
                         # message is not currently eligible to be reposted.
-                        $atts = $m->getPublic(FALSE, FALSE, FALSE);
-                        if ($atts['canrepost']) {
+                        if ($m->canRepost()) {
                             $m->repost();
                             $count++;
                         }
