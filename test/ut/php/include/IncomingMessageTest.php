@@ -166,9 +166,12 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $id = $m->save();
         assertNotNull($id);
 
-        $m->delete();
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(50.123, $m->getPrivate('lat'));
+        assertEquals(-1.234, $m->getPrivate('lng'));
 
-        }
+        $m->delete();
+    }
 
     public function testType() {
         assertEquals(Message::TYPE_OFFER, Message::determineType('OFFER: item (location)'));

@@ -2018,6 +2018,15 @@ ORDER BY lastdate DESC;";
         $ip = preg_replace('/[\[\]]/', '', $ip);
         $this->fromip = $ip;
 
+        $latlng = $this->getHeader('x-trash-nothing-post-coordinates');
+        if ($latlng) {
+            $arr = explode(',', $latlng);
+            if (count($arr)) {
+                $this->lat = $arr[0];
+                $this->lng = $arr[1];
+            }
+        }
+
         # See if we can find a group this is intended for.  Can't trust the To header, as the client adds it,
         # and we might also be CC'd or BCC'd.
         $groupname = NULL;
