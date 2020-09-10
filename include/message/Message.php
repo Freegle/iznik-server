@@ -2816,6 +2816,11 @@ ORDER BY lastdate DESC;";
             ]);
         }
 
+        if ($this->message['heldby']) {
+            # Delete any message hold, which clearly no longer applies.
+            $this->release();
+        }
+
         $this->notif->notifyGroupMods($groupid);
 
         $this->maybeMail($groupid, $subject, $body, 'Reject');
@@ -2853,6 +2858,11 @@ ORDER BY lastdate DESC;";
             $groupid,
             MessageCollection::APPROVED
         ]);
+
+        if ($this->message['heldby']) {
+            # Delete any message hold, which clearly no longer applies.
+            $this->release();
+        }
 
         #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
 
