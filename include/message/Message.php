@@ -3411,7 +3411,7 @@ ORDER BY lastdate DESC;";
                         $outcome,
                         NULL,
                         NULL,
-                        $this->interestingComment($this->getTextbody())
+                        $this->interestingComment($this->stripQuoted($this->getTextbody()))
                     ]);
                 }
 
