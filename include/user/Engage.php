@@ -13,14 +13,13 @@ class Engage
 
     const FILTER_INACTIVE = 'Inactive';
 
-    const ATTEMPT_MISSING = 'Missing';
-    const ATTEMPT_INACTIVE = 'Inactive';
-
+    const ENGAGEMENT_UT = 'UT';
     const ENGAGEMENT_NEW = 'New';
     const ENGAGEMENT_OCCASIONAL = 'Occasional';
     const ENGAGEMENT_FREQUENT = 'Frequent';
     const ENGAGEMENT_OBSESSED = 'Obsessed';
     const ENGAGEMENT_INACTIVE = 'Inactive';
+    const ENGAGEMENT_ATRISK = 'AtRisk';
     const ENGAGEMENT_DORMANT = 'Dormant';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
@@ -256,29 +255,29 @@ class Engage
         }
     }
 
-    public function sendUsers($attempt, $uids, $subject, $textbody, $template) {
+    public function sendUsers($engagement, $uids) {
         $count = 0;
 
         foreach ($uids as $uid) {
             $u = new User($this->dbhr, $this->dbhm, $uid);
-            error_log("Consider $uid");
+            #error_log("Consider $uid");
 
             # Only send to users who have not turned off this kind of mail.
             if ($u->getPrivate('relevantallowed')) {
-                error_log("...allowed by user");
+                #error_log("...allowed by user");
                 try {
                     // ...and who have a membership.
                     $membs = $u->getMemberships(FALSE, Group::GROUP_FREEGLE);
 
                     if (count($membs)) {
                         // ...and where that group allows engagement.
-                        error_log("...has membership");
+                        #error_log("...has membership");
                         $allowed = FALSE;
 
                         foreach ($membs as $memb) {
                             if (!pres('engagement', $memb['settings']) || $memb['settings']['engagement']) {
                                 $allowed = TRUE;
-                                error_log("...allowed by a group");
+                                #error_log("...allowed by a group");
                             }
                         }
 
@@ -289,8 +288,11 @@ class Engage
                             ]);
 
                             if (!$last[0]['last'] || (time() - strtotime($last[0]['last']) > 7 * 24 * 60 * 60)) {
-                                error_log("...not tried recently");
-                                $eid = $this->recordEngage($uid, $attempt, $u->getPrivate('engagement'));
+                                #error_log("...not tried recently");
+                                list ($eid, $mail) = $this->chooseMail($uid, $engagement);
+                                $subject = $mail['subject'];
+                                $textbody = $mail['text'];
+                                $template = $mail['template'] . '.html';
 
                                 list ($transport, $mailer) = getMailer();
                                 $m = Swift_Message::newInstance()
@@ -332,20 +334,55 @@ class Engage
         return $count;
     }
 
-    public function recordEngage($userid, $attempt, $engagement) {
-        $this->dbhm->preExec("INSERT INTO engage (userid, type, engagement, timestamp) VALUES (?, ?, ?, NOW());", [
-            $userid,
-            $attempt,
+    public function chooseMail($userid, $engagement) {
+        # We want to choose a suitable mail to send to this user for their current engagement.  We use similar logic
+        # to abtest, i.e. bandit testing.  We get the benefit of the best option, while still exploring others.
+        # See http://stevehanov.ca/blog/index.php?id=132 for an example description.
+        $variants = $this->dbhr->preQuery("SELECT * FROM engage_mails WHERE engagement = ? ORDER BY rate DESC, RAND();", [
             $engagement
         ]);
 
-        return $this->dbhm->lastInsertId();
+        $r = randomFloat();
+
+        if ($r < 0.1) {
+            # The 10% case we choose a random one of the other options.
+            $s = rand(1, count($variants) - 1);
+            $variant = $variants[$s];
+        } else {
+            # Most of the time we choose the currently best-performing option.
+            $variant = count($variants) > 0 ? $variants[0] : NULL;
+        }
+
+        # Record that we've chosen this one.
+        $this->dbhm->preExec("UPDATE engage_mails SET shown = shown + 1, rate = COALESCE(100 * action / shown, 0) WHERE id = ?;", [
+            $variant['id']
+        ]);
+
+        # And record this specific attempt.
+        $this->dbhm->preExec("INSERT INTO engage (userid, mailid, engagement, timestamp) VALUES (?, ?, ?, NOW());", [
+            $userid,
+            $variant['id'],
+            $engagement
+        ]);
+
+        return [ $this->dbhm->lastInsertId(), $variant ];
     }
 
     public function recordSuccess($id) {
-        $this->dbhm->preExec("UPDATE engage SET succeeded = NOW() WHERE id = ?;", [
+        $engages = $this->dbhr->preQuery("SELECT * FROM engage WHERE id = ?;", [
             $id
         ]);
+
+        foreach ($engages as $engage) {
+            $this->dbhm->preExec("UPDATE engage SET succeeded = NOW() WHERE id = ?;", [
+                $id
+            ]);
+
+            # Update the stats for the corresponding email type.
+            $this->dbhm->preExec("UPDATE engage_mails SET action = action + 1, rate = COALESCE(100 * action / shown, 0) WHERE id = ?;", [
+                $engage['mailid']
+            ]);
+        }
     }
 
     public function process($id = NULL) {
@@ -355,15 +392,11 @@ class Engage
         #
         # First the ones who will shortly become dormant.
         $uids = $this->findUsersByFilter($id, Engage::FILTER_INACTIVE);
-        $count += $this->sendUsers(Engage::ATTEMPT_INACTIVE, $uids, "We'll stop sending you emails soon...", "It looks like you’ve not been active on Freegle for a while. So that we don’t clutter your inbox, and to reduce the load on our servers, we’ll stop sending you emails soon.
-
-If you’d still like to get them, then just go to www.ilovefreegle.org and log in to keep your account active.
-
-Maybe you’ve got something lying around that someone else could use, or perhaps there’s something someone else might have?", 'inactive.html');
+        $count += $this->sendUsers(Engage::ENGAGEMENT_ATRISK, $uids);
 
         # Then the other inactive ones.
-        $uids = $this->findUsersByEngagement($id, Engage::ENGAGEMENT_INACTIVE, 1000);
-        $count += $this->sendUsers(Engage::ATTEMPT_MISSING, $uids, "We miss you!", "We don't think you've freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org", 'missing.html');
+        $uids = $this->findUsersByEngagement($id, Engage::ENGAGEMENT_INACTIVE, 10000);
+        $count += $this->sendUsers(Engage::FILTER_INACTIVE, $uids);
 
         return $count;
     }

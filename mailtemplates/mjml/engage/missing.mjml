@@ -50,14 +50,14 @@
         </mj-section>
         <mj-section background-color="#F7F6EC">
           <mj-column width="33%">
-            <mj-button align="left" href="https://www.ilovefreegle.org/engage?id={{ engageid }}&action=find" background-color="darkblue">
+            <mj-button align="left" href="https://www.ilovefreegle.org/engage?engageid={{ engageid }}&action=find" background-color="darkblue">
               Ask for something
             </mj-button>
           </mj-column>
           <mj-column width="33%">
           </mj-column>
           <mj-column width="33%">
-            <mj-button align="right" href="https://www.ilovefreegle.org/engage?id={{ engageid }}&action=give" background-color="darkgreen">
+            <mj-button align="right" href="https://www.ilovefreegle.org/engage?engageid={{ engageid }}&action=give" background-color="darkgreen">
               Give something
             </mj-button>
           </mj-column>

@@ -346,4 +346,13 @@ class locationsAPITest extends IznikAPITestCase
         assertGreaterThan(0, count($ret['streets']));
 
         }
+
+        public function testEH() {
+            $ret = $this->call('locations', 'GET', [
+                'typeahead' => 'NP26 4AD'
+            ]);
+            assertEquals(0, $ret['ret']);
+            var_export($ret, TRUE);
+
+        }
 }

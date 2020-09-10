@@ -46,6 +46,14 @@ if (!$gid) {
     $dbhm->preExec("INSERT INTO spam_whitelist_links (domain, count) VALUES ('freegle.in', 3);");
 
     $dbhm->preExec("INSERT INTO towns (name, lat, lng, position) VALUES ('Edinburgh', 55.9500,-3.2000, GeomFromText('POINT (-3.2000 55.9500)'));");
+
+    $dbhm->preExec("INSERT INTO `engage_mails` (`id`, `engagement`, `template`, `subject`, `text`, `shown`, `action`, `rate`, `suggest`) VALUES
+(1, 'AtRisk', 'inactive', 'We\'ll stop sending you emails soon...', 'It looks like you’ve not been active on Freegle for a while. So that we don’t clutter your inbox, and to reduce the load on our servers, we’ll stop sending you emails soon.\n\nIf you’d still like to get them, then just go to www.ilovefreegle.org and log in to keep your account active.\n\nMaybe you’ve got something lying around that someone else could use, or perhaps there’s something someone else might have?', 249, 14, '5.62', 1),
+(4, 'Inactive', 'missing', 'We miss you!', 'We don\'t think you\'ve freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org', 4681, 63, '1.35', 1),
+(7, 'AtRisk', 'inactive', 'Do you want to keep receiving Freegle mails?', 'It looks like you’ve not been active on Freegle for a while. So that we don’t clutter your inbox, and to reduce the load on our servers, we’ll stop sending you emails soon.\r\n\r\nIf you’d still like to get them, then just go to www.ilovefreegle.org and log in to keep your account active.\r\n\r\nMaybe you’ve got something lying around that someone else could use, or perhaps there’s something someone else might have?', 251, 8, '3.19', 1),
+(10, 'Inactive', 'missing', 'Time for a declutter?', 'We don\'t think you\'ve freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org', 1257, 8, '0.64', 1),
+(13, 'Inactive', 'missing', 'Anything Freegle can help you get?', 'We don\'t think you\'ve freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org', 1366, 5, '0.37', 1);
+");
 } else {
     error_log("Test environment already set up.");
 }

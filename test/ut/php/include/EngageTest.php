@@ -36,29 +36,7 @@ class engageTest extends IznikTestCase {
         $this->msgsSent[] = $message->toString();
     }
 
-    public function Missing() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
-        $u = new User($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $u->setPrivate('lastaccess', date("Y-m-d", strtotime("3 months ago")));
-        $this->dbhm->preExec("INSERT INTO users_donations (userid, timestamp, GrossAmount) VALUES (?, ?, 0);", [
-            $uid,
-            date("Y-m-d", strtotime('9 months ago'))
-        ]);
-
-        $e = $this->getMockBuilder('Engage')
-            ->setConstructorArgs([$this->dbhm, $this->dbhm])
-            ->setMethods(array('sendOne'))
-            ->getMock();
-        $e->method('sendOne')->will($this->returnCallback(function ($mailer, $message) {
-            return ($this->sendMock($mailer, $message));
-        }));
-
-        assertEquals(1, $e->process($uid));
-    }
-
-    public function testInactive() {
+    public function testAtRisk() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', NULL);
         $u = new User($this->dbhr, $this->dbhm, $uid);
@@ -74,6 +52,14 @@ class engageTest extends IznikTestCase {
         assertEquals(0, $e->process($uid));
         $u->addMembership($this->gid);
         assertEquals(1, $e->process($uid));
+
+        # Record success.
+        $eids = $this->dbhr->preQuery("SELECT * FROM engage WHERE userid = ?;", [
+            $uid
+        ]);
+        assertEquals(1, count($eids));
+
+        $e->recordSuccess($eids[0]['id']);
 
         $sqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE - 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
