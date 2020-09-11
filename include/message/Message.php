@@ -530,7 +530,8 @@ class Message
 
     public $moderatorAtts = [
         'source', 'sourceheader', 'envelopefrom', 'envelopeto', 'messageid', 'tnpostid',
-        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto', 'editedby', 'editedat', 'locationid'
+        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto', 'editedby', 'editedat', 'locationid',
+        'lat', 'lng'
     ];
 
     public $ownerAtts = [
