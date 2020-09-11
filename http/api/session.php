@@ -212,77 +212,90 @@ function session() {
                         if ($modtools) {
                             if (!$components || in_array('work', $components)) {
                                 $ret['work'] = $me->getWorkCounts($ret['groups']);
-                            }
 
-                            # Get Discourse notifications and unread topics, to drive mods through to that site.
-                            if ($me->isFreegleMod()) {
-                                $unreadcount = 0;
-                                $notifcount = 0;
-                                $newcount = 0;
+                                # Get Discourse notifications and unread topics, to drive mods through to that site.
+                                if ($me->isFreegleMod()) {
+                                    $unreadcount = 0;
+                                    $notifcount = 0;
+                                    $newcount = 0;
 
-                                # We need this quick or not at all.  Also need to pass authentication in headers rather
-                                # than URL parameters.
-                                $ctx = stream_context_create(array('http'=> [
-                                    'timeout' => 1,
-                                    "method" => "GET",
-                                    "header" => "Accept-language: en\r\n" .
-                                        "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
-                                        "Api-Username: system\r\n"
-                                ]));
+                                    # We cache the discourse name in the session for speed.  It is very unlikely to change.
+                                    $username = presdef('discoursename', $_SESSION, NULL);
 
-                                # Have to look up the name we need for other API calls by user id.
-                                $username = @file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json', FALSE, $ctx);
-
-                                if ($username) {
-                                    $users = json_decode($username, TRUE);
-
-                                    if (pres('users', $users) && count($users['users'])) {
-                                        $name = $users['users'][0]['username'];
-
+                                    if (!$username) {
+                                        # We need this quick or not at all.  Also need to pass authentication in headers rather
+                                        # than URL parameters.
                                         $ctx = stream_context_create(array('http'=> [
                                             'timeout' => 1,
                                             "method" => "GET",
                                             "header" => "Accept-language: en\r\n" .
                                                 "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
-                                                "Api-Username: $name\r\n"
+                                                "Api-Username: system\r\n"
                                         ]));
 
-                                        $news = @file_get_contents(DISCOURSE_API . '/new.json', FALSE, $ctx);
-                                        $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json', FALSE, $ctx);
-                                        $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json', FALSE, $ctx);
+                                        # Have to look up the name we need for other API calls by user id.
+                                        $username = @file_get_contents(DISCOURSE_API . '/users/by-external/' . $me->getId() . '.json', FALSE, $ctx);
+                                    }
 
-                                        if ($news && $unreads && $notifs) {
-                                            $topics = json_decode($news, TRUE);
+                                    if ($username) {
+                                        $_SESSION['discoursename'] = $username;
+                                        $discourse = presdef('discourse', $_SESSION, NULL);
 
-                                            if (pres('topic_list', $topics)) {
-                                                $newcount = count($topics['topic_list']['topics']);
+                                        if (!$discourse || (time() - presdef('timestamp', $discourse, time()) > 300)) {
+                                            $users = json_decode($username, TRUE);
+
+                                            if (pres('users', $users) && count($users['users'])) {
+                                                $name = $users['users'][0]['username'];
+
+                                                # We don't want to fetch Discourse info too often, for speed.
+
+                                                $ctx = stream_context_create(array('http'=> [
+                                                    'timeout' => 1,
+                                                    "method" => "GET",
+                                                    "header" => "Accept-language: en\r\n" .
+                                                        "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
+                                                        "Api-Username: $name\r\n"
+                                                ]));
+
+                                                $news = @file_get_contents(DISCOURSE_API . '/new.json', FALSE, $ctx);
+                                                $unreads  = @file_get_contents(DISCOURSE_API . '/unread.json', FALSE, $ctx);
+                                                $notifs = @file_get_contents(DISCOURSE_API . '/session/current.json', FALSE, $ctx);
+
+                                                if ($news && $unreads && $notifs) {
+                                                    $topics = json_decode($news, TRUE);
+
+                                                    if (pres('topic_list', $topics)) {
+                                                        $newcount = count($topics['topic_list']['topics']);
+                                                    }
+
+                                                    $topics = json_decode($unreads, TRUE);
+
+                                                    if (pres('topic_list', $topics)) {
+                                                        $unreadcount = count($topics['topic_list']['topics']);
+                                                    }
+
+                                                    $notifs = json_decode($notifs, TRUE);
+                                                    if (pres('unread_notifications', $notifs)) {
+                                                        $notifcount = intval($notifs['unread_notifications']);
+                                                    }
+
+                                                    $_SESSION['discourse'] = [
+                                                        'notifications' => $notifcount,
+                                                        'unreadtopics' => $unreadcount,
+                                                        'newtopics' => $newcount,
+                                                        'tiemstamp' => time()
+                                                    ];
+                                                }
+                                                #error_log("$name notifs $notifcount new topics $newcount unread topics $unreadcount");
                                             }
-
-                                            $topics = json_decode($unreads, TRUE);
-
-                                            if (pres('topic_list', $topics)) {
-                                                $unreadcount = count($topics['topic_list']['topics']);
-                                            }
-
-                                            $notifs = json_decode($notifs, TRUE);
-                                            if (pres('unread_notifications', $notifs)) {
-                                                $notifcount = intval($notifs['unread_notifications']);
-                                            }
-
-                                            $_SESSION['discourse'] = [
-                                                'notifications' => $notifcount,
-                                                'unreadtopics' => $unreadcount,
-                                                'newtopics' => $newcount
-                                            ];
                                         }
-                                        #error_log("$name notifs $notifcount new topics $newcount unread topics $unreadcount");
                                     }
                                 }
-                            }
 
-                            # Using the value from session means we fall back to an old value if we can't get it, e.g.
-                            # for rate-limiting.
-                            $ret['discourse'] = presdef('discourse', $_SESSION, NULL);
+                                # Using the value from session means we fall back to an old value if we can't get it, e.g.
+                                # for rate-limiting.
+                                $ret['discourse'] = presdef('discourse', $_SESSION, NULL);
+                            }
                         }
                     }
                 } else {
