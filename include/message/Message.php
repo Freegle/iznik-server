@@ -4312,7 +4312,7 @@ ORDER BY lastdate DESC;";
         #
         # This is quite common, and helps get more activity even from members who are put to shame by goldfish.
         $msgq = $msgid ? " AND msgid = $msgid " : "";
-        $intendeds = $this->dbhr->preQuery("SELECT * FROM messages_outcomes_intended WHERE TIMESTAMPDIFF(MINUTE, timestamp, NOW()) > 30 AND TIMESTAMPDIFF(DAY, timestamp, NOW()) < 60 $msgq;");
+        $intendeds = $this->dbhr->preQuery("SELECT * FROM messages_outcomes_intended WHERE TIMESTAMPDIFF(MINUTE, timestamp, NOW()) > 30 AND TIMESTAMPDIFF(DAY, timestamp, NOW()) <= 7 $msgq;");
         foreach ($intendeds as $intended) {
             $m = new Message($this->dbhr, $this->dbhm, $intended['msgid']);
 
