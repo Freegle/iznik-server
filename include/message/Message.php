@@ -3270,6 +3270,8 @@ ORDER BY lastdate DESC;";
         $textbody = preg_replace('/^Sent from TypeApp.*/ims', '', $textbody);
         $textbody = preg_replace('/^Enviado a partir do meu smartphone.*/ims', '', $textbody);
         $textbody = preg_replace('/^Getting too many emails from.*Free your inbox.*trashnothing.com/ims', '', $textbody);
+        $textbody = preg_replace('/^Use your phone to browse and post to.*trashnothing.com/ims', '', $textbody);
+        $textbody = preg_replace('/^Get instant email alerts when items.*trashnothing.com/ims', '', $textbody);
         $textbody = preg_replace('/^Try trashnothing.com for quicker and easier access.*!/ims', '', $textbody);
         $textbody = preg_replace('/^Discover a better way to browse.*trashnothing.com/ims', '', $textbody);
 
