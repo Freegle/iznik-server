@@ -51,6 +51,11 @@ function noticeboard() {
             if ($action) {
                 $me = whoAmI($dbhr, $dbhm);
                 $n->action($id, $me ? $me->getId() : NULL, $action, presdef('comments', $_REQUEST, NULL));
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
             } else if ($lat || $lng) {
                 $id = $n->create($name, $lat, $lng, $me ? $me->getId() : NULL, $description);
 

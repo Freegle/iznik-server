@@ -145,6 +145,17 @@ class noticeboardAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(3, count($ret['noticeboard']['checks']));
         assertEquals(1, $ret['noticeboard']['checks'][0]['declined']);
+
+        $ret = $this->call('noticeboard', 'POST', [
+            'id' => $id,
+            'action' => Noticeboard::ACTION_INACTIVE
+        ]);
+        $ret = $this->call('noticeboard', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(4, count($ret['noticeboard']['checks']));
+        assertEquals(1, $ret['noticeboard']['checks'][0]['inactive']);
     }
 }
 

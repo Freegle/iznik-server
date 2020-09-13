@@ -11,6 +11,7 @@ class Noticeboard extends Entity
     const ACTION_REFRESHED = 'Refreshed';
     const ACTION_DECLINED = 'Declined';
     const ACTION_COMMENTS = 'Comments';
+    const ACTION_INACTIVE = 'Inactive';
 
     /** @var  $dbhm LoggedPDO */
     public $publicatts = [ 'id', 'name', 'lat', 'lng', 'added', 'position', 'addedby', 'description', 'active', 'lastcheckedat'];
@@ -158,8 +159,14 @@ class Noticeboard extends Entity
                 ]);
                 break;
             }
+            case self::ACTION_INACTIVE: {
+                $this->dbhm->preExec("INSERT INTO noticeboard_checks (noticeboardid, userid, checkedat, inactive) VALUES (?, ?, NOW(), 1);", [
+                    $id,
+                    $userid
+                ]);
+                break;
+            }
             case self::ACTION_COMMENTS: {
-                error_log("Comments $comments");
                 $this->dbhm->preExec("INSERT INTO noticeboard_checks (noticeboardid, userid, checkedat, comments) VALUES (?, ?, NOW(), ?);", [
                     $id,
                     $userid,
