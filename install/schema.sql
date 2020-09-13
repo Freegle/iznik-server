@@ -2541,13 +2541,13 @@ CREATE TABLE `newsletters_images` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `noticeboard_checks`
+-- Table structure for table `noticeboards_checks`
 --
 
-DROP TABLE IF EXISTS `noticeboard_checks`;
+DROP TABLE IF EXISTS `noticeboards_checks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `noticeboard_checks` (
+CREATE TABLE `noticeboards_checks` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `noticeboardid` bigint(20) unsigned NOT NULL,
   `userid` bigint(20) unsigned DEFAULT NULL,
@@ -2560,8 +2560,8 @@ CREATE TABLE `noticeboard_checks` (
   PRIMARY KEY (`id`),
   KEY `checkedby` (`userid`),
   KEY `noticeboardid` (`noticeboardid`),
-  CONSTRAINT `noticeboard_checks_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `noticeboard_checks_ibfk_2` FOREIGN KEY (`noticeboardid`) REFERENCES `noticeboards` (`id`) ON DELETE CASCADE
+  CONSTRAINT `noticeboards_checks_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `noticeboards_checks_ibfk_2` FOREIGN KEY (`noticeboardid`) REFERENCES `noticeboards` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

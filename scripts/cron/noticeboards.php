@@ -4,6 +4,7 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/noticeboard/Noticeboard.php');
+global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
@@ -17,5 +18,8 @@ foreach ($boards as $board) {
         $users[$board['addedby']] = TRUE;
     }
 }
+
+$n = new Noticeboard($dbhr, $dbhm);
+$n->chaseup();
 
 unlockScript($lockh);

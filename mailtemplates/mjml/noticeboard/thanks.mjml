@@ -44,10 +44,6 @@
               and telling everyone about Freegle really helps in getting the word out there and
             	reducing the amount of waste.
             </mj-text>
-            <mj-text>
-              If you'd like to add more info or check that the location is right, you can do so here:
-            </mj-text>
-            <mj-button href="http://www.ilovefreegle.org/poster/{{ id }}" background-color="#61AE24" font-size="12pt">Edit Details</mj-button>
           </mj-column>
         </mj-section>
         <mj-section background-color="#E0E0E0">
