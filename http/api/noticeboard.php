@@ -41,13 +41,17 @@ function noticeboard() {
             $lat = pres('lat', $_REQUEST) ? floatval($_REQUEST['lat']) : NULL;
             $lng = pres('lng', $_REQUEST) ? floatval($_REQUEST['lng']) : NULL;
             $description = presdef('description', $_REQUEST, NULL);
+            $action = presdef('action', $_REQUEST, NULL);
 
             $ret = [
                 'ret' => 2,
                 'status' => 'Create failed'
             ];
 
-            if ($lat || $lng) {
+            if ($action) {
+                $me = whoAmI($dbhr, $dbhm);
+                $n->action($id, $me ? $me->getId() : NULL, $action, presdef('comments', $_REQUEST, NULL));
+            } else if ($lat || $lng) {
                 $id = $n->create($name, $lat, $lng, $me ? $me->getId() : NULL, $description);
 
                 $ret = [

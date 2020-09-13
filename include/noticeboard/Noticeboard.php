@@ -8,6 +8,10 @@ require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 
 class Noticeboard extends Entity
 {
+    const ACTION_REFRESHED = 'Refreshed';
+    const ACTION_DECLINED = 'Declined';
+    const ACTION_COMMENTS = 'Comments';
+
     /** @var  $dbhm LoggedPDO */
     public $publicatts = [ 'id', 'name', 'lat', 'lng', 'added', 'position', 'addedby', 'description', 'active', 'lastcheckedat'];
     public $settableatts = [ 'name', 'lat', 'lng', 'description', 'active', 'lastcheckedat'];
@@ -44,8 +48,26 @@ class Noticeboard extends Entity
             $atts['addedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
         }
 
-        $atts['addedby'] = ISODate($atts['added']);
+        $atts['added'] = ISODate($atts['added']);
         $atts['lastcheckedat'] = ISODate($atts['lastcheckedat']);
+
+        # Get any info.
+        $atts['checks'] = $this->dbhr->preQuery("SELECT * FROM noticeboard_checks WHERE noticeboardid = ? ORDER BY id DESC;", [
+            $this->id
+        ]);
+
+        foreach ($atts['checks'] as &$check) {
+            foreach (['askedat', 'checkedat'] as $time) {
+                $check[$time] = ISODate($check[$time]);
+            }
+
+            if ($check['userid']) {
+                $u = User::get($this->dbhr, $this->dbhm, $check['userid']);
+                $ctx = NULL;
+                $check['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+                $check['userid'] = NULL;
+            }
+        }
 
         return($atts);
     }
@@ -118,6 +140,34 @@ class Noticeboard extends Entity
 
     public function listAll() {
         return($this->dbhr->preQuery("SELECT id, name, lat, lng FROM noticeboards WHERE name IS NOT NULL AND active = 1"));
+    }
+
+    public function action($id, $userid, $action, $comments = NULL) {
+        switch ($action) {
+            case self::ACTION_REFRESHED: {
+                $this->dbhm->preExec("INSERT INTO noticeboard_checks (noticeboardid, userid, checkedat, refreshed) VALUES (?, ?, NOW(), 1);", [
+                    $id,
+                    $userid
+                ]);
+                break;
+            }
+            case self::ACTION_DECLINED: {
+                $this->dbhm->preExec("INSERT INTO noticeboard_checks (noticeboardid, userid, checkedat, declined) VALUES (?, ?, NOW(), 1);", [
+                    $id,
+                    $userid
+                ]);
+                break;
+            }
+            case self::ACTION_COMMENTS: {
+                error_log("Comments $comments");
+                $this->dbhm->preExec("INSERT INTO noticeboard_checks (noticeboardid, userid, checkedat, comments) VALUES (?, ?, NOW(), ?);", [
+                    $id,
+                    $userid,
+                    $comments
+                ]);
+                break;
+            }
+        }
     }
 }
 

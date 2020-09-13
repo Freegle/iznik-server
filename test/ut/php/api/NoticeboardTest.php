@@ -74,6 +74,7 @@ class noticeboardAPITest extends IznikAPITestCase {
         assertEquals('Test description', $ret['noticeboard']['description']);
         assertEquals(8.5333, $ret['noticeboard']['lat']);
         assertEquals(179.2167, $ret['noticeboard']['lng']);
+        assertEquals($this->uid, $ret['noticeboard']['addedby']['id']);
 
         $ret = $this->call('noticeboard', 'PATCH', [
             'id' => $id,
@@ -94,6 +95,7 @@ class noticeboardAPITest extends IznikAPITestCase {
         assertEquals('Test description2', $ret['noticeboard']['description']);
         assertEquals(9.5333, $ret['noticeboard']['lat']);
         assertEquals(180.2167, $ret['noticeboard']['lng']);
+        assertEquals(0, count($ret['noticeboard']['checks']));
 
         $n = $this->getMockBuilder('Noticeboard')
             ->setConstructorArgs(array($this->dbhm, $this->dbhm))
@@ -107,6 +109,42 @@ class noticeboardAPITest extends IznikAPITestCase {
         $n->thank($this->uid, $id);
         assertEquals(1, count($this->msgsSent));
         assertEquals('Thanks for putting up a poster!', $this->msgsSent[0]);
+
+        # Now updates.
+        $ret = $this->call('noticeboard', 'POST', [
+            'id' => $id,
+            'action' => Noticeboard::ACTION_REFRESHED
+        ]);
+        $ret = $this->call('noticeboard', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['noticeboard']['checks']));
+        assertEquals(1, $ret['noticeboard']['checks'][0]['refreshed']);
+
+        $ret = $this->call('noticeboard', 'POST', [
+            'id' => $id,
+            'action' => Noticeboard::ACTION_COMMENTS,
+            'comments' => 'Test'
+        ]);
+        $ret = $this->call('noticeboard', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(2, count($ret['noticeboard']['checks']));
+        error_log(var_export($ret['noticeboard']['checks']));
+        assertEquals('Test', $ret['noticeboard']['checks'][0]['comments']);
+
+        $ret = $this->call('noticeboard', 'POST', [
+            'id' => $id,
+            'action' => Noticeboard::ACTION_DECLINED
+        ]);
+        $ret = $this->call('noticeboard', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(3, count($ret['noticeboard']['checks']));
+        assertEquals(1, $ret['noticeboard']['checks'][0]['declined']);
     }
 }
 
