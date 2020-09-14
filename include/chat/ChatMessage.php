@@ -182,26 +182,28 @@ class ChatMessage extends Entity
                 #
                 # We also don't want to check for spam in chats between users and mods.
                 $modstatus = $u->getPrivate('chatmodstatus');
-                if ($chattype != ChatRoom::TYPE_USER2MOD &&
-                    !$u->isModerator() &&
-                    ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) &&
-                    ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
-                    $review = ($modstatus == User::CHAT_MODSTATUS_FULLY) || $this->checkReview($message, TRUE, $userid);
-                    $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
-                    # If we decided it was spam then it doesn't need reviewing.
-                    $review = $spam ? 0 : $review;
-                }
+                if ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) {
+                    if ($chattype != ChatRoom::TYPE_USER2MOD &&
+                        !$u->isModerator() &&
+                        ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
+                        $review = ($modstatus == User::CHAT_MODSTATUS_FULLY) || $this->checkReview($message, TRUE, $userid);
+                        $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
-                if (!$review && $type === ChatMessage::TYPE_INTERESTED && $refmsgid) {
-                    # Check if this user is suspicious, e.g. replying to many messages across a large area.
-                    $msg = $this->dbhr->preQuery("SELECT lat, lng FROM messages WHERE id = ?;", [
-                        $refmsgid
-                    ]);
+                        # If we decided it was spam then it doesn't need reviewing.
+                        $review = $spam ? 0 : $review;
+                    }
 
-                    foreach ($msg as $m) {
-                        $s = new Spam($this->dbhr, $this->dbhm);
-                        $review = $s->checkUser($userid, $m['lat'], $m['lng']);
+                    if (!$review && $type === ChatMessage::TYPE_INTERESTED && $refmsgid) {
+                        # Check if this user is suspicious, e.g. replying to many messages across a large area.
+                        $msg = $this->dbhr->preQuery("SELECT lat, lng FROM messages WHERE id = ?;", [
+                            $refmsgid
+                        ]);
+
+                        foreach ($msg as $m) {
+                            $s = new Spam($this->dbhr, $this->dbhm);
+                            $review = $s->checkUser($userid, $m['lat'], $m['lng']);
+                        }
                     }
                 }
             }
