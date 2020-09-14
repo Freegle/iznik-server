@@ -4074,7 +4074,7 @@ class User extends Entity
             $types = [
                 'pendingvolunteering' => [ 'volunteer op', 'volunteerops', '/modtools/volunteering' ],
                 'pendingevents' => [ 'event', 'events', '/modtools/communityevents' ],
-                'socialactions' => [ 'publicity item', 'publicityitems', '/modtools/publicity' ],
+                'socialactions' => [ 'publicity item', 'publicity items', '/modtools/publicity' ],
                 'stories' => [ 'story', 'stories', '/modtools/members/stories' ],
                 'newsletterstories' => [ 'newsletter story', 'newsletter stories', '/modtools/members/newsletter' ],
                 'chatreview' => [ 'chat message to review', 'chat messages to review', '/modtools/chats/review' ],
