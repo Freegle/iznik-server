@@ -761,6 +761,54 @@ class chatRoomsTest extends IznikTestCase {
         assertNull($this->msgsSent[0]['groupid']);
     }
 
+    public function testNotifyUser2ModReviewRequired() {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $u1u = User::get($this->dbhr, $this->dbhm, $u1);
+
+        $u1u->setSetting('notifications', [
+            User::NOTIFS_EMAIL => FALSE
+        ]);
+
+        $u2u = User::get($this->dbhr, $this->dbhm, $u2);
+        $u2u->addMembership($this->groupid, User::ROLE_OWNER);
+
+        $r = new ChatRoom($this->dbhm, $this->dbhm);
+        $id = $r->createUser2Mod($u1, $this->groupid);
+        $this->log("Chat room $id for $u1 <-> group {$this->groupid}");
+        assertNotNull($id);
+
+        # Create a query from the user to the mods
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, "Help me", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
+        $m->setPrivate('reviewrequired', 1);
+        $this->log("Created chat message $cm");
+
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        # Notify mods; we don't notify user of our own by default, but we do mail the mod.
+        $this->msgsSent = [];
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
+        assertNull($this->msgsSent[0]['groupid']);
+    }
+
     public function testEmojiSplit()
     {
         $r = new ChatRoom($this->dbhr, $this->dbhm);

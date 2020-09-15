@@ -1674,9 +1674,9 @@ ORDER BY chat_messages.id, m1.added ASC;";
         # We run this every minute, so we don't need to check too far back.  This keeps it quick.
         $start = date('Y-m-d', strtotime($since));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0 AND reviewrequired = 0 AND chattype = ? $chatq;";
+        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0 AND (reviewrequired = 0 OR chattype = ?) AND chattype = ? $chatq;";
         #error_log("$sql, $start, $chattype");
-        $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
+        $chats = $this->dbhr->preQuery($sql, [$start, ChatRoom::TYPE_USER2MOD, $chattype]);
         #error_log("Chats to scan " . count($chats));
         $notified = 0;
 
@@ -1713,8 +1713,13 @@ ORDER BY chat_messages.id, m1.added ASC;";
 
                 # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they
                 # have changed settings.
+                #
+                # For user2mod chats we want to mail messages even if they are held for chat review, because
+                # chat review only shows user2user chats, and if we don't do this we could delay chats with mods
+                # until the mod next visits the site.
                 $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
-                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.date >= ? ORDER BY id ASC;",
+                $reviewq = $chat['chattype'] === ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
+                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? $reviewq AND reviewrejected = 0 AND chat_messages.date >= ? ORDER BY id ASC;",
                     [
                         $chat['chatid'],
                         $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0,
