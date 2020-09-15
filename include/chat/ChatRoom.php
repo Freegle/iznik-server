@@ -1672,7 +1672,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
         $twig = new Twig_Environment($loader);
 
         # We run this every minute, so we don't need to check too far back.  This keeps it quick.
-        $reviewq = $chat['chattype'] === ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
+        $reviewq = $chattype === ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
         $start = date('Y-m-d', strtotime($since));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0 $reviewq AND chattype = ? $chatq;";
