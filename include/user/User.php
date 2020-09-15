@@ -1309,7 +1309,7 @@ class User extends Entity
         return ($role);
     }
 
-    public function moderatorForUser($userid)
+    public function moderatorForUser($userid, $allowmod = FALSE)
     {
         # There are times when we want to check whether we can administer a user, but when we are not immediately
         # within the context of a known group.  We can administer a user when:
@@ -1320,7 +1320,8 @@ class User extends Entity
             $u = User::get($this->dbhr, $this->dbhm, $userid);
 
             $usermemberships = [];
-            $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member');", [$userid]);
+            $modq = $allowmod ? ", 'Moderator', 'Owner'" : '';
+            $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member' $modq);", [$userid]);
             foreach ($groups as $group) {
                 $usermemberships[] = $group['groupid'];
             }
