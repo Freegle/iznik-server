@@ -37,7 +37,9 @@ class Schedule extends Entity
 
         if (!$this->allowpast && $schedule) {
             $sched = [];
-            $today = strtotime('midnight today');
+
+            // Filter out based on yesterday otherwise BST will result in us filtering out entries from today.
+            $today = strtotime('midnight yesterday');
 
             foreach ($schedule as $s) {
                 if (strtotime($s['date']) >= $today) {
