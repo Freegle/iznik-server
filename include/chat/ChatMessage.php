@@ -166,56 +166,60 @@ class ChatMessage extends Entity
 
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
             $chattype = $r->getPrivate('chattype');
-            $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-            # If the last message in this chat is held for review, then hold this one too.
-            $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? ORDER BY id DESC LIMIT 1;", [
-                $chatid,
-                $userid
-            ]);
+            if ($chattype == ChatRoom::TYPE_USER2USER) {
+                # Holding for review only applies to user2user chats.
+                $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-            if (count($last) && $last[0]['reviewrequired'] || $forcereview) {
-                $review = 1;
-            } else {
-                # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
-                # include user text.
-                #
-                # We also don't want to check for spam in chats between users and mods.
-                $modstatus = $u->getPrivate('chatmodstatus');
+                # If the last message in this chat is held for review, then hold this one too.
+                $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? ORDER BY id DESC LIMIT 1;", [
+                    $chatid,
+                    $userid
+                ]);
 
-                if ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) {
-                    if ($chattype != ChatRoom::TYPE_USER2MOD &&
-                        !$u->isModerator() &&
-                        ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
-                        $review = ($modstatus == User::CHAT_MODSTATUS_FULLY) || $this->checkReview($message, TRUE, $userid);
-                        $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
+                if (count($last) && $last[0]['reviewrequired'] || $forcereview) {
+                    $review = 1;
+                } else {
+                    # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
+                    # include user text.
+                    #
+                    # We also don't want to check for spam in chats between users and mods.
+                    $modstatus = $u->getPrivate('chatmodstatus');
 
-                        # If we decided it was spam then it doesn't need reviewing.
-                        $review = $spam ? 0 : $review;
-                    }
+                    if ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) {
+                        if ($chattype != ChatRoom::TYPE_USER2MOD &&
+                            !$u->isModerator() &&
+                            ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
+                            $review = ($modstatus == User::CHAT_MODSTATUS_FULLY) || $this->checkReview($message, TRUE, $userid);
+                            $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
-                    if (!$review && $type === ChatMessage::TYPE_INTERESTED && $refmsgid) {
-                        # Check if this user is suspicious, e.g. replying to many messages across a large area.
-                        $msg = $this->dbhr->preQuery("SELECT lat, lng FROM messages WHERE id = ?;", [
-                            $refmsgid
-                        ]);
+                            # If we decided it was spam then it doesn't need reviewing.
+                            $review = $spam ? 0 : $review;
+                        }
 
-                        foreach ($msg as $m) {
-                            $s = new Spam($this->dbhr, $this->dbhm);
-                            $review = $s->checkUser($userid, $m['lat'], $m['lng']);
+                        if (!$review && $type === ChatMessage::TYPE_INTERESTED && $refmsgid) {
+                            # Check if this user is suspicious, e.g. replying to many messages across a large area.
+                            $msg = $this->dbhr->preQuery("SELECT lat, lng FROM messages WHERE id = ?;", [
+                                $refmsgid
+                            ]);
+
+                            foreach ($msg as $m) {
+                                $s = new Spam($this->dbhr, $this->dbhm);
+                                $review = $s->checkUser($userid, $m['lat'], $m['lng']);
+                            }
                         }
                     }
                 }
-            }
 
-            if ($review && $type === ChatMessage::TYPE_INTERESTED) {
-                $m = new Message($this->dbhr, $this->dbhm,  $refmsgid);
+                if ($review && $type === ChatMessage::TYPE_INTERESTED) {
+                    $m = new Message($this->dbhr, $this->dbhm,  $refmsgid);
 
-                if (!$refmsgid || $m->hasOutcome()) {
-                    # This looks like spam, and it claims to be a reply - but not to a message we can identify,
-                    # or to one already complete.  We get periodic floods of these in spam attacks.
-                    $spam = 1;
-                    $review = 0;
+                    if (!$refmsgid || $m->hasOutcome()) {
+                        # This looks like spam, and it claims to be a reply - but not to a message we can identify,
+                        # or to one already complete.  We get periodic floods of these in spam attacks.
+                        $spam = 1;
+                        $review = 0;
+                    }
                 }
             }
 
