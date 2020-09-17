@@ -51,7 +51,6 @@ if (array_key_exists('modtools', $_REQUEST) && !defined('MODTOOLS')) {
 
 require_once('../../include/misc/apiheaders.php');
 require_once('../../include/config.php');
-require_once('../../include/session/Session.php');
 
 # We might profile - only the occasional call as it generates a lot of data.
 $xhprof = XHPROF && (mt_rand(0, 1000000) < 1000);

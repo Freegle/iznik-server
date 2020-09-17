@@ -4,10 +4,6 @@ if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
 require_once UT_DIR . '/IznikAPITestCase.php';
-require_once IZNIK_BASE . '/include/mail/MailRouter.php';
-require_once IZNIK_BASE . '/include/user/PushNotifications.php';
-require_once IZNIK_BASE . '/include/group/Twitter.php';
-require_once IZNIK_BASE . '/include/group/Facebook.php';
 
 /**
  * @backupGlobals disabled

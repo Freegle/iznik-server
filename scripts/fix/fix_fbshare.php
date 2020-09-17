@@ -4,7 +4,6 @@
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Facebook.php');
 
 use Facebook\FacebookSession;
 use Facebook\FacebookJavaScriptLoginHelper;

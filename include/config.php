@@ -74,3 +74,5 @@ if (!defined('MMDB')) {
         define('MMDB', '/var/lib/GeoIP/GeoLite2-Country.mmdb');
     }
 }
+
+require_once('../../include/session/Session.php');
