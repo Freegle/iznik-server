@@ -74,7 +74,10 @@ require_once(IZNIK_BASE . '/include/utils.php');
 
 # Include the API call
 $call = pres('call', $_REQUEST);
-require_once(IZNIK_BASE . '/http/api/' . $call . '.php');
+
+if ($call) {
+    require_once(IZNIK_BASE . '/http/api/' . $call . '.php');
+}
 
 use GeoIp2\Database\Reader;
 
