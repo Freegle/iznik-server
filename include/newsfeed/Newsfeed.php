@@ -1,18 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Entity.php');
-require_once(IZNIK_BASE . '/include/misc/Log.php');
-require_once(IZNIK_BASE . '/include/misc/Mail.php');
-require_once(IZNIK_BASE . '/include/misc/Location.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/message/Message.php');
-require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
-require_once(IZNIK_BASE . '/include/group/Volunteering.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
-require_once(IZNIK_BASE . '/include/user/Story.php');
-require_once(IZNIK_BASE . '/include/misc/Preview.php');
-require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 

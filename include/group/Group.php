@@ -1,12 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Entity.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
-require_once(IZNIK_BASE . '/include/misc/Shortlink.php');
-require_once(IZNIK_BASE . '/include/message/Attachment.php');
-require_once(IZNIK_BASE . '/include/group/Facebook.php');
 
 class Group extends Entity
 {

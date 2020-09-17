@@ -1,11 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Mail.php');
-require_once(IZNIK_BASE . '/include/misc/Search.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/message/Message.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/wrapper.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/one.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/off.php');

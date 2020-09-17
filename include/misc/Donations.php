@@ -1,9 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/user/Address.php');
-require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 class Donations
 {

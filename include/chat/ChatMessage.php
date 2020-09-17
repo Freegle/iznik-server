@@ -1,13 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Entity.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/user/Address.php');
-require_once(IZNIK_BASE . '/include/message/Message.php');
-require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
-require_once(IZNIK_BASE . '/include/user/Schedule.php');
-require_once(IZNIK_BASE . '/include/spam/Spam.php');
 
 class ChatMessage extends Entity
 {

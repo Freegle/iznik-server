@@ -1,9 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Log.php');
-require_once(IZNIK_BASE . '/include/message/Item.php');
-require_once(IZNIK_BASE . '/include/misc/Image.php');
 
 use Jenssegers\ImageHash\ImageHash;
 //use Google\Cloud\VideoIntelligence\V1\VideoIntelligenceServiceClient;

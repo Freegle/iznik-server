@@ -1,7 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
 
 if (!function_exists('getallheaders')) {
     function getallheaders() {

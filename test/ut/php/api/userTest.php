@@ -4,12 +4,6 @@ if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
 require_once UT_DIR . '/IznikAPITestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/mail/MailRouter.php';
-require_once IZNIK_BASE . '/include/message/MessageCollection.php';
-require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
-require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
 /**
  * @backupGlobals disabled
@@ -782,11 +776,15 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
+//        $this->dbhr->errorLog = TRUE;
+//        $this->dbhm->errorLog = TRUE;
 
         # Trigger a notification check - should mark this as active.
         $ret = $this->call('notification', 'GET', [
             'count' => TRUE
         ]);
+        error_log(var_export($ret, TRUE));
+        return;
         $this->waitBackground();
 
         self::assertEquals(1, count($this->user->getActive()));

@@ -1,7 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Entity.php');
 
 use LinkPreview\LinkPreview;
 

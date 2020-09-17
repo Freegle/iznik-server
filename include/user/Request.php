@@ -1,10 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Entity.php');
-require_once(IZNIK_BASE . '/include/misc/Mail.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards.php');
 require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards_mods.php');
 

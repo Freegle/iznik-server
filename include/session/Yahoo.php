@@ -2,9 +2,6 @@
 
 require_once("/etc/iznik.conf");
 require_once(IZNIK_BASE . '/lib/openid.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/session/Session.php');
-require_once(IZNIK_BASE . '/include/misc/Log.php');
 
 class Yahoo
 {

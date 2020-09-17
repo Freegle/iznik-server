@@ -51,6 +51,7 @@ if (array_key_exists('modtools', $_REQUEST) && !defined('MODTOOLS')) {
 
 require_once('../../include/misc/apiheaders.php');
 require_once('../../include/config.php');
+require_once('../../include/session/Session.php');
 
 # We might profile - only the occasional call as it generates a lot of data.
 $xhprof = XHPROF && (mt_rand(0, 1000000) < 1000);
@@ -69,105 +70,12 @@ if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
 
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
-require_once(IZNIK_BASE . '/include/session/Session.php');
-require_once(IZNIK_BASE . '/include/session/Yahoo.php');
-require_once(IZNIK_BASE . '/include/session/Facebook.php');
-require_once(IZNIK_BASE . '/include/session/Google.php');
-require_once(IZNIK_BASE . '/include/session/Apple.php');
-require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
-require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
-require_once(IZNIK_BASE . '/include/message/Item.php');
-require_once(IZNIK_BASE . '/include/message/Visualise.php');
-require_once(IZNIK_BASE . '/include/user/Nearby.php');
-require_once(IZNIK_BASE . '/include/user/Search.php');
-require_once(IZNIK_BASE . '/include/user/Request.php');
-require_once(IZNIK_BASE . '/include/user/Story.php');
-require_once(IZNIK_BASE . '/include/user/Address.php');
-require_once(IZNIK_BASE . '/include/misc/PAF.php');
-require_once(IZNIK_BASE . '/include/misc/Donations.php');
-require_once(IZNIK_BASE . '/include/misc/Authority.php');
-require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
-require_once(IZNIK_BASE . '/include/noticeboard/Noticeboard.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
-require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
-require_once(IZNIK_BASE . '/include/user/Schedule.php');
-require_once(IZNIK_BASE . '/include/group/Alerts.php');
-require_once(IZNIK_BASE . '/include/group/Admin.php');
-require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
-require_once(IZNIK_BASE . '/include/group/Volunteering.php');
-require_once(IZNIK_BASE . '/include/group/Twitter.php');
-require_once(IZNIK_BASE . '/include/group/Facebook.php');
-require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
-require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
-require_once(IZNIK_BASE . '/include/misc/AdView.php');
-require_once(IZNIK_BASE . '/include/misc/Polls.php');
-require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
-require_once(IZNIK_BASE . '/include/misc/Image.php');
-require_once(IZNIK_BASE . '/include/misc/Search.php');
-require_once(IZNIK_BASE . '/include/misc/Shortlink.php');
-require_once(IZNIK_BASE . '/include/config/ModConfig.php');
-require_once(IZNIK_BASE . '/include/config/StdMessage.php');
-require_once(IZNIK_BASE . '/include/config/BulkOp.php');
-require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
-require_once(IZNIK_BASE . '/include/user/Team.php');
-require_once(IZNIK_BASE . '/include/booktastic/Catalogue.php');
 
-# Include each API call
-require_once(IZNIK_BASE . '/http/api/abtest.php');
-require_once(IZNIK_BASE . '/http/api/adview.php');
-require_once(IZNIK_BASE . '/http/api/authority.php');
-require_once(IZNIK_BASE . '/http/api/activity.php');
-require_once(IZNIK_BASE . '/http/api/alert.php');
-require_once(IZNIK_BASE . '/http/api/admin.php');
-require_once(IZNIK_BASE . '/http/api/address.php');
-require_once(IZNIK_BASE . '/http/api/changes.php');
-require_once(IZNIK_BASE . '/http/api/session.php');
-require_once(IZNIK_BASE . '/http/api/modconfig.php');
-require_once(IZNIK_BASE . '/http/api/stdmsg.php');
-require_once(IZNIK_BASE . '/http/api/bulkop.php');
-require_once(IZNIK_BASE . '/http/api/comment.php');
-require_once(IZNIK_BASE . '/http/api/dashboard.php');
-require_once(IZNIK_BASE . '/http/api/donations.php');
-require_once(IZNIK_BASE . '/http/api/giftaid.php');
-require_once(IZNIK_BASE . '/http/api/error.php');
-require_once(IZNIK_BASE . '/http/api/export.php');
-require_once(IZNIK_BASE . '/http/api/messages.php');
-require_once(IZNIK_BASE . '/http/api/message.php');
-require_once(IZNIK_BASE . '/http/api/newsfeed.php');
-require_once(IZNIK_BASE . '/http/api/noticeboard.php');
-require_once(IZNIK_BASE . '/http/api/invitation.php');
-require_once(IZNIK_BASE . '/http/api/item.php');
-require_once(IZNIK_BASE . '/http/api/usersearch.php');
-require_once(IZNIK_BASE . '/http/api/merge.php');
-require_once(IZNIK_BASE . '/http/api/memberships.php');
-require_once(IZNIK_BASE . '/http/api/spammers.php');
-require_once(IZNIK_BASE . '/http/api/group.php');
-require_once(IZNIK_BASE . '/http/api/groups.php');
-require_once(IZNIK_BASE . '/http/api/communityevent.php');
-require_once(IZNIK_BASE . '/http/api/user.php');
-require_once(IZNIK_BASE . '/http/api/chatrooms.php');
-require_once(IZNIK_BASE . '/http/api/chatmessages.php');
-require_once(IZNIK_BASE . '/http/api/locations.php');
-require_once(IZNIK_BASE . '/http/api/logo.php');
-require_once(IZNIK_BASE . '/http/api/image.php');
-require_once(IZNIK_BASE . '/http/api/catalogue.php');
-require_once(IZNIK_BASE . '/http/api/profile.php');
-require_once(IZNIK_BASE . '/http/api/socialactions.php');
-require_once(IZNIK_BASE . '/http/api/src.php');
-require_once(IZNIK_BASE . '/http/api/poll.php');
-require_once(IZNIK_BASE . '/http/api/request.php');
-require_once(IZNIK_BASE . '/http/api/schedule.php');
-require_once(IZNIK_BASE . '/http/api/shortlink.php');
-require_once(IZNIK_BASE . '/http/api/stories.php');
-require_once(IZNIK_BASE . '/http/api/status.php');
-require_once(IZNIK_BASE . '/http/api/volunteering.php');
-require_once(IZNIK_BASE . '/http/api/notification.php');
-require_once(IZNIK_BASE . '/http/api/mentions.php');
-require_once(IZNIK_BASE . '/http/api/logs.php');
-require_once(IZNIK_BASE . '/http/api/visualise.php');
-require_once(IZNIK_BASE . '/http/api/domains.php');
-require_once(IZNIK_BASE . '/http/api/team.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+
+# Include the API call
+$call = pres('call', $_REQUEST);
+require_once(IZNIK_BASE . '/http/api/' . $call . '.php');
 
 use GeoIp2\Database\Reader;
 
@@ -189,7 +97,6 @@ if (array_key_exists('model', $_REQUEST)) {
     unset($_REQUEST['model']);
 }
 
-$call = pres('call', $_REQUEST);
 
 if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
     # We don't bother returning different values for different calls.

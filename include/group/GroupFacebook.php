@@ -1,13 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Entity.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/message/Message.php');
-require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
-require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
 use Facebook\FacebookSession;
 use Facebook\FacebookJavaScriptLoginHelper;

@@ -1,18 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/message/Message.php');
-require_once(IZNIK_BASE . '/include/misc/Log.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/spam/Spam.php');
-require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
-require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
-require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
-require_once(IZNIK_BASE . '/include/mail/Digest.php');
-require_once(IZNIK_BASE . '/include/mail/EventDigest.php');
-require_once(IZNIK_BASE . '/include/mail/VolunteeringDigest.php');
-require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
-require_once(IZNIK_BASE . '/include/mail/Relevant.php');
 
 if (!class_exists('spamc')) {
     require_once(IZNIK_BASE . '/lib/spamc.php');

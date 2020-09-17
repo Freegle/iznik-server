@@ -1,10 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Entity.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
-require_once(IZNIK_BASE . '/include/user/Story.php');
 
 use Abraham\TwitterOAuth\TwitterOAuth;
 

@@ -12,6 +12,17 @@ if (!defined('IZNIK_BASE')) {
     define('IZNIK_BASE', dirname(__FILE__) . '/..');
     require_once(IZNIK_BASE . '/composer/vendor/autoload.php');
 
+    # Autoload for our code.
+    spl_autoload_register(function ($class_name) {
+        foreach ([ '/', 'user/', 'session/', 'group/', 'message/', 'misc/', 'chat/', 'newsfeed/', 'spam/', 'config/', 'dashboard/', 'mail/', 'noticeboard/' ] as $dir) {
+            $fn = IZNIK_BASE . '/include/' . $dir . $class_name . '.php';
+
+            if (file_exists($fn)) {
+                require_once $fn;
+            }
+        }
+    });
+
     define('DUPLICATE_POST_PROTECTION', 10); # Set to 0 to disable
     define('API_RETRIES', 5);
     define('REDIS_TTL', 30);

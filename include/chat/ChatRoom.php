@@ -4,14 +4,6 @@ use Pheanstalk\Pheanstalk;
 use Egulias\EmailValidator\EmailValidator;
 use Egulias\EmailValidator\Validation\RFCValidation;
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Entity.php');
-require_once(IZNIK_BASE . '/include/misc/Mail.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/misc/Mail.php');
-require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
-require_once(IZNIK_BASE . '/include/session/Facebook.php');
-require_once(IZNIK_BASE . '/include/spam/Spam.php');
-require_once(IZNIK_BASE . '/include/user/Schedule.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_chaseup_mod.php');
 
 class ChatRoom extends Entity

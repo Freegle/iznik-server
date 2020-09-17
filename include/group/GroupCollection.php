@@ -1,7 +1,5 @@
 <?php
 
-require_once(IZNIK_BASE . '/include/group/Group.php');
-
 class GroupCollection
 {
     /**

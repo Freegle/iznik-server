@@ -1,23 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Entity.php');
-require_once(IZNIK_BASE . '/include/session/Session.php');
-require_once(IZNIK_BASE . '/include/misc/Log.php');
-require_once(IZNIK_BASE . '/include/misc/Mail.php');
-require_once(IZNIK_BASE . '/include/misc/AdView.php');
-require_once(IZNIK_BASE . '/include/spam/Spam.php');
-require_once(IZNIK_BASE . '/include/config/ModConfig.php');
-require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
-require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
-require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
-require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
-require_once(IZNIK_BASE . '/include/user/Engage.php');
-require_once(IZNIK_BASE . '/include/misc/Location.php');
-require_once(IZNIK_BASE . '/include/misc/Donations.php');
-require_once(IZNIK_BASE . '/include/message/Attachment.php');
-require_once(IZNIK_BASE . '/include/group/GroupCollection.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');

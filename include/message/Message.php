@@ -1,18 +1,6 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Log.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/message/Attachment.php');
-require_once(IZNIK_BASE . '/include/message/Item.php');
-require_once(IZNIK_BASE . '/include/message/WorryWords.php');
-require_once(IZNIK_BASE . '/include/user/Search.php');
-require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
-require_once(IZNIK_BASE . '/include/misc/Image.php');
-require_once(IZNIK_BASE . '/include/misc/Location.php');
-require_once(IZNIK_BASE . '/include/misc/Search.php');
-require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 
 # We include this directly because the composer version isn't quite right for us - see
 # https://github.com/php-mime-mail-parser/php-mime-mail-parser/issues/163
