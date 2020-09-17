@@ -776,15 +776,11 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
 
         # Trigger a notification check - should mark this as active.
         $ret = $this->call('notification', 'GET', [
             'count' => TRUE
         ]);
-        error_log(var_export($ret, TRUE));
-        return;
         $this->waitBackground();
 
         self::assertEquals(1, count($this->user->getActive()));
