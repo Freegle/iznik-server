@@ -72,16 +72,6 @@ global $dbhr, $dbhm;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
-# Include the API call
-$call = pres('call', $_REQUEST);
-
-if ($call) {
-    $fn = IZNIK_BASE . '/http/api/' . $call . '.php';
-    if (file_exists($fn)) {
-        require_once($fn);
-    }
-}
-
 use GeoIp2\Database\Reader;
 
 $includetime = microtime(true) - $scriptstart;
@@ -102,6 +92,15 @@ if (array_key_exists('model', $_REQUEST)) {
     unset($_REQUEST['model']);
 }
 
+# Include the API call
+$call = pres('call', $_REQUEST);
+
+if ($call) {
+    $fn = IZNIK_BASE . '/http/api/' . $call . '.php';
+    if (file_exists($fn)) {
+        require_once($fn);
+    }
+}
 
 if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
     # We don't bother returning different values for different calls.
