@@ -108,8 +108,7 @@ class statsTest extends IznikTestCase {
         assertEquals(0, $stats['ApprovedMemberCount']);
         assertEquals([], $stats['PostMethodBreakdown']);
         assertEquals([], $stats['MessageBreakdown']);
-
-        }
+     }
 
     public function testHeatmap() {
         $l = new Location($this->dbhr, $this->dbhm);
@@ -143,6 +142,6 @@ class statsTest extends IznikTestCase {
         $this->log("Heatmap " . var_export($map, TRUE));
         assertGreaterThan(0, count($map));
 
-        }
+    }
 }
 

@@ -244,13 +244,20 @@ class dashboardTest extends IznikAPITestCase {
         # Move message to approved for stats.
         $m->approve($gid);
 
+        # Trigger a notification check which also records us as active.
+        $this->call('notification', 'GET', [
+            'count' => TRUE
+        ]);
+
         # Generate stats so they exist to query.
+        $this->waitBackground();
         $s = new Stats($this->dbhr, $this->dbhm, $gid);
         $s->generate(date('Y-m-d'));
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
-                Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT
+                Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT,
+                Dashboard::COMPONENTS_ACTIVE_USERS
             ],
             'start' => date('Y-m-d'),
             'end' => date('Y-m-d', strtotime('tomorrow')),
@@ -260,6 +267,8 @@ class dashboardTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT]));
         assertEquals(1, $ret['components'][Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT][0]['count']);
+        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_ACTIVE_USERS]));
+        assertEquals(1, $ret['components'][Dashboard::COMPONENTS_ACTIVE_USERS][0]['count']);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [

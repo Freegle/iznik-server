@@ -25,6 +25,7 @@ class Stats
     CONST WEIGHT = 'Weight';
     CONST OUTCOMES = 'Outcomes';
     CONST REPLIES = 'Replies';
+    CONST ACTIVE_USERS = 'ActiveUsers'; // 30 day active window
 
     CONST TYPE_COUNT = 1;
     CONST TYPE_BREAKDOWN = 2;
@@ -289,6 +290,19 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $this->setCount($date, Stats::WEIGHT, $weight);
         }
 
+        if ($type === NULL || in_array(Stats::ACTIVE_USERS, $type)) {
+            $start = date('Y-m-d', strtotime("30 days ago", strtotime($date)));
+            $end = date('Y-m-d', strtotime("tomorrow", strtotime($date)));
+            $sql = "SELECT COUNT(DISTINCT(users_active.userid)) AS count FROM users_active INNER JOIN memberships ON memberships.userid = users_active.userid WHERE users_active.timestamp >= ? AND users_active.timestamp < ? AND groupid = ?;";
+            $active = $this->dbhr->preQuery($sql, [
+                $start,
+                $end,
+                $this->groupid,
+            ]);
+
+            $this->setCount($date, Stats::ACTIVE_USERS, $active[0]['count']);
+        }
+
         if ($type === NULL || in_array(Stats::ACTIVITY, $type)) {
             $this->setCount($date, Stats::ACTIVITY, $activity);
         }
@@ -298,20 +312,21 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
     {
         $stats = $this->dbhr->preQuery("SELECT * FROM stats WHERE date = ? AND groupid = ?;", [ $date, $this->groupid ]);
         $ret = [
-                Stats::APPROVED_MESSAGE_COUNT => 0,
-                Stats::APPROVED_MEMBER_COUNT => 0,
-                Stats::SPAM_MESSAGE_COUNT => 0,
-                Stats::SPAM_MEMBER_COUNT => 0,
-                Stats::SUPPORTQUERIES_COUNT => 0,
-                Stats::FEEDBACK_FINE => 0,
-                Stats::FEEDBACK_HAPPY => 0,
-                Stats::FEEDBACK_UNHAPPY => 0,
-                Stats::SEARCHES => 0,
-                Stats::ACTIVITY => 0,
-                Stats::WEIGHT => 0,
-                Stats::REPLIES => 0,
-                Stats::MESSAGE_BREAKDOWN => [],
-                Stats::POST_METHOD_BREAKDOWN => []
+            Stats::APPROVED_MESSAGE_COUNT => 0,
+            Stats::APPROVED_MEMBER_COUNT => 0,
+            Stats::SPAM_MESSAGE_COUNT => 0,
+            Stats::SPAM_MEMBER_COUNT => 0,
+            Stats::SUPPORTQUERIES_COUNT => 0,
+            Stats::FEEDBACK_FINE => 0,
+            Stats::FEEDBACK_HAPPY => 0,
+            Stats::FEEDBACK_UNHAPPY => 0,
+            Stats::SEARCHES => 0,
+            Stats::ACTIVITY => 0,
+            Stats::WEIGHT => 0,
+            Stats::REPLIES => 0,
+            Stats::MESSAGE_BREAKDOWN => [],
+            Stats::POST_METHOD_BREAKDOWN => [],
+            Stats::ACTIVE_USERS => 0
         ];
 
         foreach ($stats as $stat) {
@@ -328,6 +343,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                 case Stats::WEIGHT:
                 case Stats::ACTIVITY:
                 case Stats::REPLIES:
+                case Stats::ACTIVE_USERS:
                     $ret[$stat['type']] = $stat['count'];
                     break;
                 case Stats::MESSAGE_BREAKDOWN:

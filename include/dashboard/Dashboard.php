@@ -386,11 +386,8 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
             }
 
             if (in_array(Dashboard::COMPONENTS_ACTIVE_USERS, $components) && $ismod) {
-                # Monthly active users.
-                $ret[Dashboard::COMPONENTS_ACTIVE_USERS] = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count, CONCAT(YEAR(timestamp), '-', LPAD(MONTH(timestamp),2,'0'), '-', '01') AS date FROM users_active WHERE timestamp >= ? AND timestamp <= ? GROUP BY date ORDER BY date ASC", [
-                        $start,
-                        $end
-                ]);
+                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::ACTIVE_USERS ]);
+                $ret[Dashboard::COMPONENTS_ACTIVE_USERS] = $stats[Stats::ACTIVE_USERS];
             }
         }
 
