@@ -4,7 +4,6 @@
 # from a source such as OpenStreetMap (OSM).
 require_once dirname(__FILE__) . '/../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/session/Session.php');
 global $dbhr, $dbhm;
 
 $g = new Group($dbhr, $dbhm);

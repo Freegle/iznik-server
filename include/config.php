@@ -75,4 +75,4 @@ if (!defined('MMDB')) {
     }
 }
 
-require_once('../../include/session/Session.php');
+require_once(IZNIK_BASE . '/include/session/Session.php');
