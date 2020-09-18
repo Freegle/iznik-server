@@ -95,18 +95,19 @@ class GroupFacebook {
     public function getPostsToShare($sharefrom, $since = "last week") {
         $fb = $this->getFB(TRUE, TRUE);
         $count = 0;
+        error_log("Scrape posts from $sharefrom");
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
             $url = $sharefrom . "/feed?limit=100&&fields=id,link,message,type,caption,icon,name,full_picture";
-            #error_log("Get from feed $url, {$this->token}");
+            error_log("Get from feed $url, {$this->token}");
             $ret = $fb->get($url, $this->token);
-            #error_log("Got ok");
+            error_log("Got ok");
 
             $posts = $ret->getDecodedBody();
 
             foreach ($posts['data'] as $wallpost) {
-                #error_log("Got " . json_encode($wallpost));
+                error_log("Got " . json_encode($wallpost));
                 $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [
                     $sharefrom,
                     $wallpost['id'],
@@ -126,7 +127,7 @@ class GroupFacebook {
             }
         } catch (Exception $e) {
             $code = $e->getCode();
-            error_log("Failed code $code message " . $e->getMessage() . " token " . $this->token);
+            error_log("Failed to scrape code $code message " . $e->getMessage() . " token " . $this->token);
         }
 
         return($count);
