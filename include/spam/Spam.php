@@ -1,6 +1,7 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
 use GeoIp2\Database\Reader;
 use LanguageDetection\Language;
