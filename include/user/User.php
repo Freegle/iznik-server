@@ -1,7 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');
