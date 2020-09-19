@@ -746,7 +746,7 @@ function message() {
     }
 
     if ($ret['ret'] == 2) {
-        error_log("Message permission issue " . var_export($_REQUEST, TRUE));
+        error_log("Message permission issue role $role " . var_export($_REQUEST, TRUE));
     }
 
     return($ret);
