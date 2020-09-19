@@ -8,6 +8,9 @@ use Redis;
 require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/TestCase.php';
 require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert/Functions.php';
 
+// We are hitting an error with $_SESSION not defined in some case that I can't location.  This stops that happening.
+@session_start();
+
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
@@ -23,12 +26,6 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     public function log($str) {
         if (IznikTestCase::DEBUG) {
             error_log($str);
-        }
-    }
-
-    public function __construct() {
-        if (session_status() == PHP_SESSION_NONE) {
-            @session_start();
         }
     }
 
