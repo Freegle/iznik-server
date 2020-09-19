@@ -193,7 +193,7 @@ class sessionTest extends IznikAPITestCase
             'settings' => ['test' => 1],
             'displayname' => "Testing User",
             'email' => 'test2@test.com',
-            'onholidaytill' => ISODate('@' . time()),
+            'onholidaytill' => Utils::ISODate('@' . time()),
             'relevantallowed' => 0,
             'newslettersallowed' => 0,
             'notifications' => [
@@ -470,7 +470,7 @@ class sessionTest extends IznikAPITestCase
         global $sessionPrepared;
         $sessionPrepared = FALSE;
 
-        $key = randstr(64);
+        $key = Utils::randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
         assertNotNull($id);
         list ($partner, $domain) = Session::partner($this->dbhr, 'wibble');
@@ -648,7 +648,7 @@ class sessionTest extends IznikAPITestCase
         $newsfeedid = NULL;
         foreach ($ret['newsfeed'] as $n) {
             error_log(var_export($n, TRUE));
-            if (presdef('userid', $n, 0) == $id && $n['type'] == Newsfeed::TYPE_ABOUT_ME && strcmp($n['message'], 'Something long and interesting about me') === 0) {
+            if (Utils::presdef('userid', $n, 0) == $id && $n['type'] == Newsfeed::TYPE_ABOUT_ME && strcmp($n['message'], 'Something long and interesting about me') === 0) {
                 $found = TRUE;
                 $newsfeedid = $n['id'];
             }
@@ -673,7 +673,7 @@ class sessionTest extends IznikAPITestCase
         $newsfeedid = NULL;
         foreach ($ret['newsfeed'] as $n) {
             error_log(var_export($n, TRUE));
-            if ($n['id'] == $newsfeedid && presdef('userid', $n, 0) == $id && $n['type'] == Newsfeed::TYPE_ABOUT_ME && strcmp($n['message'], 'Something else long and interesting about me') === 0) {
+            if ($n['id'] == $newsfeedid && Utils::presdef('userid', $n, 0) == $id && $n['type'] == Newsfeed::TYPE_ABOUT_ME && strcmp($n['message'], 'Something else long and interesting about me') === 0) {
                 $found = TRUE;
             }
         }
@@ -728,7 +728,7 @@ class sessionTest extends IznikAPITestCase
 
         $found = FALSE;
 
-        foreach (presdef('members', $ret, []) as $member) {
+        foreach (Utils::presdef('members', $ret, []) as $member) {
             if ($member['id'] == $id1) {
                 $found = TRUE;
                 assertEquals($id2, $member['relatedto']['id']);
@@ -805,7 +805,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
-        assertFalse(pres('phone', $ret['me']));
+        assertFalse(Utils::pres('phone', $ret['me']));
     }
 
     public function testVersion() {

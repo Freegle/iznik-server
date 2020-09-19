@@ -5,7 +5,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -100,16 +100,16 @@ if (count($opts) < 1) {
                             error_log("Old chat {$oldroom['chattype']}, {$oldroom['groupid']}, {$oldroom['user1']}, {$oldroom['user2']}");
                             $sql = "SELECT * FROM chat_rooms WHERE chattype = '{$oldroom['chattype']}' ";
 
-                            if (pres('groupid', $oldroom)) {
+                            if (Utils::pres('groupid', $oldroom)) {
                                 $sql .= "AND groupid = {$oldroom['groupid']} ";
                             }
 
-                            if (pres('user1', $oldroom)) {
+                            if (Utils::pres('user1', $oldroom)) {
                                 $i = $oldroom['user1'] == $buid ? $luid : $oldroom['user1'];
                                 $sql .= " AND user1 = $i";
                             }
 
-                            if (pres('user2', $oldroom)) {
+                            if (Utils::pres('user2', $oldroom)) {
                                 $i = $oldroom['user2'] == $buid ? $luid : $oldroom['user2'];
                                 $sql .= " AND user2 = $i";
                             }

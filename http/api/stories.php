@@ -6,13 +6,13 @@ function stories() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    $id = presdef('id', $_REQUEST, NULL);
-    $groupid = presdef('groupid', $_REQUEST, NULL);
+    $id = Utils::presdef('id', $_REQUEST, NULL);
+    $groupid = Utils::presdef('groupid', $_REQUEST, NULL);
     $reviewed = intval(array_key_exists('reviewed', $_REQUEST) ? $_REQUEST['reviewed'] : 1);
     $story = array_key_exists('story', $_REQUEST) ? filter_var($_REQUEST['story'], FILTER_VALIDATE_BOOLEAN) : TRUE;
     $newsletter = array_key_exists('newsletter', $_REQUEST) ? filter_var($_REQUEST['newsletter'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $reviewnewsletter = array_key_exists('reviewnewsletter', $_REQUEST) ? filter_var($_REQUEST['reviewnewsletter'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $limit = intval(presdef('limit', $_REQUEST, 20));
+    $limit = intval(Utils::presdef('limit', $_REQUEST, 20));
     $s = new Story($dbhr, $dbhm, $id);
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
@@ -85,9 +85,9 @@ function stories() {
             if ($me) {
                 $id = $s->create($me->getId(),
                     array_key_exists('public', $_REQUEST) ? filter_var($_REQUEST['public'], FILTER_VALIDATE_BOOLEAN) : FALSE,
-                    presdef('headline', $_REQUEST, NULL),
-                    presdef('story', $_REQUEST, NULL),
-                    intval(presdef('photo', $_REQUEST, NULL)));
+                    Utils::presdef('headline', $_REQUEST, NULL),
+                    Utils::presdef('story', $_REQUEST, NULL),
+                    intval(Utils::presdef('photo', $_REQUEST, NULL)));
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
@@ -119,7 +119,7 @@ function stories() {
 
         case 'POST': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            $action = presdef('action', $_REQUEST, Story::LIKE);
+            $action = Utils::presdef('action', $_REQUEST, Story::LIKE);
 
             if ($me) {
                 switch ($action) {

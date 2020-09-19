@@ -3,7 +3,7 @@ namespace Freegle\Iznik;
 
 use Redis;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 # Base class used for groups, users, messages, with some basic fetching and attribute manipulation.
 class Entity
@@ -69,7 +69,7 @@ class Entity
     }
 
     public function getPrivate($att) {
-        if (pres($att, $this->{$this->name})) {
+        if (Utils::pres($att, $this->{$this->name})) {
             return($this->{$this->name}[$att]);
         } else {
             return(NULL);
@@ -81,11 +81,11 @@ class Entity
 
         $edit = [];
         foreach ($new as $att => $val) {
-            $oldval = json_encode(pres($att, $old) ? $old[$att] : NULL);
+            $oldval = json_encode(Utils::pres($att, $old) ? $old[$att] : NULL);
             if ($oldval != json_encode($val)) {
                 $edit[] = [
                     $att => [
-                        'old' => pres($att, $old) ? $old[$att] : NULL,
+                        'old' => Utils::pres($att, $old) ? $old[$att] : NULL,
                         'new' => $val
                     ]
                 ];

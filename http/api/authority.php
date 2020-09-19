@@ -4,8 +4,8 @@ namespace Freegle\Iznik;
 function authority() {
     global $dbhr, $dbhm;
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $search = presdef('search', $_REQUEST, NULL);
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $search = Utils::presdef('search', $_REQUEST, NULL);
     $stats = array_key_exists('stats', $_REQUEST) ? filter_var($_REQUEST['stats'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $a = new Authority($dbhr, $dbhm, $id);

@@ -5,22 +5,22 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$lockh = lockScript(basename(__FILE__));
+$lockh = Utils::lockScript(basename(__FILE__));
 
 $opts = getopt('u:l:x:s:t:');
 
 if (count($opts) < 4) {
     echo "Usage: php user_exhort.php -u url -l title -x text -s since\n";
 } else {
-    $url = presdef('u', $opts, NULL);
-    $title = presdef('l', $opts, NULL);
-    $text = presdef('x', $opts, NULL);
-    $since = presdef('s', $opts, NULL);
-    $until = presdef('t', $opts, NULL);
+    $url = Utils::presdef('u', $opts, NULL);
+    $title = Utils::presdef('l', $opts, NULL);
+    $text = Utils::presdef('x', $opts, NULL);
+    $since = Utils::presdef('s', $opts, NULL);
+    $until = Utils::presdef('t', $opts, NULL);
 
     $n = new Notifications($dbhr, $dbhm);
     $u = new User($dbhr, $dbhm);
@@ -51,4 +51,4 @@ if (count($opts) < 4) {
     error_log("\n\nSent $sent");
 }
 
-unlockScript($lockh);
+Utils::unlockScript($lockh);

@@ -10,10 +10,10 @@ require_once(IZNIK_BASE . '/mailtemplates/story.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 global $dbhr, $dbhm;
 
-$lockh = lockScript(basename(__FILE__));
+$lockh = Utils::lockScript(basename(__FILE__));
 
 $users = $dbhr->preQuery("SELECT userid FROM polls_users WHERE pollid = 3 AND response LIKE '%All%';");
-list ($transport, $mailer) = getMailer();
+list ($transport, $mailer) = Mail::getMailer();
 
 $count = 0;
 
@@ -44,4 +44,4 @@ foreach ($users as $user) {
 
 error_log("Sent $count");
 
-unlockScript($lockh);
+Utils::unlockScript($lockh);

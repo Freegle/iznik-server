@@ -4,11 +4,11 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$lockh = lockScript(basename(__FILE__));
+$lockh = Utils::lockScript(basename(__FILE__));
 
 $now = date("Y-m-d H:i:s", time());
 
@@ -62,4 +62,4 @@ while (($line = fgets($handle)) !== false) {
     }
 }
 
-unlockScript($lockh);
+Utils::unlockScript($lockh);

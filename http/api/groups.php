@@ -11,7 +11,7 @@ function groups() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $grouptype = presdef('grouptype', $_REQUEST, NULL);
+            $grouptype = Utils::presdef('grouptype', $_REQUEST, NULL);
             $support = array_key_exists('support', $_REQUEST) ? filter_var($_REQUEST['support'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
             $ret = [

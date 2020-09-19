@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -27,7 +27,7 @@ $isbndb = $dbhr->preQuery("SELECT * FROM booktastic_isbndb;");
 $newones = [];
 
 foreach ($isbndb as $isbn) {
-    if (pres('results', $isbn)) {
+    if (Utils::pres('results', $isbn)) {
         $res = json_decode($isbn['results'], TRUE);
 
         if ($res) {
@@ -39,7 +39,7 @@ foreach ($isbndb as $isbn) {
                         $normauthor = $c->normaliseAuthor($author);
                         $normtitle = $c->normaliseTitle($title);
 
-                        if (!pres("$normauthor - $normtitle", $newones)) {
+                        if (!Utils::pres("$normauthor - $normtitle", $newones)) {
                             $res = $client->search([
                                 'index' => 'booktastic',
                                 'body' => [

@@ -6,11 +6,11 @@ $_SERVER['HTTP_HOST'] = "ilovefreegle.org";
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 
-$lockh = lockScript(basename(__FILE__));
+$lockh = Utils::lockScript(basename(__FILE__));
 
 $n = new Newsfeed($dbhr, $dbhm);
 $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 1 AND publish = 1 AND nameshort LIKE '%edinburgh%' ORDER BY RAND();");
@@ -41,4 +41,4 @@ foreach ($groups as $group) {
     }
 }
 
-unlockScript($lockh);
+Utils::unlockScript($lockh);

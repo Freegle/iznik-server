@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
@@ -180,7 +180,7 @@ class Newsfeed extends Entity
         for ($entindex = 0; $entindex < count($entries); $entindex++) {
             $entries[$entindex]['threadhead'] = $threadhead;
 
-            if (pres('replies', $entries[$entindex])) {
+            if (Utils::pres('replies', $entries[$entindex])) {
                 $this->setThreadHead($entries[$entindex]['replies'], $threadhead);
             }
         }
@@ -191,9 +191,9 @@ class Newsfeed extends Entity
         $users = [];
 
         // Where does this thread start?
-        if (pres('threadhead', $atts)) {
+        if (Utils::pres('threadhead', $atts)) {
             $threadhead = $atts['threadhead'];
-        } else if (pres('replyto', $atts)) {
+        } else if (Utils::pres('replyto', $atts)) {
             $threadhead = $atts['replyto'];
         } else {
             $threadhead = $atts['id'];
@@ -206,18 +206,18 @@ class Newsfeed extends Entity
 
         $atts = $entries[0];
 
-        if ($anyreplies && pres('replies', $atts)) {
+        if ($anyreplies && Utils::pres('replies', $atts)) {
             # We may already have some or all of the reply users in users.
             $this->addUsers($users, array_column($atts['replies'], 'userid'));
 
             foreach ($atts['replies'] as &$reply) {
-                if (pres('userid', $reply)) {
+                if (Utils::pres('userid', $reply)) {
                     $reply['user'] = $users[$reply['userid']];
                 }
             }
         }
 
-        if (pres('replies', $atts)) {
+        if (Utils::pres('replies', $atts)) {
             $this->setThreadHead($atts['replies'], $threadhead);
         }
 
@@ -240,8 +240,8 @@ class Newsfeed extends Entity
             $atts['unfollowed'] = $this->unfollowed($myid, $this->id);
         }
 
-        if (pres('userid', $atts)) {
-            if (!pres($atts['userid'], $users)) {
+        if (Utils::pres('userid', $atts)) {
+            if (!Utils::pres($atts['userid'], $users)) {
                 $this->addUsers($users, [ $atts['userid']]);
             }
 
@@ -301,18 +301,16 @@ class Newsfeed extends Entity
                     $entries[$entindex]['message'] = trim($entries[$entindex]['message']);
                 }
 
-                $use = !presdef('reviewrequired', $entries[$entindex], FALSE) && !presdef('deleted', $entries[$entindex], FALSE);
+                $use = !Utils::presdef('reviewrequired', $entries[$entindex], FALSE) && !Utils::presdef('deleted', $entries[$entindex], FALSE);
 
-                #error_log("Use $use for type {$entries[$entindex]['type']} from " . presdef('reviewrequired', $entries[$entindex], FALSE) . "," . presdef('deleted', $entries[$entindex], FALSE));
+                #error_log("Use $use for type {$entries[$entindex]['type']} from " . Utils::presdef('reviewrequired', $entries[$entindex], FALSE) . "," . Utils::presdef('deleted', $entries[$entindex], FALSE));
 
                 if ($use) {
-                    global $urlPattern;
-
-                    if (preg_match_all($urlPattern, $entries[$entindex]['message'], $matches)) {
+                    if (preg_match_all(Utils::URL_PATTERN, $entries[$entindex]['message'], $matches)) {
                         foreach ($matches as $val) {
                             foreach ($val as $url) {
                                 # We just might have repeated previews of the same URL.
-                                if (pres($url, $previews)) {
+                                if (Utils::pres($url, $previews)) {
                                     $entries[$entindex]['preview'] = $previews[$url];
                                 } else {
                                     $p = new Preview($this->dbhr, $this->dbhm);
@@ -329,12 +327,12 @@ class Newsfeed extends Entity
                         }
                     }
 
-                    if (pres('msgid', $entries[$entindex])) {
+                    if (Utils::pres('msgid', $entries[$entindex])) {
                         $m = new Message($this->dbhr, $this->dbhm, $entries[$entindex]['msgid']);
                         $entries[$entindex]['refmsg'] = $m->getPublic(FALSE, FALSE);
                     }
 
-                    if (pres('eventid', $entries[$entindex])) {
+                    if (Utils::pres('eventid', $entries[$entindex])) {
                         $e = new CommunityEvent($this->dbhr, $this->dbhm, $entries[$entindex]['eventid']);
                         $use = FALSE;
                         #error_log("Consider event " . $e->getPrivate('pending') . ", " . $e->getPrivate('deleted'));
@@ -342,14 +340,14 @@ class Newsfeed extends Entity
                             $atts = $e->getPublic();
 
                             # Events must contain a group.
-                            if (pres('groups', $atts) && count($atts['groups'])) {
+                            if (Utils::pres('groups', $atts) && count($atts['groups'])) {
                                 $use = TRUE;
                                 $entries[$entindex]['communityevent'] = $atts;
                             }
                         }
                     }
 
-                    if (pres('volunteeringid', $entries[$entindex])) {
+                    if (Utils::pres('volunteeringid', $entries[$entindex])) {
                         $v = new Volunteering($this->dbhr, $this->dbhm, $entries[$entindex]['volunteeringid']);
                         $use = FALSE;
                         #error_log("Consider volunteering " . $v->getPrivate('pending') . ", " . $v->getPrivate('deleted'));
@@ -359,7 +357,7 @@ class Newsfeed extends Entity
                         }
                     }
 
-                    if (pres('publicityid', $entries[$entindex])) {
+                    if (Utils::pres('publicityid', $entries[$entindex])) {
                         $pubs = $this->dbhr->preQuery("SELECT postid, data FROM groups_facebook_toshare WHERE id = ?;", [ $entries[$entindex]['publicityid'] ]);
 
                         if (preg_match('/(.*)_(.*)/', $pubs[0]['postid'], $matches)) {
@@ -373,14 +371,14 @@ class Newsfeed extends Entity
                                 'id' => $entries[$entindex]['publicityid'],
                                 'postid' => $pubs[0]['postid'],
                                 'iframe' => '<iframe class="completefull" src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>',
-                                'full_picture' => presdef('full_picture', $data, NULL),
-                                'message' => presdef('message', $data, NULL),
-                                'type' => presdef('type', $data, NULL)
+                                'full_picture' => Utils::presdef('full_picture', $data, NULL),
+                                'message' => Utils::presdef('message', $data, NULL),
+                                'type' => Utils::presdef('type', $data, NULL)
                             ];
                         }
                     }
 
-                    if (pres('storyid', $entries[$entindex])) {
+                    if (Utils::pres('storyid', $entries[$entindex])) {
                         $s = new Story($this->dbhr, $this->dbhm, $entries[$entindex]['storyid']);
                         $use = FALSE;
                         #error_log("Consider story " . $s->getPrivate('reviewed') . ", " . $s->getPrivate('public'));
@@ -390,7 +388,7 @@ class Newsfeed extends Entity
                         }
                     }
 
-                    if (pres('imageid', $entries[$entindex])) {
+                    if (Utils::pres('imageid', $entries[$entindex])) {
                         foreach ($images as $image) {
                             if ($image->getId() == $entries[$entindex]['imageid']) {
                                 $entries[$entindex]['image'] = $image->getPublic();
@@ -398,10 +396,10 @@ class Newsfeed extends Entity
                         }
                     }
 
-                    $entries[$entindex]['timestamp'] = ISODate($entries[$entindex]['timestamp']);
+                    $entries[$entindex]['timestamp'] = Utils::ISODate($entries[$entindex]['timestamp']);
 
-                    if (pres('added', $entries[$entindex])) {
-                        $entries[$entindex]['added'] = ISODate($entries[$entindex]['added']);
+                    if (Utils::pres('added', $entries[$entindex])) {
+                        $entries[$entindex]['added'] = Utils::ISODate($entries[$entindex]['added']);
                     }
 
                     $entries[$entindex]['loves'] = 0;
@@ -451,7 +449,7 @@ class Newsfeed extends Entity
                                         $replies[$index]['hidden'] = NULL;
                                     }
 
-                                    if (pres('userid', $reply)) {
+                                    if (Utils::pres('userid', $reply)) {
                                         $replies[$index]['user'] = $users[$reply['userid']];
                                     }
 
@@ -514,14 +512,14 @@ class Newsfeed extends Entity
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
             # We return most recent first.
-            $tq = pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
+            $tq = Utils::pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
             $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert')) AND $tq" : $tq;
             $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
             # We might have pinned some posts in a previous call.  Don't show them again.
             $pinq = '';
 
-            if (pres('pinned', $ctx)) {
+            if (Utils::pres('pinned', $ctx)) {
                 $pinq = " AND newsfeed.id NOT IN (";
                 $sep = '';
 
@@ -598,7 +596,7 @@ class Newsfeed extends Entity
                     }
                 }
 
-                if (pres('replies', $entry)) {
+                if (Utils::pres('replies', $entry)) {
                     $this->setThreadHead($entry['replies'], $entry['id']);
                 }
 
@@ -611,7 +609,7 @@ class Newsfeed extends Entity
                 }
 
                 $ctx = [
-                    'timestamp' => ISODate($entry['timestamp']),
+                    'timestamp' => Utils::ISODate($entry['timestamp']),
                     'distance' => $dist
                 ];
 
@@ -766,7 +764,7 @@ class Newsfeed extends Entity
                 ->setTo([SUPPORT_ADDR => 'Freegle'])
                 ->setBody("They reported this thread\r\n\r\nhttps://" . USER_SITE . "/chitchat/{$this->id}\r\n\r\n...with this message:\r\n\r\n$reason");
 
-            list ($transport, $mailer) = getMailer();
+            list ($transport, $mailer) = Mail::getMailer();
             $this->sendIt($mailer, $message);
         }
     }
@@ -815,14 +813,14 @@ class Newsfeed extends Entity
             $twigitems = [];
             $max = 0;
 
-            $oldest = ISODate(date("Y-m-d H:i:s", strtotime("14 days ago")));
+            $oldest = Utils::ISODate(date("Y-m-d H:i:s", strtotime("14 days ago")));
 
             foreach ($feeds as &$feed) {
                 #error_log("Compare {$feed['userid']} vs $userid, unseen $unseen, feed {$feed['id']} vs $lastseen, timestamp {$feed['timestamp']} vs $oldest");
                 if ($feed['userid'] != $userid &&
                     (!$unseen || $feed['id'] > $lastseen) &&
                     $feed['timestamp'] > $oldest &&
-                    (pres('message', $feed) || $feed['type'] == Newsfeed::TYPE_STORY) &&
+                    (Utils::pres('message', $feed) || $feed['type'] == Newsfeed::TYPE_STORY) &&
                     !$feed['deleted']) {
                     $str = $feed['message'];
 
@@ -834,7 +832,7 @@ class Newsfeed extends Entity
                         case Newsfeed::TYPE_NOTICEBOARD: {
                             $n = json_decode($feed['message'], TRUE);
 
-                            if (pres('name', $n)) {
+                            if (Utils::pres('name', $n)) {
                                 $str = "I put up a poster for Freegle: \"{$n['name']}\"                           ";
                             }
 
@@ -868,7 +866,7 @@ class Newsfeed extends Entity
 
                         $textsumm .= $fromname . " posted '$str'\n";
 
-                        if (pres('replies', $feed)) {
+                        if (Utils::pres('replies', $feed)) {
                             # Just keep the last five replies.
                             $feed['replies'] = array_slice($feed['replies'], -5);
                             #error_log("Got " . count($feed['replies']));
@@ -934,7 +932,7 @@ class Newsfeed extends Entity
                 Mail::addHeaders($message, Mail::NEWSFEED, $u->getId());
 
                 error_log("..." . $u->getEmailPreferred() . " send $count");
-                list ($transport, $mailer) = getMailer();
+                list ($transport, $mailer) = Mail::getMailer();
                 $this->sendIt($mailer, $message);
             }
         }
@@ -1056,7 +1054,7 @@ class Newsfeed extends Entity
                 Mail::addHeaders($message, Mail::NEWSFEED_MODNOTIF, $mod->getId());
 
                 error_log("..." . $mod->getEmailPreferred() . " send $count");
-                list ($transport, $mailer) = getMailer();
+                list ($transport, $mailer) = Mail::getMailer();
                 $this->sendIt($mailer, $message);
             }
         }

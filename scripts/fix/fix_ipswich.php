@@ -2,7 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
 $msgs = $dbhr->preQuery("select date, subject from messages inner join messages_groups on messages.id = messages_groups.msgid and groupid = 21483 where date < '2016-10-01' and msgtype = 'Offer' order by date asc;");

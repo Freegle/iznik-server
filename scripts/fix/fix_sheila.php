@@ -2,7 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 error_log("Start at " . date("Y-m-d H:i:s"));
@@ -16,7 +16,7 @@ if ($uid) {
     $track = [];
 
     foreach ($membs as $memb) {
-        if (pres('settings', $memb)) {
+        if (Utils::pres('settings', $memb)) {
             $settings = json_decode($memb['settings'], TRUE);
             error_log("{$memb['groupid']} active {$settings['active']}");
 

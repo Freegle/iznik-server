@@ -233,7 +233,7 @@ class LoggedPDO {
                 $logparams = var_export($params, TRUE);
                 $logparams = substr($logparams, 0, LoggedPDO::MAX_LOG_SIZE);
                 $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" .
-                    presdef('id', $_SESSION, 'NULL') .
+                    Utils::presdef('id', $_SESSION, 'NULL') .
                     ", '$mysqltime', $duration, " .
                     $this->quote(session_id()) . "," .
                     $this->quote($sql . ", " . $this->quote($logparams)) . "," .
@@ -243,7 +243,7 @@ class LoggedPDO {
         }
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for "  . substr($sql, 0, 256) . " " . var_export($params, TRUE));
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for "  . substr($sql, 0, 256) . " " . var_export($params, TRUE));
         }
 
         return($ret);
@@ -303,7 +303,7 @@ class LoggedPDO {
         $this->dbwaittime += microtime(true) - $start;
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256));
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256));
         }
 
         return($ret);
@@ -364,7 +364,7 @@ class LoggedPDO {
         $this->dbwaittime += microtime(true) - $start;
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256) . " ");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256) . " ");
         }
 
         return($ret);
@@ -399,13 +399,13 @@ class LoggedPDO {
         $mysqltime = date("Y-m-d H:i:s", time());
 
         if ($this->sqllog) {
-            $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
+            $myid = defined('_SESSION') ? Utils::presdef('id', $_SESSION, 'NULL') : 'NULL';
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('ROLLBACK;') . "," . $this->quote($rc) . ");";
             $this->background($logsql);
         }
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for rollback");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for rollback");
         }
 
         return($rc);
@@ -420,12 +420,12 @@ class LoggedPDO {
         $this->dbwaittime += $duration;
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $this->transactionStart) * 1000), 2) . "ms for beginTransaction");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $this->transactionStart) * 1000), 2) . "ms for beginTransaction");
         }
 
         if ($this->sqllog) {
             $mysqltime = date("Y-m-d H:i:s", time());
-            $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
+            $myid = defined('_SESSION') ? Utils::presdef('id', $_SESSION, 'NULL') : 'NULL';
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('BEGIN TRANSACTION;') . "," . $this->quote($ret . ":" . $this->lastInsert) . ");";
             $this->background($logsql);
         }
@@ -447,12 +447,12 @@ class LoggedPDO {
         $this->dbwaittime += $duration;
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for commit");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for commit");
         }
 
         if ($this->sqllog) {
             $mysqltime = date("Y-m-d H:i:s", time());
-            $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
+            $myid = defined('_SESSION') ? Utils::presdef('id', $_SESSION, 'NULL') : 'NULL';
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('COMMIT;') . "," . $this->quote($rc) . ");";
             $this->background($logsql);
         }
@@ -472,7 +472,7 @@ class LoggedPDO {
 
         if ($log && $this->sqllog) {
             $mysqltime = date("Y-m-d H:i:s", time());
-            $myid = defined('_SESSION') ? presdef('id', $_SESSION, 'NULL') : 'NULL';
+            $myid = defined('_SESSION') ? Utils::presdef('id', $_SESSION, 'NULL') : 'NULL';
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql) . "," . $this->quote($ret . ":" . $this->lastInsert) . ");";
             $this->background($logsql);
         }
@@ -480,7 +480,7 @@ class LoggedPDO {
         $this->dbwaittime += $duration;
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for exec $sql");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for exec $sql");
         }
 
         return($ret);
@@ -548,7 +548,7 @@ class LoggedPDO {
         } while (!$done && $count < 10);
 
         if ($this->errorLog) {
-            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for background " . substr($sql, 0, 256));
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for background " . substr($sql, 0, 256));
         }
 
         return($fn);

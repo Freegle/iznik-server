@@ -35,7 +35,7 @@ class twitterTest extends IznikTestCase {
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);
         $atts = $t->getPublic();
 
-        if (!pres($atts, 'secret')) {
+        if (!Utils::pres($atts, 'secret')) {
             $t->set('FreeglePlaygrnd', PLAYGROUND_TOKEN, PLAYGROUND_SECRET);
         }
 

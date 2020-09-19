@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
 
 $start = date('Y-m-d', strtotime("3 days ago"));

@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 use Minishlink\WebPush\WebPush;
 use Pheanstalk\Pheanstalk;
@@ -42,13 +42,13 @@ class PushNotifications
     public function get($userid)
     {
         # Cache the notification - saves a DB call in GET of session, which is very common.
-        $ret = presdef('notification', $_SESSION, []);
+        $ret = Utils::presdef('notification', $_SESSION, []);
 
         if (!$ret) {
             $sql = "SELECT * FROM users_push_notifications WHERE userid = ?;";
             $notifs = $this->dbhr->preQuery($sql, [$userid]);
             foreach ($notifs as &$notif) {
-                $notif['added'] = ISODate($notif['added']);
+                $notif['added'] = Utils::ISODate($notif['added']);
                 $ret[] = $notif;
             }
 
@@ -345,7 +345,7 @@ class PushNotifications
             $settings = $u->getGroupSettings($groupid);
 
             if (!array_key_exists('pushnotify', $settings) || $settings['pushnotify']) {
-                #error_log("Notify {$mod['userid']} for $groupid notify " . presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
+                #error_log("Notify {$mod['userid']} for $groupid notify " . Utils::presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
                 $count += $this->notify($mod['userid'], TRUE);
             }
         }
@@ -410,7 +410,7 @@ class PushNotifications
     public function executePoke($userid, $data, $modtools)
     {
         # This kicks a user who is online at the moment with an outstanding long poll.
-        filterResult($data);
+        Utils::filterResult($data);
 
         # We want to POST to notify.  We can speed this up using a persistent socket.
         $service_uri = "/publish?id=$userid";

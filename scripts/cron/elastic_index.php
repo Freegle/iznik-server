@@ -3,7 +3,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -89,7 +89,7 @@ if (count($opts) < 1) {
             'body' => [
                 'subject' => $m->getSubject(),
                 'textbody' => $m->getTextbody(),
-                'arrival' => ISODate($message['arrival']),
+                'arrival' => Utils::ISODate($message['arrival']),
                 'msgtype' => $m->getType() == Message::TYPE_OFFER ? 0 : 1,
                 'location' => [
                     'lat' => $m->getPrivate('lat'),

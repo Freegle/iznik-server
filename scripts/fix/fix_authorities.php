@@ -5,7 +5,7 @@ define('SQLLOG', FALSE);
 # bugs.  So find such multipolygons and use the largest of its multipolygons instead.
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 $i = 0;

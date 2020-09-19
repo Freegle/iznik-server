@@ -25,7 +25,7 @@ function invitation()
 
         case 'PUT': {
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
-            $email = presdef('email', $_REQUEST, NULL);
+            $email = Utils::presdef('email', $_REQUEST, NULL);
 
             if ($myid && $email) {
                 $me->invite($email);
@@ -38,8 +38,8 @@ function invitation()
         }
 
         case 'PATCH': {
-            $id = intval(presdef('id', $_REQUEST, NULL));
-            $outcome = presdef('outcome', $_REQUEST, User::INVITE_ACCEPTED);
+            $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+            $outcome = Utils::presdef('outcome', $_REQUEST, User::INVITE_ACCEPTED);
 
             if ($id) {
                 $u = new User($dbhr, $dbhm);

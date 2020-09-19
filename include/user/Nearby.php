@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/relevant/nearby.php');
 
 class Nearby
@@ -23,7 +23,7 @@ class Nearby
     }
 
     public function messages($groupid) {
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
         $count = 0;
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
@@ -159,11 +159,11 @@ class Nearby
             foreach ($users as $user) {
                 $name = NULL;
 
-                if (pres('fullname', $user)) {
+                if (Utils::pres('fullname', $user)) {
                     $name = $user['fullname'];
-                } else if (pres('firstname', $user) || pres('lastname', $user)) {
-                    $first = pres('firstname', $user);
-                    $last = pres('lastname', $user);
+                } else if (Utils::pres('firstname', $user) || Utils::pres('lastname', $user)) {
+                    $first = Utils::pres('firstname', $user);
+                    $last = Utils::pres('lastname', $user);
 
                     $name = $first && $last ? "$first $last" : ($first ? $first : $last);
                 }
@@ -173,7 +173,7 @@ class Nearby
                     $ret[$user['userid']]['displayname'] = $name;
 
                     # Need decoded settings to get the profile.
-                    $ret[$user['userid']]['settings'] = json_decode(presdef('settings', $user, '[]'), TRUE);
+                    $ret[$user['userid']]['settings'] = json_decode(Utils::presdef('settings', $user, '[]'), TRUE);
                 }
             }
 

@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 use Facebook\FacebookSession;
 use Facebook\FacebookJavaScriptLoginHelper;
@@ -45,8 +45,8 @@ class GroupFacebook {
             $ret[$att] = $this->$att;
         }
 
-        $ret['authdate'] = ISODate($ret['authdate']);
-        $ret['msgarrival'] = ISODate($ret['msgarrival']);
+        $ret['authdate'] = Utils::ISODate($ret['authdate']);
+        $ret['msgarrival'] = Utils::ISODate($ret['msgarrival']);
 
         return($ret);
     }
@@ -113,7 +113,7 @@ class GroupFacebook {
 
             foreach ($posts['data'] as $wallpost) {
                 error_log("Got " . json_encode($wallpost));
-                if (!pres('created_time', $wallpost) || (strtotime($wallpost['created_time']) >= strtotime($since))) {
+                if (!Utils::pres('created_time', $wallpost) || (strtotime($wallpost['created_time']) >= strtotime($since))) {
                     error_log("Include");
                     $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [
                         $sharefrom,
@@ -197,9 +197,9 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         unset($remaining[$post['id']]['uid']);
                         $remaining[$post['id']]['uids'] = [];
                         $data = json_decode($post['data'], TRUE);
-                        $remaining[$post['id']]['full_picture'] = presdef('full_picture', $data, NULL);
-                        $remaining[$post['id']]['message'] = presdef('message', $data, NULL);
-                        $remaining[$post['id']]['type'] = presdef('type', $data, NULL);
+                        $remaining[$post['id']]['full_picture'] = Utils::presdef('full_picture', $data, NULL);
+                        $remaining[$post['id']]['message'] = Utils::presdef('message', $data, NULL);
+                        $remaining[$post['id']]['type'] = Utils::presdef('type', $data, NULL);
 
                         if (preg_match('/(.*)_(.*)/', $post['postid'], $matches)) {
                             # Create the iframe version of the Facebook plugin.

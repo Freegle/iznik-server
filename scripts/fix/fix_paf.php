@@ -3,7 +3,7 @@
 # Run on backup server to recover a user from a backup to the live system.  Use with astonishing levels of caution.
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsn = "mysql:host=localhost;port=3309;dbname=iznik;charset=utf8";

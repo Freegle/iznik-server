@@ -255,7 +255,7 @@ class userAPITest extends IznikAPITestCase {
             'id' => $this->uid2
         ]);
         assertEquals(0, $ret['ret']);
-        assertFalse(pres('onholidaytill', $ret['user']));
+        assertFalse(Utils::pres('onholidaytill', $ret['user']));
 
         $ret = $this->call('user', 'PATCH', [
             'id' => $this->uid2,
@@ -283,7 +283,7 @@ class userAPITest extends IznikAPITestCase {
             'id' => $this->uid2
         ]);
         assertEquals(0, $ret['ret']);
-        assertFalse(pres('onholidaytill', $ret['user']));
+        assertFalse(Utils::pres('onholidaytill', $ret['user']));
 
         }
 
@@ -826,7 +826,7 @@ class userAPITest extends IznikAPITestCase {
             'filter' => Group::FILTER_BANNED,
             'groupid' => $this->groupid,
             'context' => [
-                'date' => ISODate(date("Y-m-d H:i:s", strtotime('tomorrow')))
+                'date' => Utils::ISODate(date("Y-m-d H:i:s", strtotime('tomorrow')))
             ]
         ]);
 

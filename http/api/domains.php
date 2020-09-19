@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 function domains() {
     global $dbhr, $dbhm;
 
-    $domain = presdef('domain', $_REQUEST, NULL);
+    $domain = Utils::presdef('domain', $_REQUEST, NULL);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {

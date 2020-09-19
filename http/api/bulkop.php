@@ -8,8 +8,8 @@ function bulkop() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = presdef('id', $_REQUEST, NULL);
-    $configid = presdef('configid', $_REQUEST, NULL);
+    $id = Utils::presdef('id', $_REQUEST, NULL);
+    $configid = Utils::presdef('configid', $_REQUEST, NULL);
     $b = new BulkOp($dbhr, $dbhm, $id);
 
     if ($id && $b->getId() || $_REQUEST['type'] == 'POST') {
@@ -28,7 +28,7 @@ function bulkop() {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else {
-                    $name = presdef('title', $_REQUEST, NULL);
+                    $name = Utils::presdef('title', $_REQUEST, NULL);
                     $systemrole = $me->getPublic()['systemrole'];
 
                     if (!$name) {
@@ -75,10 +75,10 @@ function bulkop() {
                 } else {
                     $b->setAttributes($_REQUEST);
 
-                    $groupid = presdef('groupid', $_REQUEST, NULL);
+                    $groupid = Utils::presdef('groupid', $_REQUEST, NULL);
 
                     foreach (['runstarted', 'runfinished'] as $att) {
-                        $val = presdef($att, $_REQUEST, NULL);
+                        $val = Utils::presdef($att, $_REQUEST, NULL);
                         $mysqltime = date("Y-m-d H:i:s", strtotime($val));
 
                         if ($val) {

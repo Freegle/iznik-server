@@ -10,7 +10,7 @@ function newsfeed() {
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
     if ($me) {
-        $id = intval(presdef('id', $_REQUEST, NULL));
+        $id = intval(Utils::presdef('id', $_REQUEST, NULL));
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
         switch ($_REQUEST['type']) {
@@ -39,7 +39,7 @@ function newsfeed() {
                             'unseencount' => $n->getUnseen($me->getId())
                         ];
                     } else {
-                        $ctx = presdef('context', $_REQUEST, NULL);
+                        $ctx = Utils::presdef('context', $_REQUEST, NULL);
                         $dist = array_key_exists('distance', $_REQUEST) ? $_REQUEST['distance'] : Newsfeed::DISTANCE;
 
                         if ($dist == 'nearby') {
@@ -53,7 +53,7 @@ function newsfeed() {
 
                         $dist = intval($dist);
 
-                        $types = presdef('types', $_REQUEST, NULL);
+                        $types = Utils::presdef('types', $_REQUEST, NULL);
 
                         list ($users, $items) = $n->getFeed($me->getId(), $dist, $types, $ctx);
 
@@ -71,11 +71,11 @@ function newsfeed() {
 
             case 'POST': {
                 $n = new Newsfeed($dbhr, $dbhm, $id);
-                $message = presdef('message', $_REQUEST, NULL);
-                $replyto = pres('replyto', $_REQUEST) ? intval($_REQUEST['replyto']) : NULL;
-                $action = presdef('action', $_REQUEST, NULL);
-                $reason = presdef('reason', $_REQUEST, NULL);
-                $imageid = intval(presdef('imageid', $_REQUEST, NULL));
+                $message = Utils::presdef('message', $_REQUEST, NULL);
+                $replyto = Utils::pres('replyto', $_REQUEST) ? intval($_REQUEST['replyto']) : NULL;
+                $action = Utils::presdef('action', $_REQUEST, NULL);
+                $reason = Utils::presdef('reason', $_REQUEST, NULL);
+                $imageid = intval(Utils::presdef('imageid', $_REQUEST, NULL));
 
                 if ($action == 'Love') {
                     $n->like();
@@ -154,7 +154,7 @@ function newsfeed() {
                     ];
 
                     if ($me->isModerator()) {
-                        $n->setPrivate('replyto', intval(presdef('attachto', $_REQUEST, 0)));
+                        $n->setPrivate('replyto', intval(Utils::presdef('attachto', $_REQUEST, 0)));
 
                         $ret = [
                             'ret' => 0,
@@ -180,7 +180,7 @@ function newsfeed() {
             case 'PATCH': {
                 $n = new Newsfeed($dbhr, $dbhm, $id);
                 # Can mod own posts or if mod.
-                $message = presdef('message', $_REQUEST, NULL);
+                $message = Utils::presdef('message', $_REQUEST, NULL);
 
                 $ret = [
                     'ret' => 2,
@@ -200,7 +200,7 @@ function newsfeed() {
 
             case 'DELETE': {
                 $n = new Newsfeed($dbhr, $dbhm, $id);
-                $id = intval(presdef('id', $_REQUEST, NULL));
+                $id = intval(Utils::presdef('id', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 2,

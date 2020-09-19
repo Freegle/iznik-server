@@ -34,8 +34,8 @@ class communityEventTest extends IznikTestCase {
         assertNotNull($id);
 
         $c->addGroup($this->groupid);
-        $start = ISODate('@' . (time()+600));
-        $end = ISODate('@' . (time()+600));
+        $start = Utils::ISODate('@' . (time()+600));
+        $end = Utils::ISODate('@' . (time()+600));
         $c->addDate($start, $end);
 
         $atts = $c->getPublic();

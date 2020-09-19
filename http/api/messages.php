@@ -6,18 +6,18 @@ function messages() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $uid = intval(presdef('uid', $_REQUEST, NULL));
-    $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
-    $ctx = presdef('context', $_REQUEST, NULL);
-    $limit = intval(presdef('limit', $_REQUEST, 5));
-    $fromuser = presdef('fromuser', $_REQUEST, NULL);
+    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $uid = intval(Utils::presdef('uid', $_REQUEST, NULL));
+    $collection = Utils::presdef('collection', $_REQUEST, MessageCollection::APPROVED);
+    $ctx = Utils::presdef('context', $_REQUEST, NULL);
+    $limit = intval(Utils::presdef('limit', $_REQUEST, 5));
+    $fromuser = Utils::presdef('fromuser', $_REQUEST, NULL);
     $hasoutcome = array_key_exists('hasoutcome', $_REQUEST) ? filter_var($_REQUEST['hasoutcome'], FILTER_VALIDATE_BOOLEAN) : NULL;
-    $types = presdef('types', $_REQUEST, NULL);
-    $subaction = presdef('subaction', $_REQUEST, NULL);
+    $types = Utils::presdef('types', $_REQUEST, NULL);
+    $subaction = Utils::presdef('subaction', $_REQUEST, NULL);
     $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $grouptype = presdef('grouptype', $_REQUEST, NULL);
+    $grouptype = Utils::presdef('grouptype', $_REQUEST, NULL);
     $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
@@ -87,7 +87,7 @@ function messages() {
                             # Always want all data for own posts no matter what the client says.
                             $summary = FALSE;
                         } else {
-                            $age = pres('age', $_REQUEST) ? intval(presdef('age', $_REQUEST, 0)) : NULL;
+                            $age = Utils::pres('age', $_REQUEST) ? intval(Utils::presdef('age', $_REQUEST, 0)) : NULL;
                         }
 
                         list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $age, $hasoutcome, $summary);
@@ -96,12 +96,12 @@ function messages() {
                     case 'searchmess':
                     case 'searchall':
                         # A search on message info.
-                        $search = presdef('search', $_REQUEST, NULL);
+                        $search = Utils::presdef('search', $_REQUEST, NULL);
                         $search = $search ? trim($search) : NULL;
-                        $ctx = presdef('context', $_REQUEST, NULL);
-                        $limit = presdef('limit', $_REQUEST, Search::Limit);
-                        $messagetype = presdef('messagetype', $_REQUEST, NULL);
-                        $nearlocation = presdef('nearlocation', $_REQUEST, NULL);
+                        $ctx = Utils::presdef('context', $_REQUEST, NULL);
+                        $limit = Utils::presdef('limit', $_REQUEST, Search::Limit);
+                        $messagetype = Utils::presdef('messagetype', $_REQUEST, NULL);
+                        $nearlocation = Utils::presdef('nearlocation', $_REQUEST, NULL);
                         $nearlocation = $nearlocation ? intval($nearlocation) : NULL;
 
                         if (is_numeric($search)) {
@@ -136,10 +136,10 @@ function messages() {
                         # few members match, so it is quickest for us to get all the matching members, then use a context
                         # to return paged results within those.  We put a fallback limit on the number of members to stop
                         # ourselves exploding, though.
-                        $search = presdef('search', $_REQUEST, NULL);
+                        $search = Utils::presdef('search', $_REQUEST, NULL);
                         $search = $search ? trim($search) : NULL;
-                        $ctx = presdef('context', $_REQUEST, NULL);
-                        $limit = presdef('limit', $_REQUEST, Search::Limit);
+                        $ctx = Utils::presdef('context', $_REQUEST, NULL);
+                        $limit = Utils::presdef('limit', $_REQUEST, Search::Limit);
 
                         $groupids = $groupid ? [ $groupid ] : NULL;
 

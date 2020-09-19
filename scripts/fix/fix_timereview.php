@@ -3,7 +3,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
 $apis = $dbhr->preQuery("SELECT date FROM logs_api ORDER BY date ASC LIMIT 1;");
@@ -28,4 +28,4 @@ foreach ($chats as $chat) {
 }
 
 
-error_log("Median delay " . calculate_median($delays) . " from " . count($chats) . " earliest $earliest outstanding $outstanding");
+error_log("Median delay " . Utils::calculate_median($delays) . " from " . count($chats) . " earliest $earliest outstanding $outstanding");

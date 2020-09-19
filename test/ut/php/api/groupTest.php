@@ -78,7 +78,7 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($this->groupid, $ret['group']['id']);
-        assertFalse(pres('members', $ret['group']));
+        assertFalse(Utils::pres('members', $ret['group']));
 
         # By short name
         $ret = $this->call('group', 'GET', [
@@ -87,7 +87,7 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($this->groupid, $ret['group']['id']);
-        assertFalse(pres('members', $ret['group']));
+        assertFalse(Utils::pres('members', $ret['group']));
 
         # Duff shortname
         $ret = $this->call('group', 'GET', [
@@ -104,7 +104,7 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         $this->log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
-        assertFalse(pres('members', $ret['group']));
+        assertFalse(Utils::pres('members', $ret['group']));
 
         # Moderator - should see members list
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
@@ -129,7 +129,7 @@ class groupAPITest extends IznikAPITestCase {
             ]
         ]);
         assertEquals(1, $ret['ret']);
-        assertFalse(pres('members', $ret));
+        assertFalse(Utils::pres('members', $ret));
 
         # Member - shouldn't either
         assertTrue($this->user->login('testpw'));
@@ -140,7 +140,7 @@ class groupAPITest extends IznikAPITestCase {
             ]
         ]);
         assertEquals(1, $ret['ret']);
-        assertFalse(pres('members', $ret));
+        assertFalse(Utils::pres('members', $ret));
 
         # Owner - should be able to
         $this->user->setRole(User::ROLE_OWNER, $this->groupid);
@@ -253,7 +253,7 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        assertFalse(pres('showmods', $ret['group']));
+        assertFalse(Utils::pres('showmods', $ret['group']));
 
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('session', 'PATCH', [
@@ -281,7 +281,7 @@ class groupAPITest extends IznikAPITestCase {
 
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
 
-        $confdate = ISODate('@' . time());
+        $confdate = Utils::ISODate('@' . time());
 
         $ret = $this->call('group', 'PATCH', [
             'id' => $this->groupid,

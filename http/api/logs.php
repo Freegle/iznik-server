@@ -6,13 +6,13 @@ function logs() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $logtype = presdef('logtype', $_REQUEST, NULL);
-    $logsubtype = presdef('logsubtype', $_REQUEST, NULL);
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $date = intval(presdef('date', $_REQUEST, NULL));
-    $search = presdef('search', $_REQUEST, NULL);
-    $ctx = presdef('context', $_REQUEST, NULL);
-    $limit = intval(presdef('limit', $_REQUEST, 20));
+    $logtype = Utils::presdef('logtype', $_REQUEST, NULL);
+    $logsubtype = Utils::presdef('logsubtype', $_REQUEST, NULL);
+    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $date = intval(Utils::presdef('date', $_REQUEST, NULL));
+    $search = Utils::presdef('search', $_REQUEST, NULL);
+    $ctx = Utils::presdef('context', $_REQUEST, NULL);
+    $limit = intval(Utils::presdef('limit', $_REQUEST, 20));
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 

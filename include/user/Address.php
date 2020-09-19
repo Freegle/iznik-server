@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Address extends Entity
 {
@@ -43,7 +43,7 @@ class Address extends Entity
 
         $atts = $this->settableatts;
 
-        if (pres('pafid', $ret)) {
+        if (Utils::pres('pafid', $ret)) {
             $p = new PAF($this->dbhr, $this->dbhm);
             $ret['singleline'] = $p->getSingleLine($ret['pafid']);
             $ret['multiline'] = $p->getFormatted($ret['pafid'], "\n");

@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 // @codeCoverageIgnoreStart
 // This is a proof of concept for another project, it isn't tested as part of Freegle.
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Catalogue
 {
@@ -179,7 +179,7 @@ class Catalogue
             $fragments = json_decode($result['fragments'], TRUE);
 
             foreach ($spines as $i => $spine) {
-                if (pres('author', $spine)) {
+                if (Utils::pres('author', $spine)) {
                     $spines[$i]['isbndb'] = $this->findISBN($spine['author'], $spine['title']);
                     $spines[$i]['author'] = ucfirst($spines[$i]['author']);
                     $spines[$i]['title'] = ucfirst($spines[$i]['title']);

@@ -6,8 +6,8 @@ function team() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $name = presdef('name', $_REQUEST, NULL);
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $name = Utils::presdef('name', $_REQUEST, NULL);
 
     $t = new Team($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -44,17 +44,17 @@ function team() {
                             $u->ensureAvatar($atts);
                         }
 
-                        if (pres('nameoverride', $memb)) {
+                        if (Utils::pres('nameoverride', $memb)) {
                             $atts['displayname'] = $memb['nameoverride'];
                         }
 
-                        if (pres('imageoverride', $memb)) {
+                        if (Utils::pres('imageoverride', $memb)) {
                             $atts['profile']['url'] = $memb['imageoverride'];
                             $atts['profile']['turl'] = $memb['imageoverride'];
                         }
 
-                        $atts['description'] = presdef('description', $memb, NULL);
-                        $atts['added'] = ISODate($memb['added']);
+                        $atts['description'] = Utils::presdef('description', $memb, NULL);
+                        $atts['added'] = Utils::ISODate($memb['added']);
 
                         $members[] = $atts;
                     }
@@ -79,9 +79,9 @@ function team() {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
             if ($me && $me->hasPermission(User::PERM_TEAMS)) {
-                $name = presdef('name', $_REQUEST, NULL);
-                $desc = presdef('description', $_REQUEST, NULL);
-                $email = presdef('email', $_REQUEST, NULL);
+                $name = Utils::presdef('name', $_REQUEST, NULL);
+                $desc = Utils::presdef('description', $_REQUEST, NULL);
+                $email = Utils::presdef('email', $_REQUEST, NULL);
                 $id = NULL;
 
                 if ($name) {
@@ -99,10 +99,10 @@ function team() {
 
             if ($me && $me->hasPermission(User::PERM_TEAMS)) {
                 $t->setAttributes($_REQUEST);
-                $userid = intval(presdef('userid', $_REQUEST, NULL));
-                $desc = presdef('description', $_REQUEST, NULL);
+                $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
+                $desc = Utils::presdef('description', $_REQUEST, NULL);
 
-                switch (presdef('action', $_REQUEST, NULL)) {
+                switch (Utils::presdef('action', $_REQUEST, NULL)) {
                     case 'Add': $t->addMember($userid, $desc); break;
                     case 'Remove': $t->removeMember($userid); break;
                 }

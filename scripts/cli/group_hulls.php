@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -13,7 +13,7 @@ $opts = getopt('n:');
 if (count($opts) > 1) {
     echo "Usage: php group_hulls.php (-n <groupname>)\n";
 } else {
-    $groupname = presdef('n', $opts, NULL);
+    $groupname = Utils::presdef('n', $opts, NULL);
     $g = Group::get($dbhr, $dbhm);
     $gid = $groupname ? $g->findByShortName($groupname) : NULL;
 

@@ -2,7 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 $proms = $dbhr->preQuery("SELECT msgid, COUNT(*) AS count FROM `messages_promises` group by msgid having count > 1;");
 

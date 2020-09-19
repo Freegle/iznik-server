@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Schedule extends Entity
 {
@@ -73,7 +73,7 @@ class Schedule extends Entity
     {
         $ret = parent::getPublic();
         $ret['schedule'] = json_decode($ret['schedule'], TRUE);
-        $ret['created'] = pres('created', $ret) ? ISODate($ret['created']) : NULL;
+        $ret['created'] = Utils::pres('created', $ret) ? Utils::ISODate($ret['created']) : NULL;
         $ret['textversion'] = $this->getSummary();
 
         return($ret);

@@ -7,8 +7,8 @@ function volunteering() {
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
 
     if ($groupid) {
         # This might be a legacy groupid.
@@ -19,7 +19,7 @@ function volunteering() {
     $pending = array_key_exists('pending', $_REQUEST) ? filter_var($_REQUEST['pending'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $systemwide = array_key_exists('systemwide', $_REQUEST) ? filter_var($_REQUEST['systemwide'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $online = array_key_exists('online', $_REQUEST) ? filter_var($_REQUEST['online'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $ctx = presdef('context', $_REQUEST, NULL);
+    $ctx = Utils::presdef('context', $_REQUEST, NULL);
 
     $c = new Volunteering($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -71,7 +71,7 @@ function volunteering() {
                     $title = $location = $contactname = $contactphone = $contactemail = $contacturl = $description = NULL;
 
                     foreach (['title', 'online', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'timecommitment'] as $att) {
-                        $$att = presdef($att, $_REQUEST, NULL);
+                        $$att = Utils::presdef($att, $_REQUEST, NULL);
                     }
 
                     $id = NULL;
@@ -79,7 +79,7 @@ function volunteering() {
                     if ($title && $location && $description) {
                         $id = $c->create($me->getId(), $title, $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment);
 
-                        if (pres('groupid', $_REQUEST) && intval($_REQUEST['groupid']) > 0) {
+                        if (Utils::pres('groupid', $_REQUEST) && intval($_REQUEST['groupid']) > 0) {
                             $c->addGroup(intval($_REQUEST['groupid']));
                         }
                     }
@@ -109,12 +109,12 @@ function volunteering() {
                 if ($me && $c->canModify($me->getId())) {
                     $c->setAttributes($_REQUEST);
 
-                    switch (presdef('action', $_REQUEST, NULL)) {
-                        case 'AddGroup': $c->addGroup(intval(presdef('groupid', $_REQUEST, 0))); break;
-                        case 'RemoveGroup': $c->removeGroup(intval(presdef('groupid', $_REQUEST, 0))); break;
-                        case 'AddDate': $c->addDate(presdef('start', $_REQUEST, NULL), presdef('end', $_REQUEST, NULL), presdef('applyby', $_REQUEST, NULL)); break;
-                        case 'RemoveDate': $c->removeDate(intval(presdef('dateid', $_REQUEST, NULL))); break;
-                        case 'SetPhoto': $c->setPhoto(intval(presdef('photoid', $_REQUEST, NULL))); break;
+                    switch (Utils::presdef('action', $_REQUEST, NULL)) {
+                        case 'AddGroup': $c->addGroup(intval(Utils::presdef('groupid', $_REQUEST, 0))); break;
+                        case 'RemoveGroup': $c->removeGroup(intval(Utils::presdef('groupid', $_REQUEST, 0))); break;
+                        case 'AddDate': $c->addDate(Utils::presdef('start', $_REQUEST, NULL), Utils::presdef('end', $_REQUEST, NULL), Utils::presdef('applyby', $_REQUEST, NULL)); break;
+                        case 'RemoveDate': $c->removeDate(intval(Utils::presdef('dateid', $_REQUEST, NULL))); break;
+                        case 'SetPhoto': $c->setPhoto(intval(Utils::presdef('photoid', $_REQUEST, NULL))); break;
                         case 'Renew':
                             # Set the renewal date.  Also make sure it's not marked as expired, in case they
                             # do this after that has happened.

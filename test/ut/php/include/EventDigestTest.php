@@ -54,12 +54,12 @@ class eventDigestTest extends IznikTestCase {
         $e = new CommunityEvent($this->dbhr, $this->dbhm);
         $e->create($uid1, 'Test Event 1', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event');
         $e->addGroup($gid);
-        $e->addDate(ISODate('@' . strtotime('next monday 10am')), ISODate('@' . strtotime('next monday 11am')));
-        $e->addDate(ISODate('@' . strtotime('next tuesday 10am')), ISODate('@' . strtotime('next tuesday 11am')));
+        $e->addDate(Utils::ISODate('@' . strtotime('next monday 10am')), Utils::ISODate('@' . strtotime('next monday 11am')));
+        $e->addDate(Utils::ISODate('@' . strtotime('next tuesday 10am')), Utils::ISODate('@' . strtotime('next tuesday 11am')));
 
         $e->create($uid1, 'Test Event 2', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event');
         $e->addGroup($gid);
-        $e->addDate(ISODate('@' . strtotime('next wednesday 2pm')), ISODate('@' . strtotime('next wednesday 3pm')));
+        $e->addDate(Utils::ISODate('@' . strtotime('next wednesday 2pm')), Utils::ISODate('@' . strtotime('next wednesday 3pm')));
 
         # Fake approve.
         $e->setPrivate('pending', 0);

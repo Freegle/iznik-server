@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -22,7 +22,7 @@ foreach ($groups as $group) {
 }
 
 if ($count) {
-    list ($transport, $mailer) = getMailer();
+    list ($transport, $mailer) = Mail::getMailer();
     $message = \Swift_Message::newInstance()
         ->setSubject("WARNING: $count groups not receiving messages on Iznik")
         ->setFrom(GEEKS_ADDR)

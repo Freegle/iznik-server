@@ -6,10 +6,10 @@ if (session_status() == PHP_SESSION_NONE) {
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
 
-$groupid = presdef('graffitigroup', $_SESSION, 0);
-$url = presdef('url', $_REQUEST, NULL);;
+
+$groupid = Utils::presdef('graffitigroup', $_SESSION, 0);
+$url = Utils::presdef('url', $_REQUEST, NULL);;
 
 $fb = new \Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
@@ -31,7 +31,7 @@ try {
     do {
         $getPages = $fb->get($url, $accessToken);
         $body = $getPages->getDecodedBody();
-        $pages = presdef('data', $body, []);
+        $pages = Utils::presdef('data', $body, []);
         #error_log("Body " . json_encode($body));
 
         foreach ($pages as $page) {
@@ -39,7 +39,7 @@ try {
             $totalPages[] = $page;
         }
 
-        $url = pres('paging', $body) ? ('/me/accounts?after=' . presdef('after', $body['paging']['cursors'], NULL)) : NULL;
+        $url = Utils::pres('paging', $body) ? ('/me/accounts?after=' . Utils::presdef('after', $body['paging']['cursors'], NULL)) : NULL;
         #error_log("Next url $url");
     } while ($url);
 

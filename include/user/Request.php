@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards.php');
 require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards_mods.php');
 
@@ -43,7 +43,7 @@ class Request extends Entity
     {
         $ret = parent::getPublic();
 
-        if ($getaddress && pres('addressid', $ret)) {
+        if ($getaddress && Utils::pres('addressid', $ret)) {
             $a = new Address($this->dbhr, $this->dbhm, $ret['addressid']);
 
             # We can see the address when we're allowed to see a request.
@@ -57,7 +57,7 @@ class Request extends Entity
         $ret['user']['email'] = $u->getEmailPreferred();
         unset($ret['userid']);
 
-        $ret['date'] = ISODate($ret['date']);
+        $ret['date'] = Utils::ISODate($ret['date']);
 
         return($ret);
     }
@@ -147,7 +147,7 @@ class Request extends Entity
 
                     Mail::addHeaders($message, Mail::REQUEST_COMPLETED, $u->getId());
 
-                    list ($transport, $mailer) = getMailer();
+                    list ($transport, $mailer) = Mail::getMailer();
                     $this->sendIt($mailer, $message);
 
                     $this->notifyMods();
@@ -188,7 +188,7 @@ class Request extends Entity
 
                     Mail::addHeaders($message, Mail::REQUEST, $u->getId());
 
-                    list ($transport, $mailer) = getMailer();
+                    list ($transport, $mailer) = Mail::getMailer();
                     $this->sendIt($mailer, $message);
 
                     $this->dbhm->preExec("UPDATE users_requests SET notifiedmods = NOW() WHERE id = ?;", [

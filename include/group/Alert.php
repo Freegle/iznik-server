@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/alert.php');
 
 class Alert extends Entity
@@ -55,8 +55,8 @@ class Alert extends Entity
         foreach ($alerts as $alert) {
             $a = new Alert($this->dbhr, $this->dbhm, $alert['id']);
             $thisone = $a->getPublic();
-            $thisone['created'] = ISODate($thisone['created']);
-            $thisone['complete'] = ISODate($thisone['complete']);
+            $thisone['created'] = Utils::ISODate($thisone['created']);
+            $thisone['complete'] = Utils::ISODate($thisone['complete']);
             $thisone['stats'] = $a->getStats();
 
             if ($thisone['groupid']) {
@@ -234,7 +234,7 @@ class Alert extends Entity
     }
 
     public function mailMods($alertid, $groupid, $tryhard = TRUE, $cc = FALSE) {
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
         $done = 0;
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
@@ -254,9 +254,9 @@ class Alert extends Entity
 
             foreach ($emails as $email) {
                 try {
-                    error_log("check {$email['email']} real " . realEmail($email['email']));
+                    error_log("check {$email['email']} real " . Mail::realEmail($email['email']));
 
-                    if (realEmail($email['email'])) {
+                    if (Mail::realEmail($email['email'])) {
                         # Check if we have already mailed them.
                         $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
                         $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);

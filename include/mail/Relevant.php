@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/relevant/wrapper.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/one.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/off.php');
@@ -32,7 +32,7 @@ class Relevant {
 
             $email = $u->getEmailPreferred();
             if ($email) {
-                list ($transport, $mailer) = getMailer();
+                list ($transport, $mailer) = Mail::getMailer();
                 $html = relevant_off(USER_SITE, USERLOGO);
 
                 $message = \Swift_Message::newInstance()
@@ -89,7 +89,7 @@ class Relevant {
                             'type' => Relevant::MATCH_POST,
                             'msgid' => $msg['id'],
                             'subject' => $msg['subject'],
-                            'date' => ISODate($msg['arrival'])
+                            'date' => Utils::ISODate($msg['arrival'])
                         ]
                     ];
                 }
@@ -112,7 +112,7 @@ class Relevant {
                         'type' => Relevant::MATCH_SEARCH,
                         'searchid' => $search['id'],
                         'term' => $term,
-                        'date' => ISODate($search['date'])
+                        'date' => Utils::ISODate($search['date'])
                     ]
                 ];
             }
@@ -205,7 +205,7 @@ class Relevant {
     }
 
     public function sendMessages($userid = NULL) {
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
 
         $count = 0;
 

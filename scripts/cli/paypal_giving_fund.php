@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -13,7 +13,7 @@ $opts = getopt('f:');
 if (count($opts) != 1) {
     echo "Usage: php paypal_giving_fund.php -f <CSV file>)\n";
 } else {
-    $fn = presdef('f', $opts, NULL);
+    $fn = Utils::presdef('f', $opts, NULL);
     $fh = fopen($fn, 'r');
     $u = new User($dbhr, $dbhm);
 
@@ -115,7 +115,7 @@ if (count($opts) != 1) {
 //                    ->setCc('log@ehibbert.org.uk')
 //                    ->setBody($text);
 //
-//                list ($transport, $mailer) = getMailer();
+//                list ($transport, $mailer) = Mail::getMailer();
 //                $mailer->send($message);
 //            }
         }

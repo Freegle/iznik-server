@@ -2,7 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 
 $missings = $dbhr->preQuery("SELECT * FROM messages_drafts WHERE userid IS NULL;");

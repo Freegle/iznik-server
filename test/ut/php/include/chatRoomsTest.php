@@ -462,7 +462,7 @@ class chatRoomsTest extends IznikTestCase {
         list ($cm, $banned) = $m->create($id, $u1, $aid, ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("Created chat message $cm");
         $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
-        assertNotFalse(pres('address', $m->getPublic()));
+        assertNotFalse(Utils::pres('address', $m->getPublic()));
 
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))

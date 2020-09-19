@@ -9,7 +9,7 @@ function modconfig() {
     $me = Session::whoAmI($dbhr, $dbhm);
 
     # The id parameter can be an ID or a nameshort.
-    $id = presdef('id', $_REQUEST, NULL);
+    $id = Utils::presdef('id', $_REQUEST, NULL);
     $c = new ModConfig($dbhr, $dbhm, $id);
 
     if ($id && $c->getId() || $_REQUEST['type'] == 'POST') {
@@ -31,7 +31,7 @@ function modconfig() {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else {
-                    $name = presdef('name', $_REQUEST, NULL);
+                    $name = Utils::presdef('name', $_REQUEST, NULL);
                     $systemrole = $me->getPrivate('systemrole');
 
                     if (!$name) {

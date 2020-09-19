@@ -6,10 +6,10 @@ if (session_status() == PHP_SESSION_NONE) {
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
 
-$id = presdef('id', $_REQUEST, NULL);
-$token = presdef('token', $_REQUEST, NULL);
+
+$id = Utils::presdef('id', $_REQUEST, NULL);
+$token = Utils::presdef('token', $_REQUEST, NULL);
 
 $fb = new \Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
@@ -29,7 +29,7 @@ if ($id && $token) {
         do {
             $getPages = $fb->get($url, $accessToken);
             $body = $getPages->getDecodedBody();
-            $pages = presdef('data', $body, []);
+            $pages = Utils::presdef('data', $body, []);
             #error_log("Body " . json_encode($body));
 
             foreach ($pages as $page) {
@@ -37,7 +37,7 @@ if ($id && $token) {
                 $totalPages[] = $page;
             }
 
-            $url = pres('paging', $body) ? ('/me/accounts?after=' . presdef('after', $body['paging']['cursors'], NULL)) : NULL;
+            $url = Utils::pres('paging', $body) ? ('/me/accounts?after=' . Utils::presdef('after', $body['paging']['cursors'], NULL)) : NULL;
             #error_log("Next url $url");
         } while ($url);
 
@@ -47,7 +47,7 @@ if ($id && $token) {
             #echo("Compare {$page['id']} vs $id");
             if (strcmp($page['id'], $id) === 0) {
                 $f = new GroupFacebook($dbhr, $dbhm);
-                $gid = presdef('graffitigroup', $_SESSION, NULL);
+                $gid = Utils::presdef('graffitigroup', $_SESSION, NULL);
 
                 if ($gid) {
                     echo "Found group.  You can close this tab now.";

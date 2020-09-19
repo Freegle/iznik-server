@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -85,7 +85,7 @@ error_log(count($offers) . " offers and " . count($wanteds) . " wanters");
 $count = 0;
 
 foreach ($wanteds as $userid => $val) {
-    if (pres($userid, $offers)) {
+    if (Utils::pres($userid, $offers)) {
         $count++;
     }
 }
@@ -95,7 +95,7 @@ error_log("Of the " . count($wanteds) . " wanters, $count also offerers");
 $count = 0;
 
 foreach ($offers as $userid => $val) {
-    if (pres($userid, $wanteds)) {
+    if (Utils::pres($userid, $wanteds)) {
         $count++;
     }
 }
@@ -107,7 +107,7 @@ error_log(count($firstoffers) . " first post OFFER, " . count($firstwanteds) . "
 $count = 0;
 
 foreach ($firstoffers as $userid => $val) {
-    if (pres($userid, $wanteds)) {
+    if (Utils::pres($userid, $wanteds)) {
         $count++;
     }
 }
@@ -117,7 +117,7 @@ error_log("Of the " . count($firstoffers) . " first post OFFERs, $count then pos
 $count = 0;
 
 foreach ($firstwanteds as $userid => $val) {
-    if (pres($userid, $offers)) {
+    if (Utils::pres($userid, $offers)) {
         $count++;
     }
 }
@@ -130,7 +130,7 @@ error_log(count($firstreplyoffers) . " first replied to an OFFER, and " . count(
 $count = 0;
 
 foreach ($firstreplyoffers as $userid => $time) {
-    if (pres($userid, $offers) > $time) {
+    if (Utils::pres($userid, $offers) > $time) {
         $count++;
     }
 }
@@ -140,7 +140,7 @@ error_log("Of the " . count($firstreplyoffers) . " first reply to OFFER, $count 
 $count = 0;
 
 foreach ($firstreplywanteds as $userid => $time) {
-    if (pres($userid, $wanteds) > $time) {
+    if (Utils::pres($userid, $wanteds) > $time) {
         $count++;
     }
 }

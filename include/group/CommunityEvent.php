@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class CommunityEvent extends Entity
 {
@@ -82,7 +82,7 @@ class CommunityEvent extends Entity
         $ret = [];
         $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
         $roleq = $pending ? " AND role IN ('Owner', 'Moderator') " : '';
-        $ctxq = $ctx ? (" AND end > '" . safedate($ctx['end']) . "' ") : '';
+        $ctxq = $ctx ? (" AND end > '" . Utils::safedate($ctx['end']) . "' ") : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
         $sql = "SELECT communityevents.*, communityevents.pending, communityevents_dates.end, communityevents_groups.groupid FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
@@ -118,7 +118,7 @@ class CommunityEvent extends Entity
         $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
         $roleq = $pending ? (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . " AND role IN ('Owner', 'Moderator')) ") : '';
         $groupq = $groupid ? (" AND groupid = " . intval($groupid)) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
-        $ctxq = $ctx ? (" AND end > '" . safedate($ctx['end']) . "' ") : '';
+        $ctxq = $ctx ? (" AND end > '" . Utils::safedate($ctx['end']) . "' ") : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
         $sql = "SELECT communityevents.*, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id $groupq $roleq AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
@@ -157,8 +157,8 @@ class CommunityEvent extends Entity
         $atts['dates'] = $this->dbhr->preQuery("SELECT * FROM communityevents_dates WHERE eventid = ? ORDER BY end ASC", [ $this->id ]);
         
         foreach ($atts['dates'] as &$date) {
-            $date['start'] = ISODate($date['start']);
-            $date['end'] = ISODate($date['end']);
+            $date['start'] = Utils::ISODate($date['start']);
+            $date['end'] = Utils::ISODate($date['end']);
         }
 
         $photos = $this->dbhr->preQuery("SELECT id FROM communityevents_images WHERE eventid = ?;", [ $this->id ]);
@@ -187,7 +187,7 @@ class CommunityEvent extends Entity
         }
 
         # Ensure leading 0 not stripped.
-        $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
+        $atts['contactphone'] = Utils::pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
         $atts['url'] = 'https://' . USER_SITE . '/communityevent/' . $atts['id'];
 
         if (strlen($atts['contacturl']) && strpos($atts['contacturl'], 'http') === FALSE) {
@@ -202,7 +202,7 @@ class CommunityEvent extends Entity
         # appears, or if we're support/admin.
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         #error_log("Check user {$this->event['userid']}, $userid");
-        $canmodify = presdef('userid', $this->event, NULL) === $userid || ($u && $u->isAdminOrSupport());
+        $canmodify = Utils::presdef('userid', $this->event, NULL) === $userid || ($u && $u->isAdminOrSupport());
         #error_log("Modify $canmodify for $userid admin" . ($u && $u->isAdminOrSupport()));
 
         if (!$canmodify) {

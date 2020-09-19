@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -14,7 +14,7 @@ $messages = $dbhr->preQuery("SELECT msgid, fromuser FROM messages_drafts INNER J
 foreach ($messages as $message) {
     $m = new Message($dbhr, $dbhm, $message['msgid']);
 
-    if (pres('fromuser', $message)) {
+    if (Utils::pres('fromuser', $message)) {
         $u = new User($dbhr, $dbhm, $message['fromuser']);
         $email = $u->getEmailPreferred();
 
@@ -42,7 +42,7 @@ foreach ($messages as $message) {
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
 
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
         $mailer->send($message);
     } else {
         error_log("Skip message with no fromuser {$message['msgid']}");

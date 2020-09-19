@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Engage
 {
@@ -274,7 +274,7 @@ class Engage
                         $allowed = FALSE;
 
                         foreach ($membs as $memb) {
-                            if (!pres('engagement', $memb['settings']) || $memb['settings']['engagement']) {
+                            if (!Utils::pres('engagement', $memb['settings']) || $memb['settings']['engagement']) {
                                 $allowed = TRUE;
                                 #error_log("...allowed by a group");
                             }
@@ -293,7 +293,7 @@ class Engage
                                 $textbody = $mail['text'];
                                 $template = $mail['template'] . '.html';
 
-                                list ($transport, $mailer) = getMailer();
+                                list ($transport, $mailer) = Mail::getMailer();
                                 $m = \Swift_Message::newInstance()
                                     ->setSubject($subject)
                                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
@@ -341,7 +341,7 @@ class Engage
             $engagement
         ]);
 
-        $r = randomFloat();
+        $r = Utils::randomFloat();
 
         if ($r < 0.1) {
             # The 10% case we choose a random one of the other options.

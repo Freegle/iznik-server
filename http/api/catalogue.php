@@ -12,7 +12,7 @@ function catalogue() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $c = new Catalogue($dbhr, $dbhm);
-            $id = intval(presdef('id', $_REQUEST, 0));
+            $id = intval(Utils::presdef('id', $_REQUEST, 0));
 
             if ($id) {
                 list ($spines, $fragments) = $c->getResult($id);
@@ -43,7 +43,7 @@ function catalogue() {
                         $thisone['fragments'] = $fragments;
 
                         foreach ($spines as $spine) {
-                            if (pres('author', $spine)) {
+                            if (Utils::pres('author', $spine)) {
                                 $thisone['books'][] = $spine;
                             }
                         }
@@ -60,13 +60,13 @@ function catalogue() {
         {
             $c = new Catalogue($dbhr, $dbhm);
 
-            $action = presdef('action', $_REQUEST, NULL);
-            $id = intval(presdef('id', $_REQUEST, 0));
+            $action = Utils::presdef('action', $_REQUEST, NULL);
+            $id = intval(Utils::presdef('id', $_REQUEST, 0));
 
             if ($action) {
                 switch ($action) {
                     case 'Rate': {
-                        $rating = intval(presdef('rating', $_REQUEST, 0));
+                        $rating = intval(Utils::presdef('rating', $_REQUEST, 0));
                         $c->rate($id, $rating);
 
                         $ret = [
@@ -77,7 +77,7 @@ function catalogue() {
                     }
                 }
             } else {
-                $photo = presdef('photo', $_REQUEST, NULL);
+                $photo = Utils::presdef('photo', $_REQUEST, NULL);
 
                 if ($photo) {
                     # Get base64 encoded data

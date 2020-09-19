@@ -26,7 +26,7 @@ function notification() {
                     # This request occurs every 30 seconds, so we can piggyback on it to spot when users are active.
                     $me->recordActive();
                 } else {
-                    $ctx = presdef('context', $_REQUEST, NULL);
+                    $ctx = Utils::presdef('context', $_REQUEST, NULL);
                     $notifs = $n->get($me->getId(), $ctx);
                     #error_log("Notification context " . var_export($ctx, TRUE));
 
@@ -42,8 +42,8 @@ function notification() {
             }
 
             case 'POST': {
-                $id = intval(presdef('id', $_REQUEST, NULL));
-                $action = presdef('action', $_REQUEST, NULL);
+                $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+                $action = Utils::presdef('action', $_REQUEST, NULL);
 
                 switch ($action) {
                     case 'Seen': {

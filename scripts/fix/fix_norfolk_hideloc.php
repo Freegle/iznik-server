@@ -3,7 +3,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 $locs = $dbhr->preQuery("SELECT id FROM locations WHERE LOCATE('POINT', AsText(locations.geometry)) > 0");
 

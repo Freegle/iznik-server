@@ -6,12 +6,12 @@ function spammers() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $userid = intval(presdef('userid', $_REQUEST, NULL));
-    $collection = presdef('collection', $_REQUEST, Spam::TYPE_SPAMMER);
-    $reason = presdef('reason', $_REQUEST, NULL);
-    $context = presdef('context', $_REQUEST, NULL);
-    $search = presdef('search', $_REQUEST, NULL);
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
+    $collection = Utils::presdef('collection', $_REQUEST, Spam::TYPE_SPAMMER);
+    $reason = Utils::presdef('reason', $_REQUEST, NULL);
+    $context = Utils::presdef('context', $_REQUEST, NULL);
+    $search = Utils::presdef('search', $_REQUEST, NULL);
     $heldby = array_key_exists('heldby', $_REQUEST) ? intval($_REQUEST['heldby']) : NULL;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -33,11 +33,11 @@ function spammers() {
         case 'GET': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $cansee = $me && $me->isModerator();
-            $cansee = $cansee ? $cansee : Session::partner($dbhr, presdef('partner', $_REQUEST, NULL))[0];
+            $cansee = $cansee ? $cansee : Session::partner($dbhr, Utils::presdef('partner', $_REQUEST, NULL))[0];
 
             if ($cansee) {
                 # Only mods or partners can see the list.
-                if (presdef('action', $_REQUEST, NULL) == 'export') {
+                if (Utils::presdef('action', $_REQUEST, NULL) == 'export') {
                     $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->exportSpammers() ];
                 } else {
                     $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->listSpammers($collection, $search, $context) ];

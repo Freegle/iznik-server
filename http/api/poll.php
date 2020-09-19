@@ -6,7 +6,7 @@ function poll() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
 
     $p = new Polls($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -53,8 +53,8 @@ function poll() {
         }
 
         case 'POST': {
-            $response = presdef('response', $_REQUEST, NULL);
-            $shown = presdef('shown', $_REQUEST, NULL);
+            $response = Utils::presdef('response', $_REQUEST, NULL);
+            $shown = Utils::presdef('shown', $_REQUEST, NULL);
 
             if ($shown) {
                 $p->shown($me->getId());

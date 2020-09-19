@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');
@@ -217,7 +217,7 @@ class User extends Entity
         if ($this->id) {
             $logins = $this->getLogins(TRUE);
             foreach ($logins as $login) {
-                $pw = $this->hashPassword($suppliedpw, presdef('salt', $login, PASSWORD_SALT));
+                $pw = $this->hashPassword($suppliedpw, Utils::presdef('salt', $login, PASSWORD_SALT));
 
                 if ($force || ($login['type'] == User::LOGIN_NATIVE && $login['uid'] == $this->id && strtolower($pw) == strtolower($login['credentials']))) {
                     $s = new Session($this->dbhr, $this->dbhm);
@@ -250,7 +250,7 @@ class User extends Entity
     {
         $ret = TRUE;
 
-        if (presdef('id', $_SESSION, NULL) != $this->id) {
+        if (Utils::presdef('id', $_SESSION, NULL) != $this->id) {
             # We're not already logged in as this user.
             $ret = FALSE;
 
@@ -289,11 +289,11 @@ class User extends Entity
 
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.
-        if (pres('fullname', $atts)) {
+        if (Utils::pres('fullname', $atts)) {
             $name = $atts['fullname'];
-        } else if (pres('firstname', $atts) || pres('lastname', $atts)) {
-            $first = pres('firstname', $atts);
-            $last = pres('lastname', $atts);
+        } else if (Utils::pres('firstname', $atts) || Utils::pres('lastname', $atts)) {
+            $first = Utils::pres('firstname', $atts);
+            $last = Utils::pres('lastname', $atts);
 
             $name = $first && $last ? "$first $last" : ($first ? $first : $last);
         }
@@ -302,7 +302,7 @@ class User extends Entity
         $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
 
         # If we are logged in as this user and it's showing deleted then we've resurrected it; give it a new name.
-        $resurrect = presdef('id', $_SESSION, NULL) == $this->id && strpos($name, 'Deleted User') === 0;
+        $resurrect = Utils::presdef('id', $_SESSION, NULL) == $this->id && strpos($name, 'Deleted User') === 0;
 
         if ($default &&
             $this->id &&
@@ -343,7 +343,7 @@ class User extends Entity
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         try {
-            $src = presdef('src', $_SESSION, NULL);
+            $src = Utils::presdef('src', $_SESSION, NULL);
             $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooid, source) VALUES (?, ?, ?, ?, ?)",
                 [$firstname, $lastname, $fullname, $yahooid, $src]);
             $id = $this->dbhm->lastInsertId();
@@ -414,7 +414,7 @@ class User extends Entity
             $this->emailsord = $ordq;
 
             foreach ($this->emails as &$email) {
-                $email['ourdomain'] = ourDomain($email['email']);
+                $email['ourdomain'] = Mail::ourDomain($email['email']);
             }
         }
 
@@ -429,7 +429,7 @@ class User extends Entity
             $emails = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
 
             foreach ($emails as $email) {
-                $email['ourdomain'] = ourDomain($email['email']);
+                $email['ourdomain'] = Mail::ourDomain($email['email']);
                 $ret[$email['userid']][] = $email;
             }
         }
@@ -448,7 +448,7 @@ class User extends Entity
         $ret = NULL;
 
         foreach ($emails as $email) {
-            if (!ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE) {
+            if (!Mail::ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE) {
                 $ret = $email['email'];
                 break;
             }
@@ -464,7 +464,7 @@ class User extends Entity
         $ret = NULL;
 
         foreach ($emails as $email) {
-            if (ourDomain($email['email'])) {
+            if (Mail::ourDomain($email['email'])) {
                 $ret = $email['email'];
                 break;
             }
@@ -824,7 +824,7 @@ class User extends Entity
 
         // @codeCoverageIgnoreStart
         if ($byemail) {
-            list ($transport, $mailer) = getMailer();
+            list ($transport, $mailer) = Mail::getMailer();
             $message = \Swift_Message::newInstance()
                 ->setSubject("Welcome to " . $g->getPrivate('nameshort'))
                 ->setFrom($g->getAutoEmail())
@@ -881,7 +881,7 @@ class User extends Entity
         ]);
 
         if ($to) {
-            list ($transport, $mailer) = getMailer();
+            list ($transport, $mailer) = Mail::getMailer();
             $message = \Swift_Message::newInstance()
                 ->setSubject(($review ? "Please review: " : "") . "Welcome to " . $atts['namedisplay'])
                 ->setFrom([$g->getAutoEmail() => $atts['namedisplay'] . ' Volunteers'])
@@ -932,8 +932,8 @@ class User extends Entity
     {
         $this->cacheMemberships();
         $val = NULL;
-        if (pres($groupid, $this->memberships)) {
-            $val = presdef($att, $this->memberships[$groupid], NULL);
+        if (Utils::pres($groupid, $this->memberships)) {
+            $val = Utils::presdef($att, $this->memberships[$groupid], NULL);
         }
 
         return ($val);
@@ -965,7 +965,7 @@ class User extends Entity
         // Let them know.  We always want to let TN know if a member is removed/banned so that they can't see
         // the messages.
         if ($byemail || $this->isTN()) {
-            list ($transport, $mailer) = getMailer();
+            list ($transport, $mailer) = Mail::getMailer();
             $message = \Swift_Message::newInstance()
                 ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
                 ->setFrom($g->getAutoEmail())
@@ -1040,14 +1040,14 @@ class User extends Entity
             $one['role'] = $group['role'];
             $one['collection'] = $group['collection'];
             $amod = ($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER);
-            $one['configid'] = presdef('configid', $group, NULL);
+            $one['configid'] = Utils::presdef('configid', $group, NULL);
 
-            if ($amod && !pres('configid', $one)) {
+            if ($amod && !Utils::pres('configid', $one)) {
                 # Get a config using defaults.
                 $one['configid'] = $c->getForGroup($id, $group['groupid']);
             }
 
-            $one['mysettings'] = $this->getGroupSettings($group['groupid'], presdef('configid', $one, NULL), $id);
+            $one['mysettings'] = $this->getGroupSettings($group['groupid'], Utils::presdef('configid', $one, NULL), $id);
 
             # If we don't have our own email on this group we won't be sending mails.  This is what affects what
             # gets shown on the Settings page for the user, and we only want to check this here
@@ -1128,7 +1128,7 @@ class User extends Entity
                 $c = new ModConfig($this->dbhr, $this->dbhm, $config['id'], $config, $stdmsgs, $bulkops);
                 $thisone = $c->getPublic(FALSE);
 
-                if (pres('createdby', $config)) {
+                if (Utils::pres('createdby', $config)) {
                     $ctx = NULL;
                     $thisone['createdby'] = [
                         'id' => $config['createdby'],
@@ -1197,8 +1197,8 @@ class User extends Entity
             if (!$credentials) {
                 unset($login['credentials']);
             }
-            $login['added'] = ISODate($login['added']);
-            $login['lastaccess'] = ISODate($login['lastaccess']);
+            $login['added'] = Utils::ISODate($login['added']);
+            $login['lastaccess'] = Utils::ISODate($login['lastaccess']);
             $login['uid'] = '' . $login['uid'];
         }
 
@@ -1388,7 +1388,7 @@ class User extends Entity
 
         $settings = $defaults;
 
-        if (pres($groupid, $this->memberships)) {
+        if (Utils::pres($groupid, $this->memberships)) {
             $set = $this->memberships[$groupid];
 
             if ($set['settings']) {
@@ -1535,9 +1535,9 @@ class User extends Entity
                     $users[$uid]['info']['reneged'] = $count['reneged'];
                     $users[$uid]['info']['collected'] = $count['collected'];
 
-                    if (pres('abouttime', $count)) {
+                    if (Utils::pres('abouttime', $count)) {
                         $users[$uid]['info']['aboutme'] = [
-                            'timestamp' => ISODate($count['abouttime']),
+                            'timestamp' => Utils::ISODate($count['abouttime']),
                             'text' => $count['abouttext']
                         ];
                     }
@@ -1562,13 +1562,13 @@ class User extends Entity
                     if ($count['type'] == Message::TYPE_OFFER) {
                         $users[$uid]['info']['offers'] += $count['count'];
 
-                        if (!pres('outcome', $count)) {
+                        if (!Utils::pres('outcome', $count)) {
                             $users[$uid]['info']['openoffers'] += $count['count'];
                         }
                     } else if ($count['type'] == Message::TYPE_WANTED) {
                         $users[$uid]['info']['wanteds'] += $count['count'];
 
-                        if (!pres('outcome', $count)) {
+                        if (!Utils::pres('outcome', $count)) {
                             $users[$uid]['info']['openwanteds'] += $count['count'];
                         }
                     }
@@ -1660,10 +1660,10 @@ class User extends Entity
         $ret['reneged'] = $replies[0]['reneged'];
         $ret['collected'] = $replies[0]['collected'];
 
-        if (pres('abouttext', $replies[0])) {
+        if (Utils::pres('abouttext', $replies[0])) {
             $p = strpos($replies[0]['abouttext'], ',');
             $ret['aboutme'] = [
-                'timestamp' => ISODate(substr($replies[0]['abouttext'], 0, $p)),
+                'timestamp' => Utils::ISODate(substr($replies[0]['abouttext'], 0, $p)),
                 'text' => substr($replies[0]['abouttext'], $p + 1)
             ];
         }
@@ -1683,13 +1683,13 @@ class User extends Entity
             if ($count['type'] == Message::TYPE_OFFER) {
                 $ret['offers'] += $count['count'];
 
-                if (!pres('outcome', $count)) {
+                if (!Utils::pres('outcome', $count)) {
                     $ret['openoffers'] += $count['count'];
                 }
             } else if ($count['type'] == Message::TYPE_WANTED) {
                 $ret['wanteds'] += $count['count'];
 
-                if (!pres('outcome', $count)) {
+                if (!Utils::pres('outcome', $count)) {
                     $ret['openwanteds'] += $count['count'];
                 }
             }
@@ -1728,7 +1728,7 @@ class User extends Entity
 
         foreach ($aboutmes as $aboutme) {
             $ret = [
-                'timestamp' => ISODate($aboutme['timestamp']),
+                'timestamp' => Utils::ISODate($aboutme['timestamp']),
                 'text' => $aboutme['text']
             ];
         }
@@ -1805,7 +1805,7 @@ class User extends Entity
         # This involves querying external sites, so we need to use it with care, otherwise we can hang our
         # system.  It can also cause updates, so if we call it lots of times, it can result in cluster issues.
         $forcedefault = FALSE;
-        $settings = presdef('settings', $atts, NULL);
+        $settings = Utils::presdef('settings', $atts, NULL);
 
         if ($settings) {
             if (array_key_exists('useprofile', $settings) && !$settings['useprofile']) {
@@ -1823,7 +1823,7 @@ class User extends Entity
                     $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
                     $j = json_decode($json, TRUE);
 
-                    if ($j && pres('entry', $j) && pres('gphoto$thumbnail', $j['entry']) && pres('$t', $j['entry']['gphoto$thumbnail'])) {
+                    if ($j && Utils::pres('entry', $j) && Utils::pres('gphoto$thumbnail', $j['entry']) && Utils::pres('$t', $j['entry']['gphoto$thumbnail'])) {
                         $atts['profile'] = [
                             'url' => $j['entry']['gphoto$thumbnail']['$t'],
                             'turl' => $j['entry']['gphoto$thumbnail']['$t'],
@@ -1842,7 +1842,7 @@ class User extends Entity
                         'default' => FALSE,
                         'TN' => TRUE
                     ];
-                } else if (!ourDomain($email['email'])) {
+                } else if (!Mail::ourDomain($email['email'])) {
                     # Try for gravatar
                     $gurl = $this->gravatar($email['email'], 200, 404);
                     $g = @file_get_contents($gurl);
@@ -1865,7 +1865,7 @@ class User extends Entity
                 $logins = $this->getLogins(TRUE);
                 foreach ($logins as $login) {
                     if ($login['type'] == User::LOGIN_FACEBOOK) {
-                        if (presdef('useprofile', $atts['settings'], TRUE)) {
+                        if (Utils::presdef('useprofile', $atts['settings'], TRUE)) {
                             $atts['profile'] = [
                                 'url' => "https://graph.facebook.com/{$login['uid']}/picture?access_token=" . FBAPP_ID . "|" . FBAPP_CLIENT_TOKEN,
                                 'turl' => "https://graph.facebook.com/{$login['uid']}/picture?access_token=" . FBAPP_ID . "|" . FBAPP_CLIENT_TOKEN,
@@ -1961,12 +1961,12 @@ class User extends Entity
             }
 
             foreach ($atts as $att) {
-                $rets[$user['id']][$att] = presdef($att, $user, NULL);
+                $rets[$user['id']][$att] = Utils::presdef($att, $user, NULL);
             }
 
-            $rets[$user['id']]['settings'] = presdef('settings', $user, NULL) ? json_decode($user['settings'], TRUE) : ['dummy' => TRUE];
+            $rets[$user['id']]['settings'] = Utils::presdef('settings', $user, NULL) ? json_decode($user['settings'], TRUE) : ['dummy' => TRUE];
 
-            if (pres('mylocation', $rets[$user['id']]['settings']) && pres('groupsnear', $rets[$user['id']]['settings']['mylocation'])) {
+            if (Utils::pres('mylocation', $rets[$user['id']]['settings']) && Utils::pres('groupsnear', $rets[$user['id']]['settings']['mylocation'])) {
                 # This is large - no need for it.
                 $rets[$user['id']]['settings']['mylocation']['groupsnear'] = NULL;
             }
@@ -1977,7 +1977,7 @@ class User extends Entity
 
             $rets[$user['id']]['displayname'] = $this->getName(TRUE, $user);
 
-            $rets[$user['id']]['added'] = ISODate($user['added']);
+            $rets[$user['id']]['added'] = Utils::ISODate($user['added']);
 
             foreach (['fullname', 'firstname', 'lastname'] as $att) {
                 # Make sure we don't return an email if somehow one has snuck in.
@@ -1994,23 +1994,23 @@ class User extends Entity
 
             if ($me && ($me->isModerator() || $user['id'] == $me->getId())) {
                 # Mods can see email settings, no matter which group.
-                $rets[$user['id']]['onholidaytill'] = (pres('onholidaytill', $rets[$user['id']]) && (time() < strtotime($rets[$user['id']]['onholidaytill']))) ? ISODate($rets[$user['id']]['onholidaytill']) : NULL;
+                $rets[$user['id']]['onholidaytill'] = (Utils::pres('onholidaytill', $rets[$user['id']]) && (time() < strtotime($rets[$user['id']]['onholidaytill']))) ? Utils::ISODate($rets[$user['id']]['onholidaytill']) : NULL;
             } else {
                 # Don't show some attributes unless they're a mod or ourselves.
                 $ismod = $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_ADMIN ||
                     $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_SUPPORT ||
                     $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_MODERATOR;
-                $showmod = $ismod && presdef('showmod', $rets[$user['id']]['settings'], FALSE);
+                $showmod = $ismod && Utils::presdef('showmod', $rets[$user['id']]['settings'], FALSE);
                 $rets[$user['id']]['settings'] = ['showmod' => $showmod];
                 $rets[$user['id']]['yahooid'] = NULL;
             }
 
-            if (pres('deleted', $rets[$user['id']])) {
-                $rets[$user['id']]['deleted'] = ISODate($rets[$user['id']]['deleted']);
+            if (Utils::pres('deleted', $rets[$user['id']])) {
+                $rets[$user['id']]['deleted'] = Utils::ISODate($rets[$user['id']]['deleted']);
             }
 
-            if (pres('lastaccess', $rets[$user['id']])) {
-                $rets[$user['id']]['lastaccess'] = ISODate($rets[$user['id']]['lastaccess']);
+            if (Utils::pres('lastaccess', $rets[$user['id']])) {
+                $rets[$user['id']]['lastaccess'] = Utils::ISODate($rets[$user['id']]['lastaccess']);
             }
         }
     }
@@ -2035,17 +2035,17 @@ class User extends Entity
             foreach ($profiles as $profile) {
                 # Get a profile.  This function is called so frequently that we can't afford to query external sites
                 # within it, so if we don't find one, we default to none.
-                if (pres('settings', $rets[$profile['userid']]) &&
+                if (Utils::pres('settings', $rets[$profile['userid']]) &&
                     gettype($rets[$profile['userid']]['settings']) == 'array' &&
                     (!array_key_exists('useprofile', $rets[$profile['userid']]['settings']) || $rets[$profile['userid']]['settings']['useprofile'])) {
                     # We found a profile that we can use.
                     if (!$profile['default']) {
                         # If it's a gravatar image we can return a thumbnail url that specifies a different size.
-                        $turl = pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
+                        $turl = Utils::pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
                         $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
                         $rets[$profile['userid']]['profile'] = [
                             'id' => $profile['id'],
-                            'url' => pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
+                            'url' => Utils::pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
                             'turl' => $turl,
                             'default' => FALSE
                         ];
@@ -2088,8 +2088,8 @@ class User extends Entity
              foreach ($rets as $userid => $ret) {
                  foreach ($histories as $history) {
                      if ($history['fromuser'] == $ret['id']) {
-                         $history['arrival'] = pres('repostdate', $history) ? ISODate($history['repostdate']) : ISODate($history['arrival']);
-                         $history['date'] = ISODate($history['date']);
+                         $history['arrival'] = Utils::pres('repostdate', $history) ? Utils::ISODate($history['repostdate']) : Utils::ISODate($history['arrival']);
+                         $history['date'] = Utils::ISODate($history['date']);
                          $rets[$userid]['messagehistory'][] = $history;
                      }
                  }
@@ -2138,7 +2138,7 @@ class User extends Entity
                         'membershipid' => $group['id'],
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
-                        'added' => ISODate($group['added']),
+                        'added' => Utils::ISODate($group['added']),
                         'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailfrequency' => $group['emailfrequency'],
@@ -2174,7 +2174,7 @@ class User extends Entity
         foreach ($rets as $ret) {
             $ret['activearea'] = NULL;
 
-            if (!pres('memberof', $ret)) {
+            if (!Utils::pres('memberof', $ret)) {
                 # We haven't provided the complete list already, e.g. because the user is suspect.
                 $userids[] = $ret['id'];
             }
@@ -2197,9 +2197,9 @@ class User extends Entity
                 $ret['memberof'] = [];
                 $ourEmailId = NULL;
 
-                if (pres('emails', $ret)) {
+                if (Utils::pres('emails', $ret)) {
                     foreach ($ret['emails'] as $email) {
-                        if (ourDomain($email['email'])) {
+                        if (Mail::ourDomain($email['email'])) {
                             $ourEmailId = $email['id'];
                         }
                     }
@@ -2214,7 +2214,7 @@ class User extends Entity
                             'membershipid' => $group['id'],
                             'namedisplay' => $name,
                             'nameshort' => $group['nameshort'],
-                            'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
+                            'added' => Utils::ISODate(Utils::pres('yadded', $group) ? $group['yadded'] : $group['added']),
                             'collection' => $group['coll'],
                             'role' => $group['role'],
                             'emailfrequency' => $group['emailfrequency'],
@@ -2226,7 +2226,7 @@ class User extends Entity
                         ];
 
                         if ($group['lat'] && $group['lng']) {
-                            $box = presdef('activearea', $ret, NULL);
+                            $box = Utils::presdef('activearea', $ret, NULL);
 
                             $ret['activearea'] = [
                                 'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
@@ -2262,12 +2262,12 @@ class User extends Entity
                     if ($ret['id'] == $memb['userid']) {
                         $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
                         $memb['namedisplay'] = $name;
-                        $memb['added'] = ISODate($memb['added']);
+                        $memb['added'] = Utils::ISODate($memb['added']);
                         $memb['id'] = $memb['groupid'];
                         unset($memb['groupid']);
 
                         if ($memb['lat'] && $memb['lng']) {
-                            $box = presdef('activearea', $ret, NULL);
+                            $box = Utils::presdef('activearea', $ret, NULL);
 
                             $box = [
                                 'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
@@ -2317,7 +2317,7 @@ class User extends Entity
                                 $ret['spammer'][$att]= $user[$att];
                             }
 
-                            $ret['spammer']['added'] = ISODate($ret['spammer']['added']);
+                            $ret['spammer']['added'] = Utils::ISODate($ret['spammer']['added']);
                         } else {
                             $ret['spammer'] = TRUE;
                         }
@@ -2337,7 +2337,7 @@ class User extends Entity
 
             foreach ($emails as $email) {
                 if ($rets[$retind]['id'] == $email['userid']) {
-                    $email['timestamp'] = ISODate($email['timestamp']);
+                    $email['timestamp'] = Utils::ISODate($email['timestamp']);
                     unset($email['userid']);
                     $rets[$retind]['emailhistory'][] = $email;
                 }
@@ -2391,7 +2391,7 @@ class User extends Entity
         $emails = $this->getEmailsById($userids);
 
         foreach ($rets as &$ret) {
-            if (pres($ret['id'], $emails)) {
+            if (Utils::pres($ret['id'], $emails)) {
                 $ret['emails'] = $emails[$ret['id']];
             }
         }
@@ -2433,8 +2433,8 @@ class User extends Entity
                 if ($log['user'] == $ret['id'] || $log['byuser'] == $ret['id']) {
                     $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : intval(min($ctx['id'], $log['id']));
 
-                    if (pres('byuser', $log)) {
-                        if (!pres($log['byuser'], $users)) {
+                    if (Utils::pres('byuser', $log)) {
+                        if (!Utils::pres($log['byuser'], $users)) {
                             $u = User::get($this->dbhr, $this->dbhm, $log['byuser']);
 
                             if ($u->getId() == $log['byuser']) {
@@ -2447,8 +2447,8 @@ class User extends Entity
                         $log['byuser'] = $users[$log['byuser']];
                     }
 
-                    if (pres('user', $log)) {
-                        if (!pres($log['user'], $users)) {
+                    if (Utils::pres('user', $log)) {
+                        if (!Utils::pres($log['user'], $users)) {
                             $u = User::get($this->dbhr, $this->dbhm, $log['user']);
 
                             if ($u->getId() == $log['user']) {
@@ -2461,8 +2461,8 @@ class User extends Entity
                         $log['user'] = $users[$log['user']];
                     }
 
-                    if (pres('groupid', $log)) {
-                        if (!pres($log['groupid'], $groups)) {
+                    if (Utils::pres('groupid', $log)) {
+                        if (!Utils::pres($log['groupid'], $groups)) {
                             $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
 
                             if ($g->getId()) {
@@ -2472,7 +2472,7 @@ class User extends Entity
                         }
 
                         # We can see logs for ourselves.
-                        if (!($myid != NULL && pres('user', $log) && presdef('id', $log['user'], NULL) == $myid) &&
+                        if (!($myid != NULL && Utils::pres('user', $log) && Utils::presdef('id', $log['user'], NULL) == $myid) &&
                             $g->getId() &&
                             $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
                             $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR
@@ -2482,11 +2482,11 @@ class User extends Entity
                             continue;
                         }
 
-                        $log['group'] = presdef($log['groupid'], $groups, NULL);
+                        $log['group'] = Utils::presdef($log['groupid'], $groups, NULL);
                     }
 
-                    if (pres('configid', $log)) {
-                        if (!pres($log['configid'], $configs)) {
+                    if (Utils::pres('configid', $log)) {
+                        if (!Utils::pres($log['configid'], $configs)) {
                             $c = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
 
                             if ($c->getId()) {
@@ -2494,17 +2494,17 @@ class User extends Entity
                             }
                         }
 
-                        if (pres($log['configid'], $configs)) {
+                        if (Utils::pres($log['configid'], $configs)) {
                             $log['config'] = $configs[$log['configid']];
                         }
                     }
 
-                    if (pres('stdmsgid', $log)) {
+                    if (Utils::pres('stdmsgid', $log)) {
                         $s = new StdMessage($this->dbhr, $this->dbhm, $log['stdmsgid']);
                         $log['stdmsg'] = $s->getPublic();
                     }
 
-                    if (pres('msgid', $log)) {
+                    if (Utils::pres('msgid', $log)) {
                         $m = new Message($this->dbhr, $this->dbhm, $log['msgid']);
 
                         if ($m->getID()) {
@@ -2534,7 +2534,7 @@ class User extends Entity
                         unset($log['message']['message']);
                     }
 
-                    $log['timestamp'] = ISODate($log['timestamp']);
+                    $log['timestamp'] = Utils::ISODate($log['timestamp']);
 
                     $rets[$uid]['logs'][] = $log;
                 }
@@ -2556,7 +2556,7 @@ class User extends Entity
                         if (!in_array($id, $uids, TRUE)) {
                             $added = TRUE;
                             $uids[] = $id;
-                            $merges[] = ['timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3]];
+                            $merges[] = ['timestamp' => Utils::ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3]];
                         }
                     }
                 }
@@ -2767,7 +2767,7 @@ class User extends Entity
 
                             # There are several attributes we want to take the non-NULL version.
                             foreach (['configid', 'settings', 'heldby'] as $key) {
-                                #error_log("Check {$id2memb['groupid']} memb $id2 $key = " . presdef($key, $id2memb, NULL));
+                                #error_log("Check {$id2memb['groupid']} memb $id2 $key = " . Utils::presdef($key, $id2memb, NULL));
                                 if ($id2memb[$key]) {
                                     if ($rc2) {
                                         $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
@@ -2986,7 +2986,7 @@ class User extends Entity
                         $rollback = FALSE;
 
                         # We might have merged ourself!
-                        if (pres('id', $_SESSION) == $id2) {
+                        if (Utils::pres('id', $_SESSION) == $id2) {
                             $_SESSION['id'] = $id1;
                         }
                     }
@@ -3028,7 +3028,7 @@ class User extends Entity
         try {
             #error_log(session_id() . " mail " . microtime(true));
 
-            list ($transport, $mailer) = getMailer();
+            list ($transport, $mailer) = Mail::getMailer();
 
             $message = \Swift_Message::newInstance()
                 ->setSubject($subject)
@@ -3120,7 +3120,7 @@ class User extends Entity
                     $this->mailer($me, TRUE, $this->getName(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->id . " $to)\n\n" . $body);
                 }
 
-                if (!ourDomain($to)) {
+                if (!Mail::ourDomain($to)) {
                     # For users who we host, we leave the message unseen; that will then later generate a notification
                     # to them.  Otherwise we mail them the message and mark it as seen, because they would get
                     # confused by a mail in our notification format.
@@ -3195,7 +3195,7 @@ class User extends Entity
 
         $commentuids = [];
         foreach ($comments as $comment) {
-            if (pres('byuserid', $comment)) {
+            if (Utils::pres('byuserid', $comment)) {
                 $commentuids[] = $comment['byuserid'];
             }
         }
@@ -3219,10 +3219,10 @@ class User extends Entity
             for ($commentind = 0; $commentind < count($comments); $commentind++) {
                 if ($comments[$commentind]['userid'] == $rets[$retind]['id']) {
                     if ($support || in_array($comments[$commentind]['groupid'], $groupids)) {
-                        $comments[$commentind]['date'] = ISODate($comments[$commentind]['date']);
-                        $comments[$commentind]['reviewed'] = ISODate($comments[$commentind]['reviewed']);
+                        $comments[$commentind]['date'] = Utils::ISODate($comments[$commentind]['date']);
+                        $comments[$commentind]['reviewed'] = Utils::ISODate($comments[$commentind]['reviewed']);
 
-                        if (pres('byuserid', $comments[$commentind])) {
+                        if (Utils::pres('byuserid', $comments[$commentind])) {
                             $comments[$commentind]['byuser'] = $commentusers[$comments[$commentind]['byuserid']];
                         }
 
@@ -3237,7 +3237,7 @@ class User extends Entity
         $ctxq = '';
 
         if ($ctx) {
-            $ctxq = "users_comments.id > " . intval(presdef('id', $ctx, NULL)) . " AND ";
+            $ctxq = "users_comments.id > " . intval(Utils::presdef('id', $ctx, NULL)) . " AND ";
         }
 
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
@@ -3251,15 +3251,15 @@ class User extends Entity
         $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
 
         foreach ($comments as &$comment) {
-            $comment['date'] = ISODate($comment['date']);
-            $comment['reviewed'] = ISODate($comment['reviewed']);
+            $comment['date'] = Utils::ISODate($comment['date']);
+            $comment['reviewed'] = Utils::ISODate($comment['reviewed']);
 
-            if (pres('userid', $comment)) {
+            if (Utils::pres('userid', $comment)) {
                 $comment['user'] = $users[$comment['userid']];
                 unset($comment['userid']);
             }
 
-            if (pres('byuserid', $comment)) {
+            if (Utils::pres('byuserid', $comment)) {
                 $comment['byuser'] = $users[$comment['byuserid']];
                 unset($comment['byuserid']);
             }
@@ -3281,10 +3281,10 @@ class User extends Entity
         $comments = $this->dbhr->preQuery($sql, [$id]);
 
         foreach ($comments as &$comment) {
-            $comment['date'] = ISODate($comment['date']);
-            $comment['reviewed'] = ISODate($comment['reviewed']);
+            $comment['date'] = Utils::ISODate($comment['date']);
+            $comment['reviewed'] = Utils::ISODate($comment['reviewed']);
 
-            if (pres('byuserid', $comment)) {
+            if (Utils::pres('byuserid', $comment)) {
                 $u = User::get($this->dbhr, $this->dbhm, $comment['byuserid']);
                 $comment['byuser'] = $u->getPublic();
             }
@@ -3495,7 +3495,7 @@ class User extends Entity
 
         Mail::addHeaders($message, Mail::WELCOME, $this->getId());
 
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
         $this->sendIt($mailer, $message);
     }
 
@@ -3521,7 +3521,7 @@ class User extends Entity
 
         Mail::addHeaders($message, Mail::FORGOT_PASSWORD, $this->getId());
 
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
         $this->sendIt($mailer, $message);
     }
 
@@ -3558,7 +3558,7 @@ class User extends Entity
 
             $confirm = $this->loginLink($usersite ? USER_SITE : MOD_SITE, $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
 
-            list ($transport, $mailer) = getMailer();
+            list ($transport, $mailer) = Mail::getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
 
             $message = \Swift_Message::newInstance()
@@ -3609,7 +3609,7 @@ class User extends Entity
 
     public function confirmUnsubscribe()
     {
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
 
         $link = $this->getUnsubLink(USER_SITE, $this->id, NULL, TRUE) . "&confirm=1";
 
@@ -3760,7 +3760,7 @@ class User extends Entity
             }
 
             if (!$key) {
-                $key = randstr(32);
+                $key = Utils::randstr(32);
                 $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
                     $id,
                     User::LOGIN_LINK,
@@ -3837,7 +3837,7 @@ class User extends Entity
 
                 if ($g->getId() === $log['groupid']) {
                     $ret[] = [
-                        'timestamp' => ISODate($log['timestamp']),
+                        'timestamp' => Utils::ISODate($log['timestamp']),
                         'type' => $thisone,
                         'group' => [
                             'id' => $log['groupid'],
@@ -3861,7 +3861,7 @@ class User extends Entity
         }
 
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $id = intval(presdef('id', $ctx, 0));
+        $id = intval(Utils::presdef('id', $ctx, 0));
         $ctx = $ctx ? $ctx : [];
         $q = $this->dbhr->quote("$search%");
         $backwards = strrev($search);
@@ -3932,7 +3932,7 @@ class User extends Entity
             ]);
 
             foreach ($push as $p) {
-                $thisone['lastpush'] = ISODate($p['lastpush']);
+                $thisone['lastpush'] = Utils::ISODate($p['lastpush']);
             }
 
             $ret[] = $thisone;
@@ -3949,14 +3949,14 @@ class User extends Entity
 
     public function canMerge()
     {
-        $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
+        $settings = Utils::pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
         return (array_key_exists('canmerge', $settings) ? $settings['canmerge'] : TRUE);
     }
 
     public function notifsOn($type, $groupid = NULL)
     {
-        $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
-        $notifs = pres('notifications', $settings);
+        $settings = Utils::pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
+        $notifs = Utils::pres('notifications', $settings);
 
         $defs = [
             'email' => TRUE,
@@ -4008,7 +4008,7 @@ class User extends Entity
                 list($msgs, $users) = $r->getMessages(100, 0);
 
                 if (count($msgs) > 0) {
-                    $message = presdef('message', $msgs[count($msgs) - 1], "You have a message");
+                    $message = Utils::presdef('message', $msgs[count($msgs) - 1], "You have a message");
                     $message = strlen($message) > 256 ? (substr($message, 0, 256) . "...") : $message;
                 }
 
@@ -4076,7 +4076,7 @@ class User extends Entity
             $route = NULL;
 
             foreach ($types as $type => $vals) {
-                if (presdef($type, $work, 0) > 0) {
+                if (Utils::presdef($type, $work, 0) > 0) {
                     $title .= $work[$type] . ' ' . ($work[$type] != 1 ? $vals[1] : $vals[0] ) . "\n";
                     $route = $vals[2];
                 }
@@ -4105,7 +4105,7 @@ class User extends Entity
         try {
             $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/donations');
             $twig = new \Twig_Environment($loader);
-            list ($transport, $mailer) = getMailer();
+            list ($transport, $mailer) = Mail::getMailer();
 
             $message = \Swift_Message::newInstance()
                 ->setSubject("Thank you for supporting Freegle!")
@@ -4166,7 +4166,7 @@ class User extends Entity
                         $frommail = $this->getEmailPreferred();
                         $url = "https://" . USER_SITE . "/invite/" . $this->dbhm->lastInsertId();
 
-                        list ($transport, $mailer) = getMailer();
+                        list ($transport, $mailer) = Mail::getMailer();
                         $message = \Swift_Message::newInstance()
                             ->setSubject("$fromname has invited you to try Freegle!")
                             ->setFrom([NOREPLY_ADDR => SITE_NAME])
@@ -4240,8 +4240,8 @@ class User extends Entity
 
         foreach ($invites as $invite) {
             # Check if this email is now on the platform.
-            $invite['date'] = ISODate($invite['date']);
-            $invite['outcometimestamp'] = $invite['outcometimestamp'] ? ISODate($invite['outcometimestamp']) : NULL;
+            $invite['date'] = Utils::ISODate($invite['date']);
+            $invite['outcometimestamp'] = $invite['outcometimestamp'] ? Utils::ISODate($invite['outcometimestamp']) : NULL;
             $ret[] = $invite;
         }
 
@@ -4261,7 +4261,7 @@ class User extends Entity
                 $loc['lng'] = round($loc['lng'], $blur);
             }
 
-            $ret = [ $loc['lat'], $loc['lng'], presdef('loc', $loc, NULL) ];
+            $ret = [ $loc['lat'], $loc['lng'], Utils::presdef('loc', $loc, NULL) ];
         }
 
         return $ret;
@@ -4286,11 +4286,11 @@ class User extends Entity
                 $lat = NULL;
                 $lng = NULL;
 
-                if (pres('settings', $att)) {
+                if (Utils::pres('settings', $att)) {
                     $settings = $att['settings'];
                     $settings = json_decode($settings, TRUE);
 
-                    if (pres('mylocation', $settings) && pres('area', $settings['mylocation'])) {
+                    if (Utils::pres('mylocation', $settings) && Utils::pres('area', $settings['mylocation'])) {
                         $loc = $settings['mylocation']['area']['name'];
                         $lid = $settings['mylocation']['id'];
                         $lat = $settings['mylocation']['lat'];
@@ -4376,14 +4376,14 @@ class User extends Entity
                 $lng = NULL;
                 $loc = NULL;
 
-                if (pres('settings', $att)) {
+                if (Utils::pres('settings', $att)) {
                     $settings = $att['settings'];
                     $settings = json_decode($settings, TRUE);
 
-                    if (pres('mylocation', $settings)) {
+                    if (Utils::pres('mylocation', $settings)) {
                         $lat = $settings['mylocation']['lat'];
                         $lng = $settings['mylocation']['lng'];
-                        $loc = presdef('name', $settings['mylocation'], NULL);
+                        $loc = Utils::presdef('name', $settings['mylocation'], NULL);
                     }
                 }
 
@@ -4434,7 +4434,7 @@ class User extends Entity
                 $ret[$memb['userid']] = [
                     'lat' => $memb['lat'],
                     'lng' => $memb['lng'],
-                    'group' => presdef('namefull', $memb, $memb['nameshort'])
+                    'group' => Utils::presdef('namefull', $memb, $memb['nameshort'])
                 ];
 
                 $userids = array_filter($userids, function($id) use ($memb) {
@@ -4462,7 +4462,7 @@ class User extends Entity
             $membs = $this->dbhr->preQuery("SELECT userid, nameshort, namefull FROM groups INNER JOIN memberships ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', array_filter(array_column($users, 'id'))) . ") ORDER BY added ASC;", NULL, FALSE, FALSE);
             foreach ($membs as $memb) {
                 $ret[$memb['userid']] = [
-                    'group' => presdef('namefull', $memb, $memb['nameshort'])
+                    'group' => Utils::presdef('namefull', $memb, $memb['nameshort'])
                 ];
             }
         }
@@ -4527,7 +4527,7 @@ class User extends Entity
 
         # Only update if we don't have one or it's older than a day.  This avoids repeatedly updating the entry
         # for the same user in some bulk operations.
-        if (!pres('timestamp', $current) || (time() - strtotime($current['timestamp']) > 24 * 60 * 60)) {
+        if (!Utils::pres('timestamp', $current) || (time() - strtotime($current['timestamp']) > 24 * 60 * 60)) {
             # We analyse a user's activity and assign them a level.
             #
             # Only interested in activity in the last year.
@@ -4657,7 +4657,7 @@ class User extends Entity
 
     public function requestExport($sync = FALSE)
     {
-        $tag = randstr(64);
+        $tag = Utils::randstr(64);
 
         # Flag sync ones as started to avoid window with background thread.
         $sync = $sync ? "NOW()" : "NULL";
@@ -4695,9 +4695,9 @@ class User extends Entity
         $d['Your_last_name'] = $this->getPrivate('lastname');
         $d['Your_Yahoo_ID'] = $this->getPrivate('yahooid');
         $d['Your_role_on_the_system'] = $this->getPrivate('systemrole');
-        $d['When_you_joined_the_site'] = ISODate($this->getPrivate('added'));
-        $d['When_you_last_accessed_the_site'] = ISODate($this->getPrivate('lastaccess'));
-        $d['When_we_last_checked_for_relevant_posts_for_you'] = ISODate($this->getPrivate('lastrelevantcheck'));
+        $d['When_you_joined_the_site'] = Utils::ISODate($this->getPrivate('added'));
+        $d['When_you_last_accessed_the_site'] = Utils::ISODate($this->getPrivate('lastaccess'));
+        $d['When_we_last_checked_for_relevant_posts_for_you'] = Utils::ISODate($this->getPrivate('lastrelevantcheck'));
         $d['Whether_we_can_scan_your_messages_to_protect_other_users'] = $this->getPrivate('ripaconsent') ? 'Yes' : 'No';
         $d['Whether_we_can_publish_your_posts_outside_the_site'] = $this->getPrivate('publishconsent') ? 'Yes' : 'No';
         $d['Whether_your_email_is_bouncing'] = $this->getPrivate('bouncing') ? 'Yes' : 'No';
@@ -4716,28 +4716,28 @@ class User extends Entity
         if ($settings) {
             $settings = json_decode($settings, TRUE);
 
-            $location = presdef('id', presdef('mylocation', $settings, []), NULL);
+            $location = Utils::presdef('id', Utils::presdef('mylocation', $settings, []), NULL);
 
             if ($location) {
                 $l = new Location($this->dbhr, $this->dbhm, $location);
                 $d['Last_location_you_entered'] = $l->getPrivate('name') . ' (' . $l->getPrivate('lat') . ', ' . $l->getPrivate('lng') . ')';
             }
 
-            $notifications = pres('notifications', $settings);
+            $notifications = Utils::pres('notifications', $settings);
 
-            $d['Notifications']['Send_email_notifications_for_chat_messages'] = presdef('email', $notifications, TRUE) ? 'Yes' : 'No';
-            $d['Notifications']['Send_email_notifications_of_chat_messages_you_send'] = presdef('emailmine', $notifications, TRUE) ? 'Yes' : 'No';
-            $d['Notifications']['Send_notifications_for_apps'] = presdef('app', $notifications, TRUE) ? 'Yes' : 'No';
-            $d['Notifications']['Send_push_notifications_to_web_browsers'] = presdef('push', $notifications, TRUE) ? 'Yes' : 'No';
-            $d['Notifications']['Send_Facebook_notifications'] = presdef('facebook', $notifications, TRUE) ? 'Yes' : 'No';
-            $d['Notifications']['Send_emails_about_notifications_on_the_site'] = presdef('notificationmails', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_email_notifications_for_chat_messages'] = Utils::presdef('email', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_email_notifications_of_chat_messages_you_send'] = Utils::presdef('emailmine', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_notifications_for_apps'] = Utils::presdef('app', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_push_notifications_to_web_browsers'] = Utils::presdef('push', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_Facebook_notifications'] = Utils::presdef('facebook', $notifications, TRUE) ? 'Yes' : 'No';
+            $d['Notifications']['Send_emails_about_notifications_on_the_site'] = Utils::presdef('notificationmails', $notifications, TRUE) ? 'Yes' : 'No';
 
-            $d['Hide_profile_picture'] = presdef('useprofile', $settings, TRUE) ? 'Yes' : 'No';
+            $d['Hide_profile_picture'] = Utils::presdef('useprofile', $settings, TRUE) ? 'Yes' : 'No';
 
             if ($this->isModerator()) {
-                $d['Show_members_that_you_are_a_moderator'] = pres('showmod', $settings) ? 'Yes' : 'No';
+                $d['Show_members_that_you_are_a_moderator'] = Utils::pres('showmod', $settings) ? 'Yes' : 'No';
 
-                switch (presdef('modnotifs', $settings, 4)) {
+                switch (Utils::presdef('modnotifs', $settings, 4)) {
                     case 24:
                         $d['Send_notifications_of_active_mod_work'] = 'After 24 hours';
                         break;
@@ -4761,7 +4761,7 @@ class User extends Entity
                         break;
                 }
 
-                switch (presdef('backupmodnotifs', $settings, 12)) {
+                switch (Utils::presdef('backupmodnotifs', $settings, 12)) {
                     case 24:
                         $d['Send_notifications_of_backup_mod_work'] = 'After 24 hours';
                         break;
@@ -4785,7 +4785,7 @@ class User extends Entity
                         break;
                 }
 
-                $d['Show_members_that_you_are_a_moderator'] = presdef('showmod', $settings, TRUE) ? 'Yes' : 'No';
+                $d['Show_members_that_you_are_a_moderator'] = Utils::presdef('showmod', $settings, TRUE) ? 'Yes' : 'No';
             }
         }
 
@@ -4797,7 +4797,7 @@ class User extends Entity
         foreach ($invites as $invite) {
             $d['invitations'][] = [
                 'email' => $invite['email'],
-                'date' => ISODate($invite['date'])
+                'date' => Utils::ISODate($invite['date'])
             ];
         }
 
@@ -4805,10 +4805,10 @@ class User extends Entity
         $d['emails'] = $this->getEmails();
 
         foreach ($d['emails'] as &$email) {
-            $email['added'] = ISODate($email['added']);
+            $email['added'] = Utils::ISODate($email['added']);
 
             if ($email['validated']) {
-                $email['validated'] = ISODate($email['validated']);
+                $email['validated'] = Utils::ISODate($email['validated']);
             }
         }
 
@@ -4826,8 +4826,8 @@ class User extends Entity
         ]);
 
         foreach ($d['logins'] as &$dd) {
-            $dd['added'] = ISOdate($dd['added']);
-            $dd['lastaccess'] = ISOdate($dd['lastaccess']);
+            $dd['added'] = Utils::ISODate($dd['added']);
+            $dd['lastaccess'] = Utils::ISODate($dd['lastaccess']);
         }
 
         error_log("...memberships");
@@ -4839,7 +4839,7 @@ class User extends Entity
         foreach ($membs as &$memb) {
             $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
             $memb['namedisplay'] = $name;
-            $memb['added'] = ISODate($memb['added']);
+            $memb['added'] = Utils::ISODate($memb['added']);
         }
 
         $d['membershipshistory'] = $membs;
@@ -4850,7 +4850,7 @@ class User extends Entity
         ]);
 
         foreach ($d['searches'] as &$s) {
-            $s['date'] = ISODate($s['date']);
+            $s['date'] = Utils::ISODate($s['date']);
         }
 
         error_log("...alerts");
@@ -4859,7 +4859,7 @@ class User extends Entity
         ]);
 
         foreach ($d['alerts'] as &$s) {
-            $s['responded'] = ISODate($s['responded']);
+            $s['responded'] = Utils::ISODate($s['responded']);
         }
 
         error_log("...donations");
@@ -4868,7 +4868,7 @@ class User extends Entity
         ]);
 
         foreach ($d['donations'] as &$s) {
-            $s['timestamp'] = ISODate($s['timestamp']);
+            $s['timestamp'] = Utils::ISODate($s['timestamp']);
         }
 
         error_log("...bans");
@@ -4882,7 +4882,7 @@ class User extends Entity
             $g = Group::get($this->dbhr, $this->dbhm, $ban['groupid']);
             $u = User::get($this->dbhr, $this->dbhm, $ban['userid']);
             $d['bans'][] = [
-                'date' => ISODate($ban['date']),
+                'date' => Utils::ISODate($ban['date']),
                 'group' => $g->getName(),
                 'email' => $u->getEmailPreferred(),
                 'userid' => $ban['userid']
@@ -4895,7 +4895,7 @@ class User extends Entity
         ]);
 
         foreach ($d['spammers'] as &$s) {
-            $s['added'] = ISODate($s['added']);
+            $s['added'] = Utils::ISODate($s['added']);
             $u = User::get($this->dbhr, $this->dbhm, $s['userid']);
             $s['email'] = $u->getEmailPreferred();
         }
@@ -4905,7 +4905,7 @@ class User extends Entity
         ]);
 
         foreach ($d['spamdomains'] as &$s) {
-            $s['date'] = ISODate($s['date']);
+            $s['date'] = Utils::ISODate($s['date']);
         }
 
         error_log("...images");
@@ -4916,7 +4916,7 @@ class User extends Entity
         $d['images'] = [];
 
         foreach ($images as $image) {
-            if (pres('url', $image)) {
+            if (Utils::pres('url', $image)) {
                 $d['images'][] = [
                     'id' => $image['id'],
                     'thumb' => $image['url']
@@ -4936,7 +4936,7 @@ class User extends Entity
         ]);
 
         foreach ($d['notifications'] as &$n) {
-            $n['timestamp'] = ISODate($n['timestamp']);
+            $n['timestamp'] = Utils::ISODate($n['timestamp']);
         }
 
         error_log("...addresses");
@@ -4984,7 +4984,7 @@ class User extends Entity
         foreach ($comms as &$comm) {
             $u = User::get($this->dbhr, $this->dbhm, $comm['userid']);
             $comm['email'] = $u->getEmailPreferred();
-            $comm['date'] = ISODate($comm['date']);
+            $comm['date'] = Utils::ISODate($comm['date']);
             $d['comments'][] = $comm;
         }
 
@@ -5004,7 +5004,7 @@ class User extends Entity
             $d['locations'][] = [
                 'group' => $g->getName(),
                 'location' => $l->getPrivate('name'),
-                'date' => ISODate($loc['date'])
+                'date' => Utils::ISODate($loc['date'])
             ];
         }
 
@@ -5056,7 +5056,7 @@ class User extends Entity
             $roster = $this->dbhr->preQuery($sql, [$chatid['id'], $this->id]);
             foreach ($roster as $rost) {
                 $thisone['lastip'] = $rost['lastip'];
-                $thisone['date'] = ISODate($rost['date']);
+                $thisone['date'] = Utils::ISODate($rost['date']);
             }
 
             # Get the messages we have sent in this chat.
@@ -5073,17 +5073,17 @@ class User extends Entity
                 $thismsg = $cm->getPublic(FALSE, $userlist);
 
                 # Strip out most of the refmsg detail - it's not ours and we need to save volume of data.
-                $refmsg = pres('refmsg', $thismsg);
+                $refmsg = Utils::pres('refmsg', $thismsg);
 
                 if ($refmsg) {
                     $thismsg['refmsg'] = [
                         'id' => $msg['id'],
-                        'subject' => presdef('subject', $refmsg, NULL)
+                        'subject' => Utils::presdef('subject', $refmsg, NULL)
                     ];
                 }
 
-                $thismsg['mine'] = presdef('userid', $thismsg, NULL) == $this->id;
-                $thismsg['date'] = ISODate($thismsg['date']);
+                $thismsg['mine'] = Utils::presdef('userid', $thismsg, NULL) == $this->id;
+                $thismsg['date'] = Utils::ISODate($thismsg['date']);
                 $thisone['messages'][] = $thismsg;
 
                 $count++;
@@ -5116,7 +5116,7 @@ class User extends Entity
         ]);
 
         foreach ($d['newsfeed_unfollows'] as &$dd) {
-            $dd['timestamp'] = ISODate($dd['timestamp']);
+            $dd['timestamp'] = Utils::ISODate($dd['timestamp']);
         }
 
         $d['newsfeed_likes'] = $this->dbhr->preQuery("SELECT * FROM newsfeed_likes WHERE userid = ?;", [
@@ -5124,7 +5124,7 @@ class User extends Entity
         ]);
 
         foreach ($d['newsfeed_likes'] as &$dd) {
-            $dd['timestamp'] = ISODate($dd['timestamp']);
+            $dd['timestamp'] = Utils::ISODate($dd['timestamp']);
         }
 
         $d['newsfeed_reports'] = $this->dbhr->preQuery("SELECT * FROM newsfeed_reports WHERE userid = ?;", [
@@ -5132,7 +5132,7 @@ class User extends Entity
         ]);
 
         foreach ($d['newsfeed_reports'] as &$dd) {
-            $dd['timestamp'] = ISODate($dd['timestamp']);
+            $dd['timestamp'] = Utils::ISODate($dd['timestamp']);
         }
 
         $d['aboutme'] = $this->dbhr->preQuery("SELECT timestamp, text FROM users_aboutme WHERE userid = ? AND LENGTH(text) > 5;", [
@@ -5140,7 +5140,7 @@ class User extends Entity
         ]);
 
         foreach ($d['aboutme'] as &$dd) {
-            $dd['timestamp'] = ISODate($dd['timestamp']);
+            $dd['timestamp'] = Utils::ISODate($dd['timestamp']);
         }
 
         error_log("...stories");
@@ -5149,7 +5149,7 @@ class User extends Entity
         ]);
 
         foreach ($d['stories'] as &$dd) {
-            $dd['date'] = ISODate($dd['date']);
+            $dd['date'] = Utils::ISODate($dd['date']);
         }
 
         $d['stories_likes'] = $this->dbhr->preQuery("SELECT storyid FROM users_stories_likes WHERE userid = ?;", [
@@ -5162,8 +5162,8 @@ class User extends Entity
         ]);
 
         foreach ($d['exports'] as &$dd) {
-            $dd['started'] = ISODate($dd['started']);
-            $dd['completed'] = ISODate($dd['completed']);
+            $dd['started'] = Utils::ISODate($dd['started']);
+            $dd['completed'] = Utils::ISODate($dd['completed']);
         }
 
         error_log("...logs");
@@ -5174,7 +5174,7 @@ class User extends Entity
         error_log("...add group to logs");
         $loggroups = [];
         foreach ($d['logs'] as &$log) {
-            if (pres('groupid', $log)) {
+            if (Utils::pres('groupid', $log)) {
                 # Don't put the whole group info in there, as it is slow to get.
                 if (!array_key_exists($log['groupid'], $loggroups)) {
                     $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
@@ -5223,7 +5223,7 @@ class User extends Entity
         # Compress the data in the DB because it can be huge.
         #
         error_log("...filter");
-        filterResult($ret);
+        Utils::filterResult($ret);
         error_log("...encode");
         $data = json_encode($ret);
         error_log("...encoded length " . strlen($data) . ", now compress");
@@ -5250,9 +5250,9 @@ class User extends Entity
 
         foreach ($exports as $export) {
             $ret = $export;
-            $ret['requested'] = $ret['requested'] ? ISODate($ret['requested']) : NULL;
-            $ret['started'] = $ret['started'] ? ISODate($ret['started']) : NULL;
-            $ret['completed'] = $ret['completed'] ? ISODate($ret['completed']) : NULL;
+            $ret['requested'] = $ret['requested'] ? Utils::ISODate($ret['requested']) : NULL;
+            $ret['started'] = $ret['started'] ? Utils::ISODate($ret['started']) : NULL;
+            $ret['completed'] = $ret['completed'] ? Utils::ISODate($ret['completed']) : NULL;
 
             if ($ret['completed']) {
                 # This has completed.  Return the data.  Will be zapped in cron exports..
@@ -5471,7 +5471,7 @@ class User extends Entity
             $thisone['groupid'] = $gid;
             $thisone['email'] = $u->getEmailPreferred();
 
-            if (pres('memberof', $thisone)) {
+            if (Utils::pres('memberof', $thisone)) {
                 foreach ($thisone['memberof'] as $group) {
                     if ($group['id'] == $gid) {
                         $thisone['joined'] = $group['added'];
@@ -5508,7 +5508,7 @@ class User extends Entity
 
         foreach ($phones as $phone) {
             try {
-                $last = presdef('lastsent', $phone, NULL);
+                $last = Utils::presdef('lastsent', $phone, NULL);
                 $last = $last ? strtotime($last) : NULL;
 
                 # Only send one SMS per day.  This keeps the cost down.
@@ -5663,7 +5663,7 @@ class User extends Entity
         ]);
 
         foreach ($rateds as &$rate) {
-            $rate['timestamp'] = ISODate($rate['timestamp']);
+            $rate['timestamp'] = Utils::ISODate($rate['timestamp']);
         }
 
         return($rateds);
@@ -5740,7 +5740,7 @@ class User extends Entity
                     $jobs = array_slice($jobs, 0, 4);
 
                     foreach ($jobs as $job) {
-                        $loc = presdef('location', $job, '') . ' ' . presdef('postcode', $job, '');
+                        $loc = Utils::presdef('location', $job, '') . ' ' . Utils::presdef('postcode', $job, '');
                         $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
                         # Direct link to job to increase click conversions.
                         $url = 'https://' . USER_SITE . '/jobs/' . urlencode($search);
@@ -5870,7 +5870,7 @@ memberships.groupid IN $groupq
             $users = $this->getPublicsById(array_merge($uids1, $uids2));
 
             foreach ($users as &$user1) {
-                if (pres($user1['id'], $related)) {
+                if (Utils::pres($user1['id'], $related)) {
                     $thisone = $user1;
 
                     foreach ($users as $user2) {
@@ -6000,9 +6000,9 @@ memberships.groupid IN $groupq
         }
 
         foreach ($groups as &$group) {
-            if (pres('work', $group)) {
+            if (Utils::pres('work', $group)) {
                 foreach ($group['work'] as $key => $work) {
-                    if (pres($key, $ret)) {
+                    if (Utils::pres($key, $ret)) {
                         $ret[$key] += $work;
                     } else {
                         $ret[$key] = $work;
@@ -6034,7 +6034,7 @@ memberships.groupid IN $groupq
         }
 
         foreach ($worktypes as $key) {
-            $total += presdef($key, $ret, 0);
+            $total += Utils::presdef($key, $ret, 0);
         }
 
         $ret['total'] = $total;

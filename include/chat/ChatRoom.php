@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 use Pheanstalk\Pheanstalk;
 use Egulias\EmailValidator\EmailValidator;
 use Egulias\EmailValidator\Validation\RFCValidation;
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/chat_chaseup_mod.php');
 
 class ChatRoom extends Entity
@@ -132,24 +132,24 @@ WHERE chat_rooms.id IN $idlist;";
         $refmsgids = [];
 
         foreach ($rooms as &$room) {
-            $room['u1name'] = presdef('u1name', $room, 'Someone');
-            $room['u2name'] = presdef('u2name', $room, 'Someone');
+            $room['u1name'] = Utils::presdef('u1name', $room, 'Someone');
+            $room['u2name'] = Utils::presdef('u2name', $room, 'Someone');
 
-            if (pres('lastdate', $room)) {
-                $room['lastdate'] = ISODate($room['lastdate']);
-                $room['latestmessage'] = ISODate($room['latestmessage']);
+            if (Utils::pres('lastdate', $room)) {
+                $room['lastdate'] = Utils::ISODate($room['lastdate']);
+                $room['latestmessage'] = Utils::ISODate($room['latestmessage']);
             }
 
             if (!Session::modtools()) {
                 # We might be forbidden from showing the profiles.
-                $u1settings = pres('u1settings', $room) ? json_decode($room['u1settings'], TRUE) : NULL;
-                $u2settings = pres('u2settings', $room) ? json_decode($room['u2settings'], TRUE) : NULL;
+                $u1settings = Utils::pres('u1settings', $room) ? json_decode($room['u1settings'], TRUE) : NULL;
+                $u2settings = Utils::pres('u2settings', $room) ? json_decode($room['u2settings'], TRUE) : NULL;
 
-                if ($u1settings !== NULL && !pres('useprofile', $u1settings)) {
+                if ($u1settings !== NULL && !Utils::pres('useprofile', $u1settings)) {
                     $room['u1defaultimage'] = TRUE;
                 }
 
-                if ($u2settings !== NULL && !pres('useprofile', $u2settings)) {
+                if ($u2settings !== NULL && !Utils::pres('useprofile', $u2settings)) {
                     $room['u2defaultimage'] = TRUE;
                 }
             }
@@ -180,8 +180,8 @@ WHERE chat_rooms.id IN $idlist;";
                     'chattype' => $room['chattype'],
                     'description' => $room['description'],
                     'groupid' => $room['groupid'],
-                    'lastdate' => presdef('lastdate', $room, NULL),
-                    'lastmsg' => presdef('lastmsg', $room, NULL),
+                    'lastdate' => Utils::presdef('lastdate', $room, NULL),
+                    'lastmsg' => Utils::presdef('lastmsg', $room, NULL),
                     'synctofacebook' => $room['synctofacebook'],
                     'unseen' => $room['unseen'],
                     'name' => $room['name'],
@@ -194,9 +194,9 @@ WHERE chat_rooms.id IN $idlist;";
                 switch ($room['chattype']) {
                     case ChatRoom::TYPE_USER2USER:
                         if ($room['user1'] == $myid) {
-                            $thisone['icon'] = pres('u2defaultimage', $room) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u2imageid']  . ".jpg");
+                            $thisone['icon'] = Utils::pres('u2defaultimage', $room) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u2imageid']  . ".jpg");
                         } else {
-                            $thisone['icon'] = pres('u1defaultimage', $room) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u1imageid'] . ".jpg");
+                            $thisone['icon'] = Utils::pres('u1defaultimage', $room) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $room['u1imageid'] . ".jpg");
                         }
                         break;
                     case ChatRoom::TYPE_USER2MOD:
@@ -233,7 +233,7 @@ WHERE chat_rooms.id IN $idlist;";
             foreach ($ids as $id) {
                 foreach ($ret as &$chat) {
                     if ($chat['id'] === $id['chatid']) {
-                        if (pres('refmsgids', $chat)) {
+                        if (Utils::pres('refmsgids', $chat)) {
                             $chat['refmsgids'][] = $id['refmsgid'];
                         } else {
                             $chat['refmsgids'] = [ $id['refmsgid'] ];
@@ -293,7 +293,7 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function mailer($message, $recip = NULL)
     {
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
 
         if (RETURN_PATH && Mail::shouldSend(Mail::CHAT)) {
             # Also send this to the seed list so that we can measure inbox placement.
@@ -550,13 +550,13 @@ WHERE chat_rooms.id IN $idlist;";
         $me = $me ? $me : Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        $u1id = presdef('user1', $this->chatroom, NULL);
-        $u2id = presdef('user2', $this->chatroom, NULL);
+        $u1id = Utils::presdef('user1', $this->chatroom, NULL);
+        $u2id = Utils::presdef('user2', $this->chatroom, NULL);
         $gid = $this->chatroom['groupid'];
         
         $ret = $this->getAtts($this->publicatts);
 
-        if (pres('groupid', $ret) && !$summary) {
+        if (Utils::pres('groupid', $ret) && !$summary) {
             $g = Group::get($this->dbhr, $this->dbhm, $ret['groupid']);
             unset($ret['groupid']);
             $ret['group'] = $g->getPublic();
@@ -571,7 +571,7 @@ WHERE chat_rooms.id IN $idlist;";
                     $ctx = NULL;
                     $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, Session::modtools(), FALSE, FALSE, FALSE);
 
-                    if (pres('group', $ret)) {
+                    if (Utils::pres('group', $ret)) {
                         # As a mod we can see the email
                         $ret['user1']['email'] = $u->getEmailPreferred();
                     }
@@ -586,7 +586,7 @@ WHERE chat_rooms.id IN $idlist;";
                     $ctx = NULL;
                     $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, Session::modtools(), FALSE, FALSE, FALSE);
 
-                    if (pres('group', $ret)) {
+                    if (Utils::pres('group', $ret)) {
                         # As a mod we can see the email
                         $ret['user2']['email'] = $u->getEmailPreferred();
                     }
@@ -611,9 +611,9 @@ WHERE chat_rooms.id IN $idlist;";
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
                 if ($this->chatroom['user1'] == $myid) {
-                    $ret['icon'] = pres('u2defaultimage', $this->chatroom) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $this->chatroom['u2imageid']  . ".jpg");
+                    $ret['icon'] = Utils::pres('u2defaultimage', $this->chatroom) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $this->chatroom['u2imageid']  . ".jpg");
                 } else {
-                    $ret['icon'] = pres('u1defaultimage', $this->chatroom) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $this->chatroom['u1imageid'] . ".jpg");
+                    $ret['icon'] = Utils::pres('u1defaultimage', $this->chatroom) ? ('https://' . USER_DOMAIN . '/defaultprofile.png') : ('https://' . IMAGE_DOMAIN . "/tuimg_" . $this->chatroom['u1imageid'] . ".jpg");
                 }
                 break;
             case ChatRoom::TYPE_USER2MOD:
@@ -677,7 +677,7 @@ WHERE chat_rooms.id IN $idlist;";
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
 
-        if (pres('lastmsg', $this->chatroom)) {
+        if (Utils::pres('lastmsg', $this->chatroom)) {
             $ret['lastmsg'] = $this->chatroom['lastmsg'];
             $ret['lastdate'] = $this->chatroom['lastdate'];
 
@@ -1093,8 +1093,8 @@ WHERE chat_rooms.id IN $idlist;";
             [
                 $this->id,
                 $userid,
-                presdef('REMOTE_ADDR', $_SERVER, NULL),
-                presdef('REMOTE_ADDR', $_SERVER, NULL),
+                Utils::presdef('REMOTE_ADDR', $_SERVER, NULL),
+                Utils::presdef('REMOTE_ADDR', $_SERVER, NULL),
                 $status
             ],
             FALSE);
@@ -1256,7 +1256,7 @@ WHERE chat_rooms.id IN $idlist;";
                         ]);
 
                         foreach ($mods as $mod) {
-                            if (!pres('settings', $mod) || pres('active', json_decode($mod['settings']))) {
+                            if (!Utils::pres('settings', $mod) || Utils::pres('active', json_decode($mod['settings']))) {
                                 $userids[] = $mod['userid'];
                             }
                         }
@@ -1361,12 +1361,12 @@ ORDER BY chat_messages.id, m1.added ASC;";
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
             $thisone = $m->getPublic(TRUE, $userlist);
 
-            if (pres('heldby', $msg)) {
+            if (Utils::pres('heldby', $msg)) {
                 $u = User::get($this->dbhr, $this->dbhm, $msg['heldby']);
                 $thisone['held'] = [
                     'id' => $u->getId(),
                     'name' => $u->getName(),
-                    'timestamp' => ISODate($msg['timestamp']),
+                    'timestamp' => Utils::ISODate($msg['timestamp']),
                     'email' => $u->getEmailPreferred()
                 ];
 
@@ -1376,8 +1376,8 @@ ORDER BY chat_messages.id, m1.added ASC;";
             # To avoid fetching the users again, ask for a summary and then fill them in from our in-hand copy.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
             $thisone['chatroom'] = $r->getPublic(NULL, NULL, TRUE);
-            $u1id = presdef('user1', $thisone['chatroom'], NULL);
-            $u2id = presdef('user2', $thisone['chatroom'], NULL);
+            $u1id = Utils::presdef('user1', $thisone['chatroom'], NULL);
+            $u2id = Utils::presdef('user2', $thisone['chatroom'], NULL);
             $thisone['chatroom']['user1'] = $u1id ? $userlist[$u1id] : NULL;
             $thisone['chatroom']['user2'] = $u2id ? $userlist[$u2id] : NULL;
 
@@ -1394,7 +1394,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                 $thisone['groupfrom'] = $g->getPublic();
             }
 
-            $thisone['date'] = ISODate($thisone['date']);
+            $thisone['date'] = Utils::ISODate($thisone['date']);
             $thisone['msgid'] = $msg['msgid'];
 
             $ctx['msgid'] = $msg['id'];
@@ -1456,7 +1456,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id'], $msg);
             $atts = $m->getPublic($refmsgsummary);
-            $atts['bymailid'] = presdef('bymailid', $msg, NULL);
+            $atts['bymailid'] = Utils::presdef('bymailid', $msg, NULL);
 
             $refmsgid = $m->getPrivate('refmsgid');
 
@@ -1486,7 +1486,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                     unset($atts['reviewrequired']);
                     unset($atts['reviewedby']);
                     unset($atts['reviewrejected']);
-                    $atts['date'] = ISODate($atts['date']);
+                    $atts['date'] = Utils::ISODate($atts['date']);
 
                     $atts['sameaslast'] = ($lastuser === $msg['userid']);
 
@@ -1509,7 +1509,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                     }
 
                     if ($msg['type'] == ChatMessage::TYPE_INTERESTED) {
-                        if (!pres('aboutme', $users[$msg['userid']])) {
+                        if (!Utils::pres('aboutme', $users[$msg['userid']])) {
                             # Find any "about me" info.
                             $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                             $users[$msg['userid']]['aboutme'] = $u->getAboutMe();
@@ -1520,7 +1520,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                     $lastuser = $msg['userid'];
                     $lastdate = $atts['date'];
 
-                    $ctx['id'] = pres('id', $ctx) ? min($ctx['id'], $msg['id']) : $msg['id'];
+                    $ctx['id'] = Utils::pres('id', $ctx) ? min($ctx['id'], $msg['id']) : $msg['id'];
                 }
             }
 
@@ -1562,8 +1562,8 @@ ORDER BY chat_messages.id, m1.added ASC;";
             foreach ($users as $user) {
                 # What's the max message this user has either seen or been mailed?
                 #error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
-                $maxseen = presdef('lastmsgseen', $user, 0);
-                $maxmailed = presdef('lastmsgemailed', $user, 0);
+                $maxseen = Utils::presdef('lastmsgseen', $user, 0);
+                $maxmailed = Utils::presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
                 #error_log("Max seen $maxseen mailed $maxmailed max $max VS $lastmessage");
 
@@ -1589,8 +1589,8 @@ ORDER BY chat_messages.id, m1.added ASC;";
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
 
             foreach ($users as $user) {
-                $maxseen = presdef('lastmsgseen', $user, 0);
-                $maxmailed = presdef('lastmsgemailed', $user, 0);
+                $maxseen = Utils::presdef('lastmsgseen', $user, 0);
+                $maxmailed = Utils::presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
 
                 #error_log("User in User2Mod max $maxmailed vs $lastmessage");
@@ -1635,8 +1635,8 @@ ORDER BY chat_messages.id, m1.added ASC;";
                         $this->id
                     ]);
                 foreach ($rosters as $roster) {
-                    $maxseen = presdef('lastmsgseen', $roster, 0);
-                    $maxmailed = presdef('lastemailed', $roster, 0);
+                    $maxseen = Utils::presdef('lastmsgseen', $roster, 0);
+                    $maxmailed = Utils::presdef('lastemailed', $roster, 0);
                     $max = max($maxseen, $maxmailed);
                     #error_log("Return {$roster['userid']} maxmailed {$roster['lastmsgemailed']} from " . var_export($roster, TRUE));
 
@@ -1802,10 +1802,10 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                     if ($a->getId()) {
                                         $atts = $a->getPublic();
 
-                                        if (pres('multiline', $atts)) {
+                                        if (Utils::pres('multiline', $atts)) {
                                             $thisone .= $atts['multiline'];
 
-                                            if (pres('instructions', $atts)) {
+                                            if (Utils::pres('instructions', $atts)) {
                                                 $thisone .= "\r\n\r\n{$atts['instructions']}";
                                             }
                                         }
@@ -2038,7 +2038,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                 error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
                                 try {
                                     #error_log("Our email " . $thisu->getOurEmail() . " for " . $thisu->getEmailPreferred());
-                                    if (pres('seed', $member)) {
+                                    if (Utils::pres('seed', $member)) {
                                         # If this is a seed, we want to include the HTML if we would do so for the
                                         # recipient that it is a copy of.  That way we will analyse a representative
                                         # sample, rather than always send a plain text only email to the seeds.
@@ -2081,7 +2081,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
 
                                         $sentsome = TRUE;
 
-                                        if (!RETURN_PATH || !pres('seed', $member)) {
+                                        if (!RETURN_PATH || !Utils::pres('seed', $member)) {
                                             $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                                 $lastmsgemailed,
                                                 $member['userid'],
@@ -2211,7 +2211,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                 $msgs = array_reverse($msgs);
 
                                 foreach ($msgs as $unseenmsg) {
-                                    if (pres('message', $unseenmsg)) {
+                                    if (Utils::pres('message', $unseenmsg)) {
                                         $thisone = $unseenmsg['message'];
                                         $textsummary .= $thisone . "\r\n";
                                         $htmlsummary .= nl2br($thisone) . "<br>";

@@ -54,7 +54,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         # Logged out - no rooms
         $ret = $this->call('chatrooms', 'GET', []);
         assertEquals(1, $ret['ret']);
-        assertFalse(pres('chatrooms', $ret));
+        assertFalse(Utils::pres('chatrooms', $ret));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -65,7 +65,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         # Just because it exists, doesn't mean we should be able to see it.
         $ret = $this->call('chatrooms', 'GET', []);
         assertEquals(1, $ret['ret']);
-        assertFalse(pres('chatrooms', $ret));
+        assertFalse(Utils::pres('chatrooms', $ret));
 
         assertTrue($this->user->login('testpw'));
 
@@ -112,7 +112,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         # Logged out - no rooms
         $ret = $this->call('chatrooms', 'GET', []);
         assertEquals(1, $ret['ret']);
-        assertFalse(pres('chatrooms', $ret));
+        assertFalse(Utils::pres('chatrooms', $ret));
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         $rid = $c->createGroupChat('test', $this->groupid);
@@ -120,14 +120,14 @@ class chatRoomsAPITest extends IznikAPITestCase
         # Just because it exists, doesn't mean we should be able to see it.
         $ret = $this->call('chatrooms', 'GET', []);
         assertEquals(1, $ret['ret']);
-        assertFalse(pres('chatrooms', $ret));
+        assertFalse(Utils::pres('chatrooms', $ret));
 
         assertTrue($this->user->login('testpw'));
 
         # Still not, even logged in.
         $ret = $this->call('chatrooms', 'GET', []);
         assertEquals(0, $ret['ret']);
-        assertFalse(pres('chatrooms', $ret));
+        assertFalse(Utils::pres('chatrooms', $ret));
 
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
 
@@ -194,7 +194,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $rid = $ret['id'];
         $this->log("Created User2Mod $rid");
         assertNotNull($rid);
-        assertFalse(pres('chatrooms', $ret));
+        assertFalse(Utils::pres('chatrooms', $ret));
 
         # Now we're talking.
         $ret = $this->call('chatrooms', 'GET', [

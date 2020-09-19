@@ -4,11 +4,11 @@ namespace Freegle\Iznik;
 function socialactions() {
     global $dbhr, $dbhm;
 
-    $ctx = presdef('context', $_REQUEST, NULL);
-    $id = presdef('id', $_REQUEST, NULL);
+    $ctx = Utils::presdef('context', $_REQUEST, NULL);
+    $id = Utils::presdef('id', $_REQUEST, NULL);
     $id = $id ? intval($id) : $id;
-    $uid = intval(presdef('uid', $_REQUEST, NULL));
-    $msgid = intval(presdef('msgid', $_REQUEST, NULL));
+    $uid = intval(Utils::presdef('uid', $_REQUEST, NULL));
+    $msgid = intval(Utils::presdef('msgid', $_REQUEST, NULL));
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -26,7 +26,7 @@ function socialactions() {
 
         case 'POST':
             $f = new GroupFacebook($dbhr, $dbhm, $uid);
-            $action = presdef('action', $_REQUEST, GroupFacebook::ACTION_DO);
+            $action = Utils::presdef('action', $_REQUEST, GroupFacebook::ACTION_DO);
 
             switch ($action) {
                 case GroupFacebook::ACTION_DO:

@@ -4,7 +4,7 @@ $_SERVER['HTTP_HOST'] = "www.ilovefreegle.org";
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 $merges = $dbhr->preQuery("SELECT * FROM merges WHERE accepted IS NULL AND rejected IS NULL ORDER BY id ASC;");

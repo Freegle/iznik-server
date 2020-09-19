@@ -29,7 +29,7 @@ class Yahoo
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
-        $this->host = $host ? $host : (getProtocol() . $_SERVER['HTTP_HOST']);
+        $this->host = $host ? $host : (Utils::getProtocol() . $_SERVER['HTTP_HOST']);
 
         $this->openid = new \LightOpenID($host);
         $this->openid->realm = $this->host;
@@ -92,9 +92,9 @@ class Yahoo
                 if ($status == 200) {
                     error_log("Got user info $json_response");
                     $attrs = json_decode($json_response, TRUE);
-                    $givenName = presdef('given_name', $attrs, NULL);
-                    $familyName = presdef('family_name', $attrs, NULL);
-                    $email = presdef('email', $attrs, NULL);
+                    $givenName = Utils::presdef('given_name', $attrs, NULL);
+                    $familyName = Utils::presdef('family_name', $attrs, NULL);
+                    $email = Utils::presdef('email', $attrs, NULL);
 
                     error_log("$givenName, $familyName, $email");
 
@@ -194,13 +194,13 @@ class Yahoo
                 # But sometimes it doesn't return the email at all.  Way to go.  So in that case we use the namePerson
                 # as though it was a Yahoo ID, since we have no other way to get it, and proceed without adding an
                 # email.
-                $yahooid = pres('contact/email', $attrs) ? $attrs['contact/email'] : $attrs['namePerson'];
+                $yahooid = Utils::pres('contact/email', $attrs) ? $attrs['contact/email'] : $attrs['namePerson'];
                 $p = strpos($yahooid, "@");
                 $yahooid = $p != FALSE ? substr($yahooid, 0, $p) : $yahooid;
 
                 # See if we know this user already.  We might have an entry for them by email, or by Yahoo ID.
                 $u = User::get($this->dbhr, $this->dbhm);
-                $eid = pres('contact/email', $attrs) ? $u->findByEmail($attrs['contact/email']) : NULL;
+                $eid = Utils::pres('contact/email', $attrs) ? $u->findByEmail($attrs['contact/email']) : NULL;
                 $yid = $u->findByYahooId($yahooid);
                 #error_log("Email $eid  from {$attrs['contact/email']} Yahoo $yid");
 
@@ -220,13 +220,13 @@ class Yahoo
                     # one would fail.  Bigger fish to fry.
                     #
                     # We don't have the firstname/lastname split, only a single name.  Way two go.
-                    $id = $u->create(NULL, NULL, presdef('namePerson', $attrs, NULL), "Yahoo login from $yahooid");
+                    $id = $u->create(NULL, NULL, Utils::presdef('namePerson', $attrs, NULL), "Yahoo login from $yahooid");
 
                     if ($id) {
                         # Make sure that we have the Yahoo email recorded as one of the emails for this user.
                         $u = User::get($this->dbhr, $this->dbhm, $id);
 
-                        if (pres('contact/email', $attrs)) {
+                        if (Utils::pres('contact/email', $attrs)) {
                             $u->addEmail($attrs['contact/email'], 0, FALSE);
                         }
 
@@ -257,7 +257,7 @@ class Yahoo
                         $id
                     ]);
 
-                if (!$u->getPrivate('fullname') && pres('namePerson', $attrs)) {
+                if (!$u->getPrivate('fullname') && Utils::pres('namePerson', $attrs)) {
                     # We might have syncd the membership without a good name.
                     $u->setPrivate('fullname', $attrs['namePerson']);
                 }

@@ -6,21 +6,21 @@ function abtest() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
 
     $p = new Polls($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $uid = presdef('uid', $_REQUEST, NULL);
+            $uid = Utils::presdef('uid', $_REQUEST, NULL);
             $variants = $dbhr->preQuery("SELECT * FROM abtest WHERE uid = ? AND suggest = 1 ORDER BY rate DESC, RAND();", [
                 $uid
             ]);
 
             # We use a bandit test so that we get the benefit of the best option, while still exploring others.
             # See http://stevehanov.ca/blog/index.php?id=132 for an example description.
-            $r = randomFloat();
+            $r = Utils::randomFloat();
 
             if ($r < 0.1) {
                 # The 10% case we choose a random one of the other options.
@@ -39,14 +39,14 @@ function abtest() {
             break;
         }
         case 'POST': {
-            $uid = presdef('uid', $_REQUEST, NULL);
-            $variant = presdef('variant', $_REQUEST, NULL);
+            $uid = Utils::presdef('uid', $_REQUEST, NULL);
+            $variant = Utils::presdef('variant', $_REQUEST, NULL);
             $shown = array_key_exists('shown', $_REQUEST) ? filter_var($_REQUEST['shown'], FILTER_VALIDATE_BOOLEAN) : NULL;
             $action = array_key_exists('action', $_REQUEST) ? filter_var($_REQUEST['action'], FILTER_VALIDATE_BOOLEAN) : NULL;
 
             // The client can decide that an action is more valuable.  In this case we weight it, which will result in
             // it getting a higher rate, and therefore being chosen more often.
-            $score = intval(presdef('score', $_REQUEST, 1));
+            $score = intval(Utils::presdef('score', $_REQUEST, 1));
 
             if ($uid && $variant) {
                 if ($shown !== NULL) {

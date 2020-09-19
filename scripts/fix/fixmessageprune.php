@@ -3,7 +3,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/message/Message.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";

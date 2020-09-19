@@ -992,7 +992,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'groupid' => $this->gid
         ]);
-        assertFalse(pres('heldby', $ret['message']));
+        assertFalse(Utils::pres('heldby', $ret['message']));
 
         }
 
@@ -1778,7 +1778,7 @@ class messageAPITest extends IznikAPITestCase
     }
 
     public function testPromisePartner() {
-        $key = randstr(64);
+        $key = Utils::randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'test.com']);
         assertNotNull($id);
 
@@ -2639,7 +2639,7 @@ class messageAPITest extends IznikAPITestCase
         global $sessionPrepared;
         $sessionPrepared = FALSE;
 
-        $key = randstr(64);
+        $key = Utils::randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'test.com']);
         assertNotNull($id);
 

@@ -8,8 +8,8 @@ function export()
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $tag = presdef('tag', $_REQUEST, NULL);
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $tag = Utils::presdef('tag', $_REQUEST, NULL);
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
     if ($myid) {

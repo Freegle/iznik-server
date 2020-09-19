@@ -7,13 +7,13 @@ function chatrooms() {
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : $me;
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $userid = intval(presdef('userid', $_REQUEST, NULL));
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
     $r = new ChatRoom($dbhr, $dbhm, $id);
-    $chattypes = presdef('chattypes', $_REQUEST, [ ChatRoom::TYPE_USER2USER ]);
-    $chattype = presdef('chattype', $_REQUEST, ChatRoom::TYPE_USER2USER);
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $search = presdef('search', $_REQUEST, NULL);
+    $chattypes = Utils::presdef('chattypes', $_REQUEST, [ ChatRoom::TYPE_USER2USER ]);
+    $chattype = Utils::presdef('chattype', $_REQUEST, ChatRoom::TYPE_USER2USER);
+    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $search = Utils::presdef('search', $_REQUEST, NULL);
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $count = array_key_exists('count', $_REQUEST) ? filter_var($_REQUEST['count'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
@@ -35,7 +35,7 @@ function chatrooms() {
                     $ret['chatroom']['unseen'] = $r->unseenCountForUser($myid);
                     $ret['chatroom']['lastmsgseen'] = $r->lastSeenForUser($myid);
 
-                    if (!pres('latestmessage', $ret['chatroom']) ||
+                    if (!Utils::pres('latestmessage', $ret['chatroom']) ||
                         time() - strtotime($ret['chatroom']['latestmessage']) > 31 * 24 * 3600) {
                         // This is an old chat which we have decided to fetch. Update latestmessage to make
                         // sure it will subsequently appear in listForUser
@@ -101,7 +101,7 @@ function chatrooms() {
         case 'POST': {
             # Update our presence and get the current roster.
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
-            $action = presdef('action', $_REQUEST, NULL);
+            $action = Utils::presdef('action', $_REQUEST, NULL);
 
             if ($me) {
                 if ($action == 'AllSeen') {
@@ -128,8 +128,8 @@ function chatrooms() {
                         )
                     ) {
                         $ret = ['ret' => 0, 'status' => 'Success'];
-                        $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
-                        $status = presdef('status', $_REQUEST, ChatRoom::STATUS_ONLINE);
+                        $lastmsgseen = Utils::presdef('lastmsgseen', $_REQUEST, NULL);
+                        $status = Utils::presdef('status', $_REQUEST, ChatRoom::STATUS_ONLINE);
                         $r->updateRoster($myid, $lastmsgseen, $status);
 
                         $ret['roster'] = $r->getRoster();

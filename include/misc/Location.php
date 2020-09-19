@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
@@ -742,8 +742,8 @@ class Location extends Entity
 
             foreach ($fetches as $fetch) {
                 $locationlist[$fetch['id']] = new Location($this->dbhr, $this->dbhm, $fetch['id'], $fetch);
-                $others[] = pres('areaid', $fetch);
-                $others[] = pres('postcodeid', $fetch);
+                $others[] = Utils::pres('areaid', $fetch);
+                $others[] = Utils::pres('postcodeid', $fetch);
             }
 
             # Now get the postcode and area locations.

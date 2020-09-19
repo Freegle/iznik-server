@@ -10,8 +10,8 @@ function error() {
         case 'PUT':
             $me = Session::whoAmI($dbhr, $dbhm);
             $userid = $me ? $me->getId() : 'NULL';
-            $type = $dbhm->quote(presdef('errortype', $_REQUEST, NULL));
-            $text = $dbhm->quote(presdef('errortext', $_REQUEST, NULL));
+            $type = $dbhm->quote(Utils::presdef('errortype', $_REQUEST, NULL));
+            $text = $dbhm->quote(Utils::presdef('errortext', $_REQUEST, NULL));
             $sql = "INSERT INTO logs_errors (type, text, userid) VALUES ($type, $text, $userid);";
             $dbhm->background($sql);
             break;

@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Item extends Entity
 {
@@ -94,7 +94,7 @@ class Item extends Entity
         $bestname = NULL;
 
         foreach ($weights as $weight) {
-            $wic = wordsInCommon($name, $weight['name']);
+            $wic = Utils::wordsInCommon($name, $weight['name']);
 
             #error_log("$name vs {$weight['name']} = $wic");
             if ($bestwic === NULL || $wic > $bestwic) {

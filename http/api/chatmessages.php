@@ -4,20 +4,20 @@ namespace Freegle\Iznik;
 function chatmessages() {
     global $dbhr, $dbhm;
 
-    $roomid = intval(presdef('roomid', $_REQUEST, NULL));
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $message = presdef('message', $_REQUEST, NULL);
-    $refmsgid = presdef('refmsgid', $_REQUEST, NULL);
-    $refchatid = presdef('refchatid', $_REQUEST, NULL);
-    $imageid = presdef('imageid', $_REQUEST, NULL);
-    $addressid = presdef('addressid', $_REQUEST, NULL);
-    $reportreason = presdef('reportreason', $_REQUEST, NULL);
-    $ctx = presdef('context', $_REQUEST, NULL);
+    $roomid = intval(Utils::presdef('roomid', $_REQUEST, NULL));
+    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $message = Utils::presdef('message', $_REQUEST, NULL);
+    $refmsgid = Utils::presdef('refmsgid', $_REQUEST, NULL);
+    $refchatid = Utils::presdef('refchatid', $_REQUEST, NULL);
+    $imageid = Utils::presdef('imageid', $_REQUEST, NULL);
+    $addressid = Utils::presdef('addressid', $_REQUEST, NULL);
+    $reportreason = Utils::presdef('reportreason', $_REQUEST, NULL);
+    $ctx = Utils::presdef('context', $_REQUEST, NULL);
     $ctx = (isset($ctx) && $ctx !== 'undefined') ? $ctx : NULL;
     $limit = array_key_exists('limit', $_REQUEST) ? intval($_REQUEST['limit']) : 100;
 
     $r = new ChatRoom($dbhr, $dbhm, $roomid);
-    $id = intval(presdef('id', $_REQUEST, NULL));
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
     $m = new ChatMessage($dbhr, $dbhm, $id);
     $me = Session::whoAmI($dbhr, $dbhm);
 
@@ -80,7 +80,7 @@ function chatmessages() {
 
                 if ($me) {
                     $ret = ['ret' => 2, 'status' => 'Not visible to you'];
-                    $action = presdef('action', $_REQUEST, NULL);
+                    $action = Utils::presdef('action', $_REQUEST, NULL);
 
                     if ($action == ChatMessage::ACTION_APPROVE && $id) {
                         $m->approve($id);
@@ -126,7 +126,7 @@ function chatmessages() {
                             $type = ChatMessage::TYPE_ADDRESS;
                             $message = $addressid;
                         } else {
-                            $type = pres('modnote', $_REQUEST) ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_DEFAULT;
+                            $type = Utils::pres('modnote', $_REQUEST) ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_DEFAULT;
                         }
 
                         $id = $m->checkDup($roomid,

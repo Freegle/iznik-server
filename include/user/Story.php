@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
@@ -74,7 +74,7 @@ class Story extends Entity
     public function getPublic() {
         $ret = parent::getPublic();
 
-        $ret['date'] = ISODate($ret['date']);
+        $ret['date'] = Utils::ISODate($ret['date']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $u = User::get($this->dbhr, $this->dbhm, $this->story['userid']);
@@ -190,7 +190,7 @@ class Story extends Entity
                 # This group might have turned stories off.  Bypass the Group object in the interest of performance
                 # for people on many groups.
                 if ($me->activeModForGroup($mygroup['id'])) {
-                    if (presdef('stories', $mygroup['settings'], 1)) {
+                    if (Utils::presdef('stories', $mygroup['settings'], 1)) {
                         $groupids[] = $mygroup['id'];
                     }
                 }
@@ -298,7 +298,7 @@ class Story extends Entity
 
                         Mail::addHeaders($message, Mail::STORY_ASK, $u->getId());
 
-                        list ($transport, $mailer) = getMailer();
+                        list ($transport, $mailer) = Mail::getMailer();
                         $mailer->send($message);
                     } catch (\Exception $e) {}
                 }
@@ -356,7 +356,7 @@ class Story extends Entity
             $message->attach($htmlPart);
 
             # No need to track for mailing Central.
-            list ($transport, $mailer) = getMailer();
+            list ($transport, $mailer) = Mail::getMailer();
             $this->sendIt($mailer, $message);
         }
 

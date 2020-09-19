@@ -3,7 +3,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 $users = $dbhr->preQuery("SELECT id, lastlocation, settings FROM users WHERE settings IS NOT NULL;");
@@ -16,7 +16,7 @@ $count = 0;
 foreach ($users as $user) {
     $s = json_decode($user['settings'], TRUE);
 
-    if (pres('mylocation', $s) && $s['mylocation']['id'] != $user['lastlocation']) {
+    if (Utils::pres('mylocation', $s) && $s['mylocation']['id'] != $user['lastlocation']) {
         #error_log("{$user['id']} => {$s['mylocation']['id']}");
 
         $dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [

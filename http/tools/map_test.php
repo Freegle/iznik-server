@@ -2,12 +2,12 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 
-$groupname = presdef('groupname', $_REQUEST, NULL);
+$groupname = Utils::presdef('groupname', $_REQUEST, NULL);
 
 if (!$groupname) {
     echo "<p>Need to put groupname parameter in.</p>";
@@ -39,8 +39,8 @@ if (!$groupname) {
                 </tr>
             <?php
             foreach ($msgs as $msg) {
-                $loc = pres('locationid', $msg) ? $msg['location']['name'] : '-';
-                $locid = pres('locationid', $msg) ? $msg['locationid']  : '-';
+                $loc = Utils::pres('locationid', $msg) ? $msg['location']['name'] : '-';
+                $locid = Utils::pres('locationid', $msg) ? $msg['locationid']  : '-';
                 $l = new Location($dbhr, $dbhm, $locid);
                 $atts = $l->getPublic();
                 $postcode = $atts['postcodeid'];
@@ -56,9 +56,9 @@ if (!$groupname) {
                     $area = $l->getPrivate('name');
                 }
 
-                $lat = pres('locationid', $msg) ? round($msg['lat'], 2) : '-';
-                $lng = pres('locationid', $msg) ? round($msg['lng'], 2) : '-';
-                $img = pres('locationid', $msg) ? "<img src=\"https://maps.google.com/maps/api/staticmap?zoom=12&size=110x110&center=$lat,$lng&maptype=roadmap&sensor=false" : '';
+                $lat = Utils::pres('locationid', $msg) ? round($msg['lat'], 2) : '-';
+                $lng = Utils::pres('locationid', $msg) ? round($msg['lng'], 2) : '-';
+                $img = Utils::pres('locationid', $msg) ? "<img src=\"https://maps.google.com/maps/api/staticmap?zoom=12&size=110x110&center=$lat,$lng&maptype=roadmap&sensor=false" : '';
 
                 echo "<tr><td>{$msg['id']}</td><td>" . htmlentities($msg['subject']) . "</td><td>$img</td><td>$lat</td><td>$lng</td><td>$locid</td><td>$loc</td><td>$postcode</td></tr>";
             }

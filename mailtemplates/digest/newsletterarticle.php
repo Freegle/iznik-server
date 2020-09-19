@@ -8,7 +8,7 @@ function newsletter_article($article) {
     <table width="100%">
         <tr>
 EOT;
-        if (pres('photo', $article)) {
+        if (Utils::pres('photo', $article)) {
             $html .= <<<EOT
             <td width="100%">
                 <img style="border-radius:3px; margin:0; padding:0; border:none; display:block; width: 100%;" src="{$article['photo']['path']}" />
@@ -42,7 +42,7 @@ EOT;
         <tr>
 EOT;
 
-            if (pres('photo', $article)) {
+            if (Utils::pres('photo', $article)) {
                 $html .= <<<EOT
                 <td width="30%">
                     <img style="border-radius:3px; margin:0; padding:0; border:none; display:block;" width="250" src="{$article['photo']['path']}" />

@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Visualise extends Entity
 {
@@ -126,7 +126,7 @@ class Visualise extends Entity
     public function getPublic() {
         $ret = $this->getAtts($this->publicatts);
 
-        $ret['timestamp'] = ISODate($ret['timestamp']);
+        $ret['timestamp'] = Utils::ISODate($ret['timestamp']);
 
         # Blur the exact locations by rounding.
         foreach (['fromlat', 'fromlng', 'tolat', 'tolng'] as $f) {

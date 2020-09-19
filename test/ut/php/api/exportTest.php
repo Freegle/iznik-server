@@ -83,7 +83,7 @@ class exportAPITest extends IznikAPITestCase {
             $count++;
             $this->log("...waiting for export $count");
             sleep(1);
-        } while ((!pres('export', $ret) || !pres('data', $ret['export'])) && $count < 600);
+        } while ((!Utils::pres('export', $ret) || !Utils::pres('data', $ret['export'])) && $count < 600);
 
         self::assertLessThan(600, $count);
 

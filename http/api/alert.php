@@ -6,7 +6,7 @@ function alert() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = presdef('id', $_REQUEST, NULL);
+    $id = Utils::presdef('id', $_REQUEST, NULL);
     $id = $id ? intval($id) : NULL;
     $a = new Alert($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -40,11 +40,11 @@ function alert() {
         }
 
         case 'POST': {
-            $action = presdef('action', $_REQUEST, NULL);
+            $action = Utils::presdef('action', $_REQUEST, NULL);
             
             switch ($action) {
                 case 'clicked': {
-                    $trackid = intval(presdef('trackid', $_REQUEST, NULL));
+                    $trackid = intval(Utils::presdef('trackid', $_REQUEST, NULL));
                     $a->clicked($trackid);
                     break;
                 }
@@ -58,12 +58,12 @@ function alert() {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
             if ($me && $me->isAdminOrSupport()) {
-                $from = presdef('from', $_REQUEST, NULL);
-                $to = presdef('to', $_REQUEST, 'Mods');
-                $subject = presdef('subject', $_REQUEST, NULL);
-                $text = presdef('text', $_REQUEST, NULL);
-                $html = presdef('html', $_REQUEST, nl2br($text));
-                $groupid = presdef('groupid', $_REQUEST, NULL);
+                $from = Utils::presdef('from', $_REQUEST, NULL);
+                $to = Utils::presdef('to', $_REQUEST, 'Mods');
+                $subject = Utils::presdef('subject', $_REQUEST, NULL);
+                $text = Utils::presdef('text', $_REQUEST, NULL);
+                $html = Utils::presdef('html', $_REQUEST, nl2br($text));
+                $groupid = Utils::presdef('groupid', $_REQUEST, NULL);
                 $groupid = $groupid == 'AllFreegle' ? NULL : intval($groupid);
                 $askclick = array_key_exists('askclick', $_REQUEST) ? intval($_REQUEST['askclick']) : 1;
                 $tryhard = array_key_exists('tryhard', $_REQUEST) ? intval($_REQUEST['tryhard']) : 1;

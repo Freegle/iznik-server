@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -20,7 +20,7 @@ foreach ($jobs as $job) {
 
         foreach ($words as $word) {
             if (!is_numeric($word)) {
-                if (pres($word, $keywords)) {
+                if (Utils::pres($word, $keywords)) {
                     $keywords[$word]++;
                 } else {
                     $keywords[$word] = 1;

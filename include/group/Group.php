@@ -3,7 +3,7 @@ namespace Freegle\Iznik;
 
 use Redis;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Group extends Entity
 {
@@ -311,7 +311,7 @@ class Group extends Entity
 
     public function getModsEmail() {
         # This is an address used when we are sending to volunteers, or in response to an action by a volunteer.
-        if (pres('contactmail', $this->group)) {
+        if (Utils::pres('contactmail', $this->group)) {
             $ret = $this->group['contactmail'];
         } else {
             $ret = $this->group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
@@ -595,10 +595,10 @@ memberships.groupid IN $groupq
             $atts['settings'] = $this->defaultSettings;
         }
 
-        $atts['founded'] = ISODate($this->group['founded']);
+        $atts['founded'] = Utils::ISODate($this->group['founded']);
 
         foreach (['affiliationconfirmed'] as $datefield) {
-            $atts[$datefield] = pres($datefield, $atts) ? ISODate($atts[$datefield]) : NULL;
+            $atts[$datefield] = Utils::pres($datefield, $atts) ? Utils::ISODate($atts[$datefield]) : NULL;
         }
 
         # Images.  We pass those ids in to get the paths.  This removes the DB operations for constructing the
@@ -618,7 +618,7 @@ memberships.groupid IN $groupq
                 unset($atts[$att]);
             }
         } else {
-            if (pres('defaultlocation', $atts)) {
+            if (Utils::pres('defaultlocation', $atts)) {
                 $l = new Location($this->dbhr, $this->dbhm, $atts['defaultlocation']);
                 $atts['defaultlocation'] = $l->getPublic();
             }
@@ -750,7 +750,7 @@ memberships.groupid IN $groupq
                 }
             }
 
-            $thisone['joined'] = ISODate($member['added']);
+            $thisone['joined'] = Utils::ISODate($member['added']);
 
             # Defaults match ones in User.php
             #error_log("Settings " . var_export($member, TRUE));
@@ -776,11 +776,11 @@ memberships.groupid IN $groupq
             $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
 
             # Our posting status only applies for groups we host.  In that case, the default is moderated.
-            $thisone['ourpostingstatus'] = presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
+            $thisone['ourpostingstatus'] = Utils::presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
 
             $thisone['heldby'] = $member['heldby'];
 
-            if (pres('heldby', $thisone)) {
+            if (Utils::pres('heldby', $thisone)) {
                 $u = User::get($this->dbhr, $this->dbhm, $thisone['heldby']);
                 $ctx2 = NULL;
                 $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE, FALSE, FALSE);
@@ -790,7 +790,7 @@ memberships.groupid IN $groupq
                 # Also add in the time this mod was last active.  This is not the same as when they last moderated
                 # but indicates if they have been on the platform, which is what you want to find mods who have
                 # drifted off.  Getting the correct value is too timeconsuming.
-                $thisone['lastmoderated'] = ISODate($u->getPrivate('lastaccess'));
+                $thisone['lastmoderated'] = Utils::ISODate($u->getPrivate('lastaccess'));
             }
 
             $ret[] = $thisone;
@@ -826,8 +826,8 @@ memberships.groupid IN $groupq
             (" WHERE
             messages_outcomes.reviewed >= " . intval($ctx['reviewed']) . " AND   
             messages_outcomes.timestamp > '$start' AND 
-            (messages_outcomes.timestamp < '" . safedate($ctx['timestamp']) . "' OR 
-                (messages_outcomes.timestamp = '" . safedate($ctx['timestamp']) . "' AND
+            (messages_outcomes.timestamp < '" . Utils::safedate($ctx['timestamp']) . "' OR 
+                (messages_outcomes.timestamp = '" . Utils::safedate($ctx['timestamp']) . "' AND
                  messages_outcomes.id < " . intval($ctx['id']) . "))");
 
         $sql = "SELECT messages_outcomes.*, messages.fromuser, messages_groups.groupid, messages.subject FROM messages_outcomes
@@ -851,7 +851,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
 
         foreach ($users as $userid => $user) {
             foreach ($user['emails'] as $email) {
-                if ($email['preferred'] || (!ourDomain($email['email']) && !pres('email', $users[$userid]))) {
+                if ($email['preferred'] || (!Mail::ourDomain($email['email']) && !Utils::pres('email', $users[$userid]))) {
                     $users[$userid]['email'] = $email['email'];
                 }
             }
@@ -883,7 +883,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
             unset($member['msgid']);
             unset($member['subject']);
 
-            $member['timestamp'] = ISODate($member['timestamp']);
+            $member['timestamp'] = Utils::ISODate($member['timestamp']);
             $ret[] = $member;
         }
 
@@ -893,7 +893,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
     public function getBanned($groupid, &$ctx) {
         $ctx = $ctx ? $ctx : [];
 
-        if (pres('date', $ctx)) {
+        if (Utils::pres('date', $ctx)) {
             $members = $this->dbhr->preQuery("SELECT date AS bandate, byuser AS bannedby, groupid, userid FROM users_banned WHERE groupid = ? AND date < ? ORDER BY date DESC;", [
                 $groupid,
                 $ctx['date']
@@ -911,7 +911,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
 
         foreach ($members as $member) {
             $thisone = array_merge($users[$member['userid']], $member);
-            $thisone['bandate'] = ISODate($thisone['bandate']);
+            $thisone['bandate'] = Utils::ISODate($thisone['bandate']);
             $ret[] = $thisone;
             $ctx['date'] = $member['bandate'];
         }
@@ -974,7 +974,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         }
 
         if (!$key) {
-            $key = randstr(32);
+            $key = Utils::randstr(32);
             $sql = "UPDATE groups SET confirmkey = ? WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $key, $this->id ]);
             Group::clearCache($this->id);
@@ -1037,11 +1037,11 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
                     foreach ($manualapproves as $approve) {
                         if ($approve['groupid'] === $group['id']) {
                             # Exclude the autoapproves, which have an approved log as well as an autoapproved log.
-                            $group['recentmanualapproves'] = $approve['count'] - presdef('recentautoapproves', $group, 0);
+                            $group['recentmanualapproves'] = $approve['count'] - Utils::presdef('recentautoapproves', $group, 0);
                         }
                     }
 
-                    if (pres('recentautoapproves', $group)) {
+                    if (Utils::pres('recentautoapproves', $group)) {
                         $total = $group['recentmanualapproves'] + $group['recentautoapproves'];
                         $group['recentautoapprovespercent'] = $total ? (round(100 * $group['recentautoapproves']) / $total) : 0;
                     } else {

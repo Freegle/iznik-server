@@ -13,8 +13,8 @@ function mentions() {
 
         switch ($_REQUEST['type']) {
             case 'GET': {
-                $query = presdef('query', $_REQUEST, NULL);
-                $id = intval(presdef('id', $_REQUEST, NULL));
+                $query = Utils::presdef('query', $_REQUEST, NULL);
+                $id = intval(Utils::presdef('id', $_REQUEST, NULL));
                 $ret = [ 'ret' => 2, 'status' => 'Invalid parameters' ];
 
                 if ($id) {

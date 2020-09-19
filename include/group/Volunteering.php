@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/volunteerrenew.php');
 
 class Volunteering extends Entity
@@ -103,8 +103,8 @@ class Volunteering extends Entity
 
         foreach ($volunteerings as $volunteering) {
             if ((!$volunteering['pending'] || $volunteering['groupid'] === NULL || $u->activeModForGroup($volunteering['groupid'])) &&
-                (!pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
-                (!pres('end', $volunteering) || time() < strtotime($volunteering['end']))
+                (!Utils::pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
+                (!Utils::pres('end', $volunteering) || time() < strtotime($volunteering['end']))
             ) {
                 $ctx['id'] = $volunteering['id'];
                 $v = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id'], $volunteering);
@@ -141,8 +141,8 @@ class Volunteering extends Entity
         $myid = $me ? $me->getId() : $me;
 
         foreach ($volunteerings as $volunteering) {
-            if ((!pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
-                (!pres('end', $volunteering) || time() < strtotime($volunteering['end']))
+            if ((!Utils::pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
+                (!Utils::pres('end', $volunteering) || time() < strtotime($volunteering['end']))
             ) {
                 $ctx['id'] = $volunteering['id'];
                 $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id'], $volunteering);
@@ -171,8 +171,8 @@ class Volunteering extends Entity
         $atts['dates'] = $this->dbhr->preQuery("SELECT * FROM volunteering_dates WHERE volunteeringid = ? ORDER BY end ASC", [ $this->id ]);
 
         foreach ($atts['dates'] as &$date) {
-            $date['start'] = ISODate($date['start']);
-            $date['end'] = ISODate($date['end']);
+            $date['start'] = Utils::ISODate($date['start']);
+            $date['end'] = Utils::ISODate($date['end']);
         }
 
         if ($atts['userid']) {
@@ -189,7 +189,7 @@ class Volunteering extends Entity
             $atts['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
         }
 
-        $atts['renewed'] = pres('renewed', $atts) ? ISODate($atts['renewed']) : NULL;
+        $atts['renewed'] = Utils::pres('renewed', $atts) ? Utils::ISODate($atts['renewed']) : NULL;
 
         $photos = $this->dbhr->preQuery("SELECT id FROM volunteering_images WHERE opportunityid = ?;", [ $this->id ]);
         foreach ($photos as $photo) {
@@ -203,7 +203,7 @@ class Volunteering extends Entity
         }
 
         # Ensure leading 0 not stripped.
-        $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
+        $atts['contactphone'] = Utils::pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
         $atts['url'] = 'https://' . USER_SITE . '/volunteering/' . $atts['id'];
 
         if (strlen($atts['contacturl']) && strpos($atts['contacturl'], 'http') === FALSE) {
@@ -222,7 +222,7 @@ class Volunteering extends Entity
         # appears, or if we're support/admin.
         #error_log("Check user {$this->volunteering['userid']}, $userid");
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        $canmodify = presdef('userid', $this->volunteering, NULL) == $userid || ($u && $u->isAdminOrSupport());
+        $canmodify = Utils::presdef('userid', $this->volunteering, NULL) == $userid || ($u && $u->isAdminOrSupport());
 
         #error_log("Can mod? $canmodify");
         if (!$canmodify) {
@@ -297,7 +297,7 @@ class Volunteering extends Entity
             $mysqltime
         ]);
 
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
 
         foreach ($ids as $id) {
             $v = new Volunteering($this->dbhr, $this->dbhm, $id['id']);

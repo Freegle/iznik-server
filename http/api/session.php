@@ -11,7 +11,7 @@ function session() {
     error_log("Modtools $modtools " . json_encode($_REQUEST));
 
     $sessionLogout = function($dbhr, $dbhm) {
-        $id = pres('id', $_SESSION);
+        $id = Utils::pres('id', $_SESSION);
         if ($id) {
             $s = new Session($dbhr, $dbhm);
             $s->destroy($id, NULL);
@@ -36,21 +36,21 @@ function session() {
             $me = Session::whoAmI($dbhm, $dbhm);
 
             # Mobile app can send its version number, which we can use to determine if it is out of date.
-            $appversion = presdef('appversion', $_REQUEST, NULL);
+            $appversion = Utils::presdef('appversion', $_REQUEST, NULL);
 
             if ($appversion == '2') {
                 $ret = array('ret' => 123, 'status' => 'App is out of date');
             } else {
-                if (pres('id', $_SESSION)) {
+                if (Utils::pres('id', $_SESSION)) {
                     # We're logged in.
                     if (!$modtools) {
                         # ...but we are running an old version of the code, probably the app, because we have
                         # not indicated which version we have.
-                        $last = presdef('lastversiontime', $_REQUEST, NULL);
+                        $last = Utils::presdef('lastversiontime', $_REQUEST, NULL);
 
                         if (!$last || time() - $last > 24 * 60 * 60) {
-                            $webversion = presdef('webversion', $_REQUEST, NULL);
-                            $appversion = presdef('appversion', $_REQUEST, NULL);
+                            $webversion = Utils::presdef('webversion', $_REQUEST, NULL);
+                            $appversion = Utils::presdef('appversion', $_REQUEST, NULL);
                             $dbhm->background("INSERT INTO users_builddates (userid, webversion, appversion) VALUES ({$_SESSION['id']}, '$webversion', '$appversion') ON DUPLICATE KEY UPDATE timestamp = NOW(), webversion = '$webversion', appversion = '$appversion';");
                         }
 
@@ -67,20 +67,20 @@ function session() {
                         }
                     }
 
-                    $components = presdef('components', $_REQUEST, ['all']);
+                    $components = Utils::presdef('components', $_REQUEST, ['all']);
                     if ($components === ['all']) {
                         // Get all
                         $components = NULL;
                     }
 
-                    $ret = [ 'ret' => 0, 'status' => 'Success', 'myid' => presdef('id', $_SESSION, NULL) ];
+                    $ret = [ 'ret' => 0, 'status' => 'Success', 'myid' => Utils::presdef('id', $_SESSION, NULL) ];
 
                     if (!$components || (gettype($components) == 'array' && in_array('me', $components))) {
                         # Don't want to use cached information when looking at our own session.
                         $ret['me'] = $me->getPublic();
                         $ret['me']['city'] = $me->getCity();
 
-                        if (pres('profile', $ret['me']) && pres('url', $ret['me']['profile']) && strpos($ret['me']['profile']['url'], IMAGE_DOMAIN) !== FALSE) {
+                        if (Utils::pres('profile', $ret['me']) && Utils::pres('url', $ret['me']['profile']) && strpos($ret['me']['profile']['url'], IMAGE_DOMAIN) !== FALSE) {
                             $ret['me']['profile']['ours'] = TRUE;
                         }
 
@@ -88,7 +88,7 @@ function session() {
                         $ret['me']['messagehistory'] = NULL;
                     }
 
-                    $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
+                    $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
 
                     if (!$components || in_array('notifications', $components)) {
                         $settings = $me->getPrivate('settings');
@@ -99,7 +99,7 @@ function session() {
                             'push' => TRUE,
                             'facebook' => TRUE,
                             'app' => TRUE
-                        ], presdef('notifications', $settings, []));
+                        ], Utils::presdef('notifications', $settings, []));
 
                         $n = new PushNotifications($dbhr, $dbhm);
                         $ret['me']['notifications']['push'] = $n->get($ret['me']['id']);
@@ -197,7 +197,7 @@ function session() {
                                     $atts = $t->getPublic();
                                     unset($atts['token']);
                                     unset($atts['secret']);
-                                    $atts['authdate'] = ISODate($atts['authdate']);
+                                    $atts['authdate'] = Utils::ISODate($atts['authdate']);
                                     $group['twitter'] = $atts;
                                 }
 
@@ -223,7 +223,7 @@ function session() {
                                     $newcount = 0;
 
                                     # We cache the discourse name in the session for speed.  It is very unlikely to change.
-                                    $username = presdef('discoursename', $_SESSION, NULL);
+                                    $username = Utils::presdef('discoursename', $_SESSION, NULL);
 
                                     if (!$username) {
                                         # We need this quick or not at all.  Also need to pass authentication in headers rather
@@ -242,12 +242,12 @@ function session() {
 
                                     if ($username) {
                                         $_SESSION['discoursename'] = $username;
-                                        $discourse = presdef('discourse', $_SESSION, NULL);
+                                        $discourse = Utils::presdef('discourse', $_SESSION, NULL);
 
-                                        if (!$discourse || (time() - presdef('timestamp', $discourse, time()) > 300)) {
+                                        if (!$discourse || (time() - Utils::presdef('timestamp', $discourse, time()) > 300)) {
                                             $users = json_decode($username, TRUE);
 
-                                            if (pres('users', $users) && count($users['users'])) {
+                                            if (Utils::pres('users', $users) && count($users['users'])) {
                                                 $name = $users['users'][0]['username'];
 
                                                 # We don't want to fetch Discourse info too often, for speed.
@@ -267,18 +267,18 @@ function session() {
                                                 if ($news && $unreads && $notifs) {
                                                     $topics = json_decode($news, TRUE);
 
-                                                    if (pres('topic_list', $topics)) {
+                                                    if (Utils::pres('topic_list', $topics)) {
                                                         $newcount = count($topics['topic_list']['topics']);
                                                     }
 
                                                     $topics = json_decode($unreads, TRUE);
 
-                                                    if (pres('topic_list', $topics)) {
+                                                    if (Utils::pres('topic_list', $topics)) {
                                                         $unreadcount = count($topics['topic_list']['topics']);
                                                     }
 
                                                     $notifs = json_decode($notifs, TRUE);
-                                                    if (pres('unread_notifications', $notifs)) {
+                                                    if (Utils::pres('unread_notifications', $notifs)) {
                                                         $notifcount = intval($notifs['unread_notifications']);
                                                     }
 
@@ -297,7 +297,7 @@ function session() {
 
                                 # Using the value from session means we fall back to an old value if we can't get it, e.g.
                                 # for rate-limiting.
-                                $ret['discourse'] = presdef('discourse', $_SESSION, NULL);
+                                $ret['discourse'] = Utils::presdef('discourse', $_SESSION, NULL);
                             }
                         }
                     }
@@ -315,21 +315,21 @@ function session() {
 
             # Login
             $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-            $fbaccesstoken = presdef('fbaccesstoken', $_REQUEST, NULL);
+            $fbaccesstoken = Utils::presdef('fbaccesstoken', $_REQUEST, NULL);
             $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $googleauthcode = array_key_exists('googleauthcode', $_REQUEST) ? $_REQUEST['googleauthcode'] : NULL;
             $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-            $yahoocodelogin = presdef('yahoocodelogin', $_REQUEST, NULL);
+            $yahoocodelogin = Utils::presdef('yahoocodelogin', $_REQUEST, NULL);
             $applelogin = array_key_exists('applelogin', $_REQUEST) ? filter_var($_REQUEST['applelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $applecredentials = array_key_exists('applecredentials', $_REQUEST) ? $_REQUEST['applecredentials'] : NULL;
             $mobile = array_key_exists('mobile', $_REQUEST) ? filter_var($_REQUEST['mobile'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : NULL;
             $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
             $returnto = array_key_exists('returnto', $_REQUEST) ? $_REQUEST['returnto'] : NULL;
-            $action = presdef('action', $_REQUEST, NULL);
-            $host = presdef('host', $_REQUEST, NULL);
-            $keyu = intval(presdef('u', $_REQUEST, NULL));
-            $keyk = presdef('k', $_REQUEST, NULL);
+            $action = Utils::presdef('action', $_REQUEST, NULL);
+            $host = Utils::presdef('host', $_REQUEST, NULL);
+            $keyu = intval(Utils::presdef('u', $_REQUEST, NULL));
+            $keyk = Utils::presdef('k', $_REQUEST, NULL);
 
             $id = NULL;
             $user = User::get($dbhr, $dbhm);
@@ -340,7 +340,7 @@ function session() {
                 # uid and key login, used in email links and impersonation.
                 $u = new User($dbhr, $dbhm, $keyu);
 
-                if (presdef('id', $_SESSION, NULL) === $keyu || $u->linkLogin($keyk)) {
+                if (Utils::presdef('id', $_SESSION, NULL) === $keyu || $u->linkLogin($keyk)) {
                     $id = $keyu;
 
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
@@ -436,7 +436,7 @@ function session() {
                         $ret = array('ret' => 1, 'status' => 'Not logged in');
 
                         if ($me) {
-                            $userlist = presdef('userlist', $_REQUEST, NULL);
+                            $userlist = Utils::presdef('userlist', $_REQUEST, NULL);
 
                             if (gettype($userlist) == 'array') {
                                 $me->related($userlist);
@@ -473,7 +473,7 @@ function session() {
                 # Return some more useful info.
                 $u = User::get($dbhr, $dbhm, $id);
                 $ret['user'] = $u->getPublic();
-                $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
+                $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
             }
 
             break;
@@ -486,11 +486,11 @@ function session() {
             if (!$me) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
             } else {
-                $fullname = presdef('displayname', $_REQUEST, NULL);
-                $firstname = presdef('firstname', $_REQUEST, NULL);
-                $lastname = presdef('lastname', $_REQUEST, NULL);
-                $password = presdef('password', $_REQUEST, NULL);
-                $key = presdef('key', $_REQUEST, NULL);
+                $fullname = Utils::presdef('displayname', $_REQUEST, NULL);
+                $firstname = Utils::presdef('firstname', $_REQUEST, NULL);
+                $lastname = Utils::presdef('lastname', $_REQUEST, NULL);
+                $password = Utils::presdef('password', $_REQUEST, NULL);
+                $key = Utils::presdef('key', $_REQUEST, NULL);
 
                 if ($firstname) {
                     $me->setPrivate('firstname', $firstname);
@@ -506,20 +506,20 @@ function session() {
                     $me->setPrivate('lastname', NULL);
                 }
 
-                $settings = presdef('settings', $_REQUEST, NULL);
+                $settings = Utils::presdef('settings', $_REQUEST, NULL);
                 if ($settings) {
                     $me->setPrivate('settings', json_encode($settings));
 
-                    if (pres('mylocation', $settings)) {
+                    if (Utils::pres('mylocation', $settings)) {
                         # Save this off as the last known location.
                         $me->setPrivate('lastlocation', $settings['mylocation']['id']);
                     }
                 }
 
-                $notifs = presdef('notifications', $_REQUEST, NULL);
+                $notifs = Utils::presdef('notifications', $_REQUEST, NULL);
                 if ($notifs) {
                     $n = new PushNotifications($dbhr, $dbhm);
-                    $push = presdef('push', $notifs, NULL);
+                    $push = Utils::presdef('push', $notifs, NULL);
                     if ($push) {
                         switch ($push['type']) {
                             case PushNotifications::PUSH_GOOGLE:
@@ -534,7 +534,7 @@ function session() {
 
                 $ret = ['ret' => 0, 'status' => 'Success'];
 
-                $email = presdef('email', $_REQUEST, NULL);
+                $email = Utils::presdef('email', $_REQUEST, NULL);
                 $force = array_key_exists('force', $_REQUEST) ? filter_var($_REQUEST['force'], FILTER_VALIDATE_BOOLEAN) : FALSE;
                 if ($email) {
                     if (!$me->verifyEmail($email, $force)) {

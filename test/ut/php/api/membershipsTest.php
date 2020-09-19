@@ -390,7 +390,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'members' => TRUE
         ]);
         assertEquals(2, $ret['ret']);
-        assertFalse(pres('members', $ret));
+        assertFalse(Utils::pres('members', $ret));
 
         # Member - shouldn't see members list
         $this->log("Login as " . $this->user->getId());
@@ -400,7 +400,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'members' => TRUE
         ]);
         assertEquals(2, $ret['ret']);
-        assertFalse(pres('members', $ret));
+        assertFalse(Utils::pres('members', $ret));
 
         # Mod - should see members list
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));

@@ -132,11 +132,11 @@ class Facebook
             $response = $fb->get('/me?fields=id,name,first_name,last_name,email', $accessToken);
             $fbme = $response->getDecodedBody();
 
-            $fbemail = presdef('email', $fbme, NULL);
-            $fbuid = presdef('id', $fbme, NULL);
-            $firstname = presdef('first_name', $fbme, NULL);
-            $lastname = presdef('last_name', $fbme, NULL);
-            $fullname = presdef('name', $fbme, NULL);
+            $fbemail = Utils::presdef('email', $fbme, NULL);
+            $fbuid = Utils::presdef('id', $fbme, NULL);
+            $firstname = Utils::presdef('first_name', $fbme, NULL);
+            $lastname = Utils::presdef('last_name', $fbme, NULL);
+            $fullname = Utils::presdef('name', $fbme, NULL);
 
             # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
             $u = User::get($this->dbhr, $this->dbhm);
@@ -264,7 +264,7 @@ class Facebook
             @session_start();
         }
 
-        if (!isset($_SESSION) || !pres('id', $_SESSION)) {
+        if (!isset($_SESSION) || !Utils::pres('id', $_SESSION)) {
             # We're not already logged in.  Try to get an access token.
             $fb = $this->getFB();
 

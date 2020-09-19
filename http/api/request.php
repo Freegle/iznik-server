@@ -10,7 +10,7 @@ function request() {
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
     if ($myid) {
-        $id = intval(presdef('id', $_REQUEST, NULL));
+        $id = intval(Utils::presdef('id', $_REQUEST, NULL));
         $r = new Request($dbhr, $dbhm, $id);
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -58,9 +58,9 @@ function request() {
 
             case 'PUT':
                 $id = $r->create($me->getId(),
-                    presdef('reqtype', $_REQUEST, NULL),
-                    presdef('addressid', $_REQUEST, NULL),
-                    presdef('to', $_REQUEST, NULL));
+                    Utils::presdef('reqtype', $_REQUEST, NULL),
+                    Utils::presdef('addressid', $_REQUEST, NULL),
+                    Utils::presdef('to', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 0,
@@ -70,7 +70,7 @@ function request() {
                 break;
 
             case 'POST':
-                $action = presdef('action', $_REQUEST, NULL);
+                $action = Utils::presdef('action', $_REQUEST, NULL);
                 switch ($action) {
                     case 'Completed': $r->completed($myid); break;
                 }

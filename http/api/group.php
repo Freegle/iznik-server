@@ -9,7 +9,7 @@ function group() {
     $me = Session::whoAmI($dbhr, $dbhm);
 
     # The id parameter can be an ID or a nameshort.
-    $id = presdef('id', $_REQUEST, NULL);
+    $id = Utils::presdef('id', $_REQUEST, NULL);
     $nameshort = NULL;
 
     if (is_numeric($id)) {
@@ -18,7 +18,7 @@ function group() {
         $nameshort = $id;
     }
 
-    $action = presdef('action', $_REQUEST, NULL);
+    $action = Utils::presdef('action', $_REQUEST, NULL);
 
     if ($nameshort) {
         $g = Group::get($dbhr, $dbhm);
@@ -41,9 +41,9 @@ function group() {
 
                 $ret['group']['myrole'] = $me ? $me->getRoleForGroup($id) : User::ROLE_NONMEMBER;
                 $ret['group']['mysettings'] = $me ? $me->getGroupSettings($id) : NULL;
-                $ctx = presdef('context', $_REQUEST, NULL);
-                $limit = presdef('limit', $_REQUEST, 5);
-                $search = presdef('search', $_REQUEST, NULL);
+                $ctx = Utils::presdef('context', $_REQUEST, NULL);
+                $limit = Utils::presdef('limit', $_REQUEST, 5);
+                $search = Utils::presdef('search', $_REQUEST, NULL);
 
                 if ($members && $me && $me->isModOrOwner($id)) {
                     $ret['group']['members'] = $g->getMembers($limit, $search, $ctx);
@@ -60,7 +60,7 @@ function group() {
                     $atts = $t->getPublic();
                     unset($atts['token']);
                     unset($atts['secret']);
-                    $atts['authdate'] = ISODate($atts['authdate']);
+                    $atts['authdate'] = Utils::ISODate($atts['authdate']);
                     $ret['group']['twitter'] =  $atts;
 
                     # Ditto Facebook.
@@ -71,22 +71,22 @@ function group() {
                         $f = new GroupFacebook($dbhr, $dbhm, $uid);
                         $atts = $f->getPublic();
                         unset($atts['token']);
-                        $atts['authdate'] = ISODate($atts['authdate']);
+                        $atts['authdate'] = Utils::ISODate($atts['authdate']);
                         $ret['group']['facebook'][] =  $atts;
                     }
                 }
 
-                if (presdef('polygon', $_REQUEST, FALSE)) {
+                if (Utils::presdef('polygon', $_REQUEST, FALSE)) {
                     $ret['group']['cga'] = $g->getPrivate('polyofficial');
                     $ret['group']['dpa'] = $g->getPrivate('poly');
                     $ret['group']['polygon'] = $ret['group']['dpa'] ? $ret['group']['dpa'] : $ret['group']['cga'];
                 }
 
-                if (presdef('sponsors', $_REQUEST, FALSE)) {
+                if (Utils::presdef('sponsors', $_REQUEST, FALSE)) {
                     $ret['group']['sponsors'] = $g->getSponsorships();
                 }
 
-                if (presdef('affiliationconfirmedby', $_REQUEST, FALSE)) {
+                if (Utils::presdef('affiliationconfirmedby', $_REQUEST, FALSE)) {
                     $by = $g->getPrivate('affiliationconfirmedby');
 
                     if ($by) {
@@ -108,7 +108,7 @@ function group() {
                         $u = User::get($dbhr, $dbhm, $mod['userid']);
                         $settings = $u->getPrivate('settings');
                         $settings = $settings ? json_decode($settings, TRUE) : [];
-                        if (pres('showmod', $settings)) {
+                        if (Utils::pres('showmod', $settings)) {
                             # We can show this mod.  Return basic info about them.
                             $ctx = NULL;
                             $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
@@ -127,8 +127,8 @@ function group() {
             }
 
             case 'PATCH': {
-                $settings = presdef('settings', $_REQUEST, NULL);
-                $profile = intval(presdef('profile', $_REQUEST, NULL));
+                $settings = Utils::presdef('settings', $_REQUEST, NULL);
+                $profile = intval(Utils::presdef('profile', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 1,
@@ -170,7 +170,7 @@ function group() {
 
                         # Other settable attributes
                         foreach (['onhere', 'publish'] as $att) {
-                            $val = presdef($att, $_REQUEST, NULL);
+                            $val = Utils::presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);
 
@@ -180,7 +180,7 @@ function group() {
                             }
                         }
                         foreach (['tagline', 'namefull', 'welcomemail', 'description', 'region', 'affiliationconfirmed'] as $att) {
-                            $val = presdef($att, $_REQUEST, NULL);
+                            $val = Utils::presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST) && $val != "1") {
                                 $g->setPrivate($att, $val);
 
@@ -193,7 +193,7 @@ function group() {
                         # Other support-settable attributes
                         if ($me->isAdminOrSupport()) {
                             foreach (['publish', 'licenserequired', 'lat', 'lng', 'mentored'] as $att) {
-                                $val = presdef($att, $_REQUEST, NULL);
+                                $val = Utils::presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {
                                     $g->setPrivate($att, $val);
                                 }
@@ -202,7 +202,7 @@ function group() {
                             # For polygon attributes, check that they are valid before putting them into the DB.
                             # Otherwise, we can break the whole site.
                             foreach (['poly', 'polyofficial'] as $att) {
-                                $val = presdef($att, $_REQUEST, NULL);
+                                $val = Utils::presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {
                                     try {
                                         $dbhr->preQuery("SELECT GeomFromText(?);", [
@@ -232,12 +232,12 @@ function group() {
                         ];
 
                         if ($me) {
-                            $name = presdef('name', $_REQUEST, NULL);
-                            $type = presdef('grouptype', $_REQUEST, NULL);
-                            $lat = presdef('lat', $_REQUEST, NULL);
-                            $lng = presdef('lng', $_REQUEST, NULL);
-                            $core = presdef('corearea', $_REQUEST, NULL);
-                            $catchment = presdef('atchmentarea', $_REQUEST, NULL);
+                            $name = Utils::presdef('name', $_REQUEST, NULL);
+                            $type = Utils::presdef('grouptype', $_REQUEST, NULL);
+                            $lat = Utils::presdef('lat', $_REQUEST, NULL);
+                            $lng = Utils::presdef('lng', $_REQUEST, NULL);
+                            $core = Utils::presdef('corearea', $_REQUEST, NULL);
+                            $catchment = Utils::presdef('atchmentarea', $_REQUEST, NULL);
 
                             $id = $g->create($name, $type);
 
@@ -289,7 +289,7 @@ function group() {
                     }
 
                     case 'RemoveFacebook': {
-                        $uid = intval(presdef('uid', $_REQUEST, NULL));
+                        $uid = intval(Utils::presdef('uid', $_REQUEST, NULL));
                         $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 
                         if ($uid) {

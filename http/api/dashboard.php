@@ -9,13 +9,13 @@ function dashboard() {
     $force = array_key_exists('force', $_REQUEST) ? filter_var($_REQUEST['force'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $allgroups = array_key_exists('allgroups', $_REQUEST) ? filter_var($_REQUEST['allgroups'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $heatmap = array_key_exists('heatmap', $_REQUEST) ? filter_var($_REQUEST['heatmap'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $groupid = presdef('group', $_REQUEST, NULL);
+    $groupid = Utils::presdef('group', $_REQUEST, NULL);
     $groupid = $groupid ? intval($groupid) : NULL;
-    $type = presdef('grouptype', $_REQUEST, NULL);
-    $start = presdef('start', $_REQUEST, '30 days ago');
-    $end = presdef('end', $_REQUEST, 'today');
-    $region = presdef('region', $_REQUEST, NULL);
-    $components = presdef('components', $_REQUEST, NULL);
+    $type = Utils::presdef('grouptype', $_REQUEST, NULL);
+    $start = Utils::presdef('start', $_REQUEST, '30 days ago');
+    $end = Utils::presdef('end', $_REQUEST, 'today');
+    $region = Utils::presdef('region', $_REQUEST, NULL);
+    $components = Utils::presdef('components', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -35,7 +35,7 @@ function dashboard() {
 
                 $ret['emailproblems'] = $dbhr->preQuery("SELECT * FROM `domains` WHERE problem = 1 ORDER BY domain ASC;");
                 foreach ($ret['emailproblems'] as &$domain) {
-                    $domain['timestamp'] = ISODate($domain['timestamp']);
+                    $domain['timestamp'] = Utils::ISODate($domain['timestamp']);
                 }
             }
 

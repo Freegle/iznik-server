@@ -2,7 +2,7 @@
 
 define( 'BASE_DIR', dirname(__FILE__) . '/..' );
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 
@@ -80,7 +80,7 @@ if (($sso->validatePayload($payload,$signature))) {
                     'name' => $session['name'],
                     'avatar_url' => $session['avatar_url'],
                     'admin' => $session['admin'],
-                    'bio' => presdef('mod', $session) ? "Freegle Volunteer on {$session['grouplist']}" : "Member on {$session['grouplist']}"
+                    'bio' => Utils::presdef('mod', $session) ? "Freegle Volunteer on {$session['grouplist']}" : "Member on {$session['grouplist']}"
                 );
 
                 $refer = 'https://forum.ilovefreegle.org';

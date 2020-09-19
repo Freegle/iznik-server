@@ -6,8 +6,8 @@ function admin() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = presdef('id', $_REQUEST, NULL);
-    $groupid = presdef('groupid', $_REQUEST, NULL);
+    $id = Utils::presdef('id', $_REQUEST, NULL);
+    $groupid = Utils::presdef('groupid', $_REQUEST, NULL);
     $id = $id ? intval($id) : NULL;
     $a = new Admin($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -41,7 +41,7 @@ function admin() {
 
         case 'POST': {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
-            $action = presdef('action', $_REQUEST, NULL);
+            $action = Utils::presdef('action', $_REQUEST, NULL);
 
             if ($me) {
                 if ($action == 'Hold') {
@@ -58,8 +58,8 @@ function admin() {
                     ];
                 } else {
                     $ret = ['ret' => 2, 'status' => "Can't create an admin on that group" ];
-                    $subject = presdef('subject', $_REQUEST, NULL);
-                    $text = presdef('text', $_REQUEST, NULL);
+                    $subject = Utils::presdef('subject', $_REQUEST, NULL);
+                    $text = Utils::presdef('text', $_REQUEST, NULL);
 
                     # Admin and Support can create suggested admins, which aren't attached to a group.
                     if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {

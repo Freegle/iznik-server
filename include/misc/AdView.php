@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class AdView
 {
@@ -92,9 +92,9 @@ class AdView
 
                 foreach ($words as $word) {
                     if (!is_numeric($word)) {
-                        $score += presdef($word, $scores, 0);
+                        $score += Utils::presdef($word, $scores, 0);
 
-                        if (pres($word, $mykeywords)) {
+                        if (Utils::pres($word, $mykeywords)) {
                             $score += 100 * $mykeywords[$word];
                         }
                     }
@@ -105,7 +105,7 @@ class AdView
         }
 
         usort($jobs, function($a, $b) {
-            return presdef('score', $b, 0) - presdef('score', $a, 0);
+            return Utils::presdef('score', $b, 0) - Utils::presdef('score', $a, 0);
         });
 
         return $jobs;

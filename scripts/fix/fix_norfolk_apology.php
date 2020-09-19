@@ -2,7 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 $users = $dbhr->preQuery("SELECT DISTINCT userid from memberships where groupid in (select id from groups where external is not null);");
@@ -32,7 +32,7 @@ We're doing some work on our website at the moment, which we'll be telling you m
 
 More soon!");
 
-    list ($transport, $mailer) = getMailer();
+    list ($transport, $mailer) = Mail::getMailer();
 
     $mailer->send($message);
 }

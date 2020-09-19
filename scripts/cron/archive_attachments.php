@@ -3,11 +3,11 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$lockh = lockScript(basename(__FILE__));
+$lockh = Utils::lockScript(basename(__FILE__));
 
 # We archive chat photos out of the DB.  This reduces load on the servers because we don't have to serve
 # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
@@ -129,4 +129,4 @@ foreach ($atts as $att) {
     error_log("...$count / $total");
 }
 
-unlockScript($lockh);
+Utils::unlockScript($lockh);

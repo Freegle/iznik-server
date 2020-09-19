@@ -6,7 +6,7 @@ function changes() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $since = presdef('since', $_REQUEST, date("Y-m-d H:i:s", strtotime("1 hour ago")));
+    $since = Utils::presdef('since', $_REQUEST, date("Y-m-d H:i:s", strtotime("1 hour ago")));
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {

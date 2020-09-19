@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/digest/eventsoff.php');
 
 class EventDigest
@@ -46,7 +46,7 @@ class EventDigest
 
                 $email = $u->getEmailPreferred();
                 if ($email) {
-                    list ($transport, $mailer) = getMailer();
+                    list ($transport, $mailer) = Mail::getMailer();
                     $html = events_off(USER_SITE, USERLOGO, $groupname);
 
                     $message = \Swift_Message::newInstance()
@@ -213,7 +213,7 @@ class EventDigest
 
                 # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
                 # rather than lose it.
-                list ($transport, $mailer) = getMailer();
+                list ($transport, $mailer) = Mail::getMailer();
 
                 # We're decorating using the information we collected earlier.  However the decorator doesn't
                 # cope with sending to multiple recipients properly (headers just get decorated with the first

@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 use GeoIp2\Database\Reader;
 use LanguageDetection\Language;
@@ -44,7 +44,7 @@ class WorryWords {
 
             foreach ($words as $word) {
                 foreach ($this->words as $worryword) {
-                    if (!pres($worryword['keyword'], $foundword) && $worryword['type'] !== WorryWords::TYPE_ALLOWED) {
+                    if (!Utils::pres($worryword['keyword'], $foundword) && $worryword['type'] !== WorryWords::TYPE_ALLOWED) {
                         # Check that words are roughly the same length, and allow more fuzziness as the word length increases.
                         $ratio = strlen($word) / strlen($worryword['keyword']);
                         $len = strlen($word);

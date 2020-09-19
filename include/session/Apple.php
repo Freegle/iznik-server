@@ -36,10 +36,10 @@ class Apple
 
         #error_log("Credentials " . var_export($credentials, TRUE));
 
-        $token = presdef('identityToken', $credentials, NULL);
-        $fullName = presdef('fullName', $credentials, NULL);
-        $firstname = presdef('givenName', $fullName, NULL);
-        $lastname = presdef('familyName', $fullName, NULL);
+        $token = Utils::presdef('identityToken', $credentials, NULL);
+        $fullName = Utils::presdef('fullName', $credentials, NULL);
+        $firstname = Utils::presdef('givenName', $fullName, NULL);
+        $lastname = Utils::presdef('familyName', $fullName, NULL);
 
         if ($token) {
             try {

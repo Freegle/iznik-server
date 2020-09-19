@@ -14,7 +14,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -25,9 +25,9 @@ $opts = getopt('n:t:g:');
 if (count($opts) != 3) {
     echo "Usage: php location_add -n <name> -t <lat> -g <lng>\n";
 } else {
-    $name = presdef('n', $opts, NULL);
-    $lat = presdef('t', $opts, NULL);
-    $lng = presdef('g', $opts, NULL);
+    $name = Utils::presdef('n', $opts, NULL);
+    $lat = Utils::presdef('t', $opts, NULL);
+    $lng = Utils::presdef('g', $opts, NULL);
 
     if ($name && $lat && $lng) {
         $l = new Location($dbhr, $dbhm);

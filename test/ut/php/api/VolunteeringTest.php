@@ -97,8 +97,8 @@ class volunteeringAPITest extends IznikAPITestCase {
         # Add date
         $ret = $this->call('volunteering', 'PATCH', [
             'id' => $id,
-            'start' => ISODate('@' . strtotime('next wednesday 2pm')),
-            'end' => ISODate('@' . strtotime('next wednesday 4pm')),
+            'start' => Utils::ISODate('@' . strtotime('next wednesday 2pm')),
+            'end' => Utils::ISODate('@' . strtotime('next wednesday 4pm')),
             'action' => 'AddDate'
         ]);
         assertEquals(0, $ret['ret']);
@@ -146,7 +146,7 @@ class volunteeringAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
         assertEquals('UTTest3', $ret['volunteering']['title']);
-        self::assertFalse(pres('renewed', $ret['volunteering']));
+        self::assertFalse(Utils::pres('renewed', $ret['volunteering']));
 
         $dateid = $ret['volunteering']['dates'][0]['id'];
 

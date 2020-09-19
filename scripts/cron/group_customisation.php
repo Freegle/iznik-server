@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -22,14 +22,14 @@ foreach ($groups as $group) {
     ];
     $missing = '';
     foreach ($custatts as $att => $desc) {
-        if (!pres($att, $group)) {
+        if (!Utils::pres($att, $group)) {
             error_log("...missing $att");
             $missing .= "$desc\n";
         }
     }
 
     if (strlen($missing) > 0) {
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
 
         $message = \Swift_Message::newInstance()
             ->setSubject("Reminder - ways to make {$group['nameshort']} more welcoming")

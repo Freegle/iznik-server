@@ -5,12 +5,12 @@ function adview() {
     # This proxies a request on to adview to avoid CORS issues.
     global $dbhr, $dbhm;
 
-    $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
+    $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
     $hdrs = Session::getallheaders();
-    $ip = presdef('X-Real-Ip', $hdrs, $ip);
+    $ip = Utils::presdef('X-Real-Ip', $hdrs, $ip);
 
-    $location = presdef('location', $_REQUEST, NULL);
-    $link = presdef('link', $_REQUEST, NULL);
+    $location = Utils::presdef('location', $_REQUEST, NULL);
+    $link = Utils::presdef('link', $_REQUEST, NULL);
     $me = Session::whoAmI($dbhr, $dbhm);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -70,7 +70,7 @@ function adview() {
                             'adview' => $d,
                             'url' => $url,
                             'ip' => $ip,
-                            'user_agent' => presdef('User-Agent', $hdrs, NULL),
+                            'user_agent' => Utils::presdef('User-Agent', $hdrs, NULL),
                             'searchedloc' => $location,
                             'ownlocation' => $loc
                         ];

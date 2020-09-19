@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 $sessionPrepared = FALSE;
 
@@ -29,10 +29,10 @@ class Session {
             $_REQUEST = array_merge ( $_REQUEST, json_decode ( $_REQUEST ['model'], true ) );
         }
 
-        if (!pres('sessionPrepared', $GLOBALS)) {
+        if (!Utils::pres('sessionPrepared', $GLOBALS)) {
             $GLOBALS['sessionPrepared'] = TRUE;
 
-            if (pres('api_key', $_REQUEST)) {
+            if (Utils::pres('api_key', $_REQUEST)) {
                 # We have been passed a session id.
                 #
                 # One example of this is when we are called from Swagger.
@@ -54,7 +54,7 @@ class Session {
             # We might have a partner key which allows us access to the API when not logged in as a user.
             $_SESSION['partner'] = FALSE;
 
-            if (pres('partner', $_REQUEST)) {
+            if (Utils::pres('partner', $_REQUEST)) {
                 list ($partner, $domain) = Session::partner($dbhr, $_REQUEST['partner']);
                 $_SESSION['partner'] = $partner;
                 $_SESSION['partnerdomain'] = $domain;
@@ -62,12 +62,12 @@ class Session {
 
             # Always verify the persistent session if passed.  This guards against
             # session id collisions, which can happen (albeit quite rarely).
-            $cookie = presdef('persistent', $_REQUEST, NULL);
+            $cookie = Utils::presdef('persistent', $_REQUEST, NULL);
 
             if (!$cookie) {
                 # Check headers too.
                 $headers = Session::getallheaders();
-                if (pres('Authorization', $headers)) {
+                if (Utils::pres('Authorization', $headers)) {
                     $auth = $headers['Authorization'];
 
                     if (strpos($auth, 'Iznik ') === 0) {
@@ -84,10 +84,10 @@ class Session {
                     (array_key_exists('series', $cookie)) &&
                     (array_key_exists('token', $cookie))
                 ) {
-                    $sesscook = presdef('persistent', $_SESSION, NULL);
+                    $sesscook = Utils::presdef('persistent', $_SESSION, NULL);
                     #error_log("Check vs " . var_export($sesscook, TRUE));
 
-                    if (!presdef('id', $_SESSION, NULL) || $sesscook != $cookie) {
+                    if (!Utils::presdef('id', $_SESSION, NULL) || $sesscook != $cookie) {
                         # We are not logged in as the correct user (or at all).  Try to switch to the persistent one.
                         #error_log("Logged in wrongly as " . var_export($sesscook, TRUE) . " when should be " . var_export($cookie, TRUE));
                         $_SESSION['id'] = NULL;
@@ -97,10 +97,10 @@ class Session {
                 }
             }
 
-            if (!pres('id', $_SESSION)) {
+            if (!Utils::pres('id', $_SESSION)) {
                 # We might not have a cookie, but we might have push credentials.  This happens when we are logged out
                 # on the client but get a notification.  That is sufficient to log us in.
-                $pushcreds = presdef('pushcreds', $_REQUEST, NULL);
+                $pushcreds = Utils::presdef('pushcreds', $_REQUEST, NULL);
                 #error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
                 if ($pushcreds) {
                     $sql = "SELECT * FROM users_push_notifications WHERE subscription = ?;";
@@ -142,7 +142,7 @@ class Session {
     {
         Session::prepareSession($dbhr, $dbhm);
 
-        $id = pres('id', $_SESSION);
+        $id = Utils::pres('id', $_SESSION);
         $ret = NULL;
         #error_log("Session::whoAmI $id in " . session_id());
 
@@ -184,8 +184,8 @@ class Session {
         # in local storage - we can get different sessions on different clients, and unless we allow them all, one
         # device can effectively log another one out.  They get tidied up via a cron script.
         # TODO SHA1 is no longer brilliantly secure.
-        $series = devurandom_rand();
-        $token  = devurandom_rand();
+        $series = Utils::devurandom_rand();
+        $token  = Utils::devurandom_rand();
         $thash  = sha1($token);
 
         $sql = "INSERT INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);";

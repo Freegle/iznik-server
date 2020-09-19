@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Noticeboard extends Entity
 {
@@ -46,8 +46,8 @@ class Noticeboard extends Entity
             $atts['addedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
         }
 
-        $atts['added'] = ISODate($atts['added']);
-        $atts['lastcheckedat'] = ISODate($atts['lastcheckedat']);
+        $atts['added'] = Utils::ISODate($atts['added']);
+        $atts['lastcheckedat'] = Utils::ISODate($atts['lastcheckedat']);
 
         # Get any info.
         $atts['checks'] = $this->dbhr->preQuery("SELECT * FROM noticeboards_checks WHERE noticeboardid = ? ORDER BY id DESC;", [
@@ -56,7 +56,7 @@ class Noticeboard extends Entity
 
         foreach ($atts['checks'] as &$check) {
             foreach (['askedat', 'checkedat'] as $time) {
-                $check[$time] = ISODate($check[$time]);
+                $check[$time] = Utils::ISODate($check[$time]);
             }
 
             if ($check['userid']) {
@@ -123,7 +123,7 @@ class Noticeboard extends Entity
 
         Mail::addHeaders($message, Mail::NOTICEBOARD, $u->getId());
 
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
         $this->sendIt($mailer, $message);
         $this->dbhm->preExec("UPDATE noticeboards SET thanked = NOW() WHERE addedby = ?;", [
             $userid
@@ -266,7 +266,7 @@ class Noticeboard extends Entity
 
                             Mail::addHeaders($message, Mail::NOTICEBOARD_CHASEUP_OWNER, $u->getId());
 
-                            list ($transport, $mailer) = getMailer();
+                            list ($transport, $mailer) = Mail::getMailer();
                             $this->sendIt($mailer, $message);
 
                             # Record our ask.

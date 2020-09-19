@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class MessageCollection
 {
@@ -80,7 +80,7 @@ class MessageCollection
 
             # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
             # message arrived for the very first time, or when it was reposted.
-            $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
+            $date = ($ctx == NULL || !Utils::pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
             $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR (messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ")) ");
 
             if ($ctx === NULL && in_array(MessageCollection::DRAFT, $this->collection)) {
@@ -117,8 +117,8 @@ class MessageCollection
                     ]);
 
                     foreach ($msgs as &$msg) {
-                        $msg['arrival'] = ISODate($msg['arrival']);
-                        $msg['viewedat'] = ISODate($msg['viewedat']);
+                        $msg['arrival'] = Utils::ISODate($msg['arrival']);
+                        $msg['viewedat'] = Utils::ISODate($msg['viewedat']);
                     }
                 }
 
@@ -242,7 +242,7 @@ class MessageCollection
                         # The messages are returned in order of date, then id.  This logic here matches the ordering
                         # in the SQL above.
                         $ctx['Date'] = $thisepoch;
-                        $ctx['id'] = pres('id', $ctx) ? max($msg['id'], $ctx['id']) : $msg['id'];
+                        $ctx['id'] = Utils::pres('id', $ctx) ? max($msg['id'], $ctx['id']) : $msg['id'];
                     }
                 }
             }
@@ -264,23 +264,23 @@ class MessageCollection
         # We need to do a little tweaking of msglist to get it ready to pass to getPublics.
         foreach ($msglist as &$msg) {
             if ($summary) {
-                if (pres('groupid', $msg)) {
+                if (Utils::pres('groupid', $msg)) {
                     # TODO If we support messages on multiple groups then this needs reworking.
                     $msg['groups'] = ([
                         [
                             'groupid' => $msg['groupid'],
                             'namedisplay' => $msg['namedisplay'],
-                            'arrival' => ISODate($msg['arrival']),
+                            'arrival' => Utils::ISODate($msg['arrival']),
                             'collection' => $msg['collection']
                         ]
                     ]);
                 }
 
-                if (pres('outcomeid', $msg)) {
+                if (Utils::pres('outcomeid', $msg)) {
                     $msg['outcomes'] = [$msg['outcomeid']];
                 }
 
-                if (pres('attachmentid', $msg)) {
+                if (Utils::pres('attachmentid', $msg)) {
                     $a = new Attachment($this->dbhr, $this->dbhm);
 
                     $msg['attachments'] = [
@@ -332,7 +332,7 @@ class MessageCollection
 
                 $cansee = $cansees[$public['id']];
 
-                $coll = presdef('collection', $msg, MessageCollection::APPROVED);
+                $coll = Utils::presdef('collection', $msg, MessageCollection::APPROVED);
 
                 if ($cansee && $coll != MessageCollection::DRAFT) {
                     # Make sure we only return this if it's on a group.
@@ -354,7 +354,7 @@ class MessageCollection
                         case MessageCollection::APPROVED:
                             $n = $public;
                             unset($n['message']);
-                            $n['matchedon'] = presdef('matchedon', $msg, NULL);
+                            $n['matchedon'] = Utils::presdef('matchedon', $msg, NULL);
                             $msgs[] = $n;
                             $limit--;
                             break;
@@ -365,7 +365,7 @@ class MessageCollection
                                 # Only visible to moderators or owners
                                 $n = $public;
                                 unset($n['message']);
-                                $n['matchedon'] = presdef('matchedon', $msg, NULL);
+                                $n['matchedon'] = Utils::presdef('matchedon', $msg, NULL);
                                 $msgs[] = $n;
                                 $limit--;
                             }
@@ -375,7 +375,7 @@ class MessageCollection
                                 # Only visible to moderators or owners
                                 $n = $public;
                                 unset($n['message']);
-                                $n['matchedon'] = presdef('matchedon', $msg, NULL);
+                                $n['matchedon'] = Utils::presdef('matchedon', $msg, NULL);
                                 $msgs[] = $n;
                                 $limit--;
                             }
@@ -392,7 +392,7 @@ class MessageCollection
         # Get groups.
         $groupids = [];
         foreach ($msgs as $msg) {
-            if (pres('groups', $msg)) {
+            if (Utils::pres('groups', $msg)) {
                 foreach ($msg['groups'] as $group) {
                     $groupids[] = $group['groupid'];
                 }
@@ -434,7 +434,7 @@ class MessageCollection
                 'message' => [
                     'id' => $message['id'],
                     'subject' => $message['subject'],
-                    'arrival' => ISODate($message['arrival']),
+                    'arrival' => Utils::ISODate($message['arrival']),
                     'delta' => $delta,
                 ],
                 'group' => [
@@ -469,7 +469,7 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         ]);
 
         foreach ($changes as &$change) {
-            $change['timestamp'] = ISODate($change['timestamp']);
+            $change['timestamp'] = Utils::ISODate($change['timestamp']);
         }
 
         return ($changes);

@@ -5,20 +5,20 @@ function image() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
-    $id = intval(presdef('id', $_REQUEST, 0));
-    $msgid = pres('msgid', $_REQUEST) ? intval($_REQUEST['msgid']) : NULL;
+    $id = intval(Utils::presdef('id', $_REQUEST, 0));
+    $msgid = Utils::pres('msgid', $_REQUEST) ? intval($_REQUEST['msgid']) : NULL;
     $identify = array_key_exists('identify', $_REQUEST) ? filter_var($_REQUEST['identify'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ocr = array_key_exists('ocr', $_REQUEST) ? filter_var($_REQUEST['ocr'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $group = presdef('group', $_REQUEST, NULL);
-    $newsletter = presdef('newsletter', $_REQUEST, NULL);
-    $communityevent = presdef('communityevent', $_REQUEST, NULL);
-    $volunteering = presdef('volunteering', $_REQUEST, NULL);
-    $chatmessage = presdef('chatmessage', $_REQUEST, NULL);
-    $user = presdef('user', $_REQUEST, NULL);
-    $newsfeed = presdef('newsfeed', $_REQUEST, NULL);
-    $story = presdef('story', $_REQUEST, NULL);
-    $circle = presdef('circle', $_REQUEST, NULL);
-    $booktastic = presdef('booktastic', $_REQUEST, NULL);
+    $group = Utils::presdef('group', $_REQUEST, NULL);
+    $newsletter = Utils::presdef('newsletter', $_REQUEST, NULL);
+    $communityevent = Utils::presdef('communityevent', $_REQUEST, NULL);
+    $volunteering = Utils::presdef('volunteering', $_REQUEST, NULL);
+    $chatmessage = Utils::presdef('chatmessage', $_REQUEST, NULL);
+    $user = Utils::presdef('user', $_REQUEST, NULL);
+    $newsfeed = Utils::presdef('newsfeed', $_REQUEST, NULL);
+    $story = Utils::presdef('story', $_REQUEST, NULL);
+    $circle = Utils::presdef('circle', $_REQUEST, NULL);
+    $booktastic = Utils::presdef('booktastic', $_REQUEST, NULL);
 
     $sizelimit = 800;
     
@@ -44,7 +44,7 @@ function image() {
         $type = Attachment::TYPE_MESSAGE;
     }
 
-    $_REQUEST['type'] = pres('typeoverride', $_REQUEST) ? $_REQUEST['typeoverride'] : $_REQUEST['type'];
+    $_REQUEST['type'] = Utils::pres('typeoverride', $_REQUEST) ? $_REQUEST['typeoverride'] : $_REQUEST['type'];
 
     switch ($_REQUEST['type']) {
         case 'GET': {
@@ -61,8 +61,8 @@ function image() {
 
 
             if ($i->img) {
-                $w = intval(presdef('w', $_REQUEST, $i->width()));
-                $h = intval(presdef('h', $_REQUEST, $i->height()));
+                $w = intval(Utils::presdef('w', $_REQUEST, $i->width()));
+                $h = intval(Utils::presdef('h', $_REQUEST, $i->height()));
 
                 if (($w > 0) || ($h > 0)) {
                     # Need to resize
@@ -92,7 +92,7 @@ function image() {
             $ret = [ 'ret' => 1, 'status' => 'No photo provided' ];
 
             # This next line is to simplify UT.
-            $rotate = pres('rotate', $_REQUEST) ? intval($_REQUEST['rotate']) : NULL;
+            $rotate = Utils::pres('rotate', $_REQUEST) ? intval($_REQUEST['rotate']) : NULL;
 
             if ($rotate) {
                 # We want to rotate.  Do so.
@@ -109,13 +109,13 @@ function image() {
                     'rotatedsize' => strlen($newdata)
                 ];
             } else {
-                $photo = presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
-                $imgtype = presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
-                $mimetype = presdef('type', $photo, NULL);
+                $photo = Utils::presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
+                $imgtype = Utils::presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
+                $mimetype = Utils::presdef('type', $photo, NULL);
 
                 # Make sure what we have looks plausible - the file upload plugin should ensure this is the case.
                 if ($photo &&
-                    pres('tmp_name', $photo) &&
+                    Utils::pres('tmp_name', $photo) &&
                     strpos($mimetype, 'image/') === 0) {
 
                     try {

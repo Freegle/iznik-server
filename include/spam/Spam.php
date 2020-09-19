@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
 use GeoIp2\Database\Reader;
@@ -252,9 +252,7 @@ class Spam {
 
         if (!$check) {
             # Check for URLs.
-            global $urlPattern, $urlBad;
-
-            if (preg_match_all($urlPattern, $message, $matches)) {
+            if (preg_match_all(Utils::URL_PATTERN, $message, $matches)) {
                 # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
                 $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5 AND domain NOT LIKE '%linkedin%' AND domain NOT LIKE '%goo.gl%' AND domain NOT LIKE '%bit.ly%' AND domain NOT LIKE '%tinyurl%';");
 
@@ -267,7 +265,7 @@ class Spam {
                         $bad = FALSE;
                         $url2 = str_replace('http:', '', $url);
                         $url2 = str_replace('https:', '', $url2);
-                        foreach ($urlBad as $badone) {
+                        foreach (Utils::URL_BAD as $badone) {
                             if (strpos($url2, $badone) !== FALSE) {
                                 $bad = TRUE;
                             }
@@ -321,7 +319,7 @@ class Spam {
         if (!$check && preg_match_all(Message::EMAIL_REGEXP, $message, $matches)) {
             foreach ($matches as $val) {
                 foreach ($val as $email) {
-                    if (!ourDomain($email) && strpos($email, 'trashnothing') === FALSE && strpos($email, 'yahoogroups') === FALSE) {
+                    if (!Mail::ourDomain($email) && strpos($email, 'trashnothing') === FALSE && strpos($email, 'yahoogroups') === FALSE) {
                         $check = TRUE;
                     }
                 }
@@ -349,9 +347,9 @@ class Spam {
                 $lang = $ld->detect($message)->close();
                 reset($lang);
                 $firstlang = key($lang);
-                $firstprob = presdef($firstlang, $lang, 0);
-                $enprob = presdef('en', $lang, 0);
-                $cyprob = presdef('cy', $lang, 0);
+                $firstprob = Utils::presdef($firstlang, $lang, 0);
+                $enprob = Utils::presdef('en', $lang, 0);
+                $cyprob = Utils::presdef('cy', $lang, 0);
                 $ourprob = max($enprob, $cyprob);
 
                 $check = !($firstlang == 'en' || $firstlang == 'cy' || $ourprob >= 0.8 * $firstprob);
@@ -385,9 +383,7 @@ class Spam {
         }
 
         # Check whether any URLs are in Spamhaus DBL black list.
-        global $urlPattern, $urlBad;
-
-        if (preg_match_all($urlPattern, $message, $matches)) {
+        if (preg_match_all(Utils::URL_PATTERN, $message, $matches)) {
             $checked = [];
 
             foreach ($matches as $val) {
@@ -395,7 +391,7 @@ class Spam {
                     $bad = FALSE;
                     $url2 = str_replace('http:', '', $url);
                     $url2 = str_replace('https:', '', $url2);
-                    foreach ($urlBad as $badone) {
+                    foreach (Utils::URL_BAD as $badone) {
                         if (strpos($url2, $badone) !== FALSE) {
                             $bad = TRUE;
                         }
@@ -410,7 +406,7 @@ class Spam {
                             $ret = $checked[$url];
                         }
 
-                        if (checkSpamhaus("http://$url")) {
+                        if (Mail::checkSpamhaus("http://$url")) {
                             $ret = array(true, Spam::REASON_DBL, "Blacklisted url $url");
                             $checked[$url] = $ret;
                         }
@@ -490,7 +486,7 @@ class Spam {
 
                 $dist = \GreatCircle::getDistance($minlat, $minlng, $maxlat, $maxlng);
                 $dist = round($dist * 0.000621371192);
-                $settings = pres('settings', $dists[0]) ? json_decode($dists[0]['settings'], TRUE) : [
+                $settings = Utils::pres('settings', $dists[0]) ? json_decode($dists[0]['settings'], TRUE) : [
                     'spammers' => [
                         'replydistance' => Spam::DISTANCE_THRESHOLD
                     ]
@@ -607,16 +603,16 @@ class Spam {
             }
 
             if ($collection === Spam::TYPE_PENDING_ADD) {
-                if (pres('heldby', $spammer)) {
+                if (Utils::pres('heldby', $spammer)) {
                     $u = User::get($this->dbhr, $this->dbhm, $spammer['heldby']);
                     $spammer['user']['heldby'] = $u->getPublic();
-                    $spammer['user']['heldat'] = ISODate($spammer['heldat']);
+                    $spammer['user']['heldat'] = Utils::ISODate($spammer['heldat']);
                     unset($spammer['heldby']);
                     unset($spammer['heldat']);
                 }
             }
 
-            $spammer['added'] = ISODate($spammer['added']);
+            $spammer['added'] = Utils::ISODate($spammer['added']);
             $context['id'] = $spammer['id'];
         }
 

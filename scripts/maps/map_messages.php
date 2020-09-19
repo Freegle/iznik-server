@@ -2,7 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/message/Message.php');
 
 $at = 0;
@@ -20,7 +20,7 @@ do {
         $found = true;
         $i = new Message($dbhr, $dbhm, $msg['id']);
         $atts = $i->getPublic();
-        if (pres('lat', $atts)) {
+        if (Utils::pres('lat', $atts)) {
             preg_match("/.*\((.*)\)/", $atts['suggestedsubject'], $matches);
 
             error_log("  {$atts['id']} {$atts['subject']} got {$matches[1]} - {$atts['lat']}, {$atts['lng']} ID {$atts['locationid']} on {$msg['groupid']} {$msg['nameshort']}");

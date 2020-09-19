@@ -87,7 +87,7 @@ class adminAPITest extends IznikAPITestCase
         }
 
         assertEquals(1, $ret['admin']['pending']);
-        assertFalse(pres('heldby', $ret['admin']));
+        assertFalse(Utils::pres('heldby', $ret['admin']));
 
         # And also get it via list.
         $ret = $this->call('admin', 'GET', [ 'groupid' => $this->groupid ]);
@@ -114,7 +114,7 @@ class adminAPITest extends IznikAPITestCase
         $ret = $this->call('admin', 'GET', [ 'id' => $id ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['admin']['id']);
-        assertFalse(pres('heldby', $ret['admin']));
+        assertFalse(Utils::pres('heldby', $ret['admin']));
 
         # Now send - none to find, as we don't have an email on our domain.
         $a = new Admin($this->dbhr, $this->dbhm);

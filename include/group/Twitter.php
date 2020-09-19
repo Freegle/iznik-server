@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 use Abraham\TwitterOAuth\TwitterOAuth;
 
@@ -75,7 +75,7 @@ class Twitter {
                     $ret = $this->tw->upload('media/upload', array('media' => $fname));
                     $ret = json_decode(json_encode($ret), TRUE);
 
-                    if (!pres('errors', $ret)) {
+                    if (!Utils::pres('errors', $ret)) {
                         $ret = $this->tw->post('statuses/update', [
                             'status' => $status,
                             'media_ids' => implode(',', [$ret['media_id_string']])
@@ -92,7 +92,7 @@ class Twitter {
 
             $ret = json_decode(json_encode($ret), TRUE);
 
-            if (pres('errors', $ret)) {
+            if (Utils::pres('errors', $ret)) {
                 # Something failed.
                 #error_log("Tweet failed " . var_export($ret, TRUE));
                 $this->dbhm->preExec("UPDATE groups_twitter SET lasterror = ?, lasterrortime = NOW() WHERE groupid = ?;", [ var_export($ret['errors'], TRUE), $this->groupid ]);
@@ -174,7 +174,7 @@ class Twitter {
                 $link = 'https://' . USER_SITE . "/communityevent/{$event['eventid']}?t=". time();
 
                 $status .= " $link";
-                $rc = $this->tweet($status, pres('photo', $atts) ? file_get_contents($atts['photo']['path']) : NULL);
+                $rc = $this->tweet($status, Utils::pres('photo', $atts) ? file_get_contents($atts['photo']['path']) : NULL);
                 error_log($status);
 
                 if ($rc) {
@@ -220,7 +220,7 @@ class Twitter {
 
             $status .= " $link";
 
-            if (pres('photo', $atts)) {
+            if (Utils::pres('photo', $atts)) {
                 $image = $atts['photo']['path'];
             } else {
                 $img = rand(1, 5);

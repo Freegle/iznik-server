@@ -2,7 +2,7 @@
 
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -94,7 +94,7 @@ class API
         #error_log("Request " . var_export($_REQUEST, TRUE));
         #error_log("Server " . var_export($_SERVER, TRUE));
 
-        if (pres('HTTP_X_REAL_IP', $_SERVER)) {
+        if (Utils::pres('HTTP_X_REAL_IP', $_SERVER)) {
             # We jump through hoops to get the real IP address. This is one of them.
             $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_REAL_IP'];
         }
@@ -107,7 +107,7 @@ class API
         }
 
         # Include the API call
-        $call = pres('call', $_REQUEST);
+        $call = Utils::pres('call', $_REQUEST);
 
         if ($call) {
             $fn = IZNIK_BASE . '/http/api/' . $call . '.php';
@@ -116,7 +116,7 @@ class API
             }
         }
 
-        if (presdef('type', $_REQUEST, null) == 'OPTIONS') {
+        if (Utils::presdef('type', $_REQUEST, null) == 'OPTIONS') {
             # We don't bother returning different values for different calls.
             http_response_code(204);
             @header('Allow: POST, GET, DELETE, PUT');
@@ -132,15 +132,15 @@ class API
 
             # This is an optimisation for User.php.
             if (session_status() !== PHP_SESSION_NONE) {
-                $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
+                $_SESSION['modorowner'] = Utils::presdef('modorowner', $_SESSION, []);
             }
 
             do {
-                if (presdef('type', $_REQUEST, null) != 'GET') {
+                if (Utils::presdef('type', $_REQUEST, null) != 'GET') {
                     # Check that we're not posting from a blocked country.
                     try {
                         $reader = new Reader(MMDB);
-                        $ip = presdef('REMOTE_ADDR', $_SERVER, null);
+                        $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, null);
 
                         if ($ip) {
                             $record = $reader->country($ip);
@@ -159,7 +159,7 @@ class API
 
                 # Duplicate POST protection.  We upload multiple images so don't protect against those.
                 if ((DUPLICATE_POST_PROTECTION > 0) &&
-                    array_key_exists('REQUEST_METHOD', $_SERVER) && (presdef('type', $_REQUEST, null) == 'POST') &&
+                    array_key_exists('REQUEST_METHOD', $_SERVER) && (Utils::presdef('type', $_REQUEST, null) == 'POST') &&
                     $call != 'image') {
                     # We want to make sure that we don't get duplicate POST requests within the same session.  We can't do this
                     # using information stored in the session because when Redis is used as the session handler, there is
@@ -415,7 +415,7 @@ class API
                     if ($call == 'upload') {
                         # Output is handled within the lib.
                     } else {
-                        if (pres('img', $ret)) {
+                        if (Utils::pres('img', $ret)) {
                             # This is an image we want to output.  Can cache forever - if an image changes it would get a new id
                             @header('Content-Type: image/jpeg');
                             @header('Content-Length: ' . strlen($ret['img']));
@@ -425,22 +425,22 @@ class API
                             # This is a normal API call.  Add profiling info.
                             $duration = (microtime(true) - $scriptstart);
                             $ret['call'] = $call;
-                            $ret['type'] = presdef('type', $_REQUEST, null);
+                            $ret['type'] = Utils::presdef('type', $_REQUEST, null);
                             $ret['session'] = session_id();
                             $ret['duration'] = $duration;
                             $ret['cpucost'] = API::getCpuUsage($tusage, $rusage);
                             $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();
                             $ret['includetime'] = $includetime;
-                            //                $ret['remoteaddr'] = presdef('REMOTE_ADDR', $_SERVER, '-');
+                            //                $ret['remoteaddr'] = Utils::presdef('REMOTE_ADDR', $_SERVER, '-');
                             //                $ret['_server'] = $_SERVER;
 
-                            filterResult($ret);
+                            Utils::filterResult($ret);
 
                             $str = json_encode($ret);
 
                             if (!$str) {
                                 // This can happen with bad UTF-8 characters.  Do a more expensive filter.
-                                filterResult($ret, NULL, TRUE);
+                                Utils::filterResult($ret, NULL, TRUE);
                                 $str = json_encode($ret);
                             }
 
@@ -499,7 +499,7 @@ class API
                 }
             } while ($apicallretries < API_RETRIES);
 
-            if (BROWSERTRACKING && (presdef('type', $_REQUEST, null) != 'GET') &&
+            if (BROWSERTRACKING && (Utils::presdef('type', $_REQUEST, null) != 'GET') &&
                 (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
                 # save GET calls as they don't change the DB and there are a lot of them.
@@ -515,8 +515,8 @@ class API
                 }
 
                 $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" .
-                    (session_status() !== PHP_SESSION_NONE ? presdef('id', $_SESSION,'NULL') : 'NULL') .
-                    ", '" . presdef('REMOTE_ADDR', $_SERVER, '') . "', " . $dbhr->quote(session_id()) .
+                    (session_status() !== PHP_SESSION_NONE ? Utils::presdef('id', $_SESSION,'NULL') : 'NULL') .
+                    ", '" . Utils::presdef('REMOTE_ADDR', $_SERVER, '') . "', " . $dbhr->quote(session_id()) .
                     ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
                 $dbhm->background($sql);
             }
@@ -527,7 +527,7 @@ class API
             }
 
             if (session_status() !== PHP_SESSION_NONE) {
-                if (presdef('type', $_REQUEST, null) != 'GET') {
+                if (Utils::presdef('type', $_REQUEST, null) != 'GET') {
                     # This might have changed things.
                     $_SESSION['modorowner'] = [];
                 }
@@ -536,8 +536,8 @@ class API
                 # roster status in ChatRoom.php, and also for spotting idle members.
                 #
                 # Do this here, as we might not be logged in at the start if we had a persistent token but no PHP session.
-                $id = pres('id', $_SESSION);
-                $last = intval(presdef('lastaccessupdate', $_SESSION, 0));
+                $id = Utils::pres('id', $_SESSION);
+                $last = intval(Utils::presdef('lastaccessupdate', $_SESSION, 0));
                 if ($id && (abs(time() - $last) > 60)) {
                     $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
                     $_SESSION['lastaccessupdate'] = time();

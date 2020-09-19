@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -14,7 +14,7 @@ if (count($opts) < 2) {
     echo "Usage: php modconfig.php -a (export|import) -i <id to export> -f <input or output file>\n";
 } else {
     $a = $opts['a'];
-    $i = presdef('i', $opts, NULL);
+    $i = Utils::presdef('i', $opts, NULL);
     $f = $opts['f'];
     $c = new ModConfig($dbhr, $dbhm);
 

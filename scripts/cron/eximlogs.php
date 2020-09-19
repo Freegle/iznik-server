@@ -4,11 +4,11 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$lockh = lockScript(basename(__FILE__));
+$lockh = Utils::lockScript(basename(__FILE__));
 
 # We want to parse the exim logs and correlate them to users, and then put that into the DB.  This allows people
 # to see that we have actually sent messages.
@@ -21,7 +21,7 @@ $u = new User($dbhr, $dbhm);
 function logIt($msg) {
     global $dbhm, $dbhr, $u;
     $timestamp = date("Y-m-d H:i:s", strtotime($msg['date']));
-    $uid = pres('to', $msg) ? $u->findByEmail($msg['to']) : NULL;
+    $uid = Utils::pres('to', $msg) ? $u->findByEmail($msg['to']) : NULL;
 
     # We might already have a row for this eximid.
     $logs = $dbhr->preQuery("SELECT * FROM logs_emails WHERE eximid = ?;", [
@@ -34,17 +34,17 @@ function logIt($msg) {
             $timestamp,
             $msg['eximid'],
             $uid,
-            presdef('from', $msg, NULL),
-            presdef('to', $msg, NULL),
-            presdef('messageid', $msg, NULL),
-            presdef('subject', $msg, NULL),
-            presdef('status', $msg, NULL)
+            Utils::presdef('from', $msg, NULL),
+            Utils::presdef('to', $msg, NULL),
+            Utils::presdef('messageid', $msg, NULL),
+            Utils::presdef('subject', $msg, NULL),
+            Utils::presdef('status', $msg, NULL)
         ], FALSE);
     } else {
         # We do.  We might have extra info.
         foreach ($logs as $log) {
             foreach (['userid', 'from', 'to', 'messageid', 'subject'] as $key) {
-                if (!pres($key, $log) && pres($key, $msg)) {
+                if (!Utils::pres($key, $log) && Utils::pres($key, $msg)) {
                     error_log("...add $key = {$msg[$key]} to {$log['id']} for {$msg['eximid']}");
                     $dbhm->preExec("UPDATE logs_emails SET `$key` = ? WHERE id = ?;", [
                         $msg[$key],
@@ -118,4 +118,4 @@ foreach ($msgs as $msgid => $msg) {
 
 file_put_contents('/tmp/iznik.eximlogs.lasttime', $maxtime . '');
 
-unlockScript($lockh);
+Utils::unlockScript($lockh);

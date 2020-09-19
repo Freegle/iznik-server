@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/lib/Address.php');
 
@@ -41,7 +41,7 @@ class PAF
                 $this->cache[$table] = [];
             }
 
-            if (pres($val, $this->cache[$table])) {
+            if (Utils::pres($val, $this->cache[$table])) {
                 $id = $this->cache[$table][$val];
                 #error_log("Got cached $val for $att = $val in $table");
             } else {
@@ -289,7 +289,7 @@ class PAF
                 switch ($key) {
                     case 'postcode': $a->setPostcode($val); break;
                     case 'buildingnumber':
-                        if ($val != presdef('buildingname', $address, NULL)) {
+                        if ($val != Utils::presdef('buildingname', $address, NULL)) {
                             $a->setBuildingNumber($val);
                         }
                         break;

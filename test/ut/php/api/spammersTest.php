@@ -430,7 +430,7 @@ class spammersAPITest extends IznikAPITestCase {
         }
 
     public function testExport() {
-        $key = randstr(64);
+        $key = Utils::randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
         assertNotNull($id);
 

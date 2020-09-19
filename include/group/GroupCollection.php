@@ -94,7 +94,7 @@ class GroupCollection
         # Now combine the redis and DB results.  This preserves the order of the the ids passed to us, which
         # is important.
         foreach ($ids as $id) {
-            $this->groups[] = pres($id, $cachedgroups) ? $cachedgroups[$id] : pres($id, $fromdb);
+            $this->groups[] = Utils::pres($id, $cachedgroups) ? $cachedgroups[$id] : Utils::pres($id, $fromdb);
         }
 
         # Now we have the combined groups.

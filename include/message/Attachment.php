@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 use Jenssegers\ImageHash\ImageHash;
 //use Google\Cloud\VideoIntelligence\V1\VideoIntelligenceServiceClient;
@@ -285,7 +285,7 @@ class Attachment
                 )
             ));
 
-            if (pres('url', $data)) {
+            if (Utils::pres('url', $data)) {
                 $ret = $this->fgc($data['url'], false, $ctx);
             } else if ($data['archived']) {
                 # This attachment has been archived out of our database, to a CDN.  Normally we would expect

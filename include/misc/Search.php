@@ -214,7 +214,7 @@ class Search
 
     private function getWord($id, $tag) {
         # We often get the same word when processing search results.  Cache in memory to speed that case.
-        if (!pres($id, $this->wordcache)) {
+        if (!Utils::pres($id, $this->wordcache)) {
             $words = $this->dbhr->preQuery("SELECT * FROM words WHERE id = ?;", [ $id ]);
             $this->wordcache[$id] = [
                 'id' => $words[0]['id'],
@@ -295,7 +295,7 @@ class Search
             # the most relevant.
             if (strlen($word) > 0) {
                 # Check for exact matches even for short words
-                $startq = pres('Exact', $context) ? " AND {$this->sortatt} > {$context['Exact']} " : "";
+                $startq = Utils::pres('Exact', $context) ? " AND {$this->sortatt} > {$context['Exact']} " : "";
                 $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 #error_log(" $sql  {$this->sortatt} {$this->idatt}");
                 $batch = $this->dbhr->preQuery($sql, [
@@ -309,7 +309,7 @@ class Search
                 if (strlen($word) >= 2) {
                     if (count($results) == 0) {
                         # Search for typos.  This is slow, so we need to stick a limit on it.
-                        $startq = pres('Typo', $context) ? " AND {$this->sortatt} > {$context['Typo']} " : "";
+                        $startq = Utils::pres('Typo', $context) ? " AND {$this->sortatt} > {$context['Typo']} " : "";
                         $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                         #error_log("Typo search $sql {$this->sortatt}, {$this->idatt}");
 
@@ -322,7 +322,7 @@ class Search
 
                     if (count($results) == 0) {
                         # Check for starts matches.
-                        $startq = pres('StartsWith', $context) ? " AND {$this->sortatt} > {$context['StartsWith']} " : "";
+                        $startq = Utils::pres('StartsWith', $context) ? " AND {$this->sortatt} > {$context['StartsWith']} " : "";
                         $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                         #error_log($sql . "{$this->sortatt} {$this->idatt}");
                         $batch = $this->dbhr->preQuery($sql, [
@@ -334,7 +334,7 @@ class Search
 
                     if (count($results) == 0) {
                         # Add in sounds like.
-                        $startq = pres('SoundsLike', $context) ? " AND {$this->sortatt} > {$context['SoundsLike']} " : "";
+                        $startq = Utils::pres('SoundsLike', $context) ? " AND {$this->sortatt} > {$context['SoundsLike']} " : "";
                         $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                         $batch = $this->dbhr->preQuery($sql, [
                             $this->sortatt,
@@ -378,7 +378,7 @@ class Search
             foreach ($thislot as $thisone) {
                 $results[$key][] = $thisone['item'];
 
-                $retcont[$thisone['tag']] = pres($thisone['tag'], $retcont) ?
+                $retcont[$thisone['tag']] = Utils::pres($thisone['tag'], $retcont) ?
                     max($retcont[$thisone['tag']], $thisone['item'][$this->sortatt]) : $thisone['item'][$this->sortatt];
             }
 

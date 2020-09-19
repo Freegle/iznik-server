@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 # We include this directly because the composer version isn't quite right for us - see
 # https://github.com/php-mime-mail-parser/php-mime-mail-parser/issues/163
@@ -424,20 +424,20 @@ class Message
             # We just edit it back to what it was.
             $item = NULL;
 
-            if (pres('olditems', $edit)) {
+            if (Utils::pres('olditems', $edit)) {
                 $itemid = json_decode($edit['olditems'], TRUE)[0];
                 $i = new Item($this->dbhr, $this->dbhm, $itemid);
                 $item = $i->getPrivate('name');
             }
 
             $this->edit(
-                presdef('oldsubject', $edit, NULL),
-                presdef('oldtext', $edit, NULL),
+                Utils::presdef('oldsubject', $edit, NULL),
+                Utils::presdef('oldtext', $edit, NULL),
                 NULL,
-                presdef('oldtype', $edit, NULL),
+                Utils::presdef('oldtype', $edit, NULL),
                 $item,
-                presdef('oldlocation', $edit, NULL),
-                pres('oldattachments', $edit) ? json_decode($edit['oldattachments'], TRUE) : NULL,
+                Utils::presdef('oldlocation', $edit, NULL),
+                Utils::pres('oldattachments', $edit) ? json_decode($edit['oldattachments'], TRUE) : NULL,
                 FALSE
             );
 
@@ -558,7 +558,7 @@ class Message
                     }
 
                     foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts, $this->internalAtts) as $attr) {
-                        if (pres($attr, $msg)) {
+                        if (Utils::pres($attr, $msg)) {
                             $this->$attr = $msg[$attr];
                         }
                     }
@@ -592,7 +592,7 @@ class Message
         try {
             #error_log(session_id() . " mail " . microtime(true));
 
-            list ($transport, $mailer) = getMailer();
+            list ($transport, $mailer) = Mail::getMailer();
             
             $message = \Swift_Message::newInstance()
                 ->setSubject($subject)
@@ -650,7 +650,7 @@ class Message
             # We might also be a partner, which allows us to appear like a member rather than a non-member.
             $role = User::ROLE_NONMEMBER;
 
-            if (pres('partner', $_SESSION)) {
+            if (Utils::pres('partner', $_SESSION)) {
                 # Partners always get at least member rights.
                 $role = User::ROLE_MEMBER;
 
@@ -710,7 +710,7 @@ class Message
                 }
             }
 
-            if ($role == User::ROLE_NONMEMBER && presdef('isdraft', $msg, FALSE)) {
+            if ($role == User::ROLE_NONMEMBER && Utils::presdef('isdraft', $msg, FALSE)) {
                 # We can potentially upgrade our role if this is one of our drafts.
                 $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
                     $msg['id'],
@@ -872,24 +872,24 @@ class Message
             $ret['myrole'] = $role;
 
             foreach ($this->nonMemberAtts as $att) {
-                $ret[$att] = presdef($att, $msg, NULL);
+                $ret[$att] = Utils::presdef($att, $msg, NULL);
             }
 
             if ($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                 foreach ($this->memberAtts as $att) {
-                    $ret[$att] = presdef($att, $msg, NULL);
+                    $ret[$att] = Utils::presdef($att, $msg, NULL);
                 }
             }
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
                 foreach ($this->moderatorAtts as $att) {
-                    $ret[$att] = presdef($att, $msg, NULL);
+                    $ret[$att] = Utils::presdef($att, $msg, NULL);
                 }
             }
 
             if ($role == User::ROLE_OWNER || $seeall) {
                 foreach ($this->ownerAtts as $att) {
-                    $ret[$att] = presdef($att, $msg, NULL);
+                    $ret[$att] = Utils::presdef($att, $msg, NULL);
                 }
             }
 
@@ -911,17 +911,17 @@ class Message
             $ret['subject'] = html_entity_decode($ret['subject']);
 
             # Add derived attributes.
-            $ret['arrival'] = ISODate($ret['arrival']);
-            $ret['date'] = ISODate($ret['date']);
+            $ret['arrival'] = Utils::ISODate($ret['arrival']);
+            $ret['date'] = Utils::ISODate($ret['date']);
             $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
-            $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
+            $ret['snippet'] = Utils::pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
-            if (pres('fromcountry', $ret)) {
-                $ret['fromcountry'] = code_to_country($ret['fromcountry']);
+            if (Utils::pres('fromcountry', $ret)) {
+                $ret['fromcountry'] = Utils::code_to_country($ret['fromcountry']);
             }
 
             # TODO Is this still relevant?
-            $ret['publishconsent'] = pres('publishconsent', $msg) ? TRUE : FALSE;
+            $ret['publishconsent'] = Utils::pres('publishconsent', $msg) ? TRUE : FALSE;
 
             if (!$summary) {
                 if ($role == User::ROLE_NONMEMBER) {
@@ -934,7 +934,7 @@ class Message
                 }
 
                 # We have a flag for FOP - but legacy posting methods might put it in the body.
-                $ret['FOP'] = (pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
+                $ret['FOP'] = (Utils::pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
             }
 
             $rets[$msg['id']] = $ret;
@@ -990,7 +990,7 @@ class Message
 
                 $rets[$msg['id']]['groups'] = $retgroups;
             } else {
-                $rets[$msg['id']]['groups'] = presdef('groups', $msg, []);
+                $rets[$msg['id']]['groups'] = Utils::presdef('groups', $msg, []);
             }
 
             $rets[$msg['id']]['showarea'] = TRUE;
@@ -999,8 +999,8 @@ class Message
             # We don't use foreach with & because that copies data by reference which causes bugs.
             for ($groupind = 0; $groupind < count($rets[$msg['id']]['groups']); $groupind++ ) {
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
-                    if (pres('approvedby', $rets[$msg['id']]['groups'][$groupind])) {
-                        if (!pres($rets[$msg['id']]['groups'][$groupind]['approvedby'], $approvedcache)) {
+                    if (Utils::pres('approvedby', $rets[$msg['id']]['groups'][$groupind])) {
+                        if (!Utils::pres($rets[$msg['id']]['groups'][$groupind]['approvedby'], $approvedcache)) {
                             if ($rets[$msg['id']]['groups'][$groupind]['approvedby'] === $myid) {
                                 # This saves a DB op in a common case for an active mod.
                                 $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']] = [
@@ -1013,7 +1013,7 @@ class Message
                                 ]);
 
                                 foreach ($appby as $app) {
-                                    $name = pres('fullname', $app) ? $app['fullname'] : "{$app['firstname']} {$app['lastname']}";
+                                    $name = Utils::pres('fullname', $app) ? $app['fullname'] : "{$app['firstname']} {$app['lastname']}";
                                     $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']] = [
                                         'id' => $rets[$msg['id']]['groups'][$groupind]['approvedby'],
                                         'displayname' => $name
@@ -1027,7 +1027,7 @@ class Message
                     }
                 }
 
-                $rets[$msg['id']]['groups'][$groupind]['arrival'] = ISODate($rets[$msg['id']]['groups'][$groupind]['arrival']);
+                $rets[$msg['id']]['groups'][$groupind]['arrival'] = Utils::ISODate($rets[$msg['id']]['groups'][$groupind]['arrival']);
                 $g = Group::get($this->dbhr, $this->dbhm, $rets[$msg['id']]['groups'][$groupind]['groupid']);
                 $rets[$msg['id']]['groups'][$groupind]['namedisplay'] = $g->getName();
                 #error_log("Message {$group['msgid']} {$group['groupid']} {$group['namedisplay']}");
@@ -1056,7 +1056,7 @@ class Message
 
                 if (!$summary) {
                     $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
-                    $rets[$msg['id']]['keyword'] = presdef(strtolower($msg['type']), $keywords, $msg['type']);
+                    $rets[$msg['id']]['keyword'] = Utils::presdef(strtolower($msg['type']), $keywords, $msg['type']);
 
                     # Some groups disable the area or postcode.  If so, hide that.
                     $includearea = $g->getSetting('includearea', TRUE);
@@ -1064,7 +1064,7 @@ class Message
                     $rets[$msg['id']]['showarea'] = !$includearea ? FALSE : $rets[$msg['id']]['showarea'];
                     $rets[$msg['id']]['showpc'] = !$includepc ? FALSE : $rets[$msg['id']]['showpc'];
 
-                    if (pres('mine', $rets[$msg['id']])) {
+                    if (Utils::pres('mine', $rets[$msg['id']])) {
                         # Can we repost?
                         $rets[$msg['id']]['canrepost'] = FALSE;
 
@@ -1082,7 +1082,7 @@ class Message
                                 $rets[$msg['id']]['willautorepost'] = FALSE;
                             }
 
-                            $rets[$msg['id']]['canrepostat'] = ISODate("@$repostat");
+                            $rets[$msg['id']]['canrepostat'] = Utils::ISODate("@$repostat");
 
                             if ($rets[$msg['id']]['groups'][$groupind]['hoursago'] > $interval * 24) {
                                 $rets[$msg['id']]['canrepost'] = TRUE;
@@ -1104,12 +1104,12 @@ class Message
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
 
-            if (pres('locationid', $msg)) {
+            if (Utils::pres('locationid', $msg)) {
                 $l = $this->getLocation($msg['locationid'], $locationlist);
 
                 # We can always see any area and top-level postcode.  If we're a mod or this is our message
                 # we can see the precise location.
-                if (pres('showarea', $rets[$msg['id']])) {
+                if (Utils::pres('showarea', $rets[$msg['id']])) {
                     $areaid = $l->getPrivate('areaid');
                     if ($areaid) {
                         # This location is quite specific.  Return the area it's in.
@@ -1121,7 +1121,7 @@ class Message
                     }
                 }
 
-                if (pres('showpc', $rets[$msg['id']])) {
+                if (Utils::pres('showpc', $rets[$msg['id']])) {
                     $pcid = $l->getPrivate('postcodeid');
                     if ($pcid) {
                         $p = $this->getLocation($pcid, $locationlist);
@@ -1143,7 +1143,7 @@ class Message
         $search = [];
 
         foreach ($msgs as $msg) {
-            if (pres('itemid', $msg)) {
+            if (Utils::pres('itemid', $msg)) {
                 $rets[$msg['id']]['item'] = [
                     'id' => $msg['itemid'],
                     'name' => $msg['itemname']
@@ -1173,7 +1173,7 @@ class Message
 
             foreach ($items as $item) {
                 foreach ($rets as &$ret) {
-                    if (!pres('item', $ret) && $ret['id'] == $s['id']) {
+                    if (!Utils::pres('item', $ret) && $ret['id'] == $s['id']) {
                         $ret['item'] = [
                             'id' => $item['id'],
                             'name' => $item['name']
@@ -1195,7 +1195,7 @@ class Message
 
             if ($summary) {
                 # We set this when constructing from MessageCollection.
-                $rets[$msg['id']]['replycount'] = presdef('replycount', $msg, 0);
+                $rets[$msg['id']]['replycount'] = Utils::presdef('replycount', $msg, 0);
             } else if (!$summary) {
                 if ($allreplies === NULL) {
                     # Get all the replies for these messages.
@@ -1216,7 +1216,7 @@ ORDER BY lastdate DESC;";
                         ], NULL, FALSE);
 
                         foreach ($res as $r) {
-                            if (!pres($r['refmsgid'], $allreplies)) {
+                            if (!Utils::pres($r['refmsgid'], $allreplies)) {
                                 $allreplies[$r['refmsgid']] = [$r];
                             } else {
                                 $allreplies[$r['refmsgid']][] = $r;
@@ -1234,7 +1234,7 @@ ORDER BY lastdate DESC;";
                 }
 
                 # Can always see the replycount.  The count should include even people who are blocked.
-                $replies = presdef($msg['id'], $allreplies, []);
+                $replies = Utils::presdef($msg['id'], $allreplies, []);
                 $rets[$msg['id']]['replies'] = [];
                 $rets[$msg['id']]['replycount'] = count($replies);
 
@@ -1268,7 +1268,7 @@ ORDER BY lastdate DESC;";
 
                             foreach ($lastreplies as $lastreply) {
                                 if ($lastreply['chatid'] == $reply['chatid']) {
-                                    $thisone['lastdate'] = ISODate($lastreply['date']);
+                                    $thisone['lastdate'] = Utils::ISODate($lastreply['date']);
                                     $thisone['lastuserid'] = $lastreply['userid'];
 
                                     $r = new ChatRoom($this->dbhr, $this->dbhm);
@@ -1297,7 +1297,7 @@ ORDER BY lastdate DESC;";
                         $allpromises = [];
 
                         foreach ($ps as $p) {
-                            if (!pres($p['msgid'], $allpromises)) {
+                            if (!Utils::pres($p['msgid'], $allpromises)) {
                                 $allpromises[$p['msgid']] = [ $p ];
                             } else {
                                 $allpromises[$p['msgid']][] = $p;
@@ -1305,14 +1305,14 @@ ORDER BY lastdate DESC;";
                         }
                     }
 
-                    $promises = presdef($msg['id'], $allpromises, []);
+                    $promises = Utils::presdef($msg['id'], $allpromises, []);
 
                     if ($seeall || (Session::modtools() && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $msg['fromuser'] == $myid)) {
                         $rets[$msg['id']]['promises'] = $promises;
 
                         foreach ($rets[$msg['id']]['replies'] as $key => $reply) {
                             foreach ($rets[$msg['id']]['promises'] as $promise) {
-                                $rets[$msg['id']]['replies'][$key]['promised'] = presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
+                                $rets[$msg['id']]['replies'][$key]['promised'] = Utils::presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
                             }
                         }
                     }
@@ -1334,7 +1334,7 @@ ORDER BY lastdate DESC;";
             # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
             if ($summary) {
                 # We set this when constructing.
-                $rets[$msg['id']]['outcomes'] = presdef('outcomes', $msg, []);
+                $rets[$msg['id']]['outcomes'] = Utils::presdef('outcomes', $msg, []);
             } else {
                 if ($outcomes === NULL) {
                     $msgids = array_filter(array_column($msgs, 'id'));
@@ -1355,7 +1355,7 @@ ORDER BY lastdate DESC;";
                             $outcome['comments'] = NULL;
                         }
 
-                        $outcome['timestamp'] = ISODate($outcome['timestamp']);
+                        $outcome['timestamp'] = Utils::ISODate($outcome['timestamp']);
 
                         $rets[$msg['id']]['outcomes'][] = $outcome;
                     }
@@ -1369,7 +1369,7 @@ ORDER BY lastdate DESC;";
                     $grouparrival = strtotime($group['arrival']);
                     $grouparrivalago = floor((time() - $grouparrival) / 86400);
 
-                    if ($grouparrivalago > presdef('expiretime', $rets[$msg['id']], 0)) {
+                    if ($grouparrivalago > Utils::presdef('expiretime', $rets[$msg['id']], 0)) {
                         # Assume anything this old is no longer available.
                         $rets[$msg['id']]['outcomes'] = [
                             [
@@ -1392,7 +1392,7 @@ ORDER BY lastdate DESC;";
         $groupids = [];
 
         foreach ($rets as $ret) {
-            if (pres('groups', $ret)) {
+            if (Utils::pres('groups', $ret)) {
                 foreach ($ret['groups'] as $group) {
                     $groupids[] = $group['groupid'];
                 }
@@ -1404,7 +1404,7 @@ ORDER BY lastdate DESC;";
         $fromusers = [];
 
         foreach ($msgs as $msg) {
-            if (pres('fromuser', $msg)) {
+            if (Utils::pres('fromuser', $msg)) {
                 $fromuids[] = $msg['fromuser'];
             }
         }
@@ -1421,7 +1421,7 @@ ORDER BY lastdate DESC;";
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
 
-            if (pres('fromuser', $rets[$msg['id']])) {
+            if (Utils::pres('fromuser', $rets[$msg['id']])) {
                 # We know who sent this.  We may be able to return this (depending on the role we have for the message
                 # and hence the attributes we have already filled in).  We also want to know if we have consent
                 # to republish it.
@@ -1429,21 +1429,21 @@ ORDER BY lastdate DESC;";
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                     # We can see their emails.
-                    if (pres($msg['fromuser'], $emails)) {
+                    if (Utils::pres($msg['fromuser'], $emails)) {
                         $rets[$msg['id']]['fromuser']['emails'] = $emails[$msg['fromuser']];
                     }
-                } else if (pres('partner', $_SESSION)) {
+                } else if (Utils::pres('partner', $_SESSION)) {
                     # Partners can see emails which belong to us, for the purposes of replying.
                     $es = $emails[$msg['fromuser']];
                     $rets[$msg['id']]['fromuser']['emails'] = [];
                     foreach ($es as $email) {
-                        if (ourDomain($email['email'])) {
+                        if (Mail::ourDomain($email['email'])) {
                             $rets[$msg['id']]['fromuser']['emails'] = $email;
                         }
                     }
                 }
 
-                filterResult($rets[$msg['id']]['fromuser']);
+                Utils::filterResult($rets[$msg['id']]['fromuser']);
             }
         }
     }
@@ -1477,11 +1477,11 @@ ORDER BY lastdate DESC;";
 
     public function getPublicHeld(&$rets, $msgs, $messagehistory) {
         foreach ($msgs as $msg) {
-            if (pres('heldby', $rets[$msg['id']])) {
+            if (Utils::pres('heldby', $rets[$msg['id']])) {
                 $u = User::get($this->dbhr, $this->dbhm, $rets[$msg['id']]['heldby']);
                 $ctx = NULL;
                 $rets[$msg['id']]['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, Session::modtools(), Session::modtools(), Session::modtools(), FALSE, FALSE);
-                filterResult($rets[$msg['id']]);
+                Utils::filterResult($rets[$msg['id']]);
             }
         }
     }
@@ -1497,7 +1497,7 @@ ORDER BY lastdate DESC;";
         foreach ($msgs as $msg) {
             if ($summary) {
                 # Construct a minimal attachment list, i.e. just one if we have it.
-                $rets[$msg['id']]['attachments'] = presdef('attachments', $msg, []);
+                $rets[$msg['id']]['attachments'] = Utils::presdef('attachments', $msg, []);
             } else if (!$summary) {
                 # Add any attachments - visible to non-members.
                 $rets[$msg['id']]['attachments'] = [];
@@ -1512,7 +1512,7 @@ ORDER BY lastdate DESC;";
                         # the same photo is (for example) included in the mail both as an inline attachment and as a link
                         # in the text.
                         $hash = $att->getHash();
-                        if (!$hash || !pres($msg['id'] . '-' . $hash, $atthash)) {
+                        if (!$hash || !Utils::pres($msg['id'] . '-' . $hash, $atthash)) {
                             $rets[$msg['id']]['attachments'][] = $pub;
                             $atthash[$msg['id'] . '-' . $hash] = TRUE;
                         }
@@ -1526,7 +1526,7 @@ ORDER BY lastdate DESC;";
         $fetch = [];
 
         foreach ($rets as $ret) {
-            if ($myid && pres('fromuser', $ret) && $ret['fromuser']['id'] == $myid) {
+            if ($myid && Utils::pres('fromuser', $ret) && $ret['fromuser']['id'] == $myid) {
                 $fetch[] = $ret['id'];
             }
         }
@@ -1540,7 +1540,7 @@ ORDER BY lastdate DESC;";
 
                 foreach ($posts as $post) {
                     if ($post['msgid'] == $ret['id']) {
-                        $post['date'] = ISODate($post['date']);
+                        $post['date'] = Utils::ISODate($post['date']);
                         $ret['postings'][] = $post;
                     }
                 }
@@ -1568,9 +1568,9 @@ ORDER BY lastdate DESC;";
                     for ($editind = 0; $editind < count($edits); $editind++) {
                         if ($rets[$retind]['id'] == $edits[$editind]['msgid']) {
                             $thisedit = $edits[$editind]; 
-                            $thisedit['timestamp'] = ISODate($thisedit['timestamp']);
+                            $thisedit['timestamp'] = Utils::ISODate($thisedit['timestamp']);
 
-                            if (pres('byuser', $thisedit)) {
+                            if (Utils::pres('byuser', $thisedit)) {
                                 $u = User::get($this->dbhr, $this->dbhm, $thisedit['byuser']);
                                 $ctx = NULL;
                                 $thisedit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
@@ -1607,9 +1607,9 @@ ORDER BY lastdate DESC;";
                     for ($editind = 0; $editind < count($edits); $editind++) {
                         if ($rets[$retind]['id'] == $edits[$editind]['msgid']) {
                             $thisedit = $edits[$editind];
-                            $thisedit['timestamp'] = ISODate($thisedit['timestamp']);
+                            $thisedit['timestamp'] = Utils::ISODate($thisedit['timestamp']);
 
-                            if (pres('byuser', $thisedit)) {
+                            if (Utils::pres('byuser', $thisedit)) {
                                 $u = User::get($this->dbhr, $this->dbhm, $thisedit['byuser']);
                                 $ctx = NULL;
                                 $thisedit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
@@ -1634,7 +1634,7 @@ ORDER BY lastdate DESC;";
            $w = new WorryWords($this->dbhr, $this->dbhm);
 
            foreach ($msgs as $msgind => $msg) {
-               $msgs[$msgind]['worry'] = $w->checkMessage($msg['id'], pres('fromuser', $msg) ? $msg['fromuser']['id'] : NULL, $msg['subject'], $msg['textbody'], FALSE);
+               $msgs[$msgind]['worry'] = $w->checkMessage($msg['id'], Utils::pres('fromuser', $msg) ? $msg['fromuser']['id'] : NULL, $msg['subject'], $msg['textbody'], FALSE);
            }
        }
     }
@@ -1948,7 +1948,7 @@ ORDER BY lastdate DESC;";
         $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader, date, fromip, message) VALUES(?,?, NOW(), ?, '');", [
             Message::PLATFORM,
             Message::PLATFORM,
-            presdef('REMOTE_ADDR', $_SERVER, NULL)
+            Utils::presdef('REMOTE_ADDR', $_SERVER, NULL)
         ]);
 
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
@@ -2039,7 +2039,7 @@ ORDER BY lastdate DESC;";
                 #
                 # Yahoo members can do a reply to all which results in a message going to both one of our users
                 # and the group, so in that case we want to ignore the group aspect.
-                if (ourDomain($t['address'])) {
+                if (Mail::ourDomain($t['address'])) {
                     $toours = TRUE;
                 }
 
@@ -2121,7 +2121,7 @@ ORDER BY lastdate DESC;";
         }
 
         if (!$this->sourceheader) {
-            if (ourDomain($this->fromaddr)) {
+            if (Mail::ourDomain($this->fromaddr)) {
                 $this->sourceheader = 'Platform';
             } else {
                 $this->sourceheader = 'Yahoo-Email';
@@ -2764,7 +2764,7 @@ ORDER BY lastdate DESC;";
                 $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->getFromuser() . " $to)\n\n" . $body);
             }
 
-            if (!ourDomain($to)) {
+            if (!Mail::ourDomain($to)) {
                 # For users who we host, we leave the message unseen; that will then later generate a notification
                 # to them.  Otherwise we mail them the message and mark it as seen, because they would get
                 # confused by a mail in our notification format.
@@ -3285,7 +3285,7 @@ ORDER BY lastdate DESC;";
 
     public static function removeKeywords($type, $subj) {
         $keywords = Message::keywords();
-        if (pres($type, $keywords)) {
+        if (Utils::pres($type, $keywords)) {
             foreach ($keywords[$type] as $keyword) {
                 $subj = preg_replace('/(^|\b)' . preg_quote($keyword) . '\b/i', '', $subj);
             }
@@ -3553,7 +3553,7 @@ ORDER BY lastdate DESC;";
                         $residue = strtolower($residue);
                     }
 
-                    $typeval = presdef(strtolower($type), $keywords, strtoupper($type));
+                    $typeval = Utils::presdef(strtolower($type), $keywords, strtoupper($type));
                     $newsubj = $typeval . ": $residue ({$loc['name']})";
 
                     $this->lat = $loc['lat'];
@@ -3644,9 +3644,9 @@ ORDER BY lastdate DESC;";
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
         $items = $this->getItems();
 
-        if (pres('location', $atts) && count($items) > 0) {
+        if (Utils::pres('location', $atts) && count($items) > 0) {
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
-            if (pres('area', $atts) && pres('postcode', $atts)) {
+            if (Utils::pres('area', $atts) && Utils::pres('postcode', $atts)) {
                 $includearea = $g->getSetting('includearea', TRUE);
                 $includepc = $g->getSetting('includepc', TRUE);
                 if ($includearea && $includepc) {
@@ -3664,7 +3664,7 @@ ORDER BY lastdate DESC;";
                 $loc = $l->ensureVague();
             }
 
-            $subject = presdef(strtolower($this->type), $keywords, strtoupper($this->type)) . ': ' . $items[0]['name'] . " ($loc)";
+            $subject = Utils::presdef(strtolower($this->type), $keywords, strtoupper($this->type)) . ': ' . $items[0]['name'] . " ($loc)";
             $this->setPrivate('subject', $subject);
         }
     }
@@ -3701,7 +3701,7 @@ ORDER BY lastdate DESC;";
         # - remove any previous outcomes.
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
 
-        if (pres('location', $atts)) {
+        if (Utils::pres('location', $atts)) {
             $messageid = $this->id . '@' . USER_DOMAIN;
             $this->setPrivate('messageid', $messageid);
 
@@ -3721,7 +3721,7 @@ ORDER BY lastdate DESC;";
             $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
 
             # The from IP and country.
-            $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
+            $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
 
             if ($ip) {
                 $this->setPrivate('fromip', $ip);
@@ -4040,7 +4040,7 @@ ORDER BY lastdate DESC;";
                 $twig = new \Twig_Environment($loader);
 
                 foreach ($messages as $message) {
-                    if (ourDomain($message['fromaddr'])) {
+                    if (Mail::ourDomain($message['fromaddr'])) {
                         if ($message['autoreposts'] < $reposts['max']) {
                             # We want to send a warning 24 hours before we repost.
                             $lastwarnago = $message['lastautopostwarning'] ? ($now - strtotime($message['lastautopostwarning'])) : NULL;
@@ -4090,7 +4090,7 @@ ORDER BY lastdate DESC;";
                                                     'withdraw' => $withdraw
                                                 ]);
 
-                                                list ($transport, $mailer) = getMailer();
+                                                list ($transport, $mailer) = Mail::getMailer();
 
                                                 if (\Swift_Validate::email($to)) {
                                                     $message = \Swift_Message::newInstance()
@@ -4165,7 +4165,7 @@ ORDER BY lastdate DESC;";
             $now = time();
 
             foreach ($messages as $message) {
-                if (ourDomain($message['fromaddr'])) {
+                if (Mail::ourDomain($message['fromaddr'])) {
                     # Find the last reply.
                     $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
 
@@ -4210,7 +4210,7 @@ ORDER BY lastdate DESC;";
                                     'withdraw' => $withdraw
                                 ]);
 
-                                list ($transport, $mailer) = getMailer();
+                                list ($transport, $mailer) = Mail::getMailer();
 
                                 if (\Swift_Validate::email($to)) {
                                     $message = \Swift_Message::newInstance()

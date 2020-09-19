@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/notifications/notificationsoff.php');
 
 class Notifications
@@ -44,19 +44,19 @@ class Notifications
 
     public function get($userid, &$ctx) {
         $ret = [];
-        $idq = $ctx && pres('id', $ctx) ? (" AND id < " . intval($ctx['id'])) : '';
+        $idq = $ctx && Utils::pres('id', $ctx) ? (" AND id < " . intval($ctx['id'])) : '';
         $sql = "SELECT users_notifications.* FROM users_notifications WHERE touser = ? $idq ORDER BY users_notifications.id DESC LIMIT 10;";
         $notifs = $this->dbhr->preQuery($sql, [ $userid ]);
 
         foreach ($notifs as &$notif) {
-            $notif['timestamp'] = ISODate($notif['timestamp']);
+            $notif['timestamp'] = Utils::ISODate($notif['timestamp']);
 
-            if (pres('fromuser', $notif)) {
+            if (Utils::pres('fromuser', $notif)) {
                 $u = User::get($this->dbhr, $this->dbhm, $notif['fromuser']);
                 $notif['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
             }
 
-            if (pres('newsfeedid', $notif)) {
+            if (Utils::pres('newsfeedid', $notif)) {
                 $nots = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [
                     $notif['newsfeedid']
                 ]);
@@ -68,7 +68,7 @@ class Notifications
                         $this->snip($not['message']);
                     }
 
-                    if (pres('deleted', $not)) {
+                    if (Utils::pres('deleted', $not)) {
                         # This item has been deleted - don't show the corresponding notification.
                         if (!$notif['seen']) {
                             # This notification hasn't been seen, and would therefore show in the count. Mark it
@@ -93,7 +93,7 @@ class Notifications
                         unset($not['position']);
                         $notif['newsfeed'] = $not;
 
-                        if (pres('deleted', $not['replyto'])) {
+                        if (Utils::pres('deleted', $not['replyto'])) {
                             # This notification is for a newsfeed item which is in a deleted thread.  Don't show it.
 
                             if (!$notif['seen']) {
@@ -158,7 +158,7 @@ class Notifications
         if ($u->getId() == $uid) {
             $settings = json_decode($u->getPrivate('settings'), TRUE);
 
-            if (presdef('notificationmails', $settings, TRUE)) {
+            if (Utils::presdef('notificationmails', $settings, TRUE)) {
                 $settings['notificationmails'] = FALSE;
                 $u->setPrivate('settings', json_encode($settings));
 
@@ -171,7 +171,7 @@ class Notifications
                 $email = $u->getEmailPreferred();
 
                 if ($email) {
-                    list ($transport, $mailer) = getMailer();
+                    list ($transport, $mailer) = Mail::getMailer();
                     $html = notifications_off(USER_SITE, USERLOGO);
 
                     $message = \Swift_Message::newInstance()
@@ -249,7 +249,7 @@ class Notifications
                         $twignotifs[] = $notif;
                     }
 
-                    if (pres('newsfeed', $notif) && pres('replyto', $notif['newsfeed']) && pres('message', $notif['newsfeed']['replyto'])) {
+                    if (Utils::pres('newsfeed', $notif) && Utils::pres('replyto', $notif['newsfeed']) && Utils::pres('message', $notif['newsfeed']['replyto'])) {
                         $this->snip($notif['newsfeed']['replyto']['message']);
                     }
                 }
@@ -300,7 +300,7 @@ class Notifications
 
                     Mail::addHeaders($message, Mail::NOTIFICATIONS, $u->getId());
 
-                    list ($transport, $mailer) = getMailer();
+                    list ($transport, $mailer) = Mail::getMailer();
                     $this->sendIt($mailer, $message);
 
                     $total += count($twignotifs);
@@ -329,7 +329,7 @@ class Notifications
                 
                 $shortmsg = NULL;
 
-                if (pres('newsfeed', $notif) && pres('message', $notif['newsfeed']) && pres('type', $notif['newsfeed']) !== Newsfeed::TYPE_NOTICEBOARD) {
+                if (Utils::pres('newsfeed', $notif) && Utils::pres('message', $notif['newsfeed']) && Utils::pres('type', $notif['newsfeed']) !== Newsfeed::TYPE_NOTICEBOARD) {
                     $notifmsg = $notif['newsfeed']['message'];
                     $shortmsg = strlen($notifmsg > 30) ? (substr($notifmsg, 0, 30) . "...") : $notifmsg;
                 }

@@ -4,7 +4,7 @@
 # cluster with an op that's too big.
 #
 require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 
@@ -20,7 +20,7 @@ $at = 0;
 foreach ($msgs as $msg) {
     $req = json_decode($msg['request'], TRUE);
     $rsp = json_decode($msg['response'], TRUE);
-    if (pres('id', $rsp)) {
+    if (Utils::pres('id', $rsp)) {
         $msgid = $rsp['id'];
         $atts = $req['attachments'];
         $current = $dbhr->preQuery("SELECT * FROM messages_attachments WHERE msgid = ?;", [

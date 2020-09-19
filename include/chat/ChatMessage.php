@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class ChatMessage extends Entity
 {
@@ -49,9 +49,7 @@ class ChatMessage extends Entity
     }
 
     public function whitelistURLs($message) {
-        global $urlPattern, $urlBad;
-
-        if (preg_match_all($urlPattern, $message, $matches)) {
+        if (preg_match_all(Utils::URL_PATTERN, $message, $matches)) {
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
 
@@ -60,7 +58,7 @@ class ChatMessage extends Entity
                     $bad = FALSE;
                     $url2 = str_replace('http:', '', $url);
                     $url2 = str_replace('https:', '', $url2);
-                    foreach ($urlBad as $badone) {
+                    foreach (Utils::URL_BAD as $badone) {
                         if (strpos($url2, $badone) !== FALSE) {
                             $bad = TRUE;
                         }
@@ -352,7 +350,7 @@ class ChatMessage extends Entity
     public function getPublic($refmsgsummary = FALSE, &$userlist = NULL) {
         $ret = $this->getAtts($this->publicatts);
 
-        if (pres('refmsgid', $ret)) {
+        if (Utils::pres('refmsgid', $ret)) {
             # There is a message (in the sense of an item rather than a chat message) attached to this chat message.
             #
             # Get full message if promised, to pick up promise details.  perf could be improved here.
@@ -376,7 +374,7 @@ class ChatMessage extends Entity
             unset($ret['refmsg']['message']);
         }
 
-        if (pres('imageid', $ret)) {
+        if (Utils::pres('imageid', $ret)) {
             # There is an image attached
             $a = new Attachment($this->dbhr, $this->dbhm, $ret['imageid'], Attachment::TYPE_CHAT_MESSAGE);
             $ret['image'] = $a->getPublic();

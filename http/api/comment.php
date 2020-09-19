@@ -6,14 +6,14 @@ function comment() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $ctx = presdef('context', $_REQUEST, NULL);
-    $userid = intval(presdef('userid', $_REQUEST, NULL));
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $ctx = Utils::presdef('context', $_REQUEST, NULL);
+    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
+    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
     $user1 = $user2 = $user3 = $user4 = $user5 = $user6 = $user7 = $user8 = $user9 = $user10 = $user11 = NULL;
 
     for ($i = 1; $i <= 11; $i++) {
-        ${"user$i"} = presdef("user$i", $_REQUEST, NULL);
+        ${"user$i"} = Utils::presdef("user$i", $_REQUEST, NULL);
     }
 
     $u = User::get($dbhr, $dbhm, $userid);

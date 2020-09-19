@@ -10,17 +10,17 @@ function message() {
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
-    $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $reason = presdef('reason', $_REQUEST, NULL);
-    $action = presdef('action', $_REQUEST, NULL);
-    $subject = presdef('subject', $_REQUEST, NULL);
-    $body = presdef('body', $_REQUEST, NULL);
-    $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
+    $collection = Utils::presdef('collection', $_REQUEST, MessageCollection::APPROVED);
+    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $reason = Utils::presdef('reason', $_REQUEST, NULL);
+    $action = Utils::presdef('action', $_REQUEST, NULL);
+    $subject = Utils::presdef('subject', $_REQUEST, NULL);
+    $body = Utils::presdef('body', $_REQUEST, NULL);
+    $stdmsgid = Utils::presdef('stdmsgid', $_REQUEST, NULL);
     $messagehistory = array_key_exists('messagehistory', $_REQUEST) ? filter_var($_REQUEST['messagehistory'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $localonly = array_key_exists('localonly', $_REQUEST) ? filter_var($_REQUEST['localonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $userid = intval(presdef('userid', $_REQUEST, NULL));
+    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
     $userid = $userid ? $userid : NULL;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -119,11 +119,11 @@ function message() {
                     if ($collection == MessageCollection::DRAFT) {
                         # Draft messages are created by users, rather than parsed out from emails.  We might be
                         # creating one, or updating one.
-                        $locationid = intval(presdef('locationid', $_REQUEST, NULL));
+                        $locationid = intval(Utils::presdef('locationid', $_REQUEST, NULL));
 
                         $ret = [ 'ret' => 3, 'status' => 'Missing location - client error' ];
 
-                        $email = presdef('email', $_REQUEST, NULL);
+                        $email = Utils::presdef('email', $_REQUEST, NULL);
                         $uid = NULL;
 
                         if ($email) {
@@ -183,10 +183,10 @@ function message() {
                                     $dbhm->preExec("UPDATE messages_drafts SET groupid = ? WHERE msgid = ?;", [$groupid, $m->getID()]);
                                 }
 
-                                $type = presdef('messagetype', $_REQUEST, NULL);
+                                $type = Utils::presdef('messagetype', $_REQUEST, NULL);
 
                                 # Associated the item with the message.  Use the master to avoid replication windows.
-                                $item = presdef('item', $_REQUEST, NULL);
+                                $item = Utils::presdef('item', $_REQUEST, NULL);
                                 $i = new Item($dbhm, $dbhm);
                                 $itemid = $i->create($item);
                                 $m->deleteItems();
@@ -199,14 +199,14 @@ function message() {
                                     $fromuser = $uid;
                                 }
 
-                                $textbody = presdef('textbody', $_REQUEST, NULL);
-                                $attachments = presdef('attachments', $_REQUEST, []);
+                                $textbody = Utils::presdef('textbody', $_REQUEST, NULL);
+                                $attachments = Utils::presdef('attachments', $_REQUEST, []);
                                 $m->setPrivate('locationid', $locationid);
                                 $m->setPrivate('type', $type);
                                 $m->setPrivate('subject', $item);
                                 $m->setPrivate('fromuser', $fromuser);
                                 $m->setPrivate('textbody', $textbody);
-                                $m->setPrivate('fromip', presdef('REMOTE_ADDR', $_SERVER, NULL));
+                                $m->setPrivate('fromip', Utils::presdef('REMOTE_ADDR', $_SERVER, NULL));
                                 $m->replaceAttachments($attachments);
 
                                 $ret = [
@@ -245,7 +245,7 @@ function message() {
                     $role = $m->getRoleForMessage()[0];
                     $canmod = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
 
-                    if ($role == User::ROLE_OWNER && pres('partner', $_SESSION)) {
+                    if ($role == User::ROLE_OWNER && Utils::pres('partner', $_SESSION)) {
                         # We have acquired owner rights by virtue of being a partner.  Pretend to be that user for the
                         # rest of the call.
                         $_SESSION['id'] = $m->getFromuser();
@@ -255,12 +255,12 @@ function message() {
                 if ($canmod) {
                     # Ignore the canedit flag here - the client will either show or not show the edit button on this
                     # basis but editing is part of the repost flow and therefore needs to work.
-                    $subject = presdef('subject', $_REQUEST, NULL);
-                    $msgtype = presdef('msgtype', $_REQUEST, NULL);
-                    $item = presdef('item', $_REQUEST, NULL);
-                    $location = presdef('location', $_REQUEST, NULL);
-                    $textbody = presdef('textbody', $_REQUEST, NULL);
-                    $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
+                    $subject = Utils::presdef('subject', $_REQUEST, NULL);
+                    $msgtype = Utils::presdef('msgtype', $_REQUEST, NULL);
+                    $item = Utils::presdef('item', $_REQUEST, NULL);
+                    $location = Utils::presdef('location', $_REQUEST, NULL);
+                    $textbody = Utils::presdef('textbody', $_REQUEST, NULL);
+                    $htmlbody = Utils::presdef('htmlbody', $_REQUEST, NULL);
                     $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
                     $attachments = array_key_exists('attachments', $_REQUEST) ? $_REQUEST['attachments'] : NULL;
 
@@ -270,7 +270,7 @@ function message() {
                     ];
 
                     if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
-                        $partner = pres('partner', $_SESSION);
+                        $partner = Utils::pres('partner', $_SESSION);
 
                         if ($partner) {
                             # Photos might have changed.
@@ -419,7 +419,7 @@ function message() {
                             }
 
                             // @codeCoverageIgnoreStart
-                            if (defined('USER_GROUP_OVERRIDE') && !pres('ignoregroupoverride', $_REQUEST)) {
+                            if (defined('USER_GROUP_OVERRIDE') && !Utils::pres('ignoregroupoverride', $_REQUEST)) {
                                 # We're in testing mode
                                 $g = new Group($dbhr, $dbhm);
                                 $nears = [ $g->findByShortName(USER_GROUP_OVERRIDE) ];
@@ -430,7 +430,7 @@ function message() {
                                 $groupid = $nears[0];
 
                                 # Now we know which group we'd like to post on.  Make sure we have a user set up.
-                                $email = presdef('email', $_REQUEST, NULL);
+                                $email = Utils::presdef('email', $_REQUEST, NULL);
                                 $u = User::get($dbhr, $dbhm);
                                 $uid = $u->findByEmail($email);
 
@@ -604,7 +604,7 @@ function message() {
                         }
                         break;
                     case 'RevertEdits':
-                        $editid = intval(presdef('editid', $_REQUEST, 0));
+                        $editid = intval(Utils::presdef('editid', $_REQUEST, 0));
                         $role = $m->getRoleForMessage()[0];
 
                         if ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR) {
@@ -613,7 +613,7 @@ function message() {
                         }
                         break;
                     case 'ApproveEdits':
-                        $editid = intval(presdef('editid', $_REQUEST, 0));
+                        $editid = intval(Utils::presdef('editid', $_REQUEST, 0));
                         $role = $m->getRoleForMessage()[0];
 
                         if ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR) {
@@ -632,7 +632,7 @@ function message() {
                     $role = $m->getRoleForMessage()[0];
                     $canmod = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER;
 
-                    if ($role == User::ROLE_OWNER && pres('partner', $_SESSION)) {
+                    if ($role == User::ROLE_OWNER && Utils::pres('partner', $_SESSION)) {
                         # We have acquired owner rights by virtue of being a partner.  Pretend to be that user for the
                         # rest of the call.
                         $_SESSION['id'] = $m->getFromuser();
@@ -674,7 +674,7 @@ function message() {
                         case 'OutcomeIntended':
                             # Ignore duplicate attempts by user to supply an outcome.
                             if (!$m->hasOutcome()) {
-                                $outcome = presdef('outcome', $_REQUEST, NULL);
+                                $outcome = Utils::presdef('outcome', $_REQUEST, NULL);
                                 $m->intendedOutcome($outcome);
                             }
                             $ret = ['ret' => 0, 'status' => 'Success'];
@@ -682,8 +682,8 @@ function message() {
                         case 'Outcome':
                             # Ignore duplicate attempts by user to supply an outcome.
                             if (!$m->hasOutcome()) {
-                                $outcome = presdef('outcome', $_REQUEST, NULL);
-                                $h = presdef('happiness', $_REQUEST, NULL);
+                                $outcome = Utils::presdef('outcome', $_REQUEST, NULL);
+                                $h = Utils::presdef('happiness', $_REQUEST, NULL);
                                 $happiness = NULL;
 
                                 switch ($h) {
@@ -694,7 +694,7 @@ function message() {
                                         break;
                                 }
 
-                                $comment = presdef('comment', $_REQUEST, NULL);
+                                $comment = Utils::presdef('comment', $_REQUEST, NULL);
 
                                 $ret = ['ret' => 1, 'status' => 'Odd action'];
 

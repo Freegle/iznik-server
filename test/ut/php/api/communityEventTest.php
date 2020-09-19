@@ -90,8 +90,8 @@ class communityEventAPITest extends IznikAPITestCase {
         # Add date
         $ret = $this->call('communityevent', 'PATCH', [
             'id' => $id,
-            'start' => ISODate('@' . strtotime('next wednesday 2pm')),
-            'end' => ISODate('@' . strtotime('next wednesday 4pm')),
+            'start' => Utils::ISODate('@' . strtotime('next wednesday 2pm')),
+            'end' => Utils::ISODate('@' . strtotime('next wednesday 4pm')),
             'action' => 'AddDate'
         ]);
         assertEquals(0, $ret['ret']);

@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 class Authority extends Entity
@@ -80,7 +80,7 @@ class Authority extends Entity
         $auths = $this->dbhr->preQuery("SELECT id, name, area_code FROM authorities WHERE name LIKE " . $this->dbhr->quote("%$term%") . " LIMIT $limit;");
 
         foreach ($auths as &$auth) {
-            $auth['area_code'] = pres($auth['area_code'], $this->area_codes) ? $this->area_codes[$auth['area_code']] : NULL;
+            $auth['area_code'] = Utils::pres($auth['area_code'], $this->area_codes) ? $this->area_codes[$auth['area_code']] : NULL;
         }
 
         return($auths);
@@ -95,7 +95,7 @@ class Authority extends Entity
         $atts = $auths[0];
 
         # Map the area code to something friendly.
-        $atts['area_code'] = pres($atts['area_code'], $this->area_codes) ? $this->area_codes[$atts['area_code']] : NULL;
+        $atts['area_code'] = Utils::pres($atts['area_code'], $this->area_codes) ? $this->area_codes[$atts['area_code']] : NULL;
 
         # Return the centre.
         $atts['centre'] = [
@@ -141,7 +141,7 @@ WHERE  type = ?
         $ret = [];
 
         foreach ($groups as &$group) {
-            $group['namedisplay'] = pres('namefull', $group) ? $group['namefull'] : $group['nameshort'];
+            $group['namedisplay'] = Utils::pres('namefull', $group) ? $group['namefull'] : $group['nameshort'];
 
             if ($group['overlap'] > 0.95) {
                 # Assume it's basically all aimed at this area.

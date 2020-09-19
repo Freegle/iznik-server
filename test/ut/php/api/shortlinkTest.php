@@ -54,7 +54,7 @@ class shortlinkAPITest extends IznikAPITestCase {
         $this->log("Found " . count($ret['shortlinks']));
 
         foreach ($ret['shortlinks'] as $l) {
-            if (pres('groupid', $l) == $this->groupid) {
+            if (Utils::pres('groupid', $l) == $this->groupid) {
                 $found = TRUE;
             }
         }

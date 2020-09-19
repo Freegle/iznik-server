@@ -62,7 +62,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Logged out - no rooms
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
         assertEquals(1, $ret['ret']);
-        assertFalse(pres('chatmessages', $ret));
+        assertFalse(Utils::pres('chatmessages', $ret));
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);;
         list ($mid, $banned) = $m->create($this->cid, $this->uid, 'Test');
@@ -71,14 +71,14 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Just because it exists, doesn't mean we should be able to see it.
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
         assertEquals(1, $ret['ret']);
-        assertFalse(pres('chatmessages', $ret));
+        assertFalse(Utils::pres('chatmessages', $ret));
 
         assertTrue($this->user->login('testpw'));
 
         # Still not, even logged in.
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
         assertEquals(2, $ret['ret']);
-        assertFalse(pres('chatmessages', $ret));
+        assertFalse(Utils::pres('chatmessages', $ret));
 
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
 
@@ -106,7 +106,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->log("Logged out");
         $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test' ]);
         assertEquals(1, $ret['ret']);
-        assertFalse(pres('chatmessages', $ret));
+        assertFalse(Utils::pres('chatmessages', $ret));
 
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         assertTrue($this->user->login('testpw'));
@@ -297,7 +297,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Shouldn't see the chat
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
         assertEquals(2, $ret['ret']);
-        assertFalse(pres('chatmessages', $ret));
+        assertFalse(Utils::pres('chatmessages', $ret));
 
         # Shouldn't see the messages
         $ret = $this->call('chatmessages', 'GET', [
@@ -485,7 +485,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         # Test hold/unhold.
         $this->log("Hold");
-        assertFalse(pres('held', $ret['chatmessages'][0]));
+        assertFalse(Utils::pres('held', $ret['chatmessages'][0]));
         $ret = $this->call('chatmessages', 'POST', [
             'id' => $mid1,
             'action' => 'Hold'
@@ -503,7 +503,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         $ret = $this->call('chatmessages', 'GET', []);
         assertEquals(0, $ret['ret']);
-        assertFalse(pres('held', $ret['chatmessages'][0]));
+        assertFalse(Utils::pres('held', $ret['chatmessages'][0]));
 
         # Approve the first
         $ret = $this->call('chatmessages', 'POST', [

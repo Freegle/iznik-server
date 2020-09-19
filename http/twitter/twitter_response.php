@@ -2,17 +2,17 @@
 
 require_once dirname(__file__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/Twitter.php');
 
 use Abraham\TwitterOAuth\TwitterOAuth;
 
-$groupid = intval(presdef('groupid', $_REQUEST, 0));
+$groupid = intval(Utils::presdef('groupid', $_REQUEST, 0));
 $t = new Twitter($dbhr, $dbhm, $groupid);
 
 try {
-    $oauth_verifier = presdef('oauth_verifier', $_REQUEST, NULL);
+    $oauth_verifier = Utils::presdef('oauth_verifier', $_REQUEST, NULL);
 
     $atts = $t->getPublic();
 

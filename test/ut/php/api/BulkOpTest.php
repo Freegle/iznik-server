@@ -116,7 +116,7 @@ class bulkOpAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         # Start it
-        $date = isodate("@" . time());
+        $date = Utils::ISODate("@" . time());
 
         $ret = $this->call('bulkop', 'PATCH', [
             'id' => $id,
@@ -126,7 +126,7 @@ class bulkOpAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         # Finish it
-        $date = isodate("@" . time());
+        $date = Utils::ISODate("@" . time());
 
         $ret = $this->call('bulkop', 'PATCH', [
             'id' => $id,

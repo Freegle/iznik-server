@@ -2,7 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 $msgs = $dbhr->preQuery("SELECT * FROM  `chat_messages` WHERE  `date` >  '2016-09-29 15:20' AND chatid = 374342;");
 

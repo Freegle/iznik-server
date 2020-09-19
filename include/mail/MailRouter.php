@@ -3,7 +3,7 @@ namespace Freegle\Iznik;
 
 use spamc;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 if (!class_exists('spamc')) {
     require_once(IZNIK_BASE . '/lib/spamc.php');
@@ -950,7 +950,7 @@ class MailRouter
 
     public function mail($to, $from, $subject, $body) {
         # None of these mails need tracking, so we don't call AddHeaders.
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
 
         $message = \Swift_Message::newInstance()
             ->setSubject($subject)

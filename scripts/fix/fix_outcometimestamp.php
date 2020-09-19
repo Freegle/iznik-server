@@ -5,7 +5,7 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 error_log("Load DB");
 require_once(IZNIK_BASE . '/include/db.php');
 error_log("Loaded");
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsn = "mysql:host=localhost;port=3306;dbname=iznik;charset=utf8";

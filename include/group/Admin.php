@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/admin.php');
 
 class Admin extends Entity
@@ -43,7 +43,7 @@ class Admin extends Entity
     public function getPublic() {
         $atts = parent::getPublic();
 
-        if (pres('createdby', $atts)) {
+        if (Utils::pres('createdby', $atts)) {
             $u = User::get($this->dbhr, $this->dbhm, $atts['createdby']);
             
             if ($u->getId() == $atts['createdby']) {
@@ -51,7 +51,7 @@ class Admin extends Entity
                 $atts['createdby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
             }
 
-            $atts['created'] = ISODate($atts['created']);
+            $atts['created'] = Utils::ISODate($atts['created']);
         }
 
         return($atts);
@@ -113,7 +113,7 @@ class Admin extends Entity
 
         for ($i = 1; $i <= Admin::SPOOLERS; $i++) {
             # Don't split on Travis.
-            list ($transport, $mailer) = getMailer('localhost',getenv('STANDALONE')  ? '/spool' : (Admin::SPOOLNAME . $i));
+            list ($transport, $mailer) = Mail::getMailer('localhost',getenv('STANDALONE')  ? '/spool' : (Admin::SPOOLNAME . $i));
             $mailers[$i] = $mailer;
         }
 

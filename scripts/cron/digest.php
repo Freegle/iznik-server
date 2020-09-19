@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -16,13 +16,13 @@ if (count($opts) < 1) {
     echo "Usage: php digest.php -i <interval> (-m mod -v val) (-g groupid)\n";
 } else {
     $interval = $opts['i'];
-    $mod = presdef('m', $opts, 1);
-    $val = presdef('v', $opts, 0);
-    $gid = presdef('g', $opts, 0);
+    $mod = Utils::presdef('m', $opts, 1);
+    $val = Utils::presdef('v', $opts, 0);
+    $gid = Utils::presdef('g', $opts, 0);
 
     if (!$gid) {
         # Specific groups are invoked manually.
-        $lockh = lockScript(basename(__FILE__) . "-$interval-m$mod-v$val");
+        $lockh = Utils::lockScript(basename(__FILE__) . "-$interval-m$mod-v$val");
     }
 
     error_log("Start digest for $interval groupid % $mod = $val at " . date("Y-m-d H:i:s") . ($gid ? " group $gid" : ''));
@@ -60,6 +60,6 @@ if (count($opts) < 1) {
     error_log("Finish digest for $interval at " . date("Y-m-d H:i:s") . ", sent $total mails in $duration seconds");
 
     if (!$gid) {
-        unlockScript($lockh);
+        Utils::unlockScript($lockh);
     }
 }

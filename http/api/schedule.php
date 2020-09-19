@@ -7,8 +7,8 @@ function schedule() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
-    $userid = intval(presdef('userid', $_REQUEST, NULL));
-    $chatuserid = intval(presdef('chatuserid', $_REQUEST, NULL));
+    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
+    $chatuserid = intval(Utils::presdef('chatuserid', $_REQUEST, NULL));
     $allowpast = array_key_exists('allowpast', $_REQUEST) ? filter_var($_REQUEST['allowpast'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
@@ -29,7 +29,7 @@ function schedule() {
 
             case 'POST':
                 $s = new Schedule($dbhr, $dbhm, $myid, $allowpast);
-                $id = $s->create($me->getId(), presdef('schedule', $_REQUEST, NULL));
+                $id = $s->create($me->getId(), Utils::presdef('schedule', $_REQUEST, NULL));
 
                 if ($chatuserid) {
                     # We are updating a schedule from within a chat to another user.  Create a message
@@ -50,7 +50,7 @@ function schedule() {
             case 'PATCH':
             case 'PUT': {
                 $s = new Schedule($dbhr, $dbhm, $myid, $allowpast);
-                $s->setSchedule(presdef('schedule', $_REQUEST, NULL));
+                $s->setSchedule(Utils::presdef('schedule', $_REQUEST, NULL));
 
                 if ($chatuserid) {
                     # Create a message in a chat between the users to show that we have updated this schedule.

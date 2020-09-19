@@ -8,8 +8,8 @@ function item() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = presdef('id', $_REQUEST, NULL);
-    $typeahead = presdef('typeahead', $_REQUEST, NULL);
+    $id = Utils::presdef('id', $_REQUEST, NULL);
+    $typeahead = Utils::presdef('typeahead', $_REQUEST, NULL);
     $i = new Item($dbhr, $dbhm, $id);
 
     if ($id && $i->getId() || $_REQUEST['type'] == 'POST' || $typeahead) {
@@ -37,7 +37,7 @@ function item() {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else {
-                    $name = presdef('name', $_REQUEST, NULL);
+                    $name = Utils::presdef('name', $_REQUEST, NULL);
                     $systemrole = $me->getPublic()['systemrole'];
 
                     if (!$name) {

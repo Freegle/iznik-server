@@ -2,7 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
@@ -97,7 +97,7 @@ foreach ($oldconfs as $config) {
         if ($config['messageorder']) {
             $order = json_decode($config['messageorder']);
             foreach ($order as $id) {
-                if (pres($id, $msgidmap)) {
+                if (Utils::pres($id, $msgidmap)) {
                     $neworder[] = $msgidmap[$id];
                     unset($msgidmap[$id]);
                 }

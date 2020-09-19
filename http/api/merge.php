@@ -11,8 +11,8 @@ function merge() {
     switch ($_REQUEST['type']) {
         case 'GET':
         {
-            $id = intval(presdef('id', $_REQUEST, NULL));
-            $uid = presdef('uid', $_REQUEST, NULL);
+            $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+            $uid = Utils::presdef('uid', $_REQUEST, NULL);
 
             $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 
@@ -52,11 +52,11 @@ function merge() {
             break;
         }
         case 'POST': {
-            $id = intval(presdef('id', $_REQUEST, NULL));
-            $uid = presdef('uid', $_REQUEST, NULL);
-            $user1 = intval(presdef('user1', $_REQUEST, NULL));
-            $user2 = intval(presdef('user2', $_REQUEST, NULL));
-            $action = presdef('action', $_REQUEST, NULL);
+            $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+            $uid = Utils::presdef('uid', $_REQUEST, NULL);
+            $user1 = intval(Utils::presdef('user1', $_REQUEST, NULL));
+            $user2 = intval(Utils::presdef('user2', $_REQUEST, NULL));
+            $action = Utils::presdef('action', $_REQUEST, NULL);
 
             $ret = [ 'ret' => 2, 'status' => 'Invalid parameters' ];
 
@@ -96,15 +96,15 @@ function merge() {
         }
 
         case 'PUT': {
-            $user1 = intval(presdef('user1', $_REQUEST, NULL));
-            $user2 = intval(presdef('user2', $_REQUEST, NULL));
+            $user1 = intval(Utils::presdef('user1', $_REQUEST, NULL));
+            $user2 = intval(Utils::presdef('user2', $_REQUEST, NULL));
             $email = array_key_exists('email', $_REQUEST) ? filter_var($_REQUEST['email'], FILTER_VALIDATE_BOOLEAN) : TRUE;
 
             $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 
             if ($me && $me->isModerator()) {
                 # We're allowed to offer a merge.
-                $uid = randstr(32);
+                $uid = Utils::randstr(32);
 
                 $dbhm->preExec("INSERT INTO merges (user1, user2, offeredby, uid) VALUES (?, ?, ?, ?);", [
                     $user1,
@@ -206,8 +206,8 @@ function merge() {
 
         case 'DELETE': {
             # Flag not to offer these users for merge.
-            $user1 = intval(presdef('user1', $_REQUEST, NULL));
-            $user2 = intval(presdef('user2', $_REQUEST, NULL));
+            $user1 = intval(Utils::presdef('user1', $_REQUEST, NULL));
+            $user2 = intval(Utils::presdef('user2', $_REQUEST, NULL));
 
             $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 

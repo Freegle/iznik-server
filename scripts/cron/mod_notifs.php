@@ -4,12 +4,12 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 require_once(IZNIK_BASE . '/mailtemplates/modnotif.php');
 
-$lockh = lockScript(basename(__FILE__));
+$lockh = Utils::lockScript(basename(__FILE__));
 
 date_default_timezone_set('Europe/London');
 $hour = date("H");
@@ -123,7 +123,7 @@ foreach ($mail as $id => $work) {
     $textsumm = "There's stuff to do on ModTools:\r\n\r\n";
     $htmlsumm = '';
 
-    $cr = presdef('Chat Messages for Review', $work, 0);
+    $cr = Utils::presdef('Chat Messages for Review', $work, 0);
     $total = $cr;
 
     if ($cr) {
@@ -131,7 +131,7 @@ foreach ($mail as $id => $work) {
         $htmlsumm .= "<p>You have <b>$cr</b> chat message" . ($cr > 1 ? 's': '') . " to review.</p>";
     }
 
-    if (pres('groups', $work)) {
+    if (Utils::pres('groups', $work)) {
         foreach ($work['groups'] as $name => $groupwork) {
             $textsumm .= "\r\n{$name}\r\n:";
             $htmlsumm .= "<p>{$name}</p><ul>";
@@ -193,7 +193,7 @@ foreach ($mail as $id => $work) {
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
 
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
         $mailer->send($message);
 
         $sent++;
@@ -204,4 +204,4 @@ foreach ($mail as $id => $work) {
 
 error_log("Sent $sent");
 
-unlockScript($lockh);
+Utils::unlockScript($lockh);

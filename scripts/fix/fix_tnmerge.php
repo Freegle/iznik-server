@@ -4,7 +4,7 @@
 # cluster with an op that's too big.
 #
 require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 
@@ -16,7 +16,7 @@ error_log("Got $count");
 $index = [];
 
 foreach ($users as $user) {
-    if (!pres($user['userid'], $index)) {
+    if (!Utils::pres($user['userid'], $index)) {
         $index[$user['userid']] = [];
     }
 

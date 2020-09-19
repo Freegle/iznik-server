@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -13,10 +13,10 @@ $opts = getopt('e:a:r:i:');
 if (count($opts) < 1) {
     echo "Usage: php user_email.php (-e <email to find> or -i <user id>) (-a <email to add> -r <email to remove>\n";
 } else {
-    $uid = presdef('i', $opts, NULL);
-    $find = presdef('e', $opts, NULL);
-    $add = presdef('a', $opts, NULL);
-    $remove = presdef('r', $opts, NULL);
+    $uid = Utils::presdef('i', $opts, NULL);
+    $find = Utils::presdef('e', $opts, NULL);
+    $add = Utils::presdef('a', $opts, NULL);
+    $remove = Utils::presdef('r', $opts, NULL);
     $u = User::get($dbhr, $dbhm);
     $uid = $uid ? $uid : $u->findByEmail($find);
 

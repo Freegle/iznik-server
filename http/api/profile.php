@@ -4,9 +4,9 @@ namespace Freegle\Iznik;
 function profile() {
     global $dbhr, $dbhm;
 
-    $id = intval(presdef('id', $_REQUEST, 0));
-    $hash = presdef('hash', $_REQUEST, NULL);
-    $def = presdef('d', $_REQUEST, 'https://' . IMAGE_DOMAIN . '/defaultprofile.png');
+    $id = intval(Utils::presdef('id', $_REQUEST, 0));
+    $hash = Utils::presdef('hash', $_REQUEST, NULL);
+    $def = Utils::presdef('d', $_REQUEST, 'https://' . IMAGE_DOMAIN . '/defaultprofile.png');
     $ut = array_key_exists('ut', $_REQUEST) ? filter_var($_REQUEST['ut'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $u = new User($dbhr, $dbhm);

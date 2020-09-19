@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 # Logging.  This is not guaranteed against loss in the event of serious failure.
 class Log
@@ -96,7 +96,7 @@ class Log
 
         $searchq = $this->dbhr->quote("%$search%");
 
-        $idq = pres('id', $ctx) ? (" AND logs.id < " . intval($ctx['id']) . " ") : '';
+        $idq = Utils::pres('id', $ctx) ? (" AND logs.id < " . intval($ctx['id']) . " ") : '';
         
         # We might have consecutive logs for the same messages/users, so try to speed that up.
         $msgs = [];
@@ -169,28 +169,28 @@ class Log
                 #error_log("...$count / $total");
             }
 
-            $log['timestamp'] = ISODate($log['timestamp']);
+            $log['timestamp'] = Utils::ISODate($log['timestamp']);
 
-            if (pres('user', $log)) {
+            if (Utils::pres('user', $log)) {
                 $id = $log['user'];
-                $log['user'] = presdef($log['user'], $users, NULL);
+                $log['user'] = Utils::presdef($log['user'], $users, NULL);
 
                 if (!$log['user']) {
                     $log['user'] = User::purgedUser($id);
                 }
             }
 
-            if (pres('byuser', $log)) {
+            if (Utils::pres('byuser', $log)) {
                 $id = $log['byuser'];
-                $log['byuser'] = presdef($log['byuser'], $users, NULL);
+                $log['byuser'] = Utils::presdef($log['byuser'], $users, NULL);
 
                 if (!$log['byuser']) {
                     $log['byuser'] = User::purgedUser($id);
                 }
             }
 
-            if (pres('msgid', $log)) {
-                $log['message'] = presdef($log['msgid'], $msgs, NULL);
+            if (Utils::pres('msgid', $log)) {
+                $log['message'] = Utils::presdef($log['msgid'], $msgs, NULL);
             }
 
             if ($log['subtype'] == Log::SUBTYPE_OUTCOME && $log['text']) {

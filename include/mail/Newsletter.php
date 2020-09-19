@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/digest/newsletter.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/newsletterarticle.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/newslettersoff.php');
@@ -74,7 +74,7 @@ class Newsletter extends Entity
 
                 $email = $u->getEmailPreferred();
                 if ($email) {
-                    list ($transport, $mailer) = getMailer();
+                    list ($transport, $mailer) = Mail::getMailer();
                     $html = newsletters_off(USER_SITE, USERLOGO);
 
                     $message = \Swift_Message::newInstance()
@@ -117,7 +117,7 @@ class Newsletter extends Entity
 
         if (count($articles) > 0) {
             foreach ($articles as &$article) {
-                $photo = pres('photoid', $article);
+                $photo = Utils::pres('photoid', $article);
 
                 if ($photo) {
                     $a = new Attachment($this->dbhr, $this->dbhm, $photo, Attachment::TYPE_NEWSLETTER);
@@ -142,7 +142,7 @@ class Newsletter extends Entity
             # - an override to a single user
             # - users on a group
             # - all users on a group type where the group hasn't disabled newsletters
-            $startfrom = presdef('uptouser', $this->newsletter, 0);
+            $startfrom = Utils::presdef('uptouser', $this->newsletter, 0);
             $sql = $uid ? "SELECT DISTINCT userid FROM memberships WHERE userid = $uid;" : ($groupid ? "SELECT DISTINCT userid FROM memberships INNER JOIN users ON users.id = memberships.userid WHERE groupid = $groupid AND newslettersallowed = 1 AND userid > $startfrom ORDER BY userid ASC;" : "SELECT DISTINCT userid FROM users INNER JOIN memberships ON memberships.userid = users.id INNER JOIN groups ON groups.id = memberships.groupid AND type = '$grouptype' WHERE LOCATE('\"newsletter\":0', groups.settings) = 0 AND newslettersallowed = 1 AND users.id AND groups.publish = 1 > $startfrom ORDER BY users.id ASC;");
             $replacements = [];
 
@@ -184,7 +184,7 @@ class Newsletter extends Entity
                 # rather than lose it.
                 /* @var Swift_MailTransport $transport
                  * @var Swift_Mailer $mailer */
-                list ($transport, $mailer) = getMailer();
+                list ($transport, $mailer) = Mail::getMailer();
 
                 # We're decorating using the information we collected earlier.  However the decorator doesn't
                 # cope with sending to multiple recipients properly (headers just get decorated with the first

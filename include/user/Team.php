@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
@@ -109,7 +109,7 @@ class Team extends Entity
             $settings = json_decode($vol['settings'], true);
 
             # We want people who are happy to be shown as a mod, and also have a non-default profile.
-            if (pres('showmod', $settings) && (!array_key_exists('useprofile', $settings) || $settings['useprofile'])) {
+            if (Utils::pres('showmod', $settings) && (!array_key_exists('useprofile', $settings) || $settings['useprofile'])) {
                 $name = NULL;
                 if ($vol['fullname']) {
                     $name = $vol['fullname'];
@@ -126,11 +126,11 @@ class Team extends Entity
                     foreach ($profiles as $profile) {
                         if (!$profile['default']) {
                             # If it's a gravatar image we can return a thumbnail url that specifies a different size.
-                            $turl = pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
+                            $turl = Utils::pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
                             $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
 
                             $profile = [
-                                'url' => pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
+                                'url' => Utils::pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
                                 'turl' => $turl,
                                 'default' => FALSE
                             ];

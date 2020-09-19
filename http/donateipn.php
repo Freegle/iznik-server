@@ -6,7 +6,7 @@
 
 require_once dirname(__FILE__) . '/../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/misc/Mail.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
@@ -69,7 +69,7 @@ if ($transaction['mc_gross'] > 0) {
             ->setCc('log@ehibbert.org.uk')
             ->setBody($text);
 
-        list ($transport, $mailer) = getMailer();
+        list ($transport, $mailer) = Mail::getMailer();
         Mail::addHeaders($message, Mail::DONATE_IPN);
 
         $mailer->send($message);

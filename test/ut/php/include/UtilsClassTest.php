@@ -24,5 +24,14 @@ class UtilsClassTest extends IznikTestCase {
 
         assertEquals(3, Utils::checkFiles($dir, 2, 1, 1, 1));
     }
+
+    public function testSafeDate() {
+        assertEquals('2020-07-20 12:33:00', Utils::safeDate('2020-07-20 12:33:00'));
+    }
+
+    public function testMedian() {
+        assertEquals(2, Utils::calculate_median([1, 2, 3]));
+        assertEquals(2, Utils::calculate_median([1, 2, 2, 3]));
+    }
 }
 

@@ -6,18 +6,18 @@ function user() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $subject = presdef('subject', $_REQUEST, NULL);
-    $body = presdef('body', $_REQUEST, NULL);
-    $action = presdef('action', $_REQUEST, NULL);
+    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $subject = Utils::presdef('subject', $_REQUEST, NULL);
+    $body = Utils::presdef('body', $_REQUEST, NULL);
+    $action = Utils::presdef('action', $_REQUEST, NULL);
     $suspectcount = array_key_exists('suspectcount', $_REQUEST) ? intval($_REQUEST['suspectcount']) : NULL;
-    $suspectreason = presdef('suspectreason', $_REQUEST, NULL);
-    $search = presdef('search', $_REQUEST, NULL);
+    $suspectreason = Utils::presdef('suspectreason', $_REQUEST, NULL);
+    $search = Utils::presdef('search', $_REQUEST, NULL);
     $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
-    $engageid = intval(presdef('engageid', $_REQUEST, NULL));
+    $engageid = intval(Utils::presdef('engageid', $_REQUEST, NULL));
 
-    $email = presdef('email', $_REQUEST, NULL);
+    $email = Utils::presdef('email', $_REQUEST, NULL);
     if (!$id && $email) {
         # We still don't know our unique ID, but we do know an email.  Find it.
         $u = new User($dbhr, $dbhm);
@@ -27,9 +27,9 @@ function user() {
     $u = User::get($dbhr, $dbhm, $id);
     $sysrole = $u->getPrivate('systemrole');
 
-    $ourPostingStatus = presdef('ourPostingStatus', $_REQUEST, NULL);
-    $ourEmailFrequency = presdef('emailfrequency', $_REQUEST, NULL);
-    $chatmodstatus = presdef('chatmodstatus', $_REQUEST, NULL);
+    $ourPostingStatus = Utils::presdef('ourPostingStatus', $_REQUEST, NULL);
+    $ourEmailFrequency = Utils::presdef('emailfrequency', $_REQUEST, NULL);
+    $chatmodstatus = Utils::presdef('chatmodstatus', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -39,7 +39,7 @@ function user() {
             $emailhistory = array_key_exists('emailhistory', $_REQUEST) ? filter_var($_REQUEST['emailhistory'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $info = array_key_exists('info', $_REQUEST) ? filter_var($_REQUEST['info'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-            $ctx = presdef('logcontext', $_REQUEST, NULL);
+            $ctx = Utils::presdef('logcontext', $_REQUEST, NULL);
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
@@ -78,8 +78,8 @@ function user() {
 
         case 'PUT': {
             $u = new User($dbhr, $dbhm);
-            $email = presdef('email', $_REQUEST, NULL);
-            $password = presdef('password', $_REQUEST, NULL);
+            $email = Utils::presdef('email', $_REQUEST, NULL);
+            $password = Utils::presdef('password', $_REQUEST, NULL);
 
             $pwtomail = NULL;
 
@@ -89,8 +89,8 @@ function user() {
                 $password = $pwtomail;
             }
 
-            $firstname = presdef('firstname', $_REQUEST, NULL);
-            $lastname = presdef('lastname', $_REQUEST, NULL);
+            $firstname = Utils::presdef('firstname', $_REQUEST, NULL);
+            $lastname = Utils::presdef('lastname', $_REQUEST, NULL);
 
             $ret = ['ret' => 1, 'status' => 'Invalid parameters'];
 
@@ -228,7 +228,7 @@ function user() {
                 }
 
                 if (array_key_exists('onholidaytill', $_REQUEST)) {
-                    $u->setPrivate('onholidaytill', presdef('onholidaytill', $_REQUEST, NULL));
+                    $u->setPrivate('onholidaytill', Utils::presdef('onholidaytill', $_REQUEST, NULL));
                 }
 
                 if ($chatmodstatus !== NULL) {
@@ -298,9 +298,9 @@ function user() {
 
                 if ($me) {
                     if ($action == 'Merge') {
-                        $email1 = presdef('email1', $_REQUEST, NULL);
-                        $email2 = presdef('email2', $_REQUEST, NULL);
-                        $reason = presdef('reason', $_REQUEST, NULL);
+                        $email1 = Utils::presdef('email1', $_REQUEST, NULL);
+                        $email2 = Utils::presdef('email2', $_REQUEST, NULL);
+                        $reason = Utils::presdef('reason', $_REQUEST, NULL);
                         $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
 
                         if (strlen($email1) && strlen($email2)) {
@@ -329,8 +329,8 @@ function user() {
                         }
                     } else if ($action == 'Rate') {
                         $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
-                        $ratee = intval(presdef('ratee', $_REQUEST, 0));
-                        $rating = presdef('rating', $_REQUEST, NULL);
+                        $ratee = intval(Utils::presdef('ratee', $_REQUEST, 0));
+                        $rating = Utils::presdef('rating', $_REQUEST, NULL);
 
                         if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN || $rating === NULL)) {
                             $me->rate($me->getId(), $ratee, $rating);

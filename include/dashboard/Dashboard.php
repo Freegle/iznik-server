@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 # This gives us a summary of what we need to know for this user
 class Dashboard {
@@ -142,7 +142,7 @@ class Dashboard {
 
                     $active[$mod['userid']] = [
                         'displayname' => $u->getName(),
-                        'lastactive' => $lastactive ? ISODate($lastactive) : NULL
+                        'lastactive' => $lastactive ? Utils::ISODate($lastactive) : NULL
                     ];
                 }
 

@@ -8,8 +8,8 @@ function stdmsg() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = presdef('id', $_REQUEST, NULL);
-    $configid = presdef('configid', $_REQUEST, NULL);
+    $id = Utils::presdef('id', $_REQUEST, NULL);
+    $configid = Utils::presdef('configid', $_REQUEST, NULL);
     $s = new StdMessage($dbhr, $dbhm, $id);
 
     if ($id && $s->getId() || $_REQUEST['type'] == 'POST') {
@@ -28,7 +28,7 @@ function stdmsg() {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else {
-                    $name = presdef('title', $_REQUEST, NULL);
+                    $name = Utils::presdef('title', $_REQUEST, NULL);
                     $systemrole = $me->getPrivate('systemrole');
 
                     if (!$name) {

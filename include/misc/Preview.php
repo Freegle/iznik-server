@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 use LinkPreview\LinkPreview;
 
@@ -18,7 +18,7 @@ class Preview extends Entity
     public function create($url, $forcespam = FALSE) {
         $id = NULL;
 
-        if (checkSpamhaus($url) || $forcespam) {
+        if (Mail::checkSpamhaus($url) || $forcespam) {
             $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `spam`) VALUES (?,1) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
                 $url
             ]);
@@ -93,7 +93,7 @@ class Preview extends Entity
         $this->link['url'] = substr($this->link['url'], 0, 1) == '/' ? ('https://' . HTTP_HOST . "/$this->link['url']") :  $this->link['url'];
 
         # Ensure title is not numeric
-        if (pres('title', $this->link) && is_numeric($this->link['title'])) {
+        if (Utils::pres('title', $this->link) && is_numeric($this->link['title'])) {
             $this->link['title'] .= '...';
         }
 

@@ -39,9 +39,9 @@ function giftaid() {
 
             if ($me) {
                 $d = new Donations($dbhr, $dbhm);
-                $period = presdef('period', $_REQUEST, NULL);
-                $fullname = presdef('fullname', $_REQUEST, NULL);
-                $homeaddress = presdef('homeaddress', $_REQUEST, NULL);
+                $period = Utils::presdef('period', $_REQUEST, NULL);
+                $fullname = Utils::presdef('fullname', $_REQUEST, NULL);
+                $homeaddress = Utils::presdef('homeaddress', $_REQUEST, NULL);
 
                 $ret = ['ret' => 2, 'status' => 'Bad parameters'];
 
@@ -79,12 +79,12 @@ function giftaid() {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
             if ($me && ($me->isAdmin() || $me->hasPermission(User::PERM_GIFTAID))) {
-                $id = intval(presdef('id', $_REQUEST, 0));
-                $period = presdef('period', $_REQUEST, NULL);
-                $fullname = presdef('fullname', $_REQUEST, NULL);
-                $homeaddress = presdef('homeaddress', $_REQUEST, NULL);
-                $postcode = presdef('postcode', $_REQUEST, NULL);
-                $housenameornumber = presdef('housenameornumber', $_REQUEST, NULL);
+                $id = intval(Utils::presdef('id', $_REQUEST, 0));
+                $period = Utils::presdef('period', $_REQUEST, NULL);
+                $fullname = Utils::presdef('fullname', $_REQUEST, NULL);
+                $homeaddress = Utils::presdef('homeaddress', $_REQUEST, NULL);
+                $postcode = Utils::presdef('postcode', $_REQUEST, NULL);
+                $housenameornumber = Utils::presdef('housenameornumber', $_REQUEST, NULL);
                 $reviewed = array_key_exists('reviewed', $_REQUEST) ? filter_var($_REQUEST['reviewed'], FILTER_VALIDATE_BOOLEAN) : FALSE;
                 $deleted = array_key_exists('deleted', $_REQUEST) ? filter_var($_REQUEST['deleted'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 

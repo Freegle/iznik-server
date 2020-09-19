@@ -3,14 +3,14 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $opts = getopt('s:e:r:i:o:l:');
 
 function createVertex(&$graph, &$vertices, $id, $label, $depth, $info, $timestamp) {
-    if (!pres($id, $vertices)) {
+    if (!Utils::pres($id, $vertices)) {
         #error_log("Create $id depth $depth label $label");
         $vertices[$id] = $graph->createVertex($id);
 
@@ -132,12 +132,12 @@ if (count($opts) < 2) {
 } else {
     $starttime = date ("Y-m-d H:i:s", strtotime($opts['s']));
     $endtime = date ("Y-m-d H:i:s", strtotime($opts['e']));
-    $filt = pres('r', $opts) ? $opts['r'] : null;
+    $filt = Utils::pres('r', $opts) ? $opts['r'] : null;
     $filtr = $filt ? (" AND route LIKE " . $dbhr->quote("%$filt%")) : '';
-    $ip = pres('i', $opts) ? $opts['i'] : null;
+    $ip = Utils::pres('i', $opts) ? $opts['i'] : null;
     $ipr = $ip ? (" AND ip LIKE " . $dbhr->quote("%$ip%")) : '';
-    $loggedout = pres('o', $opts) ? $opts['o'] : 1;
-    $limit = presdef('l', $opts, NULL);
+    $loggedout = Utils::pres('o', $opts) ? $opts['o'] : 1;
+    $limit = Utils::presdef('l', $opts, NULL);
     $lstr = $limit ? " LIMIT $limit " : "";
 
     # Find the distinct IPs.

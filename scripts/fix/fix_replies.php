@@ -2,11 +2,11 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
-list ($transport, $mailer) = getMailer();
+list ($transport, $mailer) = Mail::getMailer();
 $lines = explode("\n", file_get_contents('/tmp/a.c'));
 
 $lost = [];

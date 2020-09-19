@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 use Facebook\FacebookSession;
 use Facebook\FacebookJavaScriptLoginHelper;
@@ -15,8 +15,8 @@ use Facebook\FacebookRequest;
 use Facebook\FacebookRequestException;
 
 error_log("Request Facebook auth");
-$groupid = intval(presdef('groupid', $_REQUEST, 0));
-$type = presdef('type', $_REQUEST, 'Page');
+$groupid = intval(Utils::presdef('groupid', $_REQUEST, 0));
+$type = Utils::presdef('type', $_REQUEST, 'Page');
 
 $fb = new \Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,

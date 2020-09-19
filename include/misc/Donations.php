@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Donations
 {
@@ -77,7 +77,7 @@ class Donations
         ]);
 
         foreach ($giftaids as &$giftaid) {
-            $giftaid['timestamp'] = ISODate($giftaid['timestamp']);
+            $giftaid['timestamp'] = Utils::ISODate($giftaid['timestamp']);
         }
 
         return count($giftaids) ? $giftaids[0] : NULL;
@@ -91,8 +91,8 @@ class Donations
         $emails = $u->getEmailsById($uids);
 
         foreach ($giftaids as &$giftaid) {
-            $giftaid['timestamp'] = ISODate($giftaid['timestamp']);
-            $giftaid['email'] = presdef($giftaid['userid'], $emails, NULL);
+            $giftaid['timestamp'] = Utils::ISODate($giftaid['timestamp']);
+            $giftaid['email'] = Utils::presdef($giftaid['userid'], $emails, NULL);
         }
 
         return $giftaids;

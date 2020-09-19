@@ -507,7 +507,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         self::assertEquals(1, count($posts));
         $time = strtotime($posts[0]['timestamp']);
         $time++;
-        $newtime = ISODate('@' . $time);
+        $newtime = Utils::ISODate('@' . $time);
         $this->log("{$posts[0]['timestamp']} => $newtime");
 
         $ctx = [
@@ -526,7 +526,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertGreaterThan(0, count($ret['newsfeed']));
         self::assertEquals(Newsfeed::TYPE_CENTRAL_PUBLICITY, $ret['newsfeed'][0]['type']);
-        assertNotFalse(pres('postid', $ret['newsfeed'][0]['publicity']));
+        assertNotFalse(Utils::pres('postid', $ret['newsfeed'][0]['publicity']));
 
         }
 
@@ -620,7 +620,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             'unfollowed' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        assertFalse(pres('unfollowed', $ret['newsfeed']));
+        assertFalse(Utils::pres('unfollowed', $ret['newsfeed']));
 
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
@@ -633,7 +633,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             'unfollowed' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        assertTrue(pres('unfollowed', $ret['newsfeed']));
+        assertTrue(Utils::pres('unfollowed', $ret['newsfeed']));
 
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
@@ -646,7 +646,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             'unfollowed' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        assertFalse(pres('unfollowed', $ret['newsfeed']));
+        assertFalse(Utils::pres('unfollowed', $ret['newsfeed']));
 
         }
 

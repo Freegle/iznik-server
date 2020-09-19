@@ -2,12 +2,12 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 $membs = $dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = 21639;");
 
-list ($transport, $mailer) = getMailer();
+list ($transport, $mailer) = Mail::getMailer();
 
 foreach ($membs as $memb) {
     $u = new User($dbhr, $dbhm, $memb['userid']);

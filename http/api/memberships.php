@@ -6,38 +6,38 @@ function memberships() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $userid = intval(presdef('userid', $_REQUEST, NULL));
-    $happinessid = intval(presdef('happinessid', $_REQUEST, NULL));
+    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
+    $happinessid = intval(Utils::presdef('happinessid', $_REQUEST, NULL));
 
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
     $g = Group::get($dbhr, $dbhm, $groupid);
 
-    $role = presdef('role', $_REQUEST, User::ROLE_MEMBER);
-    $email = presdef('email', $_REQUEST, NULL);
-    $limit = presdef('limit', $_REQUEST, 5);
-    $search = presdef('search', $_REQUEST, NULL);
-    $ctx = presdef('context', $_REQUEST, NULL);
-    $settings = presdef('settings', $_REQUEST, NULL);
+    $role = Utils::presdef('role', $_REQUEST, User::ROLE_MEMBER);
+    $email = Utils::presdef('email', $_REQUEST, NULL);
+    $limit = Utils::presdef('limit', $_REQUEST, 5);
+    $search = Utils::presdef('search', $_REQUEST, NULL);
+    $ctx = Utils::presdef('context', $_REQUEST, NULL);
+    $settings = Utils::presdef('settings', $_REQUEST, NULL);
     $emailfrequency = array_key_exists('emailfrequency', $_REQUEST) ? intval($_REQUEST['emailfrequency']) : NULL;
     $eventsallowed = array_key_exists('eventsallowed', $_REQUEST) ? intval($_REQUEST['eventsallowed']) : NULL;
     $volunteeringallowed = array_key_exists('volunteeringallowed', $_REQUEST) ? intval($_REQUEST['volunteeringallowed']) : NULL;
     $ourpostingstatus = $g->ourPS(array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL);
-    $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
-    $message = presdef('message', $_REQUEST, NULL);
+    $filter = intval(Utils::presdef('filter', $_REQUEST, Group::FILTER_NONE));
+    $message = Utils::presdef('message', $_REQUEST, NULL);
 
-    $members = presdef('members', $_REQUEST, presdef('memberspresentbutempty', $_REQUEST, 0) ? [] : NULL);
+    $members = Utils::presdef('members', $_REQUEST, Utils::presdef('memberspresentbutempty', $_REQUEST, 0) ? [] : NULL);
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $logctx = presdef('logcontext', $_REQUEST, NULL);
-    $collection = presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
-    $subject = presdef('subject', $_REQUEST, NULL);
-    $body = presdef('body', $_REQUEST, NULL);
-    $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
-    $action = presdef('action', $_REQUEST, NULL);
-    $yps = presdef('yahooPostingStatus', $_REQUEST, NULL);
-    $ydt = presdef('yahooDeliveryType', $_REQUEST, NULL);
-    $ops = $g->ourPS(presdef('ourPostingStatus', $_REQUEST, NULL));
+    $logctx = Utils::presdef('logcontext', $_REQUEST, NULL);
+    $collection = Utils::presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
+    $subject = Utils::presdef('subject', $_REQUEST, NULL);
+    $body = Utils::presdef('body', $_REQUEST, NULL);
+    $stdmsgid = Utils::presdef('stdmsgid', $_REQUEST, NULL);
+    $action = Utils::presdef('action', $_REQUEST, NULL);
+    $yps = Utils::presdef('yahooPostingStatus', $_REQUEST, NULL);
+    $ydt = Utils::presdef('yahooDeliveryType', $_REQUEST, NULL);
+    $ops = $g->ourPS(Utils::presdef('ourPostingStatus', $_REQUEST, NULL));
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -65,7 +65,7 @@ function memberships() {
 
                     if ($uid) {
                         $u = User::get($dbhr, $dbhm, $uid);
-                        $memberships = $u->getMemberships(FALSE, presdef('grouptype', $_REQUEST, NULL));
+                        $memberships = $u->getMemberships(FALSE, Utils::presdef('grouptype', $_REQUEST, NULL));
                         $ret = ['ret' => 0, 'status' => 'Success', 'memberships' => [] ];
                         foreach ($memberships as $membership) {
                             $ret['memberships'][] = [ 'id' => $membership['id'], 'namedisplay' => $membership['namedisplay'] ];
@@ -107,7 +107,7 @@ function memberships() {
                         if ($proceed) {
                             if ($collection == MembershipCollection::HAPPINESS) {
                                 # This is handled differently - including a different processing for filter.
-                                $members = $g->getHappinessMembers($groupids, $ctx, presdef('filter', $_REQUEST, NULL));
+                                $members = $g->getHappinessMembers($groupids, $ctx, Utils::presdef('filter', $_REQUEST, NULL));
                             } else if ($collection == MembershipCollection::NEARBY) {
                                 $members = [];
 
@@ -161,8 +161,8 @@ function memberships() {
                                 ];
 
                                 foreach ($members as $m) {
-                                    if (pres('groupid', $m)) {
-                                        if (!pres($m['groupid'], $ret['groups'])) {
+                                    if (Utils::pres('groupid', $m)) {
+                                        if (!Utils::pres($m['groupid'], $ret['groups'])) {
                                             $g = Group::get($dbhr, $dbhm, $m['groupid']);
                                             $ret['groups'][$m['groupid']] = $g->getPublic();
                                         }
@@ -312,7 +312,7 @@ function memberships() {
 
                         # We don't want to default the role to anything here, otherwise we might patch ourselves
                         # to a member.
-                        $role = presdef('role', $_REQUEST, NULL);
+                        $role = Utils::presdef('role', $_REQUEST, NULL);
 
                         if ($role) {
                             # We can set the role, but not to something higher than our own.
@@ -320,7 +320,7 @@ function memberships() {
                             $u->setRole($role, $groupid);
                         }
 
-                        if (pres('configid', $settings)) {
+                        if (Utils::pres('configid', $settings)) {
                             # We want to change the config that we use to mod this group.  Check that the config id
                             # passed is one to which we have access.
                             $configs = $me->getConfigs(TRUE);

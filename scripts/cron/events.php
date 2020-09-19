@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -13,10 +13,10 @@ $opts = getopt('m:v:');
 if (count($opts) < 1) {
     echo "Usage: php event.php (-m mod -v val)\n";
 } else {
-    $mod = presdef('m', $opts, 1);
-    $val = presdef('v', $opts, 0);
+    $mod = Utils::presdef('m', $opts, 1);
+    $val = Utils::presdef('v', $opts, 0);
 
-    $lockh = lockScript(basename(__FILE__) . "-m$mod-v$val");
+    $lockh = Utils::lockScript(basename(__FILE__) . "-m$mod-v$val");
 
     error_log("Start events for groupid % $mod = $val at " . date("Y-m-d H:i:s"));
     $start = time();
@@ -43,5 +43,5 @@ if (count($opts) < 1) {
 
     error_log("Finish events at " . date("Y-m-d H:i:s") . ", sent $total mails in $duration seconds");
 
-    unlockScript($lockh);
+    Utils::unlockScript($lockh);
 }

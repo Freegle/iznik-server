@@ -114,7 +114,7 @@ class userTest extends IznikTestCase {
 
         # Should not see the login link.
         $atts = $u->getPublic();
-        assertFalse(pres('loginlink', $atts));
+        assertFalse(Utils::pres('loginlink', $atts));
     }
 
     public function testEmails() {
@@ -737,9 +737,9 @@ class userTest extends IznikTestCase {
 
             $this->log("$i");
             if ($i < Spam::SEEN_THRESHOLD) {
-                assertFalse(pres('suspectcount', $atts));
+                assertFalse(Utils::pres('suspectcount', $atts));
             } else {
-                assertEquals(1, pres('suspectcount', $atts));
+                assertEquals(1, Utils::pres('suspectcount', $atts));
                 $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::SPAM, [ $gid ]);
                 assertEquals(2, count($membs));
             }
@@ -1113,7 +1113,7 @@ class userTest extends IznikTestCase {
                 $count++;
                 $this->log("...waiting for export $count");
                 sleep(1);
-            } while (!pres('data', $ret) && $count < 600);
+            } while (!Utils::pres('data', $ret) && $count < 600);
 
             $ret = $ret['data'];
         } else {
@@ -1301,10 +1301,10 @@ class userTest extends IznikTestCase {
         assertEquals($uid1, $search[0]['id']);
 
         # Should see the login link.
-        assertNotNull(presdef('loginlink', $search[0], NULL));
+        assertNotNull(Utils::presdef('loginlink', $search[0], NULL));
 
         # Should see the chat rooms.
-        assertEquals(1, count(pres('chatrooms', $search[0], NULL)));
+        assertEquals(1, count(Utils::pres('chatrooms', $search[0], NULL)));
     }
 
     public function testActiveCounts() {
@@ -1481,13 +1481,13 @@ class userTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $this->dbhm->preExec("INSERT IGNORE INTO logs_emails (timestamp, eximid, userid, `from`, `to`, messageid, subject, status) VALUES (NOW(),?,?,?,?,?,?,?);", [
-            randstr(32),
+            Utils::randstr(32),
             $id,
             'test@test.com',
             'test@test.com',
-            randstr(32),
-            randstr(32),
-            randstr(32)
+            Utils::randstr(32),
+            Utils::randstr(32),
+            Utils::randstr(32)
         ], FALSE);
 
         $ctx = NULL;

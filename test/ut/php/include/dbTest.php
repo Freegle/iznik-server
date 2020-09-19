@@ -122,7 +122,7 @@ class dbTest extends IznikTestCase {
         $this->dbhm->background('INSERT INTO test VALUES ();');
 
         # Test large
-        $sql = randstr(LoggedPDO::MAX_BACKGROUND_SIZE + 1);
+        $sql = Utils::randstr(LoggedPDO::MAX_BACKGROUND_SIZE + 1);
         $fn = $this->dbhm->background($sql);
         unlink($fn);
 

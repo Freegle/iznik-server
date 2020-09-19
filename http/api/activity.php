@@ -8,7 +8,7 @@ function activity() {
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
-    $grouptype = presdef('grouptype', $_REQUEST, Group::GROUP_FREEGLE);
+    $grouptype = Utils::presdef('grouptype', $_REQUEST, Group::GROUP_FREEGLE);
 
     switch ($_REQUEST['type']) {
         case 'GET': {

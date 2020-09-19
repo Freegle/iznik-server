@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
+
 
 class Shortlink extends Entity
 {
@@ -89,7 +89,7 @@ class Shortlink extends Entity
 
     public function getPublic() {
         $ret = $this->getAtts($this->publicatts);
-        $ret['created'] = ISODate($ret['created']);
+        $ret['created'] = Utils::ISODate($ret['created']);
 
         if ($ret['type'] == Shortlink::TYPE_GROUP) {
             $g = new Group($this->dbhr, $this->dbhm, $ret['groupid']);
@@ -103,7 +103,7 @@ class Shortlink extends Entity
             $this->id
         ]);
         foreach ($clickhistory as &$c) {
-            $c['date'] = ISODate($c['date']);
+            $c['date'] = Utils::ISODate($c['date']);
         }
         $ret['clickhistory'] = $clickhistory;
         return($ret);

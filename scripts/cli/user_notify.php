@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -13,12 +13,12 @@ $opts = getopt('i:t:u:g:l:x:');
 if (count($opts) < 2) {
     echo "Usage: php user_notify.php (-i <user ID> or -g <group ID>) -t <type> (-u url) (-l title -x text)\n";
 } else {
-    $id = presdef('i', $opts, NULL);
-    $gid = presdef('g', $opts, NULL);
+    $id = Utils::presdef('i', $opts, NULL);
+    $gid = Utils::presdef('g', $opts, NULL);
     $type = $opts['t'];
-    $url = presdef('u', $opts, NULL);
-    $title = presdef('l', $opts, NULL);
-    $text = presdef('x', $opts, NULL);
+    $url = Utils::presdef('u', $opts, NULL);
+    $title = Utils::presdef('l', $opts, NULL);
+    $text = Utils::presdef('x', $opts, NULL);
 
     $n = new Notifications($dbhr, $dbhm);
 
@@ -62,7 +62,7 @@ if (count($opts) < 2) {
             $send = FALSE;
             $emails = $u->getEmails();
             foreach ($emails as $email) {
-                if (ourDomain($email['email'])) {
+                if (Mail::ourDomain($email['email'])) {
                     $send = TRUE;
                 }
             }

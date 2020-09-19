@@ -2,7 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
@@ -178,7 +178,7 @@ WHERE u_Id = ? AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpd
                             $settings = $u->getPrivate('settings');
                             $settings = json_decode($settings, TRUE);
 
-                            if (pres('mylocation', $settings)) {
+                            if (Utils::pres('mylocation', $settings)) {
                                 $name = $settings['mylocation']['name'];
 
                                 if (!strcmp($name, $location['ul_PostCode'])) {
@@ -260,7 +260,7 @@ WHERE u_Id = ? AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpd
                         $postcode_failed++;
                     }
 
-                    if (pres('ul_Address', $location)) {
+                    if (Utils::pres('ul_Address', $location)) {
                         $oneliner = trim(preg_replace('/\s\s+/', ' ', $location['ul_Address']));
 
                         # Special cases.
@@ -336,7 +336,7 @@ WHERE u_Id = ? AND u_IsActivated = 1 AND (p_DatePosted >= '$start' OR pr_LastUpd
                                         if (!$test && $uid) {
                                             # Add in the address and any locations.
                                             $a = new Address($dbhr, $dbhm);
-                                            $aid = $a->create($uid, $fdloc['id'], presdef('ul_Directions', $location, NULL));
+                                            $aid = $a->create($uid, $fdloc['id'], Utils::presdef('ul_Directions', $location, NULL));
                                         }
                                     }
                                 }

@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
-require_once(IZNIK_BASE . '/include/utils.php');
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
@@ -57,7 +57,7 @@ for ($year = 2003; $year < 2018; $year++) {
             $email = $e['email'];
 
             # Don't check our own domains.
-            if (!ourDomain($email)) {
+            if (!Mail::ourDomain($email)) {
                 $id = $e['id'];
                 error_log("{$email}");
                 $p = strpos($email, '@');
