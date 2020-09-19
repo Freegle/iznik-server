@@ -264,18 +264,17 @@ class sessionTest extends IznikAPITestCase
             ->setMethods(array('curl_exec'))
             ->getMock();
         $mock->method('curl_exec')->willReturn('NotRegistered');
-        $mock->notify($id);
+        $mock->notify($id, TRUE);
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willThrowException(new \Exception());
-        $mock->notify($id);
+        $mock->notify($id, TRUE);
 
         $g->delete();
-
-        }
+    }
 
     public function testUidAndKey()
     {
@@ -827,6 +826,8 @@ class sessionTest extends IznikAPITestCase
             'appversion' => 3
         ]);
         assertEquals(0, $ret['ret']);
+
+        $this->waitBackground();
 
         $versions = $this->dbhr->preQuery("SELECT * FROM users_builddates WHERE userid = ?;", [
             $id

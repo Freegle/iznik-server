@@ -42,7 +42,7 @@ class pushNotificationsTest extends IznikTestCase {
         $this->log("Send Google");
         $n->add($id, PushNotifications::PUSH_GOOGLE, 'test');
         assertEquals(1, count($n->get($id)));
-        assertEquals(1, $mock->notify($id));
+        assertEquals(1, $mock->notify($id, TRUE));
         $this->log("Send Firefox");
         $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2');
         assertEquals(2, count($n->get($id)));

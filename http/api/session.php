@@ -8,6 +8,7 @@ function session() {
     $me = NULL;
 
     $modtools = Session::modtools();
+    error_log("Modtools $modtools " . json_encode($_REQUEST));
 
     $sessionLogout = function($dbhr, $dbhm) {
         $id = pres('id', $_SESSION);
