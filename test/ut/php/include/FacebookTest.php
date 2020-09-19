@@ -54,7 +54,7 @@ class FacebookTest extends IznikTestCase {
     private $getLongLivedAccessTokenException, $getLongLivedAccessFacebookException, $getCanvasHelperException;
 
     public function getLongLivedAccessToken() {
-        $this->log("getLongLivedAccessToken {$this->getLongLivedAccessTokenException} {$this->getLongLivedAccessFacebookException}");
+        $this->log("getLongLivedAccessToken {$this->getLongLivedAccessTokenException}, {$this->getLongLivedAccessFacebookException}");
         if ($this->getLongLivedAccessTokenException) {
             throw new \Exception();
         }

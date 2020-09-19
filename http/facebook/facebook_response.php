@@ -50,11 +50,11 @@ try {
     foreach ($totalPages as $page) {
         echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($page['id']) . '&token=' . urlencode($page['access_token']) . '">' . $page['name'] . '</a><br />';
     }
-} catch(Facebook\Exceptions\FacebookResponseException $e) {
+} catch(\Facebook\Exceptions\FacebookResponseException $e) {
     // When Graph returns an error
     echo 'Graph returned an error: ' . $e->getMessage();
     exit;
-} catch(Facebook\Exceptions\FacebookSDKException $e) {
+} catch(\Facebook\Exceptions\FacebookSDKException $e) {
     // When validation fails or other local issues
     echo 'Facebook SDK returned an error: ' . $e->getMessage();
     exit;

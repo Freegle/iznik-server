@@ -89,7 +89,7 @@ class Facebook
             // Exchanges a short-lived access token for a long-lived one
             try {
                 $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
-            } catch (Facebook\Exceptions\FacebookSDKException $e) {
+            } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                 # No need to fail the login = proceed with our short one.
                 error_log("Error getting long-lived access token: " . $e->getMessage());
             }
