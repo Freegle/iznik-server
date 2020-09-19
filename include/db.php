@@ -1,12 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/include/utils.php');
-
-# Everyone has a custom DB class.  We have ours primarily for Percona clustering.  That can cause operations
-# to fail due to conflict with other servers. In that case we retry a few times here, and then if that doesn't
-# work - which it may not if we are inside a transaction - then we throw an exception which will cause us to
-# retry the whole API call from scratch.
 $dbconfig = array (
     'host' => SQLHOST,
     'port_read' => SQLPORT_READ,
@@ -15,6 +9,8 @@ $dbconfig = array (
     'pass' => SQLPASSWORD,
     'database' => SQLDB
 );
+
+$GLOBALS['dbconfig'] = $dbconfig;
 
 # We have two handles; one for reads, and one for writes, which we need because we might have a complex
 # DB architecture where the master is split out from a replicated copy, or we might have a cluster where

@@ -4,6 +4,10 @@ namespace Freegle\Iznik;
 use Pheanstalk\Pheanstalk;
 use \PDO;
 
+# Everyone has a custom DB class.  We have ours primarily for Percona clustering.  That can cause operations
+# to fail due to conflict with other servers. In that case we retry a few times here, and then if that doesn't
+# work - which it may not if we are inside a transaction - then we throw an exception which will cause us to
+# retry the whole API call from scratch.
 class LoggedPDO {
 
     public $_db;

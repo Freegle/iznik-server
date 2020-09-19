@@ -45,6 +45,7 @@ class dbTest extends IznikTestCase {
     }
 
     public function testBasic() {
+        include (UT_DIR . '/../../include/db.php');
         $tables = $this->dbhm->retryQuery('SHOW COLUMNS FROM test;')->fetchAll();
         assertEquals('id', $tables[0]['Field']);
         assertGreaterThan(0, $this->dbhm->getWaitTime());
@@ -55,8 +56,7 @@ class dbTest extends IznikTestCase {
             1 => null,
             2 => null
         ], $this->dbhm->getErrorInfo($sth));
-
-        }
+    }
 
     public function testInsert() {
         $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
