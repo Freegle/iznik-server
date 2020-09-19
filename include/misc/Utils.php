@@ -420,7 +420,7 @@ class Utils {
         return $min + mt_rand() / mt_getrandmax() * ($max - $min);
     }
 
-    function canonWord($word)
+    public static function canonWord($word)
     {
         $word = strtolower($word);
         $word = preg_replace('/[^\da-z]/i', '', $word);
