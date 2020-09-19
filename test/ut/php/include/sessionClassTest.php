@@ -57,8 +57,8 @@ class sessionClassTest extends IznikTestCase {
 
     public function testMisc() {
         # Can call this twice
-        prepareSession($this->dbhm, $this->dbhm);
-        prepareSession($this->dbhm, $this->dbhm);
+        Session::prepareSession($this->dbhm, $this->dbhm);
+        Session::prepareSession($this->dbhm, $this->dbhm);
         assertTrue(TRUE);
 
         }
@@ -75,7 +75,7 @@ class sessionClassTest extends IznikTestCase {
         $_REQUEST['persistent'] = $ret;
         global $sessionPrepared;
         $sessionPrepared = FALSE;
-        prepareSession($this->dbhm, $this->dbhm);
+        Session::prepareSession($this->dbhm, $this->dbhm);
         assertTrue($_SESSION['logged_in']);
         assertEquals($id, $_SESSION['id']);
 
@@ -84,14 +84,14 @@ class sessionClassTest extends IznikTestCase {
         $_REQUEST['persistent'] = $ret;
         global $sessionPrepared;
         $sessionPrepared = FALSE;
-        prepareSession($this->dbhm, $this->dbhm);
+        Session::prepareSession($this->dbhm, $this->dbhm);
         assertTrue($_SESSION['logged_in']);
         assertEquals($id, $_SESSION['id']);
 
         # But not if the session has gone.
         $s->destroy($id, NULL);
         $_SESSION['logged_in'] = FALSE;
-        prepareSession($this->dbhm, $this->dbhm);
+        Session::prepareSession($this->dbhm, $this->dbhm);
         assertFalse($_SESSION['logged_in']);
     }
 
@@ -109,7 +109,7 @@ class sessionClassTest extends IznikTestCase {
         error_log("Header " . $_SERVER['HTTP_Authorization']);
         global $sessionPrepared;
         $sessionPrepared = FALSE;
-        prepareSession($this->dbhm, $this->dbhm);
+        Session::prepareSession($this->dbhm, $this->dbhm);
         assertTrue($_SESSION['logged_in']);
         assertEquals($id, $_SESSION['id']);
     }
