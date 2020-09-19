@@ -2325,7 +2325,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                     }
                 }
 
-                $time = (count($delays) > 0) ? calculate_median($delays) : NULL;
+                $time = (count($delays) > 0) ? Utils::calculate_median($delays) : NULL;
 
                 $this->dbhm->preExec("REPLACE INTO users_replytime (userid, replytime) VALUES (?, ?);", [
                     $userid,
