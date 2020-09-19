@@ -100,20 +100,21 @@ class GroupFacebook {
     public function getPostsToShare($sharefrom, $since = "last week", $token = NULL) {
         $fb = $this->getFB(TRUE, FALSE);
         $count = 0;
-        error_log("Scrape posts from $sharefrom");
+        #error_log("Scrape posts from $sharefrom");
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
             $url = $sharefrom . "/feed?limit=100&&fields=id,link,message,type,caption,icon,name,full_picture,created_time";
-            error_log("Get from feed $url, $token");
+            #error_log("Get from feed $url, $token");
             $ret = $fb->get($url, $token);
-            error_log("Got ok");
+            #error_log("Got ok");
 
             $posts = $ret->getDecodedBody();
 
             foreach ($posts['data'] as $wallpost) {
                 error_log("Got " . json_encode($wallpost));
-                if (strtotime($wallpost['created_time']) >= strtotime($since)) {
+                if (!pres('created_time', $wallpost) || (strtotime($wallpost['created_time']) >= strtotime($since))) {
+                    error_log("Include");
                     $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [
                         $sharefrom,
                         $wallpost['id'],
