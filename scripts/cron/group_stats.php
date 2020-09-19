@@ -7,9 +7,6 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-# This makes sure we get all stats
-define('MODTOOLS', TRUE);
-
 # Update record of which groups are on TN.
 #
 # Not in a single call as this seems to hit a deadlock.

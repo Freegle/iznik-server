@@ -24,7 +24,7 @@ function chatrooms() {
             if ($count) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 if ($me) {
-                    $ret = ['ret' => 0, 'status' => 'Success', 'count' => $r->countAllUnseenForUser($myid, $chattypes, MODTOOLS) ];
+                    $ret = ['ret' => 0, 'status' => 'Success', 'count' => $r->countAllUnseenForUser($myid, $chattypes, Session::modtools()) ];
                 }
             } else  if ($id) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
@@ -49,7 +49,7 @@ function chatrooms() {
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
-                    $rooms = $r->listForUser($myid, $chattypes, $search, MODTOOLS);
+                    $rooms = $r->listForUser($myid, $chattypes, $search);
                     $ret['chatrooms'] = [];
 
                     if ($rooms) {
@@ -85,7 +85,7 @@ function chatrooms() {
                     case ChatRoom::TYPE_USER2MOD:
                         # On FD this must use the logged in user.  On MT we would be creating a chat to
                         # a different user.
-                        $id = $r->createUser2Mod(MODTOOLS ? ($userid ? $userid : $myid) : $myid, $groupid);
+                        $id = $r->createUser2Mod(Session::modtools() ? ($userid ? $userid : $myid) : $myid, $groupid);
                         break;
                 }
 

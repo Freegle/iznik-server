@@ -23,7 +23,7 @@ function groups() {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'groups' => $g->listByType($grouptype, $support, MODTOOLS)
+                    'groups' => $g->listByType($grouptype, $support, Session::modtools())
                 ];
             }
         }

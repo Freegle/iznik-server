@@ -7,7 +7,7 @@ function session() {
     global $dbhr, $dbhm;
     $me = NULL;
 
-    $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : MODTOOLS;
+    $modtools = Session::modtools();
 
     $sessionLogout = function($dbhr, $dbhm) {
         $id = pres('id', $_SESSION);

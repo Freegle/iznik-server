@@ -63,7 +63,7 @@ class PushNotifications
         $rc = NULL;
 
         if ($userid) {
-            $apptype = MODTOOLS ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER;
+            $apptype = Session::modtools() ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER;
             $sql = "INSERT INTO users_push_notifications (`userid`, `type`, `subscription`, `apptype`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE userid = ?, type = ?, apptype = ?;";
             $rc = $this->dbhm->preExec($sql, [$userid, $type, $val, $apptype, $userid, $type, $apptype]);
             Session::clearSessionCache();
@@ -271,7 +271,7 @@ class PushNotifications
         return $rc;
     }
 
-    public function notify($userid, $modtools = MODTOOLS)
+    public function notify($userid, $modtools)
     {
         $count = 0;
         $u = User::get($this->dbhr, $this->dbhm, $userid);

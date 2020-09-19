@@ -184,7 +184,7 @@ class MessageCollection
                 } else if ($age !== NULL) {
                     $mysqltime = date("Y-m-d", strtotime("Midnight $age days ago"));
                     $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
-                } else if (!MODTOOLS) {
+                } else if (!Session::modtools()) {
                     # No point showing old messages on FD, and this keeps the query fast.
                     $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
                     $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
@@ -319,7 +319,7 @@ class MessageCollection
         }
 
         $m = new Message($this->dbhr, $this->dbhm);
-        $publics = $m->getPublics($msglist,MODTOOLS, TRUE, FALSE, $this->userlist, $this->locationlist, $summary);
+        $publics = $m->getPublics($msglist,Session::modtools(), TRUE, FALSE, $this->userlist, $this->locationlist, $summary);
         $cansees = NULL;
 
         foreach ($publics as &$public) {

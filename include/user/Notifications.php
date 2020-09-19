@@ -133,7 +133,7 @@ class Notifications
                 $id = $this->dbhm->lastInsertId();
 
                 $p = new PushNotifications($this->dbhr, $this->dbhm);
-                $p->notify($to, MODTOOLS);
+                $p->notify($to, Session::modtools());
             }
         }
 
@@ -146,7 +146,7 @@ class Notifications
         $rc = $this->dbhm->preExec($sql, [ $userid ] );
 
         $p = new PushNotifications($this->dbhr, $this->dbhm);
-        $p->notify($userid, MODTOOLS);
+        $p->notify($userid, Session::modtools());
 
         return($rc);
     }

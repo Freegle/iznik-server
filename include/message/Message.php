@@ -1227,7 +1227,7 @@ ORDER BY lastdate DESC;";
                         if (count($userids)) {
                             $u = new User($this->dbhr, $this->dbhm);
                             $ctx = NULL;
-                            $replyusers = $u->getPublicsById($userids, NULL, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, [MessageCollection::APPROVED], FALSE);
+                            $replyusers = $u->getPublicsById($userids, NULL, $messagehistory, FALSE, $ctx, Session::modtools(), Session::modtools(), Session::modtools(), Session::modtools(), FALSE, [MessageCollection::APPROVED], FALSE);
                             $u->getInfos($replyusers);
                         }
                     }
@@ -1242,7 +1242,7 @@ ORDER BY lastdate DESC;";
                 # - we want everything
                 # - we're on ModTools and we're a mod for this message
                 # - it's our message
-                if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $msg['fromuser'] == $myid)) {
+                if ($seeall || (Session::modtools() && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $msg['fromuser'] == $myid)) {
                     # Add replies, as long as they're not awaiting review or rejected, or blocked.
                     $ourreplies = [];
                     foreach ($replies as $reply) {
@@ -1307,7 +1307,7 @@ ORDER BY lastdate DESC;";
 
                     $promises = presdef($msg['id'], $allpromises, []);
 
-                    if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $msg['fromuser'] == $myid)) {
+                    if ($seeall || (Session::modtools() && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $msg['fromuser'] == $myid)) {
                         $rets[$msg['id']]['promises'] = $promises;
 
                         foreach ($rets[$msg['id']]['replies'] as $key => $reply) {
@@ -1414,7 +1414,7 @@ ORDER BY lastdate DESC;";
 
         if (count($fromuids)) {
             $ctx = NULL;
-            $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, [ MessageCollection::APPROVED ], FALSE);
+            $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, FALSE, $ctx, Session::modtools(), Session::modtools(), Session::modtools(), Session::modtools(), FALSE, [ MessageCollection::APPROVED ], FALSE);
             $u->getInfos($fromusers);
         }
 
@@ -1480,7 +1480,7 @@ ORDER BY lastdate DESC;";
             if (pres('heldby', $rets[$msg['id']])) {
                 $u = User::get($this->dbhr, $this->dbhm, $rets[$msg['id']]['heldby']);
                 $ctx = NULL;
-                $rets[$msg['id']]['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, MODTOOLS, MODTOOLS, MODTOOLS, FALSE, FALSE);
+                $rets[$msg['id']]['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, Session::modtools(), Session::modtools(), Session::modtools(), FALSE, FALSE);
                 filterResult($rets[$msg['id']]);
             }
         }
@@ -1549,7 +1549,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function getPublicEditHistory(&$rets, $msgs, $me, $myid) {
-        $doit = MODTOOLS && $me && $me->isModerator();
+        $doit = Session::modtools() && $me && $me->isModerator();
         $msgids = array_filter(array_column($msgs, 'id'));
 
         if (count($msgids)) {
@@ -1628,7 +1628,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function getWorry(&$msgs) {
-       if (MODTOOLS) {
+       if (Session::modtools()) {
            # We check the messages again.  This means if something is added to worry words while our message is in
            # pending, we'll see it.
            $w = new WorryWords($this->dbhr, $this->dbhm);

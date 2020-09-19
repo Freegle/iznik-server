@@ -66,11 +66,6 @@ if (!defined('IZNIK_BASE')) {
 
     # There are some historical domains.
     define('OURDOMAINS', USER_DOMAIN . ",direct.ilovefreegle.org,republisher.freegle.in");
-
-    if (!defined('MODTOOLS')) {
-        # Err on the safe side so that cron scripts etc return all data.
-        define('MODTOOLS', TRUE);
-    }
 }
 
 if (!defined('RETURN_PATH')) {

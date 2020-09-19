@@ -1018,7 +1018,7 @@ class User extends Entity
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
-        $publishq = MODTOOLS ? "" : "AND groups.publish = 1";
+        $publishq = Session::modtools() ? "" : "AND groups.publish = 1";
         $sql = "SELECT type, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [$id]);
         #error_log("getMemberships $sql {$id} " . var_export($groups, TRUE));
@@ -1952,7 +1952,7 @@ class User extends Entity
 
             $atts = $this->publicatts;
 
-            if (MODTOOLS) {
+            if (Session::modtools()) {
                 # We have some extra attributes.
                 $atts[] = 'suspectcount';
                 $atts[] = 'suspectreason';
@@ -2309,7 +2309,7 @@ class User extends Entity
             foreach ($rets as &$ret) {
                 foreach ($users as &$user) {
                     if ($user['userid'] == $ret['id']) {
-                        if (MODTOOLS && ($systemrole == User::ROLE_MODERATOR ||
+                        if (Session::modtools() && ($systemrole == User::ROLE_MODERATOR ||
                                 $systemrole == User::SYSTEMROLE_ADMIN ||
                                 $systemrole == User::SYSTEMROLE_SUPPORT)) {
                             $ret['spammer'] = [];
@@ -2599,7 +2599,7 @@ class User extends Entity
             $this->getPublicLogs($me, $rets, $modmailsonly, $ctx);
         }
 
-        if (MODTOOLS) {
+        if (Session::modtools()) {
             $this->getPublicSuspect($rets, $me, $systemrole, $freeglemod);
             $this->getPublicMemberOf($rets, $me, $freeglemod, $memberof, $systemrole);
             $this->getPublicApplied($rets, $me, $freeglemod, $applied, $systemrole);
@@ -3909,7 +3909,7 @@ class User extends Entity
             # Also return the chats for this user.  Need to pass MODTOOLS = FALSE so that we see the same chats
             # the user would.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
-            $rooms = $r->listForUser($user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER], NULL, FALSE, NULL, '01-09-2009');
+            $rooms = $r->listForUser($user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER], NULL, NULL, '01-09-2009');
             $thisone['chatrooms'] = [];
 
             if ($rooms) {

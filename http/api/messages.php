@@ -45,10 +45,10 @@ function messages() {
                     # preferences say shouldn't be in.
                     #
                     # If we're in Freegle Direct, we only want to show Freegle groups.
-                    $mygroups = $me->getMemberships($modtools, MODTOOLS ? $grouptype : Group::GROUP_FREEGLE);
+                    $mygroups = $me->getMemberships($modtools, Session::modtools() ? $grouptype : Group::GROUP_FREEGLE);
                     foreach ($mygroups as $group) {
                         $settings = $me->getGroupSettings($group['id']);
-                        if (!MODTOOLS || !array_key_exists('active', $settings) || $settings['active']) {
+                        if (!Session::modtools() || !array_key_exists('active', $settings) || $settings['active']) {
                             $groups[] = $group['id'];
                         }
                     }

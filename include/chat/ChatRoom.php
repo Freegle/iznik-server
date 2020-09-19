@@ -140,7 +140,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $room['latestmessage'] = ISODate($room['latestmessage']);
             }
 
-            if (!MODTOOLS) {
+            if (!Session::modtools()) {
                 # We might be forbidden from showing the profiles.
                 $u1settings = pres('u1settings', $room) ? json_decode($room['u1settings'], TRUE) : NULL;
                 $u2settings = pres('u2settings', $room) ? json_decode($room['u2settings'], TRUE) : NULL;
@@ -569,7 +569,7 @@ WHERE chat_rooms.id IN $idlist;";
                 } else {
                     $u = $u1id == $myid ? $me : User::get($this->dbhr, $this->dbhm, $u1id);
                     $ctx = NULL;
-                    $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, MODTOOLS, FALSE, FALSE, FALSE);
+                    $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, Session::modtools(), FALSE, FALSE, FALSE);
 
                     if (pres('group', $ret)) {
                         # As a mod we can see the email
@@ -584,7 +584,7 @@ WHERE chat_rooms.id IN $idlist;";
                 } else {
                     $u = $u2id == $myid ? $me : User::get($this->dbhr, $this->dbhm, $u2id);
                     $ctx = NULL;
-                    $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, MODTOOLS, FALSE, FALSE, FALSE);
+                    $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, Session::modtools(), FALSE, FALSE, FALSE);
 
                     if (pres('group', $ret)) {
                         # As a mod we can see the email
@@ -790,10 +790,10 @@ WHERE chat_rooms.id IN $idlist;";
         return ($counts[0]['count']);
     }
 
-    public function allUnseenForUser($userid, $chattypes, $modtools = FALSE)
+    public function allUnseenForUser($userid, $chattypes)
     {
         # Get all unseen messages.  We might have a cached version.
-        $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
+        $chatids = $this->listForUser($userid, $chattypes, NULL);
 
         $ret = [];
 
@@ -806,9 +806,9 @@ WHERE chat_rooms.id IN $idlist;";
         return ($ret);
     }
 
-    public function countAllUnseenForUser($userid, $chattypes, $modtools = FALSE)
+    public function countAllUnseenForUser($userid, $chattypes)
     {
-        $chatids = $this->listForUser($userid, $chattypes, NULL, $modtools);
+        $chatids = $this->listForUser($userid, $chattypes, NULL);
 
         $ret = 0;
 
@@ -858,8 +858,10 @@ WHERE chat_rooms.id IN $idlist;";
         }
     }
 
-    public function listForUser($userid, $chattypes = NULL, $search = NULL, $modtools = MODTOOLS, $chatid = NULL, $activelim = ChatRoom::ACTIVELIM)
+    public function listForUser($userid, $chattypes = NULL, $search = NULL, $chatid = NULL, $activelim = ChatRoom::ACTIVELIM)
     {
+        $modtools = Session::modtools();
+
         $ret = [];
         $chatq = $chatid ? "chat_rooms.id = $chatid AND " : '';
 
@@ -922,7 +924,7 @@ WHERE chat_rooms.id IN $idlist;";
                 #error_log("User chats $sql, $userid");
             }
 
-            if (MODTOOLS && (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes))) {
+            if (Session::modtools() && (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes))) {
                 # We want chats marked by groupid for which we are a member.  This is mod-only function.
                 $thissql = "SELECT $atts FROM chat_rooms INNER JOIN $t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE $chatq (status IS NULL OR status != 'Closed') $countq";
                 #error_log("Group chats $sql, $userid");
@@ -1123,7 +1125,7 @@ WHERE chat_rooms.id IN $idlist;";
                 # have counts/notifications which need updating.
                 $n = new PushNotifications($this->dbhr, $this->dbhm);
                 #error_log("Update roster for $userid set last seen $lastmsgseen from {$_SERVER['REMOTE_ADDR']}");
-                $n->notify($userid);
+                $n->notify($userid, Session::modtools());
             }
 
             #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
@@ -1414,8 +1416,8 @@ ORDER BY chat_messages.id, m1.added ASC;";
         # so that we can pass the fetched attributes into the constructor for each ChatMessage below.
         #
         # This saves us a lot of DB operations.
-        $emailq1 = MODTOOLS ? ",chat_messages_byemail.msgid AS bymailid" : '';
-        $emailq2 = MODTOOLS ? "LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id" : '';
+        $emailq1 = Session::modtools() ? ",chat_messages_byemail.msgid AS bymailid" : '';
+        $emailq2 = Session::modtools() ? "LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id" : '';
 
         $sql = "SELECT chat_messages.*, 
                 users_images.id AS userimageid, users_images.url AS userimageurl, users.systemrole, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS userdisplayname
