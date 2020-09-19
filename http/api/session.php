@@ -10,21 +10,21 @@ function session() {
     $modtools = Session::modtools();
 
     $sessionLogout = function($dbhr, $dbhm) {
-        if (session_status() !== PHP_SESSION_NONE) {
+        if (isset($_SESSION)) {
             $id = Utils::pres('id', $_SESSION);
             if ($id) {
                 $s = new Session($dbhr, $dbhm);
                 $s->destroy($id, null);
             }
+        }
 
-            # Destroy the PHP session
-            try {
-                session_destroy();
-                session_unset();
-                @session_start();
-                session_regenerate_id(true);
-            } catch (\Exception $e) {
-            }
+        # Destroy the PHP session
+        try {
+            session_destroy();
+            session_unset();
+            @session_start();
+            session_regenerate_id(true);
+        } catch (\Exception $e) {
         }
     };
 
