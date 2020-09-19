@@ -8,6 +8,7 @@ if (!defined('UT_DIR')) {
 require_once(UT_DIR . '/../../include/config.php');
 require_once(UT_DIR . '/../../include/db.php');
 
+
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
@@ -15,15 +16,25 @@ require_once(UT_DIR . '/../../include/db.php');
 class utilsTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
-        parent::setUp ();
+    public function testCheckFiles() {
+        $dir = Utils::tmpdir();
+        touch("$dir/1");
+        touch("$dir/2");
+        touch("$dir/3");
 
-        global $dbhr, $dbhm;
-        $this->dbhr = $dbhr;
-        $this->dbhm = $dbhm;
+        assertEquals(3, Utils::checkFiles($dir, 2, 1, 1, 1));
     }
 
-    public function testUtils::lockScript() {
+    public function testSafeDate() {
+        assertEquals('2020-07-20 12:33:00', Utils::safeDate('2020-07-20 12:33:00'));
+    }
+
+    public function testMedian() {
+        assertEquals(2, Utils::calculate_median([1, 2, 3]));
+        assertEquals(2, Utils::calculate_median([1, 2, 2, 3]));
+    }
+
+    public function testlockScript() {
         $lockh = Utils::lockScript('ut');
         assertNotNull($lockh);
         Utils::unlockScript($lockh);
