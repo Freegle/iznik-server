@@ -436,13 +436,7 @@ class API
 
                             Utils::filterResult($ret);
 
-                            $str = json_encode($ret);
-
-                            if (!$str) {
-                                // This can happen with bad UTF-8 characters.  Do a more expensive filter.
-                                Utils::filterResult($ret, NULL, TRUE);
-                                $str = json_encode($ret);
-                            }
+                            $str = json_encode($ret, JSON_PARTIAL_OUTPUT_ON_ERROR);
 
                             echo $str;
 

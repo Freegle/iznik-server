@@ -36,7 +36,7 @@ class Utils {
         return $queuesize;
     }
 
-    public static function filterResult(&$array, $skip = NULL, $badUTF = FALSE) {
+    public static function filterResult(&$array, $skip = NULL) {
         # We want to ensure that we have the correct data types - for example PDO returns floats as strings.
         foreach($array as $key => $val){
             #error_log("$key type ". gettype($val) . " null? " . is_null($val) . " is_numeric ");
@@ -68,9 +68,6 @@ class Utils {
                         $array[$key] = $v;
                     }
                 }
-            } else if ($badUTF) {
-                # This is a hack which flattens odd characters to avoid json_encode returning null.
-                $array[$key] = @iconv('UTF-8', 'UTF-8//IGNORE', $val);
             }
         }
     }
