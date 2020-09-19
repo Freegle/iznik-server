@@ -932,8 +932,9 @@ WHERE chat_rooms.id IN $idlist;";
                 #error_log("Add " . count($rooms) . " group chats using $sql");
             }
 
-            #error_log("Chat rooms $sql");
+            error_log("Chat rooms $sql");
             $rooms = $this->dbhr->preQuery($sql);
+            error_log("FOund " . count($rooms));
 
             if (count($rooms) > 0) {
                 # We might have quite a lot of chats - speed up by reducing user fetches.

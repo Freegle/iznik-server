@@ -25,6 +25,7 @@ function message() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
     $ischat = FALSE;
+    $role = '';
 
     switch ($_REQUEST['type']) {
         case 'GET':

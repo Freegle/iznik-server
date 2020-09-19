@@ -446,7 +446,7 @@ class API
 
                             echo $str;
 
-                            if ($duration > 1000) {
+                            if ($duration > 5000) {
                                 # Slow call.
                                 $stamp = microtime(true);
                                 error_log("Slow API call $call stamp $stamp");

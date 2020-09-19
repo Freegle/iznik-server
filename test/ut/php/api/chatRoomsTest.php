@@ -410,27 +410,17 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertNull($rid);
     }
 
-//    public function testEH() {
-//        $u = new User($this->dbhr, $this->dbhm);
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
-//
-//        $u = new User($this->dbhr, $this->dbhm, 19002018);
-//        $ctx = NULL;
-//        $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
-//
-//        $uid = $u->findByEmail('edward@ehibbert.org.uk');
-//        $u = new User($this->dbhr, $this->dbhm, $uid);
-//        $_SESSION['id'] = $uid;
-//        $ret = $this->call('chatrooms', 'GET', [
-//            'chattypes' => [
-//                ChatRoom::TYPE_USER2USER,
-//                ChatRoom::TYPE_USER2MOD,
-//                ChatRoom::TYPE_GROUP,
-//            ],
-////            'summary' => TRUE
-//        ]);
-//        assertEquals(0, $ret['ret']);
-//        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-//    }
+    public function testEH() {
+        $_SESSION['id'] = 35822275;
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [
+                ChatRoom::TYPE_USER2MOD,
+                ChatRoom::TYPE_MOD2MOD,
+            ],
+            'summary' => TRUE,
+            'modtools'=> TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+    }
 }
