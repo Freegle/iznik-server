@@ -5,7 +5,7 @@ namespace Freegle\Iznik;
 use GeoIp2\Database\Reader;
 
 class API {
-    public function call() {
+    public static function call() {
         $scriptstart = microtime(true);
 
         $entityBody =  file_get_contents('php://input');
