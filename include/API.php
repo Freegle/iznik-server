@@ -4,14 +4,16 @@ namespace Freegle\Iznik;
 
 use GeoIp2\Database\Reader;
 
-class API {
-    public static function call() {
+class API
+{
+    public static function call()
+    {
         $scriptstart = microtime(true);
 
-        $entityBody =  file_get_contents('php://input');
+        $entityBody = file_get_contents('php://input');
 
         if ($entityBody) {
-            $parms = json_decode($entityBody, TRUE);
+            $parms = json_decode($entityBody, true);
             if (json_last_error() == JSON_ERROR_NONE) {
                 # We have been passed parameters in JSON.
                 foreach ($parms as $parm => $val) {
@@ -49,9 +51,9 @@ class API {
             #error_log("Request method override to {$_REQUEST['type']}");
         }
 
-    # The MODTOOLS constant is used in a log of places in the code.  We are moving away from this towards it being an
-    # API parameter, but this is a slow migration.  If the parameter has been passed, then set it here, which will
-    # then take priority over any later setting in /etc/iznik.conf based on the domain.
+        # The MODTOOLS constant is used in a log of places in the code.  We are moving away from this towards it being an
+        # API parameter, but this is a slow migration.  If the parameter has been passed, then set it here, which will
+        # then take priority over any later setting in /etc/iznik.conf based on the domain.
         if (array_key_exists('modtools', $_REQUEST) && !defined('MODTOOLS')) {
             define('MODTOOLS', filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN));
         }
@@ -59,12 +61,12 @@ class API {
         require_once('../../include/misc/apiheaders.php');
         require_once('../../include/config.php');
 
-    // @codeCoverageIgnoreStart
+        // @codeCoverageIgnoreStart
         if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
             echo json_encode(array('ret' => 111, 'status' => 'Down for maintenance'));
             exit(0);
         }
-    // @codeCoverageIgnoreEnd
+        // @codeCoverageIgnoreEnd
 
         require_once(IZNIK_BASE . '/include/db.php');
         global $dbhr, $dbhm;
@@ -73,9 +75,9 @@ class API {
 
         $includetime = microtime(true) - $scriptstart;
 
-    # All API calls come through here.
-    #error_log("Request " . var_export($_REQUEST, TRUE));
-    #error_log("Server " . var_export($_SERVER, TRUE));
+        # All API calls come through here.
+        #error_log("Request " . var_export($_REQUEST, TRUE));
+        #error_log("Server " . var_export($_SERVER, TRUE));
 
         if (pres('HTTP_X_REAL_IP', $_SERVER)) {
             # We jump through hoops to get the real IP address. This is one of them.
@@ -89,7 +91,7 @@ class API {
             unset($_REQUEST['model']);
         }
 
-    # Include the API call
+        # Include the API call
         $call = pres('call', $_REQUEST);
 
         if ($call) {
@@ -99,7 +101,7 @@ class API {
             }
         }
 
-        if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
+        if (presdef('type', $_REQUEST, null) == 'OPTIONS') {
             # We don't bother returning different values for different calls.
             http_response_code(204);
             @header('Allow: POST, GET, DELETE, PUT');
@@ -114,14 +116,16 @@ class API {
             $apicallretries = 0;
 
             # This is an optimisation for User.php.
-            $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
+            if (session_status() !== PHP_SESSION_NONE) {
+                $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
+            }
 
             do {
-                if (presdef('type', $_REQUEST, NULL) != 'GET') {
+                if (presdef('type', $_REQUEST, null) != 'GET') {
                     # Check that we're not posting from a blocked country.
                     try {
                         $reader = new Reader(MMDB);
-                        $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
+                        $ip = presdef('REMOTE_ADDR', $_SERVER, null);
 
                         if ($ip) {
                             $record = $reader->country($ip);
@@ -129,7 +133,7 @@ class API {
                             # Failed to look it up.
                             $countries = $dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
                             foreach ($countries as $country) {
-                                error_log("Block post from {$country['country']} " . var_export($_REQUEST, TRUE));
+                                error_log("Block post from {$country['country']} " . var_export($_REQUEST, true));
                                 echo json_encode(array('ret' => 0, 'status' => 'Success'));
                                 break 2;
                             }
@@ -140,7 +144,7 @@ class API {
 
                 # Duplicate POST protection.  We upload multiple images so don't protect against those.
                 if ((DUPLICATE_POST_PROTECTION > 0) &&
-                    array_key_exists('REQUEST_METHOD', $_SERVER) && (presdef('type', $_REQUEST, NULL) == 'POST') &&
+                    array_key_exists('REQUEST_METHOD', $_SERVER) && (presdef('type', $_REQUEST, null) == 'POST') &&
                     $call != 'image') {
                     # We want to make sure that we don't get duplicate POST requests within the same session.  We can't do this
                     # using information stored in the session because when Redis is used as the session handler, there is
@@ -151,7 +155,7 @@ class API {
                     $req = $_SERVER['REQUEST_URI'] . serialize($_REQUEST);
                     $lockkey = 'POST_LOCK_' . session_id();
                     $datakey = 'POST_DATA_' . session_id();
-                    $uid = uniqid('', TRUE);
+                    $uid = uniqid('', true);
                     $predis = new \Redis();
                     $predis->pconnect(REDIS_CONNECT);
 
@@ -169,11 +173,15 @@ class API {
                             $last = $predis->get($datakey);
 
                             # Some actions are ok, so we exclude those.
-                            if (!in_array($call, [ 'session', 'correlate', 'chatrooms', 'upload']) &&
+                            if (!in_array($call, ['session', 'correlate', 'chatrooms', 'upload']) &&
                                 $last === $req) {
                                 # The last POST request was the same.  So this is a duplicate.
                                 $predis->del($lockkey);
-                                $ret = array('ret' => 999, 'text' => 'Duplicate request - rejected.', 'data' => $_REQUEST);
+                                $ret = array(
+                                    'ret' => 999,
+                                    'text' => 'Duplicate request - rejected.',
+                                    'data' => $_REQUEST
+                                );
                                 echo json_encode($ret);
                                 break 2;
                             }
@@ -391,40 +399,42 @@ class API {
                     # If we get here, everything worked.
                     if ($call == 'upload') {
                         # Output is handled within the lib.
-                    } else if (pres('img', $ret)) {
-                        # This is an image we want to output.  Can cache forever - if an image changes it would get a new id
-                        @header('Content-Type: image/jpeg');
-                        @header('Content-Length: ' . strlen($ret['img']));
-                        @header('Cache-Control: max-age=5360000');
-                        print $ret['img'];
                     } else {
-                        # This is a normal API call.  Add profiling info.
-                        $duration = (microtime(true) - $scriptstart);
-                        $ret['call'] = $call;
-                        $ret['type'] = presdef('type', $_REQUEST, NULL);
-                        $ret['session'] = session_id();
-                        $ret['duration'] = $duration;
-                        $ret['cpucost'] = getCpuUsage();
-                        $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();
-                        $ret['includetime'] = $includetime;
-    //                $ret['remoteaddr'] = presdef('REMOTE_ADDR', $_SERVER, '-');
-    //                $ret['_server'] = $_SERVER;
+                        if (pres('img', $ret)) {
+                            # This is an image we want to output.  Can cache forever - if an image changes it would get a new id
+                            @header('Content-Type: image/jpeg');
+                            @header('Content-Length: ' . strlen($ret['img']));
+                            @header('Cache-Control: max-age=5360000');
+                            print $ret['img'];
+                        } else {
+                            # This is a normal API call.  Add profiling info.
+                            $duration = (microtime(true) - $scriptstart);
+                            $ret['call'] = $call;
+                            $ret['type'] = presdef('type', $_REQUEST, null);
+                            $ret['session'] = session_id();
+                            $ret['duration'] = $duration;
+                            $ret['cpucost'] = getCpuUsage();
+                            $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();
+                            $ret['includetime'] = $includetime;
+                            //                $ret['remoteaddr'] = presdef('REMOTE_ADDR', $_SERVER, '-');
+                            //                $ret['_server'] = $_SERVER;
 
-                        filterResult($ret);
+                            filterResult($ret);
 
-                        # We use a streaming encoder rather than json_encode because we can run out of memory encoding
-                        # large results such as exports
-                        # Don't - this seems to break the heatmap by returning truncated data.
-    //                $encoder = new \Violet\StreamingJsonEncoder\StreamJsonEncoder($ret);
-    //                $encoder->encode();
-                        $str = json_encode($ret);
-                        echo $str;
+                            # We use a streaming encoder rather than json_encode because we can run out of memory encoding
+                            # large results such as exports
+                            # Don't - this seems to break the heatmap by returning truncated data.
+                            //                $encoder = new \Violet\StreamingJsonEncoder\StreamJsonEncoder($ret);
+                            //                $encoder->encode();
+                            $str = json_encode($ret);
+                            echo $str;
 
-                        if ($duration > 1000) {
-                            # Slow call.
-                            $stamp = microtime(true);
-                            error_log("Slow API call $call stamp $stamp");
-                            file_put_contents("/tmp/iznik.slowapi.$stamp", var_export($_REQUEST, TRUE));
+                            if ($duration > 1000) {
+                                # Slow call.
+                                $stamp = microtime(true);
+                                error_log("Slow API call $call stamp $stamp");
+                                file_put_contents("/tmp/iznik.slowapi.$stamp", var_export($_REQUEST, true));
+                            }
                         }
                     }
 
@@ -438,35 +448,43 @@ class API {
                     if ($e instanceof DBException) {
                         # This is a DBException.  We want to retry, which means we just go round the loop
                         # again.
-                        error_log("DB Exception try $apicallretries," . $e->getMessage() . ", " . $e->getTraceAsString());
+                        error_log(
+                            "DB Exception try $apicallretries," . $e->getMessage() . ", " . $e->getTraceAsString()
+                        );
                         $apicallretries++;
 
                         if ($apicallretries >= API_RETRIES) {
-                            if (strpos($e->getMessage(), 'WSREP has not yet prepared node for application') !== FALSE) {
+                            if (strpos($e->getMessage(), 'WSREP has not yet prepared node for application') !== false) {
                                 # Our cluster is unwell.  This can happen if we are rebooting a DB server, so give ourselves
                                 # more time.
                                 $apicallretries = 0;
                             } else {
-                                $ret = ['ret' => 997, 'status' => 'DB operation failed after retry', 'exception' => $e->getMessage()];
+                                $ret = [
+                                    'ret' => 997,
+                                    'status' => 'DB operation failed after retry',
+                                    'exception' => $e->getMessage()
+                                ];
                                 echo json_encode($ret);
                             }
                         }
                     } else {
                         # Something else.
-                        error_log("Uncaught exception at " . $e->getFile() . " line " . $e->getLine() . " " . $e->getMessage());
+                        error_log(
+                            "Uncaught exception at " . $e->getFile() . " line " . $e->getLine() . " " . $e->getMessage()
+                        );
                         $ret = ['ret' => 998, 'status' => 'Unexpected error', 'exception' => $e->getMessage()];
                         echo json_encode($ret);
                         break;
                     }
 
                     # Make sure the duplicate POST detection doesn't throw us.
-                    $_REQUEST['retry'] = uniqid('', TRUE);
+                    $_REQUEST['retry'] = uniqid('', true);
                 }
             } while ($apicallretries < API_RETRIES);
 
             $ip = presdef('REMOTE_ADDR', $_SERVER, '');
 
-            if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
+            if (BROWSERTRACKING && (presdef('type', $_REQUEST, null) != 'GET') &&
                 (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
                 # save GET calls as they don't change the DB and there are a lot of them.
@@ -481,7 +499,9 @@ class API {
                     $rsp = substr($rsp, 0, 1000);
                 }
 
-                $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '" . presdef('REMOTE_ADDR', $_SERVER, '') . "', " . $dbhr->quote(session_id()) .
+                $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" .
+                    (session_status() !== PHP_SESSION_NONE ? presdef('id', $_SESSION,'NULL') : 'NULL') .
+                    ", '" . presdef('REMOTE_ADDR', $_SERVER, '') . "', " . $dbhr->quote(session_id()) .
                     ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
                 $dbhm->background($sql);
             }
@@ -491,20 +511,22 @@ class API {
                 $dbhm->rollBack();
             }
 
-            if (presdef('type', $_REQUEST, NULL) != 'GET') {
-                # This might have changed things.
-                $_SESSION['modorowner'] = [];
-            }
+            if (session_status() !== PHP_SESSION_NONE) {
+                if (presdef('type', $_REQUEST, null) != 'GET') {
+                    # This might have changed things.
+                    $_SESSION['modorowner'] = [];
+                }
 
-            # Update our last access time for this user.  We do this every 60 seconds.  This is used to return our
-            # roster status in ChatRoom.php, and also for spotting idle members.
-            #
-            # Do this here, as we might not be logged in at the start if we had a persistent token but no PHP session.
-            $id = pres('id', $_SESSION);
-            $last = intval(presdef('lastaccessupdate', $_SESSION, 0));
-            if ($id && (abs(time() - $last) > 60)) {
-                $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
-                $_SESSION['lastaccessupdate'] = time();
+                # Update our last access time for this user.  We do this every 60 seconds.  This is used to return our
+                # roster status in ChatRoom.php, and also for spotting idle members.
+                #
+                # Do this here, as we might not be logged in at the start if we had a persistent token but no PHP session.
+                $id = pres('id', $_SESSION);
+                $last = intval(presdef('lastaccessupdate', $_SESSION, 0));
+                if ($id && (abs(time() - $last) > 60)) {
+                    $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
+                    $_SESSION['lastaccessupdate'] = time();
+                }
             }
         }
     }

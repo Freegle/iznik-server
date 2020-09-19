@@ -19,7 +19,7 @@ class Session {
             $_REQUEST = array_merge ( $_REQUEST, json_decode ( $_REQUEST ['model'], true ) );
         }
 
-        if (!$GLOBALS['sessionPrepared']) {
+        if (!pres('sessionPrepared', $GLOBALS)) {
             $GLOBALS['sessionPrepared'] = TRUE;
 
             if (pres('api_key', $_REQUEST)) {
