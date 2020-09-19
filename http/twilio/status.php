@@ -1,9 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 require_once('/etc/iznik.conf');
 require_once(dirname(__FILE__) . '/../../include/config.php');
 
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
 global $dbhr, $dbhm;
 
 error_log("Twilio status " . var_export($_REQUEST, TRUE));

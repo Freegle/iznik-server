@@ -1,16 +1,14 @@
 <?php
 
+namespace Freegle\Iznik;
+
 # When people donate to us, PayPal will trigger a call to this script.
 #
 # As a fallback we also have paypal_download on a cron.
 
 require_once dirname(__FILE__) . '/../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-
-require_once(IZNIK_BASE . '/include/misc/Mail.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
-require_once(IZNIK_BASE . '/include/misc/Donations.php');
+global $dbhr, $dbhm;
 
 $u = new User($dbhr, $dbhm);
 
