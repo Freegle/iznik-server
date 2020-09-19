@@ -61,7 +61,7 @@ On Windows, you need to download mailparse DLL from http://pecl.php.net/package/
 require_once __DIR__.'/vendor/autoload.php';
 
 $path = 'path/to/mail.txt';
-$Parser = new PhpMimeMailParser\Parser();
+$Parser = new \PhpMimeMailParser\Parser();
 
 // There are four methods available to indicate which mime mail to parse.
 // You only need to use one of the following four:

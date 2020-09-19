@@ -75,8 +75,8 @@ class GoogleGeocode extends GeoAdapter
       }
     }
     else {
-      if ($this->result->status) throw new Exception('Error in Google Geocoder: '.$this->result->status);
-      else throw new Exception('Unknown error in Google Geocoder');
+      if ($this->result->status) throw new \Exception('Error in Google Geocoder: '.$this->result->status);
+      else throw new \Exception('Unknown error in Google Geocoder');
       return FALSE;
     }
   }
@@ -116,8 +116,8 @@ class GoogleGeocode extends GeoAdapter
       }
     }
     else {
-      if ($this->result->status) throw new Exception('Error in Google Reverse Geocoder: '.$this->result->status);
-      else throw new Exception('Unknown error in Google Reverse Geocoder');
+      if ($this->result->status) throw new \Exception('Error in Google Reverse Geocoder: '.$this->result->status);
+      else throw new \Exception('Unknown error in Google Reverse Geocoder');
       return FALSE;
     }
   }

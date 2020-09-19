@@ -1,9 +1,13 @@
 <?php
 
 # Send test digest to a specific user
-require_once dirname(__FILE__) . '/../../include/config.php';
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
+require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
+global $dbhr, $dbhm;
 
 # Get 50 most frequent donors
 $donors = $dbhr->preQuery("SELECT count(*) as count, userid FROM `users_donations` GROUP BY userid HAVING count >= 20 ORDER BY count DESC LIMIT 500;");

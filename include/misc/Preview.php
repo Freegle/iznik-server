@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -60,7 +61,7 @@ class Preview extends Entity
 
                     }
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `invalid`) VALUES (?,1) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
                     $url
                 ]);

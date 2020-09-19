@@ -1,9 +1,13 @@
 <?php
 
+namespace Freegle\Iznik;
+
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikAPITestCase.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -82,7 +86,7 @@ class sessionTest extends IznikAPITestCase
         $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
 
-        $mock->method('getAttributes')->willThrowException(new Exception());
+        $mock->method('getAttributes')->willThrowException(new \Exception());
         $ret = $this->call('session', 'POST', [
             'yahoologin' => 1
         ]);
@@ -143,7 +147,7 @@ class sessionTest extends IznikAPITestCase
         assertNotNull($u->addEmail('test@test.com'));
 
         # Mock the user ("your hair looks terrible") to check the welcome mail is sent.
-        $u = $this->getMockBuilder('User')
+        $u = $this->getMockBuilder('Freegle\Iznik\User')
             ->setConstructorArgs([$this->dbhm, $this->dbhm, $id])
             ->setMethods(array('sendIt'))
             ->getMock();
@@ -255,18 +259,18 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # Quick test for notification coverage.
-        $mock = $this->getMockBuilder('PushNotifications')
+        $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('curl_exec'))
             ->getMock();
         $mock->method('curl_exec')->willReturn('NotRegistered');
         $mock->notify($id);
 
-        $mock = $this->getMockBuilder('PushNotifications')
+        $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('uthook'))
             ->getMock();
-        $mock->method('uthook')->willThrowException(new Exception());
+        $mock->method('uthook')->willThrowException(new \Exception());
         $mock->notify($id);
 
         $g->delete();
@@ -470,9 +474,9 @@ class sessionTest extends IznikAPITestCase
         $key = randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
         assertNotNull($id);
-        list ($partner, $domain) = partner($this->dbhr, 'wibble');
+        list ($partner, $domain) = Session::partner($this->dbhr, 'wibble');
         assertFalse($partner);
-        list ($partner, $domain) = partner($this->dbhr, $key);
+        list ($partner, $domain) = Session::partner($this->dbhr, $key);
         assertTrue($partner);
 
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
@@ -560,7 +564,7 @@ class sessionTest extends IznikAPITestCase
         ]);
         assertEquals(1, $ret['ret']);
 
-        $u = $this->getMockBuilder('User')
+        $u = $this->getMockBuilder('Freegle\Iznik\User')
             ->setConstructorArgs([$this->dbhm, $this->dbhm])
             ->setMethods(array('sendIt'))
             ->getMock();

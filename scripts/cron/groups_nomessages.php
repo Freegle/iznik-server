@@ -1,10 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/misc/Stats.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $none = '';
 $count = 0;
@@ -21,7 +23,7 @@ foreach ($groups as $group) {
 
 if ($count) {
     list ($transport, $mailer) = getMailer();
-    $message = Swift_Message::newInstance()
+    $message = \Swift_Message::newInstance()
         ->setSubject("WARNING: $count groups not receiving messages on Iznik")
         ->setFrom(GEEKS_ADDR)
         ->setCc(GEEKS_ADDR)

@@ -1,14 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/config/ModConfig.php';
-require_once IZNIK_BASE . '/include/config/StdMessage.php';
-require_once IZNIK_BASE . '/include/config/BulkOp.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -220,18 +218,18 @@ class configTest extends IznikTestCase {
         }
 
     public function testErrors() {
-        $mock = $this->getMockBuilder('LoggedPDO')
+        $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->disableOriginalConstructor()
             ->setMethods(array('preExec', 'preQuery'))
             ->getMock();
-        $mock->method('preExec')->willThrowException(new Exception());
+        $mock->method('preExec')->willThrowException(new \Exception());
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $c->setDbhm($mock);
         $id = $c->create('TestConfig');
         assertNull($id);
 
-        $mock->method('preQuery')->willThrowException(new Exception());
+        $mock->method('preQuery')->willThrowException(new \Exception());
         $id = $c->create('TestConfig');
         assertNull($id);
 

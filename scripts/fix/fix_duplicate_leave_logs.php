@@ -19,9 +19,9 @@ $dbconfig = array (
 
 $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_mod']};dbname={$dbconfig['database']};charset=utf8";
 
-$_db = new PDO($dsn, SQLUSER, SQLPASSWORD, [
-    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+$_db = new \PDO($dsn, SQLUSER, SQLPASSWORD, [
+    \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
 ]);
 
 $sth = $_db->prepare($sql);

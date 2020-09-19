@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/alert.php');
@@ -71,7 +72,7 @@ class Alert extends Entity
     }
 
     public function constructMessage($to, $toname, $touid, $from, $subject, $text, $html) {
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from])
             ->setTo([$to => $toname])
@@ -84,9 +85,9 @@ class Alert extends Entity
         if ($html && strlen($html) > 10) {
             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
             # Outlook.
-            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart = \Swift_MimePart::newInstance();
             $htmlPart->setCharset('utf-8');
-            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
             $htmlPart->setContentType('text/html');
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
@@ -300,7 +301,7 @@ class Alert extends Entity
                             $done++;
                         }
                     }
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     error_log("Failed with " . $e->getMessage());
                 }
             }
@@ -340,7 +341,7 @@ class Alert extends Entity
                 Mail::addHeaders($msg, Mail::ALERT);
                 $mailer->send($msg);
                 $done++;
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("Contact mail failed with " . $e->getMessage());
             }
         }

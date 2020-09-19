@@ -1,14 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/group/CommunityEvent.php';
-require_once IZNIK_BASE . '/include/mail/EventDigest.php';
-require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -69,15 +67,15 @@ class eventDigestTest extends IznikTestCase {
         # Now test.
 
         # Send fails
-        $mock = $this->getMockBuilder('EventDigest')
+        $mock = $this->getMockBuilder('Freegle\Iznik\EventDigest')
             ->setConstructorArgs([$this->dbhm, $this->dbhm, TRUE])
             ->setMethods(array('sendOne'))
             ->getMock();
-        $mock->method('sendOne')->willThrowException(new Exception());
+        $mock->method('sendOne')->willThrowException(new \Exception());
         assertEquals(0, $mock->send($gid));
 
         # Mock the actual send
-        $mock = $this->getMockBuilder('EventDigest')
+        $mock = $this->getMockBuilder('Freegle\Iznik\EventDigest')
             ->setConstructorArgs([$this->dbhm, $this->dbhm, TRUE])
             ->setMethods(array('sendOne'))
             ->getMock();
@@ -109,11 +107,11 @@ class eventDigestTest extends IznikTestCase {
         $mock = $this->getMockBuilder('SwiftMailer')
             ->setMethods(array('send'))
             ->getMock();
-        $mock->method('send')->willThrowException(new Exception());
+        $mock->method('send')->willThrowException(new \Exception());
         try {
             $e->sendOne($mock, NULL);
             assertTrue(FALSE);
-        } catch (Exception $e){}
+        } catch (\Exception $e){}
     }
 }
 

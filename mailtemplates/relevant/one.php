@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 function relevant_one($subject, $href, $matched, $reason) {
     $html = "<a href=\"$href\">";

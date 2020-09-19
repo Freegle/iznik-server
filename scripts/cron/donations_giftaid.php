@@ -1,10 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/misc/Donations.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
@@ -50,13 +52,13 @@ foreach ($donations as $donation) {
                 $email = $u->getEmailPreferred();
                 error_log("...$email");
 
-                $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/donations');
-                $twig = new Twig_Environment($loader);
+                $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/donations');
+                $twig = new \Twig_Environment($loader);
                 list ($transport, $mailer) = getMailer();
 
                 $date = date(' d-M-Y', strtotime($donation['timestamp']));
 
-                $message = Swift_Message::newInstance()
+                $message = \Swift_Message::newInstance()
                     ->setSubject("Could Freegle collect Gift Aid on your donation?")
                     ->setFrom(PAYPAL_THANKS_FROM)
                     ->setReplyTo(PAYPAL_THANKS_FROM)
@@ -74,9 +76,9 @@ foreach ($donations as $donation) {
 
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                 # Outlook.
-                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart = \Swift_MimePart::newInstance();
                 $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
@@ -89,7 +91,7 @@ foreach ($donations as $donation) {
                 $dbhm->preExec("UPDATE users_donations SET giftaidchaseup = NOW() WHERE userid = ?;", [
                     $donation['userid']
                 ]);
-            } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
+            } catch (\Exception $e) { error_log("Failed " . $e->getMessage()); };
         }
     }
 }

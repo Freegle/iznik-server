@@ -1,9 +1,11 @@
 <?php
+namespace Freegle\Iznik;
+
 function giftaid() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     switch ($_REQUEST['type']) {
         case 'GET': {

@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function stories() {
     global $dbhr, $dbhm;
 
@@ -12,7 +14,7 @@ function stories() {
     $reviewnewsletter = array_key_exists('reviewnewsletter', $_REQUEST) ? filter_var($_REQUEST['reviewnewsletter'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $limit = intval(presdef('limit', $_REQUEST, 20));
     $s = new Story($dbhr, $dbhm, $id);
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
     switch ($_REQUEST['type']) {

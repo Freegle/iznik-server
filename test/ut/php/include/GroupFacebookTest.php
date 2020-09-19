@@ -1,9 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -29,7 +32,7 @@ class groupFacebookTest extends IznikTestCase {
 
     public function get() {
         if ($this->getException) {
-            throw new Exception ('UT Exception');
+            throw new \Exception ('UT Exception');
         }
 
         return($this);
@@ -51,7 +54,7 @@ class groupFacebookTest extends IznikTestCase {
         $gid = $g->create('testgroup', Group::GROUP_UT);
         $this->log("Created group $gid");
 
-        $t = $this->getMockBuilder('GroupFacebook')
+        $t = $this->getMockBuilder('Freegle\Iznik\GroupFacebook')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm, $gid ])
             ->setMethods(array('getFB'))
             ->getMock();
@@ -124,12 +127,12 @@ class groupFacebookTest extends IznikTestCase {
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
         $sender->setPrivate('publishconsent', 1);
 
-        $mock = $this->getMockBuilder('GroupFacebook')
+        $mock = $this->getMockBuilder('Freegle\Iznik\GroupFacebook')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, $gid])
             ->setMethods(array('getFB'))
             ->getMock();
 
-        $mock->method('getFB')->willThrowException(new Exception('Test', 100));
+        $mock->method('getFB')->willThrowException(new \Exception('Test', 100));
     }
 
     public function testGetFB() {

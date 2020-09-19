@@ -16,7 +16,7 @@ error_log("Request Facebook auth");
 $groupid = intval(presdef('groupid', $_REQUEST, 0));
 $type = presdef('type', $_REQUEST, 'Page');
 
-$fb = new Facebook\Facebook([
+$fb = new \Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
     'app_secret' => FBGRAFFITIAPP_SECRET
 ]);

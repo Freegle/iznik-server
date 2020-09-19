@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function admin() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $id = presdef('id', $_REQUEST, NULL);
     $groupid = presdef('groupid', $_REQUEST, NULL);

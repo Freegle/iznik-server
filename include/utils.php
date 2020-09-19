@@ -86,7 +86,7 @@ if (!function_exists('ISODate')) {
     function ISODate($date)
     {
         if ($date) {
-            $date = new DateTime($date);
+            $date = new \DateTime($date);
             $date = $date->format(DateTime::ISO8601);
             $date = str_replace('+0000', 'Z', $date);
         }
@@ -372,7 +372,7 @@ function lockScript($fn) {
             error_log("Script locked");
             exit(0);
         }
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         error_log("Top-level exception " . $e->getMessage() . "\n");
         exit(0);
     }
@@ -418,14 +418,14 @@ function getMailer($host = 'localhost', $spoolname = '/spool') {
         @chown(IZNIK_BASE . $spoolname, 'www-data');
     }
 
-    $spool = new Swift_FileSpool(IZNIK_BASE . $spoolname);
-    $spooltrans = Swift_SpoolTransport::newInstance($spool);
-    $smtptrans = Swift_SmtpTransport::newInstance($host);
-    $transport = Swift_FailoverTransport::newInstance([
+    $spool = new \Swift_FileSpool(IZNIK_BASE . $spoolname);
+    $spooltrans = \Swift_SpoolTransport::newInstance($spool);
+    $smtptrans = \Swift_SmtpTransport::newInstance($host);
+    $transport = \Swift_FailoverTransport::newInstance([
         $smtptrans,
         $spooltrans
     ]);
-    $mailer = Swift_Mailer::newInstance($transport);
+    $mailer = \Swift_Mailer::newInstance($transport);
     return([$transport, $mailer]);
 }
 
@@ -507,7 +507,7 @@ function checkSpamhaus($url) {
                     }
                 }
             }
-        } catch (Exception $e) {}
+        } catch (\Exception $e) {}
     }
 
     $parsed = parse_url( $url );
@@ -533,7 +533,7 @@ function checkSpamhaus($url) {
                         }
                     }
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("dns_get_record for $domain failed " . $e->getMessage());
             }
         }
@@ -545,32 +545,6 @@ function checkSpamhaus($url) {
 
 function randomFloat($min = 0, $max = 1) {
     return $min + mt_rand() / mt_getrandmax() * ($max - $min);
-}
-
-class POI {
-    private $latitude;
-    private $longitude;
-    public function __construct($latitude, $longitude) {
-        $this->latitude = deg2rad($latitude);
-        $this->longitude = deg2rad($longitude);
-    }
-    public function getLatitude() {
-        return $this->latitude;
-    }
-    public function getLongitude() {
-        return $this->longitude;
-    }
-    public function getDistanceInMetersTo(POI $other) {
-        $radiusOfEarth = 6371000;// Earth's radius in meters.
-        $diffLatitude = $other->getLatitude() - $this->latitude;
-        $diffLongitude = $other->getLongitude() - $this->longitude;
-        $a = sin($diffLatitude / 2) * sin($diffLatitude / 2) +
-            cos($this->latitude) * cos($other->getLatitude()) *
-            sin($diffLongitude / 2) * sin($diffLongitude / 2);
-        $c = 2 * asin(sqrt($a));
-        $distance = $radiusOfEarth * $c;
-        return $distance;
-    }
 }
 
 function calculate_median($arr) {

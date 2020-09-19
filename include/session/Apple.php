@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once("/etc/iznik.conf");
 
@@ -139,7 +140,7 @@ class Apple
                     $ret = 0;
                     $status = 'Success';
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $ret = 2;
                 $status = "Didn't manage to validate Apple session: " . $e->getMessage();
                 error_log("Didn't manage to validate Apple session " . $e->getMessage());

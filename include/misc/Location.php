@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
@@ -82,7 +83,7 @@ class Location extends Entity
             if ($type == 'Polygon') {
                 # We might have postcodes which should now map to this new area rather than wherever they mapped
                 # previously.
-                $g = new geoPHP();
+                $g = new \geoPHP();
                 $p = $g->load($geometry);
                 $bbox = $p->getBBox();
                 #error_log("Bounding box " . var_export($bbox, TRUE));
@@ -103,7 +104,7 @@ class Location extends Entity
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log("Location create exception " . $e->getMessage() . " " . $e->getTraceAsString());
             $id = NULL;
             $rc = 0;
@@ -402,7 +403,7 @@ class Location extends Entity
 
     public function delete()
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $rc = $this->dbhm->preExec("DELETE FROM locations WHERE id = ?;", [$this->id]);
         if ($rc) {
@@ -493,8 +494,8 @@ class Location extends Entity
         $currradius = round($radius / 16 + 0.5, 0);
         
         do {
-            $ne = GreatCircle::getPositionByDistance(sqrt($currradius*$currradius*2)*1609.34, 45, $this->loc['lat'], $this->loc['lng']);
-            $sw = GreatCircle::getPositionByDistance(sqrt($currradius*$currradius*2)*1609.34, 225, $this->loc['lat'], $this->loc['lng']);
+            $ne = \GreatCircle::getPositionByDistance(sqrt($currradius*$currradius*2)*1609.34, 45, $this->loc['lat'], $this->loc['lng']);
+            $sw = \GreatCircle::getPositionByDistance(sqrt($currradius*$currradius*2)*1609.34, 225, $this->loc['lat'], $this->loc['lng']);
 
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
@@ -582,7 +583,7 @@ class Location extends Entity
     public function remapPostcodes($val, $gridid) {
         # We might have postcodes which should now map to this new area rather than wherever they mapped
         # previously.
-        $g = new geoPHP();
+        $g = new \geoPHP();
         $p = $g->load($val);
         $bbox = $p->getBBox();
         #error_log("Bounding box " . var_export($bbox, TRUE));
@@ -634,7 +635,7 @@ class Location extends Entity
     public function inventArea($areaid) {
         #  Invent our best guess based on the convex hull of the postcodes which we have
         # decided are in this area.
-        $g = new geoPHP();
+        $g = new \geoPHP();
         $pcs = $this->dbhr->preQuery("SELECT * FROM locations WHERE areaid = ?;", [$areaid]);
         $points = [];
         foreach ($pcs as $pc) {

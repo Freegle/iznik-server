@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 $groupid = presdef('graffitigroup', $_SESSION, 0);
 $url = presdef('url', $_REQUEST, NULL);;
 
-$fb = new Facebook\Facebook([
+$fb = new \Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
     'app_secret' => FBGRAFFITIAPP_SECRET
 ]);

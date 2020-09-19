@@ -51,23 +51,23 @@ foreach ($merges as $merge) {
 
         if ($doit) {
             # Create a mailer.
-            $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
-            $spooltrans = Swift_SpoolTransport::newInstance($spool);
-            $smtptrans = Swift_SmtpTransport::newInstance('localhost');
-            $transport = Swift_FailoverTransport::newInstance([
+            $spool = new \Swift_FileSpool(IZNIK_BASE . "/spool");
+            $spooltrans = \Swift_SpoolTransport::newInstance($spool);
+            $smtptrans = \Swift_SmtpTransport::newInstance('localhost');
+            $transport = \Swift_FailoverTransport::newInstance([
                 $smtptrans,
                 $spooltrans
             ]);
 
-            $mailer = Swift_Mailer::newInstance($transport);
+            $mailer = \Swift_Mailer::newInstance($transport);
 
             # Generate the message.
             $url = 'https://' . USER_SITE . '/merge?id=' . $mid . '&uid=' . $uid;
             $subj = "You have multiple Freegle accounts - please read";
             $textbody = "We think you're using two different accounts on Freegle, perhaps by mistake.  Please let us know whether you'd like to combine them by going to $url";
 
-            $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/');
-            $twig = new Twig_Environment($loader);
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/');
+            $twig = new \Twig_Environment($loader);
 
             $html = $twig->render('merge.html', [
                 'name1' => $u1->getName(),
@@ -78,7 +78,7 @@ foreach ($merges as $merge) {
             ]);
 
             if ($u1mail) {
-                $message = Swift_Message::newInstance()
+                $message = \Swift_Message::newInstance()
                     ->setSubject($subj)
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReturnPath($u1->getBounce())
@@ -86,9 +86,9 @@ foreach ($merges as $merge) {
 
                 $email ? $message->setTo([$u1mail => $u1->getName()]) : 0;
 
-                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart = \Swift_MimePart::newInstance();
                 $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
@@ -100,7 +100,7 @@ foreach ($merges as $merge) {
             }
 
             if ($u2mail) {
-                $message = Swift_Message::newInstance()
+                $message = \Swift_Message::newInstance()
                     ->setSubject($subj)
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReturnPath($u2->getBounce())
@@ -108,9 +108,9 @@ foreach ($merges as $merge) {
 
                 $email ? $message->setTo([$u2mail => $u2->getName()]) : 0;
 
-                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart = \Swift_MimePart::newInstance();
                 $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);

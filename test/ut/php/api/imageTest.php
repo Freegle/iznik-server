@@ -1,13 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikAPITestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/mail/MailRouter.php';
-require_once IZNIK_BASE . '/include/message/MessageCollection.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled

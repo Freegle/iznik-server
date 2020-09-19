@@ -23,7 +23,7 @@ foreach ($users as $user) {
     error_log("..." . $u->getEmailPreferred());
     $count++;
 
-    $message = Swift_Message::newInstance()
+    $message = \Swift_Message::newInstance()
         ->setSubject("Tell us your Freegle story!")
         ->setFrom([NOREPLY_ADDR => SITE_NAME])
         ->setReturnPath($u->getBounce())
@@ -32,9 +32,9 @@ foreach ($users as $user) {
 
     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
     # Outlook.
-    $htmlPart = Swift_MimePart::newInstance();
+    $htmlPart = \Swift_MimePart::newInstance();
     $htmlPart->setCharset('utf-8');
-    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
     $htmlPart->setContentType('text/html');
     $htmlPart->setBody($html);
     $message->attach($htmlPart);

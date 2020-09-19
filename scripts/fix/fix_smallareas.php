@@ -56,7 +56,7 @@ foreach ($groups as $group) {
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log("...skip {$loc['id']} " . $e->getMessage());
         }
 

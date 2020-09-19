@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 function newsletter_article($article) {
     $html = '';

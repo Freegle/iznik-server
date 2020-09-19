@@ -23,5 +23,5 @@ foreach ($locs as $loc) {
         if ($count % 1000 == 0) {
             error_log("$count...");
         }
-    } catch (Exception $e) {}
+    } catch (\Exception $e) {}
 }

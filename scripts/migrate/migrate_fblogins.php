@@ -8,9 +8,9 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsnfd = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
-$dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+$dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $g = Group::get($dbhr, $dbhm);

@@ -41,7 +41,7 @@ foreach ($auths as $auth) {
                     $poly->asText(),
                     $auth['id']
                 ]);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("Failed " . $e->getMessage() . " {$auth['id']}");
             }
         }

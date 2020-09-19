@@ -1,12 +1,13 @@
 <?php
 
 # Exhort active users to do something via onsite notifications.
+namespace Freegle\Iznik;
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 

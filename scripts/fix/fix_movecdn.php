@@ -40,7 +40,7 @@ if (TRUE) {
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $code = $e->getCode();
             $error_message = $e->getMessage();
             echo $code.": ".$error_message.PHP_EOL;
@@ -82,7 +82,7 @@ if (TRUE) {
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $code = $e->getCode();
             $error_message = $e->getMessage();
             echo $code.": ".$error_message.PHP_EOL;
@@ -132,7 +132,7 @@ if (TRUE) {
                         }
                     }
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $code = $e->getCode();
                 $error_message = $e->getMessage();
                 echo $code.": ".$error_message.PHP_EOL;

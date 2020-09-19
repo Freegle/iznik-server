@@ -1,5 +1,13 @@
 <?php
 
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
+
 # We have a list of UK postcodes in the DB, among other locations.  UK postcodes change fairly frequently.
 #
 # 1. Go to https://www.ordnancesurvey.co.uk/opendatadownload/products.html
@@ -13,12 +21,6 @@
 # Fake user site.
 # TODO Messy.
 $_SERVER['HTTP_HOST'] = "ilovefreegle.org";
-
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
 
 $opts = getopt('e:i:');
 

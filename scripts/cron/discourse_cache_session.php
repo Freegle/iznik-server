@@ -1,11 +1,13 @@
 <?php
 
 // Keep in sync with http/discourse_sso.php
+namespace Freegle\Iznik;
 
-require_once dirname(__FILE__) . '/../../include/config.php';
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
+require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
+global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
@@ -71,7 +73,7 @@ try {
     if (file_exists('/var/www/iznik/iznik_sessions.old')) {
         unlink('/var/www/iznik/iznik_sessions.old');
     }
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Get sessions failed with " . $e->getMessage());
 }
 

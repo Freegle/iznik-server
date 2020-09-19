@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function spammers() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $id = intval(presdef('id', $_REQUEST, NULL));
     $userid = intval(presdef('userid', $_REQUEST, NULL));
@@ -31,7 +33,7 @@ function spammers() {
         case 'GET': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $cansee = $me && $me->isModerator();
-            $cansee = $cansee ? $cansee : partner($dbhr, presdef('partner', $_REQUEST, NULL))[0];
+            $cansee = $cansee ? $cansee : Session::partner($dbhr, presdef('partner', $_REQUEST, NULL))[0];
 
             if ($cansee) {
                 # Only mods or partners can see the list.

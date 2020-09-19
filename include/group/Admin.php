@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/admin.php');
@@ -66,7 +67,7 @@ class Admin extends Entity
         $subject = str_replace('ADMIN ', '', $subject);
 
         $html = admin_tpl($groupname, $toname, $to, 'https://' . USER_SITE, USERLOGO, $subject, nl2br($text), $post, $unsubscribe, $visit);
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject("ADMIN: $subject")
             ->setFrom([$from => "$groupname Volunteers" ])
             ->setTo([$to => $toname])
@@ -74,9 +75,9 @@ class Admin extends Entity
 
         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
         # Outlook.
-        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart = \Swift_MimePart::newInstance();
         $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
         $htmlPart->setContentType('text/html');
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
@@ -184,7 +185,7 @@ class Admin extends Entity
                             }
                         }
                     }
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     error_log("Failed with " . $e->getMessage());
                 }
             }
@@ -194,7 +195,7 @@ class Admin extends Entity
     }
 
     public function updateEdit() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $this->dbhm->preExec("UPDATE admins SET editedat = NOW(), editedby = ? WHERE id = ?;", [
             $me->getId(),
             $this->id
@@ -247,7 +248,7 @@ class Admin extends Entity
     }
 
     public function hold() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $this->dbhm->preExec("UPDATE admins SET heldby = ?, heldat = NOW() WHERE id = ?;", [
             $me->getId(),

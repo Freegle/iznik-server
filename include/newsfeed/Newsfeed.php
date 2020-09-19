@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
@@ -234,7 +235,7 @@ class Newsfeed extends Entity
         }
 
         if ($unfollowed) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
             $atts['unfollowed'] = $this->unfollowed($myid, $this->id);
         }
@@ -268,7 +269,7 @@ class Newsfeed extends Entity
     }
 
     private function fillIn(&$entries, &$users, $checkreplies = TRUE, $allreplies = FALSE) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $ids = array_filter(array_column($entries, 'id'));
         $previews = [];
@@ -482,8 +483,8 @@ class Newsfeed extends Entity
 
             # To use the spatial index we need to have a box.
             # TODO This doesn't work if the box spans the equator.  For us it only does for testing.
-            $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
-            $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
+            $ne = \GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
+            $sw = \GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
             $mysqltime = date('Y-m-d', strtotime("30 days ago"));
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
@@ -507,8 +508,8 @@ class Newsfeed extends Entity
             list ($lat, $lng, $loc) = $u->getLatLng();
 
             # To use the spatial index we need to have a box.
-            $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
-            $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
+            $ne = \GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
+            $sw = \GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
@@ -538,7 +539,7 @@ class Newsfeed extends Entity
             $entries = $this->dbhr->preQuery($sql);
             $last = NULL;
 
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
 
             # Get the users that we need for filling in more efficiently - find their ids and then get them in
@@ -628,7 +629,7 @@ class Newsfeed extends Entity
     }
 
     public function refer($type) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $referredid = $this->id;
@@ -647,7 +648,7 @@ class Newsfeed extends Entity
     }
 
     public function like() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         if ($me) {
             $this->dbhm->preExec("INSERT IGNORE INTO newsfeed_likes (newsfeedid, userid) VALUES (?,?);", [
                 $this->id,
@@ -662,7 +663,7 @@ class Newsfeed extends Entity
     }
 
     public function unlike() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         if ($me) {
             $this->dbhm->preExec("DELETE FROM newsfeed_likes WHERE newsfeedid = ? AND userid = ?;", [
                 $this->id,
@@ -674,7 +675,7 @@ class Newsfeed extends Entity
     public function delete($notifstoo = TRUE) {
         $ret = FALSE;
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         if ($me) {
             $this->dbhm->preExec("UPDATE newsfeed SET deleted = NOW(), deletedby = ? WHERE id = ?;", [
                 $me->getId(),
@@ -728,8 +729,8 @@ class Newsfeed extends Entity
             list ($lat, $lng, $loc) = $u->getLatLng();
 
             # To use the spatial index we need to have a box.
-            $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
-            $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
+            $ne = \GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
+            $sw = \GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
@@ -746,7 +747,7 @@ class Newsfeed extends Entity
     }
 
     public function report($reason) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         if ($me) {
             $this->dbhm->preExec("UPDATE newsfeed SET reviewrequired = 1 WHERE id = ?;", [
                 $this->id
@@ -759,7 +760,7 @@ class Newsfeed extends Entity
             ]);
 
             # Ask someone to take a look.
-            $message = Swift_Message::newInstance()
+            $message = \Swift_Message::newInstance()
                 ->setSubject($me->getName() . " #" . $me->getId() . "(" . $me->getEmailPreferred() . ") has reported a ChitChat thread")
                 ->setFrom([GEEKS_ADDR])
                 ->setTo([SUPPORT_ADDR => 'Freegle'])
@@ -786,8 +787,8 @@ class Newsfeed extends Entity
     }
 
     public function digest($userid, $unseen = TRUE) {
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
         # We send a mail with unseen user-generated posts from quite nearby.
         $u = User::get($this->dbhr, $this->dbhm, $userid);
@@ -914,7 +915,7 @@ class Newsfeed extends Entity
                     'noemail' => $noemail,
                 ]);
 
-                $message = Swift_Message::newInstance()
+                $message = \Swift_Message::newInstance()
                     ->setSubject($subj)
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath($u->getBounce())
@@ -923,9 +924,9 @@ class Newsfeed extends Entity
 
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                 # Outlook.
-                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart = \Swift_MimePart::newInstance();
                 $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
@@ -944,8 +945,8 @@ class Newsfeed extends Entity
     public function modnotif($userid, $timeago = "24 hours ago") {
         $count = 0;
 
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
         $mod = User::get($this->dbhr, $this->dbhm, $userid);
 
@@ -1036,7 +1037,7 @@ class Newsfeed extends Entity
                     'email' => $mod->getEmailPreferred()
                 ]);
 
-                $message = Swift_Message::newInstance()
+                $message = \Swift_Message::newInstance()
                     ->setSubject($subj)
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath($mod->getBounce())
@@ -1045,9 +1046,9 @@ class Newsfeed extends Entity
 
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                 # Outlook.
-                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart = \Swift_MimePart::newInstance();
                 $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);

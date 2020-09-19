@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
@@ -265,7 +266,7 @@ class PAF
 
     public function getFormatted($id, $delimiter) {
         $str = NULL;
-        $a = new AllenJB\PafUtils\Address;
+        $a = new \AllenJB\PafUtils\Address;
         $sql = "SELECT locations.name AS postcode, paf_addresses.buildingnumber";
 
         $fields = array_merge($this->idfields1, $this->idfields2);

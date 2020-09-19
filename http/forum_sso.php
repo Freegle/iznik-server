@@ -65,7 +65,7 @@ if (($sso->validatePayload($payload,$signature))) {
                 $session['mod'] = $u->isModerator();
                 error_log("Group list is {$session['grouplist']}");
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log("forum_sso - DB failed with " . $e->getMessage());
         }
 

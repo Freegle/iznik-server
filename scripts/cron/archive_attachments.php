@@ -1,9 +1,10 @@
 <?php
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Image.php');
-require_once(IZNIK_BASE . '/include/message/Attachment.php');
+require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
@@ -77,7 +78,7 @@ foreach ($pics as $pic) {
                 $pic['id']
             ]);
         }
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         error_log($e->getMessage());
     }
 }

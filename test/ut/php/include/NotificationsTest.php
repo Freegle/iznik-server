@@ -1,11 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/Notifications.php';
-require_once IZNIK_BASE . '/include/newsfeed/Newsfeed.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -82,7 +83,7 @@ class notificationsTest extends IznikTestCase {
         $email = 'test2@test.com';
         $this->log("Added email " . $u->addEmail($email));
 
-        $n = $this->getMockBuilder('Notifications')
+        $n = $this->getMockBuilder('Freegle\Iznik\Notifications')
             ->setConstructorArgs(array($this->dbhm, $this->dbhm))
             ->setMethods(array('sendIt'))
             ->getMock();
@@ -227,7 +228,7 @@ class notificationsTest extends IznikTestCase {
         $email = 'test1@test.com';
         $this->log("Added email " . $u->addEmail($email) . " vs " . $u->getEmailPreferred());
 
-        $n = $this->getMockBuilder('Notifications')
+        $n = $this->getMockBuilder('Freegle\Iznik\Notifications')
             ->setConstructorArgs(array($this->dbhm, $this->dbhm))
             ->setMethods(array('sendIt'))
             ->getMock();

@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 # This class does searching for strings containing multiple words.  The matching includes typos and
 # phonetic similarities.

@@ -1,12 +1,13 @@
 <?php
 
+namespace Freegle\Iznik;
+
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
+
 require_once(UT_DIR . '/../../include/config.php');
-require_once IZNIK_BASE . '/include/session/Apple.php';
-require_once IZNIK_BASE . '/include/user/User.php';
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -48,7 +49,7 @@ class AppleTest extends IznikTestCase {
         # Basic successful login
         $this->email = 'test@test.com';
 
-        $mock = $this->getMockBuilder('Apple')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Apple')
             ->setMethods(['getPayload'])
             ->setConstructorArgs([$this->dbhr, $this->dbhm])
             ->getMock();
@@ -74,7 +75,7 @@ class AppleTest extends IznikTestCase {
 
         list($session, $ret) = $mock->login($credentials);
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         assertEquals("Test User" , $me->getName());
 
         $logins = $me->getLogins();
@@ -89,7 +90,7 @@ class AppleTest extends IznikTestCase {
         $this->email = 'test2@test.com';
         list($session, $ret) = $mock->login($credentials);
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
@@ -98,7 +99,7 @@ class AppleTest extends IznikTestCase {
         $me->removeEmail('test2@test.com');
         list($session, $ret) = $mock->login($credentials);
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
@@ -107,7 +108,7 @@ class AppleTest extends IznikTestCase {
         assertEquals(1, $me->removeLogin('Apple', 'UT'));
         list($session, $ret) = $mock->login($credentials);
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
@@ -125,12 +126,12 @@ class AppleTest extends IznikTestCase {
         # Basic successful login
         $this->email = 'test@test.com';
 
-        $mock = $this->getMockBuilder('Apple')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Apple')
             ->setMethods(['getPayload'])
             ->setConstructorArgs([$this->dbhr, $this->dbhm])
             ->getMock();
 
-        $mock->method('getPayload')->willThrowException(new Exception());
+        $mock->method('getPayload')->willThrowException(new \Exception());
 
         $credentials = [
             "authorizationCode" => "UT",
@@ -159,7 +160,7 @@ class AppleTest extends IznikTestCase {
         try {
             $a->getPayload("invalid");
             assertFalse(TRUE);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             assertEquals("Wrong number of segments", $e->getMessage());
         }
     }

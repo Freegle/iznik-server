@@ -1,12 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
+
 require_once(UT_DIR . '/../../include/config.php');
-require_once(IZNIK_BASE . '/include/session/Session.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -28,7 +28,7 @@ class sessionClassTest extends IznikTestCase {
 
     public function testBasic() {
         # Logged out
-        $me = whoAmI($this->dbhm, $this->dbhm);
+        $me = Session::whoAmI($this->dbhm, $this->dbhm);
         assertNull($me);
 
         $u = User::get($this->dbhm, $this->dbhm);
@@ -45,12 +45,12 @@ class sessionClassTest extends IznikTestCase {
 
         assertNull($s->verify($id, $ret['series'] . 'z', $ret['token']));
 
-        $me = whoAmI($this->dbhm, $this->dbhm);
+        $me = Session::whoAmI($this->dbhm, $this->dbhm);
         assertNull($me);
 
         # Now fake the login
         $_SESSION['id'] = $id;
-        $me = whoAmI($this->dbhm, $this->dbhm);
+        $me = Session::whoAmI($this->dbhm, $this->dbhm);
         assertEquals($id, $me->getPrivate('id'));
 
         }

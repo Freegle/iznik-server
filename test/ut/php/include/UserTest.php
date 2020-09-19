@@ -1,16 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/message/Message.php';
-require_once IZNIK_BASE . '/include/newsfeed/Newsfeed.php';
-require_once IZNIK_BASE . '/include/mail/MailRouter.php';
-require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
-require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -230,11 +226,11 @@ class userTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         assertEquals(0, $u->addEmail('test-owner@yahoogroups.com'));
 
-        $mock = $this->getMockBuilder('LoggedPDO')
+        $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->disableOriginalConstructor()
             ->setMethods(array('preExec'))
             ->getMock();
-        $mock->method('preExec')->willThrowException(new Exception());
+        $mock->method('preExec')->willThrowException(new \Exception());
         $u->setDbhm($mock);
         $id = $u->create(NULL, NULL, 'Test User');
         assertNull($id);
@@ -325,7 +321,7 @@ class userTest extends IznikTestCase {
         $this->log("Check role for group");
         assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
         $this->log("Check role for message");
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $me->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         assertEquals(User::SYSTEMROLE_ADMIN, $me->getPrivate('systemrole'));
         assertEquals(User::ROLE_OWNER, $m->getRoleForMessage()[0]);
@@ -515,13 +511,13 @@ class userTest extends IznikTestCase {
 
         $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
 
-        $mock = $this->getMockBuilder('LoggedPDO')
+        $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
             ), TRUE))
             ->setMethods(array('preExec'))
             ->getMock();
-        $mock->method('preExec')->willThrowException(new Exception());
+        $mock->method('preExec')->willThrowException(new \Exception());
         $u1->setDbhm($mock);
 
         # Merge u2 into u1
@@ -616,7 +612,7 @@ class userTest extends IznikTestCase {
         $group = $g->create('testgroup1', Group::GROUP_REUSE);
 
         # Suppress mails.
-        $u = $this->getMockBuilder('User')
+        $u = $this->getMockBuilder('Freegle\Iznik\User')
         ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
         ->setMethods(array('mailer'))
         ->getMock();
@@ -658,9 +654,9 @@ class userTest extends IznikTestCase {
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u1->login('testpw'));
 
-        # Reset u1 to match what whoAmI will give so that when we change the role in u1, the role
-        # returned by whoAmI will have changed.
-        $u1 = whoAmI($this->dbhr, $this->dbhm);
+        # Reset u1 to match what Session::whoAmI will give so that when we change the role in u1, the role
+        # returned by Session::whoAmI will have changed.
+        $u1 = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -795,7 +791,7 @@ class userTest extends IznikTestCase {
         $uid = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
 
-        $s = $this->getMockBuilder('User')
+        $s = $this->getMockBuilder('Freegle\Iznik\User')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm, $uid ])
             ->setMethods(array('sendIt'))
             ->getMock();
@@ -871,7 +867,7 @@ class userTest extends IznikTestCase {
     }
 
     public function testThank() {
-        $s = $this->getMockBuilder('User')
+        $s = $this->getMockBuilder('Freegle\Iznik\User')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
             ->setMethods(array('sendIt'))
             ->getMock();
@@ -897,7 +893,7 @@ class userTest extends IznikTestCase {
         $uid = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
 
-        $s = $this->getMockBuilder('User')
+        $s = $this->getMockBuilder('Freegle\Iznik\User')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm, $uid ])
             ->setMethods(array('sendIt'))
             ->getMock();
@@ -911,7 +907,7 @@ class userTest extends IznikTestCase {
     }
 
     public function testInvite() {
-        $s = $this->getMockBuilder('User')
+        $s = $this->getMockBuilder('Freegle\Iznik\User')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
             ->setMethods(array('sendIt'))
             ->getMock();
@@ -1515,7 +1511,7 @@ class userTest extends IznikTestCase {
         $id = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@test.com');
 
-        $mock = $this->getMockBuilder('User')
+        $mock = $this->getMockBuilder('Freegle\Iznik\User')
             ->disableOriginalConstructor()
             ->setMethods(array('sendIt'))
             ->getMock();
@@ -1525,11 +1521,11 @@ class userTest extends IznikTestCase {
         $mock->mailer($u, NULL, "Test", "test@test.com", "test@test.com", "Test", "test@test.com", "Test", "Test");
         assertEquals(1, count($this->msgsSent));
 
-        $mock = $this->getMockBuilder('User')
+        $mock = $this->getMockBuilder('Freegle\Iznik\User')
             ->disableOriginalConstructor()
             ->setMethods(array('sendIt'))
             ->getMock();
-        $mock->method('sendIt')->willThrowException(new Exception());
+        $mock->method('sendIt')->willThrowException(new \Exception());
         $mock->mailer($u, NULL, "Test", "test@test.com", "test@test.com", "Test", "test@test.com", "Test", "Test");
         assertEquals(1, count($this->msgsSent));
     }

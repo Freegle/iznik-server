@@ -1,9 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $opts = getopt('f:');
 
@@ -105,7 +108,7 @@ if (count($opts) != 1) {
 
 //            if ($dbhm->rowsAffected() > 0 && $amount >= 20) {
 //                $text = "$name ($email) donated £{$amount}.  Please can you thank them?";
-//                $message = Swift_Message::newInstance()
+//                $message = \Swift_Message::newInstance()
 //                    ->setSubject("$name ({$email}) donated £{$amount} - please send thanks")
 //                    ->setFrom(NOREPLY_ADDR)
 //                    ->setTo(INFO_ADDR)

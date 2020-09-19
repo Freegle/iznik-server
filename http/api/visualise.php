@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function visualise() {
     global $dbhr, $dbhm;
 

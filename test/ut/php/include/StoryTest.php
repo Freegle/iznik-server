@@ -1,12 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/user/Story.php';
 
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -30,7 +30,7 @@ class StoryTest extends IznikTestCase {
     }
 
     public function testCentral() {
-        $s = $this->getMockBuilder('Story')
+        $s = $this->getMockBuilder('Freegle\Iznik\Story')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
             ->setMethods(array('sendIt'))
             ->getMock();

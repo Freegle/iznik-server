@@ -28,5 +28,5 @@ foreach ($groups as $group) {
                 $group['groupid']
             ]);
         }
-    } catch (Exception $e) {}
+    } catch (\Exception $e) {}
 }

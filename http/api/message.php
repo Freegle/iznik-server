@@ -1,11 +1,13 @@
 <?php
+namespace Freegle\Iznik;
+
 function message() {
     global $dbhr, $dbhm;
 
 //    $dbhr->setErrorLog(TRUE);
 //    $dbhm->setErrorLog(TRUE);
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
     $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);

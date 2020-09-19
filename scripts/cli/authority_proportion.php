@@ -1,11 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once IZNIK_BASE . '/include/misc/Authority.php';
-require_once IZNIK_BASE . '/include/misc/Stats.php';
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $auths = $dbhr->preQuery("SELECT * FROM authorities WHERE area_code IN ('CTY', 'DIS', 'MTD', 'UTA') ORDER BY LOWER(name);");
 $total = 0;
@@ -23,7 +24,7 @@ foreach ($auths as $auth) {
         }
 
         echo "{$auth['name']}, " . round($acttotal, 4) . "\n";
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         error_log("Exception on {$auth['id']} {$auth['name']} " . $e->getMessage());
     }
 }

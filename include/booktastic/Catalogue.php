@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 // @codeCoverageIgnoreStart
 // This is a proof of concept for another project, it isn't tested as part of Freegle.
 

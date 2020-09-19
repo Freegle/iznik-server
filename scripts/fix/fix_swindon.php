@@ -11,7 +11,7 @@ list ($transport, $mailer) = getMailer();
 
 foreach ($membs as $memb) {
     $u = new User($dbhr, $dbhm, $memb['userid']);
-    $msg = Swift_Message::newInstance()
+    $msg = \Swift_Message::newInstance()
         ->setSubject("ADMIN: Swindon Freecycle")
         ->setFrom([NOREPLY_ADDR => "Swindon Freecycle" ])
         ->setTo($u->getEmailPreferred())

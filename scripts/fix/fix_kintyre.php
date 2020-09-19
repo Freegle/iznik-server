@@ -27,7 +27,7 @@ $pcs = [
     "PA38"=>"Appin"
 ];
 
-$g = new geoPHP();
+$g = new \geoPHP();
 $l = new Location($dbhr, $dbhm);
 
 foreach ($pcs as $pc => $area) {

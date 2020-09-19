@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 function verify_email($email, $confirm, $logo) {
     $html = <<<EOT

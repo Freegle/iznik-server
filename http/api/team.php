@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function team() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $id = intval(presdef('id', $_REQUEST, NULL));
     $name = presdef('name', $_REQUEST, NULL);

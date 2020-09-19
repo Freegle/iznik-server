@@ -1,15 +1,17 @@
 <?php
+namespace Freegle\Iznik;
+
 function adview() {
     # This proxies a request on to adview to avoid CORS issues.
     global $dbhr, $dbhm;
 
     $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
-    $hdrs = getallheaders();
+    $hdrs = Session::getallheaders();
     $ip = presdef('X-Real-Ip', $hdrs, $ip);
 
     $location = presdef('location', $_REQUEST, NULL);
     $link = presdef('link', $_REQUEST, NULL);
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 

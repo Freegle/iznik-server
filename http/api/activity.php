@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function activity() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 

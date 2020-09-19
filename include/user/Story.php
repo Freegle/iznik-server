@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
@@ -23,7 +24,7 @@ class Story extends Entity
     }
 
     public function setAttributes($settings) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         foreach ($this->settableatts as $att) {
@@ -74,7 +75,7 @@ class Story extends Entity
         $ret = parent::getPublic();
 
         $ret['date'] = ISODate($ret['date']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $u = User::get($this->dbhr, $this->dbhm, $this->story['userid']);
 
@@ -134,14 +135,14 @@ class Story extends Entity
 
     public function canSee() {
         # Can see our own, or all if we have permissions, or if it's public
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         return($this->story['public'] || $this->story['userid'] == $myid || ($me && $me->isAdminOrSupport()));
     }
 
     public function canMod() {
         # We can modify if it's ours, we are an admin, or a mod on a group that the author is a member of.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $author = User::get($this->dbhr, $this->dbhm, $this->story['userid']);
         $authormembs = $author->getMemberships(FALSE);
@@ -176,7 +177,7 @@ class Story extends Entity
     }
 
     public function getReviewCount($newsletter, $me = NULL) {
-        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
+        $me = $me ? $me : Session::whoAmI($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d", strtotime("31 days ago"));
 
         if ($newsletter) {
@@ -267,8 +268,8 @@ class Story extends Entity
                     $asked++;
                     $url = $u->loginLink(USER_SITE, $user['fromuser'], '/stories');
 
-                    $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/stories');
-                    $twig = new Twig_Environment($loader);
+                    $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/stories');
+                    $twig = new \Twig_Environment($loader);
 
                     $html = $twig->render('ask.html', [
                         'name' => $u->getName(),
@@ -279,7 +280,7 @@ class Story extends Entity
                     error_log("..." . $u->getEmailPreferred());
 
                     try {
-                        $message = Swift_Message::newInstance()
+                        $message = \Swift_Message::newInstance()
                             ->setSubject("Tell us your Freegle story!")
                             ->setFrom([NOREPLY_ADDR => SITE_NAME])
                             ->setReturnPath($u->getBounce())
@@ -288,9 +289,9 @@ class Story extends Entity
 
                         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                         # Outlook.
-                        $htmlPart = Swift_MimePart::newInstance();
+                        $htmlPart = \Swift_MimePart::newInstance();
                         $htmlPart->setCharset('utf-8');
-                        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                         $htmlPart->setContentType('text/html');
                         $htmlPart->setBody($html);
                         $message->attach($htmlPart);
@@ -299,7 +300,7 @@ class Story extends Entity
 
                         list ($transport, $mailer) = getMailer();
                         $mailer->send($message);
-                    } catch (Exception $e) {}
+                    } catch (\Exception $e) {}
                 }
             }
         }
@@ -338,7 +339,7 @@ class Story extends Entity
             $url = 'https://' . USER_SITE . '/stories';
             $html = story_central(CENTRAL_MAIL_TO, CENTRAL_MAIL_TO, $url, $html);
 
-            $message = Swift_Message::newInstance()
+            $message = \Swift_Message::newInstance()
                 ->setSubject(date("d-M-Y")." Recent stories from freeglers")
                 ->setFrom([CENTRAL_MAIL_FROM => SITE_NAME])
                 ->setReturnPath(CENTRAL_MAIL_FROM)
@@ -347,9 +348,9 @@ class Story extends Entity
 
             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
             # Outlook.
-            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart = \Swift_MimePart::newInstance();
             $htmlPart->setCharset('utf-8');
-            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
             $htmlPart->setContentType('text/html');
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
@@ -407,7 +408,7 @@ class Story extends Entity
     }
 
     public function like() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         if ($me) {
             $this->dbhm->preExec("INSERT IGNORE INTO users_stories_likes (storyid, userid) VALUES (?,?);", [
                 $this->id,
@@ -417,7 +418,7 @@ class Story extends Entity
     }
 
     public function unlike() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         if ($me) {
             $this->dbhm->preExec("DELETE FROM users_stories_likes WHERE storyid = ? AND userid = ?;", [
                 $this->id,

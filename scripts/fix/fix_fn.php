@@ -16,7 +16,7 @@ $auth = intval(presdef('a', $opts, 0));
 
 $str = file_get_contents($from);
 
-$g = new geoPHP();
+$g = new \geoPHP();
 $p = $g->load($str);
 
 if (strpos($str, "MULTIPOLYGON") !== FALSE) {

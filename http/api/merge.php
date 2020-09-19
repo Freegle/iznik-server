@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function merge() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -114,15 +116,15 @@ function merge() {
                 $mid = $dbhm->lastInsertId();
 
                 # Create a mailer.
-                $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
-                $spooltrans = Swift_SpoolTransport::newInstance($spool);
-                $smtptrans = Swift_SmtpTransport::newInstance('localhost');
-                $transport = Swift_FailoverTransport::newInstance([
+                $spool = new \Swift_FileSpool(IZNIK_BASE . "/spool");
+                $spooltrans = \Swift_SpoolTransport::newInstance($spool);
+                $smtptrans = \Swift_SmtpTransport::newInstance('localhost');
+                $transport = \Swift_FailoverTransport::newInstance([
                     $smtptrans,
                     $spooltrans
                 ]);
 
-                $mailer = Swift_Mailer::newInstance($transport);
+                $mailer = \Swift_Mailer::newInstance($transport);
 
                 # Generate the message.
                 $u1 = new User($dbhr, $dbhm, $user1);
@@ -131,8 +133,8 @@ function merge() {
                 $subj = "You have multiple Freegle accounts - please read";
                 $textbody = "We think you're using two different accounts on Freegle, perhaps by mistake.  Please let us know whether you'd like to combine them by going to $url";
 
-                $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/');
-                $twig = new Twig_Environment($loader);
+                $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/');
+                $twig = new \Twig_Environment($loader);
 
                 $html = $twig->render('merge.html', [
                     'name1' => $u1->getName(),
@@ -145,7 +147,7 @@ function merge() {
                 $u1mail = $u1->getEmailPreferred();
 
                 if ($u1mail) {
-                    $message = Swift_Message::newInstance()
+                    $message = \Swift_Message::newInstance()
                         ->setSubject($subj)
                         ->setFrom([NOREPLY_ADDR => SITE_NAME])
                         ->setReturnPath($u1->getBounce())
@@ -153,9 +155,9 @@ function merge() {
 
                     $email ? $message->setTo([$u1mail => $u1->getName()]) : 0;
 
-                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart = \Swift_MimePart::newInstance();
                     $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
@@ -168,7 +170,7 @@ function merge() {
                 $u2mail = $u2->getEmailPreferred();
 
                 if ($u2mail) {
-                    $message = Swift_Message::newInstance()
+                    $message = \Swift_Message::newInstance()
                         ->setSubject($subj)
                         ->setFrom([NOREPLY_ADDR => SITE_NAME])
                         ->setReturnPath($u2->getBounce())
@@ -176,9 +178,9 @@ function merge() {
 
                     $email ? $message->setTo([$u2mail => $u2->getName()]) : 0;
 
-                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart = \Swift_MimePart::newInstance();
                     $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);

@@ -13,7 +13,7 @@ foreach ($locs as $loc) {
             $loc['id'],
             $loc['id']
         ]);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         error_log("{$loc['id']} failed " . $e->getMessage());
     }
 

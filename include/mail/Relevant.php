@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/wrapper.php');
@@ -34,7 +35,7 @@ class Relevant {
                 list ($transport, $mailer) = getMailer();
                 $html = relevant_off(USER_SITE, USERLOGO);
 
-                $message = Swift_Message::newInstance()
+                $message = \Swift_Message::newInstance()
                     ->setSubject("Email Change Confirmation")
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReturnPath($u->getBounce())
@@ -43,9 +44,9 @@ class Relevant {
 
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                 # Outlook.
-                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart = \Swift_MimePart::newInstance();
                 $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
@@ -264,7 +265,7 @@ class Relevant {
                         $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $visit, $unsubscribe);
 
                         try {
-                            $message = Swift_Message::newInstance()
+                            $message = \Swift_Message::newInstance()
                                 ->setSubject($subj)
                                 ->setFrom([NOREPLY_ADDR => SITE_NAME ])
                                 ->setReturnPath($u->getBounce())
@@ -273,9 +274,9 @@ class Relevant {
 
                             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                             # Outlook.
-                            $htmlPart = Swift_MimePart::newInstance();
+                            $htmlPart = \Swift_MimePart::newInstance();
                             $htmlPart->setCharset('utf-8');
-                            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                             $htmlPart->setContentType('text/html');
                             $htmlPart->setBody($html);
                             $message->attach($htmlPart);
@@ -285,7 +286,7 @@ class Relevant {
                             $this->sendOne($mailer, $message);
                             #error_log("Sent to $email");
                             $count++;
-                        } catch (Exception $e) {
+                        } catch (\Exception $e) {
                             error_log("Send to $email failed with " . $e->getMessage());
                         }
                     }

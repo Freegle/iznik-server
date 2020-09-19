@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -358,7 +359,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
 
     function getMulti($date, $groupids, $startdate = "30 days ago", $enddate = "today", $systemwide = FALSE, $types = NULL) {
         # Get stats across multiple groups.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $ret = [];
         $ret['groupids'] = [];

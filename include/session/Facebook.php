@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once("/etc/iznik.conf");
 
@@ -25,7 +26,7 @@ class Facebook
     }
 
     public function getFB() {
-        $fb = new Facebook\Facebook([
+        $fb = new \Facebook\Facebook([
             'app_id' => FBAPP_ID,
             'app_secret' => FBAPP_SECRET
         ]);
@@ -58,7 +59,7 @@ class Facebook
             if ($accessToken) {
                 list($s, $ret) = $this->processAccessToken($fb, $accessToken);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $ret = [
                 'ret' => 2,
                 'status' => "Didn't manage to get a Facebook session: " . $e->getMessage()
@@ -212,7 +213,7 @@ class Facebook
                 $ret = 0;
                 $status = 'Success';
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $ret = 1;
             $status = "Failed to get user details " . $e->getMessage();
         }
@@ -245,7 +246,7 @@ class Facebook
                 $helper = $fb->getCanvasHelper();
                 $accessToken = $helper->getAccessToken();
                 list ($s, $ret) = $this->processAccessToken($fb, $accessToken);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $ret = [
                     'ret' => 2,
                     'status' => "Didn't manage to get a Facebook session: " . $e->getMessage()
@@ -257,7 +258,7 @@ class Facebook
     }
 
     public function fbpost($fbid, $notif) {
-        $fb = new Facebook\Facebook([
+        $fb = new \Facebook\Facebook([
                                         'app_id' => FBAPP_ID,
                                         'app_secret' => FBAPP_SECRET
                                     ]);
@@ -279,7 +280,7 @@ class Facebook
             $result = $this->fbpost($fbid, $notif);
             error_log("...notified Facebook $fbid OK");
             #error_log("Notify returned " . var_export($result, TRUE));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $msg = $e->getMessage();
             error_log("FB notify failed with " . $msg);
 
@@ -325,7 +326,7 @@ class Facebook
             ));
 
             $id = $this->pheanPut($str);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             # Try again in case it's a temporary error.
             error_log("Beanstalk exception " . $e->getMessage());
             $this->pheanstalk = NULL;

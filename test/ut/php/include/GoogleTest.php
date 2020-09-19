@@ -1,12 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
+
 require_once(UT_DIR . '/../../include/config.php');
-require_once IZNIK_BASE . '/include/session/Google.php';
-require_once IZNIK_BASE . '/include/user/User.php';
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -29,14 +29,14 @@ class GoogleTest extends IznikTestCase {
     }
 
     public function get() {
-        $me = new Google_Service_Plus_Person();
+        $me = new \Google_Service_Plus_Person();
         $me->setId($this->googleId);
-        $name = new Google_Service_Plus_PersonName();
+        $name = new \Google_Service_Plus_PersonName();
         $name->setFormatted($this->googleName);
         $name->setFamilyName($this->googleLastName);
         $name->setGivenName($this->googleFirstName);
         $me->setName($name);
-        $email = new Google_Service_Plus_PersonEmails();
+        $email = new \Google_Service_Plus_PersonEmails();
         $email->setType('account');
         $email->setValue($this->googleEmail);
         $me->setEmails([$email]);
@@ -56,7 +56,7 @@ class GoogleTest extends IznikTestCase {
         assertEquals(2, $ret['ret']);
 
         # Basic successful login
-        $mock = $this->getMockBuilder('Google')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Google')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, FALSE])
             ->setMethods(array('getClient', 'getUserDetails'))
             ->getMock();
@@ -75,7 +75,7 @@ class GoogleTest extends IznikTestCase {
         list($session, $ret) = $mock->login(1);
         $this->log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $logins = $me->getLogins();
         $this->log("Logins " . var_export($logins, TRUE));
         assertEquals(1, $logins[0]['uid']);
@@ -88,7 +88,7 @@ class GoogleTest extends IznikTestCase {
         $this->email = 'test2@test.com';
         list($session, $ret) = $mock->login(1);
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
@@ -97,7 +97,7 @@ class GoogleTest extends IznikTestCase {
         $me->removeEmail('test2@test.com');
         list($session, $ret) = $mock->login(1);
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
@@ -106,7 +106,7 @@ class GoogleTest extends IznikTestCase {
         assertEquals(1, $me->removeLogin('Google', 1));
         list($session, $ret) = $mock->login(1);
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));

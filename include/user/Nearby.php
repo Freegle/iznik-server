@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/nearby.php');
@@ -79,7 +80,7 @@ class Nearby
                                         $html = relevant_nearby(USER_SITE, USERLOGO, $name, $miles, $m->getSubject(), $msg['id'], $msg['type'], $email, $noemail);
 
                                         try {
-                                            $message = Swift_Message::newInstance()
+                                            $message = \Swift_Message::newInstance()
                                                 ->setSubject($subj)
                                                 ->setFrom([NOREPLY_ADDR => SITE_NAME ])
                                                 ->setReturnPath($u->getBounce())
@@ -88,9 +89,9 @@ class Nearby
 
                                             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                                             # Outlook.
-                                            $htmlPart = Swift_MimePart::newInstance();
+                                            $htmlPart = \Swift_MimePart::newInstance();
                                             $htmlPart->setCharset('utf-8');
-                                            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                                             $htmlPart->setContentType('text/html');
                                             $htmlPart->setBody($html);
                                             $message->attach($htmlPart);
@@ -100,7 +101,7 @@ class Nearby
                                             $this->sendOne($mailer, $message);
                                             error_log("...user {$user['id']} dist $miles");
                                             $count++;
-                                        } catch (Exception $e) {
+                                        } catch (\Exception $e) {
                                             error_log("Send to $email failed with " . $e->getMessage());
                                         }
                                     }

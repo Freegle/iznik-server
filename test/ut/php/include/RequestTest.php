@@ -1,12 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/user/Request.php';
 
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -28,7 +28,7 @@ class RequestTest extends IznikTestCase {
         $this->count--;
         if ($this->count > 0) {
             $this->log("Exception");
-            throw new Exception('Faked exception');
+            throw new \Exception('Faked exception');
         } else {
             $this->log("No exception");
             return TRUE;
@@ -36,7 +36,7 @@ class RequestTest extends IznikTestCase {
     }
 
     public function testCentral() {
-        $r = $this->getMockBuilder('Request')
+        $r = $this->getMockBuilder('Freegle\Iznik\Request')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
             ->setMethods(array('sendIt'))
             ->getMock();
@@ -61,7 +61,7 @@ class RequestTest extends IznikTestCase {
      * @dataProvider exceptions
      */
     public function testException($count) {
-        $r = $this->getMockBuilder('Request')
+        $r = $this->getMockBuilder('Freegle\Iznik\Request')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
             ->setMethods(array('sendIt'))
             ->getMock();

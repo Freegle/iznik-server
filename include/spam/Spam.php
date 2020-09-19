@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
@@ -94,7 +95,7 @@ class Spam {
                 $record = $this->reader->country($ip);
                 $country = $record->country->name;
                 $msg->setPrivate('fromcountry', $record->country->isoCode);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 # Failed to look it up.
                 error_log("Failed to look up $ip " . $e->getMessage());
                 $country = NULL;
@@ -455,7 +456,7 @@ class Spam {
     public function checkUser($userid, $lat = NULL, $lng = NULL) {
         # Called when something has happened to a user which makes them more likely to be a spammer, and therefore
         # needs rechecking.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $suspect = FALSE;
         $reason = NULL;
@@ -487,7 +488,7 @@ class Spam {
                 $maxlng = max($dists[0]['maxlng'], $lng);
                 $minlng = min($dists[0]['minlng'], $lng);
 
-                $dist = GreatCircle::getDistance($minlat, $minlng, $maxlat, $maxlng);
+                $dist = \GreatCircle::getDistance($minlat, $minlng, $maxlat, $maxlng);
                 $dist = round($dist * 0.000621371192);
                 $settings = pres('settings', $dists[0]) ? json_decode($dists[0]['settings'], TRUE) : [
                     'spammers' => [
@@ -566,7 +567,7 @@ class Spam {
     public function listSpammers($collection, $search, &$context) {
         # We exclude anyone who isn't a User (e.g. mods, support, admin) so that they don't appear on the list and
         # get banned.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $seeall = $me && $me->isAdminOrSupport();
         $collectionq = ($collection ? " AND collection = '$collection'" : '');
         $startq = $context ? (" AND spam_users.id <  " . intval($context['id']) . " ") : '';
@@ -713,7 +714,7 @@ class Spam {
     }
 
     public function addSpammer($userid, $collection, $reason) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $text = NULL;
         $id = NULL;
 
@@ -768,7 +769,7 @@ class Spam {
     }
 
     public function updateSpammer($id, $userid, $collection, $reason, $heldby) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         switch ($collection) {
             case Spam::TYPE_SPAMMER: {
@@ -818,7 +819,7 @@ class Spam {
     }
 
     public function deleteSpammer($id, $reason) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $spammers = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE id = ?;", [ $id ]);
 
         $rc = FALSE;

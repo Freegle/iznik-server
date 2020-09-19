@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function chatrooms() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : $me;
 
     $id = intval(presdef('id', $_REQUEST, NULL));

@@ -1,16 +1,19 @@
 <?php
 # Use geoPHP because we see some errors if we use ST_Intersects.
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/misc/Stats.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
+
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 error_log("Load auths");
 
-$g = new geoPHP();
+$g = new \geoPHP();
 $auths = $dbhr->preQuery("SELECT id, name, AsText(polygon) as geom FROM authorities");
 
 $authp = [];
@@ -65,7 +68,7 @@ foreach ($groups as $group) {
                         }
                     }
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("Exception on {$auth['name']}" . $e->getMessage());
             }
         }

@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 

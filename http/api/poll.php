@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function poll() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $id = intval(presdef('id', $_REQUEST, NULL));
 

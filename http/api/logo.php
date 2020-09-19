@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function logo() {
     global $dbhr, $dbhm;
 

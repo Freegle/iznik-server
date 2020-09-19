@@ -1,4 +1,7 @@
 <?php
+namespace Freegle\Iznik;
+
+use spamc;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -487,7 +490,7 @@ class MailRouter
                     try {
                         $spamret = $this->spamc->filter($this->msg->getMessage());
                         $spamscore = $this->spamc->result['SCORE'];
-                    } catch (Exception $e) {}
+                    } catch (\Exception $e) {}
 
                     if ($spamret) {
                         if ($spamscore >= MailRouter::ASSASSIN_THRESHOLD && ($this->msg->getEnvelopefrom() != 'from@test.com')) {
@@ -917,7 +920,7 @@ class MailRouter
                     $m->setPrivate('imageid', $aid2);
                     $count++;
                 }
-            } catch (Exception $e) { error_log("Create failed " . $e->getMessage()); }
+            } catch (\Exception $e) { error_log("Create failed " . $e->getMessage()); }
         }
 
         return($count);
@@ -935,7 +938,7 @@ class MailRouter
                 if (!$msg->getDeleted()) {
                     $this->route($msg);
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 # Ignore this and continue routing the rest.
                 error_log("Route #" . $this->msg->getID() . " failed " . $e->getMessage() . " stack " . $e->getTraceAsString());
                 if ($this->dbhm->inTransaction()) {
@@ -949,7 +952,7 @@ class MailRouter
         # None of these mails need tracking, so we don't call AddHeaders.
         list ($transport, $mailer) = getMailer();
 
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom($from)
             ->setTo($to)

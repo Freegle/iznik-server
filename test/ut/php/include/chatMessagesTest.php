@@ -1,15 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
-require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
-require_once IZNIK_BASE . '/include/mail/MailRouter.php';
-require_once IZNIK_BASE . '/include/message/Message.php';
-require_once IZNIK_BASE . '/include/user/User.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -422,14 +419,14 @@ class chatMessagesTest extends IznikTestCase {
         );
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $mock = $this->getMockBuilder('LoggedPDO')
+        $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->setConstructorArgs([
                 "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
                 $dbconfig['user'], $dbconfig['pass'], array(), TRUE
             ])
             ->setMethods(array('preExec'))
             ->getMock();
-        $mock->method('preExec')->willThrowException(new Exception());
+        $mock->method('preExec')->willThrowException(new \Exception());
         $m->setDbhm($mock);
 
         list ($mid, $banned) = $m->create(NULL, $this->uid, 'Test');

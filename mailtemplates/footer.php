@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 # Standard email footer
 

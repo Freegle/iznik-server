@@ -26,7 +26,7 @@ foreach ($locs as $loc) {
                 error_log($count);
             }
         }
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         error_log("Exception " . $e->getMessage() . " on " . $loc['id']);
     }
 }

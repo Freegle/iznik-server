@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -52,7 +53,7 @@ class GroupFacebook {
 
     public function getFB($graffiti, $apptoken = FALSE) {
         #error_log("Get FB $graffiti");
-        $fb = new Facebook\Facebook([
+        $fb = new \Facebook\Facebook([
             'app_id' => $graffiti ? FBGRAFFITIAPP_ID : FBAPP_ID,
             'app_secret' => $graffiti ? FBGRAFFITIAPP_SECRET : FBAPP_SECRET
         ]);
@@ -125,7 +126,7 @@ class GroupFacebook {
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $code = $e->getCode();
             error_log("Failed to scrape code $code message " . $e->getMessage() . " token " . $this->token);
         }
@@ -137,7 +138,7 @@ class GroupFacebook {
         # We want posts which have been collected from the sharefrom page which have not already been shared, for
         # groups where we are a moderator.
         $mindate = date("Y-m-d H:i:s", strtotime($mindate));
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $ret = [];
         $dateq = $mindate ? " groups_facebook_toshare.date >= '$mindate' AND " : '';
 
@@ -215,7 +216,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
     }
 
     public function performSocialAction($id) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $ret = FALSE;
 
         if ($me) {
@@ -247,7 +248,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         # Like the original post.
                         try {
                             $res = $fb->post($action['postid'] . '/likes', [], $this->token);
-                        } catch (Exception $e) {
+                        } catch (\Exception $e) {
                             # Some likes can fail when using the user access token because some posts are
                             # strangely not visible.  Unclear why.  But don't mark the token as invalid just for
                             # these.
@@ -262,7 +263,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         $result = $fb->post($this->id . '/feed', $params, $this->token);
                         error_log("Share via " . json_encode($params) . " returned " . var_export($result, TRUE));
                         $ret = TRUE;
-                    } catch (Exception $e) {
+                    } catch (\Exception $e) {
                         error_log("Share failed with " . $e->getMessage());
                         $msg = $e->getMessage();
 
@@ -279,7 +280,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
     }
 
     public function hideSocialAction($id) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         if ($me) {
             # We need to be a mod on the relevant group.
             $modships = $me->getModeratorships();

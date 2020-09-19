@@ -1,10 +1,14 @@
 <?php
 
-# This is for updates to the PAF file.  Don't run it for the initial load - it's too slow.
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Location.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
+
+# This is for updates to the PAF file.  Don't run it for the initial load - it's too slow.
 
 $locs = $dbhr->preQuery("SELECT DISTINCT locations.* FROM users_searches INNER JOIN locations ON locations.id = users_searches.locationid WHERE locationid IS NOT NULL;");
 $total = count($locs);
@@ -14,7 +18,7 @@ $outsides = [];
 $count = 0;
 
 // Creates the Document.
-$dom = new DOMDocument('1.0', 'UTF-8');
+$dom = new \DOMDocument('1.0', 'UTF-8');
 
 // Creates the root KML element and appends it to the root document.
 $node = $dom->createElementNS('http://earth.google.com/kml/2.1', 'kml');

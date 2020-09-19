@@ -1,10 +1,12 @@
 <?php
+namespace Freegle\Iznik;
+
 function stdmsg() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $id = presdef('id', $_REQUEST, NULL);
     $configid = presdef('configid', $_REQUEST, NULL);

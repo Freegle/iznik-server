@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function changes() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $since = presdef('since', $_REQUEST, date("Y-m-d H:i:s", strtotime("1 hour ago")));
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];

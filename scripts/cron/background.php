@@ -2,28 +2,27 @@
 #
 #  This script handles less critical background tasks.
 #
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
-require_once(IZNIK_BASE . '/include/session/Facebook.php');
-global $dbhr, $dbhm;
+namespace Freegle\Iznik;
 
-use Pheanstalk\Pheanstalk;
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $opts = getopt('n:');
 $instancename = presdef('n', $opts, '');
 $fn = basename(__FILE__ . '_' . $instancename);
 $lockh = lockScript($fn);
 
-$dbhm->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, TRUE);
+$dbhm->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, TRUE);
 
 function doSQL($sql) {
     global $dbhm;
 
     try {
         $rc = $dbhm->exec($sql, FALSE);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         $msg = $e->getMessage();
 
         if (strpos($e, 'gone away')) {
@@ -125,12 +124,12 @@ try {
                     }
                 }
             }
-        } catch (Exception $e) { error_log("Exception " . $e->getMessage()); }
+        } catch (\Exception $e) { error_log("Exception " . $e->getMessage()); }
 
         # Whatever it is, we need to delete the job to avoid getting stuck.
         $rc = $pheanstalk->delete($job);
     }
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Top-level exception " . $e->getMessage() . "\n");
 }
 

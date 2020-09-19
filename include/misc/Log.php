@@ -1,7 +1,7 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
-
 
 # Logging.  This is not guaranteed against loss in the event of serious failure.
 class Log
@@ -101,7 +101,7 @@ class Log
         # We might have consecutive logs for the same messages/users, so try to speed that up.
         $msgs = [];
         $users = [];
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);

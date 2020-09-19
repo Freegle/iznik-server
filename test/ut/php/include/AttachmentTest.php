@@ -1,12 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/message/Attachment.php';
-require_once IZNIK_BASE . '/include/user/User.php';
 
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -64,7 +64,7 @@ class AttachmentTest extends IznikTestCase {
     public function testArchive($attType, $blobCount) {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
 
-        $a = $this->getMockBuilder('Attachment')
+        $a = $this->getMockBuilder('Freegle\Iznik\Attachment')
             ->setConstructorArgs([ $this->dbhr, $this->dbhm, NULL, $attType ])
             ->setMethods([ 'scp', 'fgc' ])
             ->getMock();

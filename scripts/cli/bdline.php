@@ -1,10 +1,13 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/misc/Authority.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
+
 require_once(IZNIK_BASE . '/lib/php-shapefile/src/ShapeFileAutoloader.php');
 require_once(IZNIK_BASE . '/lib/phpcoord.php');
 
@@ -71,7 +74,7 @@ if ($fn) {
                 $record['dbf']['AREA_CODE'],
                 $new
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             file_put_contents('/tmp/a', $new);
             file_put_contents('/tmp/b', $wkt);
             error_log("...failed");

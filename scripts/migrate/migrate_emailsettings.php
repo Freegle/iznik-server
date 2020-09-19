@@ -8,17 +8,17 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsnfd = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
-$dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+$dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $g = Group::get($dbhr, $dbhm);
 $u = User::get($dbhr, $dbhm);
 
-$dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+$dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 error_log("Migrate FD memberships");
@@ -26,9 +26,9 @@ $groups = $dbhfd->query("SELECT * FROM groups WHERE grouppublish = 1 ORDER BY LO
 $groupcount = 0;
 
 foreach ($groups as $group) {
-    $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_EMULATE_PREPARES => FALSE
+    $dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
+        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+        \PDO::ATTR_EMULATE_PREPARES => FALSE
     ));
 
     $groupcount++;
@@ -65,7 +65,7 @@ foreach ($groups as $group) {
                 if ($count % 1000 == 0) {
                     error_log("...$count");
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("Skip FD {$user['uniqueid']} with " . $e->getMessage());
             }
         }

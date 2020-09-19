@@ -1,15 +1,16 @@
 <?php
+
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
+
 # Fake user site.
 # TODO Messy.
 $_SERVER['HTTP_HOST'] = "www.ilovefreegle.org";
-
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Mail.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/spam/Spam.php');
 
 $opts = getopt('i:');
 
@@ -67,8 +68,8 @@ if (count($opts) < 1) {
             }
         }
 
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
         $html = $twig->render('chat_spamapology.html', [
             'name' => $spammer->getName(),
@@ -79,7 +80,7 @@ if (count($opts) < 1) {
 
         $text = "We're sorry!  We may have recently sent you a warning about " . $spammer->getName() . ".  This was a mistake, and there's nothing wrong with them at all.";
 
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject("Correction: a message from " . SITE_NAME . " about " . $spammer->getName())
             ->setFrom([$replyto => $replyname])
             ->setTo($innocent->getEmailPreferred())
@@ -87,9 +88,9 @@ if (count($opts) < 1) {
 
         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
         # Outlook.
-        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart = \Swift_MimePart::newInstance();
         $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
         $htmlPart->setContentType('text/html');
         $htmlPart->setBody($html);
         $message->attach($htmlPart);

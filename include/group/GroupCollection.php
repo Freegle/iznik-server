@@ -1,4 +1,7 @@
 <?php
+namespace Freegle\Iznik;
+
+use Redis;
 
 class GroupCollection
 {
@@ -51,17 +54,19 @@ class GroupCollection
         if ($cached) {
             foreach ($cached as &$group) {
                 if ($group) {
-                    # Convert to group object.
-                    $group = unserialize($group);
-                    $group->setDefaults();
+                    # Convert to group object.  Handle bad data in cache from before namespace.
+                    if (strpos($group, 'O:19:"Freegle\Iznik\Group"') !== FALSE) {
+                        $group = unserialize($group);
+                        $group->setDefaults();
 
-                    # We didn't serialise the PDO objects.
-                    $group->dbhr = $dbhr;
-                    $group->dbhm = $dbhm;
+                        # We didn't serialise the PDO objects.
+                        $group->dbhr = $dbhr;
+                        $group->dbhm = $dbhm;
 
-                    $id1 = $group->getId();
-                    $cachedids[] = $id1;
-                    $cachedgroups[$id1] = $group;
+                        $id1 = $group->getId();
+                        $cachedids[] = $id1;
+                        $cachedgroups[$id1] = $group;
+                    }
                 }
             }
         }
@@ -108,7 +113,7 @@ class GroupCollection
     public function getRedis()
     {
         if (!$this->redis) {
-            $this->redis = new Redis();
+            $this->redis = new \Redis();
             @$this->redis->pconnect(REDIS_CONNECT);
         }
 

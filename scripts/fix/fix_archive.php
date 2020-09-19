@@ -34,7 +34,7 @@ foreach ($atts as $att) {
                 $count++;
                 error_log("...{$att['id']} exists $count / $total");
                 break;
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 try    {
                     $blobRestProxy->createBlockBlob("images", "img_{$att['id']}.jpg", $data, $options);
 
@@ -51,7 +51,7 @@ foreach ($atts as $att) {
                     error_log("...{$att['id']} $count / $total");
                     break;
                 }
-                catch (Exception $e){
+                catch (\Exception $e){
                     $code = $e->getCode();
                     $error_message = $e->getMessage();
                     error_log("...failed $code: " . $error_message);

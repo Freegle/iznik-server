@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 function story_one($groupname, $headline, $story, $hr = TRUE) {
     $html = '<h3>' . htmlspecialchars(trim($headline)) . '</h3>' .

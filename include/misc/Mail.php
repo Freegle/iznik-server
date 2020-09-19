@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 # This holds info about the different kinds of mails we send.
 class Mail {

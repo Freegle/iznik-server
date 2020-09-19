@@ -1,13 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/misc/Location.php';
-require_once IZNIK_BASE . '/include/message/Message.php';
 
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -131,11 +130,11 @@ class locationTest extends IznikTestCase {
         # Change the geometry to something which isn't a point or a polygon.  We'll invent a polygon.  We need to
         # mock this as the convex hull function relies on a PHP extension which is a faff to install.
         error_log("Force invent");
-        $mock = $this->getMockBuilder('Location')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Location')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, FALSE])
             ->setMethods(array('convexHull'))
             ->getMock();
-        $mock->method('convexHull')->willReturn(geoPHP::load($poly));
+        $mock->method('convexHull')->willReturn(\geoPHP::load($poly));
 
         $l = new Location($this->dbhr, $this->dbhm, $pcid);
         $l->setGeometry('LINESTRING(179.2162 8.53283, 179.2162 8.53383)');
@@ -155,14 +154,14 @@ class locationTest extends IznikTestCase {
         );
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $mock = $this->getMockBuilder('LoggedPDO')
+        $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->setConstructorArgs([
                 "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
                 $dbconfig['user'], $dbconfig['pass'], array(), TRUE
             ])
             ->setMethods(array('preExec'))
             ->getMock();
-        $mock->method('preExec')->willThrowException(new Exception());
+        $mock->method('preExec')->willThrowException(new \Exception());
         $l->setDbhm($mock);
 
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');

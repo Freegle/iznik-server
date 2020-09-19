@@ -30,7 +30,7 @@ foreach ($groups as $group) {
             try {
                 error_log("Send to {$memb['userid']}");
                 $count += $n->digest($memb['userid'], FALSE);
-            } catch (Exception $e) {}
+            } catch (\Exception $e) {}
         }
 
         if ($count) {

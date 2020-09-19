@@ -6,9 +6,9 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
-    $dbh = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+    $dbh = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $users = $dbhr->preQuery("SELECT id, fullname FROM users WHERE fullname LIKE 'FBUser%';");

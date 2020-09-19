@@ -14,8 +14,19 @@ if (!defined('IZNIK_BASE')) {
 
     # Autoload for our code.
     spl_autoload_register(function ($class_name) {
-        foreach ([ '/', 'user/', 'session/', 'group/', 'message/', 'misc/', 'chat/', 'newsfeed/', 'spam/', 'config/', 'dashboard/', 'mail/', 'noticeboard/' ] as $dir) {
-            $fn = IZNIK_BASE . '/include/' . $dir . $class_name . '.php';
+        $p = strrpos($class_name, '\\');
+        $class = $class_name;
+
+        if ($p !== FALSE) {
+            $q = strpos($class_name, 'Freegle\Iznik');
+
+            if ($q === 0) {
+                $class = substr($class_name, $p + 1);
+            }
+        }
+
+        foreach ([ '/include/', '/include/user/', '/include/session/', '/include/group/', '/include/message/', '/include/misc/', '/include/chat/', '/include/newsfeed/', '/include/spam/', '/include/config/', '/include/dashboard/', '/include/mail/', '/include/noticeboard/', '/test/ut/', '/include/booktastic/' ] as $dir) {
+            $fn = IZNIK_BASE . $dir . $class . '.php';
 
             if (file_exists($fn)) {
                 require_once $fn;
@@ -74,5 +85,3 @@ if (!defined('MMDB')) {
         define('MMDB', '/var/lib/GeoIP/GeoLite2-Country.mmdb');
     }
 }
-
-require_once(IZNIK_BASE . '/include/session/Session.php');

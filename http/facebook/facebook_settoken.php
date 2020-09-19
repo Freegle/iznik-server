@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 $id = presdef('id', $_REQUEST, NULL);
 $token = presdef('token', $_REQUEST, NULL);
 
-$fb = new Facebook\Facebook([
+$fb = new \Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
     'app_secret' => FBGRAFFITIAPP_SECRET
 ]);
@@ -59,7 +59,7 @@ if ($id && $token) {
         if (!$found) {
             echo "Hmmm...couldn't find that page in your list.";
         }
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         echo "Something went wrong " . $e->getMessage();
     }
 }

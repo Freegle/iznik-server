@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function socialactions() {
     global $dbhr, $dbhm;
 

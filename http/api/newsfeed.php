@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function newsfeed() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];

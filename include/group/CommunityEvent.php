@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -109,7 +110,7 @@ class CommunityEvent extends Entity
 
     public function listForGroup($pending, $groupid = NULL, &$ctx) {
         $ret = [];
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         # We can only see pending events if we're an owner/mod.
@@ -126,7 +127,7 @@ class CommunityEvent extends Entity
             $mysqltime
         ]);
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : $me;
 
         foreach ($events as $event) {

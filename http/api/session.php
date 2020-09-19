@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 
 function session() {
@@ -20,7 +22,7 @@ function session() {
             session_unset();
             session_start();
             session_regenerate_id(true);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
         }
     };
 
@@ -30,7 +32,7 @@ function session() {
         case 'GET': {
             # Check if we're logged in.  This will handle persistent sessions, pushcreds, as well as login via
             # the PHP session.
-            $me = whoAmI($dbhm, $dbhm);
+            $me = Session::whoAmI($dbhm, $dbhm);
 
             # Mobile app can send its version number, which we can use to determine if it is out of date.
             $appversion = presdef('appversion', $_REQUEST, NULL);
@@ -104,26 +106,26 @@ function session() {
 
                     if ($modtools) {
                         if (!$components || in_array('allconfigs', $components)) {
-                            $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                            $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
                             $ret['configs'] = $me->getConfigs(TRUE);
                         } else if (in_array('configs', $components)) {
-                            $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                            $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
                             $ret['configs'] = $me->getConfigs(FALSE);
                         }
                     }
 
                     if (!$components || in_array('emails', $components)) {
-                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
                         $ret['emails'] = $me->getEmails();
                     }
 
                     if (!$components || in_array('phone', $components)) {
-                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
                         $ret['me']['phone'] = $me->getPhone();
                     }
 
                     if (!$components || in_array('aboutme', $components)) {
-                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
                         $ret['me']['aboutme'] = $me->getAboutMe();
                     }
 
@@ -131,17 +133,17 @@ function session() {
                         # Newsfeed count.  We return this in the session to avoid getting it on each page transition
                         # in the client.
                         $n = new Newsfeed($dbhr, $dbhm);
-                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
                         $ret['newsfeedcount'] = $n->getUnseen($me->getId());
                     }
 
                     if (!$components || in_array('logins', $components)) {
-                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
                         $ret['logins'] = $me->getLogins(FALSE);
                     }
 
                     if (!$components || in_array('expectedreplies', $components)) {
-                        $me = $me ? $me : whoAmI($dbhm, $dbhm);
+                        $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
 
                         if ($me) {
                             $expecteds = $me->listExpectedReplies($me->getId());
@@ -308,7 +310,7 @@ function session() {
 
         case 'POST': {
             # Don't want to use cached information when looking at our own session.
-            $me = whoAmI($dbhm, $dbhm);
+            $me = Session::whoAmI($dbhm, $dbhm);
 
             # Login
             $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -478,7 +480,7 @@ function session() {
 
         case 'PATCH': {
             # Don't want to use cached information when looking at our own session.
-            $me = whoAmI($dbhm, $dbhm);
+            $me = Session::whoAmI($dbhm, $dbhm);
 
             if (!$me) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];

@@ -1,4 +1,7 @@
 <?php
+namespace Freegle\Iznik;
+
+use Redis;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -114,7 +117,7 @@ class Entity
 
     public function getRedis() {
         if (!$this->redis) {
-            $this->redis = new Redis();
+            $this->redis = new \Redis();
             @$this->redis->pconnect(REDIS_CONNECT);
         }
 

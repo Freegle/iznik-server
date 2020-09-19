@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -25,8 +26,8 @@ class Engage
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/engage');
-        $this->twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/engage');
+        $this->twig = new \Twig_Environment($loader);
     }
     # Split out for UT to override
 
@@ -293,7 +294,7 @@ class Engage
                                 $template = $mail['template'] . '.html';
 
                                 list ($transport, $mailer) = getMailer();
-                                $m = Swift_Message::newInstance()
+                                $m = \Swift_Message::newInstance()
                                     ->setSubject($subject)
                                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                                     ->setReplyTo(NOREPLY_ADDR)
@@ -313,9 +314,9 @@ class Engage
 
                                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                                 # Outlook.
-                                $htmlPart = Swift_MimePart::newInstance();
+                                $htmlPart = \Swift_MimePart::newInstance();
                                 $htmlPart->setCharset('utf-8');
-                                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                                 $htmlPart->setContentType('text/html');
                                 $htmlPart->setBody($html);
                                 $m->attach($htmlPart);
@@ -325,7 +326,7 @@ class Engage
                             }
                         }
                     }
-                } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
+                } catch (\Exception $e) { error_log("Failed " . $e->getMessage()); };
             }
         }
 

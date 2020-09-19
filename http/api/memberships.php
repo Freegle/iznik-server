@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function memberships() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $userid = intval(presdef('userid', $_REQUEST, NULL));
     $happinessid = intval(presdef('happinessid', $_REQUEST, NULL));

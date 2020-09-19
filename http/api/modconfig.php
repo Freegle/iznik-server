@@ -1,10 +1,12 @@
 <?php
+namespace Freegle\Iznik;
+
 function modconfig() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     # The id parameter can be an ID or a nameshort.
     $id = presdef('id', $_REQUEST, NULL);

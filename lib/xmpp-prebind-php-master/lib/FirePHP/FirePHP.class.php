@@ -298,7 +298,7 @@ class FirePHP {
     {
         if(is_string($console)) {
             if(get_class($this)!='FirePHP_Insight' && !is_subclass_of($this, 'FirePHP_Insight')) {
-                throw new Exception('FirePHP instance not an instance or subclass of FirePHP_Insight!');
+                throw new \Exception('FirePHP instance not an instance or subclass of FirePHP_Insight!');
             }
             $this->logToInsightConsole = $this->to('request')->console($console);
         } else {
@@ -477,7 +477,7 @@ class FirePHP {
     
         try {
             $this->fb($Exception);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo 'We had an exception: ' . $e;
         }
         $this->inExceptionHandler = false;
@@ -685,7 +685,7 @@ class FirePHP {
     {
         $instance = self::getInstance();
         if (!method_exists($instance, "_to")) {
-            throw new Exception("FirePHP::to() implementation not loaded");
+            throw new \Exception("FirePHP::to() implementation not loaded");
         }
         $args = func_get_args();
         return call_user_func_array(array($instance, '_to'), $args);
@@ -700,7 +700,7 @@ class FirePHP {
     {
         $instance = self::getInstance();
         if (!method_exists($instance, "_plugin")) {
-            throw new Exception("FirePHP::plugin() implementation not loaded");
+            throw new \Exception("FirePHP::plugin() implementation not loaded");
         }
         $args = func_get_args();
         return call_user_func_array(array($instance, '_plugin'), $args);

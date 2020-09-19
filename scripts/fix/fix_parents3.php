@@ -22,7 +22,7 @@ foreach ($locs as $loc) {
             #error_log("Set parents for {$using['id']} {$using['name']}");
             $l->setParents($using['id']);
         }
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
 
     }
 }

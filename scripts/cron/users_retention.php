@@ -1,12 +1,11 @@
 <?php
 
-define('SQLLOG', FALSE);
+namespace Freegle\Iznik;
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-
+require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 error_log("Start at " . date("Y-m-d H:i:s"));

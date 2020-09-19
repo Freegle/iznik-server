@@ -8,8 +8,8 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 $dsn = "mysql:host={$dbconfig['host']};dbname=ilovefreegle;charset=utf8";
 
 $dbhf = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND publish = 1 and listable = 1;");

@@ -1,12 +1,12 @@
 <?php
 
-# Remap recently changed locations as a fallback.
-define(SQLLOG, FALSE);
+namespace Freegle\Iznik;
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/misc/Location.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 

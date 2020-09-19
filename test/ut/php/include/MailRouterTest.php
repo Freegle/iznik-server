@@ -1,15 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/mail/MailRouter.php';
-require_once IZNIK_BASE . '/include/message/Message.php';
-require_once IZNIK_BASE . '/include/message/WorryWords.php';
-require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
-require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -221,7 +218,7 @@ class MailRouterTest extends IznikTestCase {
 
     public function testGreetingSpam() {
         # Suppress emails
-        $r = $this->getMockBuilder('MailRouter')
+        $r = $this->getMockBuilder('Freegle\Iznik\MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('mail'))
             ->getMock();
@@ -246,7 +243,7 @@ class MailRouterTest extends IznikTestCase {
 
     public function testReferToSpammer() {
         # Suppress emails
-        $r = $this->getMockBuilder('MailRouter')
+        $r = $this->getMockBuilder('Freegle\Iznik\MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('mail'))
             ->getMock();
@@ -447,7 +444,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
 
         # Make the attempt to mark as spam fail.
-        $r = $this->getMockBuilder('MailRouter')
+        $r = $this->getMockBuilder('Freegle\Iznik\MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('markAsSpam'))
             ->getMock();
@@ -492,7 +489,7 @@ class MailRouterTest extends IznikTestCase {
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Make the attempt to mark the message as approved
-        $r = $this->getMockBuilder('MailRouter')
+        $r = $this->getMockBuilder('Freegle\Iznik\MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('markApproved', 'markPending'))
             ->getMock();
@@ -715,11 +712,11 @@ class MailRouterTest extends IznikTestCase {
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m->save();
 
-        $mock = $this->getMockBuilder('LoggedPDO')
+        $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->disableOriginalConstructor()
             ->setMethods(array('preExec', 'rollBack', 'beginTransaction'))
             ->getMock();
-        $mock->method('preExec')->will($this->throwException(new Exception()));
+        $mock->method('preExec')->will($this->throwException(new \Exception()));
         $mock->method('rollBack')->willReturn(true);
         $mock->method('beginTransaction')->willReturn(true);
         $r->setDbhm($mock);
@@ -745,7 +742,7 @@ class MailRouterTest extends IznikTestCase {
 
     public function testYahooNotify() {
         # Suppress emails
-        $r = $this->getMockBuilder('MailRouter')
+        $r = $this->getMockBuilder('Freegle\Iznik\MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('mail'))
             ->getMock();

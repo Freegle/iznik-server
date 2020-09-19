@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -92,8 +93,8 @@ class Noticeboard extends Entity
     }
 
     public function thank($userid, $noticeboardid) {
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/noticeboard');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/noticeboard');
+        $twig = new \Twig_Environment($loader);
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $subj = "Thanks for putting up a poster!";
@@ -104,7 +105,7 @@ class Noticeboard extends Entity
             'email' => $u->getEmailPreferred()
         ]);
 
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject($subj)
             ->setFrom([NOREPLY_ADDR => 'Freegle'])
             ->setReturnPath($u->getBounce())
@@ -113,9 +114,9 @@ class Noticeboard extends Entity
 
         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
         # Outlook.
-        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart = \Swift_MimePart::newInstance();
         $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
         $htmlPart->setContentType('text/html');
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
@@ -215,8 +216,8 @@ class Noticeboard extends Entity
             $mysqltime
         ]);
 
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/noticeboard/');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/noticeboard/');
+        $twig = new \Twig_Environment($loader);
 
         foreach ($noticeboards as $noticeboard) {
             # See if we've asked anyone about this one in the last week.  If so then we don't do anything, because
@@ -249,16 +250,16 @@ class Noticeboard extends Entity
 
                         if ($u->getEmailPreferred() && $u->sendOurMails()) {
                             error_log("...ask owner " . $u->getEmailPreferred());
-                            $message = Swift_Message::newInstance()
+                            $message = \Swift_Message::newInstance()
                                 ->setSubject('That poster you put up...')
                                 ->setFrom([NOREPLY_ADDR => 'Freegle'])
                                 ->setReturnPath($u->getBounce())
                                 ->setTo([ $u->getEmailPreferred() => $u->getName() ])
                                 ->setBody("A while ago you put up a poster for Freegle.  Could you put another one up in the same please?  Click https://www.ilovefreegle.org/noticeboards/{$noticeboard['id']} to let us know...");
 
-                            $htmlPart = Swift_MimePart::newInstance();
+                            $htmlPart = \Swift_MimePart::newInstance();
                             $htmlPart->setCharset('utf-8');
-                            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                             $htmlPart->setContentType('text/html');
                             $htmlPart->setBody($html);
                             $message->attach($htmlPart);

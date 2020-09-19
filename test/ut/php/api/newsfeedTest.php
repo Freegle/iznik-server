@@ -1,9 +1,13 @@
 <?php
 
+namespace Freegle\Iznik;
+
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikAPITestCase.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -188,7 +192,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         # Should mail out to the other user.
-        $n = $this->getMockBuilder('Newsfeed')
+        $n = $this->getMockBuilder('Freegle\Iznik\Newsfeed')
             ->setConstructorArgs(array($this->dbhm, $this->dbhm))
             ->setMethods(array('sendIt'))
             ->getMock();
@@ -702,7 +706,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->log("Created feed {$ret['id']}");
         $nid = $ret['id'];
 
-        $n = $this->getMockBuilder('Newsfeed')
+        $n = $this->getMockBuilder('Freegle\Iznik\Newsfeed')
             ->setConstructorArgs(array($this->dbhm, $this->dbhm))
             ->setMethods(array('sendIt'))
             ->getMock();

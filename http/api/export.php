@@ -1,9 +1,11 @@
 <?php
+namespace Freegle\Iznik;
+
 function export()
 {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
     $id = intval(presdef('id', $_REQUEST, NULL));

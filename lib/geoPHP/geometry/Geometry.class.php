@@ -39,7 +39,7 @@ abstract class Geometry
   abstract public function asArray();
   abstract public function getPoints();
   abstract public function explode();
-  abstract public function greatCircleLength(); //meters
+  abstract public function GreatCircleLength(); //meters
   abstract public function haversineLength(); //degrees
 
 

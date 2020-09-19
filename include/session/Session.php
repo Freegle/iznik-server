@@ -1,9 +1,111 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
-if (!function_exists('getallheaders')) {
-    function getallheaders() {
+$sessionPrepared = FALSE;
+
+class Session {
+    # Based on http://stackoverflow.com/questions/244882/what-is-the-best-way-to-implement-remember-me-for-a-website
+    private $dbhr;
+    private $dbhm;
+    private $id;
+
+    public static function prepareSession($dbhr, $dbhm) {
+        # We only want to do the prepare once, otherwise we will generate many headers.
+
+        # Backbone may send requests wrapped insode a model; extract them.
+        if (array_key_exists ( 'model', $_REQUEST )) {
+            $_REQUEST = array_merge ( $_REQUEST, json_decode ( $_REQUEST ['model'], true ) );
+        }
+
+        if (!$GLOBALS['sessionPrepared']) {
+            $GLOBALS['sessionPrepared'] = TRUE;
+
+            if (pres('api_key', $_REQUEST)) {
+                # We have been passed a session id.
+                #
+                # One example of this is when we are called from Swagger.
+                session_id($_REQUEST['api_key']);
+            }
+
+            if (!isset($_SESSION)) {
+                session_start();
+            }
+
+            # We need to also be prepared to do a session_start here, because if we're running in the UT then the session_start
+            # above will happen once at the start of the test, when the script is first included, and we will later on destroy
+            # it.
+            #error_log("prepare " . isset($_SESSION) . " id " . session_id());
+            if (!isset($_SESSION) || session_id() == '') {
+                @session_start();
+            }
+
+            # We might have a partner key which allows us access to the API when not logged in as a user.
+            $_SESSION['partner'] = FALSE;
+
+            if (pres('partner', $_REQUEST)) {
+                list ($partner, $domain) = Session::partner($dbhr, $_REQUEST['partner']);
+                $_SESSION['partner'] = $partner;
+                $_SESSION['partnerdomain'] = $domain;
+            }
+
+            # Always verify the persistent session if passed.  This guards against
+            # session id collisions, which can happen (albeit quite rarely).
+            $cookie = presdef('persistent', $_REQUEST, NULL);
+
+            if (!$cookie) {
+                # Check headers too.
+                $headers = Session::getallheaders();
+                if (pres('Authorization', $headers)) {
+                    $auth = $headers['Authorization'];
+
+                    if (strpos($auth, 'Iznik ') === 0) {
+                        $cookie = json_decode(substr($auth, 6), TRUE);
+                    }
+                }
+            }
+
+            if ($cookie) {
+                # Check our cookie to see if it's a valid session
+                #error_log("Cookie " . var_export($cookie, TRUE));
+
+                if ((array_key_exists('id', $cookie)) &&
+                    (array_key_exists('series', $cookie)) &&
+                    (array_key_exists('token', $cookie))
+                ) {
+                    $sesscook = presdef('persistent', $_SESSION, NULL);
+                    #error_log("Check vs " . var_export($sesscook, TRUE));
+
+                    if (!presdef('id', $_SESSION, NULL) || $sesscook != $cookie) {
+                        # We are not logged in as the correct user (or at all).  Try to switch to the persistent one.
+                        #error_log("Logged in wrongly as " . var_export($sesscook, TRUE) . " when should be " . var_export($cookie, TRUE));
+                        $_SESSION['id'] = NULL;
+                        $s = new Session($dbhr, $dbhm);
+                        $s->verify($cookie['id'], $cookie['series'], $cookie['token']);
+                    }
+                }
+            }
+
+            if (!pres('id', $_SESSION)) {
+                # We might not have a cookie, but we might have push credentials.  This happens when we are logged out
+                # on the client but get a notification.  That is sufficient to log us in.
+                $pushcreds = presdef('pushcreds', $_REQUEST, NULL);
+                #error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
+                if ($pushcreds) {
+                    $sql = "SELECT * FROM users_push_notifications WHERE subscription = ?;";
+                    $pushes = $dbhr->preQuery($sql, [$pushcreds]);
+                    foreach ($pushes as $push) {
+                        $s = new Session($dbhr, $dbhm);
+                        #error_log("Log in as {$push['userid']}");
+                        $s->create($push['userid']);
+                    }
+                }
+            }
+        }
+    }
+
+    public static function getallheaders() {
         $headers = [];
         foreach ($_SERVER as $name => $value) {
             if (substr($name, 0, 5) == 'HTTP_') {
@@ -12,141 +114,36 @@ if (!function_exists('getallheaders')) {
         }
         return $headers;
     }
-}
 
-if (pres('api_key', $_REQUEST)) {
-    # We have been passed a session id.
-    #
-    # One example of this is when we are called from Swagger.
-    session_id($_REQUEST['api_key']);
-}
+    public static function partner($dbhr, $key) {
+        $ret = FALSE;
+        $domain = NULL;
 
-if (!isset($_SESSION)) {
-    session_start();
-}
-
-#error_log("Session " . session_id() . " logged in? " . presdef('id', $_SESSION, NULL));
-$sessionPrepared = FALSE;
-
-function prepareSession($dbhr, $dbhm) {
-    # We only want to do the prepare once, otherwise we will generate many headers.
-    global $sessionPrepared;
-
-    if (!$sessionPrepared) {
-        $sessionPrepared = TRUE;
-
-        # We need to also be prepared to do a session_start here, because if we're running in the UT then the session_start
-        # above will happen once at the start of the test, when the script is first included, and we will later on destroy
-        # it.
-        #error_log("prepare " . isset($_SESSION) . " id " . session_id());
-        if (!isset($_SESSION) || session_id() == '') {
-            @session_start();
+        $partners = $dbhr->preQuery("SELECT * FROM partners_keys WHERE `key` = ?;", [ $key ]);
+        foreach ($partners as $partner) {
+            $ret = TRUE;
+            $domain = $partner['domain'];
         }
 
-        # We might have a partner key which allows us access to the API when not logged in as a user.
-        $_SESSION['partner'] = FALSE;
-
-        if (pres('partner', $_REQUEST)) {
-            list ($partner, $domain) = partner($dbhr, $_REQUEST['partner']);
-            $_SESSION['partner'] = $partner;
-            $_SESSION['partnerdomain'] = $domain;
-        }
-
-        # Always verify the persistent session if passed.  This guards against
-        # session id collisions, which can happen (albeit quite rarely).
-        $cookie = presdef('persistent', $_REQUEST, NULL);
-
-        if (!$cookie) {
-            # Check headers too.
-            $headers = getallheaders();
-            if (pres('Authorization', $headers)) {
-                $auth = $headers['Authorization'];
-
-                if (strpos($auth, 'Iznik ') === 0) {
-                    $cookie = json_decode(substr($auth, 6), TRUE);
-                }
-            }
-        }
-
-        if ($cookie) {
-            # Check our cookie to see if it's a valid session
-            #error_log("Cookie " . var_export($cookie, TRUE));
-
-            if ((array_key_exists('id', $cookie)) &&
-                (array_key_exists('series', $cookie)) &&
-                (array_key_exists('token', $cookie))
-            ) {
-                $sesscook = presdef('persistent', $_SESSION, NULL);
-                #error_log("Check vs " . var_export($sesscook, TRUE));
-
-                if (!presdef('id', $_SESSION, NULL) || $sesscook != $cookie) {
-                    # We are not logged in as the correct user (or at all).  Try to switch to the persistent one.
-                    #error_log("Logged in wrongly as " . var_export($sesscook, TRUE) . " when should be " . var_export($cookie, TRUE));
-                    $_SESSION['id'] = NULL;
-                    $s = new Session($dbhr, $dbhm);
-                    $s->verify($cookie['id'], $cookie['series'], $cookie['token']);
-                }
-            }
-        }
-
-        if (!pres('id', $_SESSION)) {
-            # We might not have a cookie, but we might have push credentials.  This happens when we are logged out
-            # on the client but get a notification.  That is sufficient to log us in.
-            $pushcreds = presdef('pushcreds', $_REQUEST, NULL);
-            #error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
-            if ($pushcreds) {
-                $sql = "SELECT * FROM users_push_notifications WHERE subscription = ?;";
-                $pushes = $dbhr->preQuery($sql, [$pushcreds]);
-                foreach ($pushes as $push) {
-                    $s = new Session($dbhr, $dbhm);
-                    #error_log("Log in as {$push['userid']}");
-                    $s->create($push['userid']);
-                }
-            }
-        }
-    }
-}
-
-function partner($dbhr, $key) {
-    $ret = FALSE;
-    $domain = NULL;
-
-    $partners = $dbhr->preQuery("SELECT * FROM partners_keys WHERE `key` = ?;", [ $key ]);
-    foreach ($partners as $partner) {
-        $ret = TRUE;
-        $domain = $partner['domain'];
+        return([$ret, $domain]);
     }
 
-    return([$ret, $domain]);
-}
+    public static function whoAmI(LoggedPDO $dbhr, $dbhm)
+    {
+        Session::prepareSession($dbhr, $dbhm);
 
-function whoAmI(LoggedPDO $dbhr, $dbhm)
-{
-    prepareSession($dbhr, $dbhm);
+        $id = pres('id', $_SESSION);
+        $ret = NULL;
+        #error_log("Session::whoAmI $id in " . session_id());
 
-    $id = pres('id', $_SESSION);
-    $ret = NULL;
-    #error_log("whoAmI $id in " . session_id());
+        if ($id) {
+            # We are logged in.  Get our details
+            $ret = User::get($dbhr, $dbhm, $id);
+            #error_log("Found " . $ret->getId() . " role " . $ret->isModerator());
+        }
 
-    if ($id) {
-        # We are logged in.  Get our details
-        $ret = User::get($dbhr, $dbhm, $id);
-        #error_log("Found " . $ret->getId() . " role " . $ret->isModerator());
+        return($ret);
     }
-
-    return($ret);
-}
-
-# Backbone may send requests wrapped insode a model; extract them.
-if (array_key_exists ( 'model', $_REQUEST )) {
-    $_REQUEST = array_merge ( $_REQUEST, json_decode ( $_REQUEST ['model'], true ) );
-}
-
-class Session {
-    # Based on http://stackoverflow.com/questions/244882/what-is-the-best-way-to-implement-remember-me-for-a-website
-    private $dbhr;
-    private $dbhm;
-    private $id;
 
     public static function clearSessionCache() {
         # We cache some information.

@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 $scriptstart = microtime(true);
 
 $entityBody =  file_get_contents('php://input');
@@ -125,16 +127,19 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
             try {
                 $reader = new Reader(MMDB);
                 $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
-                $record = $reader->country($ip);
-                $country = $record->country->name;
-                # Failed to look it up.
-                $countries = $dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
-                foreach ($countries as $country) {
-                    error_log("Block post from {$country['country']} " . var_export($_REQUEST, TRUE));
-                    echo json_encode(array('ret' => 0, 'status' => 'Success'));
-                    break 2;
+
+                if ($ip) {
+                    $record = $reader->country($ip);
+                    $country = $record->country->name;
+                    # Failed to look it up.
+                    $countries = $dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
+                    foreach ($countries as $country) {
+                        error_log("Block post from {$country['country']} " . var_export($_REQUEST, TRUE));
+                        echo json_encode(array('ret' => 0, 'status' => 'Success'));
+                        break 2;
+                    }
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
             }
         }
 
@@ -152,7 +157,7 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
             $lockkey = 'POST_LOCK_' . session_id();
             $datakey = 'POST_DATA_' . session_id();
             $uid = uniqid('', TRUE);
-            $predis = new Redis();
+            $predis = new \Redis();
             $predis->pconnect(REDIS_CONNECT);
 
             # Get a lock.
@@ -235,7 +240,7 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
                     break;
                 case 'exception':
                     # For UT
-                    throw new Exception();
+                    throw new \Exception();
                 case 'image':
                     $ret = image();
                     break;
@@ -433,7 +438,7 @@ if (presdef('type', $_REQUEST, NULL) == 'OPTIONS') {
             }
 
             break;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             # This is our retry handler - see apiheaders.
             if ($e instanceof DBException) {
                 # This is a DBException.  We want to retry, which means we just go round the loop

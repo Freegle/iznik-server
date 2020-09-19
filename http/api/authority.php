@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function authority() {
     global $dbhr, $dbhm;
 

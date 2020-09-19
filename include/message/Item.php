@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -31,7 +32,7 @@ class Item extends Entity
             # that someone is correcting the case.
             $rc = $this->dbhm->preExec("INSERT INTO items (name) VALUES (?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), name = ?;", [ $name, $name ]);
             $id = $this->dbhm->lastInsertId();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $id = NULL;
             $rc = 0;
         }

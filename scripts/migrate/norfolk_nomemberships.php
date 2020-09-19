@@ -38,8 +38,8 @@ $test = FALSE;
 $dsn = "mysql:host={$dbconfig['host']};dbname=Norfolk;charset=utf8";
 
 $dbhn = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $start = date('Y-m-d', strtotime("30 years ago"));

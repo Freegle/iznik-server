@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 use Pheanstalk\Pheanstalk;
 use Egulias\EmailValidator\EmailValidator;
@@ -46,7 +47,7 @@ class ChatRoom extends Entity
         $this->chatroom = NULL;
         $this->table = 'chat_rooms';
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $this->ourFetch($id, $myid);
@@ -249,7 +250,7 @@ WHERE chat_rooms.id IN $idlist;";
     public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html, $fromuid = NULL, $groupid = NULL)
     {
         $_SERVER['SERVER_NAME'] = USER_DOMAIN;
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
 #            ->setBcc('log@ehibbert.org.uk')
@@ -261,9 +262,9 @@ WHERE chat_rooms.id IN $idlist;";
             if ($html) {
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                 # Outlook.
-                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart = \Swift_MimePart::newInstance();
                 $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
@@ -280,7 +281,7 @@ WHERE chat_rooms.id IN $idlist;";
             if ($groupid) {
                 $headers->addTextHeader('X-Freegle-Group-Volunteer', $groupid);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             # Flag the email as bouncing.
             error_log("Email $to for member #$id invalid, flag as bouncing");
             $this->dbhm->preExec("UPDATE users SET bouncing = 1 WHERE id = ?;", [  $id ]);
@@ -331,13 +332,13 @@ WHERE chat_rooms.id IN $idlist;";
                 $gid
             ]);
             $id = $this->dbhm->lastInsertId();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $id = NULL;
             $rc = 0;
         }
 
         if ($rc && $id) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
 
             $this->ourFetch($id, $myid);
@@ -355,7 +356,7 @@ WHERE chat_rooms.id IN $idlist;";
         ]);
 
         # Also ensure it's not closed.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
     }
 
     public function bannedInCommon($user1, $user2) {
@@ -445,7 +446,7 @@ WHERE chat_rooms.id IN $idlist;";
         }
 
         if ($id) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
 
             $this->ourFetch($id, $myid);
@@ -514,7 +515,7 @@ WHERE chat_rooms.id IN $idlist;";
         }
 
         if ($id) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
 
             $this->ourFetch($id, $myid);
@@ -546,7 +547,7 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function getPublic($me = NULL, $mepub = NULL, $summary = FALSE)
     {
-        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
+        $me = $me ? $me : Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $u1id = presdef('user1', $this->chatroom, NULL);
@@ -934,7 +935,7 @@ WHERE chat_rooms.id IN $idlist;";
 
             if (count($rooms) > 0) {
                 # We might have quite a lot of chats - speed up by reducing user fetches.
-                $me = whoAmI($this->dbhr, $this->dbhm);
+                $me = Session::whoAmI($this->dbhr, $this->dbhm);
                 $ctx = NULL;
                 $mepub = $me ? $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE) : NULL;
 
@@ -984,7 +985,7 @@ WHERE chat_rooms.id IN $idlist;";
             } else {
                 # If we ourselves have rights to see all chats, then we can speed things up by noticing that rather
                 # than doing more queries.
-                $me = whoAmI($this->dbhr, $this->dbhm);
+                $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
                 if ($me && $me->isAdminOrSupport()) {
                     $cansee = TRUE;
@@ -1000,7 +1001,7 @@ WHERE chat_rooms.id IN $idlist;";
             if (!$cansee && $checkmod) {
                 # If we can't see it by right, but we are a mod for the users in the chat, then we can see it.
                 #error_log("$userid can't see {$this->id} of type {$this->chatroom['chattype']}");
-                $me = whoAmI($this->dbhr, $this->dbhm);
+                $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
                 if ($me) {
                     if ($me->isAdminOrSupport() ||
@@ -1432,7 +1433,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
         $lastdate = NULL;
         $lastmsg = NULL;
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $modaccess = FALSE;
@@ -1660,8 +1661,8 @@ ORDER BY chat_messages.id, m1.added ASC;";
         # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
         # only interested in rooms containing a message which was posted recently and which has not been mailed all
         # members - which is a much smaller set.
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
         # We run this every minute, so we don't need to check too far back.  This keeps it quick.
         $reviewq = $chattype === ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
@@ -2021,7 +2022,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                         }
                                         break;
                                 }
-                            } catch (Exception $e) { $html = ''; error_log("Twig failed with " . $e->getMessage()); }
+                            } catch (\Exception $e) { $html = ''; error_log("Twig failed with " . $e->getMessage()); }
 
                             # We ask them to reply to an email address which will direct us back to this chat.
                             #
@@ -2093,7 +2094,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                             $notified++;
                                         }
                                     }
-                                } catch (Exception $e) {
+                                } catch (\Exception $e) {
                                     error_log("Send to {$member['userid']} failed with " . $e->getMessage());
                                 }
                             }
@@ -2225,7 +2226,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                     # We ask them to reply to an email address which will direct us back to this chat.
                                     $replyto = 'notify-' . $chat['id'] . '-' . $uid . '@' . USER_DOMAIN;
                                     $to = $thisu->getEmailPreferred();
-                                    $message = Swift_Message::newInstance()
+                                    $message = \Swift_Message::newInstance()
                                         ->setSubject($subject)
                                         ->setFrom([NOREPLY_ADDR => $fromname])
                                         ->setTo([$to => $thisu->getName()])
@@ -2234,9 +2235,9 @@ ORDER BY chat_messages.id, m1.added ASC;";
 
                                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                                     # Outlook.
-                                    $htmlPart = Swift_MimePart::newInstance();
+                                    $htmlPart = \Swift_MimePart::newInstance();
                                     $htmlPart->setCharset('utf-8');
-                                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                                     $htmlPart->setContentType('text/html');
                                     $htmlPart->setBody($html);
                                     $message->attach($htmlPart);
@@ -2337,7 +2338,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
     }
 
     public function nudge() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $other = $myid == $this->chatroom['user1'] ? $this->chatroom['user2'] : $this->chatroom['user1'];
 

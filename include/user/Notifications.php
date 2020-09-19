@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/notifications/notificationsoff.php');
@@ -173,7 +174,7 @@ class Notifications
                     list ($transport, $mailer) = getMailer();
                     $html = notifications_off(USER_SITE, USERLOGO);
 
-                    $message = Swift_Message::newInstance()
+                    $message = \Swift_Message::newInstance()
                         ->setSubject("Email Change Confirmation")
                         ->setFrom([NOREPLY_ADDR => SITE_NAME])
                         ->setReturnPath($u->getBounce())
@@ -182,9 +183,9 @@ class Notifications
 
                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                     # Outlook.
-                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart = \Swift_MimePart::newInstance();
                     $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
@@ -204,8 +205,8 @@ class Notifications
     }
 
     public function sendEmails($userid = NULL, $before = '24 hours ago', $since = '7 days ago', $unseen = TRUE, $mailed = TRUE) {
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
         $userq = $userid ? " AND `touser` = $userid " : '';
 
@@ -265,7 +266,7 @@ class Notifications
                         'noemail' => $noemail
                     ]);
 
-                    $message = Swift_Message::newInstance()
+                    $message = \Swift_Message::newInstance()
                         ->setSubject($subj)
                         ->setFrom([NOREPLY_ADDR => 'Freegle'])
                         ->setReturnPath($u->getBounce())
@@ -274,9 +275,9 @@ class Notifications
 
                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                     # Outlook.
-                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart = \Swift_MimePart::newInstance();
                     $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
@@ -303,7 +304,7 @@ class Notifications
                     $this->sendIt($mailer, $message);
 
                     $total += count($twignotifs);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     error_log("Message failed with " . $e->getMessage());
                 }
             }

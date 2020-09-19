@@ -15,7 +15,7 @@ class LineString extends Collection
    */
   public function __construct($points = array()) {
     if (count($points) == 1) {
-      throw new Exception("Cannot construct a LineString with a single point");
+      throw new \Exception("Cannot construct a LineString with a single point");
     }
 
     // Call the Collection constructor to build the LineString
@@ -75,7 +75,7 @@ class LineString extends Collection
     return $length;
   }
 
-  public function greatCircleLength($radius = 6378137) {
+  public function GreatCircleLength($radius = 6378137) {
     $length = 0;
     $points = $this->getPoints();
     for($i=0; $i<$this->numPoints()-1; $i++) {

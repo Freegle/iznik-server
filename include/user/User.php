@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
@@ -339,14 +340,14 @@ class User extends Entity
 
     public function create($firstname, $lastname, $fullname, $reason = '', $yahooid = NULL)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         try {
             $src = presdef('src', $_SESSION, NULL);
             $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooid, source) VALUES (?, ?, ?, ?, ?)",
                 [$firstname, $lastname, $fullname, $yahooid, $src]);
             $id = $this->dbhm->lastInsertId();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $id = NULL;
             $rc = 0;
         }
@@ -687,7 +688,7 @@ class User extends Entity
 
     public function unbounce($emailid, $log)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         if ($log) {
@@ -775,7 +776,7 @@ class User extends Entity
     public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE)
     {
         $this->memberships = NULL;
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
         Session::clearSessionCache();
@@ -824,7 +825,7 @@ class User extends Entity
         // @codeCoverageIgnoreStart
         if ($byemail) {
             list ($transport, $mailer) = getMailer();
-            $message = Swift_Message::newInstance()
+            $message = \Swift_Message::newInstance()
                 ->setSubject("Welcome to " . $g->getPrivate('nameshort'))
                 ->setFrom($g->getAutoEmail())
                 ->setReplyTo($g->getModsEmail())
@@ -869,8 +870,8 @@ class User extends Entity
 
         $to = $this->getEmailPreferred();
 
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');
+        $twig = new \Twig_Environment($loader);
 
         $html = $twig->render('group.html', [
             'email' => $to,
@@ -881,7 +882,7 @@ class User extends Entity
 
         if ($to) {
             list ($transport, $mailer) = getMailer();
-            $message = Swift_Message::newInstance()
+            $message = \Swift_Message::newInstance()
                 ->setSubject(($review ? "Please review: " : "") . "Welcome to " . $atts['namedisplay'])
                 ->setFrom([$g->getAutoEmail() => $atts['namedisplay'] . ' Volunteers'])
                 ->setReplyTo([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
@@ -891,9 +892,9 @@ class User extends Entity
 
             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
             # Outlook.
-            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart = \Swift_MimePart::newInstance();
             $htmlPart->setCharset('utf-8');
-            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
             $htmlPart->setContentType('text/html');
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
@@ -956,7 +957,7 @@ class User extends Entity
     {
         $this->clearMembershipCache();
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $meid = $me ? $me->getId() : NULL;
 
         // @codeCoverageIgnoreStart
@@ -965,7 +966,7 @@ class User extends Entity
         // the messages.
         if ($byemail || $this->isTN()) {
             list ($transport, $mailer) = getMailer();
-            $message = Swift_Message::newInstance()
+            $message = \Swift_Message::newInstance()
                 ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
                 ->setFrom($g->getAutoEmail())
                 ->setReplyTo($g->getModsEmail())
@@ -1089,7 +1090,7 @@ class User extends Entity
     public function getConfigs($all)
     {
         $ret = [];
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($all) {
             # We can see configs which
@@ -1421,7 +1422,7 @@ class User extends Entity
 
     public function setRole($role, $groupid)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         Session::clearSessionCache();
 
@@ -1576,7 +1577,7 @@ class User extends Entity
         }
 
         # Distance away.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($me) {
             list ($mylat, $mylng, $myloc) = $me->getLatLng();
@@ -1695,7 +1696,7 @@ class User extends Entity
         }
 
         # Distance away.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($me) {
             list ($mylat, $mylng, $myloc) = $me->getLatLng();
@@ -2577,7 +2578,7 @@ class User extends Entity
 
     public function getPublics($users, $groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
         $freeglemod = $me && $me->isFreegleMod();
 
@@ -2715,7 +2716,7 @@ class User extends Entity
             # perform slowly.
             #error_log("Merge $id2 into $id1");
             $l = new Log($this->dbhr, $this->dbhm);
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
             $rc = $this->dbhm->beginTransaction();
             $rollback = FALSE;
@@ -2989,7 +2990,7 @@ class User extends Entity
                             $_SESSION['id'] = $id1;
                         }
                     }
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     error_log("Merge exception " . $e->getMessage());
                     $rollback = TRUE;
                 }
@@ -3029,7 +3030,7 @@ class User extends Entity
 
             list ($transport, $mailer) = getMailer();
 
-            $message = Swift_Message::newInstance()
+            $message = \Swift_Message::newInstance()
                 ->setSubject($subject)
                 ->setFrom([$from => $fromname])
                 ->setTo([$to => $toname])
@@ -3054,7 +3055,7 @@ class User extends Entity
             $transport->stop();
 
             #error_log(session_id() . " mailed " . microtime(true));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             # Not much we can do - shouldn't really happen given the failover transport.
             // @codeCoverageIgnoreStart
             error_log("Send failed with " . $e->getMessage());
@@ -3066,7 +3067,7 @@ class User extends Entity
     {
         if ($body) {
             # We have a mail to send.
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me->getId();
 
             $to = $this->getEmailPreferred();
@@ -3075,7 +3076,7 @@ class User extends Entity
                 $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                 $atts = $g->getPublic();
 
-                $me = whoAmI($this->dbhr, $this->dbhm);
+                $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
                 # Find who to send it from.  If we have a config to use for this group then it will tell us.
                 $name = $me->getName();
@@ -3143,7 +3144,7 @@ class User extends Entity
 
     public function mail($groupid, $subject, $body, $stdmsgid, $action = NULL)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $this->log->log([
             'type' => Log::TYPE_USER,
@@ -3165,7 +3166,7 @@ class User extends Entity
     }
 
     public function getCommentsForSingleUser($userid) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $rets = [
             $userid => [
                 'id' => $userid
@@ -3239,7 +3240,7 @@ class User extends Entity
             $ctxq = "users_comments.id > " . intval(presdef('id', $ctx, NULL)) . " AND ";
         }
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $groupids = $me->getModeratorships();
 
         $sql = "SELECT * FROM users_comments WHERE $ctxq groupid IN (" . implode(',', $groupids) . ") ORDER BY reviewed ASC LIMIT 10;";
@@ -3272,7 +3273,7 @@ class User extends Entity
     public function getComment($id)
     {
         # We can only see comments on groups on which we have mod status.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $groupids = $me ? $me->getModeratorships() : [];
         $groupids = count($groupids) == 0 ? [0] : $groupids;
 
@@ -3298,7 +3299,7 @@ class User extends Entity
                                $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
                                $user11 = NULL, $byuserid = NULL, $checkperms = TRUE)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         # By any supplied user else logged in user if any.
         $byuserid = $byuserid ? $byuserid : ($me ? $me->getId() : NULL);
@@ -3338,7 +3339,7 @@ class User extends Entity
                                 $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
                                 $user11 = NULL)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         # Update to logged in user if any.
         $byuserid = $me ? $me->getId() : NULL;
@@ -3366,7 +3367,7 @@ class User extends Entity
 
     public function deleteComment($id)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         # Can only delete comments for a group on which we're a mod.
         $rc = FALSE;
@@ -3386,7 +3387,7 @@ class User extends Entity
 
     public function deleteComments()
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         # Can only delete comments for a group on which we're a mod.
         $rc = FALSE;
@@ -3401,7 +3402,7 @@ class User extends Entity
     public function split($email, $name = NULL)
     {
         # We want to ensure that the current user has no reference to these values.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $l = new Log($this->dbhr, $this->dbhm);
         if ($email) {
             $this->removeEmail($email);
@@ -3469,15 +3470,15 @@ class User extends Entity
 
     public function welcome($email, $password)
     {
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
         $html = $twig->render('welcome/welcome.html', [
             'email' => $email,
             'password' => $password
         ]);
 
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject("Welcome to " . SITE_NAME . "!")
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setTo($email)
@@ -3485,9 +3486,9 @@ class User extends Entity
 
         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
         # Outlook.
-        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart = \Swift_MimePart::newInstance();
         $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
         $htmlPart->setContentType('text/html');
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
@@ -3503,7 +3504,7 @@ class User extends Entity
         $link = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FORGOT_PASSWORD, TRUE);
         $html = forgot_password(USER_SITE, USERLOGO, $email, $link);
 
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject("Forgot your password?")
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setTo($email)
@@ -3511,9 +3512,9 @@ class User extends Entity
 
         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
         # Outlook.
-        $htmlPart = Swift_MimePart::newInstance();
+        $htmlPart = \Swift_MimePart::newInstance();
         $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
         $htmlPart->setContentType('text/html');
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
@@ -3560,7 +3561,7 @@ class User extends Entity
             list ($transport, $mailer) = getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
 
-            $message = Swift_Message::newInstance()
+            $message = \Swift_Message::newInstance()
                 ->setSubject("Please verify your email")
                 ->setFrom([NOREPLY_ADDR => SITE_NAME])
                 ->setReturnPath($this->getBounce())
@@ -3569,9 +3570,9 @@ class User extends Entity
 
             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
             # Outlook.
-            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart = \Swift_MimePart::newInstance();
             $htmlPart->setCharset('utf-8');
-            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
             $htmlPart->setContentType('text/html');
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
@@ -3589,7 +3590,7 @@ class User extends Entity
         $rc = FALSE;
         $sql = "SELECT * FROM users_emails WHERE validatekey = ?;";
         $mails = $this->dbhr->preQuery($sql, [$key]);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         foreach ($mails as $mail) {
             if ($mail['userid'] && $mail['userid'] != $me->getId()) {
@@ -3612,7 +3613,7 @@ class User extends Entity
 
         $link = $this->getUnsubLink(USER_SITE, $this->id, NULL, TRUE) . "&confirm=1";
 
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject("Please confirm you want to leave Freegle")
             ->setFrom(NOREPLY_ADDR)
             ->setReplyTo(SUPPORT_ADDR)
@@ -3708,7 +3709,7 @@ class User extends Entity
 
     public function delete($groupid = NULL, $subject = NULL, $body = NULL, $log = TRUE)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         # Delete memberships.  This will remove any Yahoo memberships.
         $membs = $this->getMemberships();
@@ -3859,7 +3860,7 @@ class User extends Entity
             $search = User::decodeId($search);
         }
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $id = intval(presdef('id', $ctx, 0));
         $ctx = $ctx ? $ctx : [];
         $q = $this->dbhr->quote("$search%");
@@ -4102,11 +4103,11 @@ class User extends Entity
     public function thankDonation()
     {
         try {
-            $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/donations');
-            $twig = new Twig_Environment($loader);
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/donations');
+            $twig = new \Twig_Environment($loader);
             list ($transport, $mailer) = getMailer();
 
-            $message = Swift_Message::newInstance()
+            $message = \Swift_Message::newInstance()
                 ->setSubject("Thank you for supporting Freegle!")
                 ->setFrom(PAYPAL_THANKS_FROM)
                 ->setReplyTo(PAYPAL_THANKS_FROM)
@@ -4123,9 +4124,9 @@ class User extends Entity
 
             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
             # Outlook.
-            $htmlPart = Swift_MimePart::newInstance();
+            $htmlPart = \Swift_MimePart::newInstance();
             $htmlPart->setCharset('utf-8');
-            $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
             $htmlPart->setContentType('text/html');
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
@@ -4133,7 +4134,7 @@ class User extends Entity
             Mail::addHeaders($message, Mail::THANK_DONATION, $this->getId());
 
             $this->sendIt($mailer, $message);
-        } catch (Exception $e) { error_log("Failed " . $e->getMessage()); };
+        } catch (\Exception $e) { error_log("Failed " . $e->getMessage()); };
     }
 
     public function invite($email)
@@ -4166,7 +4167,7 @@ class User extends Entity
                         $url = "https://" . USER_SITE . "/invite/" . $this->dbhm->lastInsertId();
 
                         list ($transport, $mailer) = getMailer();
-                        $message = Swift_Message::newInstance()
+                        $message = \Swift_Message::newInstance()
                             ->setSubject("$fromname has invited you to try Freegle!")
                             ->setFrom([NOREPLY_ADDR => SITE_NAME])
                             ->setReplyTo($frommail)
@@ -4179,9 +4180,9 @@ class User extends Entity
 
                         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                         # Outlook.
-                        $htmlPart = Swift_MimePart::newInstance();
+                        $htmlPart = \Swift_MimePart::newInstance();
                         $htmlPart->setCharset('utf-8');
-                        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                         $htmlPart->setContentType('text/html');
                         $htmlPart->setBody($html);
                         $message->attach($htmlPart);
@@ -4192,7 +4193,7 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE users SET invitesleft = invitesleft - 1 WHERE id = ?;", [
                             $this->id
                         ]);
-                    } catch (Exception $e) {
+                    } catch (\Exception $e) {
                         # Probably a duplicate.
                     }
                 }
@@ -5532,7 +5533,7 @@ class User extends Entity
                 } else {
                     error_log("Don't send SMS to {$phone['number']}, too recent");
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("Send to {$phone['number']} failed with " . $e->getMessage());
                 $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = ? WHERE id = ?;", [
                     $e->getMessage(),
@@ -5616,7 +5617,7 @@ class User extends Entity
     public function getRatings($uids) {
         $mysqltime = date("Y-m-d", strtotime("Midnight 182 days ago"));
         $ret = [];
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         # We show visible ratings, or ones we have made ourselves.
@@ -5945,7 +5946,7 @@ memberships.groupid IN $groupq
         $ret = [];
 
         if (count($replies)) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
 
             $r = new ChatRoom($this->dbhr, $this->dbhm);

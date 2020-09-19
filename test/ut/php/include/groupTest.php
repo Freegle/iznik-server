@@ -1,13 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/user/MembershipCollection.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/config/ModConfig.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -74,14 +73,14 @@ class groupTest extends IznikTestCase {
         $id2 = $g->create('testgroup', Group::GROUP_REUSE);
         assertNull($id2);
 
-        $mock = $this->getMockBuilder('LoggedPDO')
+        $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->setConstructorArgs([
                 "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
                 $dbconfig['user'], $dbconfig['pass'], array(), TRUE
             ])
             ->setMethods(array('lastInsertId'))
             ->getMock();
-        $mock->method('lastInsertId')->willThrowException(new Exception());
+        $mock->method('lastInsertId')->willThrowException(new \Exception());
         $g->setDbhm($mock);
         $id2 = $g->create('testgroup2', Group::GROUP_REUSE);
         assertNull($id2);

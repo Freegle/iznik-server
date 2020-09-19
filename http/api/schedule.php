@@ -1,9 +1,11 @@
 <?php
+namespace Freegle\Iznik;
+
 function schedule() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
     $userid = intval(presdef('userid', $_REQUEST, NULL));
     $chatuserid = intval(presdef('chatuserid', $_REQUEST, NULL));

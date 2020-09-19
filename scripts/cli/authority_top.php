@@ -1,11 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once IZNIK_BASE . '/include/misc/Authority.php';
-require_once IZNIK_BASE . '/include/misc/Stats.php';
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 #$auths = $dbhr->preQuery("SELECT * FROM authorities WHERE area_code IN ('CTY', 'GLA', 'LGD', 'UTA') ORDER BY LOWER(name);");
 $auths = $dbhr->preQuery("SELECT * FROM authorities WHERE area_code IN ('DIS', 'LBR', 'MTD') ORDER BY LOWER(name);");
@@ -33,7 +34,7 @@ foreach ($auths as $auth) {
         $total = round($total / 1000, 1);
         $weights[$auth['id']] = $total;
         error_log($a->getPrivate('name') . " weight {$total} tonnes");
-    } catch (Exception $e) {}
+    } catch (\Exception $e) {}
 }
 
 arsort($weights);

@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once("/etc/iznik.conf");
 
@@ -15,7 +16,7 @@ class Google
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->client = new Google_Client();
+        $this->client = new \Google_Client();
         $this->client->setApplicationName(GOOGLE_APP_NAME);
 
         $this->client->setClientId(GOOGLE_CLIENT_ID);
@@ -33,7 +34,7 @@ class Google
             'https://www.googleapis.com/auth/email',
             'https://www.googleapis.com/auth/profile'));
 
-        $this->plus = new Google_Service_Plus($this->client);
+        $this->plus = new \Google_Service_Plus($this->client);
 
         return ($this);
     }
@@ -190,7 +191,7 @@ class Google
                 $ret = 0;
                 $status = 'Success';
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $ret = 2;
             $status = "Didn't manage to get a Google session: " . $e->getMessage();
             error_log("Didn't get a Google session " . $e->getMessage());

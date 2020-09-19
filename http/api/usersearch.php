@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function usersearch() {
     global $dbhr, $dbhm;
 
@@ -6,7 +8,7 @@ function usersearch() {
 
     $id = presdef('id', $_REQUEST, NULL);
     $s = new UserSearch($dbhr, $dbhm, $id);
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];

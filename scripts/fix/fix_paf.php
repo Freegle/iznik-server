@@ -7,10 +7,10 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsn = "mysql:host=localhost;port=3309;dbname=iznik;charset=utf8";
-$dbhback = new PDO($dsn, SQLUSER, SQLPASSWORD, array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE,
-    PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => FALSE
+$dbhback = new \PDO($dsn, SQLUSER, SQLPASSWORD, array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE,
+    \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => FALSE
 ));
 
 $count = 0;

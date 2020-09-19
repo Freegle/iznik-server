@@ -5,10 +5,13 @@
 // 2019-12-13 Use header auth not query params
 // 2019-12-13 Add bounce reporting
 
-require_once dirname(__FILE__) . '/../../include/config.php';
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/session/Session.php');
+global $dbhr, $dbhm;
 
 echo "checkusers\r\n";
 
@@ -47,7 +50,7 @@ function GetAllUsers(){
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
-    throw new Exception('curl_errno: GetAllUsers');
+    throw new \Exception('curl_errno: GetAllUsers');
   }
   curl_close( $ch );
 
@@ -57,7 +60,7 @@ function GetAllUsers(){
   //echo print_r($allusers)."\r\n\r\n";
   if (property_exists($allusers, 'errors')){
     echo print_r($allusers)."\r\n\r\n";
-    throw new Exception('GetAllUsers error '.$allusers->errors[0]);
+    throw new \Exception('GetAllUsers error '.$allusers->errors[0]);
   }
   return $allusers->members;
 }
@@ -83,7 +86,7 @@ function GetUser($id,$username){
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
-    throw new Exception('curl_errno: GetUser '.$id." - ".$id);
+    throw new \Exception('curl_errno: GetUser '.$id." - ".$id);
   }
   curl_close( $ch );
 
@@ -93,7 +96,7 @@ function GetUser($id,$username){
   //echo print_r($fulluser)."\r\n\r\n";
   if (property_exists($fulluser, 'errors')){
     echo print_r($fulluser)."\r\n\r\n";
-    throw new Exception('GetUser error '.$fulluser->errors[0]);
+    throw new \Exception('GetUser error '.$fulluser->errors[0]);
   }
   return $fulluser;
 }
@@ -119,7 +122,7 @@ function GetUserEmail($username){
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
-    throw new Exception('curl_errno: GetUserEmail '.$username);
+    throw new \Exception('curl_errno: GetUserEmail '.$username);
   }
   curl_close( $ch );
 
@@ -129,7 +132,7 @@ function GetUserEmail($username){
   //echo print_r($useremails)."\r\n\r\n";
   if (property_exists($useremails, 'errors')){
     echo print_r($useremails)."\r\n\r\n";
-    throw new Exception('GetUserEmail error '.$useremails->errors[0]);
+    throw new \Exception('GetUserEmail error '.$useremails->errors[0]);
   }
   return $useremails->email;
 }
@@ -148,7 +151,7 @@ try{
   echo "allusers: ".count($allusers)."\r\n";
 
   // Check all users are mods in MT, compiling report as we go
-  $now = new DateTime();
+  $now = new \DateTime();
   $count = 0;
   $report = 'Total Discourse users: '.count($allusers)."\r\n";
   $ismod = 0;
@@ -287,7 +290,7 @@ try{
   $sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
   echo "Mail sent to geeks: ".$sent."\r\n";
 
-} catch (Exception $e) {
+} catch (\Exception $e) {
   echo $e->getMessage();
   error_log("Failed with " . $e->getMessage());
   $sent = mail(GEEKSALERTS_ADDR, "Discourse checkuser EXCEPTION", $e->getMessage(),$headers);

@@ -1,8 +1,9 @@
 <?php
+
+namespace Freegle\Iznik;
+
 use Pheanstalk\Pheanstalk;
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once IZNIK_BASE . '/include/db.php';
-require_once IZNIK_BASE . '/include/user/User.php';
+use Redis;
 
 require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/TestCase.php';
 require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert/Functions.php';
@@ -81,7 +82,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
         # Clear duplicate protection.
         $datakey = 'POST_DATA_' . session_id();
-        $predis = new Redis();
+        $predis = new \Redis();
         $predis->pconnect(REDIS_CONNECT);
         $predis->del($datakey);
 
@@ -103,7 +104,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
             }
             @session_destroy();
             unset($_SESSION);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->log("Session exception " . $e->getMessage());
         }
 
@@ -146,7 +147,13 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
                     sleep(2);
                     break;
                 }
-            } catch (Exception $e) {}
+            } catch (\Exception $e) {
+                if (strpos($e->getMessage(), "NOT_FOUND: There are no jobs in the 'ready' status") !== FALSE) {
+                    break;
+                } else {
+                    error_log("Exception waiting for background " . $e->getMessage());
+                }
+            }
 
             sleep(5);
             $count++;

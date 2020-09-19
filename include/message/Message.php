@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -254,7 +255,7 @@ class Message
             $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
         }
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');
         $text .= ($type ? "New type $type " : '');
         $text .= ($item ? "New item $item " : '');
@@ -565,7 +566,7 @@ class Message
 
                 # We parse each time because sometimes we will ask for headers.  Note that if we're not in the initial parse/save of
                 # the message we might be parsing from a modified version of the source.
-                $this->parser = new PhpMimeMailParser\Parser();
+                $this->parser = new \PhpMimeMailParser\Parser();
                 $this->parser->setText($this->message);
             } else {
                 foreach ($atts as $att => $val) {
@@ -593,7 +594,7 @@ class Message
 
             list ($transport, $mailer) = getMailer();
             
-            $message = Swift_Message::newInstance()
+            $message = \Swift_Message::newInstance()
                 ->setSubject($subject)
                 ->setFrom([$from => $fromname])
                 ->setTo([$to => $toname])
@@ -618,7 +619,7 @@ class Message
             $transport->stop();
 
             #error_log(session_id() . " mailed " . microtime(true));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             # Not much we can do - shouldn't really happen given the failover transport.
             // @codeCoverageIgnoreStart
             error_log("Send failed with " . $e->getMessage());
@@ -636,7 +637,7 @@ class Message
      * @return mixed
      */
     public function getRolesForMessages($me = NULL, $msgs, $overrides = TRUE) {
-        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
+        $me = $me ? $me : Session::whoAmI($this->dbhr, $this->dbhm);
         $ret = [];
         $groups = NULL;
         $groupid = NULL;
@@ -779,7 +780,7 @@ class Message
                 if ($drafts === NULL) {
                     $drafts = [];
 
-                    $me = whoAmI($this->dbhr, $this->dbhm);
+                    $me = Session::whoAmI($this->dbhr, $this->dbhm);
                     if ($me) {
                         $msgids = array_filter(array_column($msgs, 'id'));
                         $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid IN (" . implode(',', $msgids) . ") AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
@@ -1652,7 +1653,7 @@ ORDER BY lastdate DESC;";
         $rets = $this->getPublics($msgs, $messagehistory, $related, $seeall, $userlist, $locationlist, $summary);
 
         # When getting an individual message we return an approx distance.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         if ($me && ($this->lat || $this->lng)) {
             list ($mylat, $mylng) = $me->getLatLng();
             $rets[$this->id]['milesaway'] = $me->getDistanceBetween($mylat, $mylng, $this->lat, $this->lng);
@@ -1663,7 +1664,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function getPublics($msgs, $messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = [], $summary = FALSE) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         # We call the methods that handle an array of messages, which are shared with MessageCollection.  Each of
@@ -1939,7 +1940,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function createDraft($uid = NULL) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $myid = $myid ? $myid : $uid;
         $sess = session_id();
@@ -1983,7 +1984,7 @@ ORDER BY lastdate DESC;";
         $this->groupid = $groupid;
         $this->source = $source;
 
-        $Parser = new PhpMimeMailParser\Parser();
+        $Parser = new \PhpMimeMailParser\Parser();
         $this->parser = $Parser;
         $Parser->setText($msg);
 
@@ -1992,7 +1993,7 @@ ORDER BY lastdate DESC;";
         try {
             $this->attach_files = $Parser->saveAttachments($this->attach_dir . DIRECTORY_SEPARATOR);
             $this->attachments = $Parser->getAttachments();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             # We've seen this error when some of the attachments have weird non-relative filenames, which may be
             # a hack attempt.
             error_log("Parse of attachments failed " . $e->getMessage());
@@ -2138,7 +2139,7 @@ ORDER BY lastdate DESC;";
 
         if ($this->htmlbody) {
             # The HTML body might contain images as img tags, rather than actual attachments.  Extract these too.
-            $doc = new DOMDocument();
+            $doc = new \DOMDocument();
             @$doc->loadHTML($this->htmlbody);
             $imgs = $doc->getElementsByTagName('img');
 
@@ -2321,7 +2322,7 @@ ORDER BY lastdate DESC;";
 
                 if ($data) {
                     # Now get the link to the actual images.
-                    $doc = new DOMDocument();
+                    $doc = new \DOMDocument();
                     @$doc->loadHTML($data);
                     $imgs = $doc->getElementsByTagName('img');
 
@@ -2553,7 +2554,7 @@ ORDER BY lastdate DESC;";
                 $this->lng,
                 $this->locationid
             ]);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $rc = FALSE;
         }
 
@@ -2709,7 +2710,7 @@ ORDER BY lastdate DESC;";
     private function maybeMail($groupid, $subject, $body, $action) {
         if ($subject) {
             # We have a mail to send.
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me->getId();
 
             $to = $this->getEnvelopefrom();
@@ -2787,7 +2788,7 @@ ORDER BY lastdate DESC;";
     public function reject($groupid, $subject, $body, $stdmsgid) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
             'subtype' => $subject ? Log::SUBTYPE_REJECTED : Log::SUBTYPE_DELETED,
@@ -2827,7 +2828,7 @@ ORDER BY lastdate DESC;";
     public function approve($groupid, $subject = NULL, $body = NULL, $stdmsgid = NULL, $yahooonly = FALSE) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         if (!$yahooonly) {
@@ -2872,7 +2873,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function reply($groupid, $subject, $body, $stdmsgid) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
@@ -2893,7 +2894,7 @@ ORDER BY lastdate DESC;";
     }
 
     function hold() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $sql = "UPDATE messages SET heldby = ? WHERE id = ?;";
         $rc = $this->dbhm->preExec($sql, [ $me->getId(), $this->id ]);
@@ -2909,7 +2910,7 @@ ORDER BY lastdate DESC;";
     }
 
     function release() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $sql = "UPDATE messages SET heldby = NULL WHERE id = ?;";
         $rc = $this->dbhm->preExec($sql, [ $this->id ]);
@@ -2926,7 +2927,7 @@ ORDER BY lastdate DESC;";
 
     function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL, $localonly = FALSE)
     {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $rc = true;
 
         if ($this->attach_dir) {
@@ -3604,7 +3605,7 @@ ORDER BY lastdate DESC;";
 
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL, $exactonly = FALSE) {
         $ret = $this->s->search($string, $context, $limit, $restrict, $groups, $exactonly);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         if (count($ret) > 0) {
@@ -3729,7 +3730,7 @@ ORDER BY lastdate DESC;";
                     $reader = new Reader(MMDB);
                     $record = $reader->country($ip);
                     $this->setPrivate('fromcountry', $record->country->isoCode);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     # Failed to look it up.
                     error_log("Failed to look up $ip " . $e->getMessage());
                 }
@@ -3888,7 +3889,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function mark($outcome, $comment, $happiness, $userid) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $intcomment = $this->interestingComment($comment);
 
         $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
@@ -3952,7 +3953,7 @@ ORDER BY lastdate DESC;";
             $intcomment
         ]);
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
@@ -3967,7 +3968,7 @@ ORDER BY lastdate DESC;";
     public function backToDraft() {
         # Convert a message back to a draft.
         $rollback = FALSE;
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         if ($this->dbhm->beginTransaction()) {
@@ -4035,8 +4036,8 @@ ORDER BY lastdate DESC;";
 
                 $now = time();
 
-                $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-                $twig = new Twig_Environment($loader);
+                $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+                $twig = new \Twig_Environment($loader);
 
                 foreach ($messages as $message) {
                     if (ourDomain($message['fromaddr'])) {
@@ -4091,8 +4092,8 @@ ORDER BY lastdate DESC;";
 
                                                 list ($transport, $mailer) = getMailer();
 
-                                                if (Swift_Validate::email($to)) {
-                                                    $message = Swift_Message::newInstance()
+                                                if (\Swift_Validate::email($to)) {
+                                                    $message = \Swift_Message::newInstance()
                                                         ->setSubject("Re: " . $subj)
                                                         ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                                         ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
@@ -4101,9 +4102,9 @@ ORDER BY lastdate DESC;";
 
                                                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                                                     # Outlook.
-                                                    $htmlPart = Swift_MimePart::newInstance();
+                                                    $htmlPart = \Swift_MimePart::newInstance();
                                                     $htmlPart->setCharset('utf-8');
-                                                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                                                     $htmlPart->setContentType('text/html');
                                                     $htmlPart->setBody($html);
                                                     $message->attach($htmlPart);
@@ -4138,8 +4139,8 @@ ORDER BY lastdate DESC;";
         # Randomise the order in case the script gets killed or something - gives all groups a chance.
         $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
 
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
@@ -4211,8 +4212,8 @@ ORDER BY lastdate DESC;";
 
                                 list ($transport, $mailer) = getMailer();
 
-                                if (Swift_Validate::email($to)) {
-                                    $message = Swift_Message::newInstance()
+                                if (\Swift_Validate::email($to)) {
+                                    $message = \Swift_Message::newInstance()
                                         ->setSubject("Re: " . $subj)
                                         ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                         ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
@@ -4221,9 +4222,9 @@ ORDER BY lastdate DESC;";
 
                                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                                     # Outlook.
-                                    $htmlPart = Swift_MimePart::newInstance();
+                                    $htmlPart = \Swift_MimePart::newInstance();
                                     $htmlPart->setCharset('utf-8');
-                                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                                     $htmlPart->setContentType('text/html');
                                     $htmlPart->setBody($html);
                                     $message->attach($htmlPart);
@@ -4556,7 +4557,7 @@ ORDER BY lastdate DESC;";
     public function move($groupid) {
         $ret = [ 'ret' => 2, 'status' => 'Permission denied' ];
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $groups = $this->getGroups(FALSE, TRUE);
 
         if ($me->isModOrOwner($groups[0]) && $me->isModOrOwner($groupid)) {

@@ -28,13 +28,13 @@ class Point extends Geometry
 
     // Basic validation on x and y
     if (!is_numeric($x) || !is_numeric($y)) {
-      throw new Exception("Cannot construct Point. x and y should be numeric");
+      throw new \Exception("Cannot construct Point. x and y should be numeric");
     }
 
     // Check to see if this is a 3D point
     if ($z !== NULL) {
       if (!is_numeric($z)) {
-       throw new Exception("Cannot construct Point. z should be numeric");
+       throw new \Exception("Cannot construct Point. z should be numeric");
       }
       $this->dimension = 3;
     }
@@ -124,7 +124,7 @@ class Point extends Geometry
     return 0;
   }
 
-  public function greatCircleLength() {
+  public function GreatCircleLength() {
     return 0;
   }
 

@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 
 list ($transport, $mailer) = getMailer();
 
-$message = Swift_Message::newInstance()
+$message = \Swift_Message::newInstance()
     ->setSubject("Test")
     ->setFrom('test@' . GROUP_DOMAIN)
     ->setTo('ounyAQAN03hm7m@dkimvalidator.com')

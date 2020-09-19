@@ -26,7 +26,7 @@ try {
     $t->set($name, $accesstoken, $secrettoken);
 
     echo "Thanks - you can close this tab now.";
-} catch (Exception $e) {
+} catch (\Exception $e) {
     echo "This didn't work - " . $e->getMessage();
     var_dump($_REQUEST);
 }

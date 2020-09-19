@@ -1,10 +1,12 @@
 <?php
+namespace Freegle\Iznik;
+
 function item() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $id = presdef('id', $_REQUEST, NULL);
     $typeahead = presdef('typeahead', $_REQUEST, NULL);

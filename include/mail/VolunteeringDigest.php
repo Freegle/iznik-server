@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/volunteeringoff.php');
@@ -48,7 +49,7 @@ class VolunteeringDigest
                     list ($transport, $mailer) = getMailer();
                     $html = volunteering_off(USER_SITE, USERLOGO, $groupname);
 
-                    $message = Swift_Message::newInstance()
+                    $message = \Swift_Message::newInstance()
                         ->setSubject("Email Change Confirmation")
                         ->setFrom([NOREPLY_ADDR => SITE_NAME])
                         ->setReturnPath($u->getBounce())
@@ -57,9 +58,9 @@ class VolunteeringDigest
 
                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                     # Outlook.
-                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart = \Swift_MimePart::newInstance();
                     $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
@@ -73,8 +74,8 @@ class VolunteeringDigest
     }
 
     public function send($groupid, $ccto = NULL) {
-        $loader = new Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new Twig_Environment($loader);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
@@ -94,8 +95,8 @@ class VolunteeringDigest
 
         $textsumm = '';
 
-        $tz1 = new DateTimeZone('UTC');
-        $tz2 = new DateTimeZone('Europe/London');
+        $tz1 = new \DateTimeZone('UTC');
+        $tz2 = new \DateTimeZone('Europe/London');
 
         $twigvols = [];
 
@@ -193,16 +194,16 @@ class VolunteeringDigest
                     # We're decorating using the information we collected earlier.  However the decorator doesn't
                     # cope with sending to multiple recipients properly (headers just get decorated with the first
                     # recipient) so we create a message for each recipient.
-                    $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
+                    $decorator = new \Swift_Plugins_DecoratorPlugin($replacements);
                     $mailer->registerPlugin($decorator);
 
                     # We don't want to send too many mails before we reconnect.  This plugin breaks it up.
-                    $mailer->registerPlugin(new Swift_Plugins_AntiFloodPlugin(900));
+                    $mailer->registerPlugin(new \Swift_Plugins_AntiFloodPlugin(900));
 
                     $_SERVER['SERVER_NAME'] = USER_DOMAIN;
 
                     foreach ($replacements as $email => $rep) {
-                        $message = Swift_Message::newInstance()
+                        $message = \Swift_Message::newInstance()
                             ->setSubject($tosend['subject'])
                             ->setFrom([$tosend['from'] => $tosend['fromname']])
                             ->setReturnPath($u->getBounce())
@@ -211,9 +212,9 @@ class VolunteeringDigest
 
                         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                         # Outlook.
-                        $htmlPart = Swift_MimePart::newInstance();
+                        $htmlPart = \Swift_MimePart::newInstance();
                         $htmlPart->setCharset('utf-8');
-                        $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                         $htmlPart->setContentType('text/html');
                         $htmlPart->setBody($tosend['html']);
                         $message->attach($htmlPart);
@@ -228,7 +229,7 @@ class VolunteeringDigest
                             #error_log("...$email");
                             $this->sendOne($mailer, $message);
                             $sent++;
-                        } catch (Exception $e) {
+                        } catch (\Exception $e) {
                             error_log($email . " skipped with " . $e->getMessage());
                         }
                     }

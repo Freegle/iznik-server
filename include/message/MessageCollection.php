@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -75,7 +76,7 @@ class MessageCollection
 
         do {
             $tofill = [];
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
             # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
             # message arrived for the very first time, or when it was reposted.
@@ -134,7 +135,7 @@ class MessageCollection
                 # within a reasonable time then just assume they're ok.
                 #
                 # See also Group.
-                $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
+                $me = $me ? $me : Session::whoAmI($this->dbhr, $this->dbhm);
 
                 if ($me && $me->isModerator()) {
                     $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));

@@ -1,7 +1,8 @@
 <?php
+namespace Freegle\Iznik;
 
 use Pheanstalk\Pheanstalk;
-require_once('config.php');
+use \PDO;
 require_once(IZNIK_BASE . '/include/utils.php');
 
 # Everyone has a custom DB class.  We have ours primarily for Percona clustering.  That can cause operations
@@ -17,7 +18,7 @@ $dbconfig = array (
     'database' => SQLDB
 );
 
-class DBException extends Exception
+class DBException extends \Exception
 {
 }
 
@@ -98,12 +99,12 @@ class LoggedPDO {
 
             do {
                 try {
-                    $this->_db = new PDO($this->dsn, $this->username, $this->password, [
-                        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
-                        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                    $this->_db = new \PDO($this->dsn, $this->username, $this->password, [
+                        \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
                     ]);
                     $gotit = TRUE;
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     error_log("DB connect exception " . $e->getMessage());
                     sleep(1);
                     $count++;
@@ -177,12 +178,12 @@ class LoggedPDO {
                         # timed out.  We re-open the connection and try again.
                         $try++;
                         $this->_db = NULL;
-                        $this->_db = new PDO($this->dsn, $this->username, $this->password);
+                        $this->_db = new \PDO($this->dsn, $this->username, $this->password);
                     }
                 }
 
                 $try++;
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # It's a Percona deadlock.
                     #
@@ -221,7 +222,7 @@ class LoggedPDO {
                     $try++;
                     sleep(1);
                     $this->_db = NULL;
-                    $this->_db = new PDO($this->dsn, $this->username, $this->password);
+                    $this->_db = new \PDO($this->dsn, $this->username, $this->password);
                 } else {
                     $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
                     error_log($msg);
@@ -277,7 +278,7 @@ class LoggedPDO {
 
         # Make sure we have a connection.
         if ($this->dsn) {
-            $this->_db = $this->_db ? $this->_db : new PDO($this->dsn, $this->username, $this->password);
+            $this->_db = $this->_db ? $this->_db : new \PDO($this->dsn, $this->username, $this->password);
         }
 
         do {
@@ -293,10 +294,10 @@ class LoggedPDO {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
                         $this->_db = NULL;
-                        $this->_db = new PDO($this->dsn, $this->username, $this->password);
+                        $this->_db = new \PDO($this->dsn, $this->username, $this->password);
                     }
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # It's a Percona deadlock - retry.
                     $try++;
@@ -337,7 +338,7 @@ class LoggedPDO {
 
         # Make sure we have a connection.
         if ($this->dsn) {
-            $this->_db = $this->_db ? $this->_db : new PDO($this->dsn, $this->username, $this->password);
+            $this->_db = $this->_db ? $this->_db : new \PDO($this->dsn, $this->username, $this->password);
         }
 
         do {
@@ -353,10 +354,10 @@ class LoggedPDO {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
                         $this->_db = NULL;
-                        $this->_db = new PDO($this->dsn, $this->username, $this->password);
+                        $this->_db = new \PDO($this->dsn, $this->username, $this->password);
                     }
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # Retry.
                     $try++;
@@ -552,7 +553,7 @@ class LoggedPDO {
                 }
                 #error_log("Backgroupd $id for $sql");
                 $done = TRUE;
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 # Try again in case it's a temporary error.
                 error_log("Beanstalk exception " . $e->getMessage() . " on sql of len " . strlen($sql));
                 $this->pheanstalk = NULL;
@@ -588,13 +589,13 @@ class LoggedPDO {
 $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
 
 $dbhr = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => TRUE
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => TRUE
 ), TRUE);
 
 $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_mod']};dbname={$dbconfig['database']};charset=utf8";
 
 $dbhm = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => TRUE
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => TRUE
 ), FALSE, $dbhr);

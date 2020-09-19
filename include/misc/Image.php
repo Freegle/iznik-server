@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 class Image {
     private $data;

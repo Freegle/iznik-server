@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function logs() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $logtype = presdef('logtype', $_REQUEST, NULL);
     $logsubtype = presdef('logsubtype', $_REQUEST, NULL);

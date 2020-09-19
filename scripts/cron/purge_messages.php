@@ -3,11 +3,13 @@
 # Purge logs. We do this in a script rather than an event because we want to chunk it, otherwise we can hang the
 # cluster with an op that's too big.
 #
-require_once dirname(__FILE__) . '/../../include/config.php';
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/message/Message.php');
-require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
+global $dbhr, $dbhm, $dbconfig;
 
 $lockh = lockScript(basename(__FILE__));
 
@@ -16,20 +18,20 @@ try {
     $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
     $dbhmold = $dbhm;
 
-    $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_EMULATE_PREPARES => FALSE
+    $dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+        \PDO::ATTR_EMULATE_PREPARES => FALSE
     ));
 
     $dsn = "mysql:host={$dbconfig['host']};dbname=information_schema;charset=utf8";
 
-    $dbhschema = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_EMULATE_PREPARES => FALSE
+    $dbhschema = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+        \PDO::ATTR_EMULATE_PREPARES => FALSE
     ));
 
     $sql = "SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'messages' AND table_schema = '" . SQLDB . "';";
-    $schema = $dbhschema->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    $schema = $dbhschema->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
 
     # Purge info about old admins which have been sent to completion.
     $start = date('Y-m-d', strtotime("midnight 90 days ago"));
@@ -261,7 +263,7 @@ try {
     # This shouldn't happen due to delete cascading...but we've seen 7 such emails exist, and one caused future
     # problems.  So zap 'em.
     $dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL");
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed with " . $e->getMessage());
     mail(GEEKS_ADDR, "Daily message purge failed", $e->getMessage());
     exit(1);

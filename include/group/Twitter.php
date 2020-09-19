@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -80,7 +81,7 @@ class Twitter {
                             'media_ids' => implode(',', [$ret['media_id_string']])
                         ]);
                     }
-                } catch (Exception $e) {}
+                } catch (\Exception $e) {}
 
                 unlink($fname);
             } else {
@@ -160,9 +161,9 @@ class Twitter {
                 $atts = $e->getPublic();
 
                 # Get a string representation of the date in UK time.
-                $tz1 = new DateTimeZone('UTC');
-                $tz2 = new DateTimeZone('Europe/London');
-                $datetime = new DateTime($event['start'], $tz1);
+                $tz1 = new \DateTimeZone('UTC');
+                $tz2 = new \DateTimeZone('Europe/London');
+                $datetime = new \DateTime($event['start'], $tz1);
                 $datetime->setTimezone($tz2);
                 $datestr = $datetime->format('D jS F g:i a');
 

@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function src() {
     global $dbhr, $dbhm;
 
@@ -6,7 +8,7 @@ function src() {
 
     switch ($_REQUEST['type']) {
         case 'POST': {
-            $me = whoAmI($dbhr, $dbhm);
+            $me = Session::whoAmI($dbhr, $dbhm);
             $dbhm->background("INSERT INTO logs_src (src, userid, session) VALUES (" . $dbhm->quote($_REQUEST['src']) . ", " . $dbhm->quote(presdef('id', $_SESSION, NULL)) . ", " . $dbhm->quote(session_id()) . ");");
 
             # Record in the session, as we might later create a user.

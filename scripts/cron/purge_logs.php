@@ -3,18 +3,21 @@
 # Purge logs. We do this in a script rather than an event because we want to chunk it, otherwise we can hang the
 # cluster with an op that's too big.
 #
-require_once dirname(__FILE__) . '/../../include/config.php';
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
-require_once(IZNIK_BASE . '/include/misc/Log.php');
+global $dbhr, $dbhm, $dbconfig;
 
 $lockh = lockScript(basename(__FILE__));
 
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
-$dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+$dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 # Delete logs for old bounces.  We get a huge number of logs over time.  This doesn't affect bounce processing
@@ -42,7 +45,7 @@ try {
         set_time_limit(600);
         usleep(200000);
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete non-Freegle logs " . $e->getMessage());
 }
 
@@ -65,7 +68,7 @@ try {
             error_log("...$total");
         }
     }
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete bounce emails" . $e->getMessage());
 }
 
@@ -81,7 +84,7 @@ try {
         error_log("...$total");
         set_time_limit(600);
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete bounce emails" . $e->getMessage());
 }
 
@@ -98,7 +101,7 @@ try {
         error_log("...$total");
         set_time_limit(600);
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete non-Freegle logs " . $e->getMessage());
 }
 
@@ -114,7 +117,7 @@ try {
         error_log("...$total");
         set_time_limit(600);
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete email logs logs " . $e->getMessage());
 }
 
@@ -134,7 +137,7 @@ try {
             set_time_limit(600);
         } while ($count > 0);
     }
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete non-Freegle logs " . $e->getMessage());
 }
 
@@ -173,7 +176,7 @@ try {
         error_log("...$total");
         set_time_limit(600);
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete src logs " . $e->getMessage());
 }
 
@@ -189,7 +192,7 @@ try {
         error_log("...$total");
         set_time_limit(600);
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete src logs " . $e->getMessage());
 }
 
@@ -205,7 +208,7 @@ try {
         error_log("...$total");
         set_time_limit(600);
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
 }
 
@@ -228,7 +231,7 @@ try {
             }
         }
     } while (count($logs) > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
 }
 
@@ -243,7 +246,7 @@ try {
         error_log("...$total");
         set_time_limit(600);
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete API logs " . $e->getMessage());
 }
 
@@ -258,7 +261,7 @@ try {
         set_time_limit(600);
         error_log("...$total");
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete SQL logs " . $e->getMessage());
 }
 
@@ -274,7 +277,7 @@ try {
         error_log("...$total");
         set_time_limit(600);
     } while ($count > 0);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
 }
 

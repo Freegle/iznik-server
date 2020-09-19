@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function messages() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $uid = intval(presdef('uid', $_REQUEST, NULL));

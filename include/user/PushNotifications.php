@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -105,7 +106,7 @@ class PushNotifications
             ));
 
             $id = $this->pheanstalk->put($str);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log("Beanstalk exception " . $e->getMessage());
             $this->pheanstalk = NULL;
         }
@@ -213,18 +214,18 @@ class PushNotifications
 
                             if ($errorCode == 'UNREGISTERED') {
                                 # We do want to remove the subscription in this case.
-                                throw new Exception($errorCode);
+                                throw new \Exception($errorCode);
                             }
 
                             foreach ($error['details'] as $detail) {
                                 if (array_key_exists('fieldViolations', $detail)) {
                                     if ($detail['fieldViolations'][0]['description'] == 'Invalid registration token') {
                                         # We do want to remove the subscription in this case.
-                                        throw new Exception($detail['fieldViolations'][0]['description']);
+                                        throw new \Exception($detail['fieldViolations'][0]['description']);
                                     }
                                     if ($detail['fieldViolations'][0]['description'] == 'The registration token is not a valid FCM registration token') {
                                         # We do want to remove the subscription in this case.
-                                        throw new Exception($detail['fieldViolations'][0]['description']);
+                                        throw new \Exception($detail['fieldViolations'][0]['description']);
                                     }
                                 }
                             }
@@ -252,7 +253,7 @@ class PushNotifications
 
             #error_log("Returned " . var_export($rc, TRUE) . " for $userid type $notiftype $endpoint payload " . var_export($payload, TRUE));
             $rc = $this->uthook($rc);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $rc = ['exception' => $e->getMessage()];
             #error_log("push exc " . var_export($e, TRUE));
             #error_log("push exc " . $e->getMessage());
@@ -397,7 +398,7 @@ class PushNotifications
 
             $this->pheanstalk->put($str);
             $ret = TRUE;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log("poke Beanstalk exception " . $e->getMessage());
             $this->pheanstalk = NULL;
             $ret = FALSE;
@@ -446,7 +447,7 @@ class PushNotifications
                         #error_log("Rsp on $service_uri $server_response");
                     }
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("Failed to notify");
             }
         }

@@ -9,8 +9,8 @@ require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
 $dbh = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $c = new CommunityEvent($dbhr, $dbhm);

@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once("/etc/iznik.conf");
 require_once(IZNIK_BASE . '/lib/openid.php');
@@ -30,7 +31,7 @@ class Yahoo
         $this->dbhm = $dbhm;
         $this->host = $host ? $host : (getProtocol() . $_SERVER['HTTP_HOST']);
 
-        $this->openid = new LightOpenID($host);
+        $this->openid = new \LightOpenID($host);
         $this->openid->realm = $this->host;
 
         return ($this);
@@ -296,7 +297,7 @@ class Yahoo
                 return [NULL, ['ret' => 1, 'redirect' => $url]];
             }
         }
-        catch (Exception $e)
+        catch (\Exception $e)
         {
             error_log("Yahoo Login exception " . $e->getMessage());
         }

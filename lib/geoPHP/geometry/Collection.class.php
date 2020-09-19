@@ -19,14 +19,14 @@ abstract class Collection extends Geometry
    */
   public function __construct($components = array()) {
     if (!is_array($components)) {
-      throw new Exception("Component geometries must be passed as an array");
+      throw new \Exception("Component geometries must be passed as an array");
     }
     foreach ($components as $component) {
       if ($component instanceof Geometry) {
         $this->components[] = $component;
       }
       else {
-        throw new Exception("Cannot create a collection with non-geometries");
+        throw new \Exception("Cannot create a collection with non-geometries");
       }
     }
   }
@@ -181,7 +181,7 @@ abstract class Collection extends Geometry
     return $length;
   }
 
-  public function greatCircleLength($radius = 6378137) {
+  public function GreatCircleLength($radius = 6378137) {
     $length = 0;
     foreach ($this->components as $component) {
       $length += $component->greatCircleLength($radius);

@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function noticeboard() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $id = intval(presdef('id', $_REQUEST, NULL));
 
@@ -49,7 +51,7 @@ function noticeboard() {
             ];
 
             if ($action) {
-                $me = whoAmI($dbhr, $dbhm);
+                $me = Session::whoAmI($dbhr, $dbhm);
                 $n->action($id, $me ? $me->getId() : NULL, $action, presdef('comments', $_REQUEST, NULL));
 
                 $ret = [

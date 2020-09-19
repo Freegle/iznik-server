@@ -14,9 +14,9 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=modtools;charset=utf8";
 # Zap any existing configs.  The old DB is the master until we migrate.
 $dbhm->preExec("DELETE FROM mod_configs;");
 
-$dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+$dbhold = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $c = new ModConfig($dbhr, $dbhm);
@@ -38,7 +38,7 @@ foreach ($oldconfs as $config) {
                 $modid = $u->create(NULL, NULL, $mod['name'], "Migrated from ModTools Configs");
                 $u2 = User::get($dbhr, $dbhm, $modid);
                 $u2->addEmail($mod['email'], 1);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("Mod create failed " . $e->getMessage());
                 $modid = NULL;
             }
@@ -147,7 +147,7 @@ foreach ($oldconfs as $config) {
 
                     $c->useOnGroup($modid, $gid);
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("Skip groupsmoderated " . $e->getMessage());
             }
         }

@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function chatmessages() {
     global $dbhr, $dbhm;
 
@@ -17,7 +19,7 @@ function chatmessages() {
     $r = new ChatRoom($dbhr, $dbhm, $roomid);
     $id = intval(presdef('id', $_REQUEST, NULL));
     $m = new ChatMessage($dbhr, $dbhm, $id);
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 

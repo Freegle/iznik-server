@@ -7,15 +7,15 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=modtools;charset=utf8";
-$moddbh = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+$moddbh = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
-$fddbh = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+$fddbh = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $at = 0;$s = new Spam($dbhr, $dbhm);

@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -247,7 +248,7 @@ class Attachment
 
                     $rc = !$failed;
                 }
-            } catch (Exception $e) { error_log("Archive failed " . $e->getMessage()); }
+            } catch (\Exception $e) { error_log("Archive failed " . $e->getMessage()); }
         }
 
         if ($rc) {

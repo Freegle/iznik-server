@@ -41,7 +41,7 @@ foreach ($groups as $group) {
 
             break;
         }
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         #error_log("Couldn't check {$group['id']}" . $e->getMessage());
     }
 }

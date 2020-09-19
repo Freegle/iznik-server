@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards.php');
@@ -128,7 +129,7 @@ class Request extends Entity
                 try {
                     $html = business_cards($u->getName(), $u->getEmailPreferred());
 
-                    $message = Swift_Message::newInstance()
+                    $message = \Swift_Message::newInstance()
                         ->setSubject("Your cards are on their way...")
                         ->setFrom([NOREPLY_ADDR => 'Freegle'])
                         ->setReturnPath($u->getBounce())
@@ -137,9 +138,9 @@ class Request extends Entity
 
                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                     # Outlook.
-                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart = \Swift_MimePart::newInstance();
                     $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
@@ -150,7 +151,7 @@ class Request extends Entity
                     $this->sendIt($mailer, $message);
 
                     $this->notifyMods();
-                } catch (Exception $e) { error_log("Failed " . $e->getMessage()); }
+                } catch (\Exception $e) { error_log("Failed " . $e->getMessage()); }
 
                 break;
             }
@@ -170,7 +171,7 @@ class Request extends Entity
                     error_log("...group {$memb['id']}");
                     $g = Group::get($this->dbhr, $this->dbhm, $memb['id']);
 
-                    $message = Swift_Message::newInstance()
+                    $message = \Swift_Message::newInstance()
                         ->setSubject("We've sent some Freegle business cards to someone on your group")
                         ->setFrom([SUPPORT_ADDR => 'Freegle'])
                         ->setTo([ $g->getModsEmail() => $g->getPrivate('nameshort') . ' Volunteers' ])
@@ -178,9 +179,9 @@ class Request extends Entity
 
                     # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                     # Outlook.
-                    $htmlPart = Swift_MimePart::newInstance();
+                    $htmlPart = \Swift_MimePart::newInstance();
                     $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                     $htmlPart->setContentType('text/html');
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
@@ -195,7 +196,7 @@ class Request extends Entity
                     ]);
                 }
             }
-        } catch (Exception $e) { error_log("Failed 2 " . $e->getMessage()); }
+        } catch (\Exception $e) { error_log("Failed 2 " . $e->getMessage()); }
     }
 
     public function delete() {

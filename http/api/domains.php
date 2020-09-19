@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function domains() {
     global $dbhr, $dbhm;
 

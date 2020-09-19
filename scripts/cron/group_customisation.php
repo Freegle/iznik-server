@@ -1,9 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1 ORDER BY RAND();");
 
@@ -28,7 +31,7 @@ foreach ($groups as $group) {
     if (strlen($missing) > 0) {
         list ($transport, $mailer) = getMailer();
 
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject("Reminder - ways to make {$group['nameshort']} more welcoming")
             ->setFrom([NOREPLY_ADDR => 'Freegle'])
             ->setReturnPath(NOREPLY_ADDR)

@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -41,7 +42,7 @@ class ModConfig extends Entity
         try {
             if (!$createdby) {
                 # Create as current user
-                $me = whoAmI($this->dbhr, $this->dbhm);
+                $me = Session::whoAmI($this->dbhr, $this->dbhm);
                 $createdby = $me ? $me->getId() : NULL;
             }
 
@@ -102,7 +103,7 @@ class ModConfig extends Entity
 
                 $id = $toid;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $id = NULL;
             $rc = 0;
         }
@@ -125,7 +126,7 @@ class ModConfig extends Entity
 
     public function getPublic($stdmsgbody = TRUE, $sharedby = FALSE) {
         $ret = parent::getPublic();
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         # If the creating mod has been deleted, then we need to ensure that the config is no longer protected.
         $ret['protected'] = $ret['createdby'] == NULL ? 0 : $ret['protected'];
@@ -273,7 +274,7 @@ class ModConfig extends Entity
     }
 
     public function setAttributes($settings) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         parent::setAttributes($settings);
 
         $this->log->log([
@@ -296,7 +297,7 @@ class ModConfig extends Entity
     }
 
     public function canModify() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 
@@ -320,7 +321,7 @@ class ModConfig extends Entity
 
     public function canSee() {
         # Not quite see, exactly, as anyone can look at them.  But to be close enough to be able to run bulk ops.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
@@ -382,7 +383,7 @@ class ModConfig extends Entity
         $addr = $this->getPrivate($addr);
 
         if ($to == 'Me') {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $ret = $me->getEmailPreferred();
         } else if ($to == 'Specific') {
             $ret = $addr;
@@ -423,7 +424,7 @@ class ModConfig extends Entity
         $name = $this->modconfig['name'];
         $rc = $this->dbhm->preExec("DELETE FROM mod_configs WHERE id = ?;", [$this->id]);
         if ($rc) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $this->log->log([
                 'type' => Log::TYPE_CONFIG,
                 'subtype' => Log::SUBTYPE_DELETED,

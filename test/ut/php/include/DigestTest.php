@@ -1,13 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/mail/Digest.php';
-require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -51,7 +50,7 @@ class digestTest extends IznikTestCase {
 
     public function testImmediate() {
         # Mock the actual send
-        $mock = $this->getMockBuilder('Digest')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Digest')
             ->setConstructorArgs([$this->dbhm, $this->dbhm])
             ->setMethods(array('sendOne'))
             ->getMock();
@@ -212,18 +211,18 @@ class digestTest extends IznikTestCase {
         $u2->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
 
         # Mock for coverage.
-        $mock = $this->getMockBuilder('Digest')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Digest')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
             ->setMethods(array('sendOne'))
             ->getMock();
-        $mock->method('sendOne')->willThrowException(new Exception());
+        $mock->method('sendOne')->willThrowException(new \Exception());
         $mock->send($this->gid, Digest::IMMEDIATE);
 
         }
 
     public function testMultipleMails() {
         # Mock the actual send
-        $mock = $this->getMockBuilder('Digest')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Digest')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
             ->setMethods(array('sendOne'))
             ->getMock();

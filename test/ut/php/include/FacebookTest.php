@@ -1,12 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
+
 require_once(UT_DIR . '/../../include/config.php');
-require_once IZNIK_BASE . '/include/session/Facebook.php';
-require_once IZNIK_BASE . '/include/user/User.php';
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -56,11 +56,11 @@ class FacebookTest extends IznikTestCase {
     public function getLongLivedAccessToken() {
         $this->log("getLongLivedAccessToken {$this->getLongLivedAccessTokenException} {$this->getLongLivedAccessFacebookException}");
         if ($this->getLongLivedAccessTokenException) {
-            throw new Exception();
+            throw new \Exception();
         }
 
         if ($this->getLongLivedAccessFacebookException) {
-            throw new Facebook\Exceptions\FacebookSDKException();
+            throw new \Facebook\Exceptions\FacebookSDKException();
         }
 
         return($this->accessToken);
@@ -69,7 +69,7 @@ class FacebookTest extends IznikTestCase {
     public function getCanvasHelper() {
         $this->log("getCanvasHelper {$this->getCanvasHelperException}");
         if ($this->getCanvasHelperException) {
-            throw new Exception();
+            throw new \Exception();
         }
         return($this);
     }
@@ -80,7 +80,7 @@ class FacebookTest extends IznikTestCase {
 
     public function getDecodedBody() {
         if ($this->asArrayException) {
-            throw new Exception();
+            throw new \Exception();
         }
 
         return([
@@ -98,7 +98,7 @@ class FacebookTest extends IznikTestCase {
 
     public function testBasic() {
         # Basic successful login
-        $mock = $this->getMockBuilder('Facebook')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Facebook')
             ->setConstructorArgs([$this->dbhr, $this->dbhm])
             ->setMethods(array('getFB'))
             ->getMock();
@@ -117,7 +117,7 @@ class FacebookTest extends IznikTestCase {
 
         list($session, $ret) = $mock->login();
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         assertEquals('Test User', $me->getPrivate('fullname'));
         $logins = $me->getLogins();
         $this->log("Logins " . var_export($logins, TRUE));
@@ -127,7 +127,7 @@ class FacebookTest extends IznikTestCase {
         $me->setPrivate('fullname', NULL);
         list($session, $ret) = $mock->login();
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         assertEquals('Test User', $me->getPrivate('fullname'));
 
         # Log in again with a different email, triggering a merge.
@@ -138,7 +138,7 @@ class FacebookTest extends IznikTestCase {
         $this->facebookEmail = 'test2@test.com';
         list($session, $ret) = $mock->login();
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
@@ -147,7 +147,7 @@ class FacebookTest extends IznikTestCase {
         $me->removeEmail('test2@test.com');
         list($session, $ret) = $mock->login();
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
@@ -156,7 +156,7 @@ class FacebookTest extends IznikTestCase {
         $me->removeLogin('Facebook', 1);
         list($session, $ret) = $mock->login();
         assertEquals(0, $ret['ret']);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
@@ -197,7 +197,7 @@ class FacebookTest extends IznikTestCase {
         $this->facebookName = 'Test User';
         $this->facebookEmail = 'test@test.com';
 
-        $mock = $this->getMockBuilder('Facebook')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Facebook')
             ->setConstructorArgs([$this->dbhr, $this->dbhm])
             ->setMethods(array('getFB'))
             ->getMock();
@@ -227,7 +227,7 @@ class FacebookTest extends IznikTestCase {
     }
 
     public function testNotify() {
-        $mock = $this->getMockBuilder('Facebook')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Facebook')
             ->setConstructorArgs([$this->dbhr, $this->dbhm])
             ->setMethods(array('pheanPut'))
             ->getMock();
@@ -235,12 +235,12 @@ class FacebookTest extends IznikTestCase {
         $mock->method('pheanPut')->willReturn(42);
         assertEquals(42, $mock->notify(NULL, NULL, NULL));
 
-        $mock->method('pheanPut')->willThrowException(new Exception());
+        $mock->method('pheanPut')->willThrowException(new \Exception());
         assertNull($mock->notify(NULL, NULL, NULL));
     }
 
     public function testNotify2() {
-        $mock = $this->getMockBuilder('Facebook')
+        $mock = $this->getMockBuilder('Freegle\Iznik\Facebook')
             ->setConstructorArgs([$this->dbhr, $this->dbhm])
             ->setMethods(array('fbpost'))
             ->getMock();
@@ -248,7 +248,7 @@ class FacebookTest extends IznikTestCase {
         $mock->method('fbpost')->willReturn(42);
         assertEquals(42, $mock->executeNotify(NULL, NULL, NULL));
 
-        $mock->method('fbpost')->willThrowException(new Exception("(#803) Some of the aliases you requested do not exist:"));
+        $mock->method('fbpost')->willThrowException(new \Exception("(#803) Some of the aliases you requested do not exist:"));
         assertNull($mock->executeNotify(0, NULL, NULL));
 
     }

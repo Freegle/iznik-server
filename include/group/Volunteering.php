@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/mailtemplates/volunteerrenew.php');
@@ -86,7 +87,7 @@ class Volunteering extends Entity
 
         if ($systemwide) {
             # Get the national ones, for display or approval.
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             if (!$pending || ($me && $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS))) {
                 $sql = "SELECT NULL AS groupid, volunteering.*, volunteering_dates.end, volunteering_dates.applyby FROM volunteering LEFT JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE groupid IS NULL AND deleted = 0 AND expired = 0 $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
                 $volunteerings = array_merge($volunteerings, $this->dbhr->preQuery($sql));
@@ -119,7 +120,7 @@ class Volunteering extends Entity
 
     public function listForGroup($pending, $groupid = NULL, &$ctx) {
         $ret = [];
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         # We can only see pending volunteerings if we're an owner/mod.
@@ -136,7 +137,7 @@ class Volunteering extends Entity
             $mysqltime
         ]);
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : $me;
 
         foreach ($volunteerings as $volunteering) {
@@ -273,7 +274,7 @@ class Volunteering extends Entity
     }
 
     public function delete() {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $this->dbhm->preExec("UPDATE volunteering SET deleted = 1, deletedby = ? WHERE id = ?;", [ $myid, $this->id ]);
     }
@@ -313,7 +314,7 @@ class Volunteering extends Entity
                 $url = $u->loginLink(USER_SITE, $u->getId(), '/volunteering/' . $id['id'], User::SRC_VOLUNTEERING_DIGEST);
                 $html = volunteering_renew(USER_SITE, USERLOGO, $v->getPrivate('title'), $url, $groupname);
 
-                $message = Swift_Message::newInstance()
+                $message = \Swift_Message::newInstance()
                     ->setSubject("Re: " . $v->getPrivate('title'))
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReturnPath($u->getBounce())
@@ -322,9 +323,9 @@ class Volunteering extends Entity
 
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
                 # Outlook.
-                $htmlPart = Swift_MimePart::newInstance();
+                $htmlPart = \Swift_MimePart::newInstance();
                 $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                 $htmlPart->setContentType('text/html');
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);

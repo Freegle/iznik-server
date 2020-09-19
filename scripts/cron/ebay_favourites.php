@@ -1,8 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $ebay = file_get_contents('http://www.ebay.co.uk/egw/ebay-for-charity/charity-profile/Freegle/74430');
 $ebayrival = file_get_contents('http://www.ebay.co.uk/egw/ebay-for-charity/charity-profile/Prince-Fluffy-Kareem/85221');

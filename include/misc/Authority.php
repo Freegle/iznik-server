@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
@@ -62,7 +63,7 @@ class Authority extends Entity
                     $this->dbhm->preExec("UPDATE authorities SET simplified = ST_Simplify(GeomFromText(polygon), 0.001) WHERE id = ?;", [
                         $id
                     ]);
-                } catch (Exception $e) {}
+                } catch (\Exception $e) {}
 
                 $this->fetch($this->dbhm, $this->dbhm, $id, 'authorities', 'auth', $this->publicatts);
             }

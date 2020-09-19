@@ -578,7 +578,7 @@ class XmppPrebind {
 	 * @return DOMDocument
 	 */
 	protected function buildBody() {
-		$xml = new DOMDocument('1.0', 'UTF-8');
+		$xml = new \DOMDocument('1.0', 'UTF-8');
 
 		$body = $xml->createElement('body');
 		$xml->appendChild($body);
@@ -657,7 +657,7 @@ class XmppPrebind {
 	 * @return DOMNode
 	 */
 	protected static function getBodyFromXml($xml) {
-		$domDocument = new DOMDocument();
+		$domDocument = new \DOMDocument();
 		$domDocument->loadXml($xml);
 
 		return self::getBodyFromDomDocument($domDocument);

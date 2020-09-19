@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function status() {
     $status = @file_get_contents('/tmp/iznik.status');
 

@@ -1,11 +1,15 @@
 <?php
 
-const CLEAN = FALSE;
+namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
+
+const CLEAN = FALSE;
+
 
 use Elasticsearch\ClientBuilder;
 
@@ -35,7 +39,7 @@ try {
     error_log("Create index");
     $response = $client->indices()->create($params);
     error_log("Created index " . var_export($response, TRUE));
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Create index failed with " . $e->getMessage());
 }
 
@@ -59,7 +63,7 @@ try {
     error_log("Create index");
     $response = $client->indices()->create($params);
     error_log("Created index " . var_export($response, TRUE));
-} catch (Exception $e) {
+} catch (\Exception $e) {
     error_log("Create index failed with " . $e->getMessage());
 }
 

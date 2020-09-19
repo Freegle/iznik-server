@@ -1,4 +1,7 @@
 <?php
+namespace Freegle\Iznik;
+
+use Redis;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -213,7 +216,7 @@ class Group extends Entity
         }
 
         # And redis.
-        $cache = new Redis();
+        $cache = new \Redis();
         @$cache->pconnect(REDIS_CONNECT);
 
         if ($cache->isConnected()) {
@@ -275,7 +278,7 @@ class Group extends Entity
                 $r->createGroupChat("$shortname Volunteers", $id, TRUE, TRUE);
                 $r->setPrivate('description', "$shortname Volunteers");
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log("Create group exception " . $e->getMessage());
             $id = NULL;
             $rc = 0;
@@ -361,7 +364,7 @@ class Group extends Entity
 
     public function getWorkCounts($mysettings, $groupids) {
         $ret = [];
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($groupids) {
             $groupq = "(" . implode(',', $groupids) . ")";
@@ -932,7 +935,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
     public function setSettings($settings)
     {
         $str = json_encode($settings);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $this->dbhm->preExec("UPDATE groups SET settings = ? WHERE id = ?;", [ $str, $this->id ]);
         Group::clearCache($this->id);
         $this->group['settings'] = $str;

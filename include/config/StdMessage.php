@@ -1,5 +1,5 @@
 <?php
-
+namespace Freegle\Iznik;
 require_once(IZNIK_BASE . '/include/utils.php');
 
 class StdMessage extends Entity
@@ -32,14 +32,14 @@ class StdMessage extends Entity
         try {
             $rc = $this->dbhm->preExec("INSERT INTO mod_stdmsgs (title, configid) VALUES (?,?)", [$title,$cid]);
             $id = $this->dbhm->lastInsertId();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $id = NULL;
             $rc = 0;
         }
 
         if ($rc && $id) {
             $this->fetch($this->dbhm, $this->dbhm, $id, 'mod_stdmsgs', 'stdmsg', $this->publicatts);
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $createdby = $me ? $me->getId() : NULL;
             $this->log->log([
                 'type' => Log::TYPE_CONFIG,
@@ -57,7 +57,7 @@ class StdMessage extends Entity
     }
 
     public function setAttributes($settings) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         parent::setAttributes($settings);
 
         $this->log->log([
@@ -88,7 +88,7 @@ class StdMessage extends Entity
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM mod_stdmsgs WHERE id = ?;", [$this->id]);
         if ($rc) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $this->log->log([
                 'type' => Log::TYPE_STDMSG,
                 'subtype' => Log::SUBTYPE_DELETED,

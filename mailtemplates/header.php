@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 function mail_header()
 {

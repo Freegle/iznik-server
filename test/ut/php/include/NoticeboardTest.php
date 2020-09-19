@@ -1,11 +1,12 @@
 <?php
+namespace Freegle\Iznik;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTestCase.php';
-require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/noticeboard/Noticeboard.php';
+
+require_once(UT_DIR . '/../../include/config.php');
+require_once(UT_DIR . '/../../include/db.php');
 
 /**
  * @backupGlobals disabled
@@ -41,7 +42,7 @@ class NoticeboardTest extends IznikTestCase {
 
         $id = $n->create('UTTest', 52, -1, $id, NULL);
 
-        $n = $this->getMockBuilder('Noticeboard')
+        $n = $this->getMockBuilder('Freegle\Iznik\Noticeboard')
             ->setConstructorArgs(array($this->dbhm, $this->dbhm))
             ->setMethods(array('sendIt'))
             ->getMock();

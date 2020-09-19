@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -51,7 +52,7 @@ class ChatMessage extends Entity
         global $urlPattern, $urlBad;
 
         if (preg_match_all($urlPattern, $message, $matches)) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
 
             foreach ($matches as $val) {
@@ -334,7 +335,7 @@ class ChatMessage extends Entity
                     $r->setPrivate('synctofacebook', ChatRoom::FACEBOOK_SYNC_REPLIED_ON_PLATFORM);
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log("Failed to create chat " . $e->getMessage() . " at " . $e->getFile() . " line " . $e->getLine());
             $id = NULL;
             $rc = 0;
@@ -393,7 +394,7 @@ class ChatMessage extends Entity
             # We want to return the currently matching dates.
             $s = new Schedule($this->dbhr, $this->dbhm);
             $r = new ChatRoom($this->dbhr, $this->dbhm, $this->chatmessage['chatid']);
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
             if ($me) {
                 $myid = $me->getId();
@@ -413,7 +414,7 @@ class ChatMessage extends Entity
     }
 
     public function approve($id) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         # We can only approve if we can see this message for review.
@@ -439,7 +440,7 @@ class ChatMessage extends Entity
     }
 
     public function reject($id) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         # We can only reject if we can see this message for review.
@@ -565,7 +566,7 @@ class ChatMessage extends Entity
     }
 
     public function hold($id) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         # We can only hold if we can see this message for review.
@@ -580,7 +581,7 @@ class ChatMessage extends Entity
     }
 
     public function release($id) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         # We can only release if we can see this message for review.

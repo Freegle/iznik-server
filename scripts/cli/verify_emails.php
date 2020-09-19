@@ -1,9 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 function verify($email) {
     $url = "https://bpi.briteverify.com/emails.json?&address=" . urlencode($email). "&amp;apikey=" . BRITEVERIFY_PRIVATE_KEY;
@@ -32,7 +35,7 @@ function verify($email) {
 
 for ($year = 2003; $year < 2018; $year++) {
     for ($month = 1; $month < 13; $month++) {
-        $date = new DateTime();
+        $date = new \DateTime();
         $date->setDate($year, $month, 1);
 
         $start = $date->format('Y-m-d');

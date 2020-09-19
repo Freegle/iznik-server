@@ -86,7 +86,7 @@ if (($sso->validatePayload($payload,$signature))) {
                   exit(0);
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log("discourse_sso - DB failed with " . $e->getMessage());
 
             # Instead try in our flat file.  We use a flat file so that we can sign in if the DB is unavailable.

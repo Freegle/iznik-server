@@ -1,10 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/spam/Spam.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $u = new User($dbhr, $dbhm);
 $uid = $u->findByEmail(MODERATOR_EMAIL);
@@ -50,7 +52,7 @@ foreach ($groups as $group) {
         $mentors .= $g->getPrivate('nameshort') . " count " . $group['count'] . "\r\n";
 
         list ($transport, $mailer) = getMailer();
-        $message = Swift_Message::newInstance()
+        $message = \Swift_Message::newInstance()
             ->setSubject($group['count'] . " message" . ($group['count'] == 1 ? '' : 's') . " between members waiting for your review on " . $g->getPrivate('nameshort'))
             ->setFrom([SUPPORT_ADDR => 'Freegle'])
             ->setTo($g->getModsEmail())
@@ -67,7 +69,7 @@ foreach ($groups as $group) {
 
 if ($count > 0) {
     list ($transport, $mailer) = getMailer();
-    $message = Swift_Message::newInstance()
+    $message = \Swift_Message::newInstance()
         ->setSubject("Summary of chat messages waiting for review")
         ->setFrom([SUPPORT_ADDR => 'Freegle'])
         ->setTo(MENTORS_ADDR)

@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 function image() {
     global $dbhr, $dbhm;
@@ -207,7 +208,7 @@ function image() {
                                 $ret['ocr'] = $a->ocr();
                             }
                         }
-                    } catch (Exception $e) {
+                    } catch (\Exception $e) {
                         $ret = [ 'ret' => 5, 'status' => "Image create failed " . $e->getMessage() ];
                     }
                 }

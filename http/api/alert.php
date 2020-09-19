@@ -1,8 +1,10 @@
 <?php
+namespace Freegle\Iznik;
+
 function alert() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
     $id = presdef('id', $_REQUEST, NULL);
     $id = $id ? intval($id) : NULL;

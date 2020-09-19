@@ -1,9 +1,12 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
 $cs = $dbhr->preQuery("SELECT * FROM groups where settings like '%closed\":1%'");
 
@@ -13,7 +16,7 @@ foreach ($cs as $c) {
     error_log($g->getName());
 
     list ($transport, $mailer) = getMailer();
-    $message = Swift_Message::newInstance()
+    $message = \Swift_Message::newInstance()
         ->setSubject("Reminder: Your Freegle group is currently closed")
         ->setFrom(GEEKS_ADDR)
         ->setTo($g->getModsEmail())

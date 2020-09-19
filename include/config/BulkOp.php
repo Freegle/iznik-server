@@ -1,4 +1,5 @@
 <?php
+namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
@@ -30,14 +31,14 @@ class BulkOp extends Entity
         try {
             $rc = $this->dbhm->preExec("INSERT INTO mod_bulkops (title, configid) VALUES (?,?)", [$title,$cid]);
             $id = $this->dbhm->lastInsertId();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $id = NULL;
             $rc = 0;
         }
 
         if ($rc && $id) {
             $this->fetch($this->dbhm, $this->dbhm, $id, 'mod_bulkops', 'bulkop', $this->publicatts);
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $createdby = $me ? $me->getId() : NULL;
             $this->log->log([
                 'type' => Log::TYPE_CONFIG,
@@ -56,7 +57,7 @@ class BulkOp extends Entity
 
     public function setAttributes($settings) {
         parent::setAttributes($settings);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $this->log->log([
             'type' => Log::TYPE_STDMSG,
@@ -90,7 +91,7 @@ class BulkOp extends Entity
 
     public function checkDue($id = NULL) {
         # See which (if any) bulk ops are due to start.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $idq = $id ? " WHERE mod_bulkops.id = $id " : "";
@@ -125,7 +126,7 @@ class BulkOp extends Entity
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM mod_bulkops WHERE id = ?;", [$this->id]);
         if ($rc) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $this->log->log([
                 'type' => Log::TYPE_STDMSG,
                 'subtype' => Log::SUBTYPE_DELETED,

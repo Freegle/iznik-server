@@ -8,9 +8,9 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=modtools;charset=utf8";
 
-$dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
+$dbhold = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+    \PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
 $u = User::get($dbhr, $dbhm);

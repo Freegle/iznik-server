@@ -106,7 +106,7 @@ class Parser
         // streams have to be cached to file first
         $meta = @stream_get_meta_data($stream);
         if (!$meta || !$meta['mode'] || $meta['mode'][0] != 'r' || $meta['eof']) {
-            throw new Exception(
+            throw new \Exception(
                 'setStream() expects parameter stream to be readable stream resource.'
             );
         }
@@ -120,7 +120,7 @@ class Parser
             fseek($tmp_fp, 0);
             $this->stream = &$tmp_fp;
         } else {
-            throw new Exception(
+            throw new \Exception(
                 'Could not create temporary files for attachments. Your tmp directory may be unwritable by PHP.'
             );
         }
@@ -185,7 +185,7 @@ class Parser
 
             return (isset($headers[$name])) ? $headers[$name] : false;
         } else {
-            throw new Exception(
+            throw new \Exception(
                 'setPath() or setText() or setStream() must be called before retrieving email headers.'
             );
         }
@@ -230,7 +230,7 @@ class Parser
 
             return $headers;
         } else {
-            throw new Exception(
+            throw new \Exception(
                 'setPath() or setText() or setStream() must be called before retrieving email headers.'
             );
         }
@@ -247,7 +247,7 @@ class Parser
         if (isset($this->parts[1])) {
             return $this->getPartHeader($this->parts[1]);
         } else {
-            throw new Exception(
+            throw new \Exception(
                 'setPath() or setText() or setStream() must be called before retrieving email headers.'
             );
         }
@@ -365,7 +365,7 @@ class Parser
                 }
             }
         } else {
-            throw new Exception('Invalid type specified for getMessageBody(). "type" can either be text or html.');
+            throw new \Exception('Invalid type specified for getMessageBody(). "type" can either be text or html.');
         }
 
         if ($type == 'htmlEmbedded') {
@@ -505,7 +505,7 @@ class Parser
                 fclose($fp);
                 $attachments_paths[] = realpath($attachment_path);
             } else {
-                throw new Exception('Could not write attachments. Your directory may be unwritable by PHP.');
+                throw new \Exception('Could not write attachments. Your directory may be unwritable by PHP.');
             }
         }
 
@@ -548,7 +548,7 @@ class Parser
             }
             fseek($temp_fp, 0, SEEK_SET);
         } else {
-            throw new Exception(
+            throw new \Exception(
                 'Could not create temporary files for attachments. Your tmp directory may be unwritable by PHP.'
             );
         }

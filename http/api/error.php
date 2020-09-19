@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 function error() {
     global $dbhr, $dbhm;
 
@@ -6,7 +8,7 @@ function error() {
 
     switch ($_REQUEST['type']) {
         case 'PUT':
-            $me = whoAmI($dbhr, $dbhm);
+            $me = Session::whoAmI($dbhr, $dbhm);
             $userid = $me ? $me->getId() : 'NULL';
             $type = $dbhm->quote(presdef('errortype', $_REQUEST, NULL));
             $text = $dbhm->quote(presdef('errortext', $_REQUEST, NULL));

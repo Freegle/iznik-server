@@ -7,22 +7,22 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $users = $dbhr->preQuery("SELECT DISTINCT userid from memberships where groupid in (select id from groups where external is not null);");
 
-$spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
-$spooltrans = Swift_SpoolTransport::newInstance($spool);
-$smtptrans = Swift_SmtpTransport::newInstance($host);
-$transport = Swift_FailoverTransport::newInstance([
+$spool = new \Swift_FileSpool(IZNIK_BASE . "/spool");
+$spooltrans = \Swift_SpoolTransport::newInstance($spool);
+$smtptrans = \Swift_SmtpTransport::newInstance($host);
+$transport = \Swift_FailoverTransport::newInstance([
     $smtptrans,
     $spooltrans
 ]);
 
-$mailer = Swift_Mailer::newInstance($transport);
+$mailer = \Swift_Mailer::newInstance($transport);
 
 foreach ($users as $user) {
     $u = new User($dbhr, $dbhm, $user['userid']);
     $email = $u->getEmailPreferred();
     error_log("...$email");
 
-    $message = Swift_Message::newInstance()
+    $message = \Swift_Message::newInstance()
         ->setSubject("Sorry, we got a bit carried away there...")
         ->setFrom(['info@ilovefreegle.org' => "Norfolk Freegle" ])
         ->setTo([$email => $u->getName()])

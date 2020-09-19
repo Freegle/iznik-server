@@ -1,9 +1,13 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../include/config.php';
-require_once(IZNIK_BASE . '/include/db.php');
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
+
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 $sql = "SELECT id, name, AsText(st_simplify(polygon, 0.001)) AS polygon FROM authorities WHERE level = 'Primary' ORDER BY name ASC;";
