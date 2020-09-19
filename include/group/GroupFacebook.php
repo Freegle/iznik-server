@@ -60,10 +60,14 @@ class GroupFacebook {
 
         if ($apptoken) {
             # Use an app access token
-            $this->token = $fb->getApp()->getAccessToken();
+            $this->setToken($fb->getApp()->getAccessToken());
         }
 
         return($fb);
+    }
+
+    public function setToken($token) {
+        $this->token = $token;
     }
 
     public function add($groupid, $token, $name, $id, $type = GroupFacebook::TYPE_PAGE) {
@@ -93,36 +97,38 @@ class GroupFacebook {
         $this->dbhm->preExec("DELETE FROM groups_facebook WHERE uid = ?;", [ $uid ]);
     }
 
-    public function getPostsToShare($sharefrom, $since = "last week") {
-        $fb = $this->getFB(TRUE, TRUE);
+    public function getPostsToShare($sharefrom, $since = "last week", $token = NULL) {
+        $fb = $this->getFB(TRUE, FALSE);
         $count = 0;
         error_log("Scrape posts from $sharefrom");
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
-            $url = $sharefrom . "/feed?limit=100&&fields=id,link,message,type,caption,icon,name,full_picture";
-            error_log("Get from feed $url, {$this->token}");
-            $ret = $fb->get($url, $this->token);
+            $url = $sharefrom . "/feed?limit=100&&fields=id,link,message,type,caption,icon,name,full_picture,created_time";
+            error_log("Get from feed $url, $token");
+            $ret = $fb->get($url, $token);
             error_log("Got ok");
 
             $posts = $ret->getDecodedBody();
 
             foreach ($posts['data'] as $wallpost) {
                 error_log("Got " . json_encode($wallpost));
-                $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [
-                    $sharefrom,
-                    $wallpost['id'],
-                    json_encode($wallpost)
-                ]);
+                if (strtotime($wallpost['created_time']) >= strtotime($since)) {
+                    $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [
+                        $sharefrom,
+                        $wallpost['id'],
+                        json_encode($wallpost)
+                    ]);
 
-                if ($rc) {
-                    $id = $this->dbhm->lastInsertId();
-                    $count++;
+                    if ($rc) {
+                        $id = $this->dbhm->lastInsertId();
+                        $count++;
 
-                    if ($id) {
-                        # We only want one copy of this in our newsfeed because it's shown to everyone.
-                        $n = new Newsfeed($this->dbhr, $this->dbhm);
-                        $fid = $n->create(Newsfeed::TYPE_CENTRAL_PUBLICITY, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $id);
+                        if ($id) {
+                            # We only want one copy of this in our newsfeed because it's shown to everyone.
+                            $n = new Newsfeed($this->dbhr, $this->dbhm);
+                            $fid = $n->create(Newsfeed::TYPE_CENTRAL_PUBLICITY, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $id);
+                        }
                     }
                 }
             }
@@ -220,19 +226,15 @@ ORDER BY groups_facebook_toshare.id DESC;";
         $ret = FALSE;
 
         if ($me) {
-            error_log("me");
             # We need to be a mod on the relevant group.
             $modships = $me->getModeratorships();
 
             if (count($modships) > 0) {
-                error_log("Get");
                 $groupids = implode(',', $modships);
                 $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype, groups_facebook.uid, groups_facebook.groupid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND uid = ? AND groups_facebook_toshare.id = ?;";
-                error_log("$sql, {$this->uid}, $id");
                 $actions = $this->dbhr->preQuery($sql, [ $this->uid, $id ]);
 
                 foreach ($actions as $action) {
-                    error_log("mod");
                     # Whether or not this worked, remember that we've tried, so that we don't try again.
                     #error_log("Record INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES ({$action['uid']},{$action['groupid']},{$action['postid']});");
                     $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES (?,?,?);", [
@@ -261,7 +263,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         $a = explode('_', $action['postid']);
                         $params['link'] = 'https://www.facebook.com/' . $a[0] . '/posts/' . $a[1];
                         $result = $fb->post($this->id . '/feed', $params, $this->token);
-                        error_log("Share via " . json_encode($params) . " returned " . var_export($result, TRUE));
+                        #error_log("Share via " . json_encode($params) . " returned " . var_export($result, TRUE));
                         $ret = TRUE;
                     } catch (\Exception $e) {
                         error_log("Share failed with " . $e->getMessage());

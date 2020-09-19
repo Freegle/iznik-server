@@ -112,21 +112,24 @@ class socialactionsAPITest extends IznikAPITestCase
 
         $token = getenv('FREEGLEPLAYGROUND_TOKEN');
 
-        if ($token) {
+        if ($token ) {
             # Running on Travis - set up the token.
-            $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook (groupid, name, type, id, token, authdate) VALUES (?, ?, ?, ?, ?, NOW());", [
-                $gid,
-                'FreeglePlayground',
-                'Page',
-                getenv('FREEGLEPLAYGROUND_PAGEID'),
-                $token
-            ]);
-
-            # Get some posts to share.
-            $this->dbhm->preExec("DELETE FROM groups_facebook_toshare WHERE 1;");
-            $f = new GroupFacebook($this->dbhr, $this->dbhm);
-            $f->getPostsToShare(134117207097);
+            $this->dbhm->preExec(
+                "INSERT IGNORE INTO groups_facebook (groupid, name, type, id, token, authdate) VALUES (?, ?, ?, ?, ?, NOW());",
+                [
+                    $gid,
+                    'FreeglePlayground',
+                    'Page',
+                    getenv('FREEGLEPLAYGROUND_PAGEID'),
+                    $token
+                ]
+            );
         }
+
+        # Get some posts to share.
+        $this->dbhm->preExec("DELETE FROM groups_facebook_toshare WHERE 1;");
+        $f = new GroupFacebook($this->dbhr, $this->dbhm);
+        $f->getPostsToShare(134117207097, "last week", getenv('FACEBOOK_PAGEACCESS_TOKEN'));
     }
 
     public function testHide()

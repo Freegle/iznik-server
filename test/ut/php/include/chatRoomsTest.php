@@ -820,6 +820,9 @@ class chatRoomsTest extends IznikTestCase {
     public function testBlock() {
         $this->log(__METHOD__ );
 
+        # Pretend to be FD.
+        $_REQUEST['modtools'] = FALSE;
+
         # Set up a chatroom
         $u = User::get($this->dbhr, $this->dbhm);
         $u1 = $u->create(NULL, NULL, "Test User 1");

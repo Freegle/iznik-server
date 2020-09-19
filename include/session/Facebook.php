@@ -25,10 +25,13 @@ class Facebook
         return ($this);
     }
 
-    public function getFB() {
+    public function getFB($graffiti = FALSE) {
+        $appid = $graffiti ? FBGRAFFITIAPP_ID : FBAPP_ID;
+        $secret = $graffiti ? FBGRAFFITIAPP_SECRET : FBAPP_SECRET;
+
         $fb = new \Facebook\Facebook([
-            'app_id' => FBAPP_ID,
-            'app_secret' => FBAPP_SECRET
+            'app_id' => $appid,
+            'app_secret' => $secret
         ]);
 
         return($fb);
@@ -71,8 +74,8 @@ class Facebook
         return ([$s, $ret]);
     }
 
-    private function processAccessToken($fb, $accessToken) {
-        $s = NULL;
+    public function getLongLivedToken($fb, $accessToken, $graffiti = FALSE) {
+        $appid = $graffiti ? FBGRAFFITIAPP_ID : FBAPP_ID;
 
         // The OAuth 2.0 client handler helps us manage access tokens
         $oAuth2Client = $fb->getOAuth2Client();
@@ -82,13 +85,37 @@ class Facebook
         #error_log("Token metadata " . var_export($tokenMetadata, TRUE));
 
         // Validation (these will throw FacebookSDKException's when they fail)
-        $tokenMetadata->validateAppId(FBAPP_ID);
+        $tokenMetadata->validateAppId($appid);
         $tokenMetadata->validateExpiration();
+
+        $oAuth2Client = $fb->getOAuth2Client();
+
+        // Get the access token metadata from /debug_token
+        $tokenMetadata = $oAuth2Client->debugToken($accessToken);
+        #error_log("Token metadata " . var_export($tokenMetadata, TRUE));
+
+        // Validation (these will throw FacebookSDKException's when they fail)
+        $tokenMetadata->validateAppId($appid);
+        $tokenMetadata->validateExpiration();
+
+        // Exchanges a short-lived access token for a long-lived one
+        try {
+            $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
+        } catch (\Facebook\Exceptions\FacebookSDKException $e) {
+            # No need to fail the login = proceed with our short one.
+            error_log("Error getting long-lived access token: " . $e->getMessage());
+        }
+
+        return $accessToken;
+    }
+
+    private function processAccessToken($fb, $accessToken) {
+        $s = NULL;
 
         if (!$accessToken->isLongLived()) {
             // Exchanges a short-lived access token for a long-lived one
             try {
-                $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
+                $accessToken = $this->getLongLivedToken($fb, $accessToken);
             } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                 # No need to fail the login = proceed with our short one.
                 error_log("Error getting long-lived access token: " . $e->getMessage());
