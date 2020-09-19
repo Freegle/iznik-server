@@ -10,6 +10,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
+use Pheanstalk\Pheanstalk;
+
 $opts = getopt('n:');
 $instancename = presdef('n', $opts, '');
 $fn = basename(__FILE__ . '_' . $instancename);
