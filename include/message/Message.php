@@ -1989,7 +1989,7 @@ ORDER BY lastdate DESC;";
         $Parser->setText($msg);
 
         # We save the attachments to a temp directory.  This is tidied up on destruction or save.
-        $this->attach_dir = tmpdir();
+        $this->attach_dir = Utils::tmpdir();
         try {
             $this->attach_files = $Parser->saveAttachments($this->attach_dir . DIRECTORY_SEPARATOR);
             $this->attachments = $Parser->getAttachments();

@@ -436,12 +436,14 @@ class API
 
                             filterResult($ret);
 
-                            # We use a streaming encoder rather than json_encode because we can run out of memory encoding
-                            # large results such as exports
-                            # Don't - this seems to break the heatmap by returning truncated data.
-                            //                $encoder = new \Violet\StreamingJsonEncoder\StreamJsonEncoder($ret);
-                            //                $encoder->encode();
                             $str = json_encode($ret);
+
+                            if (!$str) {
+                                // This can happen with bad UTF-8 characters.  Do a more expensive filter.
+                                filterResult($ret, NULL, TRUE);
+                                $str = json_encode($ret);
+                            }
+
                             echo $str;
 
                             if ($duration > 1000) {
@@ -496,8 +498,6 @@ class API
                     $_REQUEST['retry'] = uniqid('', true);
                 }
             } while ($apicallretries < API_RETRIES);
-
-            $ip = presdef('REMOTE_ADDR', $_SERVER, '');
 
             if (BROWSERTRACKING && (presdef('type', $_REQUEST, null) != 'GET') &&
                 (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {

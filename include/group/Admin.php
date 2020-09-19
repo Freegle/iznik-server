@@ -174,16 +174,7 @@ class Admin extends Entity
                     $done++;
 
                     if ($done % 1000 === 0 && $gently) {
-                        # TODO Make generic
-                        $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool_admin_* | wc -l 2>&1"));
-
-                        if ($queuesize > 30000) {
-                            while ($queuesize > 1000) {
-                                sleep(60);
-                                $queuesize = trim(shell_exec("ls -1 /var/www/iznik/spool_admin_* | wc -l 2>&1"));
-                                error_log("...sleeping, spool queue $queuesize");
-                            }
-                        }
+                        Utils::checkFiles('/var/www/iznik/spool_admin_*', 30000, 1000);
                     }
                 } catch (\Exception $e) {
                     error_log("Failed with " . $e->getMessage());

@@ -1,14 +1,5 @@
 <?php
 
-function tmpdir() {
-    $tempfile=tempnam(sys_get_temp_dir(),'');
-    if (file_exists($tempfile)) { unlink($tempfile); }
-    mkdir($tempfile);
-    $ret = NULL;
-    if (is_dir($tempfile)) { $ret = $tempfile; }
-    return $ret;
-}
-
 function getProtocol() {
     return(pres('HTTPS', $_SERVER) ? 'https://' : 'http://');
 }
@@ -25,7 +16,7 @@ function presdef($key, $arr, $def) {
     }
 }
 
-function filterResult(&$array, $skip = NULL) {
+function filterResult(&$array, $skip = NULL, $badUTF = FALSE) {
     # We want to ensure that we have the correct data types - for example PDO returns floats as strings.
     foreach($array as $key => $val){
         #error_log("$key type ". gettype($val) . " null? " . is_null($val) . " is_numeric ");
@@ -57,7 +48,7 @@ function filterResult(&$array, $skip = NULL) {
                     $array[$key] = $v;
                 }
             }
-        } else {
+        } else if ($badUTF) {
             # This is a hack which flattens odd characters to avoid json_encode returning null.
             $array[$key] = @iconv('UTF-8', 'UTF-8//IGNORE', $val);
         }
