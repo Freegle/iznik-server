@@ -1,5 +1,7 @@
 <?php
 
+namespace Freegle\Iznik;
+
 # Set up gridids for locations already in the locations table; you might do this after importing a bunch of locations
 # from a source such as OpenStreetMap (OSM).
 require_once dirname(__FILE__) . '/../include/config.php';
