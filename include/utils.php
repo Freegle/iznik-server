@@ -64,18 +64,6 @@ function filterResult(&$array, $skip = NULL) {
     }
 }
 
-function getCpuUsage() {
-    global $tusage, $rusage;
-    $dat = getrusage();
-    $dat["ru_utime.tv_usec"] = ($dat["ru_utime.tv_sec"]*1e6 + $dat["ru_utime.tv_usec"]) - $rusage;
-    $time = (microtime(true) - $tusage) * 1000000;
-
-    // cpu per request
-    $cpu = $time > 0 ? $dat["ru_utime.tv_usec"] / $time / 1000 : 0;
-
-    return $cpu;
-}
-
 // equiv to rand, mt_rand
 // returns int in *closed* interval [$min,$max]
 function devurandom_rand($min = 1, $max = 0x7FFFFFFF) {

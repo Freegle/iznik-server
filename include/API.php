@@ -2,12 +2,37 @@
 
 namespace Freegle\Iznik;
 
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
+
 use GeoIp2\Database\Reader;
 
 class API
 {
+    public static function headers() {
+        $call = array_key_exists('call', $_REQUEST) ? $_REQUEST['call'] : NULL;
+        $type = array_key_exists('type', $_REQUEST) ? $_REQUEST['type'] : 'GET';
+
+        // We allow anyone to use our API.
+        //
+        // Suppress errors on the header command for UT
+        if (!(($call == 'image' || $call == 'profile') && $type == 'GET')) {
+            # For images we'll set the content type later.
+            @header('Content-type: application/json');
+        }
+
+        // Access-Control-Allow-Origin not now added by nginx.
+        @header('Access-Control-Allow-Origin: *');
+        @header('Access-Control-Allow-Headers: ' . (array_key_exists('HTTP_ACCESS_CONTROL_REQUEST_HEADERS', $_SERVER) ? $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'] : "Origin, X-Requested-With, Content-Type, Accept, Authorization")); // X-HTTP-Method-Override not needed
+        @header('Access-Control-Allow-Credentials: true');
+        @header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
+    }
+
     public static function call()
     {
+        global $dbhr, $dbhm;
+
         $scriptstart = microtime(true);
 
         $entityBody = file_get_contents('php://input');
@@ -51,8 +76,10 @@ class API
             #error_log("Request method override to {$_REQUEST['type']}");
         }
 
-        require_once('../../include/misc/apiheaders.php');
-        require_once('../../include/config.php');
+        // Record timing.
+        list ($tusage, $rusage) = API::requestStart();
+
+        API::headers();
 
         // @codeCoverageIgnoreStart
         if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
@@ -60,11 +87,6 @@ class API
             exit(0);
         }
         // @codeCoverageIgnoreEnd
-
-        require_once(IZNIK_BASE . '/include/db.php');
-        global $dbhr, $dbhm;
-
-        require_once(IZNIK_BASE . '/include/utils.php');
 
         $includetime = microtime(true) - $scriptstart;
 
@@ -406,7 +428,7 @@ class API
                             $ret['type'] = presdef('type', $_REQUEST, null);
                             $ret['session'] = session_id();
                             $ret['duration'] = $duration;
-                            $ret['cpucost'] = getCpuUsage();
+                            $ret['cpucost'] = API::getCpuUsage($tusage, $rusage);
                             $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();
                             $ret['includetime'] = $includetime;
                             //                $ret['remoteaddr'] = presdef('REMOTE_ADDR', $_SERVER, '-');
@@ -437,7 +459,7 @@ class API
 
                     break;
                 } catch (\Exception $e) {
-                    # This is our retry handler - see apiheaders.
+                    # This is our retry handler.
                     if ($e instanceof DBException) {
                         # This is a DBException.  We want to retry, which means we just go round the loop
                         # again.
@@ -522,5 +544,21 @@ class API
                 }
             }
         }
+    }
+
+    public static function requestStart() {
+        $dat = getrusage();
+        return ([ microtime(true), $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"] ]);
+    }
+
+    public static function getCpuUsage($tusage, $rusage) {
+        $dat = getrusage();
+        $dat["ru_utime.tv_usec"] = ($dat["ru_utime.tv_sec"]*1e6 + $dat["ru_utime.tv_usec"]) - $rusage;
+        $time = (microtime(true) - $tusage) * 1000000;
+
+        // cpu per request
+        $cpu = $time > 0 ? $dat["ru_utime.tv_usec"] / $time / 1000 : 0;
+
+        return $cpu;
     }
 }

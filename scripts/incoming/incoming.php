@@ -1,12 +1,10 @@
 <?php
 
+namespace Freegle\Iznik;
+
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
-require_once(IZNIK_BASE . '/include/message/Message.php');
-require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
 
 $tusage = NULL;
 $rusage = NULL;
@@ -44,6 +42,5 @@ error_log("Email");
 $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
 $rc = $r->route();
 
-error_log("CPU cost " . getCpuUsage() . " rc $rc");
 fwrite($logh, "Route returned $rc\n");
 exit(0);
