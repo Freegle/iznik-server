@@ -20,6 +20,12 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
     public static $unique = 1;
 
+    public function __construct() {
+        if (!isset($_SESSION)) {
+            session_start();
+        }
+    }
+
     public function log($str) {
         if (IznikTestCase::DEBUG) {
             error_log($str);
