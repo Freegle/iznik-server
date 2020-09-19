@@ -233,7 +233,9 @@ class Facebook
             'status' => 'Login failed'
         ];
 
-        @session_start();
+        if (session_status() == PHP_SESSION_NONE) {
+            @session_start();
+        }
 
         if (!isset($_SESSION) || !pres('id', $_SESSION)) {
             # We're not already logged in.  Try to get an access token.

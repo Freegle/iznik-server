@@ -14,21 +14,21 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
  */
 abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     const LOG_SLEEP = 600;
-    const DEBUG = TRUE;
+    const DEBUG = FALSE;
 
     private $dbhr, $dbhm;
 
     public static $unique = 1;
 
-    public function __construct() {
-        if (!isset($_SESSION)) {
-            session_start();
-        }
-    }
-
     public function log($str) {
         if (IznikTestCase::DEBUG) {
             error_log($str);
+        }
+    }
+
+    public function __construct() {
+        if (session_status() == PHP_SESSION_NONE) {
+            @session_start();
         }
     }
 
@@ -67,8 +67,6 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         parent::setUp ();
 
         $this->log(__METHOD__);
-
-        error_reporting(E_ALL);
 
         if (file_exists(IZNIK_BASE . '/standalone')) {
             # Probably in Docket
