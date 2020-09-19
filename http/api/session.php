@@ -8,22 +8,23 @@ function session() {
     $me = NULL;
 
     $modtools = Session::modtools();
-    error_log("Modtools $modtools " . json_encode($_REQUEST));
 
     $sessionLogout = function($dbhr, $dbhm) {
-        $id = Utils::pres('id', $_SESSION);
-        if ($id) {
-            $s = new Session($dbhr, $dbhm);
-            $s->destroy($id, NULL);
-        }
+        if (session_status() !== PHP_SESSION_NONE) {
+            $id = Utils::pres('id', $_SESSION);
+            if ($id) {
+                $s = new Session($dbhr, $dbhm);
+                $s->destroy($id, null);
+            }
 
-        # Destroy the PHP session
-        try {
-            session_destroy();
-            session_unset();
-            @session_start();
-            session_regenerate_id(true);
-        } catch (\Exception $e) {
+            # Destroy the PHP session
+            try {
+                session_destroy();
+                session_unset();
+                @session_start();
+                session_regenerate_id(true);
+            } catch (\Exception $e) {
+            }
         }
     };
 

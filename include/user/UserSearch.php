@@ -1,8 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
-
 class UserSearch extends Entity
 {
     /** @var  $dbhm LoggedPDO */
