@@ -509,7 +509,8 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'FOP', 'fromaddr', 'isdraft'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'FOP', 'fromaddr', 'isdraft',
+        'lat', 'lng'
     ];
 
     public $memberAtts = [
@@ -518,8 +519,7 @@ class Message
 
     public $moderatorAtts = [
         'source', 'sourceheader', 'envelopefrom', 'envelopeto', 'messageid', 'tnpostid',
-        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto', 'editedby', 'editedat', 'locationid',
-        'lat', 'lng'
+        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto', 'editedby', 'editedat', 'locationid'
     ];
 
     public $ownerAtts = [
@@ -890,6 +890,12 @@ class Message
                 foreach ($this->ownerAtts as $att) {
                     $ret[$att] = Utils::presdef($att, $msg, NULL);
                 }
+            }
+
+            if ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER) {
+                // Blur lat/lng slightly for privacy.
+                $ret['lat'] = round($ret['lat'], User::BLUR_100M);
+                $ret['lng'] = round($ret['lng'], User::BLUR_100M);
             }
 
             # URL people can follow to get to the message on our site.

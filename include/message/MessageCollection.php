@@ -94,7 +94,7 @@ class MessageCollection
 
                 $summjoin = $summary ? ", messages.subject, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
 
-                $sql = $userids ? ("SELECT messages_drafts.msgid AS id, 1 AS isdraft, messages.arrival, messages.type AS type, fromuser $summjoin FROM messages_drafts LEFT JOIN messages_groups ON messages_groups.msgid = messages_drafts.msgid INNER JOIN messages ON messages_drafts.msgid = messages.id WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) AND messages_groups.msgid IS NULL $oldest ORDER BY messages.id DESC LIMIT $limit;") : "SELECT messages_drafts.msgid AS id, messages.type AS type, fromuser $summjoin FROM messages_drafts LEFT JOIN messages_groups ON messages_groups.msgid = messages_drafts.msgid INNER JOIN messages ON messages_drafts.msgid = messages.id  WHERE session = ? AND messages_groups.msgid IS NULL $oldest ORDER BY messages.id DESC LIMIT $limit;";
+                $sql = $userids ? ("SELECT messages_drafts.msgid AS id, 1 AS isdraft, messages.lat, messages.lng, messages.arrival, messages.type AS type, fromuser $summjoin FROM messages_drafts LEFT JOIN messages_groups ON messages_groups.msgid = messages_drafts.msgid INNER JOIN messages ON messages_drafts.msgid = messages.id WHERE (session = ? OR userid IN (" . implode(',', $userids) . ")) AND messages_groups.msgid IS NULL $oldest ORDER BY messages.id DESC LIMIT $limit;") : "SELECT messages_drafts.msgid AS id, messages.type AS type, fromuser $summjoin FROM messages_drafts LEFT JOIN messages_groups ON messages_groups.msgid = messages_drafts.msgid INNER JOIN messages ON messages_drafts.msgid = messages.id  WHERE session = ? AND messages_groups.msgid IS NULL $oldest ORDER BY messages.id DESC LIMIT $limit;";
                 $tofill = $this->dbhr->preQuery($sql, [
                     session_id()
                 ]);
@@ -111,7 +111,7 @@ class MessageCollection
 
                 if ($me) {
                     $start = date('Y-m-d', strtotime("30 days ago"));
-                    $sql = "SELECT messages.id, messages.arrival, messages.type, messages.subject, messages_likes.timestamp AS viewedat, messages_likes.count, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid FROM messages_likes INNER JOIN messages ON messages.id = messages_likes.msgid WHERE userid = ? AND messages_likes.type = 'View' AND messages_likes.timestamp >= '$start' HAVING outcomeid IS NULL ORDER BY messages_likes.timestamp DESC LIMIT 5;";
+                    $sql = "SELECT messages.id, messages.lat, messages.lng, messages.arrival, messages.type, messages.subject, messages_likes.timestamp AS viewedat, messages_likes.count, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid FROM messages_likes INNER JOIN messages ON messages.id = messages_likes.msgid WHERE userid = ? AND messages_likes.type = 'View' AND messages_likes.timestamp >= '$start' HAVING outcomeid IS NULL ORDER BY messages_likes.timestamp DESC LIMIT 5;";
                     $msgs = $this->dbhr->preQuery($sql, [
                         $me->getId()
                     ]);
@@ -143,7 +143,7 @@ class MessageCollection
                     $summjoin = $summary ? ", messages.subject, (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
                     $groupq = "AND messages_groups.groupid IN (" . implode(',', $groupids) . ") ";
 
-                    $sql = "SELECT DISTINCT messages.id AS id, 0 AS isdraft, messages_groups.arrival, messages.type, fromuser $summjoin FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid INNER JOIN messages ON messages_groups.msgid = messages.id WHERE messages_edits.timestamp > '$mysqltime' AND messages_edits.reviewrequired = 1 AND messages_groups.deleted = 0 $groupq AND $dateq ORDER BY messages_edits.msgid, messages_edits.timestamp ASC;";
+                    $sql = "SELECT DISTINCT messages.id AS id, 0 AS isdraft, messages.lat, messages.lng, messages_groups.arrival, messages.type, fromuser $summjoin FROM messages_edits INNER JOIN messages_groups ON messages_edits.msgid = messages_groups.msgid INNER JOIN messages ON messages_groups.msgid = messages.id WHERE messages_edits.timestamp > '$mysqltime' AND messages_edits.reviewrequired = 1 AND messages_groups.deleted = 0 $groupq AND $dateq ORDER BY messages_edits.msgid, messages_edits.timestamp ASC;";
                     $tofill2 = $this->dbhr->preQuery($sql);
 
                     $ctx = ['Date' => NULL, 'id' => PHP_INT_MAX];
@@ -192,7 +192,7 @@ class MessageCollection
 
                 # We might be looking for posts with no outcome.
                 $outcomeq1 = $hasoutcome !== NULL ? " LEFT JOIN messages_outcomes ON messages_outcomes.id = messages.id " : '';
-                $outcomeq2 = $hasoutcome !== NULL ? " AND messages_outcomes.msgid IS NULL " : '';
+                $outcomeq2 = $hasoutcome !== NULL ? " HAVING outcomeid IS NULL " : '';
 
                 # We might be getting a summary, in which case we want to get lots of information in the same query
                 # for performance reasons.
@@ -218,17 +218,18 @@ class MessageCollection
                     # We only query on a small set of userids, so it's more efficient to get the list of messages from them
                     # first.
                     $seltab = "(SELECT id, arrival, " . ($summary ? 'subject, ' : '') . "fromuser, deleted, `type`, textbody, source FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
-                    $sql = "SELECT 0 AS isdraft, messages_groups.msgid AS id, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 AND messages.fromuser IS NOT NULL $outcomeq2 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
+                    $sql = "SELECT 0 AS isdraft, messages_groups.msgid AS id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 AND messages.fromuser IS NOT NULL $outcomeq2 ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
                 } else if (count($groupids) > 0) {
                     # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
                     $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
-                    $sql = "SELECT 0 AS isdraft, msgid as id, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE $dateq $oldest $groupq $collectionq AND messages_groups.deleted = 0 AND messages.fromuser IS NOT NULL $typeq ORDER BY arrival DESC, messages_groups.msgid DESC LIMIT $limit;";
+                    $sql = "SELECT 0 AS isdraft, messages_groups.msgid as id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid $outcomeq1 WHERE $dateq $oldest $groupq $collectionq AND messages_groups.deleted = 0 AND messages.fromuser IS NOT NULL $typeq $outcomeq2 ORDER BY arrival DESC, messages_groups.msgid DESC LIMIT $limit;";
                 } else {
                     # We are not searching within a specific group, so we have no choice but to do a larger join.
-                    $sql = "SELECT 0 AS isdraft, msgid AS id, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 AND messages.fromuser IS NOT NULL ORDER BY messages_groups.arrival DESC, messages_groups.msgid DESC LIMIT $limit";
+                    $sql = "SELECT 0 AS isdraft, messages_groups.msgid AS id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 AND messages.fromuser IS NOT NULL ORDER BY messages_groups.arrival DESC, messages_groups.msgid $outcomeq2 DESC LIMIT $limit";
                 }
 
                 #error_log("Get list $sql");
+                #file_put_contents('/tmp/sql', $sql);
                 $msglist = $this->dbhr->preQuery($sql);
 
                 # Get an array of the basic info.  Save off context for next time.
