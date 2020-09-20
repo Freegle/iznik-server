@@ -627,7 +627,7 @@ class Location extends Entity
     }
 
     public function convexHull($points) {
-        $mp = new MultiPoint($points);
+        $mp = new \MultiPoint($points);
         $hull = $mp->convexHull();
         return $hull;
     }
