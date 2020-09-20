@@ -13,9 +13,10 @@ class Session {
 
     public static function modtools() {
         # Whether we are in ModTools or Freegle Direct.  For API calls this is passed as a request parameter.
-        if (defined('MODTOOLS')) {
-            return MODTOOLS;
-        } else if (isset($_REQUEST) && array_key_exists('modtools', $_REQUEST)) {
+//        if (defined('MODTOOLS')) {
+//            return MODTOOLS;
+//        } else
+        if (isset($_REQUEST) && array_key_exists('modtools', $_REQUEST)) {
             return filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN);
         } else {
             # Default TRUE for scripts.
