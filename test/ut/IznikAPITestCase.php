@@ -46,6 +46,11 @@ abstract class IznikAPITestCase extends IznikTestCase {
         $_SERVER['REQUEST_URI'] = "/api/$call.php";
         $_REQUEST['call'] = $call;
 
+        if (!array_key_exists('modtools', $_REQUEST)) {
+            // Assume TRUE for UT unless otherwise specified.
+            $_REQUEST['modtools'] = TRUE;
+        }
+
         # API calls have to run from the api directory, as they would from the web server.
         chdir(IZNIK_BASE . '/http/api');
         API::call();

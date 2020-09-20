@@ -137,6 +137,7 @@ class MailRouter
 
         foreach ($groups as $groupid) {
             $n->notifyGroupMods($groupid);
+            error_log("Pending notify $groupid");
         }
 
         return($rc);

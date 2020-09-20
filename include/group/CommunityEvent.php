@@ -68,6 +68,7 @@ class CommunityEvent extends Entity
         $fid = $n->create(Newsfeed::TYPE_COMMUNITY_EVENT, $this->event['userid'], NULL, NULL, NULL, NULL, $groupid, $this->id, NULL, NULL);
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
+        error_log("Add group notify $groupid");
         $n->notifyGroupMods($groupid);
     }
 

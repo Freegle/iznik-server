@@ -351,6 +351,7 @@ class Message
                     # Notify the mods of the soon-to-exist pending work.
                     $n = new PushNotifications($this->dbhr, $this->dbhm);
                     $n->notifyGroupMods($group['groupid']);
+                    error_log("Edit notify {$group['groupid']}");
                 }
             }
         }
@@ -2826,6 +2827,7 @@ ORDER BY lastdate DESC;";
         }
 
         $this->notif->notifyGroupMods($groupid);
+        error_log("Reject notify $groupid");
 
         $this->maybeMail($groupid, $subject, $body, 'Reject');
     }
@@ -2871,6 +2873,7 @@ ORDER BY lastdate DESC;";
         #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
 
         $this->notif->notifyGroupMods($groupid);
+        error_log("Approve notify $groupid");
 
         $this->maybeMail($groupid, $subject, $body, 'Approve');
 
@@ -2973,6 +2976,8 @@ ORDER BY lastdate DESC;";
 
                 if ($groupid) {
                     $this->notif->notifyGroupMods($groupid);
+                    error_log("Delete notify $groupid");
+
                     $this->maybeMail($groupid, $subject, $body, $group['collection'] == MessageCollection::APPROVED ? 'Delete Approved Message' : 'Delete');
                 }
             }
@@ -3780,6 +3785,7 @@ ORDER BY lastdate DESC;";
             $rc = TRUE;
             $n = new PushNotifications($this->dbhr, $this->dbhm);
             $n->notifyGroupMods($groupid);
+            error_log("Submit notify $groupid");
 
             # This message is now not a draft.
             $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);

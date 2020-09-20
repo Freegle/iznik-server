@@ -35,6 +35,7 @@ class Admin extends Entity
         }
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
+        error_log("Admin notify $groupid");
         $n->notifyGroupMods($groupid);
 
         return($id);

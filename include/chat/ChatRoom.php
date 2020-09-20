@@ -1124,6 +1124,7 @@ WHERE chat_rooms.id IN $idlist;";
                 # have counts/notifications which need updating.
                 $n = new PushNotifications($this->dbhr, $this->dbhm);
                 #error_log("Update roster for $userid set last seen $lastmsgseen from {$_SERVER['REMOTE_ADDR']}");
+                error_log("Roster notify $userid");
                 $n->notify($userid, Session::modtools());
             }
 
@@ -1233,14 +1234,15 @@ WHERE chat_rooms.id IN $idlist;";
         # Notify members of a chat room via:
         # - Facebook
         # - push
-        $userids = [];
+        $fduserids = [];
+        $mtuserids = [];
         #error_log("Notify $message exclude $excludeuser");
 
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
                 # Notify both users.
-                $userids[] = $this->chatroom['user1'];
-                $userids[] = $this->chatroom['user2'];
+                $fduserids[] = $this->chatroom['user1'];
+                $fduserids[] = $this->chatroom['user2'];
 
                 if ($modstoo) {
                     # Notify active mods of any groups that the recipient is a member of.
@@ -1256,7 +1258,7 @@ WHERE chat_rooms.id IN $idlist;";
 
                         foreach ($mods as $mod) {
                             if (!Utils::pres('settings', $mod) || Utils::pres('active', json_decode($mod['settings']))) {
-                                $userids[] = $mod['userid'];
+                                $mtuserids[] = $mod['userid'];
                             }
                         }
                     }
@@ -1264,14 +1266,13 @@ WHERE chat_rooms.id IN $idlist;";
                 break;
             case ChatRoom::TYPE_USER2MOD:
                 # Notify the initiator and the groups mods.
-                $userids[] = $this->chatroom['user1'];
+                $fduserids[] = $this->chatroom['user1'];
                 $g = Group::get($this->dbhr, $this->dbhm, $this->chatroom['groupid']);
-                $mods = $g->getMods();
-                $userids = array_merge($userids, $mods);
+                $mtuserids = $g->getMods();
                 break;
         }
 
-        # First Facebook.  Truncates after 120;
+        # First Facebook.  Truncates after 120.  Only notify FD users for this; mods have plenty of other notifications.
         $url = "chat/{$this->id}";
         $text = $name . " wrote: " . $message;
         $text = strlen($text) > 120 ? (substr($text, 0, 117) . '...') : $text;
@@ -1279,7 +1280,7 @@ WHERE chat_rooms.id IN $idlist;";
         $f = new Facebook($this->dbhr, $this->dbhm);
         $count = 0;
 
-        foreach ($userids as $userid) {
+        foreach ($fduserids as $userid) {
             # We only want to notify users who have a group membership; if they don't, then we shouldn't annoy them.
             $u = User::get($this->dbhr, $this->dbhm, $userid);
             if ($u->isModerator() || count($u->getMemberships())  > 0) {
@@ -1303,11 +1304,19 @@ WHERE chat_rooms.id IN $idlist;";
             }
         }
 
-        # Now Push.
+        # Now Push notifications, for both FD and MT.
         $n = new PushNotifications($this->dbhr, $this->dbhm);
-        foreach ($userids as $userid) {
+        foreach ($fduserids as $userid) {
             if ($userid != $excludeuser) {
+                error_log("Chat notify FD $userid");
                 $n->notify($userid, FALSE);
+            }
+        }
+
+        foreach ($mtuserids as $userid) {
+            if ($userid != $excludeuser) {
+                error_log("Chat notify MT $userid");
+                $n->notify($userid, TRUE);
             }
         }
 

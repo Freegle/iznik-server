@@ -89,6 +89,7 @@ class GroupFacebook {
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         $n->notifyGroupMods($groupid);
+        error_log("FAcebook notify $groupid");
 
         return($created);
     }

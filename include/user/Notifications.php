@@ -145,6 +145,7 @@ class Notifications
         $sql = "UPDATE users_notifications SET seen = 1 WHERE touser = ? $idq;";
         $rc = $this->dbhm->preExec($sql, [ $userid ] );
 
+        error_log("Seen notify $userid");
         $p = new PushNotifications($this->dbhr, $this->dbhm);
         $p->notify($userid, Session::modtools());
 
