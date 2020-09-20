@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 define('IZNIK_BASE', dirname(__FILE__) . '/..');
 require_once('/etc/iznik.conf');
 require_once(IZNIK_BASE . '/include/config.php');
