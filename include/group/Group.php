@@ -401,7 +401,7 @@ GROUP BY memberships.groupid, held;
                 $eventsqltime
             ]);
 
-            $pendingadmins = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid IN $groupq AND admins.complete IS NULL AND admins.pending = 1 AND heldby IS NULL GROUP BY groupid;");
+            $pendingadmins = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid IN $groupq AND admins.complete IS NULL AND admins.pending = 1 AND heldby IS NULL AND admins.created >= '$earliestmsg' GROUP BY groupid;");
 
             # Related members.
             #
