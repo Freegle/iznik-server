@@ -73,8 +73,9 @@ if ($hour >= 8 && $hour <= 21)
                     'Members to Review' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM users INNER JOIN memberships ON memberships.groupid = ? AND memberships.userid = users.id WHERE suspectcount > 0 " . ($minage > 0 ? " AND memberships.added < '$minageq'" : '') . " AND (suspectdate IS NULL OR suspectdate < '$minageq');", [
                         $group['id'],
                     ])[0]['count'],
-                    'Pending Admins' => $dbhr->preQuery("SELECT COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid = ? AND admins.complete IS NULL AND admins.pending = 1 AND admins.heldby IS NULL;", [
-                        $group['id']
+                    'Pending Admins' => $dbhr->preQuery("SELECT COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid = ? AND admins.complete IS NULL AND admins.pending = 1 AND admins.heldby IS NULL AND admins.created >= ?;", [
+                        $group['id'],
+                        $earliest
                     ])[0]['count']
                 ];
 
