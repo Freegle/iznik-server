@@ -1,8 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
-
 # We include this directly because the composer version isn't quite right for us - see
 # https://github.com/php-mime-mail-parser/php-mime-mail-parser/issues/163
 require_once(IZNIK_BASE . '/lib/php-mime-mail-parser/php-mime-mail-parser/src/Parser.php');

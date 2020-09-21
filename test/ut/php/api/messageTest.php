@@ -122,7 +122,8 @@ class messageAPITest extends IznikAPITestCase
             'collection' => 'Approved',
             'summary' => FALSE,
             'grouptype' => Group::GROUP_FREEGLE,
-            'modtools' => TRUE
+            'modtools' => TRUE,
+            'groupid' => $this->gid
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['messages'][0]['id']);
