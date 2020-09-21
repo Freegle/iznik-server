@@ -7,7 +7,6 @@ function messages() {
     $me = Session::whoAmI($dbhr, $dbhm);
 
     $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
-    $uid = intval(Utils::presdef('uid', $_REQUEST, NULL));
     $collection = Utils::presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
     $limit = intval(Utils::presdef('limit', $_REQUEST, 5));
@@ -15,7 +14,6 @@ function messages() {
     $hasoutcome = array_key_exists('hasoutcome', $_REQUEST) ? filter_var($_REQUEST['hasoutcome'], FILTER_VALIDATE_BOOLEAN) : NULL;
     $types = Utils::presdef('types', $_REQUEST, NULL);
     $subaction = Utils::presdef('subaction', $_REQUEST, NULL);
-    $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $grouptype = Utils::presdef('grouptype', $_REQUEST, NULL);
     $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -45,7 +43,7 @@ function messages() {
                     # preferences say shouldn't be in.
                     #
                     # If we're in Freegle Direct, we only want to show Freegle groups.
-                    $mygroups = $me->getMemberships($modtools, Session::modtools() ? $grouptype : Group::GROUP_FREEGLE);
+                    $mygroups = $me->getMemberships(FALSE, Session::modtools() ? $grouptype : Group::GROUP_FREEGLE);
                     foreach ($mygroups as $group) {
                         $settings = $me->getGroupSettings($group['id']);
                         if (!Session::modtools() || !array_key_exists('active', $settings) || $settings['active']) {

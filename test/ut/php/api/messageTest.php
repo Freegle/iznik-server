@@ -104,7 +104,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
+        assertTrue($u->addMembership($this->gid));
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
@@ -120,7 +120,9 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('messages', 'GET', [
             'id' => $id,
             'collection' => 'Approved',
-            'summary' => FALSE
+            'summary' => FALSE,
+            'grouptype' => Group::GROUP_FREEGLE,
+            'modtools' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['messages'][0]['id']);

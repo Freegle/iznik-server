@@ -320,7 +320,7 @@ class MessageCollection
         }
 
         $m = new Message($this->dbhr, $this->dbhm);
-        $publics = $m->getPublics($msglist,Session::modtools(), TRUE, FALSE, $this->userlist, $this->locationlist, $summary);
+        $publics = $m->getPublics($msglist, Session::modtools(), TRUE, FALSE, $this->userlist, $this->locationlist, $summary);
         $cansees = NULL;
 
         foreach ($publics as &$public) {
