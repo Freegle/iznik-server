@@ -1,4 +1,6 @@
 <?php
+namespace Freegle\Iznik;
+
 $scriptstart = microtime(false);
 date_default_timezone_set('UTC');
 if (session_status() == PHP_SESSION_NONE) {

@@ -1,8 +1,7 @@
 <?php
+namespace Freegle\Iznik;
 require_once('/etc/iznik.conf');
 require_once(dirname(__FILE__) . '/../include/config.php');
-
-require_once(IZNIK_BASE . '/include/group/Alerts.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 

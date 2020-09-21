@@ -27,7 +27,7 @@ if (!defined('IZNIK_BASE')) {
 
         foreach ([ '/include/', '/include/user/', '/include/session/', '/include/group/', '/include/message/', '/include/misc/', '/include/chat/', '/include/newsfeed/', '/include/spam/', '/include/config/', '/include/dashboard/', '/include/mail/', '/include/noticeboard/', '/test/ut/', '/include/booktastic/' ] as $dir) {
             $fn = IZNIK_BASE . $dir . $class . '.php';
-            #error_log("Check $class_name $fn");
+            error_log("Check $class_name $fn");
             if (file_exists($fn)) {
                 #error_log("Exists");
                 require_once $fn;
