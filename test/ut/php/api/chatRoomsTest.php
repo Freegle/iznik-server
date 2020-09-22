@@ -409,18 +409,18 @@ class chatRoomsAPITest extends IznikAPITestCase
         $rid = $r->createConversation($uid1, $uid2);
         assertNull($rid);
     }
-
-    public function testEH() {
-        $_SESSION['id'] = 35822275;
-        $ret = $this->call('chatrooms', 'GET', [
-            'chattypes' => [
-                ChatRoom::TYPE_USER2MOD,
-                ChatRoom::TYPE_MOD2MOD,
-            ],
-            'summary' => TRUE,
-            'modtools'=> TRUE
-        ]);
-        assertEquals(0, $ret['ret']);
-        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
-    }
+//
+//    public function testEH() {
+//        $_SESSION['id'] = 35822275;
+//        $ret = $this->call('chatrooms', 'GET', [
+//            'chattypes' => [
+//                ChatRoom::TYPE_USER2MOD,
+//                ChatRoom::TYPE_MOD2MOD,
+//            ],
+//            'summary' => TRUE,
+//            'modtools'=> TRUE
+//        ]);
+//        assertEquals(0, $ret['ret']);
+//        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
+//    }
 }
