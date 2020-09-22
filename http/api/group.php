@@ -30,98 +30,105 @@ function group() {
 
         switch ($_REQUEST['type']) {
             case 'GET': {
-                $members = array_key_exists('members', $_REQUEST) ? filter_var($_REQUEST['members'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-                $showmods = array_key_exists('showmods', $_REQUEST) ? filter_var($_REQUEST['showmods'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-
                 $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'group' => $g->getPublic()
+                    'ret' => 10,
+                    'status' => 'Invalid group id'
                 ];
 
-                $ret['group']['myrole'] = $me ? $me->getRoleForGroup($id) : User::ROLE_NONMEMBER;
-                $ret['group']['mysettings'] = $me ? $me->getGroupSettings($id) : NULL;
-                $ctx = Utils::presdef('context', $_REQUEST, NULL);
-                $limit = Utils::presdef('limit', $_REQUEST, 5);
-                $search = Utils::presdef('search', $_REQUEST, NULL);
+                if ($id) {
+                    $members = array_key_exists('members', $_REQUEST) ? filter_var($_REQUEST['members'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+                    $showmods = array_key_exists('showmods', $_REQUEST) ? filter_var($_REQUEST['showmods'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
-                if ($members && $me && $me->isModOrOwner($id)) {
-                    $ret['group']['members'] = $g->getMembers($limit, $search, $ctx);
-                    $ret['context'] = $ctx;
-                }
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'group' => $g->getPublic()
+                    ];
 
-                if ($me && $me->isModerator()) {
-                    # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
-                    # in here - but it's of no interest to members so there's no point delaying them by
-                    # fetching it.
-                    #
-                    # Similar code in session.php
-                    $t = new Twitter($dbhr, $dbhm, $id);
-                    $atts = $t->getPublic();
-                    unset($atts['token']);
-                    unset($atts['secret']);
-                    $atts['authdate'] = Utils::ISODate($atts['authdate']);
-                    $ret['group']['twitter'] =  $atts;
+                    $ret['group']['myrole'] = $me ? $me->getRoleForGroup($id) : User::ROLE_NONMEMBER;
+                    $ret['group']['mysettings'] = $me ? $me->getGroupSettings($id) : NULL;
+                    $ctx = Utils::presdef('context', $_REQUEST, NULL);
+                    $limit = Utils::presdef('limit', $_REQUEST, 5);
+                    $search = Utils::presdef('search', $_REQUEST, NULL);
 
-                    # Ditto Facebook.
-                    $uids = GroupFacebook::listForGroup($dbhr, $dbhm, $id);
-                    $ret['group']['facebook'] = [];
+                    if ($members && $me && $me->isModOrOwner($id)) {
+                        $ret['group']['members'] = $g->getMembers($limit, $search, $ctx);
+                        $ret['context'] = $ctx;
+                    }
 
-                    foreach ($uids as $uid) {
-                        $f = new GroupFacebook($dbhr, $dbhm, $uid);
-                        $atts = $f->getPublic();
+                    if ($me && $me->isModerator()) {
+                        # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                        # in here - but it's of no interest to members so there's no point delaying them by
+                        # fetching it.
+                        #
+                        # Similar code in session.php
+                        $t = new Twitter($dbhr, $dbhm, $id);
+                        $atts = $t->getPublic();
                         unset($atts['token']);
+                        unset($atts['secret']);
                         $atts['authdate'] = Utils::ISODate($atts['authdate']);
-                        $ret['group']['facebook'][] =  $atts;
+                        $ret['group']['twitter'] =  $atts;
+
+                        # Ditto Facebook.
+                        $uids = GroupFacebook::listForGroup($dbhr, $dbhm, $id);
+                        $ret['group']['facebook'] = [];
+
+                        foreach ($uids as $uid) {
+                            $f = new GroupFacebook($dbhr, $dbhm, $uid);
+                            $atts = $f->getPublic();
+                            unset($atts['token']);
+                            $atts['authdate'] = Utils::ISODate($atts['authdate']);
+                            $ret['group']['facebook'][] =  $atts;
+                        }
                     }
-                }
 
-                if (Utils::presdef('polygon', $_REQUEST, FALSE)) {
-                    $ret['group']['cga'] = $g->getPrivate('polyofficial');
-                    $ret['group']['dpa'] = $g->getPrivate('poly');
-                    $ret['group']['polygon'] = $ret['group']['dpa'] ? $ret['group']['dpa'] : $ret['group']['cga'];
-                }
-
-                if (Utils::presdef('sponsors', $_REQUEST, FALSE)) {
-                    $ret['group']['sponsors'] = $g->getSponsorships();
-                }
-
-                if (Utils::presdef('affiliationconfirmedby', $_REQUEST, FALSE)) {
-                    $by = $g->getPrivate('affiliationconfirmedby');
-
-                    if ($by) {
-                        $byu = User::get($dbhr, $dbhm, $by);
-                        $ret['group']['affiliationconfirmedby'] = [
-                            'id' => $by,
-                            'displayname' => $byu->getName()
-                        ];
+                    if (Utils::presdef('polygon', $_REQUEST, FALSE)) {
+                        $ret['group']['cga'] = $g->getPrivate('polyofficial');
+                        $ret['group']['dpa'] = $g->getPrivate('poly');
+                        $ret['group']['polygon'] = $ret['group']['dpa'] ? $ret['group']['dpa'] : $ret['group']['cga'];
                     }
-                }
 
-                if ($showmods) {
-                    # We want the list of visible mods.
-                    $ctx = NULL;
-                    $mods = $g->getMembers(100, NULL, $ctx, NULL, MembershipCollection::APPROVED, NULL, NULL, NULL, NULL, Group::FILTER_MODERATORS);
-                    $toshow = [];
+                    if (Utils::presdef('sponsors', $_REQUEST, FALSE)) {
+                        $ret['group']['sponsors'] = $g->getSponsorships();
+                    }
 
-                    foreach ($mods as $mod) {
-                        $u = User::get($dbhr, $dbhm, $mod['userid']);
-                        $settings = $u->getPrivate('settings');
-                        $settings = $settings ? json_decode($settings, TRUE) : [];
-                        if (Utils::pres('showmod', $settings)) {
-                            # We can show this mod.  Return basic info about them.
-                            $ctx = NULL;
-                            $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-                            $toshow[] = [
-                                'id' => $mod['userid'],
-                                'firstname' => $atts['firstname'],
-                                'displayname' => $atts['displayname'],
-                                'profile' => $atts['profile']
+                    if (Utils::presdef('affiliationconfirmedby', $_REQUEST, FALSE)) {
+                        $by = $g->getPrivate('affiliationconfirmedby');
+
+                        if ($by) {
+                            $byu = User::get($dbhr, $dbhm, $by);
+                            $ret['group']['affiliationconfirmedby'] = [
+                                'id' => $by,
+                                'displayname' => $byu->getName()
                             ];
                         }
                     }
 
-                    $ret['group']['showmods'] = $toshow;
+                    if ($showmods) {
+                        # We want the list of visible mods.
+                        $ctx = NULL;
+                        $mods = $g->getMembers(100, NULL, $ctx, NULL, MembershipCollection::APPROVED, NULL, NULL, NULL, NULL, Group::FILTER_MODERATORS);
+                        $toshow = [];
+
+                        foreach ($mods as $mod) {
+                            $u = User::get($dbhr, $dbhm, $mod['userid']);
+                            $settings = $u->getPrivate('settings');
+                            $settings = $settings ? json_decode($settings, TRUE) : [];
+                            if (Utils::pres('showmod', $settings)) {
+                                # We can show this mod.  Return basic info about them.
+                                $ctx = NULL;
+                                $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                                $toshow[] = [
+                                    'id' => $mod['userid'],
+                                    'firstname' => $atts['firstname'],
+                                    'displayname' => $atts['displayname'],
+                                    'profile' => $atts['profile']
+                                ];
+                            }
+                        }
+
+                        $ret['group']['showmods'] = $toshow;
+                    }
                 }
                 break;
             }
