@@ -870,10 +870,9 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
 
         # Chat still shouldn't show in the list for this user.
-        assertNull($r->listForUser($u1, NULL, NULL, FALSE));
-        self::assertEquals(1, count($r->listForUser($u2, NULL, NULL, FALSE)));
-
-        }
+        assertNull($r->listForUser(FALSE, $u1, NULL, NULL, FALSE));
+        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL, FALSE)));
+     }
 
     public function testReadReceipt() {
         $this->log(__METHOD__ );
