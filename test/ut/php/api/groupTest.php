@@ -59,15 +59,37 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         assertEquals(1, $ret['ret']);
 
-        # Logged in
+        # Logged in - not mod, can't create
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('group', 'POST', [
             'action' => 'Create',
             'grouptype' => 'Reuse',
             'name' => 'testgroup2'
         ]);
+
+        assertEquals(1, $ret['ret']);
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+
+        $ret = $this->call('group', 'POST', [
+            'action' => 'Create',
+            'grouptype' => 'Reuse',
+            'name' => 'testgroup3'
+        ]);
+
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
+
+        # Should be owner.
+        $ret = $this->call('group', 'GET', [
+            'id' => $ret['id'],
+            'members' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(User::ROLE_OWNER, $ret['group']['myrole']);
+        assertEquals(1, count($ret['group']['members']));
+        assertEquals($this->uid, $ret['group']['members'][0]['userid']);
+        assertEquals(User::ROLE_OWNER, $ret['group']['members'][0]['role']);
     }
 
     public function testGet() {

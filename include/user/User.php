@@ -804,6 +804,7 @@ class User extends Entity
             $role,
             $collection
         ]);
+
         $membershipid = $this->dbhm->lastInsertId();
 
         # We added it if it wasn't there before and the INSERT worked.

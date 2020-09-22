@@ -231,7 +231,8 @@ function group() {
                             'status' => 'Not logged in'
                         ];
 
-                        if ($me) {
+                        # Only mods can create.
+                        if ($me && $me->isModerator()) {
                             $name = Utils::presdef('name', $_REQUEST, NULL);
                             $type = Utils::presdef('grouptype', $_REQUEST, NULL);
                             $lat = Utils::presdef('lat', $_REQUEST, NULL);
@@ -244,6 +245,8 @@ function group() {
                             $ret = ['ret' => 2, 'status' => 'Create failed'];
 
                             if ($id) {
+                                $me->addMembership($id, User::ROLE_OWNER);
+
                                 $ret = [
                                     'ret' => 0,
                                     'status' => 'Success',

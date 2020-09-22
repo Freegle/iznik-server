@@ -198,13 +198,17 @@ class MessageCollection
                 # We might be getting a summary, in which case we want to get lots of information in the same query
                 # for performance reasons.
                 # TODO This doesn't work for messages on multiple groups.
-                $summjoin = $summary ? ", messages_groups.msgtype AS type, messages.source, messages.fromuser, messages.subject, messages.textbody,
+                $summjoin = '';
+
+                if ($summary) {
+                    $summjoin = ", messages_groups.msgtype AS type, messages.source, messages.fromuser, messages.subject, messages.textbody,
                 (SELECT publishconsent FROM users WHERE users.id = messages.fromuser) AS publishconsent, 
                 (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid,
                 (SELECT COALESCE(namefull, nameshort) FROM groups WHERE groups.id = messages_groups.groupid) AS namedisplay,
                 (SELECT COUNT(DISTINCT userid) FROM chat_messages WHERE refmsgid = messages.id AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != messages.fromuser AND chat_messages.type = 'Interested') AS replycount,                  
                 (SELECT messages_attachments.id FROM messages_attachments WHERE msgid = messages.id ORDER BY messages_attachments.id LIMIT 1) AS attachmentid, 
-                (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid": '';
+                (SELECT messages_outcomes.id FROM messages_outcomes WHERE msgid = messages.id ORDER BY id DESC LIMIT 1) AS outcomeid";
+                }
 
                 # We may have some groups to filter by.
                 $groupq = $groupids ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
