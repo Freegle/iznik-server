@@ -1473,7 +1473,7 @@ class userTest extends IznikTestCase {
         assertNotNull($u->findByEmail('test@test.com'));
         assertNotNull($u->findByYahooId('-testyahooid'));
 
-        $chats = $r->listForUser($newid);
+        $chats = $r->listForUser(Session::modtools(), $newid);
         assertEquals(2, count($chats));
     }
 
@@ -1528,6 +1528,40 @@ class userTest extends IznikTestCase {
         $mock->method('sendIt')->willThrowException(new \Exception());
         $mock->mailer($u, NULL, "Test", "test@test.com", "test@test.com", "Test", "test@test.com", "Test", "Test");
         assertEquals(1, count($this->msgsSent));
+    }
+
+    public function testChatCounts() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+
+        # Set up a user with 2 MT messages and 1 FD message and check that we calculate the payload correctly.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+
+        $id2 = $u->create(NULL, NULL, 'Test User');
+        $u->addMembership($gid);
+        $id3 = $u->create(NULL, NULL, 'Test User');
+        $u->addMembership($gid);
+        $id4 = $u->create(NULL, NULL, 'Test User');
+        $u->addMembership($gid);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $r1 = $r->createConversation($id1, $id2);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $m->create($r1, $id2, 'Test');
+
+        $r2 = $r->createUser2Mod($id2, $gid);
+        $m->create($r2, $id2, 'Test');
+        $r3 = $r->createUser2Mod($id2, $gid);
+        $m->create($r3, $id3, 'Test');
+
+        $u = User::get($this->dbhr, $this->dbhm, $id1);
+        list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
+        assertEquals(1, $chatcount);
+        list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(TRUE);
+        assertEquals(2, $chatcount);
     }
 }
 

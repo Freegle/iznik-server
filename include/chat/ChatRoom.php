@@ -790,10 +790,10 @@ WHERE chat_rooms.id IN $idlist;";
         return ($counts[0]['count']);
     }
 
-    public function allUnseenForUser($userid, $chattypes)
+    public function allUnseenForUser($userid, $chattypes, $modtools)
     {
         # Get all unseen messages.  We might have a cached version.
-        $chatids = $this->listForUser($userid, $chattypes, NULL);
+        $chatids = $this->listForUser($modtools, $userid, $chattypes, NULL, NULL, NULL, ChatRoom::ACTIVELIM);
 
         $ret = [];
 
@@ -808,7 +808,7 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function countAllUnseenForUser($userid, $chattypes)
     {
-        $chatids = $this->listForUser($userid, $chattypes, NULL);
+        $chatids = $this->listForUser(Session::modtools(), $userid, $chattypes, NULL);
 
         $ret = 0;
 
@@ -858,10 +858,8 @@ WHERE chat_rooms.id IN $idlist;";
         }
     }
 
-    public function listForUser($userid, $chattypes = NULL, $search = NULL, $chatid = NULL, $activelim = ChatRoom::ACTIVELIM)
+    public function listForUser($modtools, $userid, $chattypes = NULL, $search = NULL, $chatid = NULL, $activelim = ChatRoom::ACTIVELIM)
     {
-        $modtools = Session::modtools();
-
         $ret = [];
         $chatq = $chatid ? "chat_rooms.id = $chatid AND " : '';
 
@@ -993,7 +991,7 @@ WHERE chat_rooms.id IN $idlist;";
                 } else {
                     # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
                     # but using a specific chatid to save time.
-                    $rooms = $this->listForUser($userid, [$this->chatroom['chattype']], NULL, $this->id);
+                    $rooms = $this->listForUser(Session::modtools(), $userid, [$this->chatroom['chattype']], NULL, $this->id);
                     #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
                     $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
                 }
@@ -1038,7 +1036,7 @@ WHERE chat_rooms.id IN $idlist;";
     }
 
     public function upToDateAll($myid) {
-        $chatids = $this->listForUser($myid);
+        $chatids = $this->listForUser(Session::modtools(), $myid);
 
         # Find current values.  This allows us to filter out many updates.
         $currents = count($chatids) ? $this->dbhr->preQuery("SELECT chatid, lastmsgseen, (SELECT MAX(id) AS max FROM chat_messages WHERE chatid = chat_roster.chatid) AS maxmsg FROM chat_roster WHERE userid = ? AND chatid IN (" . implode(',', $chatids) . ");", [

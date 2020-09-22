@@ -218,7 +218,7 @@ class chatMessagesTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $replyid);
         $uid = $u->findByEmail('test@test.com');
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rooms = $r->listForUser($uid);
+        $rooms = $r->listForUser(Session::modtools(), $uid);
         self::assertEquals(1, count($rooms));
         $rid = $rooms[0];
         assertNotNull($rid);
@@ -550,7 +550,7 @@ class chatMessagesTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail('test@test.com');
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rooms = $r->listForUser($uid);
+        $rooms = $r->listForUser(Session::modtools(), $uid);
         self::assertEquals(1, count($rooms));
         $rid = $rooms[0];
         assertNotNull($rid);

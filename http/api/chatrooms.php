@@ -49,7 +49,7 @@ function chatrooms() {
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
-                    $rooms = $r->listForUser($myid, $chattypes, $search);
+                    $rooms = $r->listForUser(Session::modtools(), $myid, $chattypes, $search, NULL, ChatRoom::ACTIVELIM);
                     $ret['chatrooms'] = [];
 
                     if ($rooms) {

@@ -3909,7 +3909,7 @@ class User extends Entity
             # Also return the chats for this user.  Need to pass MODTOOLS = FALSE so that we see the same chats
             # the user would.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
-            $rooms = $r->listForUser($user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER], NULL, NULL, '01-09-2009');
+            $rooms = $r->listForUser(Session::modtools(), $user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER], NULL, NULL, '01-09-2009');
             $thisone['chatrooms'] = [];
 
             if ($rooms) {
