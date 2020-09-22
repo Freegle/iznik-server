@@ -290,7 +290,7 @@ class PushNotifications
                     [PushNotifications::PUSH_FIREFOX, PushNotifications::PUSH_GOOGLE]) ||
                 ($proceedapp && in_array($notif['type'],
                         [PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS]))) {
-                #error_log("Send user $userid {$notif['subscription']} type {$notif['type']}");
+                error_log("Send user $userid {$notif['subscription']} type {$notif['type']} for modtools $modtools");
                 $payload = NULL;
                 $params = [];
 

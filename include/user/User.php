@@ -3981,7 +3981,6 @@ class User extends Entity
     {
         # This gets a notification count/title/message for this user.
         $notifcount = 0;
-        $chatcount = 0;
         $title = '';
         $message = NULL;
         $chatids = [];

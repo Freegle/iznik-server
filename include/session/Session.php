@@ -151,7 +151,11 @@ class Session {
 
         if ($id) {
             # We are logged in.  Get our details
-            $ret = User::get($dbhr, $dbhm, $id);
+            $r = User::get($dbhr, $dbhm, $id);
+
+            if ($r->getId() == $id) {
+                $ret = $r;
+            }
             #error_log("Found " . $ret->getId() . " role " . $ret->isModerator());
         }
 

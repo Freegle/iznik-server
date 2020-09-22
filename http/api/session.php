@@ -20,8 +20,8 @@ function session() {
 
         # Destroy the PHP session
         try {
-            session_destroy();
-            session_unset();
+            @session_destroy();
+            @session_unset();
             @session_start();
             session_regenerate_id(true);
         } catch (\Exception $e) {
