@@ -2073,7 +2073,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                         $groupid);
 
                                     if ($message) {
-                                        if ($chattype == ChatRoom::TYPE_USER2USER) {
+                                        if ($chattype == ChatRoom::TYPE_USER2USER && $thisu->getId() && !$justmine) {
                                             # Request read receipt.  We will often not get these for privacy reasons, but if
                                             # we do, it's useful to have to that we can display feedback to the sender.
                                             $headers = $message->getHeaders();
