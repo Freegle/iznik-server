@@ -1122,7 +1122,7 @@ WHERE chat_rooms.id IN $idlist;";
                 # have counts/notifications which need updating.
                 $n = new PushNotifications($this->dbhr, $this->dbhm);
                 #error_log("Update roster for $userid set last seen $lastmsgseen from {$_SERVER['REMOTE_ADDR']}");
-                error_log("Roster notify $userid");
+                #error_log("Roster notify $userid");
                 $n->notify($userid, Session::modtools());
             }
 
@@ -1306,14 +1306,14 @@ WHERE chat_rooms.id IN $idlist;";
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         foreach ($fduserids as $userid) {
             if ($userid != $excludeuser) {
-                error_log("Chat notify FD $userid");
+                #error_log("Chat notify FD $userid");
                 $n->notify($userid, FALSE);
             }
         }
 
         foreach ($mtuserids as $userid) {
             if ($userid != $excludeuser) {
-                error_log("Chat notify MT $userid");
+                #error_log("Chat notify MT $userid");
                 $n->notify($userid, TRUE);
             }
         }

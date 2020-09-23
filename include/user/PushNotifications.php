@@ -290,7 +290,7 @@ class PushNotifications
                     [PushNotifications::PUSH_FIREFOX, PushNotifications::PUSH_GOOGLE]) ||
                 ($proceedapp && in_array($notif['type'],
                         [PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS]))) {
-                error_log("Send user $userid {$notif['subscription']} type {$notif['type']} for modtools $modtools");
+                #error_log("Send user $userid {$notif['subscription']} type {$notif['type']} for modtools $modtools");
                 $payload = NULL;
                 $params = [];
 
@@ -346,7 +346,6 @@ class PushNotifications
 
             if (!array_key_exists('pushnotify', $settings) || $settings['pushnotify']) {
                 #error_log("Notify {$mod['userid']} for $groupid notify " . Utils::presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
-                error_log("Mods notify {$mod['userid']}");
                 $count += $this->notify($mod['userid'], TRUE);
             }
         }
