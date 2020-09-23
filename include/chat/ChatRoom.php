@@ -793,7 +793,7 @@ WHERE chat_rooms.id IN $idlist;";
     public function allUnseenForUser($userid, $chattypes, $modtools)
     {
         # Get all unseen messages.  We might have a cached version.
-        $chatids = $this->listForUser($modtools, $userid, $chattypes, NULL, NULL, NULL, ChatRoom::ACTIVELIM);
+        $chatids = $this->listForUser($modtools, $userid, $chattypes, NULL, NULL, ChatRoom::ACTIVELIM);
 
         $ret = [];
 
