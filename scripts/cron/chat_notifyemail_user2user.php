@@ -26,7 +26,7 @@ do {
         $max--;
         sleep(1);
 
-        if (file_exists('/tmp/iznik.chatnotify.abort')) {
+        if (file_exists('/tmp/iznik.mail.abort')) {
             exit(0);
         }
     }

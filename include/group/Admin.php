@@ -101,7 +101,7 @@ class Admin extends Entity
                 $this->dbhm->preExec("UPDATE admins SET complete = NOW() WHERE id = ?;", [$admin['id']]);
             }
 
-            if (file_exists('/tmp/iznik.admins.abort')) {
+            if (file_exists('/tmp/iznik.mail.abort')) {
                 exit(0);
             }
         }

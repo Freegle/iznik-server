@@ -36,7 +36,7 @@ if (count($opts) < 1) {
 
     foreach ($groups as $group) {
         $total += $d->send($group['id'], $interval);
-        if (file_exists('/tmp/iznik.digest.abort')) {
+        if (file_exists('/tmp/iznik.mail.abort')) {
             break;
         }
 

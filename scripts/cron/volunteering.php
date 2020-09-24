@@ -42,6 +42,10 @@ if (count($opts) < 1) {
         if ($settings['volunteering']) {
             $total += $e->send($group['id']);
         }
+
+        if (file_exists('/tmp/iznik.mail.abort')) {
+            exit(0);
+        }
     }
 
     $duration = time() - $start;
