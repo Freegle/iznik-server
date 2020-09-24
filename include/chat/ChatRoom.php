@@ -808,13 +808,14 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function countAllUnseenForUser($userid, $chattypes)
     {
-        $chatids = $this->listForUser(Session::modtools(), $userid, $chattypes, NULL);
+        $chatids = $this->listForUser(Session::modtools(), $userid, $chattypes);
 
         $ret = 0;
 
         if ($chatids) {
+            $activesince = date("Y-m-d", strtotime(ChatRoom::ACTIVELIM));
             $idq = implode(',', $chatids);
-            $sql = "SELECT COUNT(chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0);";
+            $sql = "SELECT COUNT(chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0) AND chat_messages.date >= '$activesince';";
             $ret = $this->dbhr->preQuery($sql, [ $userid, $userid ])[0]['count'];
         }
 

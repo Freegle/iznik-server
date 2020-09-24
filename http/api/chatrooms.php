@@ -24,7 +24,7 @@ function chatrooms() {
             if ($count) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 if ($me) {
-                    $ret = ['ret' => 0, 'status' => 'Success', 'count' => $r->countAllUnseenForUser($myid, $chattypes, Session::modtools()) ];
+                    $ret = ['ret' => 0, 'status' => 'Success', 'count' => $r->countAllUnseenForUser($myid, $chattypes) ];
                 }
             } else  if ($id) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
