@@ -169,14 +169,15 @@ class ChatMessage extends Entity
                     $userid
                 ]);
 
-                if (count($last) && $last[0]['reviewrequired'] || $forcereview) {
+                $modstatus = $u->getPrivate('chatmodstatus');
+
+                if (count($last) && $last[0]['reviewrequired'] || ($forcereview && $modstatus !== User::CHAT_MODSTATUS_UNMODERATED)) {
                     $review = 1;
                 } else {
                     # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
                     # include user text.
                     #
                     # We also don't want to check for spam in chats between users and mods.
-                    $modstatus = $u->getPrivate('chatmodstatus');
 
                     if ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) {
                         if ($chattype != ChatRoom::TYPE_USER2MOD &&
