@@ -363,4 +363,27 @@ class Facebook
 
         return $id;
     }
+
+    public function getProfilePicture($uid) {
+        $fb = $this->getFB();
+        $ret = NULL;
+
+        try {
+            $res = $fb->get("$uid/picture", FBAPP_ID . "|" . FBAPP_SECRET);
+            $url = Utils::presdef('Location', $res->getHeaders(), NULL);
+
+            if ($url) {
+                $ret = [
+                    'url' => $url,
+                    'turl' => $url,
+                    'default' => FALSE,
+                    'facebook' => TRUE
+                ];
+            }
+        } catch (Exception $e) {
+            error_log("Profile get failed with " . $e->getMessage());
+        }
+
+        return $ret;
+    }
 }

@@ -1866,12 +1866,10 @@ class User extends Entity
                 foreach ($logins as $login) {
                     if ($login['type'] == User::LOGIN_FACEBOOK) {
                         if (Utils::presdef('useprofile', $atts['settings'], TRUE)) {
-                            $atts['profile'] = [
-                                'url' => "https://graph.facebook.com/{$login['uid']}/picture?access_token=" . FBAPP_ID . "|" . FBAPP_CLIENT_TOKEN,
-                                'turl' => "https://graph.facebook.com/{$login['uid']}/picture?access_token=" . FBAPP_ID . "|" . FBAPP_CLIENT_TOKEN,
-                                'default' => FALSE,
-                                'facebook' => TRUE
-                            ];
+                            // As of October 2020 we can no longer just access the profile picture via the UID, we need to make a
+                            // call to the Graph API to fetch it.
+                            $f = new Facebook($this->dbhr, $this->dbhm);
+                            $atts['profile'] = $f->getProfilePicture($login['uid']);
                         }
                     }
                 }
