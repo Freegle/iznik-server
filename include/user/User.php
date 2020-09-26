@@ -2863,6 +2863,7 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE ratings SET rater = $id1 WHERE rater = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE ratings SET ratee = $id1 WHERE ratee = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_replytime SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE messages_promises SET userid = $id1 WHERE userid = $id2;");
 
                         # Merge chat rooms.  There might have be two separate rooms already, which means that we need
                         # to make sure that messages from both end up in the same one.
@@ -5375,9 +5376,15 @@ class User extends Entity
             $this->id
         ]);
 
+        # Remove any promises.
+        $this->dbhm->preExec("DELETE FROM messages_promises WHERE userid - ?;", [
+            $this->id
+        ]);
+
         $this->dbhm->preExec("UPDATE users SET deleted = NOW() WHERE id = ?;", [
             $this->id
         ]);
+
 
         $l = new Log($this->dbhr, $this->dbhm);
         $l->log([
