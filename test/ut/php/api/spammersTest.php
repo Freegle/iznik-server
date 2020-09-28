@@ -381,6 +381,13 @@ class spammersAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         $sid = $ret['id'];
 
+        # Get the whitelist to check we can.
+        $ret = $this->call('spammers', 'GET', [
+            'collection' => Spam::TYPE_WHITELIST
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Search for this user.
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_WHITELIST,
             'search' => 'Test User'
