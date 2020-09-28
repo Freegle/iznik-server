@@ -2699,7 +2699,6 @@ class User extends Entity
         $ret = FALSE;
 
         if ($id1 != $id2 && (($u1->canMerge() && $u2->canMerge()) || ($forcemerge))) {
-            error_log("Go merge");
             #
             # We want to merge two users.  At present we just merge the memberships, comments, emails and logs; we don't try to
             # merge any conflicting settings.
