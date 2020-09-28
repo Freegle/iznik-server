@@ -572,15 +572,25 @@ class Spam {
         $context = [];
 
         $spammers = $this->dbhr->preQuery($sql);
+        $uids = array_filter(array_unique(array_merge(array_column($spammers, 'userid'), array_column($spammers, 'byuserid'))));
+        $u = new User($this->dbhr, $this->dbhm);
+        $users = $u->getPublicsById($uids, NULL, TRUE, $seeall);
+        $emails = $u->getEmailsById($uids);
 
         foreach ($spammers as &$spammer) {
-            $u = User::get($this->dbhr, $this->dbhm, $spammer['userid']);
-            $spammer['user'] = $u->getPublic(NULL, TRUE, $seeall);
-            $spammer['user']['email'] = $u->getEmailPreferred();
+            $spammer['user'] = $users[$spammer['userid']];
+            $preferred = NULL;
 
-            $emails = $u->getEmails();
+            $emails = Utils::presdef($spammer['userid'], $emails, []);
+
+            foreach ($emails as $anemail) {
+                if (!Utils::pres('email', $spammer['user']) && !Mail::ourDomain($anemail['email']) && strpos($anemail['email'], '@yahoogroups.') === FALSE) {
+                    $spammer['user']['email'] = $anemail['email'];
+                }
+            }
 
             $others = [];
+
             foreach ($emails as $anemail) {
                 if ($anemail['email'] != $spammer['user']['email']) {
                     $others[] = $anemail;
@@ -595,10 +605,20 @@ class Spam {
 
             if ($spammer['byuserid']) {
                 $u = User::get($this->dbhr, $this->dbhm, $spammer['byuserid']);
-                $spammer['byuser'] = $u->getPublic();
+                $spammer['byuser'] = $users[$spammer['byuserid']];
 
                 if ($me->isModerator()) {
-                    $spammer['byuser']['email'] = $u->getEmailPreferred();
+                    $emails = Utils::presdef($spammer['byuserid'], $emails, []);
+
+                    foreach ($emails as $anemail) {
+                        if ($anemail['email'] != $spammer['user']['email']) {
+                            $others[] = $anemail;
+                        }
+
+                        if (!pres('email', $spammer['byuser']) && !Mail::ourDomain($anemail['email']) && strpos($anemail['email'], '@yahoogroups.') === FALSE) {
+                            $spammer['byuser']['email'] = $anemail['email'];
+                        }
+                    }
                 }
             }
 
