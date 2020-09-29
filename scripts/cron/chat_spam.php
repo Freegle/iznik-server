@@ -24,80 +24,83 @@ foreach ($chats as $chat) {
     error_log("Chat with spammer {$chat['id']}");
 
     $innocent = new User($dbhr, $dbhm, ($chat['user1'] == $chat['userid']) ? $chat['user2'] : $chat['user1']);
-    $spammer = new User($dbhr, $dbhm, $chat['userid']);
 
-    # Find who to send the reply to.
-    #
-    # If we don't find anyone else, use Support.
-    $replyto = SUPPORT_ADDR;
-    $replyname = SITE_NAME;
+    if (!Mail::ourDomain($innocent->getEmailPreferred())) {
+        $spammer = new User($dbhr, $dbhm, $chat['userid']);
 
-    # Try to find a refmsg in this chat; that tells us the group.
-    $c = new ChatRoom($dbhr, $dbhm, $chat['id']);
-    $atts = $c->getPublic();
-    $msgs = $atts['refmsgids'];
+        # Find who to send the reply to.
+        #
+        # If we don't find anyone else, use Support.
+        $replyto = SUPPORT_ADDR;
+        $replyname = SITE_NAME;
 
-    $subject = NULL;
+        # Try to find a refmsg in this chat; that tells us the group.
+        $c = new ChatRoom($dbhr, $dbhm, $chat['id']);
+        $atts = $c->getPublic();
+        $msgs = $atts['refmsgids'];
 
-    if (count($msgs) > 0) {
-        # The messages are in most recent first order.  Assume they're talking about the last one.
-        $m = new Message($dbhr, $dbhm, $msgs[0]);
-        $subject = $m->getSubject();
-        $groups = $m->getGroups(TRUE, TRUE);
+        $subject = NULL;
 
-        foreach ($groups as $group) {
-            $g = Group::get($dbhr, $dbhm, $group);
-            $replyto = $g->getModsEmail();
-            $replyname = $g->getName() . " Volunteers";
+        if (count($msgs) > 0) {
+            # The messages are in most recent first order.  Assume they're talking about the last one.
+            $m = new Message($dbhr, $dbhm, $msgs[0]);
+            $subject = $m->getSubject();
+            $groups = $m->getGroups(TRUE, TRUE);
+
+            foreach ($groups as $group) {
+                $g = Group::get($dbhr, $dbhm, $group);
+                $replyto = $g->getModsEmail();
+                $replyname = $g->getName() . " Volunteers";
+            }
+        } else {
+            # If we can't find the message, go with a membership.
+            $membs = $innocent->getMemberships();
+
+            if (count($membs) > 0) {
+                # Pick some group they're on; we don't have much of a preference
+                $g = Group::get($dbhr, $dbhm, $membs[0]['id']);
+                $replyto = $g->getModsEmail();
+                $replyname = $g->getName() . " Volunteers";
+            }
         }
-    } else {
-        # If we can't find the message, go with a membership.
-        $membs = $innocent->getMemberships();
 
-        if (count($membs) > 0) {
-            # Pick some group they're on; we don't have much of a preference
-            $g = Group::get($dbhr, $dbhm, $membs[0]['id']);
-            $replyto = $g->getModsEmail();
-            $replyname = $g->getName() . " Volunteers";
-        }
-    }
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
-    $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-    $twig = new \Twig_Environment($loader);
+        $html = $twig->render('chat_spamwarning.html', [
+            'name' => $spammer->getName(),
+            'email' => $innocent->getEmailPreferred(),
+            'subject' => $subject,
+            'unsubscribe' => $innocent->getUnsubLink(USER_SITE, $innocent->getId())
+        ]);
 
-    $html = $twig->render('chat_spamwarning.html', [
-        'name' => $spammer->getName(),
-        'email' => $innocent->getEmailPreferred(),
-        'subject' => $subject,
-        'unsubscribe' => $innocent->getUnsubLink(USER_SITE, $innocent->getId())
-    ]);
-
-    $text = "Be careful!  You've been talking to " . $spammer->getName() . ".  Our checks suggest that this person might be a scammer/spammer.\r\n\r\n" .
+        $text = "Be careful!  You've been talking to " . $spammer->getName() . ".  Our checks suggest that this person might be a scammer/spammer.\r\n\r\n" .
             "Don't give them any money, no matter how tempting it might be, and don't arrange to receive anything by courier.";
 
-    $message = \Swift_Message::newInstance()
-        ->setSubject("A warning from " . SITE_NAME . " about " . $spammer->getName())
-        ->setFrom([ $replyto => $replyname])
-        ->setTo($innocent->getEmailPreferred())
-        ->setBody($text);
+        $message = \Swift_Message::newInstance()
+            ->setSubject("A warning from " . SITE_NAME . " about " . $spammer->getName())
+            ->setFrom([ $replyto => $replyname])
+            ->setTo($innocent->getEmailPreferred())
+            ->setBody($text);
 
-    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-    # Outlook.
-    $htmlPart = \Swift_MimePart::newInstance();
-    $htmlPart->setCharset('utf-8');
-    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-    $htmlPart->setContentType('text/html');
-    $htmlPart->setBody($html);
-    $message->attach($htmlPart);
+        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+        # Outlook.
+        $htmlPart = \Swift_MimePart::newInstance();
+        $htmlPart->setCharset('utf-8');
+        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setContentType('text/html');
+        $htmlPart->setBody($html);
+        $message->attach($htmlPart);
 
-    Mail::addHeaders($message, Mail::SPAM_WARNING, $innocent->getId());
+        Mail::addHeaders($message, Mail::SPAM_WARNING, $innocent->getId());
 
-    list ($transport, $mailer) = Mail::getMailer();
-    $mailer->send($message);
+        list ($transport, $mailer) = Mail::getMailer();
+        $mailer->send($message);
 
-    $dbhm->preExec("UPDATE chat_rooms SET flaggedspam = 1 WHERE id = ?;", [
-        $chat['id']
-    ]);
+        $dbhm->preExec("UPDATE chat_rooms SET flaggedspam = 1 WHERE id = ?;", [
+            $chat['id']
+        ]);
+    }
 }
 
 # We look for users who are not whitelisted, and where we have marked multiple chat messages from them
