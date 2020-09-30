@@ -114,7 +114,6 @@ if (count($opts) < 1) {
                                 $sql .= " AND user2 = $i";
                             }
 
-                            error_log("Look for new rooms $sql");
                             $newrooms = $dbhr->preQuery($sql);
 
                             foreach ($newrooms as $newroom) {
