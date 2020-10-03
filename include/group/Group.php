@@ -3,8 +3,6 @@ namespace Freegle\Iznik;
 
 use Redis;
 
-
-
 class Group extends Entity
 {
     # We have a cache of groups, because we create groups a _lot_, and this can speed things up significantly by avoiding
@@ -1083,5 +1081,15 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         }
 
         return $count;
+    }
+
+    static public function getOpenCount($dbhr, $id) {
+        $mysqltime = date("Y-m-d", strtotime("Midnight 31 days ago"));
+        $counts = $dbhr->preQuery("SELECT COUNT(*) AS count FROM `messages_groups` LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid WHERE arrival >= ? AND groupid = ? AND messages_outcomes.id IS NULL AND messages_groups.deleted = 0;", [
+            $mysqltime,
+            $id
+        ]);
+
+        return $counts[0]['count'];
     }
 }

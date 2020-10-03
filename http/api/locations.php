@@ -12,6 +12,7 @@ function locations() {
     $action = Utils::presdef('action', $_REQUEST, NULL);
     $byname = array_key_exists('byname', $_REQUEST) ? filter_var($_REQUEST['byname'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $groupsnear = array_key_exists('groupsnear', $_REQUEST) ? filter_var($_REQUEST['groupsnear'], FILTER_VALIDATE_BOOLEAN) : TRUE;
+    $groupcount = array_key_exists('$groupcount', $_REQUEST) ? filter_var($_REQUEST['$groupcount'], FILTER_VALIDATE_BOOLEAN) : TRUE;
     $pconly = array_key_exists('pconly', $_REQUEST) ? filter_var($_REQUEST['pconly'], FILTER_VALIDATE_BOOLEAN) : TRUE;
 
     $l = new Location($dbhr, $dbhm, $id);
@@ -33,6 +34,12 @@ function locations() {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'location' => $l->closestPostcode($lat, $lng) ];
             } else if ($typeahead) {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->typeahead($typeahead, $limit, $groupsnear, $pconly) ];
+
+                if ($groupcount && count($ret['locations']) == 1) {
+                    foreach ($ret['locations'][0]['groupsnear'] as &$group) {
+                        $group['postcount'] = Group::getOpenCount($dbhr, $group['id']);
+                    }
+                }
             } else if ($swlat || $swlng || $nelat || $nelng) {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->withinBox($swlat, $swlng, $nelat, $nelng) ];
             }

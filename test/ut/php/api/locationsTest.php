@@ -192,6 +192,21 @@ class locationsAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($areaid, $ret['locations'][0]['id']);
+
+        # Test groups near.
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('polyofficial', 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))');
+
+        $ret = $this->call('locations', 'GET', [
+            'typeahead' => 'TV13 1HH',
+            'groupsnear' => TRUE,
+            'groupcount' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('TV13 1HH', $ret['locations'][0]['name']);
+        assertEquals(1, count($ret['locations'][0]['groupsnear']));
+        assertEquals(0, $ret['locations'][0]['groupsnear'][0]['postcount']);
     }
 
     public function testWithinBox()
