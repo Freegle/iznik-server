@@ -367,7 +367,7 @@ class Group extends Entity
         if ($groupids) {
             $groupq = "(" . implode(',', $groupids) . ")";
 
-            $earliestmsg = date("Y-m-d", strtotime("Midnight 31 days ago"));
+            $earliestmsg = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
             $eventsqltime = date("Y-m-d H:i:s", time());
 
             # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
@@ -431,7 +431,7 @@ memberships.groupid IN $groupq
 
             # We only want to show happiness upto 31 days old - after that just let it slide.  We're only interested
             # in ones with interesting comments.
-            $mysqltime = date("Y-m-d", strtotime("Midnight 31 days ago"));
+            $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
             $sql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid WHERE messages_groups.arrival >= '$mysqltime' AND messages_outcomes.timestamp >= '$mysqltime' AND groupid IN $groupq AND reviewed = 0 AND messages_outcomes.comments IS NOT NULL GROUP BY groupid;";
             $happinesscounts = $this->dbhr->preQuery($sql);
 
@@ -817,7 +817,7 @@ memberships.groupid IN $groupq
         $groupq2 = $groupids ? " messages_groups.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
 
         # Only interested in showing recent ones, which makes the query faster.
-        $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+        $start = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
 
         # We want unreviewed first, then most recent.
         $ctxq = $ctx == NULL ? " WHERE messages_outcomes.timestamp > '$start' " :
@@ -996,7 +996,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
 
         if ($support) {
-            $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+            $start = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
             $autoapproves = $this->dbhr->preQuery("SELECT COUNT(*) AS count, groupid FROM logs WHERE timestamp >= ? AND type = ? AND subtype = ? GROUP BY groupid;", [
                 $start,
                 Log::TYPE_MESSAGE,
@@ -1084,7 +1084,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
     }
 
     static public function getOpenCount($dbhr, $id) {
-        $mysqltime = date("Y-m-d", strtotime("Midnight 31 days ago"));
+        $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
         $counts = $dbhr->preQuery("SELECT COUNT(*) AS count FROM `messages_groups` LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid WHERE arrival >= ? AND groupid = ? AND messages_outcomes.id IS NULL AND messages_groups.deleted = 0;", [
             $mysqltime,
             $id

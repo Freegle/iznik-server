@@ -4698,6 +4698,47 @@ CREATE TABLE `worrywords` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `messages_spatial`
+--
+
+CREATE TABLE `messages_spatial` (
+                                    `id` bigint(20) UNSIGNED NOT NULL,
+                                    `msgid` bigint(20) UNSIGNED NOT NULL,
+                                    `point` point NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Recent open messages with locations';
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `messages_spatial`
+--
+ALTER TABLE `messages_spatial`
+    ADD PRIMARY KEY (`id`),
+    ADD UNIQUE KEY `msgid` (`msgid`) USING BTREE,
+    ADD SPATIAL KEY `point` (`point`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `messages_spatial`
+--
+ALTER TABLE `messages_spatial`
+    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `messages_spatial`
+--
+ALTER TABLE `messages_spatial`
+    ADD CONSTRAINT `messages_spatial_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE;
+
+--
 -- Final view structure for view `VW_Essex_Searches`
 --
 

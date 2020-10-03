@@ -30,7 +30,7 @@ class Nearby
 
         if ($g->getSetting('relevant', 1)) {
             # Find the recent extant messages
-            $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
+            $mysqltime = date ("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
             $sql = "SELECT DISTINCT messages.id, messages.type FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.id = ? WHERE messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND messages.arrival > '$mysqltime' LIMIT 1000;";
             $msgs = $this->dbhr->preQuery($sql, [ $groupid ] );
 

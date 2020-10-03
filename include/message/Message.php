@@ -4640,4 +4640,42 @@ ORDER BY lastdate DESC;";
 
         return $ret;
     }
+
+    public function updateSpatialIndex() {
+        $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
+
+        # Add/update messages which are still open and recent.
+        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_outcomes.id IS NULL AND messages_groups.collection = ?;";
+        $msgs = $this->dbhr->preQuery($sql, [
+            $mysqltime,
+            MessageCollection::APPROVED
+        ]);
+
+        foreach ($msgs as $msg) {
+            $sql = "INSERT INTO messages_spatial (msgid, point) VALUES ({$msg['id']}, GeomFromText('POINT({$msg['lng']} {$msg['lat']})')) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$msg['lng']} {$msg['lat']})');";
+            $this->dbhm->preExec($sql);
+        }
+
+        # Remove any messages which have now got outcomes.
+        $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid;";
+        $msgs = $this->dbhr->preQuery($sql);
+
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("DELETE FROM messages_spatial WHERE id = ?;", [
+                $msg['id']
+            ]);
+        }
+
+        # Remove any messages which are now old.
+        $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE messages_groups.arrival < ?;";
+        $msgs = $this->dbhr->preQuery($sql, [
+            $mysqltime
+        ]);
+
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("DELETE FROM messages_spatial WHERE id = ?;", [
+                $msg['id']
+            ]);
+        }
+    }
 }

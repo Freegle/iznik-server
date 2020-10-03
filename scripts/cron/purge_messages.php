@@ -88,7 +88,7 @@ try {
     } while (count($msgs) > 0);
 
     # Purge old messages_history - it's only used for spam checking so we don't need to keep it indefinitely.
-    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $start = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
     error_log("Purge messages_history before $start");
 
     $total = 0;
@@ -108,7 +108,7 @@ try {
     error_log("Deleted $total");
 
     # Purge messages which have been in Spam, Pending or Queued for ages.  Probably the group isn't being sync'd properly
-    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $start = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
     error_log("Purge pending / queued before $start");
 
     $total = 0;
@@ -136,7 +136,7 @@ try {
     }
 
     # Purge old drafts.
-    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $start = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
     error_log("Purge old drafts before $start");
 
     $total = 0;
@@ -156,7 +156,7 @@ try {
     error_log("Deleted $total");
 
     # Purge old non-Freegle messages
-    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $start = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
     error_log("Purge non-Freegle before $start");
 
     $total = 0;
@@ -177,7 +177,7 @@ try {
 
     # Now purge messages which have been deleted - we keep them for a while for PD purposes.
     $start = date('Y-m-d', strtotime("midnight 2 days ago"));
-    $end = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $end = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
     error_log("Purge deleted messages before $start");
     $total = 0;
 
@@ -197,7 +197,7 @@ try {
     # We don't need the HTML content or full message for old messages - we're primarily interested in the text body, and
     # these are large attributes.
     $start = date('Y-m-d', strtotime("midnight 2 days ago"));
-    $end = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $end = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
     error_log("Purge HTML body for messages before $start");
     $total = 0;
     $id = NULL;

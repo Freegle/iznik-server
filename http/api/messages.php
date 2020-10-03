@@ -17,6 +17,10 @@ function messages() {
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $grouptype = Utils::presdef('grouptype', $_REQUEST, NULL);
     $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $swlat = Utils::presdef('swlat', $_REQUEST, NULL);
+    $swlng = Utils::presdef('swlng', $_REQUEST, NULL);
+    $nelat = Utils::presdef('nelat', $_REQUEST, NULL);
+    $nelng = Utils::presdef('nelng', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
@@ -90,6 +94,11 @@ function messages() {
 
                         list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $age, $hasoutcome, $summary);
                         break;
+                    case 'inbounds': {
+                        $groups = [];
+                        $msgs = $c->getInBounds($swlat, $swlng, $nelat, $nelng);
+                        break;
+                    }
                     case 'search':
                     case 'searchmess':
                     case 'searchall':

@@ -18,6 +18,9 @@ class MessageCollection
     const VIEWED = 'Viewed';
     const OWNPOSTS = 120;
 
+    // To members we only show posts upto this age.
+    const RECENTPOSTS = "Midnight 31 days ago";
+
     /** @var  $dbhr LoggedPDO */
     public $dbhr;
     /** @var  $dbhm LoggedPDO */
@@ -179,7 +182,7 @@ class MessageCollection
                     #
                     # This code assumes that if we're called to retrieve SPAM, it's the only collection.  That's true at
                     # the moment as the only use of multiple collection values is via ALLUSER, which doesn't include SPAM.
-                    $mysqltime = date("Y-m-d", strtotime("Midnight 31 days ago"));
+                    $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
                     $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
                 } else if ($age !== NULL) {
                     $mysqltime = date("Y-m-d", strtotime("Midnight $age days ago"));
@@ -479,5 +482,18 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         }
 
         return ($changes);
+    }
+
+    function getInBounds($swlat, $swlng, $nelat, $nelng) {
+        $sql = "SELECT  Y(point) AS lat, X(point) AS lng, msgid AS id FROM messages_spatial WHERE ST_Contains(GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))'), point)";
+        $msgs = $this->dbhr->preQuery($sql);
+
+        # Blur them.
+        foreach ($msgs as &$msg) {
+            $msg['lat'] = round($msg['lat'], User::BLUR_100M);
+            $msg['lng'] = round($msg['lng'], User::BLUR_100M);
+        }
+
+        return $msgs;
     }
 }
