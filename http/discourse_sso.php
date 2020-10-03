@@ -11,7 +11,7 @@ global $dbhr, $dbhm;
 require_once(IZNIK_BASE . '/composer/vendor/cviebrock/discourse-php/src/Exception/PayloadException.php');
 require_once(IZNIK_BASE . '/composer/vendor/cviebrock/discourse-php/src/SSOHelper.php');
 
-$sso = new Cviebrock\DiscoursePHP\SSOHelper();
+$sso = new \Cviebrock\DiscoursePHP\SSOHelper();
 $sso->setSecret(DISCOURSE_SECRET);
 
 $payload = $_GET['sso'];
