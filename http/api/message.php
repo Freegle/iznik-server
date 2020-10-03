@@ -22,6 +22,7 @@ function message() {
     $localonly = array_key_exists('localonly', $_REQUEST) ? filter_var($_REQUEST['localonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
     $userid = $userid ? $userid : NULL;
+    $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
     $ischat = FALSE;
@@ -87,14 +88,16 @@ function message() {
 
             if ($m) {
                 if ($_REQUEST['type'] == 'GET') {
-                    $atts = $m->getPublic($messagehistory, FALSE);
+                    $userlist = [];
+                    $locationlist = [];
+                    $atts = $m->getPublic($messagehistory, FALSE, FALSE, $userlist, $locationlist, $summary);
                     $mod = $me && $me->isModerator();
 
                     if ($mod && count($atts['groups']) == 0) {
                         $atts['message'] = $m->getPrivate('message');
                     }
 
-                    $cansee = $m->canSee($atts) || $ischat;
+                    $cansee = $summary || $m->canSee($atts) || $ischat;
 
                     # We want to return the groups info even if we can't see the message, so that we can tell them
                     # which group to join.

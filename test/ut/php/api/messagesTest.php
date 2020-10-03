@@ -68,6 +68,17 @@ class messagesTest extends IznikAPITestCase {
         assertEquals($a->getID(), $msgs[0]['id']);
         assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
+        # And using the multiple groupid option
+        $ret = $this->call('messages', 'GET', [
+            'groupids' => [ $this->gid ]
+        ]);
+        $this->log("Get when logged out using groupids " . var_export($ret, true));
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($a->getID(), $msgs[0]['id']);
+        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
+
         # Now join and check we can see see it.
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');

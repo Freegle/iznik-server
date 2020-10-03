@@ -485,7 +485,7 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
     }
 
     function getInBounds($swlat, $swlng, $nelat, $nelng) {
-        $sql = "SELECT  Y(point) AS lat, X(point) AS lng, msgid AS id FROM messages_spatial WHERE ST_Contains(GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))'), point)";
+        $sql = "SELECT  Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, groupid, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE ST_Contains(GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))'), point)";
         $msgs = $this->dbhr->preQuery($sql);
 
         # Blur them.

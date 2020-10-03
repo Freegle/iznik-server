@@ -75,7 +75,17 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['message']['id']);
         assertFalse(array_key_exists('fromuser', $ret['message']));
 
-        }
+        # Should be able to see this message even logged out.
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'collection' => 'Approved',
+            'summary' => TRUE
+        ]);
+        $this->log("Summary message returned when logged out " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['message']['id']);
+        assertFalse(array_key_exists('fromuser', $ret['message']));
+    }
 
     public function testApproved()
     {

@@ -7,6 +7,7 @@ function messages() {
     $me = Session::whoAmI($dbhr, $dbhm);
 
     $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $groupids = Utils::presdef('groupids', $_REQUEST, NULL);
     $collection = Utils::presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
     $limit = intval(Utils::presdef('limit', $_REQUEST, 5));
@@ -37,6 +38,11 @@ function messages() {
                 } else if ($groupid) {
                     # A group was specified
                     $groups[] = $groupid;
+                } else if ($groupids) {
+                    # Group ids were specified.
+                    foreach ($groupids as $groupid) {
+                        $groups[] = intval($groupid);
+                    }
                 } else if ($fromuser) {
                     # We're searching for messages from a specific user, so skip the group filter.  This
                     # handles the case where someone joins, posts, leaves, and then can't see their posts
