@@ -10,6 +10,8 @@ function session() {
     $modtools = Session::modtools();
 
     $sessionLogout = function($dbhr, $dbhm) {
+        $id = 'No session';
+        @session_start();
         if (isset($_SESSION)) {
             $id = Utils::pres('id', $_SESSION);
             if ($id) {
@@ -26,6 +28,8 @@ function session() {
             session_regenerate_id(true);
         } catch (\Exception $e) {
         }
+
+        return $id;
     };
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -425,8 +429,7 @@ function session() {
                                     $me->forget('Request');
 
                                     # Log out.
-                                    $sessionLogout($dbhr, $dbhm);
-                                    $ret = [ 'ret' => 0, 'status' => "Success" ];
+                                    $ret = array('ret' => 0, 'status' => 'Success', 'destroyed' => $sessionLogout($dbhr, $dbhm));
                                 }
                             }
                         }
@@ -602,8 +605,7 @@ function session() {
 
         case 'DELETE': {
             # Logout.  Kill all sessions for this user.
-            $ret = array('ret' => 0, 'status' => 'Success');
-            $sessionLogout($dbhr, $dbhm);
+            $ret = array('ret' => 0, 'status' => 'Success', 'destroyed' => $sessionLogout($dbhr, $dbhm));
             break;
         }
     }
