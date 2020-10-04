@@ -1654,6 +1654,29 @@ ORDER BY lastdate DESC;";
      */
     public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = [], $summary = FALSE) {
         $msgs = $this->getThisAsArray();
+
+        if ($summary) {
+            # getPublics() is mostly aimed at the MessageCollection case, and assumes that if we
+            # are doing a summary, we will have got a single attachment for the message as part of our main query.
+            # In this case we haven't, so do so here.
+            $this->getPublicAttachments($rets, $msgs, $summary);
+            $atts = $this->dbhr->preQuery("SELECT messages_attachments.id AS attachmentid FROM messages_attachments WHERE msgid = ? ORDER BY messages_attachments.id LIMIT 1;", [
+                $this->id
+            ]);
+
+            if (count($atts)) {
+                $a = new Attachment($this->dbhr, $this->dbhm);
+
+                $msgs[0]['attachments'] = [
+                    [
+                        'id' => $atts[0]['attachmentid'],
+                        'path' => $a->getpath(false, $atts[0]['attachmentid']),
+                        'paththumb' => $a->getpath(true, $atts[0]['attachmentid'])
+                    ]
+                ];
+            }
+        }
+
         $rets = $this->getPublics($msgs, $messagehistory, $related, $seeall, $userlist, $locationlist, $summary);
 
         # When getting an individual message we return an approx distance.
