@@ -170,6 +170,33 @@ if (count($opts) < 1) {
             }
         }
 
-        # locations_excluded
+
+        # Undelete messages and re-add to groups.
+        error_log("Undelete messages");
+        $msgs = $dbhback->preQuery("SELECT id, deleted FROM messages WHERE fromuser = ?", [
+            $buid
+        ]);
+
+        foreach ($msgs as $msg) {
+            error_log("...{$msg['id']}");
+            $dbhm->preExec("UPDATE messages SET deleted = ? WHERE id = ?;", [
+                $msg['deleted'],
+                $msg['id']
+            ]);
+
+            $groups = $dbhback->preQuery("SELECT * FROM messages_groups WHERE msgid = ?;", [
+                $msg['id']
+            ]);
+
+            foreach ($groups as $group) {
+                error_log("...group {$group['groupid']}");
+                $dbhm->preExec("UPDATE messages_groups SET deleted = ?, arrival = ? WHERE msgid = ? AND groupid = ?;", [
+                    $group['deleted'],
+                    $group['arrival'],
+                    $group['msgid'],
+                    $group['groupid']
+                ]);
+            }
+        }
     }
 }
