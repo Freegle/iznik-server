@@ -350,16 +350,16 @@ function message() {
                         $m->delete($reason, NULL, $subject, $body, $stdmsgid);
                         break;
                     case 'Reject':
-                        if (!$m->isPending($groupid)) {
-                            $ret = ['ret' => 3, 'status' => 'Message is not pending'];
-                        } else {
+                        # Ignore requests for messages which aren't pending.  Legitimate timing window when there
+                        # are multiple mods.
+                        if ($m->isPending($groupid)) {
                             $m->reject($groupid, $subject, $body, $stdmsgid);
                         }
                         break;
                     case 'Approve':
-                        if (!$m->isPending($groupid)) {
-                            $ret = ['ret' => 3, 'status' => 'Message is not pending'];
-                        } else {
+                        # Ignore requests for messages which aren't pending.  Legitimate timing window when there
+                        # are multiple mods.
+                        if ($m->isPending($groupid)) {
                             $m->approve($groupid, $subject, $body, $stdmsgid);
                         }
                         break;
