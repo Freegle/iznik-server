@@ -499,16 +499,15 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Approved', $p['groups'][0]['collection']);
         assertEquals($uid, $p['groups'][0]['approvedby']['id']);
 
-        # Should be gone
+        # Should be gone, but will return success.
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $this->gid,
             'action' => 'Approve',
             'duplicate' => 2
         ]);
-        assertEquals(3, $ret['ret']);
-
-        }
+        assertEquals(0, $ret['ret']);
+    }
 
     public function testReject()
     {
@@ -682,14 +681,14 @@ class messageAPITest extends IznikAPITestCase
         $m2 = new Message($this->dbhr, $this->dbhm);
         assertFalse($m2->backToDraft());
 
-        # Should be gone from the messages we can see as a mod
+        # Should be gone from the messages we can see as a mod, but will return success.
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $this->gid,
             'action' => 'Reject',
             'duplicate' => 2
         ]);
-        assertEquals(3, $ret['ret']);
+        assertEquals(0, $ret['ret']);
     }
 
     public function testReply()
@@ -809,14 +808,14 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        # Should be gone
+        # Should be gone but will return success.
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $this->gid,
             'action' => 'Reject',
             'duplicate' => 2
         ]);
-        assertEquals(3, $ret['ret']);
+        assertEquals(0, $ret['ret']);
 
         # Route and delete approved.
         error_log("Set def");
@@ -835,8 +834,7 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'Delete'
         ]);
         assertEquals(0, $ret['ret']);
-
-        }
+    }
 
     public function testNotSpam()
     {
