@@ -286,11 +286,14 @@ class Message
         if ($location) {
             $l = new Location($this->dbhr, $this->dbhm);
             $lid = $l->findByName($location);
+            $l = new Location($this->dbhr, $this->dbhm, $lid);
 
             $ret = FALSE;
             if ($lid) {
                 $ret = TRUE;
                 $this->setPrivate('locationid', $lid);
+                $this->setPrivate('lat', $l->getPrivate('lat'));
+                $this->setPrivate('lng', $l->getPrivate('lng'));
             }
         }
 

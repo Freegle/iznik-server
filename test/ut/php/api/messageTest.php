@@ -1160,6 +1160,7 @@ class messageAPITest extends IznikAPITestCase
     {
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid2 = $l->create(NULL, 'TV1 1AB', 'Postcode', 'POINT(179.3 8.6)',0);
 
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -1246,9 +1247,15 @@ class messageAPITest extends IznikAPITestCase
             'id' => $mid,
             'groupid' => $this->gid,
             'item' => 'Edited',
-            'textbody' => 'Another text body'
+            'textbody' => 'Another text body',
+            'location' => 'TV1 1AB'
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Under the covers the message lat/lng should have changed.
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        assertEquals(179.3, $m->getPrivate('lng'));
+        assertEquals(8.6, $m->getPrivate('lat'));
 
         # Again but with no actual change
         $ret = $this->call('message', 'PATCH', [

@@ -491,6 +491,7 @@ class Spam {
                         'replydistance' => Spam::DISTANCE_THRESHOLD
                     ]
                 ];
+
                 $replydist = array_key_exists('spammers', $settings) && array_key_exists('replydistance', $settings['spammers']) ? $settings['spammers']['replydistance'] : Spam::DISTANCE_THRESHOLD;
 
                 if ($replydist > 0 && $dist >= $replydist) {
