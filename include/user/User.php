@@ -3879,6 +3879,7 @@ class User extends Entity
         $users = $this->dbhr->preQuery($sql, [$search, $id]);
 
         $ret = [];
+
         foreach ($users as $user) {
             $ctx['id'] = $user['userid'];
 
@@ -3935,6 +3936,9 @@ class User extends Entity
 
             $ret[] = $thisone;
         }
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u->getInfos($ret);
 
         return ($ret);
     }
