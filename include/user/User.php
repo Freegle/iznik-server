@@ -3934,11 +3934,10 @@ class User extends Entity
                 $thisone['lastpush'] = Utils::ISODate($p['lastpush']);
             }
 
+            $thisone['info'] = $u->getInfo();
+
             $ret[] = $thisone;
         }
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $u->getInfos($ret);
 
         return ($ret);
     }
