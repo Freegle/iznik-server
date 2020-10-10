@@ -1970,6 +1970,7 @@ class User extends Entity
             }
 
             $rets[$user['id']]['settings']['notificationmails'] = array_key_exists('notificationmails', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['notificationmails'] : TRUE;
+            $rets[$user['id']]['settings']['engagement'] = array_key_exists('engagement', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['engagement'] : TRUE;
             $rets[$user['id']]['settings']['modnotifs'] = array_key_exists('modnotifs', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['modnotifs'] : 4;
             $rets[$user['id']]['settings']['backupmodnotifs'] = array_key_exists('backupmodnotifs', $rets[$user['id']]['settings']) ? $rets[$user['id']]['settings']['backupmodnotifs'] : 12;
 
