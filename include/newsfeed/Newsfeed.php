@@ -501,9 +501,6 @@ class Newsfeed extends Entity
     }
 
     public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx, $fillin = TRUE) {
-        $this->dbhr->errorLog = TRUE;
-        $this->dbhm->errorLog = TRUE;
-
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $topitems = [];
         $bottomitems = [];
