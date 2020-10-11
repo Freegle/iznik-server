@@ -326,7 +326,7 @@ class Newsfeed extends Entity
                     if (preg_match_all(Utils::URL_PATTERN, $entries[$entindex]['message'], $matches)) {
                         foreach ($matches as $val) {
                             foreach ($val as $url) {
-                                $entries[$entindex]['preview'] = $previews[$url];
+                                $entries[$entindex]['preview'] = Utils::presdef($url, $previews, NULL);
                                 break 2;
                             }
                         }

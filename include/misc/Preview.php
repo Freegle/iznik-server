@@ -82,16 +82,16 @@ class Preview extends Entity
         
         if (count($urls)) {
             $urls = array_values(array_filter(array_unique($urls)));
-            foreach ($urls as $ix => $url) {
-                $urls[$ix] = $this->dbhr->quote($url);
+            $quoted = $urls;
+            foreach ($quoted as $ix => $url) {
+                $quoted[$ix] = $this->dbhr->quote($url);
             }
 
-            $sql = "SELECT * FROM link_previews WHERE url IN (" . implode(',', $urls) . ");";
+            $sql = "SELECT * FROM link_previews WHERE url IN (" . implode(',', $quoted) . ");";
             $links = $this->dbhr->preQuery($sql);
-            $dbhr = $this->dbhr;
 
-            $founds = array_map(function($l) use ($dbhr) {
-                return $dbhr->quote($l['url']);
+            $founds = array_map(function($l) {
+                return $l['url'];
             }, $links);
             
             $missings = array_diff($urls, $founds);

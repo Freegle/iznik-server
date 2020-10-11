@@ -201,7 +201,8 @@ class sessionTest extends IznikAPITestCase
                     'type' => 'Google',
                     'subscription' => 'Test'
                 ]
-            ]
+            ],
+            'engagement' => TRUE
         ]);
         assertEquals(10, $ret['ret']);
         $ret = $this->call('session', 'GET', []);
@@ -218,7 +219,8 @@ class sessionTest extends IznikAPITestCase
                 'push' => TRUE,
                 'facebook' => TRUE,
                 'app' => TRUE
-            ]
+            ],
+                         'engagement' => TRUE
         ], $ret['me']['settings']);
         assertEquals('Testing User', $ret['me']['displayname']);
         assertEquals('test@test.com', $ret['me']['email']);
@@ -254,7 +256,8 @@ class sessionTest extends IznikAPITestCase
                     'type' => 'Firefox',
                     'subscription' => 'Test'
                 ]
-            ]
+            ],
+            'engagement' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
 

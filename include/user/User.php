@@ -4274,13 +4274,13 @@ class User extends Entity
         $areas = NULL;
         $groups = NULL;
 
-        # Get all the memberships.
-        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(',', $userids) . ") ORDER BY added ASC;";
-        $membs = $this->dbhr->preQuery($sql, [
-            $this->id,
-        ]);
-
         if ($userids && count($userids)) {
+            # Get all the memberships.
+            $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(',', $userids) . ") ORDER BY added ASC;";
+            $membs = $this->dbhr->preQuery($sql, [
+                $this->id,
+            ]);
+
             $atts = $atts ? $atts : $this->dbhr->preQuery("SELECT id, settings, lastlocation FROM users WHERE id in (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
 
             foreach ($atts as $att) {
