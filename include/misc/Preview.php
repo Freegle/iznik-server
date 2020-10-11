@@ -75,29 +75,52 @@ class Preview extends Entity
 
         return($id);
     }
+    
+    public function gets($urls) {
+        # Doing a select first allows caching and previews DB locks.
+        $ret = [];
+        
+        if (count($urls)) {
+            $urls = array_values(array_filter(array_unique($urls)));
+            foreach ($urls as $ix => $url) {
+                $urls[$ix] = $this->dbhr->quote($url);
+            }
+
+            $sql = "SELECT * FROM link_previews WHERE url IN (" . implode(',', $urls) . ");";
+            $links = $this->dbhr->preQuery($sql);
+            $dbhr = $this->dbhr;
+
+            $founds = array_map(function($l) use ($dbhr) {
+                return $dbhr->quote($l['url']);
+            }, $links);
+            
+            $missings = array_diff($urls, $founds);
+
+            foreach ($missings as $missing) {
+                $this->create($missing);
+                $links[] = $this->getPublic();
+            }
+
+            foreach ($links as $ix => $link) {
+                # Make any relative urls absolute to help app.
+                $links[$ix]['url'] = substr($links[$ix]['url'], 0, 1) == '/' ? ('https://' . HTTP_HOST . "/$links[$ix]['url']") :  $links[$ix]['url'];
+
+                # Ensure title is not numeric
+                if (Utils::pres('title', $links[$ix]) && is_numeric($links[$ix]['title'])) {
+                    $links[$ix]['title'] .= '...';
+                }
+                
+                $ret[$link['url']] = $links[$ix];
+            }
+        }
+
+        return($ret);
+    }
 
     public function get($url) {
-        # Doing a select first allows caching and previews DB locks.
-        $links = $this->dbhr->preQuery("SELECT id FROM link_previews WHERE url = ?;", [
-            $url
-        ]);
-
-        if (count($links) > 0) {
-            $this->fetch($this->dbhm, $this->dbhm, $links[0]['id'], 'link_previews', 'link', $this->publicatts);
-            $id = $links[0]['id'];
-        } else {
-            $id = $this->create($url);
-        }
-
-        # Make any relative urls absolute to help app.
-        $this->link['url'] = substr($this->link['url'], 0, 1) == '/' ? ('https://' . HTTP_HOST . "/$this->link['url']") :  $this->link['url'];
-
-        # Ensure title is not numeric
-        if (Utils::pres('title', $this->link) && is_numeric($this->link['title'])) {
-            $this->link['title'] .= '...';
-        }
-
-        return($id);
+        $this->link = array_values($this->gets([ $url ]))[0];
+        $this->id = $this->link['id'];
+        return $this->id;
     }
 }
 

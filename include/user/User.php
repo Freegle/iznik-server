@@ -4273,7 +4273,12 @@ class User extends Entity
         $userids = array_filter(array_column($users, 'id'));
         $areas = NULL;
         $groups = NULL;
-        $membs = NULL;
+
+        # Get all the memberships.
+        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(',', $userids) . ") ORDER BY added ASC;";
+        $membs = $this->dbhr->preQuery($sql, [
+            $this->id,
+        ]);
 
         if ($userids && count($userids)) {
             $atts = $atts ? $atts : $this->dbhr->preQuery("SELECT id, settings, lastlocation FROM users WHERE id in (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
@@ -4322,30 +4327,28 @@ class User extends Entity
                     # Find the group of which we are a member which is closest to our location.  We do this because generally
                     # the number of groups we're in is small and therefore this will be quick, whereas the groupsNear call is
                     # fairly slow.
-                    $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, ST_distance(POINT(?, ?), polyindex) AS dist FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND polyindex IS NOT NULL AND onmap = 1 ORDER BY dist DESC;";
-                    $groups = $this->dbhr->preQuery($sql, [
-                        $lng,
-                        $lat,
-                        $att['id']
-                    ]);
+                    $closestdist = PHP_INT_MAX;
+                    $closestname = NULL;
 
-                    foreach ($groups as $group) {
-                        if ($group['userid'] == $att['id']) {
-                            $grp = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+                    foreach ($membs as $memb) {
+                        if ($memb['userid'] == $att['id']) {
+                            $dist = \GreatCircle::getDistance($lat, $lng, $memb['lat'], $memb['lng']);
 
-                            # The location name might be in the group name, in which case just use the group.
-                            $loc = strpos($grp, $loc) !== FALSE ? NULL : $loc;
+                            if ($dist < $closestdist) {
+                                $closestdist = $dist;
+                                $closestname = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
+                            }
                         }
+                    }
+
+                    if ($closestname !== NULL) {
+                        $grp = $closestname;
+
+                        # The location name might be in the group name, in which case just use the group.
+                        $loc = stripos($grp, $loc) !== FALSE ? NULL : $loc;
                     }
                 } else {
                     # We don't have a location.  All we might have is a membership.
-                    if (!$membs) {
-                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(',', $userids) . ") ORDER BY added ASC;";
-                        $membs = $this->dbhr->preQuery($sql, [
-                            $this->id,
-                        ]);
-                    }
-
                     foreach ($membs as $memb) {
                         if ($memb['userid'] == $att['id']) {
                             $grp = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];

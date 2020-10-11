@@ -272,7 +272,24 @@ class Newsfeed extends Entity
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $ids = array_filter(array_column($entries, 'id'));
-        $previews = [];
+
+        # Get all the url previews efficiently.
+        $p = new Preview($this->dbhr, $this->dbhm);
+
+        $urls = [];
+
+        for ($entindex = 0; $entindex < count($entries); $entindex++) {
+            if (preg_match_all(Utils::URL_PATTERN, $entries[$entindex]['message'], $matches)) {
+                foreach ($matches as $val) {
+                    foreach ($val as $url) {
+                        $urls[] = $url;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        $previews = $p->gets($urls);
 
         if ($ids && count($ids)) {
             $likes = $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") GROUP BY newsfeedid;", NULL, FALSE, FALSE);
@@ -309,19 +326,7 @@ class Newsfeed extends Entity
                     if (preg_match_all(Utils::URL_PATTERN, $entries[$entindex]['message'], $matches)) {
                         foreach ($matches as $val) {
                             foreach ($val as $url) {
-                                # We just might have repeated previews of the same URL.
-                                if (Utils::pres($url, $previews)) {
-                                    $entries[$entindex]['preview'] = $previews[$url];
-                                } else {
-                                    $p = new Preview($this->dbhr, $this->dbhm);
-                                    $id = $p->get($url);
-
-                                    if ($id) {
-                                        $entries[$entindex]['preview'] = $p->getPublic();
-                                        $previews[$url] = $entries[$entindex]['preview'];
-                                    }
-                                }
-
+                                $entries[$entindex]['preview'] = $previews[$url];
                                 break 2;
                             }
                         }
@@ -496,6 +501,9 @@ class Newsfeed extends Entity
     }
 
     public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx, $fillin = TRUE) {
+        $this->dbhr->errorLog = TRUE;
+        $this->dbhm->errorLog = TRUE;
+
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $topitems = [];
         $bottomitems = [];
@@ -531,9 +539,8 @@ class Newsfeed extends Entity
                 $pinq .= ")";
             }
 
-
             $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL $typeq $pinq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
-            #error_log($sql);
+            #error_log("Get feed $sql");
             $entries = $this->dbhr->preQuery($sql);
             $last = NULL;
 
