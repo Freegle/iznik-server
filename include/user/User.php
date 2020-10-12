@@ -3181,10 +3181,6 @@ class User extends Entity
     {
         $userids = array_keys($rets);
 
-        # We can only see comments on groups on which we have mod status.
-        $groupids = $me ? $me->getModeratorships() : [];
-        $groupids = count($groupids) == 0 ? [0] : $groupids;
-
         # Generally there will be no or few comments.  It's quicker (because of indexing) to get them all and filter
         # by groupid than it is to construct a query which includes groupid.  Likewise it's not really worth
         # optimising the calls for byuser, since there won't be any for most users.
@@ -3210,23 +3206,19 @@ class User extends Entity
             }
         }
 
-        $support = $me && $me->isAdminOrSupport();
-
         foreach ($rets as $retind => $ret) {
             $rets[$retind]['comments'] = [];
 
             for ($commentind = 0; $commentind < count($comments); $commentind++) {
                 if ($comments[$commentind]['userid'] == $rets[$retind]['id']) {
-                    if ($support || in_array($comments[$commentind]['groupid'], $groupids)) {
-                        $comments[$commentind]['date'] = Utils::ISODate($comments[$commentind]['date']);
-                        $comments[$commentind]['reviewed'] = Utils::ISODate($comments[$commentind]['reviewed']);
+                    $comments[$commentind]['date'] = Utils::ISODate($comments[$commentind]['date']);
+                    $comments[$commentind]['reviewed'] = Utils::ISODate($comments[$commentind]['reviewed']);
 
-                        if (Utils::pres('byuserid', $comments[$commentind])) {
-                            $comments[$commentind]['byuser'] = $commentusers[$comments[$commentind]['byuserid']];
-                        }
-
-                        $rets[$retind]['comments'][] = $comments[$commentind];
+                    if (Utils::pres('byuserid', $comments[$commentind])) {
+                        $comments[$commentind]['byuser'] = $commentusers[$comments[$commentind]['byuserid']];
                     }
+
+                    $rets[$retind]['comments'][] = $comments[$commentind];
                 }
             }
         }
