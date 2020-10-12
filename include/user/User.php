@@ -3181,7 +3181,7 @@ class User extends Entity
     {
         $userids = array_keys($rets);
 
-        if ($me->isModerator()) {
+        if ($me && $me->isModerator()) {
             # Generally there will be no or few comments.  It's quicker (because of indexing) to get them all and filter
             # by groupid than it is to construct a query which includes groupid.  Likewise it's not really worth
             # optimising the calls for byuser, since there won't be any for most users.
