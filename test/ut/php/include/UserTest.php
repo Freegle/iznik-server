@@ -693,7 +693,7 @@ class userTest extends IznikTestCase {
         # Can't see comments when a user
         $u1->setRole(User::ROLE_MEMBER, $gid);
         $atts = $u2->getPublic();
-        assertEquals(0, count($atts['comments']));
+        assertFalse(array_key_exists('comments', $atts));
 
         # Try to delete a comment when not a mod
         $u1->removeMembership($gid);

@@ -3181,44 +3181,46 @@ class User extends Entity
     {
         $userids = array_keys($rets);
 
-        # Generally there will be no or few comments.  It's quicker (because of indexing) to get them all and filter
-        # by groupid than it is to construct a query which includes groupid.  Likewise it's not really worth
-        # optimising the calls for byuser, since there won't be any for most users.
-        $sql = "SELECT * FROM users_comments WHERE userid IN (" . implode(',', $userids) . ") ORDER BY date DESC;";
-        $comments = $this->dbhr->preQuery($sql, [$this->id]);
-        #error_log("Got comments " . var_export($comments, TRUE));
+        if ($me->isModerator()) {
+            # Generally there will be no or few comments.  It's quicker (because of indexing) to get them all and filter
+            # by groupid than it is to construct a query which includes groupid.  Likewise it's not really worth
+            # optimising the calls for byuser, since there won't be any for most users.
+            $sql = "SELECT * FROM users_comments WHERE userid IN (" . implode(',', $userids) . ") ORDER BY date DESC;";
+            $comments = $this->dbhr->preQuery($sql, [$this->id]);
+            #error_log("Got comments " . var_export($comments, TRUE));
 
-        $commentuids = [];
-        foreach ($comments as $comment) {
-            if (Utils::pres('byuserid', $comment)) {
-                $commentuids[] = $comment['byuserid'];
+            $commentuids = [];
+            foreach ($comments as $comment) {
+                if (Utils::pres('byuserid', $comment)) {
+                    $commentuids[] = $comment['byuserid'];
+                }
             }
-        }
 
-        $commentusers = [];
+            $commentusers = [];
 
-        if ($commentuids && count($commentuids)) {
-            $ctx = NULL;
-            $commentusers = $this->getPublicsById($commentuids, NULL, FALSE, FALSE, $ctx, FALSE);
+            if ($commentuids && count($commentuids)) {
+                $ctx = NULL;
+                $commentusers = $this->getPublicsById($commentuids, NULL, FALSE, FALSE, $ctx, FALSE);
 
-            foreach ($commentusers as &$commentuser) {
-                $commentuser['settings'] = NULL;
+                foreach ($commentusers as &$commentuser) {
+                    $commentuser['settings'] = NULL;
+                }
             }
-        }
 
-        foreach ($rets as $retind => $ret) {
-            $rets[$retind]['comments'] = [];
+            foreach ($rets as $retind => $ret) {
+                $rets[$retind]['comments'] = [];
 
-            for ($commentind = 0; $commentind < count($comments); $commentind++) {
-                if ($comments[$commentind]['userid'] == $rets[$retind]['id']) {
-                    $comments[$commentind]['date'] = Utils::ISODate($comments[$commentind]['date']);
-                    $comments[$commentind]['reviewed'] = Utils::ISODate($comments[$commentind]['reviewed']);
+                for ($commentind = 0; $commentind < count($comments); $commentind++) {
+                    if ($comments[$commentind]['userid'] == $rets[$retind]['id']) {
+                        $comments[$commentind]['date'] = Utils::ISODate($comments[$commentind]['date']);
+                        $comments[$commentind]['reviewed'] = Utils::ISODate($comments[$commentind]['reviewed']);
 
-                    if (Utils::pres('byuserid', $comments[$commentind])) {
-                        $comments[$commentind]['byuser'] = $commentusers[$comments[$commentind]['byuserid']];
+                        if (Utils::pres('byuserid', $comments[$commentind])) {
+                            $comments[$commentind]['byuser'] = $commentusers[$comments[$commentind]['byuserid']];
+                        }
+
+                        $rets[$retind]['comments'][] = $comments[$commentind];
                     }
-
-                    $rets[$retind]['comments'][] = $comments[$commentind];
                 }
             }
         }
