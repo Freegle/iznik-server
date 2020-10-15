@@ -25,7 +25,7 @@ foreach ($chats as $chat) {
 
     $innocent = new User($dbhr, $dbhm, ($chat['user1'] == $chat['userid']) ? $chat['user2'] : $chat['user1']);
 
-    if (!Mail::ourDomain($innocent->getEmailPreferred())) {
+    if (!Mail::ourDomain($innocent->getEmailPreferred()) && strpos($innocent->getEmailPreferred(), GROUP_DOMAIN) === FALSE) {
         $spammer = new User($dbhr, $dbhm, $chat['userid']);
 
         # Find who to send the reply to.

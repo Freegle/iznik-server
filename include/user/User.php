@@ -448,7 +448,7 @@ class User extends Entity
         $ret = NULL;
 
         foreach ($emails as $email) {
-            if (!Mail::ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE) {
+            if (!Mail::ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE && strpos($email['email'], GROUP_DOMAIN) === FALSE) {
                 $ret = $email['email'];
                 break;
             }
@@ -630,7 +630,8 @@ class User extends Entity
         $this->emails = NULL;
 
         if (stripos($email, '-owner@yahoogroups.co') !== FALSE ||
-            stripos($email, '-volunteers@' . GROUP_DOMAIN) !== FALSE) {
+            stripos($email, '-volunteers@' . GROUP_DOMAIN) !== FALSE ||
+            stripos($email, '-auto@' . GROUP_DOMAIN) !== FALSE) {
             # We don't allow people to add Yahoo owner addresses as the address of an individual user, or
             # the volunteer addresses.
             $rc = NULL;
