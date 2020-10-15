@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
+require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
 use Jenssegers\ImageHash\ImageHash;
 use Twilio\Rest\Client;
