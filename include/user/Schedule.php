@@ -18,6 +18,7 @@ class Schedule extends Entity
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->allowpast = $allowpast;
+        $this->userid = $userid;
         $this->fetch($dbhr, $dbhm, NULL, 'users_schedules', 'schedule', $this->publicatts);
 
         if ($userid) {
@@ -73,6 +74,15 @@ class Schedule extends Entity
     {
         $ret = parent::getPublic();
         $ret['schedule'] = json_decode($ret['schedule'], TRUE);
+
+        if (!$ret['schedule']) {
+            $ret['schedule'] = [
+                'schedule' => []
+            ];
+        }
+
+        $ret['userid'] = $this->userid;
+
         $ret['created'] = Utils::pres('created', $ret) ? Utils::ISODate($ret['created']) : NULL;
         $ret['textversion'] = $this->getSummary();
 
