@@ -102,7 +102,7 @@ function messages() {
                         break;
                     case 'inbounds': {
                         $groups = [];
-                        $msgs = $c->getInBounds($swlat, $swlng, $nelat, $nelng);
+                        $msgs = $c->getInBounds($swlat, $swlng, $nelat, $nelng, $groupid);
                         break;
                     }
                     case 'search':

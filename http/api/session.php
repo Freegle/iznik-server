@@ -83,7 +83,10 @@ function session() {
                     if (!$components || (gettype($components) == 'array' && in_array('me', $components))) {
                         # Don't want to use cached information when looking at our own session.
                         $ret['me'] = $me->getPublic();
-                        $ret['me']['city'] = $me->getCity();
+                        $loc = $me->getCity();
+                        $ret['me']['city'] = $loc[0];
+                        $ret['me']['lat'] = $loc[1];
+                        $ret['me']['lng'] = $loc[2];
 
                         if (Utils::pres('profile', $ret['me']) && Utils::pres('url', $ret['me']['profile']) && strpos($ret['me']['profile']['url'], IMAGE_DOMAIN) !== FALSE) {
                             $ret['me']['profile']['ours'] = TRUE;

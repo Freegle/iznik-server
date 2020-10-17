@@ -5715,7 +5715,7 @@ class User extends Entity
             $city = $town['name'];
         }
 
-        return($city);
+        return([ $city, $lat, $lng ]);
     }
 
     public function getJobAds() {
@@ -5723,7 +5723,7 @@ class User extends Entity
         $search = NULL;
         $ret = '<span class="jobads">';
 
-        $search = $this->getCity();
+        list ($search, $lat, $lng) = $this->getCity();
 
         if ($search) {
             # AdView's servers can't keep up with us, so we keep a more or less daily cache of jobs per location.
