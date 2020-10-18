@@ -495,8 +495,8 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
 
         # Blur them.
         foreach ($msgs as &$msg) {
-//            $msg['lat'] = round($msg['lat'], User::BLUR_100M);
-//            $msg['lng'] = round($msg['lng'], User::BLUR_100M);
+            $msg['lat'] = round($msg['lat'], User::BLUR_100M);
+            $msg['lng'] = round($msg['lng'], User::BLUR_100M);
         }
 
         return $msgs;
