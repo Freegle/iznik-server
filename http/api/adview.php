@@ -34,7 +34,7 @@ function adview() {
 
                     if ($loc == $location) {
                         # We are searching on our own location.
-                        $location = $me->getCity();
+                        $location = $me->getCity()[0];
                     }
                 }
 
