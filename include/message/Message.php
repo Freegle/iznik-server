@@ -3025,8 +3025,14 @@ ORDER BY lastdate DESC;";
     public function index() {
         $groups = $this->getGroups(FALSE, FALSE);
         foreach ($groups as $group) {
-            # Add into the search index.
-            $this->s->add($this->id, $this->subject, strtotime($group['arrival']), $group['groupid']);
+            # Add into the search index.  If we can identify the item, we just had that rather than
+            # the whole subject.
+            $toadd = $this->subject;
+            if (preg_match("/(.+)\:(.+)\((.+)\)/", $this->subject, $matches)) {
+                $toadd = trim($matches[2]);
+            }
+
+            $this->s->add($this->id, $toadd, strtotime($group['arrival']), $group['groupid']);
         }
     }
 
