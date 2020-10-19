@@ -105,7 +105,7 @@ class GroupFacebook {
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
-            $url = $sharefrom . "/feed?limit=100&&fields=id,link,message,type,caption,icon,name,full_picture,created_time";
+            $url = $sharefrom . "/posts?limit=100&&fields=id,link,message,type,caption,icon,name,full_picture,created_time";
             #error_log("Get from feed $url, $token");
             $ret = $fb->get($url, $token);
             #error_log("Got ok");
