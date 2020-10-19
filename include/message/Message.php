@@ -3650,7 +3650,7 @@ ORDER BY lastdate DESC;";
         $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
 
         if (!$groupid) {
-            $sql = "SELECT id FROM groups WHERE ST_Overlaps(polyindex, GeomFromText('$poly')) AND onmap = 1 AND publish = 1;";
+            $sql = "SELECT id FROM groups WHERE ST_Intersects(polyindex, GeomFromText('$poly')) AND onmap = 1 AND publish = 1;";
             $groups = $this->dbhr->preQuery($sql);
             $groupids = array_filter(array_column($groups, 'id'));
         } else {
