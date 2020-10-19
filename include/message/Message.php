@@ -3678,6 +3678,15 @@ ORDER BY lastdate DESC;";
                 $ret = $this->dbhr->preQuery($sql, [
                     $messagetype
                 ]);
+
+                # We need to return the info about why we matched.
+                foreach ($ret as &$r) {
+                    foreach ($searched as $s) {
+                        if ($r['id'] == $s['id']) {
+                            $r['matchedon'] = $s['matchedon'];
+                        }
+                    }
+                }
             }
         }
 
