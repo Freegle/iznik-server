@@ -2,6 +2,7 @@
 namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
+require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 function session() {
     global $dbhr, $dbhm;
@@ -176,6 +177,26 @@ function session() {
                             unset($group['description']);
                             unset($group['settings']['chaseups']['idle']);
                             unset($group['settings']['branding']);
+                        }
+
+                        if (count($gids)) {
+                            $polys = $dbhr->preQuery("SELECT id, AsText(ST_Envelope(polyindex)) AS bbox FROM groups WHERE id IN (" . implode(',', $gids) . ")");
+
+                            foreach ($ret['groups'] as &$group) {
+                                foreach ($polys as $poly) {
+                                    if ($poly['id'] == $group['id']) {
+                                        $g = new \geoPHP();
+                                        $p = $g->load($poly['bbox']);
+                                        $bbox = $p->getBBox();
+                                        $group['bbox'] = [
+                                            'swlat' => $bbox['miny'],
+                                            'swlng' => $bbox['minx'],
+                                            'nelat' => $bbox['maxy'],
+                                            'nelng' => $bbox['maxx'],
+                                        ];
+                                    }
+                                }
+                            }
                         }
 
                         # We should always return complete groups objects because they are stored in the client session.
