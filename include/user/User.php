@@ -5379,7 +5379,7 @@ class User extends Entity
         ]);
 
         # Remove any promises.
-        $this->dbhm->preExec("DELETE FROM messages_promises WHERE userid - ?;", [
+        $this->dbhm->preExec("DELETE FROM messages_promises WHERE userid = ?;", [
             $this->id
         ]);
 
