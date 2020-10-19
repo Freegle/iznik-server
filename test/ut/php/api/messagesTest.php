@@ -409,6 +409,123 @@ class messagesTest extends IznikAPITestCase {
         assertEquals($id, $msgs[0]['id']);
     }
 
+    public function testSearchInBounds() {
+        # Need a location and polygon for near testing.
+        $this->group->setPrivate('lng', 179.15);
+        $this->group->setPrivate('lat', 8.4);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('onhere', 1);
+        $this->group->setPrivate('onmap', 1);
+        $this->group->setPrivate('publish', 1);
+
+        # Create a group with a message on it
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'OFFER: basic test (Place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $this->log("Approved id $id");
+
+        # Put the message in the bounding box.
+        $a = new Message($this->dbhr, $this->dbhm, $id);
+        $a->setPrivate('lng', 179.15);
+        $a->setPrivate('lat', 8.35);
+        $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
+
+        # Ensure we have consent to see the message.
+        $sender->setPrivate('publishconsent', 1);
+
+        # Look for it - should find it.
+        $ret = $this->call('messages', 'GET', [
+            'search' => 'basic t',
+            'subaction' => 'searchmess',
+            'swlng' => 179.11,
+            'swlat' => 8.31,
+            'nelng' => 179.3,
+            'nelat' => 8.4
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($id, $msgs[0]['id']);
+
+        $ret = $this->call('messages', 'GET', [
+            'search' => 'basic t',
+            'subaction' => 'searchmess',
+            'swlng' => 179.11,
+            'swlat' => 8.31,
+            'nelng' => 179.3,
+            'nelat' => 8.4,
+            'messagetype' => Message::TYPE_OFFER
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($id, $msgs[0]['id']);
+
+        $ret = $this->call('messages', 'GET', [
+            'search' => 'basic t',
+            'subaction' => 'searchmess',
+            'swlng' => 179.11,
+            'swlat' => 8.31,
+            'nelng' => 179.3,
+            'nelat' => 8.4,
+            'groupid' => $this->group->getId()
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($id, $msgs[0]['id']);
+
+        $ret = $this->call('messages', 'GET', [
+            'search' => 'basic t',
+            'subaction' => 'searchmess',
+            'swlng' => 179.11,
+            'swlat' => 8.31,
+            'nelng' => 179.3,
+            'nelat' => 8.4,
+            'groupid' => $this->group->getId() + 1
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        $ret = $this->call('messages', 'GET', [
+            'search' => 'basic t',
+            'subaction' => 'searchmess',
+            'swlng' => 179.11,
+            'swlat' => 8.31,
+            'nelng' => 179.3,
+            'nelat' => 8.4,
+            'messagetype' => Message::TYPE_WANTED
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        # Close but not cigar.
+        $ret = $this->call('messages', 'GET', [
+            'search' => 'basic t',
+            'subaction' => 'searchmess',
+            'swlng' => 179.16,
+            'swlat' => 8.31,
+            'nelng' => 179.3,
+            'nelat' => 8.4
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+    }
+
     public function testPendingWithdraw() {
         # Set up a pending message on a native group.
         assertTrue($this->user->login('testpw'));

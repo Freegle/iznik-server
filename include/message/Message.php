@@ -3643,6 +3643,47 @@ ORDER BY lastdate DESC;";
         $this->dbhm->preExec("DELETE FROM messages_attachments WHERE msgid = ?;", [ $this->id ]);
     }
 
+    public function searchActiveInBounds($string, $messagetype, $swlat, $swlng, $nelat, $nelng, $groupid = NULL, $exactonly = FALSE) {
+        $ret = [];
+
+        # First get the groups which overlap the bounds.
+        $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+
+        if (!$groupid) {
+            $sql = "SELECT id FROM groups WHERE ST_Overlaps(polyindex, GeomFromText('$poly')) AND onmap = 1 AND publish = 1;";
+            $groups = $this->dbhr->preQuery($sql);
+            $groupids = array_filter(array_column($groups, 'id'));
+        } else {
+            $groupids = [ $groupid ];
+        }
+
+        if (count($groupids)) {
+            # Now find the messages in that area.  Need a high limit because we need to see them all, e.g. on a map.
+            $ctx = NULL;
+            $searched = $this->search($string, $ctx, 1000, NULL, $groupids, NULL, $exactonly);
+            $msgids = array_filter(array_column($searched, 'id'));
+
+            if (count($msgids)) {
+                # Find which of these messages are within the bounds, on a group, not deleted, have no outcome, are the
+                # right type.
+                $typeq = '';
+
+                if ($messagetype === Message::TYPE_OFFER) {
+                    $typeq = " AND messages.type = 'Offer'";
+                } else if ($messagetype === Message::TYPE_WANTED) {
+                    $typeq = " AND messages.type = 'Wanted'";
+                }
+
+                $sql = "SELECT messages.id, messages.lat, messages.lng, messages.type, groupid, messages_groups.arrival FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE messages.id IN (" . implode(',', $msgids) . ") AND $swlat <= lat AND $swlng <= lng AND $nelat >= lat AND $nelng >= lng AND messages.deleted IS NULL AND messages_outcomes.msgid IS NULL $typeq;";
+                $ret = $this->dbhr->preQuery($sql, [
+                    $messagetype
+                ]);
+            }
+        }
+
+        return($ret);
+    }
+
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL, $exactonly = FALSE) {
         $ret = $this->s->search($string, $context, $limit, $restrict, $groups, $exactonly);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
