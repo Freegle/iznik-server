@@ -14,11 +14,16 @@ error_log("Start at " . date("Y-m-d H:i:s"));
 
 $groups = $dbhr->preQuery("SELECT * FROM groups INNER JOIN groups_twitter ON groups.id = groups_twitter.groupid WHERE type = 'Freegle' AND publish = 1 AND valid = 1 ORDER BY LOWER(nameshort) ASC;");
 foreach ($groups as $group) {
-    $t = new Twitter($dbhr, $dbhm, $group['id']);
-    $count = $t->tweetEvents();
+    $g = Group::get($dbhr, $dbhm, $group['id']);
 
-    if ($count > 0) {
-        error_log("{$group['nameshort']} $count");
+    # Don't send for closed groups.
+    if (!$g->getSetting('closed')) {
+        $t = new Twitter($dbhr, $dbhm, $group['id']);
+        $count = $t->tweetEvents();
+
+        if ($count > 0) {
+            error_log("{$group['nameshort']} $count");
+        }
     }
 }
 
