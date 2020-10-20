@@ -17,7 +17,7 @@ foreach ($groups as $group) {
     $g = Group::get($dbhr, $dbhm, $group['id']);
 
     # Don't send for closed groups.
-    if (!$g->getSetting('closed')) {
+    if (!$g->getSetting('closed',FALSE)) {
         $t = new Twitter($dbhr, $dbhm, $group['id']);
         $count = $t->tweetEvents();
 

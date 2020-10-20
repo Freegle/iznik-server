@@ -38,7 +38,7 @@ if (count($opts) < 1) {
     foreach ($groups as $group) {
         error_log($group['nameshort']);
         $g = Group::get($dbhr, $dbhm, $group['id']);
-        if (!$g->getSetting('closed') && $g->getSetting('volunteering')) {
+        if (!$g->getSetting('closed',FALSE) && $g->getSetting('volunteering')) {
             $total += $e->send($group['id']);
         }
 

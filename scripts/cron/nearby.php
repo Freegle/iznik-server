@@ -24,7 +24,7 @@ foreach ($groups as $group) {
     error_log($group['nameshort']);
     $g = Group::get($dbhr, $dbhm, $group['id']);
 
-    if (!$g->getSetting('closed')) {
+    if (!$g->getSetting('closed', FALSE)) {
         $thiscount = $n->messages($group['id']);
         error_log("...$thiscount");
         $count += $thiscount;
