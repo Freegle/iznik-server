@@ -3098,6 +3098,8 @@ class User extends Entity
             $rid = $r->createUser2Mod($this->id, $groupid);
             $m = NULL;
 
+            $to = $this->getEmailPreferred();
+
             if ($rid) {
                 # Create the message.  Mark it as needing review to prevent timing window.
                 $m = new ChatMessage($this->dbhr, $this->dbhm);
@@ -3117,8 +3119,6 @@ class User extends Entity
 
                 $this->mailer($me, TRUE, $this->getName(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->id . " $to)\n\n" . $body);
             }
-
-            $to = $this->getEmailPreferred();
 
             if ($to && !Mail::ourDomain($to)) {
                 # For users who we host, we leave the message unseen; that will then later generate a notification

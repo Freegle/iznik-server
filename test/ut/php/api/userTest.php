@@ -312,13 +312,16 @@ class userAPITest extends IznikAPITestCase {
         }
 
     public function testMail() {
-        # Mails won't go through as there's no email address, but we're just testing the API.
-        #
+        # Create a user without an email - we're just testing the API.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+
         # Shouldn't be able to do this as a non-member.
         $ret = $this->call('user', 'POST', [
             'action' => 'Reply',
             'subject' => "Test",
-            'body' => "Test"
+            'body' => "Test",
+            'id' => $uid
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -327,7 +330,8 @@ class userAPITest extends IznikAPITestCase {
         $ret = $this->call('user', 'POST', [
             'subject' => "Test",
             'body' => "Test",
-            'dup' => 1
+            'dup' => 1,
+            'id' => $uid
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -338,11 +342,11 @@ class userAPITest extends IznikAPITestCase {
             'subject' => "Test",
             'body' => "Test",
             'groupid' => $this->groupid,
-            'dup' => 2
+            'dup' => 2,
+            'id' => $uid
         ]);
         assertEquals(0, $ret['ret']);
-
-        }
+    }
 
     public function testLog() {
         $ret = $this->call('session', 'POST', [
