@@ -139,6 +139,9 @@ class GroupFacebook {
             error_log("Failed to scrape code $code message " . $e->getMessage() . " token " . $this->token);
         }
 
+        # Reset any rate-limited pages.
+        $this->dbhm->preExec("UPDATE `groups_facebook` SET valid = 1, lasterror = 'Reset after rate limit' WHERE valid = 0 AND lasterror LIKE '%We limit how often you can post%' AND TIMESTAMPDIFF(MINUTE, lasterrortime, NOW()) > 120;");
+
         return($count);
     }
 
