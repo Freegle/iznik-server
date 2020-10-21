@@ -14,6 +14,7 @@ require_once(UT_DIR . '/../../include/db.php');
  */
 class MailRouterTest extends IznikTestCase {
     private $dbhr, $dbhm;
+    private $msgsSent = [];
 
     protected function setUp() {
         parent::setUp ();
@@ -42,6 +43,14 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(1, $u->addMembership($this->gid));
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $this->user = $u;
+    }
+
+    public function mailer($to, $from, $subject, $body) {
+        $this->msgsSent[] = [
+            'subject' => $subject,
+            'to' => $to,
+            'body' => $body
+        ];
     }
 
     protected function tearDown() {
@@ -905,7 +914,44 @@ class MailRouterTest extends IznikTestCase {
         list($msgs, $users) = $c->getMessages();
         $this->log("Chat messages " . var_export($msgs, TRUE));
         self::assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
+    }
 
+    public function testToClosed() {
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        User::clearCache();
+
+        # Create a user for a reply.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+
+        # Send a message.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $origid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($origid);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Mark the group as closed.
+        $this->group->setSettings([ 'closed' => TRUE ]);
+
+        # Send a reply.  This should result in in an automatic reply..
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
+        $mock = $this->getMockBuilder('Freegle\Iznik\MailRouter')
+            ->setConstructorArgs(array($this->dbhm, $this->dbhm))
+            ->setMethods(array('mail'))
+            ->getMock();
+        $mock->method('mail')->will($this->returnCallback(function($to, $from, $subject, $body) {
+            return($this->mailer($to, $from, $subject, $body));
+        }));
+
+        $mock->received(Message::EMAIL, 'test2@test.com', 'replyto-' . $origid . '-' . $uid2 . '@' . USER_DOMAIN, $msg);
+        $mock->route();
+        assertEquals(1, count($this->msgsSent));
+        assertEquals("This community is currently closed", $this->msgsSent[0]['subject']);
     }
 
     public function testReplyToMissing() {
