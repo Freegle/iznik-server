@@ -1682,6 +1682,8 @@ ORDER BY lastdate DESC;";
             }
         }
 
+        $msgs[0]['groups'] = $this->getGroups(FALSE, FALSE);
+
         $rets = $this->getPublics($msgs, $messagehistory, $related, $seeall, $userlist, $locationlist, $summary);
 
         # When getting an individual message we return an approx distance.
