@@ -810,7 +810,6 @@ class Message
     }
 
     public function stripGumf() {
-        # We have the same function in views/user/message.js; keep thenm in sync.
         $text = $this->getTextbody();
 
         if ($text) {
@@ -842,6 +841,9 @@ class Message
 
             // Duff text added by Yahoo Mail app.
             $text = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $text);
+
+            // Left over inline image references
+            $text = preg_replace('/\[cid\:.*?\]/', '', $text);
 
             $text = trim($text);
         }
@@ -3262,6 +3264,9 @@ ORDER BY lastdate DESC;";
         if (substr($textbody, -1) == '|') {
             $textbody = substr($textbody, 0, strlen($textbody) - 1);
         }
+
+        // Left over inline image references
+        $textbody = preg_replace('/\[cid\:.*?\]/', '', $textbody);
 
         # Strip underscores and dashes, which can arise due to quoting issues.
         return(trim($textbody, " \t\n\r\0\x0B_-"));
