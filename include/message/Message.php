@@ -3295,6 +3295,7 @@ ORDER BY lastdate DESC;";
         $textbody = preg_replace('/^Save time browsing & posting to.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent on the go from.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from Yahoo Mail.*/ims', '', $textbody);
+        $textbody = preg_replace('/^Sent from Windows Mail.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from Mail.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my BlackBerry.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my Huawei Mobile.*/ims', '', $textbody);
