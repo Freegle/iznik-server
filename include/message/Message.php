@@ -340,7 +340,7 @@ class Message
                 # that we use the posting status on the group.
                 #error_log("Consider group {$group['collection']} and status " . $me->getMembershipAtt($group['groupid'], 'ourPostingStatus'));
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                $postcoll = $g->getSetting('moderated', 0) ? MessageCollection::PENDING : $me->postToCollection($group['groupid']);
+                $postcoll = ($g->getSetting('moderated', 0) || $g->getSetting('closed', 0)) ? MessageCollection::PENDING : $me->postToCollection($group['groupid']);
 
                 if ($group['collection'] === MessageCollection::APPROVED &&
                     $postcoll === MessageCollection::PENDING) {

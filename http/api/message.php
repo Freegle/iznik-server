@@ -528,7 +528,7 @@ function message() {
                                         if ($g->getPrivate('overridemoderation') === Group::OVERRIDE_MODERATION_ALL) {
                                             $postcoll = MessageCollection::PENDING;
                                         } else {
-                                            $postcoll = ($worry || $g->getSetting('moderated', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
+                                            $postcoll = ($worry || $g->getSetting('moderated', 0) || $g->getSetting('close', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
                                         }
                                     }
 
