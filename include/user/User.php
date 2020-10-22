@@ -3073,74 +3073,72 @@ class User extends Entity
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me->getId();
 
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+            $atts = $g->getPublic();
+
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
+
+            # Find who to send it from.  If we have a config to use for this group then it will tell us.
+            $name = $me->getName();
+            $c = new ModConfig($this->dbhr, $this->dbhm);
+            $cid = $c->getForGroup($me->getId(), $groupid);
+            $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
+            $fromname = $c->getPrivate('fromname');
+            $name = ($fromname == 'Groupname Moderator') ? '$groupname Moderator' : $name;
+
+            # We can do a simple substitution in the from name.
+            $name = str_replace('$groupname', $atts['namedisplay'], $name);
+
+            $bcc = $c->getBcc($action);
+
+            if ($bcc) {
+                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
+            }
+
+            # We add the message into chat.
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            $rid = $r->createUser2Mod($this->id, $groupid);
+            $m = NULL;
+
             $to = $this->getEmailPreferred();
 
-            if ($to) {
-                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-                $atts = $g->getPublic();
+            if ($rid) {
+                # Create the message.  Mark it as needing review to prevent timing window.
+                $m = new ChatMessage($this->dbhr, $this->dbhm);
+                list ($mid, $banned) = $m->create($rid,
+                    $myid,
+                    "$subject\r\n\r\n$body",
+                    ChatMessage::TYPE_MODMAIL,
+                    NULL,
+                    TRUE,
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL,
+                    TRUE,
+                    TRUE);
 
-                $me = Session::whoAmI($this->dbhr, $this->dbhm);
+                $this->mailer($me, TRUE, $this->getName(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->id . " $to)\n\n" . $body);
+            }
 
-                # Find who to send it from.  If we have a config to use for this group then it will tell us.
-                $name = $me->getName();
-                $c = new ModConfig($this->dbhr, $this->dbhm);
-                $cid = $c->getForGroup($me->getId(), $groupid);
-                $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
-                $fromname = $c->getPrivate('fromname');
-                $name = ($fromname == 'Groupname Moderator') ? '$groupname Moderator' : $name;
+            if ($to && !Mail::ourDomain($to)) {
+                # For users who we host, we leave the message unseen; that will then later generate a notification
+                # to them.  Otherwise we mail them the message and mark it as seen, because they would get
+                # confused by a mail in our notification format.
+                $this->mailer($me, TRUE, $this->getName(), $to, NULL, $name, $g->getModsEmail(), $subject, $body);
 
-                # We can do a simple substitution in the from name.
-                $name = str_replace('$groupname', $atts['namedisplay'], $name);
+                # We've mailed the message out so they are up to date with this chat.
+                $r->upToDate($this->id);
+            }
 
-                $bcc = $c->getBcc($action);
+            if ($m) {
+                # Allow mailing to happen.
+                $m->setPrivate('reviewrequired', 0);
 
-                if ($bcc) {
-                    $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
-                }
-
-                # We add the message into chat.
-                $r = new ChatRoom($this->dbhr, $this->dbhm);
-                $rid = $r->createUser2Mod($this->id, $groupid);
-                $m = NULL;
-
-                if ($rid) {
-                    # Create the message.  Mark it as needing review to prevent timing window.
-                    $m = new ChatMessage($this->dbhr, $this->dbhm);
-                    list ($mid, $banned) = $m->create($rid,
-                        $myid,
-                        "$subject\r\n\r\n$body",
-                        ChatMessage::TYPE_MODMAIL,
-                        NULL,
-                        TRUE,
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL,
-                        TRUE,
-                        TRUE);
-
-                    $this->mailer($me, TRUE, $this->getName(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle user #" . $this->id . " $to)\n\n" . $body);
-                }
-
-                if (!Mail::ourDomain($to)) {
-                    # For users who we host, we leave the message unseen; that will then later generate a notification
-                    # to them.  Otherwise we mail them the message and mark it as seen, because they would get
-                    # confused by a mail in our notification format.
-                    $this->mailer($me, TRUE, $this->getName(), $to, NULL, $name, $g->getModsEmail(), $subject, $body);
-
-                    # We've mailed the message out so they are up to date with this chat.
-                    $r->upToDate($this->id);
-                }
-
-                if ($m) {
-                    # Allow mailing to happen.
-                    $m->setPrivate('reviewrequired', 0);
-
-                    # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
-                    # appearing as unread to us and other mods.
-                    $r->updateRoster($myid, $mid);
-                }
+                # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
+                # appearing as unread to us and other mods.
+                $r->updateRoster($myid, $mid);
             }
         }
     }
@@ -5381,7 +5379,7 @@ class User extends Entity
         ]);
 
         # Remove any promises.
-        $this->dbhm->preExec("DELETE FROM messages_promises WHERE userid - ?;", [
+        $this->dbhm->preExec("DELETE FROM messages_promises WHERE userid = ?;", [
             $this->id
         ]);
 

@@ -105,7 +105,7 @@ class GroupFacebook {
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
-            $url = $sharefrom . "/feed?limit=100&&fields=id,link,message,type,caption,icon,name,full_picture,created_time";
+            $url = $sharefrom . "/posts?limit=100&&fields=id,link,message,type,caption,icon,name,full_picture,created_time";
             #error_log("Get from feed $url, $token");
             $ret = $fb->get($url, $token);
             #error_log("Got ok");
@@ -138,6 +138,9 @@ class GroupFacebook {
             $code = $e->getCode();
             error_log("Failed to scrape code $code message " . $e->getMessage() . " token " . $this->token);
         }
+
+        # Reset any rate-limited pages.
+        $this->dbhm->preExec("UPDATE `groups_facebook` SET valid = 1, lasterror = 'Reset after rate limit' WHERE valid = 0 AND lasterror LIKE '%We limit how often you can post%' AND TIMESTAMPDIFF(MINUTE, lasterrortime, NOW()) > 120;");
 
         return($count);
     }

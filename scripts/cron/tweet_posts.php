@@ -17,9 +17,14 @@ $groups = $dbhr->preQuery("SELECT groups.id, groups.nameshort FROM groups INNER 
 ]);
 
 foreach ($groups as $group) {
-    $t = new Twitter($dbhr, $dbhm, $group['id']);
-    $count = $t->tweetMessages();
-    error_log("{$group['nameshort']} $count");
+    $g = Group::get($dbhr, $dbhm, $group['id']);
+
+    # Don't send for closed groups.
+    if (!$g->getSetting('closed',FALSE)) {
+        $t = new Twitter($dbhr, $dbhm, $group['id']);
+        $count = $t->tweetMessages();
+        error_log("{$group['nameshort']} $count");
+    }
 }
 
 error_log("Finish at " . date("Y-m-d H:i:s"));

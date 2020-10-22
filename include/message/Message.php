@@ -340,7 +340,7 @@ class Message
                 # that we use the posting status on the group.
                 #error_log("Consider group {$group['collection']} and status " . $me->getMembershipAtt($group['groupid'], 'ourPostingStatus'));
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                $postcoll = $g->getSetting('moderated', 0) ? MessageCollection::PENDING : $me->postToCollection($group['groupid']);
+                $postcoll = ($g->getSetting('moderated', 0) || $g->getSetting('closed', 0)) ? MessageCollection::PENDING : $me->postToCollection($group['groupid']);
 
                 if ($group['collection'] === MessageCollection::APPROVED &&
                     $postcoll === MessageCollection::PENDING) {
@@ -810,7 +810,6 @@ class Message
     }
 
     public function stripGumf() {
-        # We have the same function in views/user/message.js; keep thenm in sync.
         $text = $this->getTextbody();
 
         if ($text) {
@@ -842,6 +841,9 @@ class Message
 
             // Duff text added by Yahoo Mail app.
             $text = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $text);
+
+            // Left over inline image references
+            $text = preg_replace('/\[cid\:.*?\]/', '', $text);
 
             $text = trim($text);
         }
@@ -1679,6 +1681,8 @@ ORDER BY lastdate DESC;";
                 ];
             }
         }
+
+        $msgs[0]['groups'] = $this->getGroups(FALSE, FALSE);
 
         $rets = $this->getPublics($msgs, $messagehistory, $related, $seeall, $userlist, $locationlist, $summary);
 
@@ -3263,6 +3267,9 @@ ORDER BY lastdate DESC;";
             $textbody = substr($textbody, 0, strlen($textbody) - 1);
         }
 
+        // Left over inline image references
+        $textbody = preg_replace('/\[cid\:.*?\]/', '', $textbody);
+
         # Strip underscores and dashes, which can arise due to quoting issues.
         return(trim($textbody, " \t\n\r\0\x0B_-"));
     }
@@ -3288,6 +3295,7 @@ ORDER BY lastdate DESC;";
         $textbody = preg_replace('/^Save time browsing & posting to.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent on the go from.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from Yahoo Mail.*/ims', '', $textbody);
+        $textbody = preg_replace('/^Sent from Windows Mail.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from Mail.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my BlackBerry.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my Huawei Mobile.*/ims', '', $textbody);
@@ -3641,6 +3649,56 @@ ORDER BY lastdate DESC;";
 
     public function deleteAllAttachments() {
         $this->dbhm->preExec("DELETE FROM messages_attachments WHERE msgid = ?;", [ $this->id ]);
+    }
+
+    public function searchActiveInBounds($string, $messagetype, $swlat, $swlng, $nelat, $nelng, $groupid = NULL, $exactonly = FALSE) {
+        $ret = [];
+
+        # First get the groups which overlap the bounds.
+        $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+
+        if (!$groupid) {
+            $sql = "SELECT id FROM groups WHERE ST_Intersects(polyindex, GeomFromText('$poly')) AND onmap = 1 AND publish = 1;";
+            $groups = $this->dbhr->preQuery($sql);
+            $groupids = array_filter(array_column($groups, 'id'));
+        } else {
+            $groupids = [ $groupid ];
+        }
+
+        if (count($groupids)) {
+            # Now find the messages in that area.  Need a high limit because we need to see them all, e.g. on a map.
+            $ctx = NULL;
+            $searched = $this->search($string, $ctx, 1000, NULL, $groupids, NULL, $exactonly);
+            $msgids = array_filter(array_column($searched, 'id'));
+
+            if (count($msgids)) {
+                # Find which of these messages are within the bounds, on a group, not deleted, have no outcome, are the
+                # right type.
+                $typeq = '';
+
+                if ($messagetype === Message::TYPE_OFFER) {
+                    $typeq = " AND messages.type = 'Offer'";
+                } else if ($messagetype === Message::TYPE_WANTED) {
+                    $typeq = " AND messages.type = 'Wanted'";
+                }
+
+                $sql = "SELECT messages.id, messages.lat, messages.lng, messages.type, groupid, messages_groups.arrival FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE messages.id IN (" . implode(',', $msgids) . ") AND $swlat <= lat AND $swlng <= lng AND $nelat >= lat AND $nelng >= lng AND messages.deleted IS NULL AND messages_outcomes.msgid IS NULL $typeq;";
+                $ret = $this->dbhr->preQuery($sql, [
+                    $messagetype
+                ]);
+
+                # We need to return the info about why we matched.
+                foreach ($ret as &$r) {
+                    foreach ($searched as $s) {
+                        if ($r['id'] == $s['id']) {
+                            $r['matchedon'] = $s['matchedon'];
+                        }
+                    }
+                }
+            }
+        }
+
+        return($ret);
     }
 
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL, $exactonly = FALSE) {
@@ -4051,117 +4109,116 @@ ORDER BY lastdate DESC;";
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
-            if (!$g->getSetting('closed', 0)) {
-                $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
-                # We want approved messages which haven't got an outcome, aren't promised, don't have any replies and
-                # which we originally sent.
-                #
-                # The replies part is because we can't really rely on members to let us know what happens to a message,
-                # especially if they are not receiving emails reliably.  At least this way it avoids the case where a
-                # message gets resent repeatedly and people keep replying and not getting a response.
-                #
-                # The sending user must also still be a member of the group.
-                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr 
-    FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid 
-    INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid 
-    LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid 
-    LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id 
-    LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid AND chat_messages.type != 'ModMail' 
-    WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL $msgq;";
-                #error_log("$sql, $mindate, {$group['id']}");
-                $messages = $this->dbhr->preQuery($sql, [
-                    $mindate,
-                    $group['id']
-                ]);
+            $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
-                $now = time();
+            # We want approved messages which haven't got an outcome, aren't promised, don't have any replies and
+            # which we originally sent.
+            #
+            # The replies part is because we can't really rely on members to let us know what happens to a message,
+            # especially if they are not receiving emails reliably.  At least this way it avoids the case where a
+            # message gets resent repeatedly and people keep replying and not getting a response.
+            #
+            # The sending user must also still be a member of the group.
+            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr 
+FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid 
+INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid 
+LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid 
+LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id 
+LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid AND chat_messages.type != 'ModMail' 
+WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL $msgq;";
+            #error_log("$sql, $mindate, {$group['id']}");
+            $messages = $this->dbhr->preQuery($sql, [
+                $mindate,
+                $group['id']
+            ]);
 
-                $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-                $twig = new \Twig_Environment($loader);
+            $now = time();
 
-                foreach ($messages as $message) {
-                    if (Mail::ourDomain($message['fromaddr'])) {
-                        if ($message['autoreposts'] < $reposts['max']) {
-                            # We want to send a warning 24 hours before we repost.
-                            $lastwarnago = $message['lastautopostwarning'] ? ($now - strtotime($message['lastautopostwarning'])) : NULL;
-                            $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+            $twig = new \Twig_Environment($loader);
 
-                            # If we have messages which are older than we could have been trying for, ignore them.
-                            $maxage = $interval * ($reposts['max'] + 1);
+            foreach ($messages as $message) {
+                if (Mail::ourDomain($message['fromaddr'])) {
+                    if ($message['autoreposts'] < $reposts['max']) {
+                        # We want to send a warning 24 hours before we repost.
+                        $lastwarnago = $message['lastautopostwarning'] ? ($now - strtotime($message['lastautopostwarning'])) : NULL;
+                        $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
 
-                            error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago maxage $maxage");
+                        # If we have messages which are older than we could have been trying for, ignore them.
+                        $maxage = $interval * ($reposts['max'] + 1);
 
-                            if ($message['hoursago'] < $maxage * 24) {
-                                # Reposts might be turned off.
-                                if ($interval > 0 && $reposts['max'] > 0) {
-                                    if ($message['hoursago'] <= $interval * 24 &&
-                                        $message['hoursago'] > ($interval - 1) * 24 &&
-                                        ($lastwarnago === NULL || $lastwarnago > 24)
-                                    ) {
-                                        # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
-                                        # an old one (probably from the previous repost).
-                                        if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
-                                            # And we haven't sent a warning yet.
-                                            $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
-                                            $warncount++;
+                        error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago maxage $maxage");
 
-                                            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                                            $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-                                            $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
-                                            $gatts = $g->getPublic();
+                        if ($message['hoursago'] < $maxage * 24) {
+                            # Reposts might be turned off.
+                            if ($interval > 0 && $reposts['max'] > 0) {
+                                if ($message['hoursago'] <= $interval * 24 &&
+                                    $message['hoursago'] > ($interval - 1) * 24 &&
+                                    ($lastwarnago === NULL || $lastwarnago > 24)
+                                ) {
+                                    # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
+                                    # an old one (probably from the previous repost).
+                                    if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
+                                        # And we haven't sent a warning yet.
+                                        $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
+                                        $warncount++;
 
-                                            if ($u->getId()) {
-                                                $to = $u->getEmailPreferred();
-                                                $subj = $m->getSubject();
+                                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                                        $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
+                                        $gatts = $g->getPublic();
 
-                                                # Remove any group tag.
-                                                $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
+                                        if ($u->getId()) {
+                                            $to = $u->getEmailPreferred();
+                                            $subj = $m->getSubject();
 
-                                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_REPOST_WARNING);
-                                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
-                                                $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
-                                                $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
-                                                $html = $twig->render('autorepost.html', [
-                                                    'subject' => $subj,
-                                                    'name' => $u->getName(),
-                                                    'email' => $to,
-                                                    'type' => $othertype,
-                                                    'completed' => $completed,
-                                                    'withdraw' => $withdraw
-                                                ]);
+                                            # Remove any group tag.
+                                            $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                                list ($transport, $mailer) = Mail::getMailer();
+                                            $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_REPOST_WARNING);
+                                            $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
+                                            $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
+                                            $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
+                                            $html = $twig->render('autorepost.html', [
+                                                'subject' => $subj,
+                                                'name' => $u->getName(),
+                                                'email' => $to,
+                                                'type' => $othertype,
+                                                'completed' => $completed,
+                                                'withdraw' => $withdraw
+                                            ]);
 
-                                                if (\Swift_Validate::email($to)) {
-                                                    $message = \Swift_Message::newInstance()
-                                                        ->setSubject("Re: " . $subj)
-                                                        ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
-                                                        ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
-                                                        ->setTo($to)
-                                                        ->setBody($text);
+                                            list ($transport, $mailer) = Mail::getMailer();
 
-                                                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                                                    # Outlook.
-                                                    $htmlPart = \Swift_MimePart::newInstance();
-                                                    $htmlPart->setCharset('utf-8');
-                                                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                                                    $htmlPart->setContentType('text/html');
-                                                    $htmlPart->setBody($html);
-                                                    $message->attach($htmlPart);
+                                            if (\Swift_Validate::email($to)) {
+                                                $message = \Swift_Message::newInstance()
+                                                    ->setSubject("Re: " . $subj)
+                                                    ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
+                                                    ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
+                                                    ->setTo($to)
+                                                    ->setBody($text);
 
-                                                    $mailer->send($message);
-                                                }
+                                                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                                # Outlook.
+                                                $htmlPart = \Swift_MimePart::newInstance();
+                                                $htmlPart->setCharset('utf-8');
+                                                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                                $htmlPart->setContentType('text/html');
+                                                $htmlPart->setBody($html);
+                                                $message->attach($htmlPart);
+
+                                                $mailer->send($message);
                                             }
                                         }
-                                    } else if ($message['hoursago'] > $interval * 24) {
-                                        # We can autorepost this one.
-                                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                                        error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                                        $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
-
-                                        $count++;
                                     }
+                                } else if ($message['hoursago'] > $interval * 24) {
+                                    # We can autorepost this one.
+                                    $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                    error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
+                                    $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
+
+                                    $count++;
                                 }
                             }
                         }
@@ -4185,92 +4242,124 @@ ORDER BY lastdate DESC;";
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
-            $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
-            # We want approved messages which haven't got an outcome, i.e. aren't TAKEN/RECEIVED, which don't have
-            # some other outcome (e.g. withdrawn), aren't promised, have any replies and which we originally sent.
-            #
-            # The sending user must also still be a member of the group.
-            #
-            # Using UNION means we can be more efficiently indexed.
-            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL
-                    UNION SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL;";
-            #error_log("$sql, $mindate, {$group['id']}");
-            $messages = $this->dbhr->preQuery($sql, [
-                $mindate,
-                $group['id'],
-                $mindate,
-                $group['id']
-            ]);
+            # Don't chase up on closed groups.
+            if (!$g->getSetting('closed', FALSE)) {
+                $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
-            $now = time();
+                # We want approved messages which haven't got an outcome, i.e. aren't TAKEN/RECEIVED, which don't have
+                # some other outcome (e.g. withdrawn), aren't promised, have any replies and which we originally sent.
+                #
+                # The sending user must also still be a member of the group.
+                #
+                # Using UNION means we can be more efficiently indexed.
+                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL
+                        UNION SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL;";
+                #error_log("$sql, $mindate, {$group['id']}");
+                $messages = $this->dbhr->preQuery(
+                    $sql,
+                    [
+                        $mindate,
+                        $group['id'],
+                        $mindate,
+                        $group['id']
+                    ]
+                );
 
-            foreach ($messages as $message) {
-                if (Mail::ourDomain($message['fromaddr'])) {
-                    # Find the last reply.
-                    $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                $now = time();
 
-                    if ($m->canChaseup()) {
-                        $sql = "SELECT MAX(date) AS latest FROM chat_messages WHERE chatid IN (SELECT chatid FROM chat_messages WHERE refmsgid = ?);";
-                        $replies = $this->dbhr->preQuery($sql, [ $message['msgid'] ]);
-                        $lastreply = $replies[0]['latest'];
-                        $age = ($now - strtotime($lastreply)) / (60 * 60);
-                        $interval = array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2;
-                        error_log("Consider chaseup $age vs $interval");
+                foreach ($messages as $message) {
+                    if (Mail::ourDomain($message['fromaddr'])) {
+                        # Find the last reply.
+                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
 
-                        if ($interval > 0 && $age > $interval * 24) {
-                            # We can chase up.
-                            $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-                            $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
-                            $gatts = $g->getPublic();
+                        if ($m->canChaseup()) {
+                            $sql = "SELECT MAX(date) AS latest FROM chat_messages WHERE chatid IN (SELECT chatid FROM chat_messages WHERE refmsgid = ?);";
+                            $replies = $this->dbhr->preQuery($sql, [$message['msgid']]);
+                            $lastreply = $replies[0]['latest'];
+                            $age = ($now - strtotime($lastreply)) / (60 * 60);
+                            $interval = array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2;
+                            error_log("Consider chaseup $age vs $interval");
 
-                            if ($u->getId() && $m->canRepost()) {
-                                error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " chaseup due");
-                                $count++;
-                                $this->dbhm->preExec("UPDATE messages_groups SET lastchaseup = NOW() WHERE msgid = ?;", [$message['msgid']]);
+                            if ($interval > 0 && $age > $interval * 24) {
+                                # We can chase up.
+                                $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                                $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
+                                $gatts = $g->getPublic();
 
-                                $to = $u->getEmailPreferred();
-                                $subj = $m->getSubject();
+                                if ($u->getId() && $m->canRepost()) {
+                                    error_log(
+                                        $g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr(
+                                        ) . " " . $m->getSubject() . " chaseup due"
+                                    );
+                                    $count++;
+                                    $this->dbhm->preExec(
+                                        "UPDATE messages_groups SET lastchaseup = NOW() WHERE msgid = ?;",
+                                        [$message['msgid']]
+                                    );
 
-                                # Remove any group tag.
-                                $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
+                                    $to = $u->getEmailPreferred();
+                                    $subj = $m->getSubject();
 
-                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_CHASEUP);
-                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_CHASEUP);
-                                $repost = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/repost", User::SRC_CHASEUP);
-                                $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
-                                $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
+                                    # Remove any group tag.
+                                    $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                $html = $twig->render('chaseup.html', [
-                                    'subject' => $subj,
-                                    'name' => $u->getName(),
-                                    'email' => $to,
-                                    'type' => $othertype,
-                                    'repost' => $repost,
-                                    'completed' => $completed,
-                                    'withdraw' => $withdraw
-                                ]);
+                                    $completed = $u->loginLink(
+                                        USER_SITE,
+                                        $u->getId(),
+                                        "/mypost/{$message['msgid']}/completed",
+                                        User::SRC_CHASEUP
+                                    );
+                                    $withdraw = $u->loginLink(
+                                        USER_SITE,
+                                        $u->getId(),
+                                        "/mypost/{$message['msgid']}/withdraw",
+                                        User::SRC_CHASEUP
+                                    );
+                                    $repost = $u->loginLink(
+                                        USER_SITE,
+                                        $u->getId(),
+                                        "/mypost/{$message['msgid']}/repost",
+                                        User::SRC_CHASEUP
+                                    );
+                                    $othertype = $m->getType(
+                                    ) == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
+                                    $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
 
-                                list ($transport, $mailer) = Mail::getMailer();
+                                    $html = $twig->render(
+                                        'chaseup.html',
+                                        [
+                                            'subject' => $subj,
+                                            'name' => $u->getName(),
+                                            'email' => $to,
+                                            'type' => $othertype,
+                                            'repost' => $repost,
+                                            'completed' => $completed,
+                                            'withdraw' => $withdraw
+                                        ]
+                                    );
 
-                                if (\Swift_Validate::email($to)) {
-                                    $message = \Swift_Message::newInstance()
-                                        ->setSubject("Re: " . $subj)
-                                        ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
-                                        ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
-                                        ->setTo($to)
-                                        ->setBody($text);
+                                    list ($transport, $mailer) = Mail::getMailer();
 
-                                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                                    # Outlook.
-                                    $htmlPart = \Swift_MimePart::newInstance();
-                                    $htmlPart->setCharset('utf-8');
-                                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                                    $htmlPart->setContentType('text/html');
-                                    $htmlPart->setBody($html);
-                                    $message->attach($htmlPart);
+                                    if (\Swift_Validate::email($to)) {
+                                        $message = \Swift_Message::newInstance()
+                                            ->setSubject("Re: " . $subj)
+                                            ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
+                                            ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
+                                            ->setTo($to)
+                                            ->setBody($text);
 
-                                    $mailer->send($message);
+                                        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                        # Outlook.
+                                        $htmlPart = \Swift_MimePart::newInstance();
+                                        $htmlPart->setCharset('utf-8');
+                                        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                        $htmlPart->setContentType('text/html');
+                                        $htmlPart->setBody($html);
+                                        $message->attach($htmlPart);
+
+                                        $mailer->send($message);
+                                    }
                                 }
                             }
                         }
@@ -4633,6 +4722,9 @@ ORDER BY lastdate DESC;";
     public function autoapprove($id = NULL) {
         # Look for messages which have been pending for too long.  This fallback catches cases where the group is not being
         # regularly moderated.
+        #
+        # Even if the group is closed we still autoapprove - they won't get mailed out and can't be replied to on the
+        # site but this stops a flood when we reopen.
         $ret = 0;
         $idq = $id ? " AND msgid = $id " : "";
         $sql = "SELECT msgid, groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS ago FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE collection = ? AND heldby IS NULL HAVING ago > 48 $idq;";

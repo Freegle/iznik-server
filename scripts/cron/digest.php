@@ -31,28 +31,32 @@ if (count($opts) < 1) {
 
     # We only send digests for Freegle groups.
     $groupq = $gid ? (" AND id = " . intval($gid)) : '';
-    $groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 $groupq ORDER BY LOWER(nameshort) ASC;", [$mod, $val]);
+    $groups = $dbhr->preQuery("SELECT id, nameshort, settings FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 $groupq ORDER BY LOWER(nameshort) ASC;", [$mod, $val]);
     $d = new Digest($dbhr, $dbhm);
 
     foreach ($groups as $group) {
-        $total += $d->send($group['id'], $interval);
-        if (file_exists('/tmp/iznik.mail.abort')) {
-            break;
-        }
+        $g = Group::get($dbhr, $dbhm, $group['id']);
 
-        # Check for queue size on our mail host
-        # TODO Make generic.
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@bulk2 \"/usr/sbin/postqueue -p | /usr/bin/tail -n1 | /usr/bin/gawk '{print $5}'\" 2>&1"));
+        # Don't send for closed groups.
+        if (!$g->getSetting('closed',FALSE)) {
+            $total += $d->send($group['id'], $interval);
+            if (file_exists('/tmp/iznik.mail.abort')) {
+                break;
+            }
 
-        if (strpos($queuesize, "Total") !== FALSE) {
-            $size = substr($queuesize, 6);
+            # Check for queue size on our mail host
+            # TODO Make generic.
+            $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@bulk2 \"/usr/sbin/postqueue -p | /usr/bin/tail -n1 | /usr/bin/gawk '{print $5}'\" 2>&1"));
 
-            if (intval($size) > 100000) {
-                error_log("bulk2 queue size large, sleep");
-                sleep(30);
+            if (strpos($queuesize, "Total") !== FALSE) {
+                $size = substr($queuesize, 6);
+
+                if (intval($size) > 100000) {
+                    error_log("bulk2 queue size large, sleep");
+                    sleep(30);
+                }
             }
         }
-
     }
 
     $duration = time() - $start;

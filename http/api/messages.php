@@ -18,10 +18,10 @@ function messages() {
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $grouptype = Utils::presdef('grouptype', $_REQUEST, NULL);
     $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $swlat = Utils::presdef('swlat', $_REQUEST, NULL);
-    $swlng = Utils::presdef('swlng', $_REQUEST, NULL);
-    $nelat = Utils::presdef('nelat', $_REQUEST, NULL);
-    $nelng = Utils::presdef('nelng', $_REQUEST, NULL);
+    $swlat = array_key_exists('swlat', $_REQUEST) ? floatval($_REQUEST['swlat']) : NULL;
+    $swlng = array_key_exists('swlng', $_REQUEST) ? floatval($_REQUEST['swlng']) : NULL;
+    $nelat = array_key_exists('nelat', $_REQUEST) ? floatval($_REQUEST['nelat']) : NULL;
+    $nelng = array_key_exists('nelng', $_REQUEST) ? floatval($_REQUEST['nelng']) : NULL;
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
@@ -122,10 +122,13 @@ function messages() {
 
                             if ($m->getID() == $search) {
                                 # Found by message id.
-                                list($groups, $msgs) = $c->fillIn([ [ 'id' => $search ] ], $limit, NULL, $summary);
+                                list($groups, $msgs) = $c->fillIn([['id' => $search]], $limit, null, $summary);
                             }
+                        } else if ($swlat !== NULL && $swlng !== NULL && $nelat !== NULL && $nelng !== NULL) {
+                            $m = new Message($dbhr, $dbhm);
+                            $msgs = $m->searchActiveInBounds($search, $messagetype, $swlat, $swlng, $nelat, $nelng, $groupid, $exactonly);
                         } else {
-                            # Not an id search
+                            # Search near location.
                             $m = new Message($dbhr, $dbhm);
 
                             $searchgroups = $groupid ? [ $groupid ] : NULL;
@@ -138,7 +141,7 @@ function messages() {
 
                             do {
                                 $searched = $m->search($search, $ctx, $limit, NULL, $searchgroups, $nearlocation, $exactonly);
-                                list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, NULL, FALSE);
+                                list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, FALSE);
                                 # We might have excluded all the messages we found; if so, keep going.
                             } while (count($searched) > 0 && count($msgs) == 0);
                         }

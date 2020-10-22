@@ -24,6 +24,7 @@ class Dashboard {
     const COMPONENTS_DONATIONS = 'Donations';
     const COMPONENTS_ACTIVE_USERS = 'ActiveUsers';
     const COMPONENTS_HAPPINESS = 'Happiness';
+    const COMPONENTS_APPROVED_MEMBERS = 'ApprovedMemberCount';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -389,6 +390,11 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
             if (in_array(Dashboard::COMPONENTS_ACTIVE_USERS, $components) && $ismod) {
                 $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::ACTIVE_USERS ]);
                 $ret[Dashboard::COMPONENTS_ACTIVE_USERS] = $stats[Stats::ACTIVE_USERS];
+            }
+
+            if (in_array(Dashboard::COMPONENTS_APPROVED_MEMBERS, $components) && $ismod) {
+                $stats = $this->stats->getMulti($start, $groupids, $start, $end, $systemwide, [ Stats::APPROVED_MEMBER_COUNT ]);
+                $ret[Dashboard::COMPONENTS_APPROVED_MEMBERS] = $stats[Stats::APPROVED_MEMBER_COUNT];
             }
         }
 

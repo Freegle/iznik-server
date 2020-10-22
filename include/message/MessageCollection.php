@@ -486,9 +486,9 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
 
     function getInBounds($swlat, $swlng, $nelat, $nelng, $groupid) {
         if ($groupid) {
-            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, groupid, messages_groups.msgtype AS type, messages_groups.arrival, ST_Contains(polyindex, point) AS inside FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid INNER JOIN groups ON messages_groups.groupid = groups.id WHERE groupid = $groupid HAVING inside = 1";
+            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE groupid = $groupid ORDER BY messages_groups.arrival DESC, messages_spatial.msgid DESC;";
         } else {
-            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE ST_Contains(GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))'), point)";
+            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE ST_Contains(GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))'), point) ORDER BY messages_groups.arrival DESC, messages_spatial.msgid DESC;";
         }
 
         $msgs = $this->dbhr->preQuery($sql);
