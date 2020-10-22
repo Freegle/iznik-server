@@ -264,8 +264,8 @@ function user() {
                     $uid = $u->findByEmail($email);
 
                     if (!$uid) {
-                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                        $u->addEmail($email);
+                        $id = $u->addEmail($email);
+                        $ret = $id ? [ 'ret' => 0, 'status' => 'Success', 'emailid' => $id ] : [ 'ret' => 4, 'status' => 'Email add failed for some reason' ];
                     }
                 }
 
