@@ -380,7 +380,7 @@ class Facebook
                     'facebook' => TRUE
                 ];
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             error_log("Profile get failed with " . $e->getMessage());
         }
 

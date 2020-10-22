@@ -1819,63 +1819,65 @@ class User extends Entity
             # See if we can do better than a default.
             $emails = $this->getEmails($atts['id']);
 
-            foreach ($emails as $email) {
-                if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
-                    # We can try to find profiles for gmail users.
-                    $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
-                    $j = json_decode($json, TRUE);
+            try {
+                foreach ($emails as $email) {
+                    if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
+                        # We can try to find profiles for gmail users.
+                        $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
+                        $j = json_decode($json, TRUE);
 
-                    if ($j && Utils::pres('entry', $j) && Utils::pres('gphoto$thumbnail', $j['entry']) && Utils::pres('$t', $j['entry']['gphoto$thumbnail'])) {
+                        if ($j && Utils::pres('entry', $j) && Utils::pres('gphoto$thumbnail', $j['entry']) && Utils::pres('$t', $j['entry']['gphoto$thumbnail'])) {
+                            $atts['profile'] = [
+                                'url' => $j['entry']['gphoto$thumbnail']['$t'],
+                                'turl' => $j['entry']['gphoto$thumbnail']['$t'],
+                                'default' => FALSE,
+                                'google' => TRUE
+                            ];
+
+                            break;
+                        }
+                    } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
+                        # TrashNothing has an API we can use.
+                        $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . IMAGE_DOMAIN . '/defaultprofile.png');
                         $atts['profile'] = [
-                            'url' => $j['entry']['gphoto$thumbnail']['$t'],
-                            'turl' => $j['entry']['gphoto$thumbnail']['$t'],
+                            'url' => $url,
+                            'turl' => $url,
                             'default' => FALSE,
-                            'google' => TRUE
+                            'TN' => TRUE
                         ];
+                    } else if (!Mail::ourDomain($email['email'])) {
+                        # Try for gravatar
+                        $gurl = $this->gravatar($email['email'], 200, 404);
+                        $g = @file_get_contents($gurl);
 
-                        break;
-                    }
-                } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
-                    # TrashNothing has an API we can use.
-                    $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . IMAGE_DOMAIN . '/defaultprofile.png');
-                    $atts['profile'] = [
-                        'url' => $url,
-                        'turl' => $url,
-                        'default' => FALSE,
-                        'TN' => TRUE
-                    ];
-                } else if (!Mail::ourDomain($email['email'])) {
-                    # Try for gravatar
-                    $gurl = $this->gravatar($email['email'], 200, 404);
-                    $g = @file_get_contents($gurl);
+                        if ($g) {
+                            $atts['profile'] = [
+                                'url' => $gurl,
+                                'turl' => $this->gravatar($email['email'], 100, 404),
+                                'default' => FALSE,
+                                'gravatar' => TRUE
+                            ];
 
-                    if ($g) {
-                        $atts['profile'] = [
-                            'url' => $gurl,
-                            'turl' => $this->gravatar($email['email'], 100, 404),
-                            'default' => FALSE,
-                            'gravatar' => TRUE
-                        ];
-
-                        break;
-                    }
-                }
-            }
-
-            if ($atts['profile']['default']) {
-                # Try for Facebook.
-                $logins = $this->getLogins(TRUE);
-                foreach ($logins as $login) {
-                    if ($login['type'] == User::LOGIN_FACEBOOK) {
-                        if (Utils::presdef('useprofile', $atts['settings'], TRUE)) {
-                            // As of October 2020 we can no longer just access the profile picture via the UID, we need to make a
-                            // call to the Graph API to fetch it.
-                            $f = new Facebook($this->dbhr, $this->dbhm);
-                            $atts['profile'] = $f->getProfilePicture($login['uid']);
+                            break;
                         }
                     }
                 }
-            }
+
+                if ($atts['profile']['default']) {
+                    # Try for Facebook.
+                    $logins = $this->getLogins(TRUE);
+                    foreach ($logins as $login) {
+                        if ($login['type'] == User::LOGIN_FACEBOOK) {
+                            if (Utils::presdef('useprofile', $atts['settings'], TRUE)) {
+                                // As of October 2020 we can no longer just access the profile picture via the UID, we need to make a
+                                // call to the Graph API to fetch it.
+                                $f = new Facebook($this->dbhr, $this->dbhm);
+                                $atts['profile'] = $f->getProfilePicture($login['uid']);
+                            }
+                        }
+                    }
+                }
+            } catch (Throwable $e) {}
 
             $hash = NULL;
 
