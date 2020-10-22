@@ -150,6 +150,7 @@ define('BOARD_ADDR', 'board@ilovefreegle.org');
 define('MENTORS_ADDR', 'mentors@ilovefreegle.org');
 define('NEWGROUPS_ADDR', 'newgroups@ilovefreegle.org');
 define('VOLUNTEERS_ADDR', 'volunteers@ilovefreegle.org');
+define('FUNDRAISING_ADDR', 'xxx');
 
 define('NOREPLY_ADDR', 'noreply@ilovefreegle.org');
 
