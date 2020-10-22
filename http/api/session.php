@@ -180,7 +180,7 @@ function session() {
                         }
 
                         if (count($gids)) {
-                            $polys = $dbhr->preQuery("SELECT id, AsText(ST_Envelope(polyindex)) AS bbox FROM groups WHERE id IN (" . implode(',', $gids) . ")");
+                            $polys = $dbhr->preQuery("SELECT id, AsText(ST_Envelope(polyindex)) AS bbox, AsText(polyindex) AS poly FROM groups WHERE id IN (" . implode(',', $gids) . ")");
 
                             foreach ($ret['groups'] as &$group) {
                                 foreach ($polys as $poly) {
@@ -194,6 +194,8 @@ function session() {
                                             'nelat' => $bbox['maxy'],
                                             'nelng' => $bbox['maxx'],
                                         ];
+
+                                        $group['polygon'] = $poly['poly'];
                                     }
                                 }
                             }
