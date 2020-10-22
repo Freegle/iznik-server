@@ -42,7 +42,7 @@ try {
     foreach ($admins as $admin) {
         error_log("...admin {$admin['id']}");
         do {
-            $any = $dbhr->preQuery("SELECT COUNT(*) AS count FROM admins_users WHERE adminid = {$admin['id']};");
+            $any = $dbhr->query("SELECT COUNT(*) AS count FROM admins_users WHERE adminid = {$admin['id']};");
             error_log("...left {$any[0]['count']}");
             $dbhm->exec("DELETE FROM admins_users WHERE adminid = {$admin['id']} LIMIT 10000;");
         } while ($any[0]['count'] > 0);
@@ -130,7 +130,7 @@ try {
     # Any drafts which are also on groups are not really drafts.  This must be due to a bug.
     $msgids = $dbhm->query("SELECT messages_drafts.msgid FROM messages_drafts INNER JOIN messages_groups ON messages_groups.msgid = messages_drafts.msgid");
     foreach ($msgids as $msgid) {
-        $dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [
+        $dbhm->exec("DELETE FROM messages_drafts WHERE msgid = ?;", [
             $msgid['msgid']
         ]);
     }
@@ -204,13 +204,13 @@ try {
 
     do {
         $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND htmlbody IS NOT NULL LIMIT 1000;";
-        $msgs = $dbhr->preQuery($sql);
+        $msgs = $dbhr->query($sql);
         error_log("Found " . count($msgs));
         foreach ($msgs as $msg) {
             $sql = "UPDATE messages SET htmlbody = NULL WHERE id = {$msg['id']};";
 
             # Use dbhmold with no logging to get retrying.
-            $count = $dbhmold->preExec($sql, NULL, FALSE);
+            $count = $dbhmold->exec($sql, NULL, FALSE);
             $total += $count;
             if ($total % 1000 == 0) {
                 error_log("...$total");
@@ -226,11 +226,11 @@ try {
 
     do {
         $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND message IS NOT NULL AND LENGTH(message) > 0;";
-        $msgs = $dbhr->preQuery($sql);
+        $msgs = $dbhr->query($sql);
         error_log("Found " . count($msgs));
         foreach ($msgs as $msg) {
             $sql = "UPDATE messages SET message = NULL WHERE id = {$msg['id']};";
-            $count = $dbhmold->preExec($sql, NULL, FALSE);
+            $count = $dbhmold->exec($sql, NULL, FALSE);
             $total += $count;
             if ($total % 1000 == 0) {
                 error_log("...$total");
@@ -245,11 +245,11 @@ try {
 
     do {
         $sql = "SELECT messages.id FROM messages LEFT JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN chat_messages ON chat_messages.refmsgid = messages.id LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id WHERE messages.arrival <= '$start' AND messages_groups.msgid IS NULL AND chat_messages.refmsgid IS NULL AND messages_drafts.msgid IS NULL LIMIT 1000;";
-        $msgs = $dbhr->preQuery($sql);
+        $msgs = $dbhr->query($sql);
         foreach ($msgs as $msg) {
             #error_log("...{$msg['id']}");
             $sql = "DELETE FROM messages WHERE id = {$msg['id']};";
-            $count = $dbhmold->preExec($sql, NULL, FALSE);
+            $count = $dbhmold->exec($sql, NULL, FALSE);
             $total++;
 
             if ($total % 1000 == 0) {
@@ -262,7 +262,7 @@ try {
 
     # This shouldn't happen due to delete cascading...but we've seen 7 such emails exist, and one caused future
     # problems.  So zap 'em.
-    $dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL");
+    $dbhm->exec("DELETE FROM users_emails WHERE userid IS NULL");
 } catch (\Exception $e) {
     error_log("Failed with " . $e->getMessage());
     mail(GEEKS_ADDR, "Daily message purge failed", $e->getMessage());
