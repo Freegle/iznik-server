@@ -69,15 +69,17 @@ function chatrooms() {
                 switch ($chattype) {
                     case ChatRoom::TYPE_USER2USER:
                         if ($userid) {
-                            $id = $r->createConversation($myid, $userid);
+                            if ($myid != $userid) {
+                                $id = $r->createConversation($myid, $userid);
 
-                            if ($id) {
-                                $r = new ChatRoom($dbhr, $dbhm, $id);
+                                if ($id) {
+                                    $r = new ChatRoom($dbhr, $dbhm, $id);
 
-                                # Ensure the chat isn't blocked.  Check the user to make sure we don't insert a mod into
-                                # the chat.
-                                if ($myid == $r->getPrivate('user1') || $myid == $r->getPrivate('user2')) {
-                                    $r->updateRoster($myid, NULL);
+                                    # Ensure the chat isn't blocked.  Check the user to make sure we don't insert a mod into
+                                    # the chat.
+                                    if ($myid == $r->getPrivate('user1') || $myid == $r->getPrivate('user2')) {
+                                        $r->updateRoster($myid, NULL);
+                                    }
                                 }
                             }
                         }
