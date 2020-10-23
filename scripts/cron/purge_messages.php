@@ -206,7 +206,9 @@ try {
         $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND htmlbody IS NOT NULL LIMIT 1000;";
         $msgs = $dbhr->query($sql);
         error_log("Found " . count($msgs));
+        $count = 0;
         foreach ($msgs as $msg) {
+            $count++;
             $sql = "UPDATE messages SET htmlbody = NULL WHERE id = {$msg['id']};";
 
             # Use dbhmold with no logging to get retrying.
@@ -216,7 +218,7 @@ try {
                 error_log("...$total");
             }
         }
-    } while (count($msgs) > 0);
+    } while ($count > 0);
 
     $start = date('Y-m-d', strtotime("midnight 30 days ago"));
     $end = date('Y-m-d', strtotime("midnight 60 days ago"));
@@ -246,7 +248,9 @@ try {
     do {
         $sql = "SELECT messages.id FROM messages LEFT JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN chat_messages ON chat_messages.refmsgid = messages.id LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id WHERE messages.arrival <= '$start' AND messages_groups.msgid IS NULL AND chat_messages.refmsgid IS NULL AND messages_drafts.msgid IS NULL LIMIT 1000;";
         $msgs = $dbhr->query($sql);
+        $count = 0;
         foreach ($msgs as $msg) {
+            $count++;
             #error_log("...{$msg['id']}");
             $sql = "DELETE FROM messages WHERE id = {$msg['id']};";
             $count = $dbhmold->exec($sql, NULL, FALSE);
@@ -256,7 +260,7 @@ try {
                 error_log("...$total");
             }
         }
-    } while (count($msgs) > 0);
+    } while ($count > 0);
 
     error_log("Deleted $total");
 
