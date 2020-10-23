@@ -502,4 +502,27 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
 
         return $msgs;
     }
+
+    function getByGroups($groupids) {
+        $msgs = [];
+
+        if (count($groupids)) {
+            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE groupid IN (" . implode(
+                    ',',
+                    $groupids
+                ) . ") ORDER BY messages_groups.arrival DESC, messages_spatial.msgid DESC;";
+
+            $msgs = $this->dbhr->preQuery($sql);
+
+            # Blur them.
+            foreach ($msgs as &$msg) {
+                $msg['lat'] = round($msg['lat'], User::BLUR_100M);
+                $msg['lng'] = round($msg['lng'], User::BLUR_100M);
+                $msg['arrival'] = Utils::ISODate($msg['arrival']);
+            }
+        }
+
+        return $msgs;
+    }
+
 }

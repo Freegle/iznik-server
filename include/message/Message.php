@@ -4768,8 +4768,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
     public function updateSpatialIndex() {
         $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
 
-        # Add/update messages which are still open and recent.
-        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_outcomes.id IS NULL AND messages_groups.collection = ?;";
+        # Add/update messages which are recent.
+        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ?;";
         $msgs = $this->dbhr->preQuery($sql, [
             $mysqltime,
             MessageCollection::APPROVED
@@ -4780,8 +4780,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
             $this->dbhm->preExec($sql);
         }
 
-        # Remove any messages which have now got outcomes.
-        $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid;";
+        # Remove any messages which are deleted.
+        $sql = "SELECT DISTINCT messages.id FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id AND messages.deleted IS NOT NULL";
         $msgs = $this->dbhr->preQuery($sql);
 
         foreach ($msgs as $msg) {

@@ -100,6 +100,16 @@ function messages() {
 
                         list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $age, $hasoutcome, $summary);
                         break;
+                    case 'mygroups': {
+                        $groups = [];
+                        $msgs = [];
+
+                        if ($me) {
+                            $mygroups = $me->getMembershipGroupIds(FALSE, $grouptype, NULL);
+                            $msgs = $c->getByGroups($mygroups);
+                        }
+                        break;
+                    }
                     case 'inbounds': {
                         $groups = [];
                         $msgs = $c->getInBounds($swlat, $swlng, $nelat, $nelng, $groupid);

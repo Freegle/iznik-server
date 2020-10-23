@@ -1013,6 +1013,20 @@ class User extends Entity
         return ($rc);
     }
 
+    public function getMembershipGroupIds($modonly = FALSE, $grouptype = NULL, $id = NULL) {
+        $id = $id ? $id : $this->id;
+
+        $ret = [];
+        $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
+        $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
+        $publishq = Session::modtools() ? "" : "AND groups.publish = 1";
+        $sql = "SELECT groupid FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq;";
+        $groups = $this->dbhr->preQuery($sql, [$id]);
+        #error_log("getMemberships $sql {$id} " . var_export($groups, TRUE));
+        $groupids = array_filter(array_column($groups, 'groupid'));
+        return $groupids;
+    }
+
     public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE, $pernickety = FALSE, $id = NULL)
     {
         $id = $id ? $id : $this->id;
