@@ -185,17 +185,21 @@ function session() {
                             foreach ($ret['groups'] as &$group) {
                                 foreach ($polys as $poly) {
                                     if ($poly['id'] == $group['id']) {
-                                        $g = new \geoPHP();
-                                        $p = $g->load($poly['bbox']);
-                                        $bbox = $p->getBBox();
-                                        $group['bbox'] = [
-                                            'swlat' => $bbox['miny'],
-                                            'swlng' => $bbox['minx'],
-                                            'nelat' => $bbox['maxy'],
-                                            'nelng' => $bbox['maxx'],
-                                        ];
+                                        try {
+                                            $g = new \geoPHP();
+                                            $p = $g->load($poly['bbox']);
+                                            $bbox = $p->getBBox();
+                                            $group['bbox'] = [
+                                                'swlat' => $bbox['miny'],
+                                                'swlng' => $bbox['minx'],
+                                                'nelat' => $bbox['maxy'],
+                                                'nelng' => $bbox['maxx'],
+                                            ];
 
-                                        $group['polygon'] = $poly['poly'];
+                                            $group['polygon'] = $poly['poly'];
+                                        } catch (Exception $e) {
+                                            error_log("Bad polygon data for {$group['id']}");
+                                        }
                                     }
                                 }
                             }
