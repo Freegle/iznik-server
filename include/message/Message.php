@@ -3651,6 +3651,41 @@ ORDER BY lastdate DESC;";
         $this->dbhm->preExec("DELETE FROM messages_attachments WHERE msgid = ?;", [ $this->id ]);
     }
 
+    public function searchActiveInGroups($string, $messagetype, $exactonly, $groupids) {
+        # Now find the messages in that area.  Need a high limit because we need to see them all, e.g. on a map.
+        $ctx = NULL;
+        $searched = $this->search($string, $ctx, 1000, NULL, $groupids, NULL, $exactonly);
+        $msgids = array_filter(array_column($searched, 'id'));
+
+        if (count($msgids)) {
+            # Find which of these messages are on a group, not deleted, have no outcome, are the
+            # right type.
+            $typeq = '';
+
+            if ($messagetype === Message::TYPE_OFFER) {
+                $typeq = " AND messages.type = 'Offer'";
+            } else if ($messagetype === Message::TYPE_WANTED) {
+                $typeq = " AND messages.type = 'Wanted'";
+            }
+
+            $sql = "SELECT messages.id, messages.lat, messages.lng, messages.type, groupid, messages_groups.arrival FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE messages.id IN (" . implode(',', $msgids) . ") AND messages.deleted IS NULL AND messages_outcomes.msgid IS NULL $typeq;";
+            $ret = $this->dbhr->preQuery($sql, [
+                $messagetype
+            ]);
+
+            # We need to return the info about why we matched.
+            foreach ($ret as &$r) {
+                foreach ($searched as $s) {
+                    if ($r['id'] == $s['id']) {
+                        $r['matchedon'] = $s['matchedon'];
+                    }
+                }
+            }
+        }
+
+        return $ret;
+    }
+
     public function searchActiveInBounds($string, $messagetype, $swlat, $swlng, $nelat, $nelng, $groupid = NULL, $exactonly = FALSE) {
         $ret = [];
 

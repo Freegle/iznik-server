@@ -18,6 +18,7 @@ function messages() {
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $grouptype = Utils::presdef('grouptype', $_REQUEST, NULL);
     $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $searchmygroups= array_key_exists('searchmygroups', $_REQUEST) ? filter_var($_REQUEST['searchmygroups'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $swlat = array_key_exists('swlat', $_REQUEST) ? floatval($_REQUEST['swlat']) : NULL;
     $swlng = array_key_exists('swlng', $_REQUEST) ? floatval($_REQUEST['swlng']) : NULL;
     $nelat = array_key_exists('nelat', $_REQUEST) ? floatval($_REQUEST['nelat']) : NULL;
@@ -137,6 +138,11 @@ function messages() {
                         } else if ($swlat !== NULL && $swlng !== NULL && $nelat !== NULL && $nelng !== NULL) {
                             $m = new Message($dbhr, $dbhm);
                             $msgs = $m->searchActiveInBounds($search, $messagetype, $swlat, $swlng, $nelat, $nelng, $groupid, $exactonly);
+                        } else if ($searchmygroups) {
+                            $mygroups = $groupid ? [ $groupid ] : $me->getMembershipGroupIds(FALSE, $grouptype, NULL);
+
+                            $m = new Message($dbhr, $dbhm);
+                            $msgs = $m->searchActiveInGroups($search, $messagetype, $exactonly, $mygroups);
                         } else {
                             # Search near location.
                             $m = new Message($dbhr, $dbhm);

@@ -490,6 +490,17 @@ class messagesTest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'search' => 'basic t',
             'subaction' => 'searchmess',
+            'groupids' => [ $this->group->getId() ]
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($id, $msgs[0]['id']);
+
+        $ret = $this->call('messages', 'GET', [
+            'search' => 'basic t',
+            'subaction' => 'searchmess',
             'swlng' => 179.11,
             'swlat' => 8.31,
             'nelng' => 179.3,
