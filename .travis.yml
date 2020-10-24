@@ -95,7 +95,7 @@ before_install:
   - mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'"
 
   # Install composer dependencies.
-  - travis_rety wget https://getcomposer.org/composer-1.phar
+  - travis_retry wget https://getcomposer.org/composer-1.phar
   - travis_retry php composer.phar install
   - cd ..
 
