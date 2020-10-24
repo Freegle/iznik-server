@@ -95,7 +95,7 @@ before_install:
   - mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'"
 
   # Install composer dependencies.
-  - travis_retry composer self-update
+  # - travis_retry composer self-update
   - cd composer
   - travis_retry composer install
   - cd ..
