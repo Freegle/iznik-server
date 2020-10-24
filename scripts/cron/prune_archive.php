@@ -19,7 +19,8 @@ $chattotal = 0;
 
 # Shuffle in case we bomb out partway through, then at least we'll have done something on each a lot of the time.
 $hosts = [CDN_HOST_1, CDN_HOST_2];
-foreach (shuffle($hosts) as $host) {
+
+foreach ($hosts as $host) {
     $connection = ssh2_connect($host, 22);
 
     if ($connection) {
@@ -79,5 +80,7 @@ foreach (shuffle($hosts) as $host) {
         }
     }
 }
+
+mail(GEEKS_ADDR, "CDN pruned $msgtotal ($msgdeleted), $chattotal ($chatdeleted)", "");
 
 Utils::unlockScript($lockh);
