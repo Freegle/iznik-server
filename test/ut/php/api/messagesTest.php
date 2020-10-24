@@ -705,7 +705,7 @@ class messagesTest extends IznikAPITestCase {
         assertEquals($id, $msgs[0]['id']);
     }
 
-//    public function testEH() {
+//    public function testEH()
 //        $u = new User($this->dbhr, $this->dbhm);
 //        $this->dbhr->errorLog = TRUE;
 //        $this->dbhm->errorLog = TRUE;

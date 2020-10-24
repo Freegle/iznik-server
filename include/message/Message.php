@@ -3668,9 +3668,9 @@ ORDER BY lastdate DESC;";
                 $typeq = " AND messages.type = 'Wanted'";
             }
 
-            $sql = "SELECT messages.id, messages.lat, messages.lng, messages.type, groupid, messages_groups.arrival FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE messages.id IN (" . implode(',', $msgids) . ") AND messages.deleted IS NULL AND messages_outcomes.msgid IS NULL $typeq;";
+            $sql = "SELECT messages.id, messages.lat, messages.lng, messages.type, groupid, messages_groups.arrival FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE messages.id IN (" . implode(',', $msgids) . ") AND messages.deleted IS NULL AND collection = ? AND messages_outcomes.msgid IS NULL $typeq;";
             $ret = $this->dbhr->preQuery($sql, [
-                $messagetype
+                MessageCollection::APPROVED
             ]);
 
             # We need to return the info about why we matched.
@@ -3717,9 +3717,9 @@ ORDER BY lastdate DESC;";
                     $typeq = " AND messages.type = 'Wanted'";
                 }
 
-                $sql = "SELECT messages.id, messages.lat, messages.lng, messages.type, groupid, messages_groups.arrival FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE messages.id IN (" . implode(',', $msgids) . ") AND $swlat <= lat AND $swlng <= lng AND $nelat >= lat AND $nelng >= lng AND messages.deleted IS NULL AND messages_outcomes.msgid IS NULL $typeq;";
+                $sql = "SELECT messages.id, messages.lat, messages.lng, messages.type, groupid, messages_groups.arrival FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE messages.id IN (" . implode(',', $msgids) . ") AND $swlat <= lat AND $swlng <= lng AND $nelat >= lat AND $nelng >= lng AND messages.deleted IS NULL AND messages_outcomes.msgid IS NULL AND collection = ? $typeq;";
                 $ret = $this->dbhr->preQuery($sql, [
-                    $messagetype
+                    MessageCollection::APPROVED
                 ]);
 
                 # We need to return the info about why we matched.
