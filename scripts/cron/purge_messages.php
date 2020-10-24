@@ -205,10 +205,8 @@ try {
     do {
         $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND htmlbody IS NOT NULL LIMIT 1000;";
         $msgs = $dbhr->query($sql);
-        error_log("Found " . count($msgs));
         $count = 0;
         foreach ($msgs as $msg) {
-            $count++;
             $sql = "UPDATE messages SET htmlbody = NULL WHERE id = {$msg['id']};";
 
             # Use dbhmold with no logging to get retrying.
@@ -229,7 +227,6 @@ try {
     do {
         $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND message IS NOT NULL AND LENGTH(message) > 0;";
         $msgs = $dbhr->query($sql);
-        error_log("Found " . count($msgs));
         foreach ($msgs as $msg) {
             $sql = "UPDATE messages SET message = NULL WHERE id = {$msg['id']};";
             $count = $dbhmold->exec($sql, NULL, FALSE);
@@ -238,7 +235,7 @@ try {
                 error_log("...$total");
             }
         }
-    } while (count($msgs) > 0);
+    } while ($count > 0);
 
     # Now purge messages which are stranded, not on any groups and not referenced from any chats or drafts.
     $start = date('Y-m-d', strtotime("midnight 2 days ago"));
@@ -250,7 +247,6 @@ try {
         $msgs = $dbhr->query($sql);
         $count = 0;
         foreach ($msgs as $msg) {
-            $count++;
             #error_log("...{$msg['id']}");
             $sql = "DELETE FROM messages WHERE id = {$msg['id']};";
             $count = $dbhmold->exec($sql, NULL, FALSE);
