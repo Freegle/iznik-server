@@ -96,7 +96,7 @@ before_install:
 
   # Install composer dependencies.
   - travis_retry wget https://getcomposer.org/composer-1.phar
-  - travis_retry php composer.phar install
+  - travis_retry php composer-1.phar install
   - cd ..
 
   # Set up the environment we need for running our UT.
