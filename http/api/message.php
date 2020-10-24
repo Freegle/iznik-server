@@ -438,10 +438,12 @@ function message() {
                                 $u = User::get($dbhr, $dbhm);
                                 $uid = $u->findByEmail($email);
 
+                                $ret = ['ret' => 5, 'status' => 'Failed to create user or email'];
+
                                 if (!$uid) {
                                     # We don't yet know this user.  Create them.
                                     $name = substr($email, 0, strpos($email, '@'));
-                                    $newuser = $u->create(NULL, NULL, $name, 'Created to allow post');
+                                    $newuser = $u->create(null, null, $name, 'Created to allow post');
 
                                     # Create a password and mail it to them.  Also log them in and return it.  This
                                     # avoids us having to ask the user for a password, though they can change it if
@@ -458,33 +460,37 @@ function message() {
                                         if ($uid2) {
                                             # That has happened.  Delete the user we created and use the other.
                                             $u->delete();
-                                            $newuser = NULL;
-                                            $pw = NULL;
-                                            $hitwindow = TRUE;
+                                            $newuser = null;
+                                            $pw = null;
+                                            $hitwindow = true;
 
                                             $u = User::get($dbhr, $dbhm, $uid2);
                                             $eid = $u->getIdForEmail($email)['id'];
 
                                             if ($u->getEmailPreferred() != $email) {
                                                 # The email specified is the one they currently want to use - make sure it's
-                                                $u->addEmail($email, 1, TRUE);
+                                                $u->addEmail($email, 1, true);
                                             }
                                         }
                                     } else {
                                         $u->login($pw);
                                         $u->welcome($email, $pw);
                                     }
+                                } else if ($me && $me->getId() != $uid) {
+                                    # We know the user, but it's not the one we're logged in as.  It's most likely
+                                    # that the user is just confused about multiple email addresses.  We will reject
+                                    # the message - the client is supposed to detect this case earlier on.
+                                    $ret = ['ret' => 6, 'status' => 'That email address is in use for a different user.'];
                                 } else {
                                     $u = User::get($dbhr, $dbhm, $uid);
                                     $eid = $u->getIdForEmail($email)['id'];
 
                                     if ($u->getEmailPreferred() != $email) {
                                         # The email specified is the one they currently want to use - make sure it's
+                                        # in there.
                                         $u->addEmail($email, 1, TRUE);
                                     }
                                 }
-
-                                $ret = ['ret' => 5, 'status' => 'Failed to create user or email'];
 
                                 if ($u->getId() && $eid) {
                                     # Now we have a user and an email.  We need to make sure they're a member of the
