@@ -705,6 +705,30 @@ class messagesTest extends IznikAPITestCase {
         assertEquals($id, $msgs[0]['id']);
     }
 
+    public function testUnprettyPoly() {
+        $ret = $this->call('messages', 'GET', [
+            'swlat' => 51.331168891035944,
+            'swlng' =>-0.2466740747070162,
+            'nelat' => 51.331168891035944,
+            'nelng' =>-0.11617000000001099,
+            'moodtools' => FALSE,
+            'subaction' => 'inbounds'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('messages', 'GET', [
+            'swlat' => 51.331168891035944,
+            'swlng' =>-0.2466740747070162,
+            'nelat' => 51.341168891035944,
+            'nelng' =>-0.2466740747070162,
+            'moodtools' => FALSE,
+            'subaction' => 'inbounds'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+    }
+
 //    public function testEH()
 //        $u = new User($this->dbhr, $this->dbhm);
 //        $this->dbhr->errorLog = TRUE;

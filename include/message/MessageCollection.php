@@ -485,6 +485,17 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
     }
 
     function getInBounds($swlat, $swlng, $nelat, $nelng, $groupid) {
+        # If we are passed coordinates which are a point, we get a DB error.  Ensure we don't.
+        if ($swlat == $nelat) {
+            $swlat -= 0.000001;
+            $nelat += 0.000001;
+        }
+
+        if ($swlng == $nelng) {
+            $swlng -= 0.000001;
+            $nelng += 0.000001;
+        }
+
         if ($groupid) {
             $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE groupid = $groupid ORDER BY messages_groups.arrival DESC, messages_spatial.msgid DESC;";
         } else {
