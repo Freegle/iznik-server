@@ -3314,7 +3314,27 @@ class User extends Entity
         $byuserid = $byuserid ? $byuserid : ($me ? $me->getId() : NULL);
 
         # Can only add comments for a group on which we're a mod, or if we are Support adding a global comment.
-        if ($me->isAdminOrSupport()) {
+        $rc = NULL;
+        $groups = $checkperms ? ($me ? $me->getModeratorships() : [0]) : [$groupid];
+        $added = FALSE;
+
+        foreach ($groups as $modgroupid) {
+            if ($groupid == $modgroupid) {
+                $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+                $this->dbhm->preExec($sql, [
+                    $this->id,
+                    $groupid,
+                    $byuserid,
+                    $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11
+                ]);
+
+                $rc = $this->dbhm->lastInsertId();
+
+                $added = TRUE;
+            }
+        }
+
+        if (!$added && $me->isAdminOrSupport()) {
             $rc = NULL;
             $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
             $this->dbhm->preExec($sql, [
@@ -3323,22 +3343,8 @@ class User extends Entity
                 $byuserid,
                 $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11
             ]);
+
             $rc = $this->dbhm->lastInsertId();
-        } else {
-            $rc = NULL;
-            $groups = $checkperms ? ($me ? $me->getModeratorships() : [0]) : [$groupid];
-            foreach ($groups as $modgroupid) {
-                if ($groupid == $modgroupid) {
-                    $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
-                    $this->dbhm->preExec($sql, [
-                        $this->id,
-                        $groupid,
-                        $byuserid,
-                        $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11
-                    ]);
-                    $rc = $this->dbhm->lastInsertId();
-                }
-            }
         }
 
         return ($rc);
