@@ -4803,8 +4803,9 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
     public function updateSpatialIndex() {
         $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
 
-        # Add/update messages which are recent.
-        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ?;";
+        # Add/update messages which are recent or have changed locations.
+        error_log("Add recent");
+        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_spatial ON messages_spatial.msgid = messages.id WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ? AND (messages_spatial.msgid IS NULL OR X(point) != messages.lng OR Y(point) != messages.lat);";
         $msgs = $this->dbhr->preQuery($sql, [
             $mysqltime,
             MessageCollection::APPROVED
@@ -4815,7 +4816,35 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
             $this->dbhm->preExec($sql);
         }
 
+        # Update any message outcomes.
+        error_log("Update outcomes");
+        $sql = "SELECT messages_spatial.id, messages_spatial.msgid, messages_spatial.successful, messages_outcomes.outcome FROM messages_spatial LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid ORDER BY messages_outcomes.timestamp DESC;";
+        $msgs = $this->dbhr->preQuery($sql);
+
+        foreach ($msgs as $msg) {
+            if ($msg['outcome'] == Message::OUTCOME_WITHDRAWN || $msg['outcome'] == Message::OUTCOME_EXPIRED) {
+                # Remove from the index.
+                error_log("{$msg['msgid']} expired or withdrawn, remove from index");
+                $this->dbhm->preExec("DELETE FROM messages_spatial WHERE id = ?;", [
+                    $msg['id']
+                ]);
+            } else if ($msg['outcome'] == Message::OUTCOME_TAKEN || $msg['outcome'] == Message::OUTCOME_RECEIVED) {
+                if (!$msg['successful']) {
+                    error_log("{$msg['msgid']} taken or received, update");
+                    $this->dbhm->preExec("UPDATE messages_spatial SET successful = 1 WHERE id = ?;", [
+                        $msg['id']
+                    ]);
+                }
+            } else if ($msg['successful']) {
+                error_log("{$msg['msgid']} no longer taken or received, update");
+                $this->dbhm->preExec("UPDATE messages_spatial SET successful = 0 WHERE id = ?;", [
+                    $msg['id']
+                ]);
+            }
+        }
+
         # Remove any messages which are deleted.
+        error_log("Remove deleted");
         $sql = "SELECT DISTINCT messages.id FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id AND messages.deleted IS NOT NULL";
         $msgs = $this->dbhr->preQuery($sql);
 
@@ -4826,6 +4855,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         }
 
         # Remove any messages which are now old.
+        error_log("Remove old");
         $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE messages_groups.arrival < ?;";
         $msgs = $this->dbhr->preQuery($sql, [
             $mysqltime

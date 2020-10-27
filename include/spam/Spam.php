@@ -812,7 +812,7 @@ class Spam {
             'subtype' => Log::SUBTYPE_SUSPECT,
             'byuser' => $me ? $me->getId() : NULL,
             'user' => $userid,
-            'text' => $text . ", held $heldby"
+            'text' => $text . ($heldby ? (", held $heldby") : '')
         ]);
 
         # Don't want to lose any existing reason, but update the user when removal is requested so that we

@@ -64,7 +64,7 @@ class Bounce
     public function process($id = NULL) {
         $ret = FALSE;
         $idq = $id ? " WHERE id = ? " : "";
-        $bounces = $this->dbhr->preQuery("SELECT * FROM bounces $idq;", $id ? [ $id ] : [] );
+        $bounces = $this->dbhr->preQuery("SELECT * FROM bounces $idq ORDER BY date ASC;", $id ? [ $id ] : [] );
 
         foreach ($bounces as $bounce) {
             if (preg_match('/^bounce-(.*)-/', $bounce['to'], $matches)) {
