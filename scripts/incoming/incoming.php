@@ -40,7 +40,10 @@ $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
 
 error_log("Email");
 $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
-$rc = $r->route();
+
+if ($id) {
+    $rc = $r->route();
+}
 
 fwrite($logh, "Route returned $rc\n");
 exit(0);
