@@ -626,6 +626,8 @@ class User extends Entity
 
     public function addEmail($email, $primary = 1, $changeprimary = TRUE)
     {
+        $email = trim($email);
+
         # Invalidate cache.
         $this->emails = NULL;
 
