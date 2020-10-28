@@ -405,6 +405,26 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(6, count($ret['newsfeed']['replies']));
 
+        # Unhide it - should fail, not support
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'Unhide'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Unhide - should work , support.
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $_SESSION['id'] = NULL;
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'Unhide',
+            'dup' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+
         # Report it
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,

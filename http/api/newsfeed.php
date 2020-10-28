@@ -140,6 +140,20 @@ function newsfeed() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+                } else if ($action == 'Unhide') {
+                    $ret = [
+                        'ret' => 2,
+                        'status' => 'Permission denied'
+                    ];
+
+                    if ($me->isAdminOrSupport()) {
+                        $n->unhide($id);
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
                 } else if ($action == 'Unfollow') {
                     $n->unfollow($myid, $id);
 

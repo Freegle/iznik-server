@@ -1108,6 +1108,13 @@ class Newsfeed extends Entity
         ]);
     }
 
+    public function unhide($newsfeedid) {
+        # Hide this post except to the author.
+        $rc = $this->dbhm->preExec("UPDATE newsfeed SET hidden = NULL, hiddenby = NULL WHERE id = ?;", [
+            $newsfeedid
+        ]);
+    }
+
     public function follow($userid, $newsfeedid) {
         $this->dbhm->preExec("DELETE FROM newsfeed_unfollow WHERE userid = ? AND newsfeedid = ?;", [
             $userid,
