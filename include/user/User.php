@@ -1519,6 +1519,13 @@ class User extends Entity
         $days90 = date("Y-m-d", strtotime("90 days ago"));
         $userq = "userid IN (" . implode(',', $uids) . ")";
 
+        foreach ($uids as $uid) {
+            $users[$uid]['info']['replies'] = 0;
+            $users[$uid]['info']['taken'] = 0;
+            $users[$uid]['info']['reneged'] = 0;
+            $users[$uid]['info']['collected'] = 0;
+        }
+
         // We can combine some queries into a single one.  This is better for performance because it saves on
         // the round trip (seriously, I've measured it, and it's worth doing).
         //
@@ -1541,17 +1548,12 @@ class User extends Entity
         ]);
 
         foreach ($users as $uid => $user) {
-            $users[$uid]['info']['replies'] = 0;
-            $users[$uid]['info']['taken'] = 0;
-            $users[$uid]['info']['reneged'] = 0;
-            $users[$uid]['info']['collected'] = 0;
-
             foreach ($counts as $count) {
                 if ($count['theuserid'] == $users[$uid]['id']) {
-                    $users[$uid]['info']['replies'] = $count['replycount'];
-                    $users[$uid]['info']['taken'] = $count['takencount'];
-                    $users[$uid]['info']['reneged'] = $count['reneged'];
-                    $users[$uid]['info']['collected'] = $count['collected'];
+                    $users[$uid]['info']['replies'] = $count['replycount'] ? $count['replycount'] : 0;
+                    $users[$uid]['info']['taken'] = $count['takencount'] ? $count['takencount'] : 0;
+                    $users[$uid]['info']['reneged'] = $count['reneged'] ? $count['reneged'] : 0;
+                    $users[$uid]['info']['collected'] = $count['collected'] ? $count['collected'] : 0;
 
                     if (Utils::pres('abouttime', $count)) {
                         $users[$uid]['info']['aboutme'] = [
@@ -2121,12 +2123,14 @@ class User extends Entity
         $sql = "SELECT COUNT(*) AS count, userid FROM `users_modmails` WHERE userid IN (" . implode(',', $userids) . ") AND groupid IN (" . implode(',', $modships) . ") GROUP BY userid;";
         $modmails = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
 
-        foreach ($rets as $userid => $ret) {
-            $ret['modmails'] = 0;
+        foreach ($userids as $userid) {
+            $rets[$userid]['modmails'] = 0;
+        }
 
+        foreach ($rets as $userid => $ret) {
             foreach ($modmails as $modmail) {
                 if ($modmail['userid'] == $ret['id']) {
-                    $rets[$userid]['modmails'] = $modmail['count'];
+                    $rets[$userid]['modmails'] = $modmail['count'] ? $modmail['count'] : 0;
                 }
             }
         }
