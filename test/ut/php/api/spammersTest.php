@@ -460,7 +460,19 @@ class spammersAPITest extends IznikAPITestCase {
         assertGreaterThan(0, count($ret['spammers']));
 
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
+    }
 
+    public function testPerf() {
+        $this->dbhr->errorLog = TRUE;
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('spammers', 'GET', [
+            'collection' => Spam::TYPE_PENDING_ADD,
+            'modtools' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
     }
 }
 

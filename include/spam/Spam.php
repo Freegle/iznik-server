@@ -573,10 +573,12 @@ class Spam {
         $context = [];
 
         $spammers = $this->dbhr->preQuery($sql);
-        $uids = array_filter(array_unique(array_merge(array_column($spammers, 'userid'), array_column($spammers, 'byuserid'))));
         $u = new User($this->dbhr, $this->dbhm);
-        $users = $u->getPublicsById($uids, NULL, TRUE, $seeall);
-        $emails = $u->getEmailsById($uids);
+        $users = $u->getPublicsById(array_filter(array_unique(array_column($spammers, 'userid'))), NULL, TRUE, $seeall);
+        $ctx = NULL;
+        $users2 = $u->getPublicsById(array_filter(array_unique(array_merge(array_column($spammers, 'byuserid'), array_column($spammers, 'heldby')))), NULL, FALSE, $seeall, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        $users = $users + $users2;
+        $emails = $u->getEmailsById(array_column($users, 'id'));
 
         foreach ($spammers as &$spammer) {
             $spammer['user'] = $users[$spammer['userid']];
@@ -605,7 +607,6 @@ class Spam {
             $spammer['user']['otheremails'] = $others;
 
             if ($spammer['byuserid']) {
-                $u = User::get($this->dbhr, $this->dbhm, $spammer['byuserid']);
                 $spammer['byuser'] = $users[$spammer['byuserid']];
 
                 if ($me->isModerator()) {
@@ -625,8 +626,7 @@ class Spam {
 
             if ($collection === Spam::TYPE_PENDING_ADD) {
                 if (Utils::pres('heldby', $spammer)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $spammer['heldby']);
-                    $spammer['user']['heldby'] = $u->getPublic();
+                    $spammer['user']['heldby'] = $users[$spammer['heldby']];
                     $spammer['user']['heldat'] = Utils::ISODate($spammer['heldat']);
                     unset($spammer['heldby']);
                     unset($spammer['heldat']);
