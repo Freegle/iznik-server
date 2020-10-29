@@ -1330,7 +1330,7 @@ WHERE chat_rooms.id IN $idlist;";
         $msgid = $ctx ? intval($ctx['msgid']) : 0;
         $groupq = $groupid ? " AND groupid = $groupid " : '';
 
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
 FROM chat_messages
 LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
 LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
@@ -1339,9 +1339,9 @@ INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_
 AND m1.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq)
 LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid
 AND m2.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq)
-INNER JOIN groups ON m1.groupid = groups.id AND groups.type = 'Freegle'
+INNER JOIN groups ON m1.groupid = groups.id AND groups.type = ?
 ORDER BY chat_messages.id, m1.added ASC;";
-        $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid, $msgid, $userid]);
+        $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid, $msgid, $userid, Group::GROUP_FREEGLE]);
         $ret = [];
 
         $ctx = $ctx ? $ctx : [];
@@ -1362,51 +1362,57 @@ ORDER BY chat_messages.id, m1.added ASC;";
         $userlist = $u->getPublicsById($uids, NULL, FALSE, FALSE, $ctx2, TRUE, FALSE, FAlSE, FALSE, FALSE);
 
         foreach ($msgs as $msg) {
-            # Return whether we're an active or not - client can filter.
-            $processed[$msg['id']] = TRUE;
+            # Return whether we're an active or not - client can filter.  However we could have two copies of the
+            # same message, which is visible on one group because we're an active mod, and another group because we're
+            # not.  We want to ensure that we return the active one so that the client pays attention to it.
+            $m1settings = json_decode($msg['m1settings']);
 
-            $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
-            $thisone = $m->getPublic(TRUE, $userlist);
+            if (!Utils::pres($msg['id'], $processed) || Utils::pres('active', $m1settings)) {
+                $processed[$msg['id']] = TRUE;
 
-            if (Utils::pres('heldby', $msg)) {
-                $u = User::get($this->dbhr, $this->dbhm, $msg['heldby']);
-                $thisone['held'] = [
-                    'id' => $u->getId(),
-                    'name' => $u->getName(),
-                    'timestamp' => Utils::ISODate($msg['timestamp']),
-                    'email' => $u->getEmailPreferred()
-                ];
+                $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
+                $thisone = $m->getPublic(TRUE, $userlist);
 
-                unset($thisone['heldby']);
+                if (Utils::pres('heldby', $msg)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $msg['heldby']);
+                    $thisone['held'] = [
+                        'id' => $u->getId(),
+                        'name' => $u->getName(),
+                        'timestamp' => Utils::ISODate($msg['timestamp']),
+                        'email' => $u->getEmailPreferred()
+                    ];
+
+                    unset($thisone['heldby']);
+                }
+
+                # To avoid fetching the users again, ask for a summary and then fill them in from our in-hand copy.
+                $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
+                $thisone['chatroom'] = $r->getPublic(NULL, NULL, TRUE);
+                $u1id = Utils::presdef('user1', $thisone['chatroom'], NULL);
+                $u2id = Utils::presdef('user2', $thisone['chatroom'], NULL);
+                $thisone['chatroom']['user1'] = $u1id ? $userlist[$u1id] : NULL;
+                $thisone['chatroom']['user2'] = $u2id ? $userlist[$u2id] : NULL;
+
+                $thisone['fromuser'] = $userlist[$msg['userid']];
+
+                $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
+                $thisone['touser'] = $userlist[$touserid];
+
+                $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
+                $thisone['group'] = $g->getPublic();
+
+                if ($msg['groupidfrom']) {
+                    $g = Group::get($this->dbhr, $this->dbhm, $msg['groupidfrom']);
+                    $thisone['groupfrom'] = $g->getPublic();
+                }
+
+                $thisone['date'] = Utils::ISODate($thisone['date']);
+                $thisone['msgid'] = $msg['msgid'];
+
+                $ctx['msgid'] = $msg['id'];
+
+                $ret[] = $thisone;
             }
-
-            # To avoid fetching the users again, ask for a summary and then fill them in from our in-hand copy.
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
-            $thisone['chatroom'] = $r->getPublic(NULL, NULL, TRUE);
-            $u1id = Utils::presdef('user1', $thisone['chatroom'], NULL);
-            $u2id = Utils::presdef('user2', $thisone['chatroom'], NULL);
-            $thisone['chatroom']['user1'] = $u1id ? $userlist[$u1id] : NULL;
-            $thisone['chatroom']['user2'] = $u2id ? $userlist[$u2id] : NULL;
-
-            $thisone['fromuser'] = $userlist[$msg['userid']];
-
-            $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
-            $thisone['touser'] = $userlist[$touserid];
-
-            $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
-            $thisone['group'] = $g->getPublic();
-
-            if ($msg['groupidfrom']) {
-                $g = Group::get($this->dbhr, $this->dbhm, $msg['groupidfrom']);
-                $thisone['groupfrom'] = $g->getPublic();
-            }
-
-            $thisone['date'] = Utils::ISODate($thisone['date']);
-            $thisone['msgid'] = $msg['msgid'];
-
-            $ctx['msgid'] = $msg['id'];
-
-            $ret[] = $thisone;
         }
 
         return ($ret);
