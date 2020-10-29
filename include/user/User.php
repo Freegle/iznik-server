@@ -3924,13 +3924,18 @@ class User extends Entity
 
             $thisone['logins'] = $u->getLogins($me && $me->isAdmin());
 
-            # Also return the chats for this user.  Need to pass MODTOOLS = FALSE so that we see the same chats
-            # the user would.
-            $r = new ChatRoom($this->dbhr, $this->dbhm);
-            $rooms = $r->listForUser(Session::modtools(), $user['userid'], [ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER], NULL, NULL, '01-09-2009');
+            # Also return the chats for this user.  Can't use ChatRooms::listForUser because that would exclude any
+            # chats on groups where we were no longer a member.
+            $rooms = array_filter(array_column($this->dbhr->preQuery("SELECT id FROM chat_rooms WHERE user1 = ? UNION SELECT id FROM chat_rooms WHERE chattype = ? AND user2 = ?;", [
+                $user['userid'],
+                ChatRoom::TYPE_USER2USER,
+                $user['userid'],
+            ]), 'id'));
+
             $thisone['chatrooms'] = [];
 
             if ($rooms) {
+                $r = new ChatRoom($this->dbhr, $this->dbhm);
                 $thisone['chatrooms'] = $r->fetchRooms($rooms, $user['userid'], FALSE);
             }
 

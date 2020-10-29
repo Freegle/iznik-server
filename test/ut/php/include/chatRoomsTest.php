@@ -1004,7 +1004,48 @@ class chatRoomsTest extends IznikTestCase {
         $_SESSION['id'] = $uid3;
         assertFalse($r->canSee($uid2, FALSE));
         assertTrue($r->canSee($uid3, TRUE));
+    }
 
+    public function testNotifyModMailEmailsTurnedOff() {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u->addMembership($this->groupid, User::ROLE_MEMBER);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        # Turn off mails to u1.
+        $u = new User($this->dbhr, $this->dbhm, $u1);
+        $u->setPrivate('onholidaytill', Utils::ISODate('@' . strtotime('tomorrow')));
+
+        $r = new ChatRoom($this->dbhm, $this->dbhm);
+        $rid = $r->createUser2Mod($u1, $this->groupid);
+        $this->log("Chat room $rid for $u1 <-> $u2");
+        assertNotNull($rid);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm2, $banned) = $m->create($rid, $u2, "Here's some help", ChatMessage::TYPE_MODMAIL, NULL, TRUE);
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, NULL))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        # Should send even though mails turned off.
+        $r->notifyByEmail($rid, ChatRoom::TYPE_USER2MOD);
+        assertEquals(1, count($this->msgsSent));
     }
 }
 
