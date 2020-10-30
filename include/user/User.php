@@ -2437,9 +2437,9 @@ class User extends Entity
         $uids = array_keys($rets);
         $startq = $ctx ? (" AND id < " . intval($ctx['id']) . " ") : '';
         $modships = $me ? $me->getModeratorships() : [];
-        $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND groupid IN (" . implode(',', $modships) . ")";
+        $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND groupid IN (" . implode(',', $modships) . ")";
         $modq = $modmailsonly ? $modmailq : '';
-        $sql = "SELECT DISTINCT * FROM logs WHERE (user IN (" . implode(',', $uids) . ") OR byuser IN (" . implode(',', $uids) . ")) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
+        $sql = "SELECT DISTINCT * FROM logs WHERE (user IN (" . implode(',', $uids) . ") OR byuser IN (" . implode(',', $uids) . ")) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) $modq ORDER BY id DESC LIMIT 50;";
         $logs = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
         $groups = [];
         $users = [];
@@ -5805,7 +5805,7 @@ class User extends Entity
         $mysqltime = date("Y-m-d H:i:s", strtotime("10 minutes ago"));
         $uidq = $uid ? " AND user = $uid " : '';
 
-        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND byuser != user $uidq;", [
+        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND byuser != user $uidq;", [
             $mysqltime
         ]);
 

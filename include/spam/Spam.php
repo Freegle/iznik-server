@@ -576,8 +576,8 @@ class Spam {
         $u = new User($this->dbhr, $this->dbhm);
         $users = $u->getPublicsById(array_filter(array_unique(array_column($spammers, 'userid'))), NULL, TRUE, $seeall);
         $ctx = NULL;
-        $users2 = $u->getPublicsById(array_filter(array_unique(array_merge(array_column($spammers, 'byuserid'), array_column($spammers, 'heldby')))), NULL, FALSE, $seeall, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-        $users = $users + $users2;
+        $users2 = $u->getPublicsById(array_filter(array_unique(array_merge(array_column($spammers, 'byuserid'), array_column($spammers, 'heldby')))), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        $users = array_replace($users, $users2);
         $emails = $u->getEmailsById(array_column($users, 'id'));
 
         foreach ($spammers as &$spammer) {
