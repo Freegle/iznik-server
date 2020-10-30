@@ -88,13 +88,13 @@ class userTest extends IznikTestCase {
         assertNotNull($u->getAboutMe());
 
         $users = [
-            [
+            $id => [
                 'id' => $id
             ]
         ];
 
         $u->getInfos($users);
-        assertEquals(0, $users[0]['info']['offers']);
+        assertEquals(0, $users[$id]['info']['offers']);
     }
 
     public function testLinkLogin() {
