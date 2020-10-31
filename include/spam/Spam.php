@@ -465,13 +465,16 @@ class Spam {
             $suspect = TRUE;
             $reason = "Seen on many groups";
         } else {
-            # Check if they've replied to multiple posts across a wide area recently
+            # Check if they've replied to multiple posts across a wide area recently.  Ignore any messages outside
+            # a bounding box for the UK, because then it's those messages that are suspicious, and this member the
+            # poor sucker who they are trying to scam.
             $since = date('Y-m-d', strtotime("midnight 90 days ago"));
             $dists = $this->dbhm->preQuery("SELECT DISTINCT MAX(messages.lat) AS maxlat, MIN(messages.lat) AS minlat, MAX(messages.lng) AS maxlng, MIN(messages.lng) AS minlng, groups.settings FROM chat_messages 
     INNER JOIN messages ON messages.id = chat_messages.refmsgid 
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     INNER JOIN groups ON groups.id = messages_groups.groupid
-    WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL;", [
+    WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND
+     message.lng >= -7.57216793459 AND message.lat >= 49.959999905 AND message.lng <= 1.68153079591 AND message.lat <= 58.6350001085;", [
                 $userid,
                 $since,
                 ChatMessage::TYPE_INTERESTED
