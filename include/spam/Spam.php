@@ -474,7 +474,7 @@ class Spam {
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     INNER JOIN groups ON groups.id = messages_groups.groupid
     WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND
-     message.lng >= -7.57216793459 AND message.lat >= 49.959999905 AND message.lng <= 1.68153079591 AND message.lat <= 58.6350001085;", [
+     messages.lng >= -7.57216793459 AND messages.lat >= 49.959999905 AND messages.lng <= 1.68153079591 AND messages.lat <= 58.6350001085;", [
                 $userid,
                 $since,
                 ChatMessage::TYPE_INTERESTED
