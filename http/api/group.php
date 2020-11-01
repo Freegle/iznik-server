@@ -56,7 +56,9 @@ function group() {
                         $ret['context'] = $ctx;
                     }
 
-                    if ($me && $me->isModerator()) {
+                    $partner = Utils::pres('partner', $_SESSION);
+
+                    if ($me && $me->isModerator() || $partner) {
                         # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
                         # in here - but it's of no interest to members so there's no point delaying them by
                         # fetching it.
