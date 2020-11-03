@@ -4035,14 +4035,18 @@ ORDER BY lastdate DESC;";
             $intcomment
         ]);
 
+        if ($userid) {
+            # Record that this item was taken/received by this user.
+            $this->dbhm->preExec("INSERT INTO messages_by (msgid, userid) VALUES (?, ?);", [
+                $this->id,
+                $userid
+            ]);
+        }
+
         # You might think that if we are passed a $userid then we could log a renege for any other users to whom
         # this was promised - but we can promise to multiple users, whereas we can only mark a single user in the
         # TAKEN (which is probably a bug).  And if we are withdrawing it, then we don't really know why - it could
         # be that we changed our minds, which isn't the fault of the person we promised it to.
-
-        # This message may be on one or more Yahoo groups; if so we need to send a TAKEN.
-        $subj = $this->reverseSubject();
-        $u = User::get($this->dbhr, $this->dbhm, $this->fromuser);
 
         $groups = $this->getGroups();
 
