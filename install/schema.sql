@@ -1750,6 +1750,8 @@ CREATE TABLE `messages` (
   `locationid` bigint(20) unsigned DEFAULT NULL,
   `editedby` bigint(20) unsigned DEFAULT NULL,
   `editedat` timestamp NULL DEFAULT NULL,
+  `availableinitially` int(11) NOT NULL DEFAULT '1',
+  `availablenow` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `message-id` (`messageid`) KEY_BLOCK_SIZE=16,
   KEY `envelopefrom` (`envelopefrom`),
