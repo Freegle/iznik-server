@@ -1047,7 +1047,7 @@ class Message
                 $maxagetoshow = $g->getSetting('maxagetoshow', Message::EXPIRE_TIME);
                 $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
                 $repost = $msg['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-                $maxreposts = $repost * $reposts['max'];
+                $maxreposts = $repost * ($reposts['max'] + 1);
                 $rets[$msg['id']]['expiretime'] = max($maxreposts, $maxagetoshow);
 
                 if (array_key_exists('canedit', $rets[$msg['id']]) && !$rets[$msg['id']]['canedit'] && $myid && $myid === $msg['fromuser']) {
@@ -1380,9 +1380,11 @@ ORDER BY lastdate DESC;";
 
                     if ($grouparrivalago > Utils::presdef('expiretime', $rets[$msg['id']], 0)) {
                         # Assume anything this old is no longer available.
+                        $expiredat = Utils::ISODate('@' . (strtotime($group['arrival']) + $rets[$msg['id']]['expiretime'] * 86400));
+
                         $rets[$msg['id']]['outcomes'] = [
                             [
-                                'timestamp' => $group['arrival'],
+                                'timestamp' => $expiredat,
                                 'outcome' => Message::OUTCOME_EXPIRED
                             ]
                         ];

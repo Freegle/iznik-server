@@ -40,7 +40,11 @@ class Nearby
                 $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                 $name = $u->getName();
 
-                if ($lid && !$m->hasOutcome() && !$u->getPrivate('deleted') && !$m->getPrivate('deleted')) {
+                # Can't use hasOutcome() here because the message might have expired, and we don't want to mail
+                # people about expired messages.
+                $atts = $m->getPublic(FALSE, FALSE);
+
+                if ($lid && !count($atts['outcomes']) && !$u->getPrivate('deleted') && !$m->getPrivate('deleted')) {
                     $l = new Location($this->dbhr, $this->dbhm, $lid);
                     $lat = $l->getPrivate('lat');
                     $lng = $l->getPrivate('lng');
