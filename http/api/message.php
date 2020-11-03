@@ -266,12 +266,22 @@ function message() {
                     $textbody = Utils::presdef('textbody', $_REQUEST, NULL);
                     $htmlbody = Utils::presdef('htmlbody', $_REQUEST, NULL);
                     $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
+                    $availableinitially = array_key_exists('availableinitially', $_REQUEST) ? intval($_REQUEST['availableinitially']) : NULL;
+                    $availablenow = array_key_exists('availablenow', $_REQUEST) ? intval($_REQUEST['availablenow']) : NULL;
                     $attachments = array_key_exists('attachments', $_REQUEST) ? $_REQUEST['attachments'] : NULL;
 
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+
+                    if ($availablenow !== NULL) {
+                        $m->setPrivate('availablenow', $availablenow);
+                    }
+
+                    if ($availableinitially !== NULL) {
+                        $m->setPrivate('availableinitially', $availableinitially);
+                    }
 
                     if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
                         $partner = Utils::pres('partner', $_SESSION);
@@ -283,9 +293,18 @@ function message() {
                             $m->saveAttachments($id);
                         }
 
-                        $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location, $attachments, TRUE, ($partner || $me->isApprovedMember($groupid)) ? $groupid : NULL);
+                        $rc = $m->edit($subject, 
+                          $textbody, 
+                          $htmlbody, 
+                          $msgtype, 
+                          $item, 
+                          $location, 
+                          $attachments, 
+                         TRUE, 
+                         ($partner || $me->isApprovedMember($groupid)) ? $groupid : NULL);
+                        
                         $ret = $rc ? $ret : ['ret' => 2, 'status' => 'Edit failed'];
-
+                        
                         if ($rc) {
                             $ret = [
                                 'ret' => 0,

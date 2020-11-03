@@ -1266,6 +1266,21 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Test the available numbers.
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'availableinitially' => 10,
+            'availablenow' => 9,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+
+        assertEquals(10, $ret['message']['availableinitially']);
+        assertEquals(9, $ret['message']['availablenow']);
+
         # Now back as the mod and check the edit history.
         assertTrue($mod->login('testpw'));
         $ret = $this->call('message', 'GET', [
