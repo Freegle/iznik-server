@@ -4028,7 +4028,7 @@ ORDER BY lastdate DESC;";
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $intcomment = $this->interestingComment($comment);
 
-        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
+        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this->id ]);
         $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
             $this->id,
             $outcome,
@@ -4037,7 +4037,7 @@ ORDER BY lastdate DESC;";
             $intcomment
         ]);
 
-        if ($userid) {
+        if (($outcome == Message::OUTCOME_TAKEN || $outcome == Message::OUTCOME_RECEIVED) && $userid) {
             # Record that this item was taken/received by this user.
             $this->dbhm->preExec("INSERT INTO messages_by (msgid, userid) VALUES (?, ?);", [
                 $this->id,
