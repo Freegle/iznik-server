@@ -4872,5 +4872,19 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                 $msg['id']
             ]);
         }
+
+        # Remove any messages which are no longer in Approved.  This can happen (e.g. for edits).
+        error_log("Remove no longer approved");
+        $sql = "SELECT DISTINCT messages_spatial.id, messages_spatial.msgid FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE collection != ?;";
+        $msgs = $this->dbhr->preQuery($sql, [
+            MessageCollection::APPROVED
+        ]);
+
+        foreach ($msgs as $msg) {
+            error_log("{$msg['msgid']} no longer approved, remove from index");
+            $this->dbhm->preExec("DELETE FROM messages_spatial WHERE id = ?;", [
+                $msg['id']
+            ]);
+        }
     }
 }
