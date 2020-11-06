@@ -524,12 +524,15 @@ class Newsfeed extends Entity
             # We might have pinned some posts in a previous call.  Don't show them again.
             $pinq = '';
 
+            $pinned = [];
+
             if (Utils::pres('pinned', $ctx)) {
                 $pinq = " AND newsfeed.id NOT IN (";
                 $sep = '';
 
                 foreach (explode(',', $ctx['pinned']) as $id) {
                     $pinq .= $sep . intval($id);
+                    $pinned[] = intval($id);
                     $sep = ', ';
                 }
 
@@ -612,6 +615,10 @@ class Newsfeed extends Entity
                     $bottomitems[] = $entry;
                 }
 
+                if ($entry['pinned']) {
+                    $pinned[] = $entry['id'];
+                }
+
                 $ctx = [
                     'timestamp' => Utils::ISODate($entry['timestamp']),
                     'distance' => $dist
@@ -620,7 +627,7 @@ class Newsfeed extends Entity
                 $last = $entry;
             }
 
-            $ctx['pinned'] = implode(',', array_column($topitems, 'id'));
+            $ctx['pinned'] = implode(',', $pinned);
         }
 
         return([$users, array_merge($topitems, $bottomitems)]);
