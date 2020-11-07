@@ -1652,7 +1652,10 @@ class User extends Entity
         $replies = $this->dbhr->preQuery("SELECT 
 (SELECT COUNT(DISTINCT refmsgid) FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND type = ?) AS replycount, 
 (SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?) AS reneged,
-(SELECT COUNT(DISTINCT msgid)) AS count FROM messages_by INNER JOIN messages ON messages.id = messages_by.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? WHERE chat_messages.userid = ? AND messages_by.userid = ? AND messages_by.userid != messages.fromuser AND messages.arrival >= '$days90') AS collected,
+(SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_by 
+    INNER JOIN messages ON messages.id = messages_by.msgid 
+    INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? 
+    WHERE chat_messages.userid = ? AND messages_by.userid = ? AND messages_by.userid != messages.fromuser AND messages.arrival >= '$days90') AS collected,
 (SELECT CONCAT(timestamp, ',', text) FROM users_aboutme WHERE userid = ? ORDER BY timestamp DESC LIMIT 1) AS abouttext
 ;", [
             $this->id,
