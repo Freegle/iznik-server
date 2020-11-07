@@ -3468,10 +3468,9 @@ ORDER BY lastdate DESC;";
                         $outcome = $this->type == Message::TYPE_TAKEN ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                     }
 
-                    $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
+                    $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
                         $matchmsg['id'],
                         $outcome,
-                        NULL,
                         NULL,
                         $this->interestingComment($this->stripQuoted($this->getTextbody()))
                     ]);
@@ -4030,11 +4029,10 @@ ORDER BY lastdate DESC;";
         $intcomment = $this->interestingComment($comment);
 
         $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this->id ]);
-        $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
+        $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
             $this->id,
             $outcome,
             $happiness,
-            $userid,
             $intcomment
         ]);
 
