@@ -1530,7 +1530,7 @@ class User extends Entity
         // the round trip (seriously, I've measured it, and it's worth doing).
         //
         // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
-        $counts = $this->dbhr->preQuery("SELECT t0.id AS theuserid, t1.*, t2.*, t3.*, t4.*, t5.* FROM
+        $counts = $this->dbhr->preQuery("SELECT t0.id AS theuserid, t1.*, t3.*, t4.*, t5.* FROM
 (SELECT id FROM users WHERE id in (" . implode(',', $uids) . ")) t0 LEFT JOIN                                                                
 (SELECT COUNT(DISTINCT refmsgid) AS replycount, userid FROM chat_messages WHERE $userq AND date > ? AND refmsgid IS NOT NULL AND type = ?) t1 ON t1.userid = t0.id LEFT JOIN 
 (SELECT COUNT(DISTINCT(msgid)) AS reneged, userid FROM messages_reneged WHERE $userq AND timestamp > ?) t3 ON t3.userid = t0.id LEFT JOIN
@@ -1540,7 +1540,8 @@ class User extends Entity
             $start,
             ChatMessage::TYPE_INTERESTED,
             $start,
-            Message::TYPE_OFFER
+            Message::TYPE_OFFER,
+            ChatMessage::TYPE_INTERESTED
         ]);
 
         foreach ($users as $uid => $user) {
