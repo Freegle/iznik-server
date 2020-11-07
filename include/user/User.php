@@ -1533,25 +1533,20 @@ class User extends Entity
         $counts = $this->dbhr->preQuery("SELECT t0.id AS theuserid, t1.*, t2.*, t3.*, t4.*, t5.* FROM
 (SELECT id FROM users WHERE id in (" . implode(',', $uids) . ")) t0 LEFT JOIN                                                                
 (SELECT COUNT(DISTINCT refmsgid) AS replycount, userid FROM chat_messages WHERE $userq AND date > ? AND refmsgid IS NOT NULL AND type = ?) t1 ON t1.userid = t0.id LEFT JOIN 
-(SELECT COUNT(*) AS takencount, userid FROM messages_outcomes WHERE $userq AND timestamp > ? AND outcome = ?) t2 ON t1.userid = t0.id LEFT JOIN
 (SELECT COUNT(DISTINCT(msgid)) AS reneged, userid FROM messages_reneged WHERE $userq AND timestamp > ?) t3 ON t3.userid = t0.id LEFT JOIN
-(SELECT COUNT(DISTINCT msgid) AS collected, messages_outcomes.userid FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.$userq AND messages_outcomes.$userq AND messages_outcomes.userid != messages.fromuser AND messages.arrival >= '$days90') t4 ON t4.userid = t0.id LEFT JOIN
+(SELECT COUNT(DISTINCT msgid) AS collected, messages_by.userid FROM messages_by INNER JOIN messages ON messages.id = messages_by.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? WHERE chat_messages.$userq AND messages_by.$userq AND messages_by.userid != messages.fromuser AND messages.arrival >= '$days90') t4 ON t4.userid = t0.id LEFT JOIN
 (SELECT timestamp AS abouttime, text AS abouttext, userid FROM users_aboutme WHERE $userq ORDER BY timestamp DESC LIMIT 1) t5 ON t5.userid = t0.id
 ;", [
             $start,
             ChatMessage::TYPE_INTERESTED,
             $start,
-            Message::OUTCOME_TAKEN,
-            $start,
-            ChatMessage::TYPE_INTERESTED,
-            Message::OUTCOME_TAKEN
+            Message::TYPE_OFFER
         ]);
 
         foreach ($users as $uid => $user) {
             foreach ($counts as $count) {
                 if ($count['theuserid'] == $users[$uid]['id']) {
                     $users[$uid]['info']['replies'] = $count['replycount'] ? $count['replycount'] : 0;
-                    $users[$uid]['info']['taken'] = $count['takencount'] ? $count['takencount'] : 0;
                     $users[$uid]['info']['reneged'] = $count['reneged'] ? $count['reneged'] : 0;
                     $users[$uid]['info']['collected'] = $count['collected'] ? $count['collected'] : 0;
 
@@ -1655,9 +1650,8 @@ class User extends Entity
         // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
         $replies = $this->dbhr->preQuery("SELECT 
 (SELECT COUNT(DISTINCT refmsgid) FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND type = ?) AS replycount, 
-(SELECT COUNT(*) AS count FROM messages_outcomes WHERE userid = ? AND timestamp > ? AND outcome = ?) AS takencount,
 (SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?) AS reneged,
-(SELECT COUNT(DISTINCT msgid) AS count FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.userid = ? AND messages_outcomes.userid = ? AND messages_outcomes.userid != messages.fromuser AND messages.arrival >= '$days90') AS collected,
+(SELECT COUNT(DISTINCT msgid)) AS count FROM messages_by INNER JOIN messages ON messages.id = messages_by.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? WHERE chat_messages.userid = ? AND messages_by.userid = ? AND messages_by.userid != messages.fromuser AND messages.arrival >= '$days90') AS collected,
 (SELECT CONCAT(timestamp, ',', text) FROM users_aboutme WHERE userid = ? ORDER BY timestamp DESC LIMIT 1) AS abouttext
 ;", [
             $this->id,
@@ -1665,18 +1659,14 @@ class User extends Entity
             ChatMessage::TYPE_INTERESTED,
             $this->id,
             $start,
-            Message::OUTCOME_TAKEN,
-            $this->id,
-            $start,
             ChatMessage::TYPE_INTERESTED,
-            Message::OUTCOME_TAKEN,
+            Message::TYPE_OFFER,
             $this->id,
             $this->id,
             $this->id
         ]);
 
         $ret['replies'] = $replies[0]['replycount'];
-        $ret['taken'] = $replies[0]['takencount'];
         $ret['reneged'] = $replies[0]['reneged'];
         $ret['collected'] = $replies[0]['collected'];
 

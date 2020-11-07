@@ -24,6 +24,7 @@ class Message
     const OUTCOME_WITHDRAWN = 'Withdrawn';
     const OUTCOME_REPOST = 'Repost';
     const OUTCOME_EXPIRED = 'Expired';
+    const OUTCOME_PARTIAL = 'Partial';
 
     const LIKE_LOVE = 'Love';
     const LIKE_LAUGH = 'Laugh';
@@ -4053,24 +4054,26 @@ ORDER BY lastdate DESC;";
         $groups = $this->getGroups();
 
         foreach ($groups as $groupid) {
-            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-
             # We might be a mod marking on a member's behalf, so might need to set byuser.
             $this->log->log([
-                'type' => Log::TYPE_MESSAGE,
-                'subtype' => Log::SUBTYPE_OUTCOME,
-                'msgid' => $this->id,
-                'user' => $this->getFromuser(),
-                'byuser' => ($me && $me->getId()) != $this->getFromuser() ? $this->getFromuser() : NULL,
-                'groupid' => $groupid,
-                'text' => "$outcome $intcomment"
-            ]);
+                                'type' => Log::TYPE_MESSAGE,
+                                'subtype' => Log::SUBTYPE_OUTCOME,
+                                'msgid' => $this->id,
+                                'user' => $this->getFromuser(),
+                                'byuser' => ($me && $me->getId()) != $this->getFromuser() ? $this->getFromuser() : NULL,
+                                'groupid' => $groupid,
+                                'text' => "$outcome $intcomment"
+                            ]);
         }
 
-        # Let anyone who was interested, and who didn't get it, know.
-        $userq = $userid ? " AND user1 != $userid AND user2 != $userid " : "";
-        $sql = "SELECT DISTINCT t.* FROM (SELECT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? WHERE refmsgid = ? AND reviewrejected = 0 $userq GROUP BY userid, chatid) t;";
-        $replies = $this->dbhr->preQuery($sql, [ ChatRoom::TYPE_USER2USER, $this->id ]);
+        # Let anyone who was interested (replied referencing the message), and who didn't get it (not now in
+        # messages_by), know that it is no longer available.
+        $sql = "SELECT DISTINCT chatid FROM chat_messages 
+INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? 
+LEFT JOIN messages_by ON messages_by.msgid = chat_messages.refmsgid AND messages_by.userid IN (chat_rooms.user1, chat_rooms.user2) 
+WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND messages_by.id IS NULL;";
+        $replies = $this->dbhr->preQuery($sql, [ ChatRoom::TYPE_USER2USER, $this->id, ChatMessage::TYPE_INTERESTED ]);
+
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
         foreach ($replies as $reply) {

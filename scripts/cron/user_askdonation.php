@@ -39,9 +39,9 @@ foreach ($users as $user) {
         # Find the most recent message they have taken.  Only look for relatively recent messages, in case someone
         # marks an item as TAKEN much later when they next come to use the system.
         $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
-        $messages = $dbhr->preQuery("SELECT DISTINCT msgid, messages.date, subject FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.userid = ? AND messages_outcomes.userid = ? AND messages_outcomes.userid != messages.fromuser AND messages.arrival >= '$mysqltime' ORDER BY messages_outcomes.timestamp DESC LIMIT 1;", [
+        $messages = $dbhr->preQuery("SELECT DISTINCT msgid, messages.date, subject FROM messages_by INNER JOIN messages ON messages.id = messages_by.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE messages.type = ? AND chat_messages.userid = ? AND messages_by.userid = ? AND messages_by.userid != messages.fromuser AND messages.arrival >= '$mysqltime' ORDER BY messages_by.timestamp DESC LIMIT 1;", [
             ChatMessage::TYPE_INTERESTED,
-            Message::OUTCOME_TAKEN,
+            Message::TYPE_OFFER,
             $user['userid'],
             $user['userid']
         ]);

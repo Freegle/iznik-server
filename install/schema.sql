@@ -2077,7 +2077,6 @@ CREATE TABLE `messages_outcomes` (
   `msgid` bigint(20) unsigned NOT NULL,
   `outcome` enum('Taken','Received','Withdrawn','Repost') COLLATE utf8mb4_unicode_ci NOT NULL,
   `happiness` enum('Happy','Fine','Unhappy') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `userid` bigint(20) unsigned DEFAULT NULL,
   `comments` text COLLATE utf8mb4_unicode_ci,
   `reviewed` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
