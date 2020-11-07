@@ -241,7 +241,7 @@ class Story extends Entity
         error_log("Found " . count($users) . " possible users");
 
         foreach ($users as $user) {
-            $outcomes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes WHERE userid = ? AND outcome IN ('Taken', 'Received');", [ $user['fromuser'] ]);
+            $outcomes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_by WHERE userid = ?;", [ $user['fromuser'] ]);
             $outcomecount = $outcomes[0]['count'];
             $offers = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND type = 'Offer';", [ $user['fromuser'] ]);
             $offercount = $offers[0]['count'];
