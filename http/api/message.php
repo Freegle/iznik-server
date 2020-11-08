@@ -179,6 +179,7 @@ function message() {
                                 # - a groupid (optional)
                                 # - a type
                                 # - an item
+                                # - a number available
                                 # - a subject constructed from the type, item and location.
                                 # - a fromuser if known (we might not have logged in yet)
                                 # - a textbody
@@ -211,6 +212,11 @@ function message() {
                                 $m->setPrivate('fromuser', $fromuser);
                                 $m->setPrivate('textbody', $textbody);
                                 $m->setPrivate('fromip', Utils::presdef('REMOTE_ADDR', $_SERVER, NULL));
+
+                                $availablenow = array_key_exists('availablenow', $_REQUEST) ? intval($_REQUEST['availablenow']) : 1;
+                                $m->setPrivate('availableinitially', $availablenow);
+                                $m->setPrivate('availablenow', $availablenow);
+
                                 $m->replaceAttachments($attachments);
 
                                 $ret = [
