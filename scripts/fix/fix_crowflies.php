@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $token = '5b3ce3597851110001cf624863de9aed08394c60b6c5de3dfc91e089';
-$pairs = $dbhr->preQuery("SELECT * FROM visualise ORDeR BY timestamp DESC LIMIT 500;");
+$pairs = $dbhr->preQuery("SELECT * FROM visualise ORDER BY RAND() LIMIT 500;");
 
 foreach ($pairs as $pair) {
     do {
