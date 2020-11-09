@@ -1165,6 +1165,9 @@ class messageAPITest extends IznikAPITestCase
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
+        $u1id = $u->create('Test','User', 'Test User');
+        $u2id = $u->create('Test','User', 'Test User');
+
         $memberid = $u->create('Test','User', 'Test User');
         $member = User::get($this->dbhr, $this->dbhm, $memberid);
         assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -1281,11 +1284,92 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(10, $ret['message']['availableinitially']);
         assertEquals(9, $ret['message']['availablenow']);
 
+        # Now test the taken/received by function.  Restore the counts.
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'availableinitially' => 10,
+            'availablenow' => 10,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'AddBy',
+            'userid' => $u1id,
+            'count' => 4,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+
+        assertEquals(10, $ret['message']['availableinitially']);
+        assertEquals(6, $ret['message']['availablenow']);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'AddBy',
+            'userid' => $u2id,
+            'count' => 7,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+
+        assertEquals(10, $ret['message']['availableinitially']);
+        assertEquals(0, Utils::presdef('availablenow', $ret['message'], 0));
+
         # Now back as the mod and check the edit history.
         assertTrue($mod->login('testpw'));
         $ret = $this->call('message', 'GET', [
             'id' => $mid
         ]);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'RemoveBy',
+            'userid' => $u2id
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+
+        assertEquals(10, $ret['message']['availableinitially']);
+        assertEquals(6, $ret['message']['availablenow']);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'AddBy',
+            'userid' => $u1id,
+            'count' => 7,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+
+        assertEquals(10, $ret['message']['availableinitially']);
+        assertEquals(3, $ret['message']['availablenow']);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'RemoveBy',
+            'userid' => $u1id
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid
+        ]);
+
+        assertEquals(10, $ret['message']['availableinitially']);
+        assertEquals(10, $ret['message']['availablenow']);
 
         # Check edit history.  Edit should show as needing approval.
         assertEquals(1, count($ret['message']['edits']));

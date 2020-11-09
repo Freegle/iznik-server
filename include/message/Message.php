@@ -4888,4 +4888,66 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
             ]);
         }
     }
+
+    public function addBy($userid, $count) {
+        # Need a transaction.  We maintain the values in messages and messages_by in parallel; that's riskier, but
+        # we need fast access to the message values, and that's what transactions are for.
+        $this->dbhm->beginTransaction();
+
+        # We might be replacing an old value, in which case we should restore the number available to the message.
+        $existing = $this->dbhm->preQuery("SELECT * FROM messages_by WHERE msgid = ? AND userid = ?;", [
+            $this->id,
+            $userid
+        ]);
+
+        foreach ($existing as $e) {
+            $this->dbhm->preExec("UPDATE messages SET availablenow = LEAST(availableinitially, availablenow + ?) WHERE id = ?;", [
+                $e['count'],
+                $this->id
+            ]);
+        }
+
+        # We need to find the current available, as we can't exceed that.
+        $current = $this->dbhm->preQuery("SELECT availablenow FROM messages WHERE id = ?;", [
+            $this->id
+        ]);
+
+        $this->dbhm->preExec("REPLACE INTO messages_by (userid, msgid, count) VALUES (?, ?, ?);", [
+            $userid,
+            $this->id,
+            min($count, $current[0]['availablenow'])
+        ]);
+
+        // Update the count in the message.
+        $this->dbhm->preExec("UPDATE messages SET availablenow = LAST_INSERT_ID(GREATEST(availablenow - ?, 0)) WHERE id = ?;", [
+            $count,
+            $this->id
+        ]);
+
+        $this->dbhm->commit();
+    }
+
+    public function removeBy($userid) {
+        $this->dbhm->beginTransaction();
+
+        # We might be replacing an old value, in which case we should restore the number available to the message.
+        $existing = $this->dbhm->preQuery("SELECT * FROM messages_by WHERE msgid = ? AND userid = ?;", [
+            $this->id,
+            $userid
+        ]);
+
+        foreach ($existing as $e) {
+            $this->dbhm->preExec("UPDATE messages SET availablenow = LEAST(availableinitially, availablenow + ?) WHERE id = ?;", [
+                $e['count'],
+                $this->id
+            ]);
+        }
+
+        $this->dbhm->preExec("DELETE FROM messages_by WHERE msgid = ? AND userid = ?;", [
+            $this->id,
+            $userid
+        ]);
+
+        $this->dbhm->commit();
+    }
 }
