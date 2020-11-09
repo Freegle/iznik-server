@@ -468,7 +468,7 @@ class Message
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
-        $s, $editedby, $editedat, $modmail, $FOP, $publishconsent, $isdraft, $itemid, $itemname;
+        $s, $editedby, $editedat, $modmail, $FOP, $publishconsent, $isdraft, $itemid, $itemname, $availableinitially, $availablenow;
 
     # These are used in the summary case only where a minimal message is constructed from MessageCollaction.
 
@@ -4037,10 +4037,11 @@ ORDER BY lastdate DESC;";
         ]);
 
         if (($outcome == Message::OUTCOME_TAKEN || $outcome == Message::OUTCOME_RECEIVED) && $userid) {
-            # Record that this item was taken/received by this user.
-            $this->dbhm->preExec("INSERT INTO messages_by (msgid, userid) VALUES (?, ?);", [
+            # Record that this item was taken/received by this user.  Assume they took any remaining (usually 1).
+            $this->dbhm->preExec("INSERT INTO messages_by (msgid, userid, count) VALUES (?, ?, ?);", [
                 $this->id,
-                $userid
+                $userid,
+                $this->availablenow
             ]);
         }
 
