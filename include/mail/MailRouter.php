@@ -744,6 +744,7 @@ class MailRouter
                                         # We don't want to email the recipient - no point pestering them with more
                                         # emails for items which are completed or promised.  They can see them on the
                                         # site if they want.
+                                        if ($log) { error_log("Don't mail as promised to someone else $mid"); }
                                         $r->mailedLastForUser($m->getFromuser());
                                     }
 
@@ -885,6 +886,7 @@ class MailRouter
                                         # We don't want to email the recipient - no point pestering them with more
                                         # emails for items which are completed or promised.  They can see them on the
                                         # site if they want.
+                                        if ($log) { error_log("Don't mail as promised to someone else $mid"); }
                                         $r->mailedLastForUser($m->getFromuser());
                                     }
                                 }
