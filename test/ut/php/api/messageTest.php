@@ -1839,7 +1839,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, count($ret['message']['promises']));
         assertEquals($uid2, $ret['message']['promises'][0]['userid']);
 
-        # Can't promise to multiple users
+        # Can promise to multiple users
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'userid' => $uid3,
@@ -1850,7 +1850,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['message']['promises']));
+        assertEquals(2, count($ret['message']['promises']));
         assertEquals($uid3, $ret['message']['promises'][0]['userid']);
         
         # Renege on one of them.
