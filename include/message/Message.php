@@ -1302,7 +1302,7 @@ ORDER BY lastdate DESC;";
                     # Add promises, i.e. one or more people we've said can have this.
                     if (!$allpromises) {
                         $msgids = array_filter(array_column($msgs, 'id'));
-                        $sql = "SELECT * FROM messages_promises WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY promisedat DESC;";
+                        $sql = "SELECT * FROM messages_promises WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;";
                         $ps = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
                         $allpromises = [];
 
