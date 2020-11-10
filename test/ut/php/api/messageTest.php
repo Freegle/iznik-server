@@ -1852,6 +1852,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(2, count($ret['message']['promises']));
         assertEquals($uid3, $ret['message']['promises'][0]['userid']);
+        assertEquals($uid2, $ret['message']['promises'][1]['userid']);
         
         # Renege on one of them.
         $ret = $this->call('message', 'POST', [
