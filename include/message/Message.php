@@ -3923,12 +3923,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function promise($userid) {
-        # Promise this item to a user.
-        #
-        # We can't promise to multiple users.  This is because when we mark something as TAKEN, we ask who it was
-        # given to, and assume that anyone who it was promised to who isn't that person reneged.
-        #
-        # If we change that, we can remove the unique index, but we'll need to change the UI too.
+        # Promise this item to a user.  A message can be promised to multiple users.
         $sql = "REPLACE INTO messages_promises (msgid, userid) VALUES (?, ?);";
         $this->dbhm->preExec($sql, [
             $this->id,
@@ -4674,10 +4669,23 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         return(count($outcomes) > 0 ? $outcomes[0]['outcome'] : NULL);
     }
 
-    public function promisedTo() {
+    public function promisedButNotTo($userid) {
         $sql = "SELECT * FROM messages_promises WHERE msgid = ?;";
+        $ret = FALSE;
+
         $promises = $this->dbhr->preQuery($sql, [ $this->id ]);
-        return(count($promises) > 0 ? $promises[0]['userid'] : NULL);
+
+        if (count($promises)) {
+            $ret = TRUE;
+
+            foreach ($promises as $promise) {
+                if ($promise['userid'] == $userid) {
+                    $ret = FALSE;
+                }
+            }
+        }
+
+        return $ret;
     }
 
     public function isEdited() {
