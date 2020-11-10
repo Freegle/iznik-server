@@ -2080,17 +2080,14 @@ CREATE TABLE `messages_outcomes` (
   `msgid` bigint(20) unsigned NOT NULL,
   `outcome` enum('Taken','Received','Withdrawn','Repost') COLLATE utf8mb4_unicode_ci NOT NULL,
   `happiness` enum('Happy','Fine','Unhappy') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `userid` bigint(20) unsigned DEFAULT NULL,
   `comments` text COLLATE utf8mb4_unicode_ci,
   `reviewed` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `userid` (`userid`),
   KEY `msgid` (`msgid`),
   KEY `timestamp` (`timestamp`),
   KEY `timestamp_2` (`timestamp`,`outcome`),
   KEY `timestamp_3` (`reviewed`,`timestamp`,`happiness`) USING BTREE,
-  CONSTRAINT `messages_outcomes_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `messages_outcomes_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL
+  CONSTRAINT `messages_outcomes_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4979159 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
