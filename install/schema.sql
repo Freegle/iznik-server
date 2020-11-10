@@ -2148,7 +2148,7 @@ CREATE TABLE `messages_promises` (
   `userid` bigint(20) unsigned NOT NULL,
   `promisedat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `msgid` (`msgid`),
+  UNIQUE KEY `msgid` (`msgid`,`userid`) USING BTREE,
   KEY `userid` (`userid`),
   KEY `promisedat` (`promisedat`),
   CONSTRAINT `messages_promises_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
