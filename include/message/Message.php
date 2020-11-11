@@ -1498,6 +1498,30 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function getPublicAvailable(&$rets, $msgs) {
+        $ids = [];
+
+        foreach ($rets as $ret) {
+            if ($ret['availableinitially'] > 1 && $ret['availablenow'] != $ret['availableinitially']) {
+                # Partially taken - find out more.
+                $ids[] = $ret['id'];
+            }
+        }
+
+        if (count($ids)) {
+            $bys = $this->dbhr->preQuery("SELECT messages_by.msgid, messages_by.userid, messages_by.timestamp, messages_by.count, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS displayname FROM messages_by INNER JOIN users ON users.id = messages_by.userid WHERE msgid IN (" . implode(', ', $ids) . ") ORDER BY timestamp DESC;");
+
+            foreach ($rets as $ix => $ret) {
+                foreach ($bys as $by) {
+                    if ($by['msgid'] == $ret['id']) {
+                        $by['timestamp'] = Utils::ISODate($by['timestamp']);
+                        $rets[$ix]['by'][] = $by;
+                    }
+                }
+            }
+        }
+    }
+
     public function getPublicAttachments(&$rets, $msgs, $summary) {
         $msgids = array_filter(array_column($msgs, 'id'));
 
@@ -1721,6 +1745,7 @@ ORDER BY lastdate DESC;";
             $this->getPublicPostingHistory($rets, $msgs, $me, $myid);
             $this->getPublicEditHistory($rets, $msgs, $me, $myid);
             $this->getWorry($rets);
+            $this->getPublicAvailable($rets, $msgs);
 
             if ($related) {
                 $this->getPublicRelated($rets, $msgs);
