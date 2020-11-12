@@ -3801,30 +3801,33 @@ ORDER BY lastdate DESC;";
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
-        $atts = $this->getPublic(FALSE, FALSE, TRUE);
+        $locationid = $this->getPrivate('locationid');
         $items = $this->getItems();
 
-        if (Utils::pres('location', $atts) && count($items) > 0) {
-            # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
-            #
-            # In submission we have a postcode whereas later it changes to be location.
-            $att = Utils::pres('postcode', $atts) ? 'postcode' : 'location';
+        if ($locationid && count($items) > 0) {
+            $l = new Location($this->dbhr, $this->dbhm, $locationid);
+            $areaid = $l->getPrivate('areaid');
+            $pcid = $l->getPrivate('postcodeid');
 
-            if (Utils::pres('area', $atts) && Utils::pres($att, $atts)) {
+            # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
+            if ($areaid && $pcid) {
                 $includearea = $g->getSetting('includearea', TRUE);
                 $includepc = $g->getSetting('includepc', TRUE);
+
                 if ($includearea && $includepc) {
                     # We want the area in the group, e.g. Edinburgh EH4.
-                    $loc = $atts['area']['name'] . ' ' . $atts[$att]['name'];
+                    $la = new Location($this->dbhr, $this->dbhm, $areaid);
+                    $loc = $la->getPrivate('name') . ' ' . $l->ensureVague();
                 } else if ($includepc) {
                     # Just postcode, e.g. EH4
-                    $loc = $atts[$att]['name'];
+                    $loc = $l->ensureVague();
                 } else  {
                     # Just area or foolish settings, e.g. Edinburgh
-                    $loc = $atts['area']['name'];
+                    $la = new Location($this->dbhr, $this->dbhm, $areaid);
+                    $loc = $la->getPrivate('name');
                 }
             } else {
-                $l = new Location($this->dbhr, $this->dbhm, $atts['location']['id']);
+                $l = new Location($this->dbhr, $this->dbhm, $locationid);
                 $loc = $l->ensureVague();
             }
 
