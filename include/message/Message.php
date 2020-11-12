@@ -1509,7 +1509,7 @@ ORDER BY lastdate DESC;";
         }
 
         if (count($ids)) {
-            $bys = $this->dbhr->preQuery("SELECT messages_by.msgid, messages_by.userid, messages_by.timestamp, messages_by.count, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS displayname FROM messages_by INNER JOIN users ON users.id = messages_by.userid WHERE msgid IN (" . implode(', ', $ids) . ") ORDER BY timestamp DESC;");
+            $bys = $this->dbhr->preQuery("SELECT DISTINCT messages_by.msgid, messages_by.userid, messages_by.timestamp, messages_by.count, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS displayname FROM messages_by INNER JOIN users ON users.id = messages_by.userid WHERE msgid IN (" . implode(', ', $ids) . ") ORDER BY timestamp DESC;");
 
             foreach ($rets as $ix => $ret) {
                 foreach ($bys as $by) {

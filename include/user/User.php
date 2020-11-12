@@ -3030,7 +3030,6 @@ class User extends Entity
                     # foreign keys and Percona clusters.  This is safer and proves to be more reliable.
                     #
                     # Make sure we don't pick up an old cached version, as we've just changed it quite a bit.
-                    #error_log("Delete $id2");
                     error_log("Merged $id1 < $id2, $reason");
                     $deleteme = new User($this->dbhm, $this->dbhm, $id2);
                     $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
