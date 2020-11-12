@@ -4936,10 +4936,16 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         $this->dbhm->beginTransaction();
 
         # We might be replacing an old value, in which case we should restore the number available to the message.
-        $existing = $this->dbhm->preQuery("SELECT * FROM messages_by WHERE msgid = ? AND userid = ?;", [
-            $this->id,
-            $userid
-        ]);
+        if ($userid) {
+            $existing = $this->dbhm->preQuery("SELECT * FROM messages_by WHERE msgid = ? AND userid = ?;", [
+                $this->id,
+                $userid
+            ]);
+        } else {
+            $existing = $this->dbhm->preQuery("SELECT * FROM messages_by WHERE msgid = ? AND userid IS NULL;", [
+                $this->id
+            ]);
+        }
 
         foreach ($existing as $e) {
             $this->dbhm->preExec("UPDATE messages SET availablenow = LEAST(availableinitially, availablenow + ?) WHERE id = ?;", [
@@ -4972,10 +4978,16 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         $this->dbhm->beginTransaction();
 
         # We might be replacing an old value, in which case we should restore the number available to the message.
-        $existing = $this->dbhm->preQuery("SELECT * FROM messages_by WHERE msgid = ? AND userid = ?;", [
-            $this->id,
-            $userid
-        ]);
+        if ($userid) {
+            $existing = $this->dbhm->preQuery("SELECT * FROM messages_by WHERE msgid = ? AND userid = ?;", [
+                $this->id,
+                $userid
+            ]);
+        } else {
+            $existing = $this->dbhm->preQuery("SELECT * FROM messages_by WHERE msgid = ? AND userid IS NULL;", [
+                $this->id
+            ]);
+        }
 
         foreach ($existing as $e) {
             $this->dbhm->preExec("UPDATE messages SET availablenow = LEAST(availableinitially, availablenow + ?) WHERE id = ?;", [
