@@ -782,6 +782,15 @@ class messageTest extends IznikTestCase {
         $m->constructSubject($gid);
         self::assertEquals(strtolower('OFFER: test item (Tuvalu Central)'), strtolower($m->getSubject()));
 
+        # Edit the message to make sure the subject stays in that format.
+        $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid) VALUES (?, ?)", [
+            $id,
+            $gid
+        ]);
+
+        $m->edit(NULL, NULL, NULL, Message::TYPE_WANTED, 'test item2', 'TV13 1HH', [], TRUE, NULL);
+        self::assertEquals(strtolower('WANTED: test item2 (Tuvalu Central)'), strtolower($m->getSubject()));
+
         # Test subject twice for location caching coverage.
         $locationlist = [];
         assertEquals($areaid, $m->getLocation($areaid, $locationlist)->getId());

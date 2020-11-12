@@ -3806,15 +3806,19 @@ ORDER BY lastdate DESC;";
 
         if (Utils::pres('location', $atts) && count($items) > 0) {
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
-            if (Utils::pres('area', $atts) && Utils::pres('postcode', $atts)) {
+            #
+            # In submission we have a postcode whereas later it changes to be location.
+            $att = Utils::pres('postcode', $atts) ? 'postcode' : 'location';
+
+            if (Utils::pres('area', $atts) && Utils::pres($att, $atts)) {
                 $includearea = $g->getSetting('includearea', TRUE);
                 $includepc = $g->getSetting('includepc', TRUE);
                 if ($includearea && $includepc) {
                     # We want the area in the group, e.g. Edinburgh EH4.
-                    $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
+                    $loc = $atts['area']['name'] . ' ' . $atts[$att]['name'];
                 } else if ($includepc) {
                     # Just postcode, e.g. EH4
-                    $loc = $atts['postcode']['name'];
+                    $loc = $atts[$att]['name'];
                 } else  {
                     # Just area or foolish settings, e.g. Edinburgh
                     $loc = $atts['area']['name'];
