@@ -717,18 +717,14 @@ function message() {
                         case 'AddBy':
                             $count = array_key_exists('count', $_REQUEST) ? intval($_REQUEST['count']) : NULL;
 
-                            if ($userid !== NULL && $count !== NULL) {
+                            if ($count !== NULL) {
                                 $m->addBy($userid, $count);
                                 $ret = ['ret' => 0, 'status' => 'Success'];
                             }
                             break;
                         case 'RemoveBy':
-                            $count = array_key_exists('count', $_REQUEST) ? intval($_REQUEST['count']) : NULL;
-
-                            if ($userid !== NULL) {
-                                $m->removeBy($userid, $count);
-                                $ret = ['ret' => 0, 'status' => 'Success'];
-                            }
+                            $m->removeBy($userid);
+                            $ret = ['ret' => 0, 'status' => 'Success'];
                             break;
                         case 'Outcome':
                             # Ignore duplicate attempts by user to supply an outcome.
