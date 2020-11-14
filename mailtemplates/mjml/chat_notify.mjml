@@ -97,20 +97,20 @@
                   Reply
                 </mj-button>
               </mj-column>
-              {% if outcometaken %}
+              {% if outcometaken is defined and outcometaken %}
               <mj-column>
                 <mj-button align="left" href="{{ outcometaken }}" font-family="Helvetica" background-color="darkblue" color="white">
                   It's been TAKEN
                 </mj-button>
               </mj-column>
               {% endif %}
-              {% if outcomewithdrawn %}
+              {% if outcomewithdrawn is defined and outcomewithdrawn %}
               <mj-column>
                 <mj-button align="right" href="{{ outcomewithdrawn }}" font-family="Helvetica" background-color="black" color="white">
                   Withdraw
                 </mj-button>
-                {% endif %}
               </mj-column>
+              {% endif %}
             </mj-section>
             <mj-raw>
               {% if prevmsg is defined and prevmsg %}

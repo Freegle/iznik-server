@@ -2032,7 +2032,10 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                                 'email' => $to,
                                                 'prevmsg' => $prevmsg,
                                                 'jobads' => $jobads['jobs'],
-                                                'joblocation' => $jobads['location']
+                                                'joblocation' => $jobads['location'],
+                                                'outcometaken' => $outcometaken,
+                                                'outcomewithdrawn' => $outcomewithdrawn,
+
                                             ]);
 
                                             $sendname = $fromname;
@@ -2050,7 +2053,10 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                                 'email' => $to,
                                                 'prevmsg' => $prevmsg,
                                                 'jobads' => $jobads['jobs'],
-                                                'joblocation' => $jobads['location']
+                                                'joblocation' => $jobads['location'],
+                                                'outcometaken' => $outcometaken,
+                                                'outcomewithdrawn' => $outcomewithdrawn,
+
                                             ]);
 
                                             $sendname = 'Reply All';
