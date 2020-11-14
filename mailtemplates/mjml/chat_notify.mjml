@@ -91,9 +91,20 @@
             <mj-raw>
               {% endif %}
             </mj-raw>
-            <mj-button align="left" href="{{ reply }}" font-family="Helvetica" background-color="darkgreen" color="white">
-              Reply
-            </mj-button>
+            <mj-section>
+              <mj-column>
+                <mj-button align="left" href="{{ reply }}" font-family="Helvetica" background-color="darkgreen" color="white">
+                  Reply
+                </mj-button>
+              </mj-column>
+              <mj-column>
+                {% if outcomebuttons %}
+                <mj-button align="left" href="{{ outcomebuttons }}" font-family="Helvetica" background-color="darkblue" color="white">
+                  It's been TAKEN
+                </mj-button>
+                {% endif %}
+              </mj-column>
+            </mj-section>
             <mj-raw>
               {% if prevmsg is defined and prevmsg %}
             </mj-raw>
