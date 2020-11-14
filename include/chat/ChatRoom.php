@@ -1698,7 +1698,8 @@ ORDER BY chat_messages.id, m1.added ASC;";
             $maxbugspot = 0;
             $sentsome = FALSE;
             $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $delay);
-            $outcomebuttons = NULL;
+            $outcometaken = NULL;
+            $outcomewithdrawn= NULL;
 
             #error_log("Notmailed " . count($notmailed) . " with last message {$chatatts['lastmsg']}");
 
@@ -1785,10 +1786,16 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                 case ChatMessage::TYPE_INTERESTED: {
                                     if ($unmailedmsg['refmsgid'] && $unmailedmsg['msgtype'] == Message::TYPE_OFFER) {
                                         # We want to add in taken/received/withdrawn buttons.
-                                        $outcomebuttons = $otheru->loginLink(
+                                        $outcometaken = $otheru->loginLink(
                                             USER_SITE,
                                             $otheru->getId(),
                                             "/mypost/{$unmailedmsg['refmsgid']}/completed",
+                                            User::SRC_CHATNOTIF
+                                        );
+                                        $outcomewithdrawn = $otheru->loginLink(
+                                            USER_SITE,
+                                            $otheru->getId(),
+                                            "/mypost/{$unmailedmsg['refmsgid']}/withdraw",
                                             User::SRC_CHATNOTIF
                                         );
                                     }
@@ -2007,7 +2014,8 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                             'prevmsg' => $prevmsg,
                                             'jobads' => $jobads['jobs'],
                                             'joblocation' => $jobads['location'],
-                                            'outcomebuttons' => $outcomebuttons
+                                            'outcometaken' => $outcometaken,
+                                            'outcomewithdrawn' => $outcomewithdrawn,
                                         ]);
 
                                         $sendname = $fromname;

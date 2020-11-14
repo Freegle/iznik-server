@@ -97,10 +97,17 @@
                   Reply
                 </mj-button>
               </mj-column>
+              {% if outcometaken %}
               <mj-column>
-                {% if outcomebuttons %}
-                <mj-button align="left" href="{{ outcomebuttons }}" font-family="Helvetica" background-color="darkblue" color="white">
+                <mj-button align="left" href="{{ outcometaken }}" font-family="Helvetica" background-color="darkblue" color="white">
                   It's been TAKEN
+                </mj-button>
+              </mj-column>
+              {% endif %}
+              {% if outcomewithdrawn %}
+              <mj-column>
+                <mj-button align="right" href="{{ outcomewithdrawn }}" font-family="Helvetica" background-color="black" color="white">
+                  Withdraw
                 </mj-button>
                 {% endif %}
               </mj-column>
