@@ -2929,11 +2929,14 @@ ORDER BY lastdate DESC;";
         #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
 
         $this->notif->notifyGroupMods($groupid);
-        error_log("Approve notify $groupid");
-
         $this->maybeMail($groupid, $subject, $body, 'Approve');
-
+        $this->addToSpatialIndex();
         $this->index();
+    }
+
+    public function addToSpatialIndex() {
+        $sql = "INSERT INTO messages_spatial (msgid, point) VALUES ({$this->id}, GeomFromText('POINT({$this->lng} {$this->lat})')) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$this->lng} {$this->lat})');";
+        $this->dbhm->preExec($sql);
     }
 
     public function reply($groupid, $subject, $body, $stdmsgid) {

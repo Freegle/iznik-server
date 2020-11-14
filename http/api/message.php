@@ -599,6 +599,7 @@ function message() {
 
                                                 if ($postcoll == MessageCollection::APPROVED) {
                                                     # We index now; for pending messages we index when they are approved.
+                                                    $m->addToSpatialIndex();
                                                     $m->index();
                                                 }
                                             }
