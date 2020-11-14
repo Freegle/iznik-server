@@ -2939,8 +2939,10 @@ ORDER BY lastdate DESC;";
     }
 
     public function addToSpatialIndex() {
-        $sql = "INSERT INTO messages_spatial (msgid, point) VALUES ({$this->id}, GeomFromText('POINT({$this->lng} {$this->lat})')) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$this->lng} {$this->lat})');";
-        $this->dbhm->preExec($sql);
+        if ($this->lng || $this->lat) {
+            $sql = "INSERT INTO messages_spatial (msgid, point) VALUES ({$this->id}, GeomFromText('POINT({$this->lng} {$this->lat})')) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$this->lng} {$this->lat})');";
+            $this->dbhm->preExec($sql);
+        }
     }
 
     public function reply($groupid, $subject, $body, $stdmsgid) {
