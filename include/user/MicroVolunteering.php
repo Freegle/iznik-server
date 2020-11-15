@@ -73,9 +73,10 @@ ORDER BY messages_groups.arrival ASC", [
     public function response($userid, $msgid, $result) {
         if ($result == self::RESULT_APPROVE || $result == self::RESULT_REJECT) {
             # Insert might fail if message is deleted - timing window.
-            $this->dbhm->preExec("INSERT IGNORE INTO microactions (userid, msgid, result) VALUES (?, ?, ?);", [
+            $this->dbhm->preExec("REPLACE INTO microactions (userid, msgid, result) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE result = ?;", [
                 $userid,
                 $msgid,
+                $result,
                 $result
             ]);
         }
