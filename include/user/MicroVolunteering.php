@@ -61,6 +61,8 @@ ORDER BY messages_groups.arrival ASC", [
                         'type' => self::CHALLENGE_CHECK_MESSAGE,
                         'msgid' => $msg['msgid']
                     ];
+
+                    break;
                 }
             }
         }
