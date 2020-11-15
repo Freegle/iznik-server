@@ -1684,9 +1684,9 @@ ORDER BY chat_messages.id, m1.added ASC;";
         $start = date('Y-m-d', strtotime($since));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0 $reviewq AND chattype = ? $chatq;";
-        error_log("$sql, $start, $chattype");
+        #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
-        error_log("Chats to scan " . count($chats));
+        #error_log("Chats to scan " . count($chats));
         $notified = 0;
 
         foreach ($chats as $chat) {
@@ -1698,8 +1698,8 @@ ORDER BY chat_messages.id, m1.added ASC;";
             $maxbugspot = 0;
             $sentsome = FALSE;
             $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $delay);
-            $outcometaken = NULL;
-            $outcomewithdrawn= NULL;
+            $outcometaken = '';
+            $outcomewithdrawn= '';
 
             #error_log("Notmailed " . count($notmailed) . " with last message {$chatatts['lastmsg']}");
 
@@ -1786,6 +1786,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                 case ChatMessage::TYPE_INTERESTED: {
                                     if ($unmailedmsg['refmsgid'] && $unmailedmsg['msgtype'] == Message::TYPE_OFFER) {
                                         # We want to add in taken/received/withdrawn buttons.
+                                        error_log("Found one");
                                         $outcometaken = $otheru->loginLink(
                                             USER_SITE,
                                             $otheru->getId(),
@@ -2000,6 +2001,7 @@ ORDER BY chat_messages.id, m1.added ASC;";
                             $jobads = $thisu->getJobAds();
 
                             try {
+                                error_log("Taken? $outcometaken");
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
                                         $html = $twig->render('chat_notify.html', [

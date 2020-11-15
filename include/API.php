@@ -381,6 +381,9 @@ class API
                         case 'mentions':
                             $ret = mentions();
                             break;
+                        case 'microvolunteering':
+                            $ret = microvolunteering();
+                            break;
                         case 'team':
                             $ret = team();
                             break;

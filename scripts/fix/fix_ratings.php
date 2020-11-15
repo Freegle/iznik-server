@@ -1,20 +1,37 @@
 <?php
 
-# Run on backup server to recover a user from a backup to the live system.  Use with astonishing levels of caution.
-require_once dirname(__FILE__) . '/../../include/config.php';
+namespace Freegle\Iznik;
+
+define('BASE_DIR', dirname(__FILE__) . '/../..');
+require_once(BASE_DIR . '/include/config.php');
+require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
-require_once(IZNIK_BASE . '/include/group/Volunteering.php');
+$ratings = $dbhr->preQuery("SELECT * FROM ratings ORDER BY id DESC LIMIT 10000;");
 
-$dsn = "mysql:host=localhost;port=3309;dbname=iznik;charset=utf8";
-$dbhback = new LoggedPDO($dsn, SQLUSER, SQLPASSWORD, array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$up = [];
+$down = [];
 
-    $vols = $dbhback->preQuery("SELECT * FROM ratings;");
+foreach ($ratings as $r) {
+    $u1 = new User($dbhr, $dbhm, $r['rater']);
+    $u2 = new User($dbhr, $dbhm, $r['ratee']);
+    $u1loc = $u1->getLatLng(FALSE, FALSE);
+    $u2loc = $u2->getLatLng(FALSE, FALSE);
 
-    foreach ($vols as $vol) {
-        error_log("UPDATE ratings SET timestamp = '{$vol['timestamp']}' WHERE id = {$vol['id']};");
+    if ($u1loc[0] && $u1loc[1] && $u2loc[0] && $u2loc[1]) {
+        $dist = \GreatCircle::getDistance($u1loc[0], $u1loc[1], $u2loc[0], $u2loc[1]);
+
+        if ($dist < 200000) {
+            if ($r['rating'] == 'Up') {
+                $up[] = $dist;
+            } else {
+                $down[] = $dist;
+            }
+        }
     }
+}
+
+error_log("Up " . Utils::calculate_median($up));
+error_log("Down " . Utils::calculate_median($down));
 

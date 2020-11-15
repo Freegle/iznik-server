@@ -97,20 +97,26 @@
                   Reply
                 </mj-button>
               </mj-column>
-              {% if outcometaken is defined and outcometaken %}
+              <mj-raw>
+              {% if outcometaken is defined and outcometaken is not empty %}
+              </mj-raw>
               <mj-column>
                 <mj-button align="left" href="{{ outcometaken }}" font-family="Helvetica" background-color="darkblue" color="white">
                   It's been TAKEN
                 </mj-button>
               </mj-column>
+              <mj-raw>
               {% endif %}
-              {% if outcomewithdrawn is defined and outcomewithdrawn %}
+              {% if outcomewithdrawn is defined and outcomewithdrawn is not empty %}
+              </mj-raw>
               <mj-column>
                 <mj-button align="right" href="{{ outcomewithdrawn }}" font-family="Helvetica" background-color="black" color="white">
                   Withdraw
                 </mj-button>
               </mj-column>
+              <mj-raw>
               {% endif %}
+              </mj-raw>
             </mj-section>
             <mj-raw>
               {% if prevmsg is defined and prevmsg %}
