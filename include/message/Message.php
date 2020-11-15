@@ -298,7 +298,12 @@ class Message
             }
         }
 
-        if ($ret && ($type || $item || $location)) {
+        if ($subject && strlen($subject) > 10) {
+            # If the subject has been edited, then that edit is more important than any suggestion we might have
+            # come up with.  Don't allow stupidly short edits.
+            $this->setPrivate('subject', $subject);
+            $this->setPrivate('suggestedsubject', $subject);
+        } else if ($ret && ($type || $item || $location)) {
             # Construct a new subject from the edited values.
             if (!$groupid) {
                 $groups = $this->getGroups(FALSE, TRUE);
@@ -308,14 +313,10 @@ class Message
                 }
             }
 
+            # If a subject has been supplied, don't overwrite it.
             $this->constructSubject($groupid);
             $this->setPrivate('subject', $this->subject);
             $this->setPrivate('suggestedsubject', $this->subject);
-        } else if ($subject && strlen($subject) > 10) {
-            # If the subject has been edited, then that edit is more important than any suggestion we might have
-            # come up with.  Don't allow stupidly short edits.
-            $this->setPrivate('subject', $subject);
-            $this->setPrivate('suggestedsubject', $subject);
         }
 
         if ($textbody) {
