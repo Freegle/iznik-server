@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class abtestAPITest extends IznikAPITestCase
+class microvolunteeringAPITest extends IznikAPITestCase
 {
     public $dbhr, $dbhm;
 
