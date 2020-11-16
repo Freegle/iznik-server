@@ -87,5 +87,12 @@ class microvolunteeringAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(0, $ret['ret']);
+
+        # Should be nothing left as we've given a response.
+        $ret = $this->call('microvolunteering', 'GET', [
+            'groupid' => $gid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertFalse(array_key_exists('microvolunteering', $ret));
     }
 }
