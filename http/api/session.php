@@ -95,6 +95,8 @@ function session() {
 
                         # Don't need to return this, and it might be large.
                         $ret['me']['messagehistory'] = NULL;
+
+                        $ret['me']['microvolunteering'] = $me->microVolunteering();
                     }
 
                     $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);

@@ -5743,6 +5743,15 @@ class User extends Entity
         return([ $city, $lat, $lng ]);
     }
 
+    public function microVolunteering() {
+        // Are we on a group where microvolunteering is enabled.
+        $groups = $this->dbhr->preQuery("SELECT memberships.id FROM memberships INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ? AND microvolunteering = 1 LIMIT 1;", [
+            $this->id
+        ]);
+
+        return count($groups);
+    }
+
     public function getJobAds() {
         # We want to show a few job ads from nearby.
         $search = NULL;

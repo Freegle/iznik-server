@@ -19,7 +19,7 @@ class Group extends Entity
         'onhere', 'ontn', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation',
-        'moderationstatus', 'maxagetoshow', 'nearbygroups');
+        'moderationstatus', 'maxagetoshow', 'nearbygroups', 'microvolunteering');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';

@@ -35,16 +35,19 @@ class MicroVolunteering
         # - not explicitly moderated
         # - from the current day
         # - on one of these groups
+        # - microvolunteering is enabled on the group
         # - not from us
         # - not had a quorum of opinions.
         if (count($groupids)) {
             $msgs = $this->dbhr->preQuery("SELECT messages_spatial.msgid FROM messages_spatial 
 INNER JOIN messages_groups ON messages_spatial.msgid = messages_groups.msgid
-INNER JOIN messages ON messages.id = messages_spatial.msgid 
+INNER JOIN messages ON messages.id = messages_spatial.msgid
+INNER JOIN groups ON groups.id = messages_groups.groupid
 WHERE groupid IN (" . implode(',', $groupids) . " ) 
     AND DATE(messages_groups.arrival) = CURDATE()
     AND approvedby IS NULL  
     AND fromuser != ?
+    AND microvolunteering = 1
 ORDER BY messages_groups.arrival ASC", [
     $userid
             ]);

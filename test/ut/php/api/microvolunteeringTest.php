@@ -33,6 +33,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
     {
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        $g->setPrivate('microvolunteering', 1);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
