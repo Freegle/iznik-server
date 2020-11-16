@@ -41,38 +41,47 @@ class MicroVolunteering
         # - not one we've seen
         # - still open
         if (count($groupids)) {
-            $msgs = $this->dbhr->preQuery("SELECT messages_spatial.msgid FROM messages_spatial 
-INNER JOIN messages_groups ON messages_spatial.msgid = messages_groups.msgid
-INNER JOIN messages ON messages.id = messages_spatial.msgid
-INNER JOIN groups ON groups.id = messages_groups.groupid
-LEFT JOIN microactions ON microactions.msgid = messages_spatial.msgid
-LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid
-WHERE groupid IN (" . implode(',', $groupids) . " ) 
-    AND DATE(messages_groups.arrival) = CURDATE()
-    AND approvedby IS NULL  
-    AND fromuser != ?
-    AND microvolunteering = 1
-    AND microactions.id IS NULL
-    AND messages_outcomes.id IS NULL
-    AND messages.deleted IS NULL
-ORDER BY messages_groups.arrival ASC", [
-    $userid
-            ]);
+            $msgs = $this->dbhr->preQuery(
+                "SELECT messages_spatial.msgid,
+       (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid) AS reviewcount
+    FROM messages_spatial 
+    INNER JOIN messages_groups ON messages_spatial.msgid = messages_groups.msgid
+    INNER JOIN messages ON messages.id = messages_spatial.msgid
+    INNER JOIN groups ON groups.id = messages_groups.groupid
+    LEFT JOIN microactions ON microactions.msgid = messages_spatial.msgid AND microactions.userid = ?    
+    LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid
+    WHERE groupid IN (" . implode(',', $groupids) . " ) 
+        AND DATE(messages_groups.arrival) = CURDATE()
+        AND approvedby IS NULL  
+        AND fromuser != ?
+        AND microvolunteering = 1
+        AND messages_outcomes.id IS NULL
+        AND messages.deleted IS NULL
+        AND microactions.id IS NULL
+    HAVING reviewcount < ?
+    ORDER BY messages_groups.arrival ASC LIMIT 1",
+                [
+                    $userid,
+                    $userid,
+                    self::QUORUM
+                ]
+            );
 
             foreach ($msgs as $msg) {
                 # Check for quorum and not shown to this user.
-                $quorum = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND userid != ?;", [
-                    $msg['msgid'],
-                    $userid
-                ]);
+                $quorum = $this->dbhr->preQuery(
+                    "SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND userid != ?;",
+                    [
+                        $msg['msgid'],
+                        $userid
+                    ]
+                );
 
                 if ($quorum[0]['count'] < self::QUORUM) {
                     $ret = [
                         'type' => self::CHALLENGE_CHECK_MESSAGE,
                         'msgid' => $msg['msgid']
                     ];
-
-                    break;
                 }
             }
         }
