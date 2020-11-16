@@ -33,7 +33,7 @@ class MicroVolunteering
         # Find the earliest message:
         # - on approved (in the spatial index)
         # - not explicitly moderated
-        # - from the current day
+        # - from the current day (use messages because we're interested in the first post).
         # - on one of these groups
         # - micro-volunteering is enabled on the group
         # - not from us
@@ -51,7 +51,7 @@ class MicroVolunteering
     LEFT JOIN microactions ON microactions.msgid = messages_spatial.msgid AND microactions.userid = ?    
     LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid
     WHERE groupid IN (" . implode(',', $groupids) . " ) 
-        AND DATE(messages_groups.arrival) = CURDATE()
+        AND DATE(messages.arrival) = CURDATE()
         AND approvedby IS NULL  
         AND fromuser != ?
         AND microvolunteering = 1
