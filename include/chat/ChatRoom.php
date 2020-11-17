@@ -1786,7 +1786,6 @@ ORDER BY chat_messages.id, m1.added ASC;";
                                 case ChatMessage::TYPE_INTERESTED: {
                                     if ($unmailedmsg['refmsgid'] && $unmailedmsg['msgtype'] == Message::TYPE_OFFER) {
                                         # We want to add in taken/received/withdrawn buttons.
-                                        error_log("Found one");
                                         $outcometaken = $otheru->loginLink(
                                             USER_SITE,
                                             $otheru->getId(),
@@ -2001,7 +2000,6 @@ ORDER BY chat_messages.id, m1.added ASC;";
                             $jobads = $thisu->getJobAds();
 
                             try {
-                                error_log("Taken? $outcometaken");
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
                                         $html = $twig->render('chat_notify.html', [
