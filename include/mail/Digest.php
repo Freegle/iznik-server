@@ -177,10 +177,19 @@ class Digest
                     $maxdate = $message['arrival'];
 
                     $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                    $subjects[$message['msgid']] = $m->getSubject();
+                    $subject = $m->getSubject();
+                    $availablenow = $m->getPrivate('availablenow');
+
+                    if ($availablenow > 1) {
+                        # Include this in the subject line.
+                        $subject .= " [$availablenow available]";
+                    }
+
+                    $subjects[$message['msgid']] = $subject;
 
                     $atts = $m->getPublic(FALSE, TRUE, TRUE);
                     $atts['autoreposts'] = $message['autoreposts'];
+                    $atts['subject'] = $subject;
 
                     # Strip out the clutter associated with various ways of posting.
                     $atts['textbody'] = $m->stripGumf();
