@@ -54,18 +54,27 @@ if (!$gid) {
 (13, 'Inactive', 'missing', 'Anything Freegle can help you get?', 'We don\'t think you\'ve freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org', 1366, 5, '0.37', 1);
 ");
 
-    $dbhm->preExec("INSERT INTO `search_history` (`id`, `userid`, `date`, `term`, `locationid`, `groups`) VALUES
-(124, 12372991, '2016-06-27 00:52:15', 'bird', NULL, NULL),
-(130, 2936891, '2016-06-28 09:41:40', 'margarets', NULL, NULL),
-(142, 63, '2016-06-28 21:48:45', 'nebul', NULL, NULL),
-(149, 3396420, '2016-09-18 06:36:45', 'Sands', NULL, NULL),
-(151, 3396420, '2016-09-18 06:36:43', 'Rose & Crown', NULL, NULL),
-(154, 654, '2016-06-29 15:59:25', 'laptop', NULL, NULL),
-(160, 654, '2016-06-30 06:46:53', 'fish', NULL, NULL),
-(166, 19847458, '2016-09-07 15:15:26', 'Wanted Garden Border Edging', NULL, NULL),
-(172, 19847458, '2016-07-11 13:22:36', 'Wooden wine crates/boxes etc.', NULL, NULL),
-(178, 120699, '2016-06-30 08:19:03', 'dolls house furniture', NULL, NULL);
-");
+    $dbhm->preExec("INSERT INTO `search_terms` (`id`, `term`, `count`) VALUES
+(3, '', 92),
+(6, '_term', 1),
+(9, '-', 1),
+(12, '- offer: blue badge road atlas', 1),
+(15, '-- end of posted message. the following text has been added by group moderators ', 2),
+(18, '-wanted', 2),
+(21, ',', 6),
+(24, ', ,garden tools', 1),
+(27, ', dinning table ,curtains', 1),
+(30, ',:', 1),
+(33, ',curtains', 1),
+(36, ',guitar', 1),
+(39, ',ixer', 1),
+(42, ':', 1),
+(45, ': offered: luxury xmas jigsaw (cv2)', 2),
+(48, '?', 1),
+(51, '?rollater', 2),
+(54, '?rolletar', 1),
+(57, '.', 16),
+(60, '. beds', 1);");
 } else {
     error_log("Test environment already set up.");
 }
