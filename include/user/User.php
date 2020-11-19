@@ -30,6 +30,13 @@ class User extends Entity
     const RATING_MINE = 'Mine';
     const RATING_UNKNOWN = 'Unknown';
 
+    const TRUST_EXCLUDED = 'Excluded';
+    const TRUST_DECLINED = 'Declined';
+    const TRUST_BASIC = 'Basic';
+    const TRUST_MODERATE = 'Moderate';
+    const TRUST_ADVANCED = 'Advanced';
+
+
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
 

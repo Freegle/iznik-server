@@ -96,7 +96,11 @@ function session() {
                         # Don't need to return this, and it might be large.
                         $ret['me']['messagehistory'] = NULL;
 
+                        # Whether this user is on a group where microvolunteering is enabled.
                         $ret['me']['microvolunteering'] = $me->microVolunteering();
+
+                        # The trust level for this user, as used by microvolunteering.
+                        $ret['me']['trustlevel'] = $me->getPrivate('trustlevel');
                     }
 
                     $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);

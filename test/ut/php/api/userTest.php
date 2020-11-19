@@ -121,7 +121,78 @@ class userAPITest extends IznikAPITestCase {
             'duplicate' => 1
         ]);
         assertEquals(0, $ret['ret']);
-     }
+    }
+
+    public function testTrust() {
+        # Shouldn't only be able to turn on/off as a member.
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->user->getId(),
+            'trustlevel' => NULL
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session', 'GET', [
+            'components' => [ 'me' ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertFalse(array_key_exists('trustlevel', $ret['me']));
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->user->getId(),
+            'trustlevel' => User::TRUST_BASIC
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session', 'GET', [
+            'components' => [ 'me' ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(User::TRUST_BASIC, $ret['me']['trustlevel']);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->user->getId(),
+            'trustlevel' => User::TRUST_MODERATE
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('session', 'GET', [
+            'components' => [ 'me' ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(User::TRUST_BASIC, $ret['me']['trustlevel']);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->user->getId(),
+            'trustlevel' => User::TRUST_ADVANCED
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('session', 'GET', [
+            'components' => [ 'me' ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(User::TRUST_BASIC, $ret['me']['trustlevel']);
+
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'trustlevel' => User::TRUST_ADVANCED
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid2
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(User::TRUST_ADVANCED, $ret['user']['trustlevel']);
+    }
 
     public function testPostingStatus() {
         $ret = $this->call('user', 'PATCH', [

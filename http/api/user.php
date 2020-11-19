@@ -16,6 +16,7 @@ function user() {
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
     $engageid = intval(Utils::presdef('engageid', $_REQUEST, NULL));
+    $trustlevel = Utils::presdef('trustlevel', $_REQUEST, NULL);
 
     $email = Utils::presdef('email', $_REQUEST, NULL);
     if (!$id && $email) {
@@ -69,6 +70,10 @@ function user() {
                     if ($info && $id && $u->getId() == $id) {
                         $u->ensureAvatar($ret['user']);
                         $ret['user']['info'] = $u->getInfo();
+                    }
+
+                    if ($me && $me->isModerator()) {
+                        $ret['user']['trustlevel'] = $u->getPrivate('trustlevel');
                     }
                 }
             }
@@ -183,6 +188,35 @@ function user() {
                     'ret' => 0,
                     'status' => 'Success'
                 ];
+            }
+
+            if (array_key_exists('trustlevel', $_REQUEST) && $u && $me) {
+                $ret = [
+                    'ret' => 2,
+                    'status' => 'Permission denied'
+                ];
+
+                if ($me->isModerator()) {
+                    # Can set any trust level
+                    $u->setPrivate('trustlevel', $trustlevel);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($u->getId() == $me->getId() && (!$trustlevel || $trustlevel == User::TRUST_BASIC)) {
+                    # Can only turn this on/off.
+                    if ($trustlevel) {
+                        $u->setPrivate('trustlevel', User::TRUST_BASIC);
+                    } else {
+                        $u->setPrivate('trustlevel', NULL);
+                    }
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                }
             }
 
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
