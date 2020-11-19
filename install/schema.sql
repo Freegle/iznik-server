@@ -3051,8 +3051,9 @@ DROP TABLE IF EXISTS `search_terms`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `search_terms` (
-  `id` bigint(10) unsigned NOT NULL AUTO_INCREMENT,
-  `term` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+    `id` bigint(10) UNSIGNED NOT NULL,
+    `term` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+    `count` int(11) NOT NULL DEFAULT '0'
   PRIMARY KEY (`id`),
   UNIQUE KEY `term` (`term`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5727 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

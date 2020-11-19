@@ -87,7 +87,7 @@ class MicroVolunteering
             # Didn't find a message to approve.  Try pairing of search terms.
             #
             # We choose 10 random distinct popular search terms, and ask which are related.
-            $terms = $this->dbhr->preQuery("SELECT DISTINCT id, term FROM (SELECT * FROM search_terms WHERE LENGTH(term) > 2 ORDER BY COUNT DESC LIMIT 1000) t ORDER BY RAND() LIMIT 10;");
+            $terms = $this->dbhr->preQuery("SELECT DISTINCT id, term FROM (SELECT * FROM search_terms WHERE LENGTH(term) > 2 ORDER BY count DESC LIMIT 1000) t ORDER BY RAND() LIMIT 10;");
             $ret = [
                 'type' => self::CHALLENGE_SEARCH_TERM,
                 'terms' => $terms
