@@ -539,7 +539,15 @@ class ChatMessage extends Entity
         $showcounts = [];
 
         if ($me) {
-            $groupids = $me->getModeratorships();
+            $allmods = $me->getModeratorships();
+            $groupids = [];
+
+            foreach ($allmods as $mod) {
+                if ($me->activeModForGroup($mod)) {
+                    $groupids[] = $mod;
+                }
+            }
+
             $holdq = $other ? "AND chat_messages_held.userid IS NOT NULL" : "AND chat_messages_held.userid IS NULL";
 
             if (count($groupids)) {
