@@ -53,6 +53,19 @@ if (!$gid) {
 (10, 'Inactive', 'missing', 'Time for a declutter?', 'We don\'t think you\'ve freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org', 1257, 8, '0.64', 1),
 (13, 'Inactive', 'missing', 'Anything Freegle can help you get?', 'We don\'t think you\'ve freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org', 1366, 5, '0.37', 1);
 ");
+
+    $dhm->preExec("INSERT INTO `search_history` (`id`, `userid`, `date`, `term`, `locationid`, `groups`) VALUES
+(124, 12372991, '2016-06-27 00:52:15', 'bird', NULL, NULL),
+(130, 2936891, '2016-06-28 09:41:40', 'margarets', NULL, NULL),
+(142, 63, '2016-06-28 21:48:45', 'nebul', NULL, NULL),
+(149, 3396420, '2016-09-18 06:36:45', 'Sands', NULL, NULL),
+(151, 3396420, '2016-09-18 06:36:43', 'Rose & Crown', NULL, NULL),
+(154, 654, '2016-06-29 15:59:25', 'laptop', NULL, NULL),
+(160, 654, '2016-06-30 06:46:53', 'fish', NULL, NULL),
+(166, 19847458, '2016-09-07 15:15:26', 'Wanted Garden Border Edging', NULL, NULL),
+(172, 19847458, '2016-07-11 13:22:36', 'Wooden wine crates/boxes etc.', NULL, NULL),
+(178, 120699, '2016-06-30 08:19:03', 'dolls house furniture', NULL, NULL);
+");
 } else {
     error_log("Test environment already set up.");
 }
