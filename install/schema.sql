@@ -2247,6 +2247,7 @@ CREATE TABLE `microactions` (
   `msgid` bigint(20) unsigned NOT NULL,
   `result` enum('Approve','Reject') COLLATE utf8mb4_unicode_ci NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `comments` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid_2` (`userid`,`msgid`),
   KEY `userid` (`userid`),
