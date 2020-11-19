@@ -54,7 +54,7 @@ if (!$gid) {
 (13, 'Inactive', 'missing', 'Anything Freegle can help you get?', 'We don\'t think you\'ve freegled for a while.  Can we tempt you back?  Just come to https://www.ilovefreegle.org', 1366, 5, '0.37', 1);
 ");
 
-    $dhm->preExec("INSERT INTO `search_history` (`id`, `userid`, `date`, `term`, `locationid`, `groups`) VALUES
+    $dbhm->preExec("INSERT INTO `search_history` (`id`, `userid`, `date`, `term`, `locationid`, `groups`) VALUES
 (124, 12372991, '2016-06-27 00:52:15', 'bird', NULL, NULL),
 (130, 2936891, '2016-06-28 09:41:40', 'margarets', NULL, NULL),
 (142, 63, '2016-06-28 21:48:45', 'nebul', NULL, NULL),
