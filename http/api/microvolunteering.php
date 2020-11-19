@@ -31,7 +31,7 @@ function microvolunteering() {
                 $response = Utils::presdef('response', $_REQUEST, NULL);
                 $comments = Utils::presdef('comments', $_REQUEST, NULL);
                 $searchterm1 = intval(Utils::presdef('searchterm1', $_REQUEST, 0));
-                $searchterm2 = intval(Utils::presdef('searchterm1', $_REQUEST, 0));
+                $searchterm2 = intval(Utils::presdef('searchterm2', $_REQUEST, 0));
 
                 $ret = [ 'ret' => 3, 'status' => 'Invalid parameters' ];
 
