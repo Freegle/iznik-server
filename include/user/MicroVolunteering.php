@@ -10,7 +10,11 @@ class MicroVolunteering
     const RESULT_APPROVE = 'Approve';
     const RESULT_REJECT = 'Reject';
 
-    const QUORUM = 3;
+    # The number of people required to assime this is a good thing.  Note that the original poster did, too.
+    const APPROVAL_QUORUM = 2;
+
+    # The number of people we'll ask if there are differences of views.
+    const DISSENTING_QUORUM = 3;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -43,7 +47,8 @@ class MicroVolunteering
         if (count($groupids)) {
             $msgs = $this->dbhr->preQuery(
                 "SELECT messages_spatial.msgid,
-       (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid) AS reviewcount
+       (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid) AS reviewcount,
+       (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid AND result = ?) AS approvalcount
     FROM messages_spatial 
     INNER JOIN messages_groups ON messages_spatial.msgid = messages_groups.msgid
     INNER JOIN messages ON messages.id = messages_spatial.msgid
@@ -58,31 +63,22 @@ class MicroVolunteering
         AND messages_outcomes.id IS NULL
         AND messages.deleted IS NULL
         AND microactions.id IS NULL
-    HAVING reviewcount < ?
+    HAVING approvalcount < ? AND reviewcount < ?
     ORDER BY messages_groups.arrival ASC LIMIT 1",
                 [
+                    self::RESULT_APPROVE,
                     $userid,
                     $userid,
-                    self::QUORUM
+                    self::APPROVAL_QUORUM,
+                    self::DISSENTING_QUORUM
                 ]
             );
 
             foreach ($msgs as $msg) {
-                # Check for quorum and not shown to this user.
-                $quorum = $this->dbhr->preQuery(
-                    "SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND userid != ?;",
-                    [
-                        $msg['msgid'],
-                        $userid
-                    ]
-                );
-
-                if ($quorum[0]['count'] < self::QUORUM) {
-                    $ret = [
-                        'type' => self::CHALLENGE_CHECK_MESSAGE,
-                        'msgid' => $msg['msgid']
-                    ];
-                }
+                $ret = [
+                    'type' => self::CHALLENGE_CHECK_MESSAGE,
+                    'msgid' => $msg['msgid']
+                ];
             }
         }
 
