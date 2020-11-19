@@ -85,14 +85,16 @@ class MicroVolunteering
         return $ret;
     }
 
-    public function response($userid, $msgid, $result) {
+    public function response($userid, $msgid, $result, $comments) {
         if ($result == self::RESULT_APPROVE || $result == self::RESULT_REJECT) {
             # Insert might fail if message is deleted - timing window.
-            $this->dbhm->preExec("INSERT INTO microactions (userid, msgid, result) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE result = ?;", [
+            $this->dbhm->preExec("INSERT INTO microactions (userid, msgid, result, comments) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE result = ?, comments = ?;", [
                 $userid,
                 $msgid,
                 $result,
-                $result
+                $comments,
+                $result,
+                $comments
             ]);
         }
     }

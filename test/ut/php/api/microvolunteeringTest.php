@@ -88,6 +88,15 @@ class microvolunteeringAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
 
+        # Again, but different.
+        $ret = $this->call('microvolunteering', 'POST', [
+            'msgid' => $id,
+            'response' => MicroVolunteering::RESULT_REJECT,
+            'comments' => 'Fish with a bad face'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
         # Should be nothing left as we've given a response.
         $ret = $this->call('microvolunteering', 'GET', [
             'groupid' => $gid

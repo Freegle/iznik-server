@@ -29,11 +29,12 @@ function microvolunteering() {
                 $v = new MicroVolunteering($dbhr, $dbhm);
                 $msgid = intval(Utils::presdef('msgid', $_REQUEST, 0));
                 $response = Utils::presdef('response', $_REQUEST, NULL);
+                $comments = Utils::presdef('comments', $_REQUEST, NULL);
 
                 $ret = [ 'ret' => 3, 'status' => 'Invalid parameters' ];
 
                 if ($msgid && $response) {
-                    $v->response($myid, $msgid, $response);
+                    $v->response($myid, $msgid, $response, $comments);
 
                     $ret = [
                         'ret' => 0,
