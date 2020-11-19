@@ -3957,6 +3957,7 @@ class User extends Entity
             }
 
             $thisone['info'] = $u->getInfo();
+            $thisone['trustlevel'] = $u->getPrivate('trustlevel');
 
             $ret[] = $thisone;
         }
