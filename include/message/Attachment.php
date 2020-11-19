@@ -552,4 +552,8 @@ class Attachment
     public function getIdAtt() {
         return $this->idatt;
     }
+
+    public function recordRotate() {
+        $this->setPrivate('rotated', 1);
+    }
 }

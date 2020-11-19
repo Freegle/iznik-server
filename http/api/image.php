@@ -103,6 +103,11 @@ function image() {
                 $newdata = $i->getData(100);
                 $a->setData($newdata);
 
+                if ($type == Attachment::TYPE_MESSAGE) {
+                    # Only some kinds of attachments record whether they are rotated.
+                    $a->recordRotate();
+                }
+
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
