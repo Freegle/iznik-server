@@ -726,7 +726,7 @@ memberships.groupid IN $groupq
             # a userid of the user's id.
             $thisone['userid'] = $thisone['id'];
             $thisone['id'] = $member['id'];
-            $thisone['trustlevel'] = $member['trustlevel'];
+            $thisone['trustlevel'] = $u->getPrivate('trustlevel');
 
             $thisepoch = strtotime($member['added']);
 
