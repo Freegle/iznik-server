@@ -78,7 +78,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         # Ask again - no specific group and no memberships
         $ret = $this->call('microvolunteering', 'GET', []);
         assertEquals(0, $ret['ret']);
-        assertFalse(array_key_exists('microvolunteering', $ret));
+        assertEquals(MicroVolunteering::CHALLENGE_SEARCH_TERM, $ret['microvolunteering']['type']);
 
         # Response
         $ret = $this->call('microvolunteering', 'POST', [
@@ -97,11 +97,18 @@ class microvolunteeringAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
 
-        # Should be nothing left as we've given a response.
+        # Should be no messags left as we've given a response, so we'll get a search term.
         $ret = $this->call('microvolunteering', 'GET', [
             'groupid' => $gid
         ]);
         assertEquals(0, $ret['ret']);
-        assertFalse(array_key_exists('microvolunteering', $ret));
+        assertEquals(MicroVolunteering::CHALLENGE_SEARCH_TERM, $ret['microvolunteering']['type']);
+
+        $ret = $this->call('microvolunteering', 'POST', [
+            'searchterm1' => $ret['microvolunteering']['terms'][0]['id'],
+            'searchterm2' => $ret['microvolunteering']['terms'][0]['id']
+        ]);
+
+        assertEquals(0, $ret['ret']);
     }
 }

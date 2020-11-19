@@ -6,6 +6,7 @@ class MicroVolunteering
     private $dbhr, $dbhm;
 
     const CHALLENGE_CHECK_MESSAGE = 'CheckMessage';
+    const CHALLENGE_SEARCH_TERM = 'SearchTerm';
 
     const RESULT_APPROVE = 'Approve';
     const RESULT_REJECT = 'Reject';
@@ -82,10 +83,21 @@ class MicroVolunteering
             }
         }
 
+        if (!$ret) {
+            # Didn't find a message to approve.  Try pairing of search terms.
+            #
+            # We choose 10 random distinct popular search terms, and ask which are related.
+            $terms = $this->dbhr->preQuery("SELECT DISTINCT id, term FROM (SELECT * FROM search_terms WHERE LENGTH(term) > 2 ORDER BY COUNT DESC LIMIT 1000) t ORDER BY RAND() LIMIT 10;");
+            $ret = [
+                'type' => self::CHALLENGE_SEARCH_TERM,
+                'terms' => $terms
+            ];
+        }
+
         return $ret;
     }
 
-    public function response($userid, $msgid, $result, $comments) {
+    public function responseCheckMessage($userid, $msgid, $result, $comments) {
         if ($result == self::RESULT_APPROVE || $result == self::RESULT_REJECT) {
             # Insert might fail if message is deleted - timing window.
             $this->dbhm->preExec("INSERT INTO microactions (userid, msgid, result, comments) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE result = ?, comments = ?;", [
@@ -97,5 +109,13 @@ class MicroVolunteering
                 $comments
             ]);
         }
+    }
+
+    public function responseSearchTerms($userid, $searchterm1, $searchterm2) {
+        $this->dbhm->preExec("INSERT INTO microactions (userid, searchterm1, searchterm2) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE userid = userid;", [
+            $userid,
+            $searchterm1,
+            $searchterm2
+        ]);
     }
 }

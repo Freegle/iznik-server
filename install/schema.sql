@@ -2245,16 +2245,22 @@ DROP TABLE IF EXISTS `microactions`;
 CREATE TABLE `microactions` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userid` bigint(20) unsigned NOT NULL,
-  `msgid` bigint(20) unsigned NOT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL,
   `result` enum('Approve','Reject') COLLATE utf8mb4_unicode_ci NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `comments` text COLLATE utf8mb4_unicode_ci,
+  `searchterm1` bigint(20) unsigned DEFAULT NULL,
+  `searchterm2` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid_2` (`userid`,`msgid`),
   KEY `userid` (`userid`),
   KEY `msgid` (`msgid`),
+  KEY `searchterm1` (`searchterm1`),
+  KEY `searchterm2` (`searchterm2`),
   CONSTRAINT `microactions_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `microactions_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE
+  CONSTRAINT `microactions_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `microactions_ibfk_3` FOREIGN KEY (`searchterm1`) REFERENCES `search_terms` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `microactions_ibfk_4` FOREIGN KEY (`searchterm2`) REFERENCES `search_terms` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=673 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Micro-volunteering tasks';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -3045,7 +3051,7 @@ DROP TABLE IF EXISTS `search_terms`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `search_terms` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` bigint(10) unsigned NOT NULL AUTO_INCREMENT,
   `term` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `term` (`term`)
@@ -5155,4 +5161,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-19 12:50:23
+-- Dump completed on 2020-11-19 14:55:15

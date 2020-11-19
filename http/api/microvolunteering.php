@@ -30,11 +30,20 @@ function microvolunteering() {
                 $msgid = intval(Utils::presdef('msgid', $_REQUEST, 0));
                 $response = Utils::presdef('response', $_REQUEST, NULL);
                 $comments = Utils::presdef('comments', $_REQUEST, NULL);
+                $searchterm1 = intval(Utils::presdef('searchterm1', $_REQUEST, 0));
+                $searchterm2 = intval(Utils::presdef('searchterm1', $_REQUEST, 0));
 
                 $ret = [ 'ret' => 3, 'status' => 'Invalid parameters' ];
 
                 if ($msgid && $response) {
-                    $v->response($myid, $msgid, $response, $comments);
+                    $v->responseCheckMessage($myid, $msgid, $response, $comments);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($searchterm1 && $searchterm2) {
+                    $v->responseSearchTerms($myid, $searchterm1, $searchterm2);
 
                     $ret = [
                         'ret' => 0,
