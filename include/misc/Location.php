@@ -544,8 +544,8 @@ class Location extends Entity
                 $thisone[$att] = $pc[$att];
             }
 
-            if ($near && count($pcs) == 1) {
-                // Only return groups near for a single i.e. full postcode match.
+            if ($near && strpos($pc['name'], ' ') !== FALSE) {
+                // Only return groups near for full postcode match.
                 $l = new Location($this->dbhr, $this->dbhm, $pc['id']);
                 $thisone['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
             }
