@@ -125,8 +125,6 @@ class Group extends Entity
                 'wanted' => 14,
                 'received' => 14
             ], 'spammers' => [
-                'check' => $this->group['type'] == Group::GROUP_FREEGLE,
-                'remove' => $this->group['type'] == Group::GROUP_FREEGLE,
                 'chatreview' => $this->group['type'] == Group::GROUP_FREEGLE,
                 'messagereview' => 1
             ], 'joiners' => [

@@ -682,15 +682,10 @@ class Spam {
 
         foreach ($spammers as $spammer) {
             error_log("Found spammer {$spammer['userid']}");
-            $g = Group::get($this->dbhr, $this->dbhm, $spammer['groupid']);
-            $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
-            error_log("Spam check " . var_export($spamcheck, TRUE));
-            if ($spamcheck['check'] && $spamcheck['remove']) {
-                $u = User::get($this->dbhr, $this->dbhm, $spammer['userid']);
-                error_log("Remove spammer {$spammer['userid']}");
-                $u->removeMembership($spammer['groupid'], TRUE, TRUE);
-                $count++;
-            }
+            $u = User::get($this->dbhr, $this->dbhm, $spammer['userid']);
+            error_log("Remove spammer {$spammer['userid']}");
+            $u->removeMembership($spammer['groupid'], TRUE, TRUE);
+            $count++;
         }
 
         # Find any messages from spammers which are on groups.
@@ -699,16 +694,10 @@ class Spam {
         $spammsgs = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammsgs as $spammsg) {
-            $g = Group::get($this->dbhr, $this->dbhm, $spammsg['groupid']);
-
-            # Only remove on Freegle groups by default.
-            $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => $g->getPrivate('type') == Group::GROUP_FREEGLE]);
-            if ($spamcheck['check'] && $spamcheck['remove']) {
-                error_log("Found spam message {$spammsg['id']}");
-                $m = new Message($this->dbhr, $this->dbhm, $spammsg['id']);
-                $m->delete("From known spammer {$spammsg['reason']}");
-                $count++;
-            }
+            error_log("Found spam message {$spammsg['id']}");
+            $m = new Message($this->dbhr, $this->dbhm, $spammsg['id']);
+            $m->delete("From known spammer {$spammsg['reason']}");
+            $count++;
         }
 
         # Find any chat messages from spammers.
