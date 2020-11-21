@@ -1325,23 +1325,34 @@ WHERE chat_rooms.id IN $idlist;";
     public function getMessagesForReview(User $user, $groupid, &$ctx)
     {
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
-        # a member.
+        # a member.  The order here matches that in ChatMessage::getReviewCountByGroup.
         $userid = $user->getId();
         $msgid = $ctx ? intval($ctx['msgid']) : 0;
-        $groupq = $groupid ? " AND groupid = $groupid " : '';
+        if ($groupid) {
+            $groupids = [];
+        } else {
+            $allmods = $user->getModeratorships();
+            $groupids = [];
+
+            foreach ($allmods as $mod) {
+                if ($user->activeModForGroup($mod)) {
+                    $groupids[] = $mod;
+                }
+            }
+        }
+        $groupq = implode(',', $groupids);
 
         $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
 FROM chat_messages
 LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
 LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
 INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid
-INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END)
-AND m1.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq)
-LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid
-AND m2.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') $groupq)
+INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND m1.groupid IN ($groupq)
+LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid AND m2.groupid IN ($groupq)
 INNER JOIN groups ON m1.groupid = groups.id AND groups.type = ?
-ORDER BY chat_messages.id, m1.added ASC;";
-        $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid, $msgid, $userid, Group::GROUP_FREEGLE]);
+WHERE chat_messages.id > ?
+ORDER BY chat_messages.id, m1.added, groupid ASC;";
+        $msgs = $this->dbhr->preQuery($sql, [Group::GROUP_FREEGLE, $msgid]);
         $ret = [];
 
         $ctx = $ctx ? $ctx : [];
