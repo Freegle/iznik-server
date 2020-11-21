@@ -5,6 +5,11 @@ class MicroVolunteering
 {
     private $dbhr, $dbhm;
 
+    # Sometimes we make changes which affect the validity of previous data for the same tasks.  If so, note this here.
+    # 1 - SearchTerm asking for 10 out of the top 1000 search terms.
+    # 2 - SearchTerm asking for 10 out of the top 50 search terms.
+    const VERSION = 2;
+
     const CHALLENGE_CHECK_MESSAGE = 'CheckMessage';
     const CHALLENGE_SEARCH_TERM = 'SearchTerm';
 
@@ -87,7 +92,7 @@ class MicroVolunteering
             # Didn't find a message to approve.  Try pairing of search terms.
             #
             # We choose 10 random distinct popular search terms, and ask which are related.
-            $terms = $this->dbhr->preQuery("SELECT DISTINCT id, term FROM (SELECT * FROM search_terms WHERE LENGTH(term) > 2 ORDER BY count DESC LIMIT 1000) t ORDER BY RAND() LIMIT 10;");
+            $terms = $this->dbhr->preQuery("SELECT DISTINCT id, term FROM (SELECT * FROM search_terms WHERE LENGTH(term) > 2 ORDER BY count DESC LIMIT 50) t ORDER BY RAND() LIMIT 10;");
             $ret = [
                 'type' => self::CHALLENGE_SEARCH_TERM,
                 'terms' => $terms
@@ -100,22 +105,26 @@ class MicroVolunteering
     public function responseCheckMessage($userid, $msgid, $result, $comments) {
         if ($result == self::RESULT_APPROVE || $result == self::RESULT_REJECT) {
             # Insert might fail if message is deleted - timing window.
-            $this->dbhm->preExec("INSERT INTO microactions (userid, msgid, result, comments) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE result = ?, comments = ?;", [
+            $this->dbhm->preExec("INSERT INTO microactions (userid, msgid, result, comments, version) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE result = ?, comments = ?, version = ?;", [
                 $userid,
                 $msgid,
                 $result,
                 $comments,
+                self::VERSION,
                 $result,
-                $comments
+                $comments,
+                self::VERSION
             ]);
         }
     }
 
     public function responseSearchTerms($userid, $searchterm1, $searchterm2) {
-        $this->dbhm->preExec("INSERT INTO microactions (userid, searchterm1, searchterm2) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE userid = userid;", [
+        $this->dbhm->preExec("INSERT INTO microactions (userid, searchterm1, searchterm2, version) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE userid = userid, version = ?;", [
             $userid,
             $searchterm1,
-            $searchterm2
+            $searchterm2,
+            self::VERSION,
+            self::VERSION
         ]);
     }
 }
