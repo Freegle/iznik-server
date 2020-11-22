@@ -43,7 +43,7 @@ function microvolunteering() {
                         'status' => 'Success'
                     ];
                 } else if ($searchterm1 && $searchterm2) {
-                    $v->responseSearchTerms($myid, $searchterm1, $searchterm2);
+                    $v->responseItems($myid, $searchterm1, $searchterm2);
 
                     $ret = [
                         'ret' => 0,
