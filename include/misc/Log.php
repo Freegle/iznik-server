@@ -208,4 +208,9 @@ class Log
 
         return($logs);
     }
+
+    public function deleteLogsForMessage($msgid) {
+        # Need to background as the original log request might be backgrounded.
+        $this->dbhm->background("DELETE FROM logs WHERE msgid = $msgid");
+    }
 }

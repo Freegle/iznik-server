@@ -173,7 +173,6 @@ class MailRouter
 
         $to = $this->msg->getEnvelopeto();
         $from = $this->msg->getEnvelopefrom();
-        $replyto = trim($this->msg->getHeader('reply-to'));
         $fromheader = $this->msg->getHeader('from');
 
         if ($fromheader) {
@@ -401,6 +400,9 @@ class MailRouter
                 # We should always find them as Message::parse should create them
                 if ($u->getId()) {
                     $u->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, $envfrom);
+
+                    # Remove any email logs for this message - no point wasting space on keeping those.
+                    $this->log->deleteLogsForMessage($this->msg->getID());
                     $ret = MailRouter::TO_SYSTEM;
                 }
             }
@@ -424,6 +426,9 @@ class MailRouter
 
                     if (!$u->isModOrOwner($gid)) {
                         $u->removeMembership($gid, FALSE, FALSE, $envfrom);
+
+                        # Remove any email logs for this message - no point wasting space on keeping those.
+                        $this->log->deleteLogsForMessage($this->msg->getID());
                         $ret = MailRouter::TO_SYSTEM;
                     }
                 }
