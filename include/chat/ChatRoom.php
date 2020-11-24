@@ -2067,6 +2067,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                     ChatMessage::TYPE_ADDRESS
                                 ]);
 
+                                $bin = '';
+
                                 foreach ($prevmsgs as $p) {
                                     $prevmsg[] = $this->prepareForTwig($chattype,
                                                                        $notifyingmember,
@@ -2074,7 +2076,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                                                        $p,
                                                                        $sendingto,
                                                                        $sendingfrom,
-                                                                       $textsummary,
+                                                                       $bin,
                                                                        $this->getTextSummary($p, $sendingto, $sendingfrom, $allowpastschedules, count($prevmsgs) > 1, $intsubj),
                                                                     $userlist);
                                 }
