@@ -1,184 +1,362 @@
 <mjml>
   <mj-head>
-    <mj-style>
-      a { color: #288c0a; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; }
-    </mj-style>
     <mj-attributes>
-      <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
+      <mj-class name="bordersect" border="1px solid #CDCDCD;" background-color="white" padding="10px" inline="inline"/>
+      <mj-class name="primary"  background-color="darkgreen" color="white" font-size="20px" inline="inline"/>
+      <mj-class name="secondary"  background-color="darkgreen" color="white" font-size="16px" inline="inline"/>
+      <mj-class name="tertiary"  background-color="darkblue" color="white" font-size="16px" inline="inline"/>
+      <mj-class name="quadrenary"  background-color="black" color="white" font-size="12px" inline="inline"/>
+      <mj-class name="date"  font-size="14px"padding="0px 0px 15px" font-weight="bold" color="#6c757d" inline="inline"/>
+      <mj-class name="profilepic" border-radius="50%" height="30px" width="30px" inline="inline" padding-top="5px" />
+      <mj-class name="sectiontitle" align="center" font-size="24px" font-weight="bold" color="black" inline="inline"/>
+      <mj-class name="messagetext" font-weight="bold" font-size="16px" inline="inline"/>
+      <mj-class name="padcol" width="5%" inline="inline"/>
+      <mj-class name="smallcol" width="12%" inline="inline"/>
+      <mj-class name="largecol" width="83%" inline="inline"/>
+      <mj-class name="chatimage"  border-radius="5px" height="250px" />
+      <mj-class name="footer" background-color="#E0E0E0" />
+      <mj-divider border-color="#61AE24" padding="0px"/>
+      <mj-preview>{{ textbody }}</mj-preview>
+      <mj-section background-color="#F9F7EC" />
+      <mj-all font-family="'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" />
     </mj-attributes>
-    <mj-preview>{{ textbody }} </mj-preview>
   </mj-head>
   <mj-body>
-    <mj-container>
-      <mj-wrapper padding="0" full-width="full-width">
-        <!-- header section -->
-        <mj-section background-color="{{ backcolour }}">
-          <mj-column>
-            <mj-raw>
-              {% for message in messages %}
-            </mj-raw>
+    <mj-section padding="20px 0px 0px ">
+      <mj-column>
+        <mj-text mj-class="sectiontitle">
+          Message from&nbsp;{{ fromname }}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-raw>
+      {% for message in messages %}
+    </mj-raw>
+
+      <mj-raw>
+        {% if message.mine is defined and message.mine %}
+      </mj-raw>
+
+        <mj-section padding="10px">
+          <mj-group>
+            <mj-column mj-class="padcol">
+            </mj-column>
+            <mj-column mj-class="largecol bordersect">
+
               <mj-raw>
-                {% if message.mine is defined and message.mine %}
+                {% if message.image is defined %}
               </mj-raw>
-                <mj-text align="right" color="grey">
-                  <em>You wrote:</em>
-                </mj-text>
-                <mj-text align="right" color="black">
-                  <span style="font-weight: bold">{{ message.message|nl2br }}</span>
-                </mj-text>
-                <mj-raw>
-                  {% if message.image is defined and message.image %}
-                </mj-raw>
-                    <mj-image href="{{ message.reply }}" alt="Picture" align="right" border-radius="5px" src="{{ message.image }}" width="300px"> </mj-image>
-                <mj-raw>
-                  {% endif %}
-                </mj-raw>
-                <mj-raw>
-                  {% if message.collurl is defined and message.collurl %}
-                </mj-raw>
-                <mj-text align="right">
-                    <a href="{{ message.collurl }}">{{ message.collurl }}</a>
-                </mj-text>
-                <mj-raw>
-                  {% endif %}
-                </mj-raw>
+
+			          <mj-image fluid-on-mobile="true" alt="Chat image" align="right" mj-class="chatimage" src="{{ message.image }}"></mj-image>
+
               <mj-raw>
                 {% else %}
               </mj-raw>
-                <mj-raw>
-                    {% if message.fromname is defined and message.fromname %}
-                </mj-raw>
-                <mj-text align="left" color="grey">
-                  <em>{{ message.fromname }}&nbsp;wrote:</em>
+
+                <mj-text mj-class="messagetext" padding="0px 20px 0px 0px ">
+                  {{ message.message|nl2br }}
                 </mj-text>
-                <mj-raw>
-                    {% endif %}
-                </mj-raw>
-                <mj-text align="left" color="blue">
-                  <span style="font-weight: bold">{{ message.message|nl2br }}</span>
-                </mj-text>
-                <mj-raw>
-                  {% if message.image is defined and message.image %}
-                </mj-raw>
-                    <mj-image href="{{ message.reply }}" alt="Picture" align="left" border-radius="5px" src="{{ message.image }}" width="300px"> </mj-image>
-                <mj-raw>
-                  {% endif %}
-                </mj-raw>
-                <mj-raw>
-                  {% if message.collurl is defined and message.collurl %}
-                </mj-raw>
-                <mj-text align="left">
-                    <a href="{{ collurl }}">{{ message.collurl }}</a>
-                </mj-text>
-                <mj-raw>
-                  {% endif %}
-                </mj-raw>
+
               <mj-raw>
                 {% endif %}
               </mj-raw>
-            <mj-raw>
-              {% endfor %}
-            </mj-raw>
-            <mj-raw>
-                {% if aboutme is defined and aboutme %}
-            </mj-raw>
-            <mj-text container-background-color="#F7F6EC">
-              <em>About&nbsp;{{ name }}:</em>
-            </mj-text>
-            <mj-text container-background-color="#F7F6EC">
-              "{{ aboutme }}"
-            </mj-text>
-            <mj-raw>
-              {% endif %}
-            </mj-raw>
-            <mj-section>
-              <mj-column>
-                <mj-button align="left" href="{{ reply }}" font-family="Helvetica" background-color="darkgreen" color="white">
-                  Reply
-                </mj-button>
-              </mj-column>
+
+            </mj-column>
+            <mj-column mj-class="smallcol">
+              <mj-image padding="0px" align="right" src="{{ message.profilepic }}" mj-class="profilepic"></mj-image>
+            </mj-column>
+          </mj-group>
+        </mj-section>
+
+      <mj-raw>
+        {% else %}
+      </mj-raw>
+
+        <mj-section padding="10px">
+          <mj-group>
+            <mj-column mj-class="smallcol">
+              <mj-image padding="0px" align="left" src="{{ message.profilepic }}" mj-class="profilepic"></mj-image>
+            </mj-column>
+            <mj-column mj-class="largecol bordersect">
+
               <mj-raw>
-              {% if outcometaken is defined and outcometaken is not empty %}
+                {% if message.image is defined %}
               </mj-raw>
-              <mj-column>
-                <mj-button align="left" href="{{ outcometaken }}" font-family="Helvetica" background-color="darkblue" color="white">
-                  It's been TAKEN
-                </mj-button>
-              </mj-column>
+
+			          <mj-image fluid-on-mobile="true" alt="Chat image" align="left" mj-class="chatimage" src="{{ message.image }}"></mj-image>
+
               <mj-raw>
-              {% endif %}
-              {% if outcomewithdrawn is defined and outcomewithdrawn is not empty %}
+                {% else %}
               </mj-raw>
-              <mj-column>
-                <mj-button align="right" href="{{ outcomewithdrawn }}" font-family="Helvetica" background-color="black" color="white">
-                  Withdraw
-                </mj-button>
-              </mj-column>
+
+                <mj-text mj-class="messagetext" padding="0px 20px 0px 0px ">
+                  {{ message.message|nl2br }}
+                </mj-text>
+
               <mj-raw>
-              {% endif %}
+                {% endif %}
               </mj-raw>
-            </mj-section>
-            <mj-raw>
-              {% if prevmsg is defined and prevmsg %}
-            </mj-raw>
-            <mj-text color="black">
-              <hr style="border: 0; border-top: 1px solid #AAA; " />
-                <span style="font-weight: bold">{{ prevmsg|nl2br }}</span>
-              <hr style="border: 0; border-top: 1px solid #AAA; " />
-            </mj-text>
-            <mj-raw>
-              {% endif %}
-            </mj-raw>
-            <mj-text color="grey">
-              You can respond by just replying to this email - but it works better if you reply on the site using the button.
-            </mj-text>
-            <mj-raw>
-              {% if ismod is defined and ismod %}
-            </mj-raw>
-            <mj-text color="grey">
-              This message is sent to all volunteers on the group. If you need help dealing with this query, you can mail <a href="mailto:{{ support }}">{{ support }}</a>.
-            </mj-text>
-            <mj-raw>
-              {% endif %}
-            </mj-raw>
-          </mj-column>
+
+            </mj-column>
+            <mj-column mj-class="padcol">
+            </mj-column>
+          </mj-group>
         </mj-section>
-        <mj-section background-color="#F7F6EC" padding=0>
-          <mj-column>
-            <mj-text background-color="#FFF8DC" color="#61AE24" font-size="20pt" line-height="1.25em" padding-bottom="0px">
-              Jobs near you<br />
-            </mj-text>
-            <mj-text background-color="#FFF8DC">
-              If you click through to view these then it will raise a little to help keep Freegle running and free to use.<br />
-            </mj-text>
-          </mj-column>
-          <mj-column>
-            <mj-button align="right" href="https://www.ilovefreegle.org/jobs/{{ joblocation }}" font-family="Helvetica" background-color="darkblue" color="white">
-              View more jobs
-            </mj-button>
-            <mj-button align="right" href="https://freegle.in/paypal1510" font-family="Helvetica" background-color="darkgreen" color="white">
-              Donating helps too!
-            </mj-button>
-          </mj-column>
-        </mj-section>
-        <mj-section background-color="#F7F6EC" padding=0>
-          <mj-column>
-            <mj-text padding-left="25px">
-              {{ jobads|raw }}
-            </mj-text>
-          </mj-column>
-        </mj-section>
-        <mj-section background-color="#E0E0E0">
-          <mj-column>
-            <mj-text font-size="9pt" color="#707070">
-              You've received this mail because you're a member of Freegle. <a href="{{ unsubscribe }}">Unsubscribe</a>.
-              <br /> <br /> This message was from user #{{ fromid }}, and this mail was sent to&nbsp;{{ email }}.
-              <br />
-              <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
-            </mj-text>
-          </mj-column>
-        </mj-section>
-      </mj-wrapper>
-    </mj-container>
+
+      <mj-raw>
+        {% endif %}
+      </mj-raw>
+
+    <mj-raw>
+      {% endfor %}
+    </mj-raw>
+
+    <mj-section padding="0px">
+      <mj-column>
+        <mj-button align="center" href="{{ reply }}" mj-class="primary">
+          Click to Reply
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="10px">
+      <mj-raw>
+        {% if outcometaken is defined and outcometaken is not empty %}
+      </mj-raw>
+
+      	<mj-column>
+          <mj-button align="center" href="{{ outcometaken }}" mj-class="quadrenary">
+            It's been TAKEN
+          </mj-button>
+	      </mj-column>
+
+      <mj-raw>
+        {% endif %}
+      </mj-raw>
+
+      <mj-raw>
+        {% if outcomewithdrawn is defined and outcomewithdrawn is not empty %}
+      </mj-raw>
+        <mj-column>
+          <mj-button align="center" href="{{ outcomewithdrawn }}" mj-class="quadrenary">
+            Withdraw
+          </mj-button>
+      </mj-column>
+      <mj-raw>
+        {% endif %}
+      </mj-raw>
+
+    </mj-section>
+
+    <mj-raw>
+        {% if aboutme is defined and aboutme %}
+    </mj-raw>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider border-color="lightgrey"></mj-divider>
+        <mj-text mj-class="sectiontitle" color="grey">
+          About&nbsp;{{ fromname }}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="10px">
+      <mj-column mj-class="bordersect">
+        <mj-text font-weight="bold" mj-class="messagetext" padding="0px 20px 0px 0px" color="grey">
+          "{{ aboutme }}"
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-raw>
+      {% endif %}
+    </mj-raw>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider></mj-divider>
+        <mj-text mj-class="sectiontitle">
+          Jobs near you
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F7F6EC" padding="0">
+      <mj-column>
+        <mj-text padding-left="25px">
+          {{ jobads|raw }}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding="0">
+      <mj-column>
+        <mj-text background-color="#FFF8DC">
+          If you click through to view these then it will raise a little to help keep Freegle running and free to use.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding="0">
+      <mj-column>
+        <mj-button align="center" href="https://www.ilovefreegle.org/jobs/{{ joblocation }}" mj-class="tertiary">
+          View more jobs
+        </mj-button>
+      </mj-column>
+      <mj-column>
+        <mj-button align="center" href="https://freegle.in/paypal1510" mj-class="secondary">
+          Donating helps too!
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-raw>
+      {% if previousmessages|length %}
+    </mj-raw>
+
+      <mj-section>
+        <mj-column>
+          <mj-divider></mj-divider>
+          <mj-text mj-class="sectiontitle">
+            Previous messages
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-raw>
+        {% for message in previousmessages %}
+      </mj-raw>
+
+        <mj-raw>
+          {% if message.mine is defined and message.mine %}
+        </mj-raw>
+
+          <mj-section padding="10px">
+            <mj-group>
+              <mj-column mj-class="padcol">
+              </mj-column>
+              <mj-column mj-class="largecol bordersect">
+                <mj-raw>
+                  {% if message.image is defined %}
+                </mj-raw>
+
+                  <mj-image fluid-on-mobile="true" alt="Chat image" align="right" mj-class="chatimage" src="{{ message.image }}"></mj-image>
+
+                <mj-raw>
+                  {% else %}
+                </mj-raw>
+
+                  <mj-text mj-class="messagetext" padding="0px 20px 0px 0px ">
+                    {{ message.message|nl2br }}
+                  </mj-text>
+
+                <mj-raw>
+                  {% endif %}
+                </mj-raw>
+
+              </mj-column>
+              <mj-column mj-class="smallcol">
+                <mj-image padding="0px" align="right" src="https://images.ilovefreegle.org/tuimg_4643709.jpg" mj-class="profilepic"></mj-image>
+              </mj-column>
+            </mj-group>
+          </mj-section>
+
+          <mj-section padding="0px 10px">
+            <mj-group>
+              <mj-column mj-class="largecol" >
+                <mj-text align="right" mj-class="date">
+                  {{ message.date }}
+                </mj-text>
+              </mj-column>
+              <mj-column mj-class="smallcol">
+              </mj-column>
+            </mj-group>
+          </mj-section>
+
+        <mj-raw>
+          {% else %}
+        </mj-raw>
+
+          <mj-section padding="10px">
+            <mj-group>
+              <mj-column mj-class="smallcol">
+                <mj-image padding="0px" align="left" src="https://images.ilovefreegle.org/tuimg_4643709.jpg" mj-class="profilepic"></mj-image>
+              </mj-column>
+              <mj-column mj-class="largecol bordersect">
+                <mj-raw>
+                  {% if message.image is defined %}
+                </mj-raw>
+
+                  <mj-image fluid-on-mobile="true" alt="Chat image" align="left" mj-class="chatimage" src="{{ message.image }}"></mj-image>
+
+                <mj-raw>
+                  {% else %}
+                </mj-raw>
+
+                  <mj-text mj-class="messagetext" padding="0px 20px 0px 0px ">
+                    {{ message.message|nl2br }}
+                  </mj-text>
+
+                <mj-raw>
+                  {% endif %}
+                </mj-raw>
+
+              </mj-column>
+              <mj-column mj-class="padcol">
+              </mj-column>
+            </mj-group>
+          </mj-section>
+
+          <mj-section padding="0px 10px">
+            <mj-group>
+              <mj-column mj-class="smallcol">
+              </mj-column>
+              <mj-column mj-class="largecol" >
+                <mj-text align="left" mj-class="date">
+                  {{ message.date }}
+                </mj-text>
+              </mj-column>
+            </mj-group>
+          </mj-section>
+
+        <mj-raw>
+          {% endif %}
+        </mj-raw>
+
+      <mj-raw>
+        {% endfor %}
+      </mj-raw>
+
+    <mj-raw>
+      {% endif %}
+    </mj-raw>
+
+    <mj-section mj-class="footer">
+      <mj-column>
+        <mj-text color="#707070">
+          You've received this mail because you're a member of Freegle. <a href="{{ unsubscribe }}">Unsubscribe</a>.
+          <br />
+          <br />
+        <mj-raw>
+          {% if fromid is defined %}
+        </mj-raw>
+
+          This message was from user #{{ fromid }}, and this mail was sent to&nbsp;{{ email }}.
+
+        <mj-raw>
+          {% else %}
+        </mj-raw>
+
+          This mail was sent to&nbsp;{{ email }}.
+
+        <mj-raw>
+          {% endif %}
+        </mj-raw>
+
+          <br />
+          <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
   </mj-body>
 </mjml>

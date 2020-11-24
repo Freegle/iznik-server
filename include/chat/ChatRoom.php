@@ -1567,7 +1567,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return ($ret);
     }
 
-    public function getMembersStatus($lastmessage, $delay = 600)
+    public function getMembersStatus($lastmessage, $delay = 600, $forceall = FALSE)
     {
         # There are some general restrictions on when we email:
         # - When we have a new message since our last email, we don't email more often than every 10 minutes, so that if
@@ -1580,14 +1580,16 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             # seen message was and decide who to chase.  If they've blocked this chat we don't want to see it.
             #
             # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
-            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != 'Blocked') HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) >= $delay);";
+            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) >= $delay)";
+            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != 'Blocked') $readyq;";
             #error_log("$sql {$this->id}, $lastmessage");
-            $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
+            $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id] : [$this->id, $lastmessage]);
+
             foreach ($users as $user) {
                 # What's the max message this user has either seen or been mailed?
                 #error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
-                $maxseen = Utils::presdef('lastmsgseen', $user, 0);
-                $maxmailed = Utils::presdef('lastmsgemailed', $user, 0);
+                $maxseen = $forceall ? 0 : Utils::presdef('lastmsgseen', $user, 0);
+                $maxmailed = $forceall ? 0 : Utils::presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
                 #error_log("Max seen $maxseen mailed $maxmailed max $max VS $lastmessage");
 
@@ -1608,13 +1610,14 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR lastemailed = '0000-00-00 00:00:00' OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) > $delay);";
+            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR lastemailed = '0000-00-00 00:00:00' OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) > $delay)";
+            $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 $readyq;";
             #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
-            $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
+            $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id] : [$this->id, $lastmessage]);
 
             foreach ($users as $user) {
-                $maxseen = Utils::presdef('lastmsgseen', $user, 0);
-                $maxmailed = Utils::presdef('lastmsgemailed', $user, 0);
+                $maxseen = $forceall ? 0 : Utils::presdef('lastmsgseen', $user, 0);
+                $maxmailed = $forceall ? 0 : Utils::presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
 
                 #error_log("User in User2Mod max $maxmailed vs $lastmessage");
@@ -1659,8 +1662,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                         $this->id
                     ]);
                 foreach ($rosters as $roster) {
-                    $maxseen = Utils::presdef('lastmsgseen', $roster, 0);
-                    $maxmailed = Utils::presdef('lastemailed', $roster, 0);
+                    $maxseen = $forceall ? 0 : Utils::presdef('lastmsgseen', $roster, 0);
+                    $maxmailed = $forceall ? 0 : Utils::presdef('lastemailed', $roster, 0);
                     $max = max($maxseen, $maxmailed);
                     #error_log("Return {$roster['userid']} maxmailed {$roster['lastmsgemailed']} from " . var_export($roster, TRUE));
 
@@ -1678,7 +1681,172 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return ($ret);
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 600, $allowpastschedules = FALSE, $since = "4 hours ago")
+    private function prepareForTwig($chattype, $notifyingmember, $groupid, $unmailedmsg, $sendingto, $sendingfrom, &$textsummary, $thisone, &$userlist) {
+        $u = new User($this->dbhr, $this->dbhm);
+        $thistwig = [];
+        $profileu = NULL;
+
+        if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
+            if ($chattype === ChatRoom::TYPE_USER2USER || $chattype === ChatRoom::TYPE_MOD2MOD) {
+                # Only want to say someone wrote it if they did, which they didn't for system-
+                # generated messages.
+                if ($unmailedmsg['userid'] == $sendingto->getId()) {
+                    $thistwig['mine'] = TRUE;
+                    $profileu = $sendingto;
+
+                } else {
+                    $thistwig['mine'] = FALSE;
+                    $profileu = $sendingfrom;
+                }
+            } else if ($chattype === ChatRoom::TYPE_USER2MOD && $groupid) {
+                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+
+                if ($notifyingmember) {
+                    // User2Mod, and we are notifying the member.
+                    if ($unmailedmsg['userid'] == $sendingto->getId()) {
+                        $thistwig['mine'] = TRUE;
+                        $profileu = $sendingto;
+
+                    } else {
+                        $thistwig['mine'] = FALSE;
+                        $thistwig['profilepic'] = "https://" . IMAGE_DOMAIN . "/gimg_" . $g->getPrivate('profile') . ".jpg";
+                    }
+                } else {
+                    // User2Mod, and we are notifying a mod
+                    if ($unmailedmsg['userid'] == $sendingfrom->getId()) {
+                        $thistwig['mine'] = TRUE;
+                        $profileu = $sendingto;
+
+                    } else {
+                        $thistwig['mine'] = FALSE;
+                        $thistwig['profilepic'] = "https://" . IMAGE_DOMAIN . "/gimg_" . $g->getPrivate('profile') . ".jpg";
+                    }
+                }
+            }
+
+            if ($profileu) {
+                if (!array_key_exists($profileu->getId(), $userlist)) {
+                    $settings = $profileu->getPrivate('settings');
+                    $settings = $settings ? json_decode($settings, TRUE) : [];
+
+                    $users = [ $profileu->getId() => [ 'userid' => $profileu->getId(), 'settings' => $settings ] ];
+                    $u->getPublicProfiles($users);
+                    $userlist[$profileu->getId()] = $users[$profileu->getId()];
+                }
+
+                $thistwig['profilepic'] = $userlist[$profileu->getId()]['profile']['turl'];
+            }
+        }
+
+        if ($unmailedmsg['imageid']) {
+            $a = new Attachment($this->dbhr, $this->dbhm, $unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE);
+            $path = $a->getPath(FALSE);
+            $thistwig['image'] = $path;
+            $textsummary .= "Here's a picture: $path\r\n";
+        } else {
+            $textsummary .= $thisone . "\r\n";
+            $thistwig['message'] = $thisone;
+        }
+
+        $thistwig['date'] = date("Y-m-d H:i:s", strtotime($unmailedmsg['date']));
+
+        return $thistwig;
+    }
+
+    private function getTextSummary($unmailedmsg, $thisu, $otheru, $allowpastschedules, $multiple, &$intsubj) {
+        $thisone = NULL;
+
+        switch ($unmailedmsg['type']) {
+            case ChatMessage::TYPE_COMPLETED: {
+                # There's no text stored for this - we invent it on the client.  Do so here
+                # too.
+                $thisone = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, '{$unmailedmsg['subject']}' is no longer available." : "Thanks, '{$unmailedmsg['subject']}' is no longer needed.";
+                break;
+            }
+
+            case ChatMessage::TYPE_PROMISED: {
+                $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You promised \"" . $unmailedmsg['subject'] . "\" to " . $otheru->getName()) : ("Good news! " . $otheru->getName() . " has promised \"" . $unmailedmsg['subject'] . "\" to you.");
+                break;
+            }
+
+            case ChatMessage::TYPE_INTERESTED: {
+                $intsubj = "";
+
+                if ($multiple > 1) {
+                    # Add in something which identifies the message we're talking about to avoid confusion if this person
+                    # is asking about two items.
+                    $intsubj = "\"" . $unmailedmsg['subject'] . "\":  ";
+                }
+
+                $thisone = $intsubj . $unmailedmsg['message'];
+                break;
+            }
+
+            case ChatMessage::TYPE_RENEGED: {
+                $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You cancelled your promise to " . $otheru->getName()) : ("Sorry, this is no longer promised to you.");
+                break;
+            }
+
+            case ChatMessage::TYPE_REPORTEDUSER: {
+                $thisone = "This member reported another member with the comment: {$unmailedmsg['message']}";
+                break;
+            }
+
+            case ChatMessage::TYPE_ADDRESS: {
+                # There's no text stored for this - we invent it on the client.  Do so here
+                # too.
+                $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You sent an address to " . $otheru->getName() . ".") : ($otheru->getName() . " sent you an address.");
+                $thisone .= "\r\n\r\n";
+                $addid = intval($unmailedmsg['message']);
+                $a = new Address($this->dbhr, $this->dbhm, $addid);
+
+                if ($a->getId()) {
+                    $atts = $a->getPublic();
+
+                    if (Utils::pres('multiline', $atts)) {
+                        $thisone .= $atts['multiline'];
+
+                        if (Utils::pres('instructions', $atts)) {
+                            $thisone .= "\r\n\r\n{$atts['instructions']}";
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            case ChatMessage::TYPE_MODMAIL: {
+                $thisone = "Message from Volunteers:\r\n\r\n{$unmailedmsg['message']}";
+                break;
+            }
+
+            case ChatMessage::TYPE_NUDGE: {
+                $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You nudged " . $otheru->getName()) : ("Nudge - please can you reply?");
+                break;
+            }
+
+            case ChatMessage::TYPE_SCHEDULE:
+            case ChatMessage::TYPE_SCHEDULE_UPDATED: {
+                $s = new Schedule($this->dbhr, $this->dbhm, $unmailedmsg['userid'], $allowpastschedules);
+                $summ = $s->getSummary();
+
+                if (strlen($summ)) {
+                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your availability: $summ") : ($otheru->getName() . " has updated when they may be available: $summ");
+                }
+                break;
+            }
+
+            default: {
+                # Use the text in the message.
+                $thisone = $unmailedmsg['message'];
+                break;
+            }
+        }
+
+        return $thisone;
+    }
+
+    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 600, $allowpastschedules = FALSE, $since = "4 hours ago", $forceall = FALSE)
     {
         # We want to find chatrooms with messages which haven't been mailed to people.  We always email messages,
         # even if they are seen online.
@@ -1692,13 +1860,15 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
         # We run this every minute, so we don't need to check too far back.  This keeps it quick.
         $reviewq = $chattype === ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
+        $allq = $forceall ? '' : "AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0";
         $start = date('Y-m-d', strtotime($since));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0 $reviewq AND chattype = ? $chatq;";
+        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? $allq $reviewq AND chattype = ? $chatq;";
         #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
         #error_log("Chats to scan " . count($chats));
         $notified = 0;
+        $userlist = [];
 
         foreach ($chats as $chat) {
             # Different members of the chat might have been mailed different messages.
@@ -1708,19 +1878,21 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             $lastmaxmailed = $r->lastMailedToAll();
             $maxbugspot = 0;
             $sentsome = FALSE;
-            $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $delay);
+            $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $delay, $forceall);
             $outcometaken = '';
             $outcomewithdrawn= '';
 
             #error_log("Notmailed " . count($notmailed) . " with last message {$chatatts['lastmsg']}");
 
             foreach ($notmailed as $member) {
-                # Now we have a member who has not been mailed the messages in this chat.
+                # Now we have a member who has not been mailed the messages in this chat.  That's who we're sending to.
                 #error_log("{$chat['chatid']} Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
+                $sendingto = User::get($this->dbhr, $this->dbhm, $member['userid']);
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
-                $otheru = User::get($this->dbhr, $this->dbhm, $other);
+                $sendingfrom = User::get($this->dbhr, $this->dbhm, $other);
 
-                $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
+                # For User2Mod chats we do different things based on whether we're notifying the member or the mods.
+                $notifyingmember = $chattype === ChatRoom::TYPE_USER2MOD && $member['role'] == User::ROLE_MEMBER;
 
                 # We email them if they have mails turned on, and even if they don't have any current memberships.
                 # Although that runs the risk of annoying them if they've left, we also have to be able to handle
@@ -1728,10 +1900,10 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 # want to notify that email.
                 #
                 # If this is a conversation between the user and a mod, we always mail the user.
-                $emailnotifson = $thisu->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
+                $emailnotifson = $sendingto->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
                 $forcemailfrommod = ($chat['chattype'] === ChatRoom::TYPE_USER2MOD && $chat['user1'] === $member['userid']);
                 $mailson = $emailnotifson || $forcemailfrommod;
-                #error_log("Consider mail {$member['userid']}, mails on " . $thisu->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($thisu->getMemberships()));
+                #error_log("Consider mail {$member['userid']}, mails on " . $sendingto->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($sendingto->getMemberships()));
 
                 # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they
                 # have changed settings.
@@ -1740,7 +1912,9 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 # chat review only shows user2user chats, and if we don't do this we could delay chats with mods
                 # until the mod next visits the site.
                 $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
-                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? $reviewq AND reviewrejected = 0 AND chat_messages.date >= ? ORDER BY id ASC;",
+                $readyq = $forceall ? '' : "AND chat_messages.id > ? $reviewq AND reviewrejected = 0 AND chat_messages.date >= ?";
+                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? $readyq ORDER BY id ASC;",
+                    $forceall ? [ $chat['chatid'] ] :
                     [
                         $chat['chatid'],
                         $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0,
@@ -1753,15 +1927,13 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     $textsummary = '';
                     $twigmessages = [];
                     $lastmsgemailed = 0;
-                    $lastfrom = 0;
                     $lastmsg = NULL;
                     $justmine = TRUE;
-                    $fromuid = NULL;
                     $firstid = NULL;
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
                         # Message might be empty.
-                        $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
+                        $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? "(Empty message)" : $unmailedmsg['message'];
 
                         # Exclamation marks make emails look spammy, in conjunction with 'free' (which we use because,
                         # y'know, freegle) according to Litmus.  Remove them.
@@ -1780,164 +1952,62 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 $firstid = $unmailedmsg['id'];
                             }
 
-                            # We can get duplicate messages for a variety of reasons.  Suppress them.
+                            $thisone = $this->getTextSummary($unmailedmsg, $sendingto, $sendingfrom, $allowpastschedules, count($unmailedmsgs) > 1, $intsubj);
+
                             switch ($unmailedmsg['type']) {
-                                case ChatMessage::TYPE_COMPLETED: {
-                                    # There's no text stored for this - we invent it on the client.  Do so here
-                                    # too.
-                                    $thisone = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, '{$unmailedmsg['subject']}' is no longer available." : "Thanks, '{$unmailedmsg['subject']}' is no longer needed.";
-                                    break;
-                                }
-
-                                case ChatMessage::TYPE_PROMISED: {
-                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You promised \"" . $unmailedmsg['subject'] . "\" to " . $otheru->getName()) : ("Good news! " . $otheru->getName() . " has promised \"" . $unmailedmsg['subject'] . "\" to you.");
-                                    break;
-                                }
-
-                                case ChatMessage::TYPE_INTERESTED: {
+                                case ChatMessage::TYPE_INTERESTED:
+                                {
                                     if ($unmailedmsg['refmsgid'] && $unmailedmsg['msgtype'] == Message::TYPE_OFFER) {
                                         # We want to add in taken/received/withdrawn buttons.
-                                        $outcometaken = $otheru->loginLink(
+                                        $outcometaken = $sendingfrom->loginLink(
                                             USER_SITE,
-                                            $otheru->getId(),
+                                            $sendingfrom->getId(),
                                             "/mypost/{$unmailedmsg['refmsgid']}/completed",
                                             User::SRC_CHATNOTIF
                                         );
-                                        $outcomewithdrawn = $otheru->loginLink(
+                                        $outcomewithdrawn = $sendingfrom->loginLink(
                                             USER_SITE,
-                                            $otheru->getId(),
+                                            $sendingfrom->getId(),
                                             "/mypost/{$unmailedmsg['refmsgid']}/withdraw",
                                             User::SRC_CHATNOTIF
                                         );
                                     }
-
-                                    $intsubj = "";
-
-                                    if (count($unmailedmsgs) > 1) {
-                                        # Add in something which identifies the message we're talking about to avoid confusion if this person
-                                        # is asking about two items.
-                                        $intsubj = "\"" . $unmailedmsg['subject'] . "\":  ";
-                                    }
-
-                                    $thisone = $intsubj . $unmailedmsg['message'];
-                                    break;
-                                }
-
-                                case ChatMessage::TYPE_RENEGED: {
-                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You cancelled your promise to " . $otheru->getName()) : ("Sorry, this is no longer promised to you.");
-                                    break;
-                                }
-
-                                case ChatMessage::TYPE_REPORTEDUSER: {
-                                    $thisone = "This member reported another member with the comment: {$unmailedmsg['message']}";
-                                    break;
-                                }
-
-                                case ChatMessage::TYPE_ADDRESS: {
-                                    # There's no text stored for this - we invent it on the client.  Do so here
-                                    # too.
-                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You sent an address to " . $otheru->getName() . ".") : ($otheru->getName() . " sent you an address.");
-                                    $thisone .= "\r\n\r\n";
-                                    $addid = intval($unmailedmsg['message']);
-                                    $a = new Address($this->dbhr, $this->dbhm, $addid);
-
-                                    if ($a->getId()) {
-                                        $atts = $a->getPublic();
-
-                                        if (Utils::pres('multiline', $atts)) {
-                                            $thisone .= $atts['multiline'];
-
-                                            if (Utils::pres('instructions', $atts)) {
-                                                $thisone .= "\r\n\r\n{$atts['instructions']}";
-                                            }
-                                        }
-                                    }
-
-                                    break;
-                                }
-
-                                case ChatMessage::TYPE_MODMAIL: {
-                                    $thisone = "Message from Volunteers:\r\n\r\n{$unmailedmsg['message']}";
-                                    break;
-                                }
-
-                                case ChatMessage::TYPE_NUDGE: {
-                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You nudged " . $otheru->getName()) : ("Nudge - please can you reply?");
                                     break;
                                 }
 
                                 case ChatMessage::TYPE_SCHEDULE:
-                                case ChatMessage::TYPE_SCHEDULE_UPDATED: {
-                                    $s = new Schedule($this->dbhr, $this->dbhm, $unmailedmsg['userid'], $allowpastschedules);
-                                    $summ = $s->getSummary();
-                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your availability: $summ") : ($otheru->getName() . " has updated when they may be available: $summ");
-
-                                    if (!strlen($summ)) {
+                                case ChatMessage::TYPE_SCHEDULE_UPDATED:
+                                {
+                                    if (!$thisone) {
                                         # No point sending this if there's no availability.
                                         continue 2;
                                     }
-                                    break;
-                                }
-
-                                default: {
-                                    # Use the text in the message.
-                                    $thisone = $unmailedmsg['message'];
-                                    break;
                                 }
                             }
 
                             # Have we got any messages from someone else?
-                            $justmine = ($unmailedmsg['userid'] != $thisu->getId()) ? FALSE : $justmine;
+                            $justmine = ($unmailedmsg['userid'] != $sendingto->getId()) ? FALSE : $justmine;
                             #error_log("From {$unmailedmsg['userid']} $thisone justmine? $justmine");
 
                             if (!$lastmsg || $lastmsg != $thisone) {
-                                $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
-                                $fromname = $messageu->getName();
-                                $fromuid = $messageu->getId();
-
-                                #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
-                                $thistwig = [];
-
-                                if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
-                                    # Only want to say someone wrote it if they did, which they didn't for system-
-                                    # generated messages.
-                                    if ($lastfrom != $unmailedmsg['userid']) {
-                                        # Alternate colours.
-                                        if ($unmailedmsg['userid'] == $thisu->getId()) {
-                                            $thistwig['mine'] = TRUE;
-                                            $thistwig['fromname'] = 'You';
-                                            $thistwig['toname'] = $otheru->getId() ? $otheru->getName() : NULL;
-                                        } else {
-                                            $thistwig['mine'] = FALSE;
-                                            $thistwig['fromname'] = $fromname;
-                                        }
-                                    }
-                                }
-
-                                $lastfrom = $unmailedmsg['userid'];
-
-                                if ($unmailedmsg['imageid']) {
-                                    $a = new Attachment($this->dbhr, $this->dbhm, $unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE);
-                                    $path = $a->getPath(FALSE);
-                                    $thistwig['image'] = $path;
-                                    $textsummary .= "Here's a picture: $path\r\n";
-                                } else {
-                                    $textsummary .= $thisone . "\r\n";
-                                    $thistwig['message'] = $thisone;
-                                }
-
-                                $twigmessages[] = $thistwig;
+                                $twigmessages[] = $this->prepareForTwig($chattype,
+                                                                        $notifyingmember,
+                                                                        $chat['groupid'],
+                                                                        $unmailedmsg,
+                                                                        $sendingto,
+                                                                        $sendingfrom,
+                                                                        $textsummary,
+                                                                        $thisone,
+                                                                        $userlist);
 
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
                                 $lastmsg = $thisone;
                             }
-//                        } else {
-//                            error_log("Skip {$member['userid']} as mails off");
                         }
                     }
 
-                    #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
-                    if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
+                    #error_log("Consider justmine $justmine vs " . $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $sendingto->getId());
+                    if (!$justmine || $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE)) {
                         if (count($twigmessages)) {
                             # As a subject, we should use the last "interested in" message in this chat - this is the
                             # most likely thing they are talking about.
@@ -1966,7 +2036,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                         # The groupid is useful for TN.
                                         $groupid = $chat['groupid'];
                                     } else {
-                                        $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
+                                        $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $sendingfrom->getName() . " (" . $sendingfrom->getEmailPreferred() . ")";
                                         $site = MOD_SITE;
                                     }
                                     break;
@@ -1986,7 +2056,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                             #
                             # In both cases we include the previous message quoted to look like an old-school email reply.  This
                             # provides some context, and may also help with spam filters by avoiding really short messages.
-                            $prevmsg = "";
+                            $prevmsg = [];
 
                             if ($firstid) {
                                 # Get the last substantive message in the chat before this one, if any are recent.
@@ -1998,72 +2068,77 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 ]);
 
                                 foreach ($prevmsgs as $p) {
-                                    $prevmsg = $this->splitAndQuote($p['message']);
-                                    $textsummary .= "\r\n\r\n$prevmsg";
+                                    $prevmsg[] = $this->prepareForTwig($chattype,
+                                                                       $notifyingmember,
+                                                                       $chat['groupid'],
+                                                                       $p,
+                                                                       $sendingto,
+                                                                       $sendingfrom,
+                                                                       $textsummary,
+                                                                       $this->getTextSummary($p, $sendingto, $sendingfrom, $allowpastschedules, count($prevmsgs) > 1, $intsubj),
+                                                                    $userlist);
                                 }
                             }
 
-                            $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
-                            $to = $thisu->getEmailPreferred();
+                            $url = $sendingto->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
+                            $to = $sendingto->getEmailPreferred();
 
                             #$to = 'log@ehibbert.org.uk';
                             #$to = 'activate@liveintent.com';
 
-                            $jobads = $thisu->getJobAds();
+                            $jobads = $sendingto->getJobAds();
 
                             try {
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
                                         $html = $twig->render('chat_notify.html', [
-                                            'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                            'fromid' => $otheru->getId(),
-                                            'name' => $otheru->getName(),
+                                            'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
+                                            'fromname' => $sendingfrom->getName(),
+                                            'fromid' => $sendingfrom->getId(),
                                             'reply' => $url,
                                             'messages' => $twigmessages,
                                             'backcolour' => '#FFF8DC',
                                             'email' => $to,
-                                            'aboutme' => $otheru->getAboutMe()['text'],
-                                            'prevmsg' => $prevmsg,
+                                            'aboutme' => $sendingfrom->getAboutMe()['text'],
+                                            'previousmessages' => $prevmsg,
                                             'jobads' => $jobads['jobs'],
                                             'joblocation' => $jobads['location'],
                                             'outcometaken' => $outcometaken,
                                             'outcomewithdrawn' => $outcomewithdrawn,
                                         ]);
 
-                                        $sendname = $fromname;
+                                        $sendname = $sendingfrom->getName();
                                         break;
                                     case ChatRoom::TYPE_USER2MOD:
-                                        if ($member['role'] == User::ROLE_MEMBER) {
+                                        if ($notifyingmember) {
                                             $html = $twig->render('chat_notify.html', [
-                                                'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                                'fromid' => $otheru->getId(),
-                                                'name' => $fromname,
+                                                'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
+                                                'fromname' => $g->getName() . ' volunteers',
                                                 'reply' => $url,
                                                 'messages' => $twigmessages,
                                                 'backcolour' => '#FFF8DC',
                                                 'email' => $to,
-                                                'prevmsg' => $prevmsg,
+                                                'previousmessages' => $prevmsg,
                                                 'jobads' => $jobads['jobs'],
                                                 'joblocation' => $jobads['location'],
                                                 'outcometaken' => $outcometaken,
                                                 'outcomewithdrawn' => $outcomewithdrawn,
-
                                             ]);
 
-                                            $sendname = $fromname;
+                                            $sendname = $g->getName() . ' volunteers';
                                         } else {
-                                            $url = $thisu->loginLink($site, $member['userid'], '/modtools/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
+                                            $url = $sendingto->loginLink($site, $member['userid'], '/modtools/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
                                             $html = $twig->render('chat_notify.html', [
-                                                'unsubscribe' => $thisu->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                                'fromid' => $otheru->getId(),
-                                                'name' => $fromname,
+                                                'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
+                                                'fromname' => $sendingfrom->getName(),
+                                                'fromid' => $sendingfrom->getId(),
                                                 'reply' => $url,
                                                 'messages' => $twigmessages,
-                                                'ismod' => $thisu->isModerator(),
+                                                'ismod' => $sendingto->isModerator(),
                                                 'support' => SUPPORT_ADDR,
                                                 'backcolour' => '#E8FEFB',
                                                 'email' => $to,
-                                                'prevmsg' => $prevmsg,
+                                                'previousmessages' => $prevmsg,
                                                 'jobads' => $jobads['jobs'],
                                                 'joblocation' => $jobads['location'],
                                                 'outcometaken' => $outcometaken,
@@ -2088,7 +2163,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                             if ($to && strpos($to, MOD_SITE) === FALSE) {
                                 error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
                                 try {
-                                    #error_log("Our email " . $thisu->getOurEmail() . " for " . $thisu->getEmailPreferred());
+                                    #error_log("Our email " . $sendingto->getOurEmail() . " for " . $sendingto->getEmailPreferred());
                                     if (Utils::pres('seed', $member)) {
                                         # If this is a seed, we want to include the HTML if we would do so for the
                                         # recipient that it is a copy of.  That way we will analyse a representative
@@ -2099,26 +2174,26 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                         # We only include the HTML part if this is a user on our platform; otherwise
                                         # we just send a text bodypart containing the replies.  This means that our
                                         # messages to users who aren't on here look less confusing.
-                                        $includehtml = $thisu->getOurEmail();
+                                        $includehtml = $sendingto->getOurEmail();
                                     }
 
                                     # Make the text summary longer, because this helps with spam detection according
                                     # to Litmus.
                                     $textsummary .= "\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n";
-                                    $message = $this->constructMessage($thisu,
+                                    $message = $this->constructMessage($sendingto,
                                         $member['userid'],
-                                        $thisu->getName(),
+                                        $sendingto->getName(),
                                         $emailoverride ? $emailoverride : $to,
                                         $sendname,
                                         $replyto,
                                         $subject,
                                         $textsummary,
                                         $includehtml ? $html : NULL,
-                                        $fromuid,
+                                        $chattype == ChatRoom::TYPE_USER2USER ? $sendingfrom->getId() : NULL,
                                         $groupid);
 
                                     if ($message) {
-                                        if ($chattype == ChatRoom::TYPE_USER2USER && $thisu->getId() && !$justmine) {
+                                        if ($chattype == ChatRoom::TYPE_USER2USER && $sendingto->getId() && !$justmine) {
                                             # Request read receipt.  We will often not get these for privacy reasons, but if
                                             # we do, it's useful to have to that we can display feedback to the sender.
                                             $headers = $message->getHeaders();
@@ -2126,7 +2201,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                             $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
                                         }
 
-                                        Mail::addHeaders($message, Mail::CHAT, $thisu->getId());
+                                        Mail::addHeaders($message, Mail::CHAT, $sendingto->getId());
 
                                         $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
 
@@ -2141,7 +2216,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                                             if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
                                                 # Send any SMS, but not if we're only mailing our own messages
-                                                $thisu->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid'] . '?src=sms');
+                                                $sendingto->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid'] . '?src=sms');
                                             }
 
                                             $notified++;
