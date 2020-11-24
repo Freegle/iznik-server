@@ -14,7 +14,7 @@ $opts = getopt('m:i:o:w:');
 $mode = $opts['m'];
 
 if ($mode == 'export') {
-    $terms = $dbhr->preQuery("SELECT GREATEST(searchterm1, searchterm2) AS t1, LEAST(searchterm1, searchterm2) as t2, COUNT(*) AS count FROM microactions WHERE searchterm1 IS NOT NULL AND version = 2 GROUP BY t1, t2 ORDER BY count DESC;");
+    $terms = $dbhr->preQuery("SELECT GREATEST(item1, item2) AS t1, LEAST(item1, item2) as t2, COUNT(*) AS count FROM microactions WHERE item1 IS NOT NULL AND version = 3 GROUP BY t1, t2 ORDER BY count DESC;");
     $renumber = [];
     $nh = fopen($opts['o'], 'w');
     $wh = fopen($opts['w'], 'w');
@@ -55,12 +55,12 @@ if ($mode == 'export') {
     while ($fields = fgetcsv($fh, 0, ' ')){
         #error_log("Renumbered {$fields[0]} comm {$fields[1]}");
         if (array_key_exists($fields[0], $renumber)) {
-            $terms = $dbhr->preQuery("SELECT * FROM search_terms WHERE id = ?;", [
+            $terms = $dbhr->preQuery("SELECT * FROM items WHERE id = ?;", [
                 $renumber[$fields[0] . '']
             ]);
 
             foreach ($terms as $term) {
-                $communities[$fields[1]][] = $term['term'];
+                $communities[$fields[1]][] = $term['name'];
             }
         }
     }

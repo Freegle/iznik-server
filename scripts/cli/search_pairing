@@ -1,5 +1,5 @@
 php search_pairing.php -m export -o /tmp/nodes.txt -w /tmp/mapping.txt
 ./convert -i /tmp/nodes.txt -o graph.bin -w graph.weights
 ./community graph.bin -l -1 -v -w graph.weights > graph.tree
-./hierarchy graph.tree  -l 2 > /tmp/communities.txt
+./hierarchy graph.tree  -l 1 > /tmp/communities.txt
 php search_pairing.php -m process -i /tmp/communities.txt -w /tmp/mapping.txt
