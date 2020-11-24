@@ -127,7 +127,7 @@ class Digest
             $sql = "INSERT IGNORE INTO groups_digests (groupid, frequency) VALUES (?, ?);";
             $this->dbhm->preExec($sql, [ $groupid, $frequency ]);
 
-            $sql = "SELECT TIMESTAMPDIFF(MINUTE, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago IS NULL OR timeago >= frequency * 60;";
+            $sql = "SELECT TIMESTAMPDIFF(MINUTE, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE groupid = ? AND frequency = ? " . ($uidforce ? '' : 'HAVING frequency = -1 OR timeago IS NULL OR timeago >= frequency * 60') . ";";
             #error_log("Look for groups to process $sql, $groupid, $frequency");
             $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
 
@@ -153,7 +153,7 @@ class Digest
                 $msgdtq = $track['msgdate'] ? " AND arrival > '{$track['msgdate']}' " : '';
 
                 # If we're forcing, change the query so that we get a message to send.
-                $limq = $uidforce ? " LIMIT 1 " : '';
+                $limq = $uidforce ? " LIMIT 20 " : '';
                 $ord = $uidforce ? " DESC " : " ASC ";
                 $oldest = $uidforce ? '' : $oldest;
                 $msgdtq = $uidforce ? '' : $msgdtq;
