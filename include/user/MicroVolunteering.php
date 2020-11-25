@@ -9,7 +9,8 @@ class MicroVolunteering
     # 1 - SearchTerm asking for 10 out of the top 1000 search terms.
     # 2 - SearchTerm asking for 10 out of the top 50 search terms.
     # 3 - Use item names instead of search terms.
-    const VERSION = 3;
+    # 4 - Use top 300 items rather than top 100
+    const VERSION = 4;
 
     const CHALLENGE_CHECK_MESSAGE = 'CheckMessage';
     const CHALLENGE_SEARCH_TERM = 'SearchTerm';  // No longer used.
@@ -94,7 +95,7 @@ class MicroVolunteering
             # Didn't find a message to approve.  Try pairing of popular item names.
             #
             # We choose 10 random distinct popular items, and ask which are related.
-            $items = $this->dbhr->preQuery("SELECT DISTINCT id, term FROM (SELECT id, name AS term FROM items WHERE LENGTH(name) > 2 ORDER BY popularity DESC LIMIT 100) t ORDER BY RAND() LIMIT 10;");
+            $items = $this->dbhr->preQuery("SELECT DISTINCT id, term FROM (SELECT id, name AS term FROM items WHERE LENGTH(name) > 2 ORDER BY popularity DESC LIMIT 300) t ORDER BY RAND() LIMIT 10;");
             $ret = [
                 'type' => self::CHALLENGE_SEARCH_TERM,
                 'terms' => $items
