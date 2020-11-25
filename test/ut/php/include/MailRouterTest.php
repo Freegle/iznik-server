@@ -1616,6 +1616,16 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route($m);
         assertEquals(MailRouter::TO_SYSTEM, $rc);
     }
+
+    public function testReplyWithGravatar() {
+        # This reply contains a gravatar which should be tripped.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/reply_with_gravatar'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(0, count($m->getAttachments()));
+    }
+
     //    public function testSpecial() {
 //        //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));

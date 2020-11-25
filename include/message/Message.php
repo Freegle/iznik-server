@@ -2221,11 +2221,17 @@ ORDER BY lastdate DESC;";
                 #
                 # We don't want Yahoo's megaphone images - they're just generic footer images.  Likewise Avast.  And
                 # not any from our own domain - they might be ads, or item images in chat notifications.
+                #
+                # And we don't want any profile images from Gravatar, Picasaweb, TN or Facebook.  These might
+                # arrive back at us in quoted replies.
                 if ((stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) &&
                     (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE) &&
                     (stripos($src, 'ilovefreegle.org') === FALSE) &&
+                    (stripos($src, 'gravatar.com') === FALSE) &&
+                    (stripos($src, 'picasaweb.google.com/data/entry/api/user/') === FALSE) &&
+                    (stripos($src, 'trashnothing.com/api/users/') === FALSE) &&
+                    (stripos($src, 'platform-lookaside.fbsbx.com') === FALSE) &&
                     (stripos($src, 'https://ipmcdn.avast.com') === FALSE)) {
-                    #error_log("Get inline image $src");
                     $ctx = stream_context_create(array('http' =>
                         array(
                             'timeout' => 120
