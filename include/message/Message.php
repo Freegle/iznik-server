@@ -4367,7 +4367,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                             $interval = array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2;
                             error_log("Consider chaseup $age vs $interval");
 
-                            if ($interval > 0 && $age > $interval * 24) {
+                            if ($interval > 0 && $age > $interval * 24 && $age < self::EXPIRE_TIME) {
                                 # We can chase up.
                                 $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                                 $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
