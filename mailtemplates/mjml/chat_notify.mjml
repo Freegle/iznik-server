@@ -255,7 +255,7 @@
 
               </mj-column>
               <mj-column mj-class="smallcol">
-                <mj-image padding="0px" align="right" src="https://images.ilovefreegle.org/tuimg_4643709.jpg" mj-class="profilepic"></mj-image>
+                <mj-image padding="0px" align="right" src="{{ message.profilepic }}" mj-class="profilepic"></mj-image>
               </mj-column>
             </mj-group>
           </mj-section>
@@ -279,7 +279,7 @@
           <mj-section padding="10px">
             <mj-group>
               <mj-column mj-class="smallcol">
-                <mj-image padding="0px" align="left" src="https://images.ilovefreegle.org/tuimg_4643709.jpg" mj-class="profilepic"></mj-image>
+                <mj-image padding="0px" align="left" src="{{ message.profilepic }}" mj-class="profilepic"></mj-image>
               </mj-column>
               <mj-column mj-class="largecol bordersect">
                 <mj-raw>

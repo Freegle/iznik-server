@@ -2059,13 +2059,14 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                             $prevmsg = [];
 
                             if ($firstid) {
-                                # Get the last substantive message in the chat before this one, if any are recent.
+                                # Get the last few substantive message in the chat before this one, if any are recent.
                                 $earliest = date("Y-m-d", strtotime("Midnight 90 days ago"));
-                                $prevmsgs = $this->dbhr->preQuery("SELECT chat_messages.* FROM chat_messages WHERE chatid = ? AND id < ? AND message IS NOT NULL AND date >= '$earliest' AND chat_messages.type != ? ORDER BY id DESC LIMIT 1;", [
+                                $prevmsgs = $this->dbhr->preQuery("SELECT chat_messages.* FROM chat_messages WHERE chatid = ? AND id < ? AND date >= '$earliest' ORDER BY id DESC LIMIT 3;", [
                                     $chat['chatid'],
-                                    $firstid,
-                                    ChatMessage::TYPE_ADDRESS
+                                    $firstid
                                 ]);
+
+                                $prevmsgs = array_reverse($prevmsgs);
 
                                 foreach ($prevmsgs as $p) {
                                     $prevmsg[] = $this->prepareForTwig($chattype,
