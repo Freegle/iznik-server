@@ -1930,6 +1930,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     $lastmsg = NULL;
                     $justmine = TRUE;
                     $firstid = NULL;
+                    $fromname = NULL;
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
                         # Message might be empty.
@@ -2003,6 +2004,35 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
                                 $lastmsg = $thisone;
                             }
+                        }
+
+                        # We want to include the name of the last person sending a message.
+                        switch ($chattype) {
+                            case ChatRoom::TYPE_USER2USER:
+                                $fromname = $sendingfrom->getName();
+                                break;
+                            case ChatRoom::TYPE_USER2MOD:
+                                if ($notifyingmember) {
+                                    # Always show message from volunteers.
+                                    $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
+                                    $fromname = $g->getPublic()['namedisplay'] . " volunteers";
+                                } else {
+                                    if ($unmailedmsg['userid'] === $chatatts['user1']['id']) {
+                                        # Notifying mod of message from member.
+                                        $u = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
+                                        $fromname = $u->getName();
+                                    } else {
+                                        # Notifying mod of message from another mod.
+                                        $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
+                                        $fromname = $g->getPublic()['namedisplay'] . " volunteers";
+                                    }
+                                }
+                                break;
+                            case ChatRoom::TYPE_MOD2MOD:
+                                # Notifying mod of message from another mod, but can can show who.
+                                $u = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
+                                $fromname = $u->getName();
+                                break;
                         }
                     }
 
@@ -2096,7 +2126,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                     case ChatRoom::TYPE_USER2USER:
                                         $html = $twig->render('chat_notify.html', [
                                             'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                            'fromname' => $sendingfrom->getName(),
+                                            'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
                                             'fromid' => $sendingfrom->getId(),
                                             'reply' => $url,
                                             'messages' => $twigmessages,
@@ -2116,7 +2146,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                         if ($notifyingmember) {
                                             $html = $twig->render('chat_notify.html', [
                                                 'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                                'fromname' => $g->getName() . ' volunteers',
+                                                'fromname' => $fromname ? $fromname : ($g->getName() . ' volunteers'),
                                                 'reply' => $url,
                                                 'messages' => $twigmessages,
                                                 'backcolour' => '#FFF8DC',
@@ -2133,7 +2163,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                             $url = $sendingto->loginLink($site, $member['userid'], '/modtools/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
                                             $html = $twig->render('chat_notify.html', [
                                                 'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                                'fromname' => $sendingfrom->getName(),
+                                                'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
                                                 'fromid' => $sendingfrom->getId(),
                                                 'reply' => $url,
                                                 'messages' => $twigmessages,
