@@ -14,7 +14,7 @@ $_SERVER['HTTP_HOST'] = "www.ilovefreegle.org";
 $lockh = Utils::lockScript(basename(__FILE__));
 
 $m = new Message($dbhr, $dbhm);
-$mysqltime = date("Y-m-d", max(strtotime("06-sep-2016"), strtotime("Midnight 90 days ago")));
+$mysqltime = date("Y-m-d", max(strtotime("06-sep-2016"), strtotime("Midnight " . Message::EXPIRE_TIME . " days ago")));
 $count = $m->tidyOutcomes('2001-01-01');
 error_log("Tidied $count outcomes");
 $count = $m->processIntendedOutcomes();

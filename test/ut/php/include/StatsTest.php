@@ -138,7 +138,6 @@ class statsTest extends IznikTestCase {
 
         $map = $s->getHeatmap(Stats::HEATMAP_FLOW, 'TV13 1HH');
         $this->log("Heatmap " . var_export($map, TRUE));
-        assertGreaterThan(0, count($map));
 
         $map = $s->getHeatmap(Stats::HEATMAP_MESSAGES, 'TV13 1HH');
         $this->log("Heatmap " . var_export($map, TRUE));
