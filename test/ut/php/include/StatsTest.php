@@ -136,6 +136,8 @@ class statsTest extends IznikTestCase {
 
         $s = new Stats($this->dbhr, $this->dbhm);
 
+        $this->waitBackground();
+
         $map = $s->getHeatmap(Stats::HEATMAP_FLOW, 'TV13 1HH');
         $this->log("Heatmap " . var_export($map, TRUE));
 
