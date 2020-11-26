@@ -178,7 +178,7 @@ function group() {
                         }
 
                         # Other settable attributes
-                        foreach (['onhere', 'publish'] as $att) {
+                        foreach (['onhere', 'publish', 'microvolunteering'] as $att) {
                             $val = Utils::presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);
@@ -186,6 +186,12 @@ function group() {
                                 if ($att === 'affiliationconfirmed') {
                                     $g->setPrivate('affiliationconfirmedby', $me->getId());
                                 }
+                            }
+                        }
+                        foreach (['microvolunteeringoptions'] as $att) {
+                            $val = Utils::presdef($att, $_REQUEST, NULL);
+                            if (array_key_exists($att, $_REQUEST)) {
+                                $g->setPrivate($att, json_encode($val));
                             }
                         }
                         foreach (['tagline', 'namefull', 'welcomemail', 'description', 'region', 'affiliationconfirmed'] as $att) {

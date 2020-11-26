@@ -19,7 +19,7 @@ class Group extends Entity
         'onhere', 'ontn', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation',
-        'moderationstatus', 'maxagetoshow', 'nearbygroups', 'microvolunteering');
+        'moderationstatus', 'maxagetoshow', 'nearbygroups', 'microvolunteering', 'microvolunteeringoptions');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -621,6 +621,11 @@ memberships.groupid IN $groupq
                 $atts['defaultlocation'] = $l->getPublic();
             }
         }
+
+        $atts['microvolunteeringoptions'] = $atts['microvolunteeringoptions'] ? json_decode($atts['microvolunteeringoptions'], TRUE) : [
+            'approvedmessages' => 1,
+            'wordmatch' => 1
+        ];
 
         return($atts);
     }
