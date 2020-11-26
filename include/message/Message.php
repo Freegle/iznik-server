@@ -4365,7 +4365,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                             $lastreply = $replies[0]['latest'];
                             $age = ($now - strtotime($lastreply)) / (60 * 60);
                             $interval = array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2;
-                            error_log("Consider chaseup $age vs $interval");
+                            error_log("#{$message['msgid']} Consider chaseup $age vs $interval");
 
                             if ($interval > 0 && $age > $interval * 24 && $age < self::EXPIRE_TIME) {
                                 # We can chase up.
