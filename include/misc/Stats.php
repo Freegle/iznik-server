@@ -33,6 +33,7 @@ class Stats
 
     CONST HEATMAP_USERS = 'Users';
     CONST HEATMAP_MESSAGES = 'Messages';
+    CONST HEATMAP_FLOW = 'Flow';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
@@ -484,8 +485,67 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         # TODO Would be nice to only look at messages within the last year but that's not indexed well.
         $locnameq = $locname ? " AND locations.name = '$locname' LIMIT 1" : '';
         $mysqltime = date ("Y-m-d", strtotime("Midnight 1 year ago"));
-        $sql = $type == Stats::HEATMAP_USERS ? "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT lastlocation, COUNT(*) AS count FROM users WHERE lastaccess > '$mysqltime' AND lastlocation IS NOT NULL GROUP BY lastlocation) t ON t.lastlocation = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL;" : "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT locationid, COUNT(*) AS count FROM messages INNER JOIN locations ON locations.id = messages.locationid WHERE locationid IS NOT NULL AND locations.type = 'Postcode' AND INSTR(locations.name, ' ') GROUP BY locationid) t ON t.locationid = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL $locnameq;";
-        $areas = $this->dbhr->preQuery($sql);
+        $sql = NULL;
+        $areas = [];
+
+        switch ($type) {
+            case Stats::HEATMAP_USERS:
+                $sql = "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT lastlocation, COUNT(*) AS count FROM users WHERE lastaccess > '$mysqltime' AND lastlocation IS NOT NULL GROUP BY lastlocation) t ON t.lastlocation = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL;";
+                $areas = $this->dbhr->preQuery($sql);
+                break;
+            case Stats::HEATMAP_MESSAGES:
+                $sql = "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT locationid, COUNT(*) AS count FROM messages INNER JOIN locations ON locations.id = messages.locationid WHERE locationid IS NOT NULL AND locations.type = 'Postcode' AND INSTR(locations.name, ' ') GROUP BY locationid) t ON t.locationid = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL $locnameq;";
+                $areas = $this->dbhr->preQuery($sql);
+                break;
+            case Stats::HEATMAP_FLOW:
+                # We want the locations and counts of users who make an Offer which was taken.
+                $start = date('Y-m-d', strtotime("365 days ago"));
+                $sql = "SELECT locations.id, locations.name, locations.lat, locations.lng, COUNT(*) AS count FROM messages_by 
+    INNER JOIN messages ON messages_by.msgid = messages.id
+    INNER JOIN users ON users.id = messages.fromuser 
+    INNER JOIN locations ON locations.id = users.lastlocation AND locations.type = 'Postcode' 
+    WHERE messages_by.timestamp >= ?
+    GROUP BY locations.id
+    $locnameq";
+                
+                $donors = $this->dbhr->preQuery($sql, [
+                    $start
+                ]);
+
+                error_log("Donors  " . var_export($donors, TRUE));
+
+                $locs = [];
+                
+                foreach ($donors as $donor) {
+                    $locs[$donor['id']] = $donor;
+                }
+                
+                # And the locations and counts of users who have received the Offers.
+                $sql = "  SELECT locations.id, locations.name, locations.lat, locations.lng, COUNT(*) AS count FROM messages_by
+    INNER JOIN messages ON messages_by.msgid = messages.id
+    INNER JOIN users ON users.id = messages_by.userid
+    INNER JOIN locations ON locations.id = users.lastlocation AND locations.type = 'Postcode'
+    WHERE messages_by.timestamp >= ?
+    GROUP BY locations.id 
+    $locnameq";
+                $recipients = $this->dbhr->preQuery($sql, [
+                    $start
+                ]);
+
+                foreach ($recipients as $recipient) {
+                    if (array_key_exists($recipient['id'], $locs)) {
+                        $locs[$recipient['id']]['count'] -= $recipient['count'];
+                    } else {
+                        $locs[$recipient['id']] = $recipient;
+                        $locs[$recipient['id']]['count'] = -$locs[$recipient['id']]['count'];
+                    }
+                }
+
+                # Now we return an array where the count is the net offers in this area.
+                $areas = array_values($locs);
+                break;
+        }
+
         return($areas);
     }
 

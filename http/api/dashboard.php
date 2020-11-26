@@ -30,8 +30,9 @@ function dashboard() {
             } else {
                 # Older style dashboard for old ModTools and stats.
                 $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $region, $type, $start, $end, $force);
+                $type = Utils::presdef('maptype', $_REQUEST, Stats::HEATMAP_MESSAGES);
                 $s = new Stats($dbhr, $dbhm);
-                $ret['heatmap'] = $heatmap ? $s->getHeatmap() : NULL;
+                $ret['heatmap'] = $heatmap ? $s->getHeatmap($type) : NULL;
 
                 $ret['emailproblems'] = $dbhr->preQuery("SELECT * FROM `domains` WHERE problem = 1 ORDER BY domain ASC;");
                 foreach ($ret['emailproblems'] as &$domain) {

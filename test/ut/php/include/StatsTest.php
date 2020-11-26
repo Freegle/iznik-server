@@ -135,10 +135,18 @@ class statsTest extends IznikTestCase {
         self::assertEquals(strtolower('OFFER: test item (TV13)'), strtolower($m->getSubject()));
 
         $s = new Stats($this->dbhr, $this->dbhm);
+
+        $map = $s->getHeatmap(Stats::HEATMAP_FLOW, 'TV13 1HH');
+        $this->log("Heatmap " . var_export($map, TRUE));
+        assertGreaterThan(0, count($map));
+
         $map = $s->getHeatmap(Stats::HEATMAP_MESSAGES, 'TV13 1HH');
         $this->log("Heatmap " . var_export($map, TRUE));
         assertGreaterThan(0, count($map));
 
+        $map = $s->getHeatmap(Stats::HEATMAP_USERS, 'TV13 1HH');
+        $this->log("Heatmap " . var_export($map, TRUE));
+        assertGreaterThan(0, count($map));
     }
 }
 
