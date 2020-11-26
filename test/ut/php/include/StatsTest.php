@@ -137,7 +137,7 @@ class statsTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $this->dbhm->preExec("UPDATE users SET lastaccess = NOW(), lastlocation = ? WHERE id = ?", [
-            $pcid,
+            $fullpcid,
             $uid
         ]);
 
