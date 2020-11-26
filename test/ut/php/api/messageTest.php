@@ -2935,4 +2935,21 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Message #$id should be pending " . var_export($ret, TRUE));
         assertEquals(6, $ret['ret']);
     }
+
+    public function testRepost() {
+        # Create a group with a message on it
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(MessageCollection::APPROVED, $m->repost());
+
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
+        assertEquals(MessageCollection::PENDING, $m->repost());
+    }
 }

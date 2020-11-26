@@ -4596,12 +4596,36 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         # Make sure we don't keep doing this.
         $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
 
-        # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
-        # near the top, and get mailed out again.
-        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?;", [ $this->id ]);
+        $u = new User($this->dbhr, $this->dbhm, $this->getFromuser());
+        $groups = $this->getGroups(FALSE, FALSE);
 
-        # ...and update the search index.
-        $this->s->bump($this->id, time());
+        $ret = NULL;
+
+        foreach ($groups as $group) {
+            # Consider the posting status on this group.  The group might have a setting for moderation; failing
+            # that we use the posting status on the group.
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $postcoll = ($g->getSetting('moderated', 0) || $g->getSetting(
+                    'closed',
+                    0
+                )) ? MessageCollection::PENDING : $u->postToCollection($group['groupid']);
+
+            if ($group['collection'] === MessageCollection::APPROVED &&
+                $postcoll === MessageCollection::PENDING) {
+                # This message is approved, but the member is moderated.  That means the message must previously
+                # have been approved.  So this repost also needs approval.  Move it to Pending.
+                $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id ]);
+                $this->s->delete($this->id);
+                $ret = MessageCollection::PENDING;
+            } else {
+                # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
+                # near the top, and get mailed out again.
+                $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?;", [ $this->id ]);
+                # ...and update the search index.
+                $this->s->bump($this->id, time());
+                $ret = MessageCollection::APPROVED;
+            }
+        }
 
         # Record that we've done this.
         $groups = $this->getGroups();
@@ -4614,6 +4638,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                 0
             ]);
         }
+
+        return $ret;
     }
 
     public function autoRepost($reposts, $max) {
