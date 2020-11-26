@@ -490,7 +490,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
 
         switch ($type) {
             case Stats::HEATMAP_USERS:
-                $sql = "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT lastlocation, COUNT(*) AS count FROM users WHERE lastaccess > '$mysqltime' AND lastlocation IS NOT NULL GROUP BY lastlocation) t ON t.lastlocation = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL;";
+                $sql = "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT lastlocation, COUNT(*) AS count FROM users WHERE lastaccess > '$mysqltime' AND lastlocation IS NOT NULL GROUP BY lastlocation) t ON t.lastlocation = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL $locnameq;";
                 $areas = $this->dbhr->preQuery($sql);
                 break;
             case Stats::HEATMAP_MESSAGES:

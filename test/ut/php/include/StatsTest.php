@@ -134,6 +134,13 @@ class statsTest extends IznikTestCase {
         $m->constructSubject($gid);
         self::assertEquals(strtolower('OFFER: test item (TV13)'), strtolower($m->getSubject()));
 
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->dbhm->preExec("UPDATE users SET lastaccess = NOW(), lastlocation = ? WHERE id = ?", [
+            $pcid,
+            $uid
+        ]);
+
         $s = new Stats($this->dbhr, $this->dbhm);
 
         $this->waitBackground();
