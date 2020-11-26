@@ -67,18 +67,14 @@ class microvolunteeringAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        # Ask again - logged in.
+        # Ask again - logged in with membership.
+        $u->addMembership($gid);
         $ret = $this->call('microvolunteering', 'GET', [
             'groupid' => $gid
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(MicroVolunteering::CHALLENGE_CHECK_MESSAGE, $ret['microvolunteering']['type']);
         assertEquals($id, $ret['microvolunteering']['msgid']);
-
-        # Ask again - no specific group and no memberships
-        $ret = $this->call('microvolunteering', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals(MicroVolunteering::CHALLENGE_SEARCH_TERM, $ret['microvolunteering']['type']);
 
         # Response
         $ret = $this->call('microvolunteering', 'POST', [
@@ -97,7 +93,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
 
-        # Should be no messags left as we've given a response, so we'll get a search term.
+        # Should be no messages left as we've given a response, so we'll get a search term.
         $ret = $this->call('microvolunteering', 'GET', [
             'groupid' => $gid
         ]);

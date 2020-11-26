@@ -53,6 +53,7 @@ class MicroVolunteering
         # - not had a quorum of opinions
         # - not one we've seen
         # - still open
+        # - on a group with this kind of microvolunteering enabled.
         if (count($groupids)) {
             $msgs = $this->dbhr->preQuery(
                 "SELECT messages_spatial.msgid,
@@ -72,6 +73,7 @@ class MicroVolunteering
         AND messages_outcomes.id IS NULL
         AND messages.deleted IS NULL
         AND microactions.id IS NULL
+        AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
     HAVING approvalcount < ? AND reviewcount < ?
     ORDER BY messages_groups.arrival ASC LIMIT 1",
                 [
@@ -95,11 +97,17 @@ class MicroVolunteering
             # Didn't find a message to approve.  Try pairing of popular item names.
             #
             # We choose 10 random distinct popular items, and ask which are related.
-            $items = $this->dbhr->preQuery("SELECT DISTINCT id, term FROM (SELECT id, name AS term FROM items WHERE LENGTH(name) > 2 ORDER BY popularity DESC LIMIT 300) t ORDER BY RAND() LIMIT 10;");
-            $ret = [
-                'type' => self::CHALLENGE_SEARCH_TERM,
-                'terms' => $items
-            ];
+            $enabled = $this->dbhr->preQuery("SELECT memberships.id FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE memberships.userid = ? AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.wordmatch') = 1);", [
+                $userid
+            ]);
+
+            if (count($enabled)) {
+                $items = $this->dbhr->preQuery("SELECT DISTINCT id, term FROM (SELECT id, name AS term FROM items WHERE LENGTH(name) > 2 ORDER BY popularity DESC LIMIT 300) t ORDER BY RAND() LIMIT 10;");
+                $ret = [
+                    'type' => self::CHALLENGE_SEARCH_TERM,
+                    'terms' => $items
+                ];
+            }
         }
 
         return $ret;
