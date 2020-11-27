@@ -2009,7 +2009,10 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                         # We want to include the name of the last person sending a message.
                         switch ($chattype) {
                             case ChatRoom::TYPE_USER2USER:
-                                $fromname = $sendingfrom->getName();
+                                # We might be sending a copy of the user's own message, so the fromname could be either.
+                                $fromname = $unmailedmsg['userid'] == $sendingto->getId() ?
+                                    $sendingto->getName() :
+                                    $sendingfrom->getName();
                                 break;
                             case ChatRoom::TYPE_USER2MOD:
                                 if ($notifyingmember) {
