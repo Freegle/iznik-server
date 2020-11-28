@@ -583,14 +583,6 @@ class Message
         $this->si = new Search($dbhr, $dbhm, 'items_index', 'itemid', 'popularity', 'words', 'categoryid', NULL, 'words_cache');
     }
 
-    /**
-     * @param Search $search
-     */
-    public function setSearch($search)
-    {
-        $this->s = $search;
-    }
-
     public function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
         # These mails don't need tracking, so we don't call addHeaders.
         try {

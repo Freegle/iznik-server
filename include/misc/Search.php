@@ -17,7 +17,7 @@ class Search
     CONST Limit = 10;
     private $dbhr;
     private $dbhm;
-    private $table;
+    public $table;
     private $idatt;
     private $sortatt;
     private $sortlim;

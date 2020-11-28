@@ -395,11 +395,18 @@ class messagesTest extends IznikAPITestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'OFFER: basic test (Place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
+
+        # Index
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('lat', 8.4);
+        $m->setPrivate('lng', 179.15);
+        $m->addToSpatialIndex();
 
         # Ensure we have consent to see this message
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -440,6 +447,12 @@ class messagesTest extends IznikAPITestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
+
+        # Index
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('lat', 8.5);
+        $m->setPrivate('lng', 179.3);
+        $m->addToSpatialIndex();
 
         # Put the message in the bounding box.
         $a = new Message($this->dbhr, $this->dbhm, $id);

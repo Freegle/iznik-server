@@ -24,12 +24,7 @@ class searchTest extends IznikTestCase
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->preExec("DROP TABLE IF EXISTS test_index");
-        $this->dbhm->preExec("CREATE TABLE test_index LIKE messages_index");
-        $this->s = new Search($this->dbhr, $this->dbhm, 'test_index', 'msgid', 'arrival', 'words', 'groupid', NULL,'words_cache');
-        $this->dbhm->preExec("DELETE FROM words WHERE word = 'zzzutzzz';");
         $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-        $this->dbhm->preExec("DELETE FROM words_cache WHERE search LIKE 'zzzutzzz';");
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->gid = $g->create('testgroup', Group::GROUP_REUSE);
@@ -53,12 +48,10 @@ class searchTest extends IznikTestCase
         $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->setSearch($this->s);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $id1 = $m->save();
         $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
-        $m1->setSearch($this->s);
         $this->log("Created message id $id1");
 
         # Search for various terms
@@ -135,77 +128,77 @@ class searchTest extends IznikTestCase
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
         assertEquals(0, count($ret));
-
-        }
+    }
 
     public function testMultiple()
     {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz (location)', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->setSearch($this->s);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $id1 = $m->save();
-        $m->index();
+
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
-        $m1->setSearch($this->s);
+        $m1->index();
+        $m1->setPrivate('lat', 8.4);
+        $m1->setPrivate('lng', 179.15);
+        $m1->addToSpatialIndex();
         $this->log("Created message id $id1");
+        #error_log("Indexed ? " . var_export($this->dbhr->preQuery("SELECT DISTINCT items_index.itemid, items_index.popularity, wordid FROM items_index INNER JOIN messages_items ON items_index.itemid = messages_items.itemid  WHERE `wordid` IN (13449318)"), TRUE));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'OFFER: Test yyyutyyy', $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test yyyutyyy (location)', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->setSearch($this->s);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $id2 = $m->save();
-        $m->index();
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
-        $m2->setSearch($this->s);
+        $m2->index();
+        $m2->setPrivate('lat', 8.4);
+        $m2->setPrivate('lng', 179.15);
+        $m2->addToSpatialIndex();
         $this->log("Created message id $id2");
 
         # Search for various terms
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
-        assertEquals(2, count($ret));
-        if ($id2 == $ret[0]['id']) {
-            assertEquals($id1, $ret[1]['id']);
-        } else if ($id1 == $ret[0]['id']) {
-            assertEquals($id2, $ret[1]['id']);
-        } else {
-            assertTrue(FALSE);
-        }
+        assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
+            return $a['id'] == $id1 || $a['id'] == $id2;
+        })));
 
         $ctx = NULL;
         $ret = $m->search("Test zzzutzzz", $ctx);
-        assertEquals(2, count($ret));
-        assertEquals($id1, $ret[0]['id']);
-        assertEquals($id2, $ret[1]['id']);
+        assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
+            return $a['id'] == $id1 || $a['id'] == $id2;
+        })));
 
         $ctx = NULL;
         $ret = $m->search("Test yyyutyyy", $ctx);
-        assertEquals(2, count($ret));
-        assertEquals($id2, $ret[0]['id']);
-        assertEquals($id1, $ret[1]['id']);
+        assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
+            return $a['id'] == $id1 || $a['id'] == $id2;
+        })));
 
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals(1, count($ret));
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1, $id2) {
+            return $a['id'] == $id1;
+        })));
 
         $ctx = NULL;
         $ret = $m->search("yyyutyyy", $ctx);
-        assertEquals(1, count($ret));
-        assertEquals($id2, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1, $id2) {
+            return $a['id'] == $id2;
+        })));
 
         # Test restricted search
         $ctx = NULL;
         $ret = $m->search("test", $ctx, Search::Limit, [ $id1 ]);
-        assertEquals(1, count($ret));
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1, $id2) {
+            return $a['id'] == $id1;
+        })));
 
         $m1->delete();
         $m2->delete();
-
-        }
+    }
 
 //    public function testSpecial() {
 //        $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
