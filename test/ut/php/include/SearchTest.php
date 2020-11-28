@@ -142,15 +142,19 @@ class searchTest extends IznikTestCase
             return $a['id'] == $id1;
         })));
 
-        $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals(0, count($ret));
+        # Context no longer used so will return again.
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         # Delete - shouldn't be returned after that.
         $m1->delete();
 
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
-        assertEquals(0, count($ret));
+        assertEquals(0, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
     }
 
     public function testMultiple()
