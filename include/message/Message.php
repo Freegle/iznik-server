@@ -2961,6 +2961,12 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    public function deleteFromSpatialIndex() {
+        $this->dbhm->preExec("DELETE FROM messages_spatial WHERE msgid = ?", [
+            $this->id
+        ]);
+    }
+
     public function reply($groupid, $subject, $body, $stdmsgid) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 

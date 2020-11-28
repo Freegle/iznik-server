@@ -148,6 +148,7 @@ class searchTest extends IznikTestCase
         })));
 
         # Delete - shouldn't be returned after that.
+        $m1->deleteItems();
         $m1->delete();
 
         $ctx = NULL;
