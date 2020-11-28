@@ -46,32 +46,43 @@ class searchTest extends IznikTestCase
     {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz (location)', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $id1 = $m->save();
         $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
+        $m1->setPrivate('lat', 8.4);
+        $m1->setPrivate('lng', 179.15);
+        $m1->addToSpatialIndex();
         $this->log("Created message id $id1");
 
         # Search for various terms
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         $ctx = NULL;
         $ret = $m->search("Test zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         # Test restricting by filter.
         $ctx = NULL;
         $this->log("Restrict to {$this->gid}");
         $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $this->gid ]);
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         $ctx = NULL;
         $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $this->gid+1 ]);
@@ -82,14 +93,18 @@ class searchTest extends IznikTestCase
         $this->log("Test fuzzy");
         $ret = $m->search("tuesday", $ctx);
         $this->log("Fuzzy " . var_export($ctx, true));
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
         assertNotNull($ctx['SoundsLike']);
 
         # Test typo
         $ctx = NULL;
         $ret = $m->search("Tets", $ctx);
         $this->log("Typo " . var_export($ctx, true));
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
         assertNotNull($ctx['Typo']);
 
         # Too far
@@ -100,24 +115,34 @@ class searchTest extends IznikTestCase
         # Test restricted search
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx, Search::Limit, [ $id1 ]);
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx, Search::Limit, []);
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         # Search again using the same context - will find starts with
         $this->log("CTX " . var_export($ctx, true));
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         # And again - will find sounds like
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         # And again - will find typo
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]['id']);
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
 
         $ret = $m->search("zzzutzzz", $ctx);
         assertEquals(0, count($ret));
