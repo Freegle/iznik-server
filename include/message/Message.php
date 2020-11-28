@@ -580,6 +580,7 @@ class Message
 
         $start = strtotime("30 days ago");
         $this->s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid', $start, 'words_cache');
+        $this->si = new Search($dbhr, $dbhm, 'items_index', 'itemid', 'popularity', 'words', 'categoryid', NULL, 'words_cache');
     }
 
     /**
@@ -2633,6 +2634,22 @@ ORDER BY lastdate DESC;";
 
         if ($rc) {
             $this->id = $this->dbhm->lastInsertId();
+
+            if (preg_match('/.*?\:(.*)\(.*\)/', $this->suggestedsubject, $matches)) {
+                # If we have a well-formed subject line, record the item.
+                $i = new Item($this->dbhr, $this->dbhm);
+                $name = trim($matches[1]);
+                $items = $i->findByName($name);
+
+                if (!$items || !count($items)) {
+                    $itemid = $i->create($name);
+                } else {
+                    $itemid = $items[0]['id'];
+                }
+
+                $this->addItem($itemid);
+            }
+
             $this->saveAttachments($this->id);
 
             if ($log) {
@@ -3780,7 +3797,92 @@ ORDER BY lastdate DESC;";
     }
 
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL, $exactonly = FALSE) {
-        $ret = $this->s->search($string, $context, $limit, $restrict, $groups, $exactonly);
+        # First find the items that match this string.  Join on the spatial index so that we only identify items which
+        # are actually active at the moment.
+        $ret = [];
+        $ctx = NULL;
+        $joinq = "INNER JOIN messages_items ON items_index.itemid = messages_items.itemid INNER JOIN messages_spatial ON messages_spatial.msgid = messages_items.msgid";
+
+        $matches = $this->si->search($string, $ctx, 10000, NULL, NULL, FALSE, NULL, $joinq);
+        $items = [];
+        $itemids = [];
+
+        foreach ($matches as $match) {
+            if (!array_key_exists($match['id'], $itemids)) {
+                $itemids[$match['id']] = $match['id'];
+                $items[] = [
+                    'item' => $match['id'],
+                    'count' => PHP_INT_MAX,
+                    'matchedon' => $match['matchedon']
+                ];
+            }
+        }
+
+        if (count($itemids)) {
+            # Add any items which we have been told are related.
+            $itemq = implode(',', $itemids);
+            $sql = "SELECT item2 AS item, COUNT(*) AS count FROM `microactions` WHERE `item1` IN ($itemq) HAVING count > 2 UNION
+            SELECT item1 AS item, COUNT(*) AS count FROM `microactions` WHERE `item2` IN ($itemq) HAVING count > 2 ORDER BY count DESC;";
+            #error_log("Look for similar $sql");
+            $related = $this->dbhr->preQuery($sql);
+
+            foreach ($related as $related) {
+                if (!array_key_exists($related['item'], $itemids)) {
+                    $itemids[$related['item']] = $related['item'];
+                    $thisone = [
+                        'item' => $related['item'],
+                        'count' => $related['count'],
+                    ];
+
+                    foreach ($matches as $match) {
+                        if ($match['id'] == $related['item']) {
+                            $thisone['matchedon'] = $match['matchedon'];
+                            $thisone['matchedon']['type'] = 'Related';
+                        }
+                    }
+
+                    $items[] = $thisone;
+                }
+            }
+
+            # Don't allow silly numbers of matches.
+            $items = array_slice($items, 0, 10000);
+
+            # Now we have a list of item ids which are relevant to the search and are for extant messages. Maybe
+            # we need to filter by groupid.
+            $joinq = $groups ? " INNER JOIN messages_groups ON messages_groups.msgid = messages_items.msgid AND groupid IN (" . implode(',', $groups) . ")" : '';
+            $sql = "SELECT messages_spatial.msgid AS id, messages_items.itemid FROM messages_spatial INNER JOIN
+                messages_items ON messages_items.msgid = messages_spatial.msgid
+                $joinq
+                WHERE itemid IN (" . implode(',', array_column($items, 'item')) . ")";
+            #error_log("Search on items $sql");
+
+            $msgs = $this->dbhr->preQuery($sql);
+
+            foreach ($msgs as &$msg) {
+                foreach ($items as $item) {
+                    if ($msg['itemid'] == $item['item']) {
+                        $msg['count'] = $item['count'];
+                        $msg['matchedon'] = $item['matchedon'];
+                    }
+                }
+            }
+
+            # Now sort with the item matches at the start and related matches at the end, and within those
+            # by how related.
+            usort($msgs, function ($a, $b) {
+                if ($a['matchedon']['type'] == 'Related' && $b['matchedon']['type'] != 'Related') {
+                    return 1;
+                } else if ($b['matchedon']['type'] == 'Related' && $a['matchedon']['type'] != 'Related') {
+                    return -1;
+                } else {
+                    return ($b['count'] - $a['count']);
+                }
+            });
+
+            $ret = $msgs;
+        }
+
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 

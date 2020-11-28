@@ -48,7 +48,7 @@ class messagesTest extends IznikAPITestCase {
     public function testApproved() {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: Thing (Place)', $msg);
+        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: sofa (Place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -56,6 +56,12 @@ class messagesTest extends IznikAPITestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
+
+        # Index
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('lat', 8.5);
+        $m->setPrivate('lng', 179.3);
+        $m->addToSpatialIndex();
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::APPROVED);
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -87,12 +93,15 @@ class messagesTest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $id);
-        $u->addMembership($this->gid, User::ROLE_OWNER);
+        $rc = $u->addMembership($this->gid, User::ROLE_MEMBER);
+        assertEquals(1, $rc);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         # Omit groupid - should use groups for currently logged in user.
         $ret = $this->call('messages', 'GET', [
+            'grouptype' => Group::GROUP_FREEGLE,
+            'modtools' => FALSE
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
@@ -100,11 +109,10 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(1, count($msgs));
 
         # Test search by word
-        $u->addMembership($this->gid, User::ROLE_MEMBER);
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'searchmess',
             'groupid' => $this->gid,
-            'search' => 'thing'
+            'search' => 'sofa'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];

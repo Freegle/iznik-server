@@ -256,7 +256,7 @@ class Search
         }
     }
 
-    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $filts = NULL, $exactonly = FALSE, $minpop = NULL)
+    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $filts = NULL, $exactonly = FALSE, $minpop = NULL, $join = '')
     {
         # Remove wildcards - people put them in, but that's not how it works.
         $string = str_replace('*', '', $string);
@@ -296,7 +296,7 @@ class Search
             if (strlen($word) > 0) {
                 # Check for exact matches even for short words
                 $startq = Utils::pres('Exact', $context) ? " AND {$this->sortatt} > {$context['Exact']} " : "";
-                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                $sql = "SELECT DISTINCT {$this->table}.{$this->idatt}, {$this->table}.{$this->sortatt}, wordid FROM {$this->table} $join WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 #error_log(" $sql  {$this->sortatt} {$this->idatt}");
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
@@ -310,7 +310,7 @@ class Search
                     if (count($results) == 0) {
                         # Search for typos.  This is slow, so we need to stick a limit on it.
                         $startq = Utils::pres('Typo', $context) ? " AND {$this->sortatt} > {$context['Typo']} " : "";
-                        $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                        $sql = "SELECT DISTINCT {$this->table}.{$this->idatt}, {$this->table}.{$this->sortatt}, wordid FROM {$this->table} $join WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                         #error_log("Typo search $sql {$this->sortatt}, {$this->idatt}");
 
                         $batch = $this->dbhr->preQuery($sql, [
@@ -323,7 +323,7 @@ class Search
                     if (count($results) == 0) {
                         # Check for starts matches.
                         $startq = Utils::pres('StartsWith', $context) ? " AND {$this->sortatt} > {$context['StartsWith']} " : "";
-                        $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                        $sql = "SELECT DISTINCT {$this->table}.{$this->idatt}, {$this->table}.{$this->sortatt}, wordid FROM {$this->table} $join WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                         #error_log($sql . "{$this->sortatt} {$this->idatt}");
                         $batch = $this->dbhr->preQuery($sql, [
                             $this->sortatt,
@@ -335,7 +335,7 @@ class Search
                     if (count($results) == 0) {
                         # Add in sounds like.
                         $startq = Utils::pres('SoundsLike', $context) ? " AND {$this->sortatt} > {$context['SoundsLike']} " : "";
-                        $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                        $sql = "SELECT DISTINCT {$this->table}.{$this->idatt}, {$this->table}.{$this->sortatt}, wordid FROM {$this->table} $join WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                         $batch = $this->dbhr->preQuery($sql, [
                             $this->sortatt,
                             $this->idatt
