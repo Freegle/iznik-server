@@ -1,0 +1,6 @@
+#!/bin/bash
+# Script to sync from freeglecdnhex to Azure Blob storage.
+source /root/.bashrc
+date=`date -d "25 hours ago" "+%Y-%m-%dT%H:%MZ"`
+find /var/www/iznik/images -type f -newermt $date -exec basename {} \; > /tmp/changed$date.lst
+while read in; echo $in; do az storage blob upload -f /var/www/iznik/images/$in -c images -n $in; done < /tmp/changed$date.lst
