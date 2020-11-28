@@ -96,7 +96,6 @@ class searchTest extends IznikTestCase
         assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
-        assertNotNull($ctx['SoundsLike']);
 
         # Test typo
         $ctx = NULL;
@@ -105,7 +104,6 @@ class searchTest extends IznikTestCase
         assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
-        assertNotNull($ctx['Typo']);
 
         # Too far
         $ctx = NULL;
