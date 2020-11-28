@@ -91,7 +91,7 @@ class RelevantTest extends IznikTestCase
         assertTrue($u->login('testpw'));
         $this->log("Emails before first " . var_export($u->getEmails(), TRUE));
 
-        # Post a WANTED, an OFFER and a search.
+        # Post a WANTED and an OFFER.
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -125,15 +125,11 @@ class RelevantTest extends IznikTestCase
         $this->log("Emails after second " . var_export($u->getEmails(), TRUE));
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $lid = $l->findByName('TV13 1HH');
-        $s = new UserSearch($this->dbhr, $this->dbhm);
-        $sid = $s->create($uid, NULL, "objets d'art", $lid);
-        $this->log("Got search entry $sid for loc $lid");
 
         $rl = new Relevant($this->dbhr, $this->dbhm);
-        $ints = $rl->interestedIn($uid, Group::GROUP_FREEGLE);
+        $ints = $rl->findRelevant($uid, Group::GROUP_FREEGLE);
         $this->log("Found interested 1 " . var_export($ints, TRUE));
-        assertEquals(3, count($ints));
+        assertEquals(2, count($ints));
 
         # Now search - no relevant messages at the moment.
         $msgs = $rl->getMessages($uid, $ints, $earliest);
@@ -171,6 +167,9 @@ class RelevantTest extends IznikTestCase
 
         $this->log("Relevant messages $id1 and $id2");
 
+        # View the message to show we're interested.
+        $m->like($u->getId(), Message::LIKE_VIEW);
+
         # Now send messages - should find these.
         $u->setPrivate('lastrelevantcheck', NULL);
         $mock = $this->getMockBuilder('Freegle\Iznik\Relevant')
@@ -186,14 +185,13 @@ class RelevantTest extends IznikTestCase
         self::assertEquals(1, $mock->sendMessages($uid));
 
         $msgs = $this->msgsSent;
-        $this->log("Should return $id1 and $id2 ");
+        $this->log("Should return just $id1");
         assertEquals(1, count($msgs));
 
         # Long line might split id - hack out QP encoding.
         $msgs = preg_replace("/\=\r\n/", "", $msgs[0]);
         $this->log($msgs);
         self::assertNotFalse(strpos($msgs, $id1));
-        self::assertNotFalse(strpos($msgs, $id2));
 
         # Record the check.  Sleep to ensure that the messages we already have are longer ago than when we
         # say the check happened, otherwise we might get them back again - which is ok in real messages
@@ -206,6 +204,23 @@ class RelevantTest extends IznikTestCase
         $msgs = $rl->getMessages($uid, $ints, $earliest);
         $this->log("Should be none " . var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
+
+        # Now another user who has viewed $id2 and therefore should get notified about it.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->log("Created user $uid");
+        $email = 'ut-' . rand() . '@test.com';
+        $u->addEmail($email, 0, FALSE);
+        $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0, FALSE);
+        $u->addMembership($gid);
+        $m->like($uid, Message::LIKE_VIEW);
+
+        $this->msgsSent = [];
+        self::assertEquals(1, $mock->sendMessages($uid));
+        $msgs = $this->msgsSent;
+        assertEquals(1, count($msgs));
+        $msgs = preg_replace("/\=\r\n/", "", $msgs[0]);
+        self::assertNotFalse(strpos($msgs, $id2));
 
         # Exception
         $mock = $this->getMockBuilder('Freegle\Iznik\Relevant')

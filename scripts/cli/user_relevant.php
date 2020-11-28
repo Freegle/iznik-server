@@ -15,11 +15,12 @@ if (count($opts) < 1) {
 } else {
     $id = $opts['i'];
     $r = new Relevant($dbhr, $dbhm);
-    $ints = $r->interestedIn($id);
-
-    error_log("Found " . count($ints));
+    $ints = $r->findRelevant($id);
 
     foreach ($ints as $int) {
-        error_log("  Type {$int['type']} Item {$int['item']} Because {$int['reason']}");
+        error_log("  Type {$int['type']} Item {$int['item']} Because " . var_export($int, TRUE));
     }
+
+    error_log("\n\nFound " . count($ints));
 }
+

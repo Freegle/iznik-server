@@ -10,6 +10,7 @@ require_once(IZNIK_BASE . '/mailtemplates/relevant/off.php');
 class Relevant {
     const MATCH_POST = 'Post';
     const MATCH_SEARCH = 'Search';
+    const MATCH_VIEWED = 'Viewed';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -58,8 +59,10 @@ class Relevant {
         }
     }
 
-    public function interestedIn($userid, $grouptype = Group::GROUP_FREEGLE, $earliest = NULL) {
+    public function findRelevant($userid, $grouptype = Group::GROUP_FREEGLE, $earliest = NULL) {
         $interested = [];
+        $terms = [];
+
         $earlyq = $earliest ? " AND messages.arrival > '$earliest'" : NULL;
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
@@ -67,9 +70,11 @@ class Relevant {
         # Only send these mails if they are a still member of a group.
         if (count($u->getMemberships(FALSE, $grouptype)) > 0) {
             # We have two sources:
-            # - outstanding posts by the user, which might be either OFFERs or WANTEDs, where we want to look for the
-            #   relevant WANTEDs or OFFERs respectively.
-            # - the searches by the user, where we want to look for relevant OFFERs.
+            # - Outstanding posts by the user, which might be either OFFERs or WANTEDs, where we want to look for the
+            # - Recently viewed posts.
+            #
+            # Don't use searches - we don't know which way round they are, and if the search found anything useful
+            # then it will be reflected better by what they clicked to view.
 
             # Anything longer ago probably isn't relevant.
             $start = date('Y-m-d', strtotime("30 days ago"));
@@ -82,39 +87,54 @@ class Relevant {
                 # We only bother with messages with standard subject line formats.
                 if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
                     $item = trim($matches[2]);
-                    $interested[] = [
-                        'type' => $msg['type'],
-                        'item' => $item,
-                        'reason' => [
-                            'type' => Relevant::MATCH_POST,
-                            'msgid' => $msg['id'],
-                            'subject' => $msg['subject'],
-                            'date' => Utils::ISODate($msg['arrival'])
-                        ]
-                    ];
+
+                    if (!array_key_exists($item, $terms)) {
+                        $terms[$item] = TRUE;
+                        $interested[] = [
+                            'type' => $msg['type'],
+                            'item' => $item,
+                            'reason' => [
+                                'type' => Relevant::MATCH_POST,
+                                'msgid' => $msg['id'],
+                                'subject' => $msg['subject'],
+                                'date' => Utils::ISODate($msg['arrival'])
+                            ]
+                        ];
+                    }
                 }
             }
 
-            # Now the searches.
-            $sql = "SELECT * FROM users_searches WHERE userid = ? AND deleted = 0 AND locationid IS NOT NULL AND `date` >= ?;";
-            $searches = $this->dbhr->preQuery($sql, [ $userid, $start ]);
+            # Now the recent views of other people's messages.
+            $sql = "SELECT messages.type, messages.id, messages.subject, messages_likes.timestamp FROM messages_likes 
+    INNER JOIN messages ON messages.id = messages_likes.msgid 
+    WHERE userid = ? AND timestamp >= ? AND messages_likes.type = ? AND messages.fromuser != ?;";
+            $views = $this->dbhr->preQuery($sql, [
+                $userid,
+                $start,
+                Message::LIKE_VIEW,
+                $userid
+            ]);
 
-            foreach ($searches as $search) {
-                $term  = $search['term'];
+            foreach ($views as $view) {
+                # We only bother with messages with standard subject line formats.
+                if (preg_match("/(.+)\:(.+)\((.+)\)/", $view['subject'], $matches)) {
+                    $item = trim($matches[2]);
 
-                # If they've searched for a whole subject line, strip out just the term.
-                $term = preg_match("/(.+)\:(.+)\((.+)\)/", $search['term'], $matches) ? trim($matches[2]) : $term;
+                    if (!array_key_exists($item, $terms)) {
+                        $terms[$item] = true;
 
-                $interested[] = [
-                    'type' => Message::TYPE_WANTED,
-                    'item' => $term,
-                    'reason' => [
-                        'type' => Relevant::MATCH_SEARCH,
-                        'searchid' => $search['id'],
-                        'term' => $term,
-                        'date' => Utils::ISODate($search['date'])
-                    ]
-                ];
+                        $interested[] = [
+                            'item' => $item,
+                            'type' => $view['type'] == Message::TYPE_OFFER ? Message::TYPE_WANTED : Message::TYPE_OFFER,
+                            'reason' => [
+                                'type' => Relevant::MATCH_VIEWED,
+                                'msgid' => $view['id'],
+                                'term' => $item,
+                                'date' => Utils::ISODate($view['timestamp'])
+                            ]
+                        ];
+                    }
+                }
             }
         }
 
@@ -138,49 +158,51 @@ class Relevant {
             $l = new Location($this->dbhr, $this->dbhm, $lastloc);
             $groups = $l->groupsNear(Location::QUITENEARBY);
             #error_log("Groups near $lastloc are " . var_export($groups, TRUE));
+        } else {
+            $groups = $u->getMembershipGroupIds();
+        }
 
-            # Only want groups where this function is allowed.
-            $allowed = [];
-            foreach ($groups as $group) {
-                $g = Group::get($this->dbhr, $this->dbhm, $group);
-                if ($g->getSetting('relevant', 1) && $g->getPrivate('onhere')) {
-                    $allowed[] = $group;
-                }
+        # Only want groups where this function is allowed.
+        $allowed = [];
+        foreach ($groups as $group) {
+            $g = Group::get($this->dbhr, $this->dbhm, $group);
+            if ($g->getSetting('relevant', 1) && $g->getPrivate('onhere')) {
+                $allowed[] = $group;
             }
+        }
 
-            $groups = $allowed;
+        $groups = $allowed;
 
-            if (count($groups) > 0) {
-                foreach ($interesteds as $interested) {
-                    $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid', $start);
-                    $ctx = NULL;
+        if (count($groups) > 0) {
+            foreach ($interesteds as $interested) {
+                $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid', $start);
+                $ctx = NULL;
 
-                    # We want to search for exact matches only, as some of the others will look silly.
-                    $res = $s->search($interested['item'], $ctx, 10, NULL, $groups, TRUE);
-                    #error_log("Search for {$interested['item']} because {$interested['reason']['type']} returned " . var_export($res, TRUE));
+                # We want to search for exact matches only, as some of the others will look silly.
+                $res = $s->search($interested['item'], $ctx, 10, NULL, $groups, TRUE);
+                #error_log("Search for {$interested['item']} because {$interested['reason']['type']} returned " . var_export($res, TRUE));
 
-                    foreach ($res as $r) {
-                        if (!in_array($r['id'], $ids)) {
-                            # We have a message - see if it's the type we want.
-                            $m = new Message($this->dbhr, $this->dbhm, $r['id']);
-                            $type = $m->getType();
-                            #error_log("Check nessage {$r['id']} type $type from " . $m->getFromuser() . " vs $userid");
+                foreach ($res as $r) {
+                    if (!in_array($r['id'], $ids)) {
+                        # We have a message - see if it's the type we want.
+                        $m = new Message($this->dbhr, $this->dbhm, $r['id']);
+                        $type = $m->getType();
+                        #error_log("Check nessage {$r['id']} type $type from " . $m->getFromuser() . " vs $userid");
 
-                            if ($m->getFromuser() && $m->getFromuser() != $userid &&
-                                (($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED) ||
-                                    ($interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER)) &&
-                                (!$earliest || strtotime($earliest) < strtotime($m->getPrivate('arrival')))
-                            ) {
-                                #error_log("Found {$r['id']} " . $m->getSubject() . " from " . var_export($r, TRUE));
-                                $ret[] = [
-                                    'id' => $r['id'],
-                                    'term' => $interested['item'],
-                                    'matchedon' => $r['matchedon']['word'],
-                                    'reason' => $interested['reason']
-                                ];
+                        if ($m->getFromuser() && $m->getFromuser() != $userid &&
+                            (($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED) ||
+                                ($interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER)) &&
+                            (!$earliest || strtotime($earliest) < strtotime($m->getPrivate('arrival')))
+                        ) {
+                            #error_log("Found {$r['id']} " . $m->getSubject() . " from " . var_export($r, TRUE));
+                            $ret[] = [
+                                'id' => $r['id'],
+                                'term' => $interested['item'],
+                                'matchedon' => $r['matchedon']['word'],
+                                'reason' => $interested['reason']
+                            ];
 
-                                $ids[] = $r['id'];
-                            }
+                            $ids[] = $r['id'];
                         }
                     }
                 }
@@ -218,7 +240,7 @@ class Relevant {
             # Only want to send to people who have used FD.
             #error_log("Check send our emails");
             if ($u->getOurEmail() && $u->sendOurMails()) {
-                $ints = $this->interestedIn($user['id']);
+                $ints = $this->findRelevant($user['id']);
                 $msgs = $this->getMessages($user['id'], $ints);
                 #error_log("Number of messages " . count($msgs) . " from " . var_export($ints, TRUE) . " and " . var_export($msgs, TRUE));;
 
