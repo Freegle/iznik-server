@@ -15,7 +15,7 @@
       <mj-class name="largecol" width="83%" inline="inline"/>
       <mj-class name="chatimage"  border-radius="5px" height="250px" />
       <mj-class name="footer" background-color="#E0E0E0" />
-      <mj-divider border-color="#61AE24" padding="0px"/>
+      <mj-divider border-color="#61AE24" padding="0"/>
       <mj-preview>{{ textbody }}</mj-preview>
       <mj-section background-color="#F9F7EC" />
       <mj-all font-family="'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" />

@@ -1,73 +1,83 @@
 <mjml>
   <mj-head>
-      <mj-style>
-        a {
-          color: #288c0a;
-          text-decoration: none;
-          font-weight: bold
-        }
-        ol {
-          margin-top: 0; margin-bottom: 0;
-          /* margin-left: 2.2em; For Outlook */
-          padding-left: 2.4em; /* For the rest */
-        }
-        li {
-          margin: 0.5em 0;
-        }
-      </mj-style>
-      <mj-attributes>
-        <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
-      </mj-attributes>
-    </mj-head>
+    <mj-attributes>
+      <mj-class name="bordersect" border="1px solid #CDCDCD;" background-color="white" padding="10px" inline="inline"/>
+      <mj-class name="primary"  background-color="darkgreen" color="white" font-size="20px" inline="inline"/>
+      <mj-class name="secondary"  background-color="darkgreen" color="white" font-size="16px" inline="inline"/>
+      <mj-class name="tertiary"  background-color="darkblue" color="white" font-size="16px" inline="inline"/>
+      <mj-class name="quadrenary"  background-color="black" color="white" font-size="12px" inline="inline"/>
+      <mj-class name="date"  font-size="14px"padding="0px 0px 15px" font-weight="bold" color="#6c757d" inline="inline"/>
+      <mj-class name="profilepic" border-radius="50%" height="30px" width="30px" inline="inline" padding-top="5px" />
+      <mj-class name="sectiontitle" align="center" font-size="24px" font-weight="bold" color="black" inline="inline"/>
+      <mj-class name="messagetext" font-weight="bold" font-size="16px" inline="inline"/>
+      <mj-class name="padcol" width="5%" inline="inline"/>
+      <mj-class name="smallcol" width="12%" inline="inline"/>
+      <mj-class name="largecol" width="83%" inline="inline"/>
+      <mj-class name="chatimage"  border-radius="5px" height="250px" />
+      <mj-class name="footer" background-color="#E0E0E0" />
+      <mj-divider border-color="#61AE24" padding="0"/>
+      <mj-preview>{{ textbody }}</mj-preview>
+      <mj-section background-color="#F9F7EC" />
+      <mj-all font-family="'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" />
+    </mj-attributes>
+  </mj-head>
   <mj-body>
     <mj-container>
       <mj-wrapper padding="0"  full-width="full-width">
         <!-- header section -->
         <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
           <mj-group>
-          <mj-column vertical-align="middle" width="65%">
-            <mj-text color="#61AE24" font-size="18pt" line-height="1.25em">{{ subject }}</mj-text>
+          <mj-column vertical-align="middle" width="400">
+            <mj-text color="#61AE24" font-size="18" line-height="1.25">{{ subject }}</mj-text>
           </mj-column>
-          <mj-column vertical-align="middle" width="35%">
-            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"/>
+          <mj-column vertical-align="middle" width="200">
+            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80" align="right" border-radius="5" padding="20"/>
           </mj-column>
           </mj-group>
         </mj-section>
-        <mj-section background-color="#F7F6EC">
+        <mj-section padding="10">
           <mj-column>
             <mj-text>Dear&nbsp;{{ name }},</mj-text>
             <mj-text>
-							<p>Please click one of the following buttons to let us know what happened to your message <b><i>{{ subject }}</i></b>:</p>
+							Please click one of the following buttons to let us know what happened to your message <b><i>{{ subject }}</i></b>:
             </mj-text>
           </mj-column>
         </mj-section>
-        <mj-section background-color="#F7F6EC">
-          <mj-column width="33%">
-            <mj-button align="center" href="{{ repost }}" background-color="red">
+        <mj-section padding="10">
+          <mj-column width="185">
+            <mj-button align="center" href="{{ repost }}" mj-class="secondary">
               Repost please!
             </mj-button>
           </mj-column>
-          <mj-column width="33%">
-            <mj-button align="center" href="{{ completed }}" background-color="darkgreen">
+          <mj-column width="185">
+            <mj-button align="center" href="{{ completed }}"  mj-class="tertiary">
               Mark as&nbsp;{{ type }}
             </mj-button>
           </mj-column>
-          <mj-column width="33%">
-            <mj-button align="center" href="{{ withdraw }}" background-color="darkblue">
+          <mj-column width="185">
+            <mj-button align="center" href="{{ withdraw }}" mj-class="quadrenary">
               Withdraw
             </mj-button>
           </mj-column>
         </mj-section>
-        <mj-section background-color="#F7F6EC">
+        <mj-section padding="10">
           <mj-column>
             <mj-text>
-							<p>This helps us decide whether to keep showing it, and to measure how much freegling happens so that we can persuade councils to support Freegle more.</p>
+              If it's an OFFER which hasn't been collected yet, please use the <em>Promise</em> button
+              in <a href="https://www.ilovefreegle.org/chats">Chats</a> or <a href="https://www.ilovefreegle.org/myposts">My Posts</a>.
             </mj-text>
           </mj-column>
         </mj-section>
-        <mj-section background-color="#E0E0E0">
+        <mj-section padding="10">
           <mj-column>
-            <mj-text font-size="9pt" color="#707070">This mail was sent to&nbsp;{{ email }}.  You can unsubscribe by clicking <a href="{{ unsubscribe }}">here</a>.
+            <mj-text>
+							This helps us decide whether to keep showing it, and to measure how much freegling happens so that we can persuade councils to support Freegle more.
+            </mj-text>
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#E0E0E0" padding="10">
+          <mj-column>
+            <mj-text font-size="9" color="#707070">This mail was sent to&nbsp;{{ email }}.  You can unsubscribe by clicking <a href="{{ unsubscribe }}">here</a>.
               <hr style="border: 0; border-top: 1px solid #AAA; "/>
               Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
             </mj-text>
