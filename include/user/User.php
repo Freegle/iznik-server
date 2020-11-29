@@ -1768,6 +1768,7 @@ class User extends Entity
 
     public function getDistance($mylat, $mylng) {
         list ($tlat, $tlng, $tloc) = $this->getLatLng();
+        #error_log("Get distance $mylat, $mylng, $tlat, $tlng = " . $this->getDistanceBetween($mylat, $mylng, $tlat, $tlng));
         return($this->getDistanceBetween($mylat, $mylng, $tlat, $tlng));
     }
 
@@ -4310,6 +4311,13 @@ class User extends Entity
                 $this->id,
             ]);
 
+            # Get the names of the groups on which we last posted.
+            $messages = $this->dbhr->preQuery("SELECT fromuser AS userid, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname FROM messages 
+    INNER JOIN messages_groups ON messages.id = messages_groups.msgid 
+    INNER JOIN groups ON groups.id = messages_groups.groupid
+    WHERE fromuser IN (" . implode(',', $userids) . ")
+    ORDER BY messages_groups.arrival ASC;", NULL, FALSE, FALSE);
+
             $atts = $atts ? $atts : $this->dbhr->preQuery("SELECT id, settings, lastlocation FROM users WHERE id in (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
 
             foreach ($atts as $att) {
@@ -4377,10 +4385,24 @@ class User extends Entity
                         $loc = stripos($grp, $loc) !== FALSE ? NULL : $loc;
                     }
                 } else {
-                    # We don't have a location.  All we might have is a membership.
-                    foreach ($membs as $memb) {
-                        if ($memb['userid'] == $att['id']) {
-                            $grp = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
+                    # We don't have a location from settings.  We might have a group name.
+                    #
+                    # First check the group we used most recently.
+                    #error_log("Look for group name only for {$att['id']}");
+                    foreach ($messages as $msg) {
+                        if ($msg['userid'] == $att['id']) {
+                            $grp = $msg['groupname'];
+                            #error_log("Found $grp from post");
+                        }
+                    }
+
+                    if (!$grp) {
+                        # Now check the group we joined most recently.
+                        foreach ($membs as $memb) {
+                            if ($memb['userid'] == $att['id']) {
+                                $grp = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
+                                #error_log("Found $grp from membership");
+                            }
                         }
                     }
                 }
@@ -4417,6 +4439,7 @@ class User extends Entity
                         $lat = $settings['mylocation']['lat'];
                         $lng = $settings['mylocation']['lng'];
                         $loc = Utils::presdef('name', $settings['mylocation'], NULL);
+                        #error_log("Got from mylocation $lat, $lng, $loc");
                     }
                 }
 
@@ -4428,6 +4451,7 @@ class User extends Entity
                         $lat = $l->getPrivate('lat');
                         $lng = $l->getPrivate('lng');
                         $loc = $l->getPrivate('name');
+                        #error_log("Got from last location $lat, $lng, $loc");
                     }
                 }
 
@@ -4454,6 +4478,8 @@ class User extends Entity
                     'lng' => $memb['lng']
                 ];
 
+                #error_log("Got from last message posted {$memb['lat']}, {$memb['lng']}");
+
                 $userids = array_filter($userids, function($id) use ($memb) {
                     return $id !== $memb['userid'];
                 });
@@ -4469,6 +4495,8 @@ class User extends Entity
                     'lng' => $memb['lng'],
                     'group' => Utils::presdef('namefull', $memb, $memb['nameshort'])
                 ];
+
+                #error_log("Got from membership {$memb['lat']}, {$memb['lng']}, " . Utils::presdef('namefull', $memb, $memb['nameshort']));
 
                 $userids = array_filter($userids, function($id) use ($memb) {
                     return $id !== $memb['userid'];
