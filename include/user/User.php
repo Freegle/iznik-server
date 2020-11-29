@@ -4303,6 +4303,7 @@ class User extends Entity
         $userids = array_filter(array_column($users, 'id'));
         $areas = NULL;
         $groups = NULL;
+        $messages = NULL;
 
         if ($userids && count($userids)) {
             # Get all the memberships.
@@ -4310,13 +4311,6 @@ class User extends Entity
             $membs = $this->dbhr->preQuery($sql, [
                 $this->id,
             ]);
-
-            # Get the names of the groups on which we last posted.
-            $messages = $this->dbhr->preQuery("SELECT fromuser AS userid, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname FROM messages 
-    INNER JOIN messages_groups ON messages.id = messages_groups.msgid 
-    INNER JOIN groups ON groups.id = messages_groups.groupid
-    WHERE fromuser IN (" . implode(',', $userids) . ")
-    ORDER BY messages_groups.arrival ASC;", NULL, FALSE, FALSE);
 
             $atts = $atts ? $atts : $this->dbhr->preQuery("SELECT id, settings, lastlocation FROM users WHERE id in (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
 
@@ -4389,10 +4383,21 @@ class User extends Entity
                     #
                     # First check the group we used most recently.
                     #error_log("Look for group name only for {$att['id']}");
+                    if (!$messages) {
+                        # Get the names of the locations we last used when we last posted.
+                        $messages = $this->dbhr->preQuery("SELECT fromuser AS userid, subject FROM messages 
+                            INNER JOIN messages_groups ON messages.id = messages_groups.msgid 
+                            INNER JOIN groups ON groups.id = messages_groups.groupid
+                            WHERE fromuser IN (" . implode(',', $userids) . ")
+                            ORDER BY messages_groups.arrival ASC;", NULL, FALSE, FALSE);
+                    }
+
                     foreach ($messages as $msg) {
                         if ($msg['userid'] == $att['id']) {
-                            $grp = $msg['groupname'];
-                            #error_log("Found $grp from post");
+                            if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
+                                $grp = trim($matches[3]);
+                                #error_log("Found $grp from post");
+                            }
                         }
                     }
 
