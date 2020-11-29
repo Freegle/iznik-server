@@ -416,14 +416,18 @@ class MessageCollection
             $groups[$groupid] = $g->getPublic();
         }
 
-        # Add any user microvolunteering comments.
-        $sql = "SELECT * FROM microactions WHERE msgid IN (" . implode(',', $msgids) . ");";
-        $vals = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
-        foreach ($msgs as &$msg) {
-            $msg['microvolunteering'] = [];
-            foreach ($vals as $val) {
-                if ($msg['id'] == $val['msgid']) {
-                    $msg['microvolunteering'][] = $val;
+        $msgids = array_filter(array_column($msglist, 'id'));
+
+        if (count($msgids)) {
+            # Add any user microvolunteering comments.
+            $sql = "SELECT * FROM microactions WHERE msgid IN (" . implode(',', $msgids) . ");";
+            $vals = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+            foreach ($msgs as &$msg) {
+                $msg['microvolunteering'] = [];
+                foreach ($vals as $val) {
+                    if ($msg['id'] == $val['msgid']) {
+                        $msg['microvolunteering'][] = $val;
+                    }
                 }
             }
         }
