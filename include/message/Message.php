@@ -3548,6 +3548,19 @@ ORDER BY lastdate DESC;";
         $this->dbhm->preExec("REPLACE INTO messages_spamham (msgid, spamham) VALUES (?, ?);", [ $this->id , Spam::SPAM ]);
     }
 
+    public function sendForReview($reason)
+    {
+        # Send for review.
+        $this->dbhm->preExec("UPDATE messages SET spamreason = ? WHERE id = ?", [
+            $reason,
+            $this->id
+        ]);
+
+        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;",
+            [MessageCollection::SPAM, $this->id]
+        );
+    }
+
     public function notSpam() {
         if ($this->spamtype == Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS) {
             # This subject is probably fine, then.

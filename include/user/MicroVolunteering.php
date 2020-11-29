@@ -126,6 +126,12 @@ class MicroVolunteering
                 $comments,
                 self::VERSION
             ]);
+
+            if ($result == self::RESULT_REJECT) {
+                # At present, send all such messages for review.
+                $m = new Message($this->dbhr, $this->dbhm, $msgid);
+                $m->sendForReview("A member thinks this message is not OK.");
+            }
         }
     }
 
