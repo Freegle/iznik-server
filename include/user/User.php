@@ -4318,6 +4318,13 @@ class User extends Entity
                 $lat = NULL;
                 $lng = NULL;
 
+                # Default to nowhere.
+                $users[$att['id']]['publiclocation'] = [
+                    'display' => '',
+                    'location' => NULL,
+                    'groupname' => NULL
+                ];
+
                 if (Utils::pres('settings', $att)) {
                     $settings = $att['settings'];
                     $settings = json_decode($settings, TRUE);
