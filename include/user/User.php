@@ -4303,15 +4303,10 @@ class User extends Entity
         $userids = array_filter(array_column($users, 'id'));
         $areas = NULL;
         $groups = NULL;
-        $messages = NULL;
+        $membs = NULL;
 
         if ($userids && count($userids)) {
-            # Get all the memberships.
-            $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(',', $userids) . ") ORDER BY added ASC;";
-            $membs = $this->dbhr->preQuery($sql, [
-                $this->id,
-            ]);
-
+            # First try to get the location from settings or last location.
             $atts = $atts ? $atts : $this->dbhr->preQuery("SELECT id, settings, lastlocation FROM users WHERE id in (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
 
             foreach ($atts as $att) {
@@ -4361,6 +4356,15 @@ class User extends Entity
                     $closestdist = PHP_INT_MAX;
                     $closestname = NULL;
 
+                    # Get all the memberships.
+                    if (!$membs) {
+                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(
+                                ',',
+                                $userids
+                            ) . ") ORDER BY added ASC;";
+                        $membs = $this->dbhr->preQuery($sql);
+                    }
+
                     foreach ($membs as $memb) {
                         if ($memb['userid'] == $att['id']) {
                             $dist = \GreatCircle::getDistance($lat, $lng, $memb['lat'], $memb['lng']);
@@ -4378,47 +4382,78 @@ class User extends Entity
                         # The location name might be in the group name, in which case just use the group.
                         $loc = stripos($grp, $loc) !== FALSE ? NULL : $loc;
                     }
-                } else {
-                    # We don't have a location from settings.  We might have a group name.
-                    #
-                    # First check the group we used most recently.
-                    #error_log("Look for group name only for {$att['id']}");
-                    if (!$messages) {
-                        # Get the names of the locations we last used when we last posted.
-                        $messages = $this->dbhr->preQuery("SELECT fromuser AS userid, subject FROM messages 
-                            INNER JOIN messages_groups ON messages.id = messages_groups.msgid 
-                            INNER JOIN groups ON groups.id = messages_groups.groupid
-                            WHERE fromuser IN (" . implode(',', $userids) . ")
-                            ORDER BY messages_groups.arrival ASC;", NULL, FALSE, FALSE);
-                    }
+                }
+
+                if ($loc) {
+                    $display = $loc ? ($loc . ($grp ? ", $grp" : "")) : ($grp ? $grp : '');
+
+                    $users[$att['id']]['publiclocation'] = [
+                        'display' => $display,
+                        'location' => $loc,
+                        'groupname' => $grp
+                    ];
+
+                    $userids = array_filter($userids, function($val) use ($att) {
+                        return($val != $att['id']);
+                    });
+                }
+            }
+
+            if (count($userids) > 0) {
+                # We have some left which don't have explicit postcodes.  Try for a group name.
+                #
+                # First check the group we used most recently.
+                #error_log("Look for group name only for {$att['id']}");
+                $found = [];
+                foreach ($userids as $userid) {
+                    $messages = $this->dbhr->preQuery("SELECT subject FROM messages WHERE fromuser = ? ORDER BY messages.arrival DESC LIMIT 1;", [
+                        $userid
+                    ]);
 
                     foreach ($messages as $msg) {
-                        if ($msg['userid'] == $att['id']) {
-                            if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
-                                $grp = trim($matches[3]);
-                                #error_log("Found $grp from post");
-                            }
+                        if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
+                            $grp = trim($matches[3]);
+                            #error_log("Found $grp from post");
+
+                            $users[$userid]['publiclocation'] = [
+                                'display' => $grp,
+                                'location' => NULL,
+                                'groupname' => $grp
+                            ];
+                            
+                            $found[] = $userid;
                         }
                     }
-
-                    if (!$grp) {
+                }
+                
+                $userids = array_diff($found, $userids);
+                
+                # Now check just membership.
+                if (count($userids)) {
+                    if (!$membs) {
+                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(
+                                ',',
+                                $userids
+                            ) . ") ORDER BY added ASC;";
+                        $membs = $this->dbhr->preQuery($sql);
+                    }
+                    
+                    foreach ($userids as $userid) {
                         # Now check the group we joined most recently.
                         foreach ($membs as $memb) {
-                            if ($memb['userid'] == $att['id']) {
+                            if ($memb['userid'] == $userid) {
                                 $grp = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
                                 #error_log("Found $grp from membership");
+
+                                $users[$userid]['publiclocation'] = [
+                                    'display' => $grp,
+                                    'location' => NULL,
+                                    'groupname' => $grp
+                                ];
                             }
                         }
                     }
                 }
-
-                $display = $loc ? ($loc . ($grp ? ", $grp" : "")) : ($grp ? $grp : '');
-
-                $users[$att['id']]['publiclocation'] = [
-                    'display' => $display,
-                    'location' => $loc,
-                    'groupname' => $grp
-                ];
             }
         }
     }
