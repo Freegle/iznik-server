@@ -2242,7 +2242,7 @@ ORDER BY lastdate DESC;";
 
                             # Ignore small images - Yahoo adds small ones as (presumably) a tracking mechanism, and also their
                             # logo.
-                            if ($newdata && $img->width() > 50 && $img->height() > 50) {
+                            if ($newdata && $img->width() > 100 && $img->height() > 100) {
                                 $this->inlineimgs[] = $newdata;
                             }
                         }
