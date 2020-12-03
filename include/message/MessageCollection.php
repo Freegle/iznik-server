@@ -238,7 +238,7 @@ class MessageCollection
                     $sql = "SELECT 0 AS isdraft, messages_groups.msgid AS id, messages.availablenow, messages.availableinitially, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.collection $summjoin FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL $outcomeq1 WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 AND messages.fromuser IS NOT NULL ORDER BY messages_groups.arrival DESC, messages_groups.msgid $outcomeq2 DESC LIMIT $limit";
                 }
 
-                error_log("Get list $sql");
+                #error_log("Get list $sql");
                 #file_put_contents('/tmp/sql', $sql);
                 $msglist = $this->dbhr->preQuery($sql);
 

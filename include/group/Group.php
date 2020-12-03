@@ -726,7 +726,7 @@ memberships.groupid IN $groupq
         $ctx = [ 'Added' => NULL ];
 
         foreach ($members as $member) {
-            if (!pres($member['userid'], $uids)) {
+            if (!Utils::pres($member['userid'], $uids)) {
                 $uids[$member['userid']] = TRUE;
 
                 $u = User::get($this->dbhr, $this->dbhm, $member['userid']);
