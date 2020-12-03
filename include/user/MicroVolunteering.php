@@ -162,11 +162,12 @@ class MicroVolunteering
         } catch (Exception $e) {}
     }
 
-    public function responseFacebook($userid, $postid) {
+    public function responseFacebook($userid, $postid, $result) {
         try {
-            $this->dbhm->preExec("INSERT IGNORE INTO microactions (userid, facebook_post, version) VALUES (?, ?, ?);", [
+            $this->dbhm->preExec("INSERT IGNORE INTO microactions (userid, facebook_post, result, version) VALUES (?, ?, ?, ?);", [
                 $userid,
                 $postid,
+                $result,
                 self::VERSION
             ]);
         } catch (Exception $e) {}

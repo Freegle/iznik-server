@@ -51,7 +51,7 @@ function microvolunteering() {
                         'status' => 'Success'
                     ];
                 } else if ($facebook) {
-                    $v->responseFacebook($myid, $facebook);
+                    $v->responseFacebook($myid, $facebook, $response);
                 }
             }
         }
