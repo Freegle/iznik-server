@@ -720,84 +720,91 @@ memberships.groupid IN $groupq
 
         $members = $this->dbhr->preQuery($sql);
 
+        # Suspect members might be on multiple groups, so make sure we only return one.
+        $uids = [];
+
         $ctx = [ 'Added' => NULL ];
 
         foreach ($members as $member) {
-            $u = User::get($this->dbhr, $this->dbhm, $member['userid']);
-            $thisone = $u->getPublic($groupids, TRUE);
-            #error_log("{$member['userid']} has " . count($thisone['comments']));
+            if (!pres($member['userid'], $uids)) {
+                $uids[$member['userid']] = TRUE;
 
-            # We want to return an id of the membership, because the same user might be pending on two groups, and
-            # a userid of the user's id.
-            $thisone['userid'] = $thisone['id'];
-            $thisone['id'] = $member['id'];
-            $thisone['trustlevel'] = $u->getPrivate('trustlevel');
+                $u = User::get($this->dbhr, $this->dbhm, $member['userid']);
+                $thisone = $u->getPublic($groupids, TRUE);
+                #error_log("{$member['userid']} has " . count($thisone['comments']));
 
-            $thisepoch = strtotime($member['added']);
+                # We want to return an id of the membership, because the same user might be pending on two groups, and
+                # a userid of the user's id.
+                $thisone['userid'] = $thisone['id'];
+                $thisone['id'] = $member['id'];
+                $thisone['trustlevel'] = $u->getPrivate('trustlevel');
 
-            if ($ctx['Added'] == NULL || $thisepoch < $ctx['Added']) {
-                $ctx['Added'] = $thisepoch;
-            }
+                $thisepoch = strtotime($member['added']);
 
-            $ctx['id'] = $member['id'];
-
-            # We want to return both the email used on this group and any others we have.
-            $emails = $u->getEmails();
-            $email = NULL;
-            $others = [];
-
-            # Groups we host only use a single email.
-            $email = $u->getEmailPreferred();
-            foreach ($emails as $anemail) {
-                if ($anemail['email'] != $email) {
-                    $others[] = $anemail;
+                if ($ctx['Added'] == NULL || $thisepoch < $ctx['Added']) {
+                    $ctx['Added'] = $thisepoch;
                 }
+
+                $ctx['id'] = $member['id'];
+
+                # We want to return both the email used on this group and any others we have.
+                $emails = $u->getEmails();
+                $email = NULL;
+                $others = [];
+
+                # Groups we host only use a single email.
+                $email = $u->getEmailPreferred();
+                foreach ($emails as $anemail) {
+                    if ($anemail['email'] != $email) {
+                        $others[] = $anemail;
+                    }
+                }
+
+                $thisone['joined'] = Utils::ISODate($member['added']);
+
+                # Defaults match ones in User.php
+                #error_log("Settings " . var_export($member, TRUE));
+                $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [
+                    'active' => 1,
+                    'showchat' => 1,
+                    'pushnotify' => 1,
+                    'eventsallowed' => 1
+                ];
+
+                # Sort so that we have a deterministic order for UT.
+                usort($others, function($a, $b) {
+                    return(strcmp($a['email'], $b['email']));
+                });
+
+                $thisone['settings']['configid'] = $member['configid'];
+                $thisone['email'] = $email;
+                $thisone['groupid'] = $member['groupid'];
+                $thisone['otheremails'] = $others;
+                $thisone['role'] = $u->getRoleForGroup($member['groupid'], FALSE);
+                $thisone['emailfrequency'] = $member['emailfrequency'];
+                $thisone['eventsallowed'] = $member['eventsallowed'];
+                $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
+
+                # Our posting status only applies for groups we host.  In that case, the default is moderated.
+                $thisone['ourpostingstatus'] = Utils::presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
+
+                $thisone['heldby'] = $member['heldby'];
+
+                if (Utils::pres('heldby', $thisone)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $thisone['heldby']);
+                    $ctx2 = NULL;
+                    $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE, FALSE, FALSE);
+                }
+
+                if ($filter === Group::FILTER_MODERATORS) {
+                    # Also add in the time this mod was last active.  This is not the same as when they last moderated
+                    # but indicates if they have been on the platform, which is what you want to find mods who have
+                    # drifted off.  Getting the correct value is too timeconsuming.
+                    $thisone['lastmoderated'] = Utils::ISODate($u->getPrivate('lastaccess'));
+                }
+
+                $ret[] = $thisone;
             }
-
-            $thisone['joined'] = Utils::ISODate($member['added']);
-
-            # Defaults match ones in User.php
-            #error_log("Settings " . var_export($member, TRUE));
-            $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [
-                'active' => 1,
-                'showchat' => 1,
-                'pushnotify' => 1,
-                'eventsallowed' => 1
-            ];
-
-            # Sort so that we have a deterministic order for UT.
-            usort($others, function($a, $b) {
-                return(strcmp($a['email'], $b['email']));
-            });
-
-            $thisone['settings']['configid'] = $member['configid'];
-            $thisone['email'] = $email;
-            $thisone['groupid'] = $member['groupid'];
-            $thisone['otheremails'] = $others;
-            $thisone['role'] = $u->getRoleForGroup($member['groupid'], FALSE);
-            $thisone['emailfrequency'] = $member['emailfrequency'];
-            $thisone['eventsallowed'] = $member['eventsallowed'];
-            $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
-
-            # Our posting status only applies for groups we host.  In that case, the default is moderated.
-            $thisone['ourpostingstatus'] = Utils::presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
-
-            $thisone['heldby'] = $member['heldby'];
-
-            if (Utils::pres('heldby', $thisone)) {
-                $u = User::get($this->dbhr, $this->dbhm, $thisone['heldby']);
-                $ctx2 = NULL;
-                $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE, FALSE, FALSE);
-            }
-
-            if ($filter === Group::FILTER_MODERATORS) {
-                # Also add in the time this mod was last active.  This is not the same as when they last moderated
-                # but indicates if they have been on the platform, which is what you want to find mods who have
-                # drifted off.  Getting the correct value is too timeconsuming.
-                $thisone['lastmoderated'] = Utils::ISODate($u->getPrivate('lastaccess'));
-            }
-
-            $ret[] = $thisone;
         }
 
         return($ret);
