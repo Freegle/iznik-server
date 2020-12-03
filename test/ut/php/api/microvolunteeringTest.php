@@ -107,4 +107,44 @@ class microvolunteeringAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
     }
+
+    public function testFacebook() {
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        $g->setPrivate('microvolunteering', 1);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addMembership($gid);
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, NULL, 'testpw'));
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $this->dbhm->preExec("INSERT INTO `groups_facebook_toshare` (`id`, `sharefrom`, `postid`, `date`, `data`) VALUES
+(1, '134117207097', '134117207097_10153929944247098', NOW(), '{\"id\":\"134117207097_10153929944247098\",\"link\":\"https:\\/\\/www.facebook.com\\/Freegle\\/photos\\/a.395738372097.175912.134117207097\\/10153929925422098\\/?type=3\",\"message\":\"TEST DO NOT SHARE\\nhttp:\\/\\/ilovefreegle.org\\/groups\\/\",\"type\":\"photo\",\"icon\":\"https:\\/\\/www.facebook.com\\/images\\/icons\\/photo.gif\",\"name\":\"Photos from Freegle\'s post\"}') ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);");
+        $rc = $this->dbhm->preExec("INSERT INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
+            '134117207097',
+            '134117207097_10153929944247098',
+            json_encode([])
+        ]);
+
+        $id = $this->dbhm->lastInsertId();
+        self::assertNotNull($id);
+
+        $ret = $this->call('microvolunteering', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(MicroVolunteering::CHALLENGE_FACEBOOK_SHARE, $ret['microvolunteering']['type']);
+        $fbid = $ret['microvolunteering']['facebook']['id'];
+
+        # Response
+        $ret = $this->call('microvolunteering', 'POST', [
+            'facebook' => $fbid,
+            'response' => MicroVolunteering::RESULT_APPROVE
+        ]);
+
+        $this->dbhm->preExec("DELETE FROM groups_facebook_toshare WHERE id = ?", [
+            $id
+        ]);
+    }
 }

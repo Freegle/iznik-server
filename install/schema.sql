@@ -2258,35 +2258,65 @@ DROP TABLE IF EXISTS `microactions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `microactions` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `userid` bigint(20) unsigned NOT NULL,
-  `msgid` bigint(20) unsigned DEFAULT NULL,
-  `result` enum('Approve','Reject') COLLATE utf8mb4_unicode_ci NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `comments` text COLLATE utf8mb4_unicode_ci,
-  `searchterm1` bigint(20) unsigned DEFAULT NULL,
-  `searchterm2` bigint(20) unsigned DEFAULT NULL,
-  `version` int(11) NOT NULL DEFAULT '1' COMMENT 'For when we make changes which affect the validity of the data',
-  `item1` bigint(20) unsigned DEFAULT NULL,
-  `item2` bigint(20) unsigned DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `userid_2` (`userid`,`msgid`),
-  UNIQUE KEY `userid_3` (`userid`,`searchterm1`,`searchterm2`),
-  UNIQUE KEY `userid_4` (`userid`,`item1`,`item2`),
-  KEY `userid` (`userid`),
-  KEY `msgid` (`msgid`),
-  KEY `searchterm1` (`searchterm1`),
-  KEY `searchterm2` (`searchterm2`),
-  KEY `item1` (`item1`),
-  KEY `item2` (`item2`),
-  CONSTRAINT `microactions_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `microactions_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `microactions_ibfk_3` FOREIGN KEY (`searchterm1`) REFERENCES `search_terms` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `microactions_ibfk_4` FOREIGN KEY (`searchterm2`) REFERENCES `search_terms` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `microactions_ibfk_5` FOREIGN KEY (`item1`) REFERENCES `items` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `microactions_ibfk_6` FOREIGN KEY (`item2`) REFERENCES `items` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11335 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Micro-volunteering tasks';
-/*!40101 SET character_set_client = @saved_cs_client */;
+                                `id` bigint(20) UNSIGNED NOT NULL,
+                                `userid` bigint(20) UNSIGNED NOT NULL,
+                                `msgid` bigint(20) UNSIGNED DEFAULT NULL,
+                                `result` enum('Approve','Reject') COLLATE utf8mb4_unicode_ci NOT NULL,
+                                `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                `comments` text COLLATE utf8mb4_unicode_ci,
+                                `searchterm1` bigint(20) UNSIGNED DEFAULT NULL,
+                                `searchterm2` bigint(20) UNSIGNED DEFAULT NULL,
+                                `version` int(11) NOT NULL DEFAULT '1' COMMENT 'For when we make changes which affect the validity of the data',
+                                `item1` bigint(20) UNSIGNED DEFAULT NULL,
+                                `item2` bigint(20) UNSIGNED DEFAULT NULL,
+                                `facebook_post` bigint(20) UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Micro-volunteering tasks';
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `microactions`
+--
+ALTER TABLE `microactions`
+    ADD PRIMARY KEY (`id`),
+    ADD UNIQUE KEY `userid_2` (`userid`,`msgid`),
+    ADD UNIQUE KEY `userid_3` (`userid`,`searchterm1`,`searchterm2`),
+    ADD UNIQUE KEY `userid_4` (`userid`,`item1`,`item2`),
+    ADD UNIQUE KEY `userid_5` (`userid`,`facebook_post`),
+    ADD KEY `userid` (`userid`),
+    ADD KEY `msgid` (`msgid`),
+    ADD KEY `searchterm1` (`searchterm1`),
+    ADD KEY `searchterm2` (`searchterm2`),
+    ADD KEY `item1` (`item1`),
+    ADD KEY `item2` (`item2`),
+    ADD KEY `facebook_post` (`facebook_post`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `microactions`
+--
+ALTER TABLE `microactions`
+    MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `microactions`
+--
+ALTER TABLE `microactions`
+    ADD CONSTRAINT `microactions_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    ADD CONSTRAINT `microactions_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+    ADD CONSTRAINT `microactions_ibfk_3` FOREIGN KEY (`searchterm1`) REFERENCES `search_terms` (`id`) ON DELETE CASCADE,
+    ADD CONSTRAINT `microactions_ibfk_4` FOREIGN KEY (`searchterm2`) REFERENCES `search_terms` (`id`) ON DELETE CASCADE,
+    ADD CONSTRAINT `microactions_ibfk_5` FOREIGN KEY (`item1`) REFERENCES `items` (`id`) ON DELETE CASCADE,
+    ADD CONSTRAINT `microactions_ibfk_6` FOREIGN KEY (`item2`) REFERENCES `items` (`id`) ON DELETE CASCADE,
+    ADD CONSTRAINT `microactions_ibfk_7` FOREIGN KEY (`facebook_post`) REFERENCES `groups_facebook_toshare` (`id`) ON DELETE CASCADE;
 
 --
 -- Table structure for table `mod_bulkops`
