@@ -3217,6 +3217,10 @@ ORDER BY lastdate DESC;";
         $p = strpos($textbody, '--------------------------------------------');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Language, language.
+        $p = strpos($textbody, '-------- Mensagem original --------');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # Or TN's
         #
         # _________________________________________________________________

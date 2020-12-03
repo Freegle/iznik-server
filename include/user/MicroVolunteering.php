@@ -15,6 +15,7 @@ class MicroVolunteering
     const CHALLENGE_CHECK_MESSAGE = 'CheckMessage';
     const CHALLENGE_SEARCH_TERM = 'SearchTerm';  // No longer used.
     const CHALLENGE_ITEMS = 'Items';
+    const CHALLENGE_FACEBOOK_SHARE = 'Facebook';
 
     const RESULT_APPROVE = 'Approve';
     const RESULT_REJECT = 'Reject';
@@ -93,8 +94,22 @@ class MicroVolunteering
             }
         }
 
+        if (!$ret && $u->hasFacebookLogin()) {
+            # Try sharing of Facebook post.
+            $posts = $this->dbhr->preQuery("SELECT groups_facebook_toshare.* FROM groups_facebook_toshare LEFT JOIN microactions ON microactions.facebook_post = groups_facebook_toshare.id AND microactions.userid = ? WHERE DATE(groups_facebook_toshare.date) = CURDATE() AND microactions.id IS NULL ORDER BY date DESC LIMIT 1;", [
+                $userid
+            ]);
+
+            foreach ($posts as $post) {
+                $ret = [
+                    'type' => self::CHALLENGE_FACEBOOK_SHARE,
+                    'facebook' => $post
+                ];
+            }
+        }
+
         if (!$ret) {
-            # Didn't find a message to approve.  Try pairing of popular item names.
+            # Try pairing of popular item names.
             #
             # We choose 10 random distinct popular items, and ask which are related.
             $enabled = $this->dbhr->preQuery("SELECT memberships.id FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE memberships.userid = ? AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.wordmatch') = 1);", [
@@ -142,6 +157,17 @@ class MicroVolunteering
                 $item1,
                 $item2,
                 self::VERSION,
+                self::VERSION
+            ]);
+        } catch (Exception $e) {}
+    }
+
+    public function responseFacebook($userid, $postid, $result) {
+        try {
+            $this->dbhm->preExec("INSERT IGNORE INTO microactions (userid, facebook_post, result, version) VALUES (?, ?, ?, ?);", [
+                $userid,
+                $postid,
+                $result,
                 self::VERSION
             ]);
         } catch (Exception $e) {}

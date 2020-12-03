@@ -6224,4 +6224,17 @@ memberships.groupid IN $groupq
             $groupid
         ]);
     }
+
+    public function hasFacebookLogin() {
+        $logins = $this->getLogins();
+        $ret = FALSE;
+
+        foreach ($logins as $login) {
+            if ($login['type'] == User::LOGIN_FACEBOOK) {
+                $ret = TRUE;
+            }
+        }
+
+        return $ret;
+    }
 }

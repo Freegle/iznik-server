@@ -32,6 +32,7 @@ function microvolunteering() {
                 $comments = Utils::presdef('comments', $_REQUEST, NULL);
                 $searchterm1 = intval(Utils::presdef('searchterm1', $_REQUEST, 0));
                 $searchterm2 = intval(Utils::presdef('searchterm2', $_REQUEST, 0));
+                $facebook = intval(Utils::presdef('facebook', $_REQUEST, 0));
 
                 $ret = [ 'ret' => 3, 'status' => 'Invalid parameters' ];
 
@@ -44,6 +45,13 @@ function microvolunteering() {
                     ];
                 } else if ($searchterm1 && $searchterm2) {
                     $v->responseItems($myid, $searchterm1, $searchterm2);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($facebook) {
+                    $v->responseFacebook($myid, $facebook, $response);
 
                     $ret = [
                         'ret' => 0,
