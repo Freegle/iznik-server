@@ -645,7 +645,7 @@ memberships.groupid IN $groupq
         $search = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
 
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
-        $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
+        $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR (memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ")) ");
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
         $modq = '';
@@ -726,6 +726,14 @@ memberships.groupid IN $groupq
         $ctx = [ 'Added' => NULL ];
 
         foreach ($members as $member) {
+            $thisepoch = strtotime($member['added']);
+
+            if ($ctx['Added'] == NULL || $thisepoch < $ctx['Added']) {
+                $ctx['Added'] = $thisepoch;
+            }
+
+            $ctx['id'] = $member['id'];
+
             if (!Utils::pres($member['userid'], $uids)) {
                 $uids[$member['userid']] = TRUE;
 
@@ -738,14 +746,6 @@ memberships.groupid IN $groupq
                 $thisone['userid'] = $thisone['id'];
                 $thisone['id'] = $member['id'];
                 $thisone['trustlevel'] = $u->getPrivate('trustlevel');
-
-                $thisepoch = strtotime($member['added']);
-
-                if ($ctx['Added'] == NULL || $thisepoch < $ctx['Added']) {
-                    $ctx['Added'] = $thisepoch;
-                }
-
-                $ctx['id'] = $member['id'];
 
                 # We want to return both the email used on this group and any others we have.
                 $emails = $u->getEmails();
