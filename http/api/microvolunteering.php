@@ -19,6 +19,7 @@ function microvolunteering() {
                 $types = Utils::presdef('types', $_REQUEST, [
                     MicroVolunteering::CHALLENGE_SEARCH_TERM,
                     MicroVolunteering::CHALLENGE_CHECK_MESSAGE,
+                    MicroVolunteering::CHALLENGE_PHOTO_ROTATE
                 ]);
 
                 $ret = [
@@ -37,6 +38,8 @@ function microvolunteering() {
                 $searchterm1 = intval(Utils::presdef('searchterm1', $_REQUEST, 0));
                 $searchterm2 = intval(Utils::presdef('searchterm2', $_REQUEST, 0));
                 $facebook = intval(Utils::presdef('facebook', $_REQUEST, 0));
+                $photoid = intval(Utils::presdef('photoid', $_REQUEST, 0));
+                $deg = intval(Utils::presdef('deg', $_REQUEST, 0));
 
                 $ret = [ 'ret' => 3, 'status' => 'Invalid parameters' ];
 
@@ -60,6 +63,12 @@ function microvolunteering() {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success'
+                    ];
+                } else if ($photoid) {
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'rotated' => $v->responsePhotoRotate($myid, $photoid, $response, $deg)
                     ];
                 }
             }

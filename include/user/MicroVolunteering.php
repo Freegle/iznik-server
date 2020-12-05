@@ -16,11 +16,12 @@ class MicroVolunteering
     const CHALLENGE_SEARCH_TERM = 'SearchTerm';  // No longer used.
     const CHALLENGE_ITEMS = 'Items';
     const CHALLENGE_FACEBOOK_SHARE = 'Facebook';
+    const CHALLENGE_PHOTO_ROTATE = 'PhotoRotate';
 
     const RESULT_APPROVE = 'Approve';
     const RESULT_REJECT = 'Reject';
 
-    # The number of people required to assime this is a good thing.  Note that the original poster did, too.
+    # The number of people required to assume this is a good thing.  Note that the original poster did, too.
     const APPROVAL_QUORUM = 2;
 
     # The number of people we'll ask if there are differences of views.
@@ -34,6 +35,7 @@ class MicroVolunteering
 
     public function challenge($userid, $groupid = NULL, $types) {
         $ret = NULL;
+        $today = date('Y-m-d');
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
@@ -109,6 +111,36 @@ class MicroVolunteering
             }
         }
 
+        if (!$ret && in_array(self::CHALLENGE_PHOTO_ROTATE, $types)) {
+            # Select 9 distinct random recent photos that we've not reviewed.
+
+            $atts = $this->dbhr->preQuery("SELECT messages_attachments.id, 
+       (SELECT COUNT(*) AS count FROM microactions WHERE rotatedimage = messages_attachments.id) AS reviewcount
+    FROM messages_groups 
+    INNER JOIN messages_attachments ON messages_attachments.msgid = messages_groups.msgid 
+    WHERE arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") 
+    HAVING reviewcount < ?
+    ORDER BY RAND() LIMIT 9;", [
+                $today,
+                self::DISSENTING_QUORUM
+            ]);
+            
+            $photos = [];
+            $a = new Attachment($this->dbhr, $this->dbhm);
+            
+            foreach ($atts as $att) {
+                $photos[] = [
+                    'id' => $att['id'],
+                    'path' => $a->getPath(TRUE, $att['id'])
+                ];
+            }
+            
+            $ret = [
+                'type' => self::CHALLENGE_PHOTO_ROTATE,
+                'photos' => $photos
+            ];
+        }
+
         if (!$ret && in_array(self::CHALLENGE_SEARCH_TERM, $types)) {
             # Try pairing of popular item names.
             #
@@ -172,5 +204,38 @@ class MicroVolunteering
                 self::VERSION
             ]);
         } catch (Exception $e) {}
+    }
+
+    public function responsePhotoRotate($userid, $photoid, $result, $deg) {
+        $ret = FALSE;
+
+        try {
+            $this->dbhm->preExec("INSERT IGNORE INTO microactions (userid, rotatedimage, result, version) VALUES (?, ?, ?, ?);", [
+                $userid,
+                $photoid,
+                $result,
+                self::VERSION
+            ]);
+        } catch (Exception $e) {}
+
+        # Check whether we have enough votes to rotate this photo.
+        $votes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE rotatedimage = ? AND result = ?;", [
+            $photoid,
+            self::RESULT_REJECT
+        ]);
+
+        if ($votes[0]['count'] >= self::APPROVAL_QUORUM) {
+            # We do.
+            $a = new Attachment($this->dbhr, $this->dbhm, $photoid, Attachment::TYPE_MESSAGE);
+            $data = $a->getData();
+            $i = new Image($data);
+            $i->rotate($deg);
+            $newdata = $i->getData(100);
+            $a->setData($newdata);
+            $a->recordRotate();
+            $ret = TRUE;
+        }
+
+        return $ret;
     }
 }

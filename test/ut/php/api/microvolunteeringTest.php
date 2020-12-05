@@ -151,4 +151,61 @@ class microvolunteeringAPITest extends IznikAPITestCase
             $id
         ]);
     }
+
+    public function testPhotoRotate() {
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        $g->setPrivate('microvolunteering', 1);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $msg = str_replace("Hey", "Hey {{username}}", $msg);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->addMembership($gid);
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('microvolunteering', 'GET', [
+            'types' => [
+                MicroVolunteering::CHALLENGE_PHOTO_ROTATE
+            ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['microvolunteering']['photos']));
+
+        # Response with rotate.
+        $photoid = $ret['microvolunteering']['photos'][0]['id'];
+        $ret = $this->call('microvolunteering', 'POST', [
+            'photoid' => $photoid,
+            'deg' => 90,
+            'response' => MicroVolunteering::RESULT_REJECT
+        ]);
+        assertFalse($ret['rotated']);
+
+        # Again to trigger actual rotate.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('microvolunteering', 'POST', [
+            'photoid' => $photoid,
+            'deg' => 90,
+            'response' => MicroVolunteering::RESULT_REJECT,
+            'dup' => 1
+        ]);
+        assertTrue($ret['rotated']);
+    }
 }
