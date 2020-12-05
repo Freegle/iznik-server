@@ -680,7 +680,7 @@ memberships.groupid IN $groupq
                 #
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
-                $collectionq = " AND (suspectcount > 0 OR memberships.userid IN (SELECT userid FROM spam_users WHERE spam_users.collection = '" . Spam::TYPE_SPAMMER . "')) ";
+                $collectionq = " AND suspectcount > 0";
                 $uq = $uq ? $uq : ' INNER JOIN users ON users.id = memberships.userid ';
             } else if ($collection) {
                 $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
@@ -719,6 +719,15 @@ memberships.groupid IN $groupq
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
 
         $members = $this->dbhr->preQuery($sql);
+
+        if ($collection == MembershipCollection::SPAM) {
+            # Also check for known spammers on groups.  We do this in a separate query because otherwise the
+            # indexing is poor.
+            $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
+            $sql = "$sqlpref WHERE $groupq AND memberships.userid IN (SELECT userid FROM spam_users WHERE spam_users.collection = '" . Spam::TYPE_SPAMMER . "') $addq $searchq $opsq $modq $bounceq";
+            $members2 = $this->dbhr->preQuery($sql);
+            $members = array_unique(array_merge($members, $members2));
+        }
 
         # Suspect members might be on multiple groups, so make sure we only return one.
         $uids = [];
