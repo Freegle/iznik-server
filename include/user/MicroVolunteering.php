@@ -124,21 +124,23 @@ class MicroVolunteering
                 $today,
                 self::DISSENTING_QUORUM
             ]);
-            
-            $photos = [];
-            $a = new Attachment($this->dbhr, $this->dbhm);
-            
-            foreach ($atts as $att) {
-                $photos[] = [
-                    'id' => $att['id'],
-                    'path' => $a->getPath(TRUE, $att['id'])
+
+            if (count($atts)) {
+                $photos = [];
+                $a = new Attachment($this->dbhr, $this->dbhm);
+
+                foreach ($atts as $att) {
+                    $photos[] = [
+                        'id' => $att['id'],
+                        'path' => $a->getPath(TRUE, $att['id'])
+                    ];
+                }
+
+                $ret = [
+                    'type' => self::CHALLENGE_PHOTO_ROTATE,
+                    'photos' => $photos
                 ];
             }
-            
-            $ret = [
-                'type' => self::CHALLENGE_PHOTO_ROTATE,
-                'photos' => $photos
-            ];
         }
 
         if (!$ret && in_array(self::CHALLENGE_SEARCH_TERM, $types)) {
