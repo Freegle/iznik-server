@@ -132,7 +132,11 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $id = $this->dbhm->lastInsertId();
         self::assertNotNull($id);
 
-        $ret = $this->call('microvolunteering', 'GET', []);
+        $ret = $this->call('microvolunteering', 'GET', [
+            'types' => [
+                MicroVolunteering::CHALLENGE_FACEBOOK_SHARE
+            ]
+        ]);
         assertEquals(0, $ret['ret']);
         assertEquals(MicroVolunteering::CHALLENGE_FACEBOOK_SHARE, $ret['microvolunteering']['type']);
         $fbid = $ret['microvolunteering']['facebook']['id'];

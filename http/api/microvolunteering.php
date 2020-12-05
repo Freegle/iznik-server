@@ -16,11 +16,15 @@ function microvolunteering() {
             case 'GET': {
                 $v = new MicroVolunteering($dbhr, $dbhm);
                 $groupid = intval(Utils::presdef('groupid', $_REQUEST, 0));
+                $types = Utils::presdef('types', $_REQUEST, [
+                    MicroVolunteering::CHALLENGE_SEARCH_TERM,
+                    MicroVolunteering::CHALLENGE_CHECK_MESSAGE,
+                ]);
 
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'microvolunteering' => $v->challenge($myid, $groupid)
+                    'microvolunteering' => $v->challenge($myid, $groupid, $types)
                 ];
                 break;
             }

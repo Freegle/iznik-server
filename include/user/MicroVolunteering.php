@@ -32,7 +32,7 @@ class MicroVolunteering
         $this->dbhm = $dbhm;
     }
 
-    public function challenge($userid, $groupid = NULL) {
+    public function challenge($userid, $groupid = NULL, $types) {
         $ret = NULL;
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
@@ -55,7 +55,8 @@ class MicroVolunteering
         # - not one we've seen
         # - still open
         # - on a group with this kind of microvolunteering enabled.
-        if (count($groupids)) {
+        if (in_array(self::CHALLENGE_CHECK_MESSAGE, $types) &&
+            count($groupids)) {
             $msgs = $this->dbhr->preQuery(
                 "SELECT messages_spatial.msgid,
        (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid) AS reviewcount,
@@ -94,7 +95,7 @@ class MicroVolunteering
             }
         }
 
-        if (!$ret && $u->hasFacebookLogin()) {
+        if (!$ret && $u->hasFacebookLogin() && in_array(self::CHALLENGE_FACEBOOK_SHARE, $types)) {
             # Try sharing of Facebook post.
             $posts = $this->dbhr->preQuery("SELECT groups_facebook_toshare.* FROM groups_facebook_toshare LEFT JOIN microactions ON microactions.facebook_post = groups_facebook_toshare.id AND microactions.userid = ? WHERE DATE(groups_facebook_toshare.date) = CURDATE() AND microactions.id IS NULL ORDER BY date DESC LIMIT 1;", [
                 $userid
@@ -108,7 +109,7 @@ class MicroVolunteering
             }
         }
 
-        if (!$ret) {
+        if (!$ret && in_array(self::CHALLENGE_SEARCH_TERM, $types)) {
             # Try pairing of popular item names.
             #
             # We choose 10 random distinct popular items, and ask which are related.
