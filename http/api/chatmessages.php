@@ -115,6 +115,12 @@ function chatmessages() {
                             'ret' => 0,
                             'status' => 'Success'
                         ];
+                    } else if ($action == ChatMessage::ACTION_REDACT && $id) {
+                        $m->redact($id);
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
                     } else if (($message || $imageid || $addressid) && $roomid && $r->canSee($me->getId())) {
                         if ($refmsgid) {
                             $type = ChatMessage::TYPE_INTERESTED;
