@@ -182,7 +182,7 @@ class MicroVolunteering
 
             if ($result == self::RESULT_REJECT) {
                 # Check whether we have enough votes to flag this up to mods.
-                $votes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND result = ?;", [
+                $votes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND result = ? AND comments IS NOT NULL;", [
                     $msgid,
                     self::RESULT_REJECT
                 ]);
