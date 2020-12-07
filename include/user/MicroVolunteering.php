@@ -181,9 +181,16 @@ class MicroVolunteering
             ]);
 
             if ($result == self::RESULT_REJECT) {
-                # At present, send all such messages for review.
-                $m = new Message($this->dbhr, $this->dbhm, $msgid);
-                $m->sendForReview("A member thinks this message is not OK.");
+                # Check whether we have enough votes to flag this up to mods.
+                $votes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND result = ?;", [
+                    $msgid,
+                    self::RESULT_REJECT
+                ]);
+
+                if ($votes[0]['count'] >= self::APPROVAL_QUORUM) {
+                    $m = new Message($this->dbhr, $this->dbhm, $msgid);
+                    $m->sendForReview("A member thinks this message is not OK.");
+                }
             }
         }
     }
