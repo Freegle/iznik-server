@@ -2172,7 +2172,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                                 'messages' => $twigmessages,
                                                 'ismod' => $sendingto->isModerator(),
                                                 'support' => SUPPORT_ADDR,
-                                                'backcolour' => '#E8FEFB',
+                                                'backcolour' => '#FFF8DC',
                                                 'email' => $to,
                                                 'previousmessages' => $prevmsg,
                                                 'jobads' => $jobads['jobs'],
