@@ -622,7 +622,7 @@ memberships.groupid IN $groupq
             }
         }
 
-        $atts['microvolunteeringoptions'] = $atts['microvolunteeringoptions'] ? json_decode($atts['microvolunteeringoptions'], TRUE) : [
+        $atts['microvolunteeringoptions'] = Utils::pres('microvolunteeringoptions', $atts) ? json_decode($atts['microvolunteeringoptions'], TRUE) : [
             'approvedmessages' => 1,
             'wordmatch' => 1
         ];
