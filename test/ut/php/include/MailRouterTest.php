@@ -32,6 +32,7 @@ class MailRouterTest extends IznikTestCase {
 
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        assertNotNull($this->gid);
         $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
         $this->group->setPrivate('onhere', 1);
 

@@ -441,6 +441,7 @@ class userTest extends IznikTestCase {
         self::assertEquals($cid3a, $cid3);
 
         # Check the merge history shows.
+        $this->waitBackground();
         $atts = $u1->getPublic(NULL, FALSE, TRUE);
         error_log("Merges " . var_export($atts['merges']));
         $found = FALSE;

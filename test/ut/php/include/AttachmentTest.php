@@ -24,16 +24,20 @@ class AttachmentTest extends IznikTestCase {
     }
 
     public function testIdentify() {
-        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        $a = new Attachment($this->dbhr, $this->dbhm);
-        $attid = $a->create(NULL, 'image/jpeg', $data);
-        assertNotNull($attid);
+        if (GOOGLE_VISION_KEY != ' GOOGLE_VISION_KEY') {
+            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+            $a = new Attachment($this->dbhr, $this->dbhm);
+            $attid = $a->create(null, 'image/jpeg', $data);
+            assertNotNull($attid);
 
-        $a = new Attachment($this->dbhr, $this->dbhm, $attid);
+            $a = new Attachment($this->dbhr, $this->dbhm, $attid);
 
-        $idents = $a->identify();
-        $this->log("Identify returned " . var_export($idents, TRUE));
-        assertEquals('chair', trim(strtolower($idents[0]['name'])));
+            $idents = $a->identify();
+            $this->log("Identify returned " . var_export($idents, true));
+            assertEquals('chair', trim(strtolower($idents[0]['name'])));
+        }
+
+        assertTrue(TRUE);
     }
 
     private $blobCount = 0;
@@ -130,14 +134,18 @@ class AttachmentTest extends IznikTestCase {
     }
 
     public function testSCP() {
-        $failed = FALSE;
-        $a = new Attachment($this->dbhr, $this->dbhm);
-        $a->scp('localhost', 'testdata', 'unittest', $failed);
-        assertEquals(1, $failed);
+        if (function_exists('ssh2_connect')) {
+            $failed = FALSE;
+            $a = new Attachment($this->dbhr, $this->dbhm);
+            $a->scp('localhost', 'testdata', 'unittest', $failed);
+            assertEquals(1, $failed);
 
-        # Invalid host, fails.
-        $a->scp('localhost2', 'testdata', 'unittest', $failed);
-        assertEquals(1, $failed);
+            # Invalid host, fails.
+            $a->scp('localhost2', 'testdata', 'unittest', $failed);
+            assertEquals(1, $failed);
+        }
+
+        assertTrue(TRUE);
     }
 }
 

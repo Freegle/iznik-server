@@ -726,7 +726,10 @@ memberships.groupid IN $groupq
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
             $sql = "$sqlpref WHERE $groupq AND memberships.userid IN (SELECT userid FROM spam_users WHERE spam_users.collection = '" . Spam::TYPE_SPAMMER . "') $addq $searchq $opsq $modq $bounceq";
             $members2 = $this->dbhr->preQuery($sql);
-            $members = array_unique(array_merge($members, $members2));
+
+            if (count($members2)) {
+                $members = array_unique(array_merge($members, $members2));
+            }
         }
 
         # Suspect members might be on multiple groups, so make sure we only return one.

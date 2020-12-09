@@ -9,7 +9,8 @@ ENV MYSQL_USER=mysql \
     MYSQL_LOG_DIR=/var/log/mysql \
 	  DEBIAN_FRONTEND=noninteractive \
 	  TZ='UTZ' \
-	  NOTVISIBLE="in users profile"
+	  NOTVISIBLE="in users profile" \
+	  STANDALONE=TRUE
 
 # 3rd party components
 RUN apt-get update \
@@ -47,14 +48,18 @@ RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libs
 	build-essential chrpath libssl-dev libxft-dev libfreetype6-dev libfreetype6 libfontconfig1-dev libfontconfig1  \
 	monit iotop openssh-client php-dev php-gd gsutil php-redis php-gmp xfsprogs php-soap php-mbstring php-curl \
 	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git \
-	&& apt-get remove -y apache2* sendmail* mlocate
+	&& apt-get remove -y apache2* sendmail* mlocate \
+	&& wget curl http://pecl.php.net/get/ssh2-1.2.tgz -o ssh2.tgz \
+	&& pecl install ssh2 ssh2-1.2.tgz \
+	&& docker-php-ext-enable ssh2 \
+	&& rm ssh2-1.2.tgz
 
 # GeoIP
 #
 RUN	apt-get install -y php-pear \
 # Can no longer install GeoLite2-Country.mmdb as not exposed without account/key.
     && apt-get install -y php-dev libgeoip-dev libcurl4-openssl-dev wget golang-go \
-    && pecl install geoip-1.1.1 \
+    && pecl install geoip-1.1.1
 
 # Mailparse
 RUN apt-get install -y php-mbstring php-mailparse 
@@ -69,7 +74,6 @@ RUN mkdir -p /var/www \
 	&& apt-get update \
 	&& git clone https://github.com/Freegle/iznik-server.git iznik \
 	&& cp iznik/install/mysqldamlevlim.so /usr/lib/mysql/plugin/ \
-	&& touch iznik/standalone
 
 WORKDIR /var/www/iznik
 
@@ -81,13 +85,13 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'AZURE_CONNECTION_STRING', 'zzzz'/'AZURE_CONNECTION_STRING', ' \AZURE_CONNECTION_STRING'/g" /etc/iznik.conf \
     && sed -ie "s/'PLAYGROUND_TOKEN', 'zzzz'/'PLAYGROUND_TOKEN', ' \PLAYGROUND_TOKEN'/g" /etc/iznik.conf \
     && sed -ie "s/'PLAYGROUND_SECRET', 'zzzz'/'PLAYGROUND_SECRET', ' \PLAYGROUND_SECRET'/g" /etc/iznik.conf \
-
     # phpunit.xml is set up for running tests on our debug server.
     && sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml 
 
 # Install composer dependencies
-RUN apt-get install -y curl \
-	&& curl --silent --show-error https://getcomposer.org/installer | php \
+RUN apt-get install wget \
+    && wget https://getcomposer.org/composer-1.phar \
+    && mv composer-1.phar composer.phar \
     && cd composer \
     && php ../composer.phar install \
     && cd ..
@@ -100,7 +104,10 @@ RUN	sed -ie 's/::1//g' /etc/redis/redis.conf \
 RUN cat install/crontab | crontab -u root -
 
 # Tidy image
-RUN rm -rf /var/lib/apt/lists/* 
+RUN rm -rf /var/lib/apt/lists/*
+
+# Need to resolve google.
+RUN cat 8.8.8.8 dns.google >> /etc/hosts
 
 # What happens when we start the container
 # First start some services.  MySQL is a bit of a faff.
