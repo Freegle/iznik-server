@@ -84,14 +84,43 @@ class microvolunteeringAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
 
-        # Again, but different.
+        # Again, but reject.
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
             'response' => MicroVolunteering::RESULT_REJECT,
+            'msgcategory' => MicroVolunteering::MSGCATEGORY_SHOULDNT_BE_HERE,
             'comments' => 'Fish with a bad face'
         ]);
 
         assertEquals(0, $ret['ret']);
+
+        # Message should still be approved collection because we require a quorum to move.
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(MessageCollection::APPROVED, $ret['message']['groups'][0]['collection']);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->addMembership($gid);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('microvolunteering', 'POST', [
+            'msgid' => $id,
+            'response' => MicroVolunteering::RESULT_REJECT,
+            'msgcategory' => MicroVolunteering::MSGCATEGORY_SHOULDNT_BE_HERE,
+            'comments' => 'Fish with another bad face'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        # Message should now be in spam collection.
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(MessageCollection::SPAM, $ret['message']['groups'][0]['collection']);
 
         # Should be no messages left as we've given a response, so we'll get a search term.
         $ret = $this->call('microvolunteering', 'GET', [

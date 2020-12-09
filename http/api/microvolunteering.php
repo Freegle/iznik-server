@@ -33,6 +33,7 @@ function microvolunteering() {
             case 'POST': {
                 $v = new MicroVolunteering($dbhr, $dbhm);
                 $msgid = intval(Utils::presdef('msgid', $_REQUEST, 0));
+                $msgcategory = Utils::presdef('msgcategory', $_REQUEST, NULL);
                 $response = Utils::presdef('response', $_REQUEST, NULL);
                 $comments = Utils::presdef('comments', $_REQUEST, NULL);
                 $searchterm1 = intval(Utils::presdef('searchterm1', $_REQUEST, 0));
@@ -44,7 +45,7 @@ function microvolunteering() {
                 $ret = [ 'ret' => 3, 'status' => 'Invalid parameters' ];
 
                 if ($msgid && $response) {
-                    $v->responseCheckMessage($myid, $msgid, $response, $comments);
+                    $v->responseCheckMessage($myid, $msgid, $response, $msgcategory, $comments);
 
                     $ret = [
                         'ret' => 0,

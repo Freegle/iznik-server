@@ -21,6 +21,9 @@ class MicroVolunteering
     const RESULT_APPROVE = 'Approve';
     const RESULT_REJECT = 'Reject';
 
+    const MSGCATEGORY_SHOULDNT_BE_HERE = 'ShouldntBeHere';
+    const MSGCATEGORY_COULD_BE_BETTER = 'CouldBeBetter';
+
     # The number of people required to assume this is a good thing.  Note that the original poster did, too.
     const APPROVAL_QUORUM = 2;
 
@@ -166,30 +169,33 @@ class MicroVolunteering
         return $ret;
     }
 
-    public function responseCheckMessage($userid, $msgid, $result, $comments) {
+    public function responseCheckMessage($userid, $msgid, $result, $msgcategory, $comments) {
         if ($result == self::RESULT_APPROVE || $result == self::RESULT_REJECT) {
             # Insert might fail if message is deleted - timing window.
-            $this->dbhm->preExec("INSERT INTO microactions (userid, msgid, result, comments, version) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE result = ?, comments = ?, version = ?;", [
+            $this->dbhm->preExec("INSERT INTO microactions (userid, msgid, result, msgcategory, comments, version) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE result = ?, comments = ?, version = ?, msgcategory = ?;", [
                 $userid,
                 $msgid,
                 $result,
+                $msgcategory,
                 $comments,
                 self::VERSION,
                 $result,
                 $comments,
-                self::VERSION
+                self::VERSION,
+                $msgcategory
             ]);
 
             if ($result == self::RESULT_REJECT) {
-                # Check whether we have enough votes to flag this up to mods.
-                $votes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND result = ? AND comments IS NOT NULL;", [
+                # Check whether we have enough votes to make this message not visible.
+                $votes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND result = ? AND comments IS NOT NULL AND msgcategory = ?;", [
                     $msgid,
-                    self::RESULT_REJECT
+                    self::RESULT_REJECT,
+                    self::MSGCATEGORY_SHOULDNT_BE_HERE
                 ]);
 
                 if ($votes[0]['count'] >= self::APPROVAL_QUORUM) {
                     $m = new Message($this->dbhr, $this->dbhm, $msgid);
-                    $m->sendForReview("A member thinks this message is not OK.");
+                    $m->sendForReview("Members think there is something wrong with this message.");
                 }
             }
         }
