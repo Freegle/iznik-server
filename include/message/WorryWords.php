@@ -61,7 +61,7 @@ class WorryWords {
                                     'subtype' => Log::SUBTYPE_WORRYWORDS,
                                     'user' => $fromuser,
                                     'msgid' => $id,
-                                    'text' => "Found {$worryword['keyword']} type {$worryword['type']} in $word"
+                                    'text' => "Found '{$worryword['keyword']}' type {$worryword['type']} in '$word'"
                                 ]);
                             }
 
