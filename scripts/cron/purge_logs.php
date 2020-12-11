@@ -55,8 +55,6 @@ try {
     error_log("Failed to delete blank logs " . $e->getMessage());
 }
 
-exit(0);
-
 # Delete logs for old bounces.  We get a huge number of logs over time.  This doesn't affect bounce processing
 # because we do that from bounces_emails.
 try {
