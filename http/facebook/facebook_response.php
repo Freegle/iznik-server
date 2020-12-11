@@ -9,7 +9,7 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 
 
-$groupid = Utils::presdef('graffitigroup', $_SESSION, 0);
+$groupid = intval(Utils::presdef('graffitigroup', $_SESSION, 0));
 $url = Utils::presdef('url', $_REQUEST, NULL);;
 
 $fb = new \Facebook\Facebook([

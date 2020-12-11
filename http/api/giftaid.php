@@ -79,7 +79,7 @@ function giftaid() {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
             if ($me && ($me->isAdmin() || $me->hasPermission(User::PERM_GIFTAID))) {
-                $id = intval(Utils::presdef('id', $_REQUEST, 0));
+                $id = (Utils::presint('id', $_REQUEST, 0));
                 $period = Utils::presdef('period', $_REQUEST, NULL);
                 $fullname = Utils::presdef('fullname', $_REQUEST, NULL);
                 $homeaddress = Utils::presdef('homeaddress', $_REQUEST, NULL);

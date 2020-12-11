@@ -6,9 +6,8 @@ function admin() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = Utils::presdef('id', $_REQUEST, NULL);
-    $groupid = Utils::presdef('groupid', $_REQUEST, NULL);
-    $id = $id ? intval($id) : NULL;
+    $id = Utils::presint('id', $_REQUEST, NULL);
+    $groupid = Utils::presint('groupid', $_REQUEST, NULL);
     $a = new Admin($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 

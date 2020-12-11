@@ -5,7 +5,7 @@ function donations() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
 
     switch ($_REQUEST['type']) {
         case 'GET': {

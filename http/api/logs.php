@@ -8,11 +8,11 @@ function logs() {
 
     $logtype = Utils::presdef('logtype', $_REQUEST, NULL);
     $logsubtype = Utils::presdef('logsubtype', $_REQUEST, NULL);
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
-    $date = intval(Utils::presdef('date', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
+    $date = (Utils::presint('date', $_REQUEST, NULL));
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
-    $limit = intval(Utils::presdef('limit', $_REQUEST, 20));
+    $limit = (Utils::presint('limit', $_REQUEST, 20));
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 

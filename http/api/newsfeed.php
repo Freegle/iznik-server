@@ -10,7 +10,7 @@ function newsfeed() {
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
     if ($me) {
-        $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+        $id = (Utils::presint('id', $_REQUEST, NULL));
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
         switch ($_REQUEST['type']) {
@@ -75,7 +75,7 @@ function newsfeed() {
                 $replyto = Utils::pres('replyto', $_REQUEST) ? intval($_REQUEST['replyto']) : NULL;
                 $action = Utils::presdef('action', $_REQUEST, NULL);
                 $reason = Utils::presdef('reason', $_REQUEST, NULL);
-                $imageid = intval(Utils::presdef('imageid', $_REQUEST, NULL));
+                $imageid = (Utils::presint('imageid', $_REQUEST, NULL));
 
                 if ($action == 'Love') {
                     $n->like();
@@ -168,7 +168,7 @@ function newsfeed() {
                     ];
 
                     if ($me->isModerator()) {
-                        $n->setPrivate('replyto', intval(Utils::presdef('attachto', $_REQUEST, 0)));
+                        $n->setPrivate('replyto', (Utils::presint('attachto', $_REQUEST, 0)));
 
                         $ret = [
                             'ret' => 0,
@@ -214,7 +214,7 @@ function newsfeed() {
 
             case 'DELETE': {
                 $n = new Newsfeed($dbhr, $dbhm, $id);
-                $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+                $id = (Utils::presint('id', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 2,

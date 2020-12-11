@@ -1502,6 +1502,7 @@ class userTest extends IznikTestCase {
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         $u->forget("UT");
+        $this->waitBackground();
         $atts = $u->getPublic(NULL, FALSE, TRUE);
         assertEquals(0, strpos($atts['logs'][0]['user']['fullname'], 'Deleted User'));
         assertEquals(0, strpos($atts['logs'][1]['byuser']['fullname'], 'Deleted User'));

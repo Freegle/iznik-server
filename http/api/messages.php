@@ -6,11 +6,11 @@ function messages() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
     $groupids = Utils::presdef('groupids', $_REQUEST, NULL);
     $collection = Utils::presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
-    $limit = intval(Utils::presdef('limit', $_REQUEST, 5));
+    $limit = (Utils::presint('limit', $_REQUEST, 5));
     $fromuser = Utils::presdef('fromuser', $_REQUEST, NULL);
     $hasoutcome = array_key_exists('hasoutcome', $_REQUEST) ? filter_var($_REQUEST['hasoutcome'], FILTER_VALIDATE_BOOLEAN) : NULL;
     $types = Utils::presdef('types', $_REQUEST, NULL);
@@ -19,10 +19,10 @@ function messages() {
     $grouptype = Utils::presdef('grouptype', $_REQUEST, NULL);
     $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $searchmygroups= array_key_exists('searchmygroups', $_REQUEST) ? filter_var($_REQUEST['searchmygroups'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $swlat = array_key_exists('swlat', $_REQUEST) ? floatval($_REQUEST['swlat']) : NULL;
-    $swlng = array_key_exists('swlng', $_REQUEST) ? floatval($_REQUEST['swlng']) : NULL;
-    $nelat = array_key_exists('nelat', $_REQUEST) ? floatval($_REQUEST['nelat']) : NULL;
-    $nelng = array_key_exists('nelng', $_REQUEST) ? floatval($_REQUEST['nelng']) : NULL;
+    $swlat = Utils::presfloat('swlat', $_REQUEST, NULL);
+    $swlng = Utils::presfloat('swlng', $_REQUEST, NULL);
+    $nelat = Utils::presfloat('nelat', $_REQUEST, NULL);
+    $nelng = Utils::presfloat('nelng', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
@@ -96,7 +96,7 @@ function messages() {
                             # Always want all data for own posts no matter what the client says.
                             $summary = FALSE;
                         } else {
-                            $age = Utils::pres('age', $_REQUEST) ? intval(Utils::presdef('age', $_REQUEST, 0)) : NULL;
+                            $age = Utils::presint('age', $_REQUEST, 0);
                         }
 
                         list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $age, $hasoutcome, $summary);
@@ -123,7 +123,7 @@ function messages() {
                         $search = Utils::presdef('search', $_REQUEST, NULL);
                         $search = $search ? trim($search) : NULL;
                         $ctx = Utils::presdef('context', $_REQUEST, NULL);
-                        $limit = Utils::presdef('limit', $_REQUEST, Search::Limit);
+                        $limit = Utils::presint('limit', $_REQUEST, Search::Limit);
                         $messagetype = Utils::presdef('messagetype', $_REQUEST, NULL);
                         $nearlocation = Utils::presdef('nearlocation', $_REQUEST, NULL);
                         $nearlocation = $nearlocation ? intval($nearlocation) : NULL;
@@ -171,7 +171,7 @@ function messages() {
                         $search = Utils::presdef('search', $_REQUEST, NULL);
                         $search = $search ? trim($search) : NULL;
                         $ctx = Utils::presdef('context', $_REQUEST, NULL);
-                        $limit = Utils::presdef('limit', $_REQUEST, Search::Limit);
+                        $limit = Utils::presint('limit', $_REQUEST, Search::Limit);
 
                         $groupids = $groupid ? [ $groupid ] : NULL;
 

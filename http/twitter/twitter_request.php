@@ -13,7 +13,7 @@ $groupid = intval(Utils::presdef('groupid', $_REQUEST, 0));
 $t = new Twitter($dbhr, $dbhm, $groupid);
 
 $connection = new TwitterOAuth(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET);
-$request_token = $connection->oauth("oauth/request_token", array("oauth_callback" => "https://{$_SERVER['HTTP_HOST']}/twitter/twitter_response.php?groupid=" . Utils::presdef('groupid', $_REQUEST, 0)));
+$request_token = $connection->oauth("oauth/request_token", array("oauth_callback" => "https://{$_SERVER['HTTP_HOST']}/twitter/twitter_response.php?groupid=" . intval(Utils::presdef('groupid', $_REQUEST, 0))));
 
 # Save off the info we will need in the response function.
 $t->set(NULL, $request_token['oauth_token'], $request_token['oauth_token_secret']);

@@ -164,7 +164,8 @@ class Story extends Entity
 
     public function getForReview($groupids, $newsletter) {
         $mysqltime = date("Y-m-d", strtotime("31 days ago"));
-        $sql = $newsletter ? ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC") : ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (" . implode(',', $groupids) . ") AND users_stories.date > '$mysqltime' AND reviewed = 0 ORDER BY date DESC");
+        $sql = $newsletter ? ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC") :
+            ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (" . implode(',', $groupids) . ") AND users_stories.date > '$mysqltime' AND reviewed = 0 ORDER BY date DESC");
         $ids = $this->dbhr->preQuery($sql);
         $ret = [];
 

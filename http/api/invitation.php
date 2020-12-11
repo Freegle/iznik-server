@@ -38,7 +38,7 @@ function invitation()
         }
 
         case 'PATCH': {
-            $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+            $id = (Utils::presint('id', $_REQUEST, NULL));
             $outcome = Utils::presdef('outcome', $_REQUEST, User::INVITE_ACCEPTED);
 
             if ($id) {

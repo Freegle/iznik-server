@@ -11,16 +11,16 @@ function message() {
     $myid = $me ? $me->getId() : NULL;
 
     $collection = Utils::presdef('collection', $_REQUEST, MessageCollection::APPROVED);
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
     $reason = Utils::presdef('reason', $_REQUEST, NULL);
     $action = Utils::presdef('action', $_REQUEST, NULL);
     $subject = Utils::presdef('subject', $_REQUEST, NULL);
     $body = Utils::presdef('body', $_REQUEST, NULL);
-    $stdmsgid = Utils::presdef('stdmsgid', $_REQUEST, NULL);
+    $stdmsgid = (Utils::presint('stdmsgid', $_REQUEST, NULL));
     $messagehistory = array_key_exists('messagehistory', $_REQUEST) ? filter_var($_REQUEST['messagehistory'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $localonly = array_key_exists('localonly', $_REQUEST) ? filter_var($_REQUEST['localonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
+    $userid = (Utils::presint('userid', $_REQUEST, NULL));
     $userid = $userid ? $userid : NULL;
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
@@ -123,7 +123,7 @@ function message() {
                     if ($collection == MessageCollection::DRAFT) {
                         # Draft messages are created by users, rather than parsed out from emails.  We might be
                         # creating one, or updating one.
-                        $locationid = intval(Utils::presdef('locationid', $_REQUEST, NULL));
+                        $locationid = (Utils::presint('locationid', $_REQUEST, NULL));
 
                         $ret = [ 'ret' => 3, 'status' => 'Missing location - client error' ];
 
@@ -213,7 +213,7 @@ function message() {
                                 $m->setPrivate('textbody', $textbody);
                                 $m->setPrivate('fromip', Utils::presdef('REMOTE_ADDR', $_SERVER, NULL));
 
-                                $availablenow = array_key_exists('availablenow', $_REQUEST) ? intval($_REQUEST['availablenow']) : 1;
+                                $availablenow = Utils::presint('availablenow', $_REQUEST, 1);
                                 $m->setPrivate('availableinitially', $availablenow);
                                 $m->setPrivate('availablenow', $availablenow);
 
@@ -272,8 +272,8 @@ function message() {
                     $textbody = Utils::presdef('textbody', $_REQUEST, NULL);
                     $htmlbody = Utils::presdef('htmlbody', $_REQUEST, NULL);
                     $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
-                    $availableinitially = array_key_exists('availableinitially', $_REQUEST) ? intval($_REQUEST['availableinitially']) : NULL;
-                    $availablenow = array_key_exists('availablenow', $_REQUEST) ? intval($_REQUEST['availablenow']) : NULL;
+                    $availableinitially = Utils::presint('availableinitially', $_REQUEST, NULL);
+                    $availablenow = Utils::presint('availablenow', $_REQUEST, NULL);
                     $attachments = array_key_exists('attachments', $_REQUEST) ? $_REQUEST['attachments'] : NULL;
 
                     $ret = [
@@ -640,7 +640,7 @@ function message() {
                         }
                         break;
                     case 'RevertEdits':
-                        $editid = intval(Utils::presdef('editid', $_REQUEST, 0));
+                        $editid = (Utils::presint('editid', $_REQUEST, 0));
                         $role = $m->getRoleForMessage()[0];
 
                         if ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR) {
@@ -649,7 +649,7 @@ function message() {
                         }
                         break;
                     case 'ApproveEdits':
-                        $editid = intval(Utils::presdef('editid', $_REQUEST, 0));
+                        $editid = (Utils::presint('editid', $_REQUEST, 0));
                         $role = $m->getRoleForMessage()[0];
 
                         if ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR) {
@@ -716,7 +716,7 @@ function message() {
                             $ret = ['ret' => 0, 'status' => 'Success'];
                             break;
                         case 'AddBy':
-                            $count = array_key_exists('count', $_REQUEST) ? intval($_REQUEST['count']) : NULL;
+                            $count = Utils::presint('count', $_REQUEST, NULL);
 
                             if ($count !== NULL) {
                                 $m->addBy($userid, $count);

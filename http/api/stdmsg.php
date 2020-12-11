@@ -8,8 +8,8 @@ function stdmsg() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = Utils::presdef('id', $_REQUEST, NULL);
-    $configid = Utils::presdef('configid', $_REQUEST, NULL);
+    $id = (Utils::presint('id', $_REQUEST, NULL));
+    $configid = (Utils::presint('configid', $_REQUEST, NULL));
     $s = new StdMessage($dbhr, $dbhm, $id);
 
     if ($id && $s->getId() || $_REQUEST['type'] == 'POST') {

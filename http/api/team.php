@@ -6,7 +6,7 @@ function team() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
     $name = Utils::presdef('name', $_REQUEST, NULL);
 
     $t = new Team($dbhr, $dbhm, $id);
@@ -99,7 +99,7 @@ function team() {
 
             if ($me && $me->hasPermission(User::PERM_TEAMS)) {
                 $t->setAttributes($_REQUEST);
-                $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
+                $userid = (Utils::presint('userid', $_REQUEST, NULL));
                 $desc = Utils::presdef('description', $_REQUEST, NULL);
 
                 switch (Utils::presdef('action', $_REQUEST, NULL)) {

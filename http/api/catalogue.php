@@ -12,7 +12,7 @@ function catalogue() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $c = new Catalogue($dbhr, $dbhm);
-            $id = intval(Utils::presdef('id', $_REQUEST, 0));
+            $id = (Utils::presint('id', $_REQUEST, 0));
 
             if ($id) {
                 list ($spines, $fragments) = $c->getResult($id);
@@ -61,12 +61,12 @@ function catalogue() {
             $c = new Catalogue($dbhr, $dbhm);
 
             $action = Utils::presdef('action', $_REQUEST, NULL);
-            $id = intval(Utils::presdef('id', $_REQUEST, 0));
+            $id = (Utils::presint('id', $_REQUEST, 0));
 
             if ($action) {
                 switch ($action) {
                     case 'Rate': {
-                        $rating = intval(Utils::presdef('rating', $_REQUEST, 0));
+                        $rating = (Utils::presint('rating', $_REQUEST, 0));
                         $c->rate($id, $rating);
 
                         $ret = [

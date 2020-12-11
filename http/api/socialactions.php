@@ -5,10 +5,9 @@ function socialactions() {
     global $dbhr, $dbhm;
 
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
-    $id = Utils::presdef('id', $_REQUEST, NULL);
+    $id = (Utils::presint('id', $_REQUEST, NULL));
     $id = $id ? intval($id) : $id;
-    $uid = intval(Utils::presdef('uid', $_REQUEST, NULL));
-    $msgid = intval(Utils::presdef('msgid', $_REQUEST, NULL));
+    $uid = (Utils::presint('uid', $_REQUEST, NULL));
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 

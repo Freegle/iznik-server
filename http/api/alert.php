@@ -6,8 +6,7 @@ function alert() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = Utils::presdef('id', $_REQUEST, NULL);
-    $id = $id ? intval($id) : NULL;
+    $id = Utils::presint('id', $_REQUEST, NULL);
     $a = new Alert($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -44,7 +43,7 @@ function alert() {
             
             switch ($action) {
                 case 'clicked': {
-                    $trackid = intval(Utils::presdef('trackid', $_REQUEST, NULL));
+                    $trackid = (Utils::presint('trackid', $_REQUEST, NULL));
                     $a->clicked($trackid);
                     break;
                 }
@@ -63,10 +62,10 @@ function alert() {
                 $subject = Utils::presdef('subject', $_REQUEST, NULL);
                 $text = Utils::presdef('text', $_REQUEST, NULL);
                 $html = Utils::presdef('html', $_REQUEST, nl2br($text));
-                $groupid = Utils::presdef('groupid', $_REQUEST, NULL);
+                $groupid = Utils::presint('groupid', $_REQUEST, NULL);
                 $groupid = $groupid == 'AllFreegle' ? NULL : intval($groupid);
-                $askclick = array_key_exists('askclick', $_REQUEST) ? intval($_REQUEST['askclick']) : 1;
-                $tryhard = array_key_exists('tryhard', $_REQUEST) ? intval($_REQUEST['tryhard']) : 1;
+                $askclick = Utils::presint('askclick', $_REQUEST, 1);
+                $tryhard = Utils::presint('tryhard', $_REQUEST, 1);
                 
                 $alertid = $a->create($groupid, $from, $to, $subject, $text, $html, $askclick, $tryhard);
 

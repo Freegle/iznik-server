@@ -6,7 +6,7 @@ function noticeboard() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
 
     $n = new Noticeboard($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -40,8 +40,8 @@ function noticeboard() {
 
         case 'POST': {
             $name = Utils::presdef('name', $_REQUEST, NULL);
-            $lat = Utils::pres('lat', $_REQUEST) ? floatval($_REQUEST['lat']) : NULL;
-            $lng = Utils::pres('lng', $_REQUEST) ? floatval($_REQUEST['lng']) : NULL;
+            $lat = Utils::presfloat('lat', $_REQUEST, NULL);
+            $lng = Utils::presfloat('lng', $_REQUEST, NULL);
             $description = Utils::presdef('description', $_REQUEST, NULL);
             $action = Utils::presdef('action', $_REQUEST, NULL);
 

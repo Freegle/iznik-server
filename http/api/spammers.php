@@ -6,13 +6,13 @@ function spammers() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
-    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
+    $userid = (Utils::presint('userid', $_REQUEST, NULL));
     $collection = Utils::presdef('collection', $_REQUEST, Spam::TYPE_SPAMMER);
     $reason = Utils::presdef('reason', $_REQUEST, NULL);
     $context = Utils::presdef('context', $_REQUEST, NULL);
     $search = Utils::presdef('search', $_REQUEST, NULL);
-    $heldby = array_key_exists('heldby', $_REQUEST) ? intval($_REQUEST['heldby']) : NULL;
+    $heldby = Utils::presint('heldby', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 

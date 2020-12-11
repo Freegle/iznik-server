@@ -1,6 +1,8 @@
 <?php
 namespace Freegle\Iznik;
 
+use PhpMimeMailParser\Exception;
+
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
@@ -535,6 +537,15 @@ class dbTest extends IznikTestCase {
 
         $mock->preQuery($this->sql);
 
+    }
+
+    public function testSleep() {
+        try {
+            $this->dbhm->preQuery('SELECT id FROM users WHERE id = 1 OR SLEEP(5);');
+            assertFalse(TRUE);
+        } catch (\Exception $e) {
+            assertFalse(FALSE);
         }
+    }
 }
 

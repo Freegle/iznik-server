@@ -7,8 +7,8 @@ function communityevent() {
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
 
     if ($groupid) {
         # This might be a legacy groupid.
@@ -104,11 +104,11 @@ function communityevent() {
                     $c->setAttributes($_REQUEST);
 
                     switch (Utils::presdef('action', $_REQUEST, NULL)) {
-                        case 'AddGroup': $c->addGroup(intval(Utils::presdef('groupid', $_REQUEST, 0))); break;
-                        case 'RemoveGroup': $c->removeGroup(intval(Utils::presdef('groupid', $_REQUEST, 0))); break;
+                        case 'AddGroup': $c->addGroup((Utils::presint('groupid', $_REQUEST, 0))); break;
+                        case 'RemoveGroup': $c->removeGroup((Utils::presint('groupid', $_REQUEST, 0))); break;
                         case 'AddDate': $c->addDate(Utils::presdef('start', $_REQUEST, NULL), Utils::presdef('end', $_REQUEST, NULL)); break;
-                        case 'RemoveDate': $c->removeDate(intval(Utils::presdef('dateid', $_REQUEST, NULL))); break;
-                        case 'SetPhoto': $c->setPhoto(intval(Utils::presdef('photoid', $_REQUEST, NULL))); break;
+                        case 'RemoveDate': $c->removeDate((Utils::presint('dateid', $_REQUEST, NULL))); break;
+                        case 'SetPhoto': $c->setPhoto((Utils::presint('photoid', $_REQUEST, NULL))); break;
                         case 'Hold':
                             if ($me->isModerator()) {
                                 $c->setPrivate('heldby', $me->getId());

@@ -5,8 +5,8 @@ function image() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
-    $id = intval(Utils::presdef('id', $_REQUEST, 0));
-    $msgid = Utils::pres('msgid', $_REQUEST) ? intval($_REQUEST['msgid']) : NULL;
+    $id = (Utils::presint('id', $_REQUEST, 0));
+    $msgid = Utils::presint('msgid', $_REQUEST, NULL);
     $identify = array_key_exists('identify', $_REQUEST) ? filter_var($_REQUEST['identify'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ocr = array_key_exists('ocr', $_REQUEST) ? filter_var($_REQUEST['ocr'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $group = Utils::presdef('group', $_REQUEST, NULL);
@@ -61,8 +61,8 @@ function image() {
 
 
             if ($i->img) {
-                $w = intval(Utils::presdef('w', $_REQUEST, $i->width()));
-                $h = intval(Utils::presdef('h', $_REQUEST, $i->height()));
+                $w = (Utils::presint('w', $_REQUEST, $i->width()));
+                $h = (Utils::presint('h', $_REQUEST, $i->height()));
 
                 if (($w > 0) || ($h > 0)) {
                     # Need to resize
@@ -92,7 +92,7 @@ function image() {
             $ret = [ 'ret' => 1, 'status' => 'No photo provided' ];
 
             # This next line is to simplify UT.
-            $rotate = Utils::pres('rotate', $_REQUEST) ? intval($_REQUEST['rotate']) : NULL;
+            $rotate = Utils::presint('rotate', $_REQUEST, NULL);
 
             if ($rotate) {
                 # We want to rotate.  Do so.

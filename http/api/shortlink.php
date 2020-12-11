@@ -12,8 +12,8 @@ function shortlink() {
         case 'GET': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            $id = intval(Utils::presdef('id', $_REQUEST, 0));
-            $gid = intval(Utils::presdef('groupid', $_REQUEST, 0));
+            $id = (Utils::presint('id', $_REQUEST, 0));
+            $gid = (Utils::presint('groupid', $_REQUEST, 0));
 
             if ($id) {
                 $s = new Shortlink($dbhr, $dbhm, $id);
@@ -37,7 +37,7 @@ function shortlink() {
 
         case 'POST': {
             $name = Utils::presdef('name', $_REQUEST, NULL);
-            $groupid = intval(Utils::presdef('groupid', $_REQUEST, 0));
+            $groupid = (Utils::presint('groupid', $_REQUEST, 0));
 
             $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 
