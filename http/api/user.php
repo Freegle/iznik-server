@@ -207,7 +207,8 @@ function user() {
                 } else if ($u->getId() == $me->getId() && (!$trustlevel || $trustlevel == User::TRUST_BASIC || $trustlevel == User::TRUST_DECLINED)) {
                     # Can only turn this on/off.
                     if ($trustlevel) {
-                        $u->setPrivate('trustlevel', User::TRUST_BASIC);
+                        $setu = $u->getId() == $me->getId() ? $me : $u;
+                        $setu->setPrivate('trustlevel', $trustlevel);
                     } else {
                         $u->setPrivate('trustlevel', NULL);
                     }
