@@ -96,7 +96,7 @@ function messages() {
                             # Always want all data for own posts no matter what the client says.
                             $summary = FALSE;
                         } else {
-                            $age = Utils::presint('age', $_REQUEST, 0);
+                            $age = Utils::presint('age', $_REQUEST, NULL);
                         }
 
                         list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $age, $hasoutcome, $summary);
