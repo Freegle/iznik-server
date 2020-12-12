@@ -47,12 +47,8 @@ RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libs
 	sysstat libwww-perl nasm php-zip unzip mysql-client php-mysql php-xdebug pflogsumm mailutils nginx psmisc \
 	build-essential chrpath libssl-dev libxft-dev libfreetype6-dev libfreetype6 libfontconfig1-dev libfontconfig1  \
 	monit iotop openssh-client php-dev php-gd gsutil php-redis php-gmp xfsprogs php-soap php-mbstring php-curl \
-	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git \
-	&& apt-get remove -y apache2* sendmail* mlocate \
-	&& wget curl http://pecl.php.net/get/ssh2-1.2.tgz -o ssh2.tgz \
-	&& pecl install ssh2 ssh2-1.2.tgz \
-	&& docker-php-ext-enable ssh2 \
-	&& rm ssh2-1.2.tgz
+	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git
+RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
 
 # GeoIP
 #
@@ -73,7 +69,7 @@ RUN mkdir -p /var/www \
 	&& cd /var/www \
 	&& apt-get update \
 	&& git clone https://github.com/Freegle/iznik-server.git iznik \
-	&& cp iznik/install/mysqldamlevlim.so /usr/lib/mysql/plugin/ \
+	&& cp iznik/install/mysqldamlevlim.so /usr/lib/mysql/plugin/
 
 WORKDIR /var/www/iznik
 
@@ -107,7 +103,7 @@ RUN cat install/crontab | crontab -u root -
 RUN rm -rf /var/lib/apt/lists/*
 
 # Need to resolve google.
-RUN cat 8.8.8.8 dns.google >> /etc/hosts
+RUN echo 8.8.8.8 dns.google >> /etc/hosts
 
 # What happens when we start the container
 # First start some services.  MySQL is a bit of a faff.
