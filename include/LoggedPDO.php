@@ -135,7 +135,7 @@ class LoggedPDO {
     }
 
     private function prex($sql, $params = NULL, $select, $log) {
-        if (stripos($sql, 'SLEEP') !== FALSE) {
+        if (stripos($sql, 'SLEEP(') !== FALSE) {
             throw new \Exception("Invalid SQL");
         }
 
