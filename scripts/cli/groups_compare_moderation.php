@@ -6,13 +6,12 @@ define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 
 require_once(IZNIK_BASE . '/include/db.php');
-global $dbhr, $dbhm;
+global $dbhr, $dbhm, $dbconfig;
 
-$dsn = "mysql:host=localhost;port=3309;dbname=iznik;charset=utf8";
-$dbhback = new LoggedPDO($dsn, SQLUSER, SQLPASSWORD, array(
+$dbhback = new LoggedPDO([ 'localhost:3309' ], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
     \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+    \PDO::ATTR_EMULATE_PREPARES => TRUE
+], TRUE);
 
 $groupsback = $dbhback->preQuery("SELECT id, nameshort, settings FROM groups WHERE type = 'Freegle' ORDER BY LOWER(nameshort) ASC;");
 
