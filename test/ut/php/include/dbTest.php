@@ -169,11 +169,16 @@ class dbTest extends IznikTestCase {
     }
 
     public function testQueryRetries() {
+        global $dbconfig;
+
         # We mock up the query to throw an exception, to test retries.
         #
         # First a non-deadlock exception
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->disableOriginalConstructor()
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentQuery'))
             ->getMock();
         $mock->method('parentQuery')->will($this->throwException(new \Exception()));
@@ -190,7 +195,10 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that never gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->disableOriginalConstructor()
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentQuery'))
             ->getMock();
         $mock->method('parentQuery')->will($this->throwException(new \Exception('Faked deadlock exception')));
@@ -206,34 +214,27 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->disableOriginalConstructor()
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentQuery'))
             ->getMock();
         $this->count = 5;
         $mock->method('parentQuery')->will($this->returnCallback(function() {
             return($this->exceptionUntil());
         }));
-        $worked = false;
 
         $mock->retryQuery('SHOW COLUMNS FROM test;');
 
         # Now a deadlock within a transaction.
         $this->log("Deadlock in transaction");
-        $dbconfig = array (
-            'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
-
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
-            ), TRUE))
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentQuery'))
             ->getMock();
         $this->count = 0;
@@ -254,21 +255,12 @@ class dbTest extends IznikTestCase {
         # Now a failure in the return code
 
         $this->log("query returns false");
-        $dbconfig = array (
-            'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
-
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
-            ), TRUE))
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentQuery', 'errorInfo'))
             ->getMock();
         $this->count = 5;
@@ -277,18 +269,20 @@ class dbTest extends IznikTestCase {
         }));
         $mock->method('errorInfo')->willReturn('Test server has gone away');
 
-        $worked = false;
-
         $mock->retryQuery('SHOW COLUMNS FROM test;');
-
-        }
+    }
 
     public function testExecRetries() {
+        global $dbconfig;
+
         # We mock up the query to throw an exception, to test retries.
         #
         # First a non-deadlock exception
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->disableOriginalConstructor()
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentExec'))
             ->getMock();
         $mock->method('parentExec')->will($this->throwException(new \Exception()));
@@ -305,7 +299,10 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that never gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->disableOriginalConstructor()
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentExec'))
             ->getMock();
         $mock->method('parentExec')->will($this->throwException(new \Exception('Faked deadlock exception')));
@@ -321,7 +318,10 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->disableOriginalConstructor()
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentExec'))
             ->getMock();
         $this->count = 5;
@@ -333,21 +333,12 @@ class dbTest extends IznikTestCase {
 
         # Now a failure in the return code
         $this->log("query returns false");
-        $dbconfig = array (
-            'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
-
-        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
-            ), TRUE))
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentExec', 'errorInfo'))
             ->getMock();
         $this->count = 5;
@@ -359,9 +350,10 @@ class dbTest extends IznikTestCase {
         $mock->retryExec('INSERT INTO test VALUES ();');
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
-            ), TRUE))
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('executeStatement', 'getErrorInfo'))
             ->getMock();
         $this->count = 2;
@@ -371,28 +363,17 @@ class dbTest extends IznikTestCase {
         $this->log("Test gone away");
         $mock->method('getErrorInfo')->willReturn('Test server has gone away');
         $mock->preExec('INSERT INTO test VALUES ();');
-
-        }
+    }
 
     public function testTransactionFailed() {
         # We get partway through a transaction, then kill it off to provoke a commit failure.  This tests that
         # we notice if the server dies during a transaction; PDO is suspect in this area.
+        global $dbconfig;
 
-        $dbconfig = array (
-            'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
-
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
-
-        $dbhm = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+        $dbhm = new LoggedPDO($dbconfig['hosts_mod'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            \PDO::ATTR_EMULATE_PREPARES => FALSE
-        ), FALSE, $this->dbhr);
+            \PDO::ATTR_EMULATE_PREPARES => TRUE
+        ], FALSE, $GLOBALS['dbhr']);
 
         $dbhm->setTries(0);
         $rc = $dbhm->beginTransaction();
@@ -428,24 +409,16 @@ class dbTest extends IznikTestCase {
 
     # Oddly, the constructor doesn't get covered, so call it again.
     public function testConstruct() {
-        $dbconfig = array (
-            'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
+        global $dbconfig;
 
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
-
-        assertNotNull($this->dbhm->__construct($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
-        ), TRUE));
+        assertNotNull($this->dbhm->__construct($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            \PDO::ATTR_EMULATE_PREPARES => TRUE
+        ], TRUE));
 
         assertEquals(3, count($this->dbhm->errorInfo()));
 
-        }
+    }
 
     public function testPrex() {
         $rc = $this->dbhm->preExec('INSERT INTO test VALUES ();');
@@ -469,25 +442,16 @@ class dbTest extends IznikTestCase {
     }
 
     public function testPrexRetries() {
-        $dbconfig = array (
-            'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
-
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
+        global $dbconfig;
 
         # We mock up the query to throw an exception, to test retries.
         #
         # First a non-deadlock exception
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+            ->setConstructorArgs(array($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => FALSE
-            ), TRUE))
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE))
             ->setMethods(array('parentPrepare'))
             ->getMock();
         $mock->method('parentPrepare')->will($this->throwException(new \Exception()));
@@ -504,10 +468,10 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that never gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => FALSE
-            ), TRUE))
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentPrepare'))
             ->getMock();
         $mock->method('parentPrepare')->will($this->throwException(new \Exception('Faked deadlock exception')));
@@ -523,10 +487,10 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => FALSE
-            ), TRUE))
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('parentPrepare'))
             ->getMock();
         $this->count = 5;

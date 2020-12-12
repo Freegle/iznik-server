@@ -501,21 +501,13 @@ class userTest extends IznikTestCase {
         $u1->addMembership($group3, User::ROLE_MEMBER);
         $u2->addMembership($group3, User::ROLE_MODERATOR);
 
-        $dbconfig = array (
-            'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
-
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
+        global $dbconfig;
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
-            ), TRUE))
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => TRUE
+            ], TRUE])
             ->setMethods(array('preExec'))
             ->getMock();
         $mock->method('preExec')->willThrowException(new \Exception());
