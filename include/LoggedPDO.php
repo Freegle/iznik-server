@@ -100,7 +100,7 @@ class LoggedPDO {
 
                     $gotit = TRUE;
                 } catch (\Exception $e) {
-                    error_log("DB connect exception on $hostindex = $hostname from {$this->hosts} error " . $e->getMessage());
+                    error_log("DB connect exception on $hostindex = $hostname from " . json_encode($this->hosts) ." error " . $e->getMessage());
 
                     // Try the next host.
                     $hostindex++;
