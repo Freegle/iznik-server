@@ -27,6 +27,7 @@ class LoggedPDO {
     private $username = NULL;
     private $password = NULL;
     private $sqllog = SQLLOG;
+    private $preparedStatements = [];
 
     const MAX_LOG_SIZE = 100000;
     const MAX_BACKGROUND_SIZE = 100000;  # Max size of sql that we can pass to beanstalk directly; larger goes in file
@@ -155,7 +156,6 @@ class LoggedPDO {
             throw new \Exception("Invalid SQL");
         }
 
-        $this->doConnect();
         #error_log($sql);
         $try = 0;
         $ret = NULL;
@@ -165,7 +165,13 @@ class LoggedPDO {
 
         do {
             try {
-                $sth = $this->parentPrepare($sql);
+                # We try to reuse prepared statements for performance reasons.  Although PHP is short-lived this
+                # still has some gains.
+                if (!Utils::pres($sql, $this->preparedStatements)) {
+                    $this->preparedStatements[$sql] = $this->parentPrepare($sql);
+                }
+
+                $sth = $this->preparedStatements[$sql];
                 $rc = $this->executeStatement($sth, $params);
 
                 if (!$select) {
@@ -177,6 +183,9 @@ class LoggedPDO {
                     # For selects we return all the rows found; for updates we return the return value.
                     $ret = $select ? $sth->fetchAll() : $rc;
                     $worked = true;
+
+                    # Close the statement so we can reuse it later.
+                    $sth->closeCursor();
                 } else {
                     $msg = var_export($this->getErrorInfo($sth), true);
                     if (stripos($msg, 'has gone away') !== FALSE) {
@@ -239,8 +248,9 @@ class LoggedPDO {
 
         if ($worked && $try > 1) {
             error_log("prex succeeded after $try for $sql");
-        } else if (!$worked)
-            $this->giveUp($msg . " for $sql " . var_export($params, true) . " " . var_export($this->_db->errorInfo(), true));
+        } else if (!$worked) {
+            $this->giveUp($msg . " for $sql " . var_export($params, true) . " " . ($this->_db ? var_export($this->_db->errorInfo(), true) : ''));
+        }
 
         $this->dbwaittime += microtime(true) - $start;
 
