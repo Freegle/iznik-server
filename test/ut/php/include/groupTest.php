@@ -67,10 +67,7 @@ class groupTest extends IznikTestCase {
         assertNull($id2);
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('lastInsertId'))
             ->getMock();
         $mock->method('lastInsertId')->willThrowException(new \Exception());

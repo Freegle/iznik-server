@@ -61,13 +61,12 @@ class LoggedPDO {
         $this->pheanstalk = $pheanstalk;
     }
 
-    public function __construct($hosts, $database, $username, $password, $options, $readonly = FALSE, \Freegle\Iznik\LoggedPDO $readconn = NULL)
+    public function __construct($hosts, $database, $username, $password, $readonly = FALSE, \Freegle\Iznik\LoggedPDO $readconn = NULL)
     {
         $this->hosts = explode(',', $hosts);
         $this->database = $database;
         $this->username = $username;
         $this->password = $password;
-        $this->options = $options;
         $this->readonly = $readonly;
         $this->readconn = $readconn;
 

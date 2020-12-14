@@ -7,10 +7,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
-$dbhold = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhold = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 0;");
 foreach ($groups as $group) {

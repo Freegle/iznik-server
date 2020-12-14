@@ -504,10 +504,7 @@ class userTest extends IznikTestCase {
         global $dbconfig;
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('preExec'))
             ->getMock();
         $mock->method('preExec')->willThrowException(new \Exception());

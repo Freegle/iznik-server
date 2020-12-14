@@ -175,10 +175,7 @@ class dbTest extends IznikTestCase {
         #
         # First a non-deadlock exception
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentQuery'))
             ->getMock();
         $mock->method('parentQuery')->will($this->throwException(new \Exception()));
@@ -195,10 +192,7 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that never gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentQuery'))
             ->getMock();
         $mock->method('parentQuery')->will($this->throwException(new \Exception('Faked deadlock exception')));
@@ -214,10 +208,7 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentQuery'))
             ->getMock();
         $this->count = 5;
@@ -231,10 +222,7 @@ class dbTest extends IznikTestCase {
         $this->log("Deadlock in transaction");
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentQuery'))
             ->getMock();
         $this->count = 0;
@@ -257,10 +245,7 @@ class dbTest extends IznikTestCase {
         $this->log("query returns false");
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentQuery', 'errorInfo'))
             ->getMock();
         $this->count = 5;
@@ -279,10 +264,7 @@ class dbTest extends IznikTestCase {
         #
         # First a non-deadlock exception
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentExec'))
             ->getMock();
         $mock->method('parentExec')->will($this->throwException(new \Exception()));
@@ -299,10 +281,7 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that never gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentExec'))
             ->getMock();
         $mock->method('parentExec')->will($this->throwException(new \Exception('Faked deadlock exception')));
@@ -318,10 +297,7 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentExec'))
             ->getMock();
         $this->count = 5;
@@ -335,10 +311,7 @@ class dbTest extends IznikTestCase {
         $this->log("query returns false");
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentExec', 'errorInfo'))
             ->getMock();
         $this->count = 5;
@@ -350,10 +323,7 @@ class dbTest extends IznikTestCase {
         $mock->retryExec('INSERT INTO test VALUES ();');
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('executeStatement', 'getErrorInfo'))
             ->getMock();
         $this->count = 2;
@@ -370,10 +340,7 @@ class dbTest extends IznikTestCase {
         # we notice if the server dies during a transaction; PDO is suspect in this area.
         global $dbconfig;
 
-        $dbhm = new LoggedPDO($dbconfig['hosts_mod'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            \PDO::ATTR_EMULATE_PREPARES => TRUE
-        ], FALSE, $GLOBALS['dbhr']);
+        $dbhm = new LoggedPDO($dbconfig['hosts_mod'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], FALSE, $GLOBALS['dbhr']);
 
         $dbhm->setTries(0);
         $rc = $dbhm->beginTransaction();
@@ -411,10 +378,7 @@ class dbTest extends IznikTestCase {
     public function testConstruct() {
         global $dbconfig;
 
-        assertNotNull($this->dbhm->__construct($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            \PDO::ATTR_EMULATE_PREPARES => TRUE
-        ], TRUE));
+        assertNotNull($this->dbhm->__construct($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE));
 
         assertEquals(3, count($this->dbhm->errorInfo()));
 
@@ -448,10 +412,7 @@ class dbTest extends IznikTestCase {
         #
         # First a non-deadlock exception
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs(array($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE))
+            ->setConstructorArgs(array($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE))
             ->setMethods(array('parentPrepare'))
             ->getMock();
         $mock->method('parentPrepare')->will($this->throwException(new \Exception()));
@@ -468,10 +429,7 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that never gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentPrepare'))
             ->getMock();
         $mock->method('parentPrepare')->will($this->throwException(new \Exception('Faked deadlock exception')));
@@ -487,10 +445,7 @@ class dbTest extends IznikTestCase {
 
         # Now a deadlock that gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_EMULATE_PREPARES => TRUE
-            ], TRUE])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('parentPrepare'))
             ->getMock();
         $this->count = 5;

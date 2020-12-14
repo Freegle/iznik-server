@@ -24,13 +24,6 @@ $GLOBALS['dbconfig'] = $dbconfig;
 # the SQL server, and therefore they are actually significantly slower.  Emulation is as secure as long as
 # you use a suitable charset (e.g. utf8).  See https://phpdelusions.net/pdo#emulation, which refers to
 # https://stackoverflow.com/questions/134099/are-pdo-prepared-statements-sufficient-to-prevent-sql-injection/12202218
-$GLOBALS['dbhr'] = new LoggedPDO($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => TRUE
-], TRUE);
-
-$GLOBALS['dbhm'] = new LoggedPDO($dbconfig['hosts_mod'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], [
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => TRUE
-], FALSE, $GLOBALS['dbhr']);
+$GLOBALS['dbhr'] = new LoggedPDO($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE);
+$GLOBALS['dbhm'] = new LoggedPDO($dbconfig['hosts_mod'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], FALSE, $GLOBALS['dbhr']);
 

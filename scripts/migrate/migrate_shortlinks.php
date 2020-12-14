@@ -8,10 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsni = "mysql:host={$dbconfig['host']};dbname=ilovefreegle;charset=utf8";
 
-$dbhi = new \PDO($dsni, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhi = new \PDO($dsni, $dbconfig['user'], $dbconfig['pass']);
 
 $shortlinks = $dbhi->query("SELECT * FROM perch_shortlinks;");
 

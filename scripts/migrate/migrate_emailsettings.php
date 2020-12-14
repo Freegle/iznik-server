@@ -8,28 +8,19 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsnfd = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
-$dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass']);
 
 $g = Group::get($dbhr, $dbhm);
 $u = User::get($dbhr, $dbhm);
 
-$dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass']);
 
 error_log("Migrate FD memberships");
 $groups = $dbhfd->query("SELECT * FROM groups WHERE grouppublish = 1 ORDER BY LOWER(groupname) ASC;");
 $groupcount = 0;
 
 foreach ($groups as $group) {
-    $dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-        \PDO::ATTR_EMULATE_PREPARES => FALSE
-    ));
+    $dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass']);
 
     $groupcount++;
     error_log("Migrate settings for {$group['groupname']}");

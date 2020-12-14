@@ -18,17 +18,11 @@ try {
     $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
     $dbhmold = $dbhm;
 
-    $dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-        \PDO::ATTR_EMULATE_PREPARES => FALSE
-    ));
+    $dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
     $dsn = "mysql:host={$dbconfig['host']};dbname=information_schema;charset=utf8";
 
-    $dbhschema = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-        \PDO::ATTR_EMULATE_PREPARES => FALSE
-    ));
+    $dbhschema = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
     $sql = "SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'messages' AND table_schema = '" . SQLDB . "';";
     $schema = $dbhschema->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
