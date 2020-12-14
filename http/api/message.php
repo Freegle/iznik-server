@@ -270,7 +270,6 @@ function message() {
                     $item = Utils::presdef('item', $_REQUEST, NULL);
                     $location = Utils::presdef('location', $_REQUEST, NULL);
                     $textbody = Utils::presdef('textbody', $_REQUEST, NULL);
-                    $htmlbody = Utils::presdef('htmlbody', $_REQUEST, NULL);
                     $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
                     $availableinitially = Utils::presint('availableinitially', $_REQUEST, NULL);
                     $availablenow = Utils::presint('availablenow', $_REQUEST, NULL);
@@ -289,7 +288,7 @@ function message() {
                         $m->setPrivate('availableinitially', $availableinitially);
                     }
 
-                    if ($subject || $textbody || $htmlbody || $msgtype || $item || $location || $attachments !== NULL) {
+                    if ($subject || $textbody || $msgtype || $item || $location || $attachments !== NULL) {
                         $partner = Utils::pres('partner', $_SESSION);
 
                         if ($partner) {
@@ -301,8 +300,7 @@ function message() {
 
                         $rc = $m->edit($subject, 
                           $textbody, 
-                          $htmlbody, 
-                          $msgtype, 
+                          $msgtype,
                           $item, 
                           $location, 
                           $attachments, 

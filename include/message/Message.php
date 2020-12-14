@@ -208,12 +208,12 @@ class Message
         $this->dbhm->preExec("DELETE FROM messages_items WHERE msgid = ?;", [ $this->id ]);
     }
     
-    public function edit($subject, $textbody, $htmlbody, $type, $item, $location, $attachments, $checkreview = TRUE, $groupid = NULL) {
+    public function edit($subject, $textbody, $type, $item, $location, $attachments, $checkreview = TRUE, $groupid = NULL) {
         $ret = TRUE;
         $textbody = trim($textbody);
 
         # Get old values for edit history.  We put NULL if there is no edit.
-        $oldtext = ($textbody || $htmlbody) ? trim($this->getPrivate('textbody')) : NULL;
+        $oldtext = $textbody ? trim($this->getPrivate('textbody')) : NULL;
         $oldsubject = ($type || $item || $location) ? $this->getPrivate('subject') : NULL;
         $oldtype = $type ? $this->getPrivate('type') : NULL;
         $oldlocation = $location ? $this->getPrivate('locationid') : NULL;
@@ -245,22 +245,12 @@ class Message
             $oldattachments = json_encode($oldattachments);
         }
 
-        if ($htmlbody && !$textbody) {
-            # In the interests of accessibility, let's create a text version of the HTML
-            $html = new \Html2Text\Html2Text($htmlbody);
-            $textbody = trim($html->getText());
-
-            # Make sure we have a text value, otherwise we might return a missing body.
-            $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
-        }
-
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');
         $text .= ($type ? "New type $type " : '');
         $text .= ($item ? "New item $item " : '');
         $text .= ($location ? "New location $location" : '');
         $text .= "Text body changed to len " . strlen($textbody);
-        $text .= " HTML body changed to len " . strlen($htmlbody);
 
         if ($type) {
             $this->setPrivate('type', $type);
@@ -321,10 +311,6 @@ class Message
 
         if ($textbody) {
             $this->setPrivate('textbody', $textbody);
-        }
-
-        if ($htmlbody) {
-            $this->setPrivate('htmlbody', $htmlbody);
         }
 
         if ($attachments !== NULL) {
@@ -437,7 +423,6 @@ class Message
             $this->edit(
                 Utils::presdef('oldsubject', $edit, NULL),
                 Utils::presdef('oldtext', $edit, NULL),
-                NULL,
                 Utils::presdef('oldtype', $edit, NULL),
                 $item,
                 Utils::presdef('oldlocation', $edit, NULL),
@@ -513,7 +498,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'FOP', 'fromaddr', 'isdraft',
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'FOP', 'fromaddr', 'isdraft',
         'lat', 'lng', 'availableinitially', 'availablenow'
     ];
 
@@ -932,9 +917,6 @@ class Message
                     # For non-members we want to strip out any potential phone numbers or email addresses.
                     $ret['textbody'] = preg_replace('/[0-9]{4,}/', '***', $ret['textbody']);
                     $ret['textbody'] = preg_replace(Message::EMAIL_REGEXP, '***@***.com', $ret['textbody']);
-
-                    # We can't do this in HTML, so just zap it.
-                    $ret['htmlbody'] = NULL;
                 }
 
                 # We have a flag for FOP - but legacy posting methods might put it in the body.
@@ -2596,7 +2578,7 @@ ORDER BY lastdate DESC;";
 
         # Save into the messages table.
         try {
-            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
             $rc = $this->dbhm->preExec($sql, [
                 $this->date,
                 $this->source,
@@ -2614,7 +2596,6 @@ ORDER BY lastdate DESC;";
                 $this->messageid,
                 $this->tnpostid,
                 $this->textbody,
-                $this->htmlbody,
                 $this->type,
                 $this->lat,
                 $this->lng,
@@ -4037,33 +4018,7 @@ ORDER BY lastdate DESC;";
             }
 
             $txtbody = $this->textbody;
-            $htmlbody = "<p>{$this->textbody}</p>";
-
-            $atts = $this->getAttachments();
-
-            if (count($atts) > 0) {
-                # We have attachments.  Include them as image tags.
-                $htmlbody .= "<table><tbody><tr>";
-                $count = 0;
-
-                foreach ($atts as $att) {
-                    $path = $att->getPath(FALSE);
-                    $htmlbody .= '<td><a href="' . $path . '" target="_blank"><img width="200px" src="' . $path . '" /></a></td>';
-
-                    $count++;
-
-                    $htmlbody .= ($count % 3 == 0) ? '</tr><tr>' : '';
-                }
-
-                $htmlbody .= "</tr></tbody></table>";
-            }
-
-            $htmlbody = str_replace("\r\n", "<br>", $htmlbody);
-            $htmlbody = str_replace("\r", "<br>", $htmlbody);
-            $htmlbody = str_replace("\n", "<br>", $htmlbody);
-
             $this->setPrivate('textbody', $txtbody);
-            $this->setPrivate('htmlbody', $htmlbody);
 
             # Strip possible group name.
             $subject = $this->subject;

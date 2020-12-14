@@ -788,7 +788,7 @@ class messageTest extends IznikTestCase {
             $gid
         ]);
 
-        $m->edit(NULL, NULL, NULL, Message::TYPE_WANTED, 'test item2', 'TV13 1HH', [], TRUE, NULL);
+        $m->edit(NULL, NULL, Message::TYPE_WANTED, 'test item2', 'TV13 1HH', [], TRUE, NULL);
         self::assertEquals(strtolower('WANTED: test item2 (Tuvalu Central)'), strtolower($m->getSubject()));
 
         # Test subject twice for location caching coverage.

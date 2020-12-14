@@ -64,15 +64,6 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('Hey.', $m->getTextbody());
         assertEquals('from@test.com', $m->getEnvelopefrom());
         assertEquals('to@test.com', $m->getEnvelopeto());
-        assertEquals("<HTML><HEAD>
-<STYLE id=eMClientCss>
-blockquote.cite { margin-left: 5px; margin-right: 0px; padding-left: 10px; padding-right:0px; border-left: 1px solid #cccccc }
-blockquote.cite2 {margin-left: 5px; margin-right: 0px; padding-left: 10px; padding-right:0px; border-left: 1px solid #cccccc; margin-top: 3px; padding-top: 0px; }
-.plain pre, .plain tt { font-family: monospace; font-size: 100%; font-weight: normal; font-style: normal; white-space: pre-wrap; }
-a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
-.plain pre, .plain tt {font-family: Tahoma;font-size: 12pt;}</STYLE>
-</HEAD>
-<BODY>Hey.</BODY></HTML>", $m->getHtmlbody());
         $m->delete();
 
         }
