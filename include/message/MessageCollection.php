@@ -515,9 +515,9 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         }
 
         if ($groupid) {
-            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE groupid = $groupid ORDER BY messages_groups.arrival DESC, messages_spatial.msgid DESC;";
+            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_groups.groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE messages_groups.groupid = $groupid ORDER BY messages_groups.arrival DESC, messages_spatial.msgid DESC;";
         } else {
-            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE ST_Contains(GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))'), point) ORDER BY messages_groups.arrival DESC, messages_spatial.msgid DESC;";
+            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_groups.groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE ST_Contains(GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))'), point) ORDER BY messages_groups.arrival DESC, messages_spatial.msgid DESC;";
         }
 
         $msgs = $this->dbhr->preQuery($sql);
@@ -536,7 +536,7 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         $msgs = [];
 
         if (count($groupids)) {
-            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE groupid IN (" . implode(
+            $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_groups.groupid, messages_groups.msgtype AS type, messages_groups.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE messages_groups.groupid IN (" . implode(
                     ',',
                     $groupids
                 ) . ") ORDER BY messages_groups.arrival DESC, messages_spatial.msgid DESC;";

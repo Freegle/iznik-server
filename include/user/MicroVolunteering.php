@@ -73,7 +73,7 @@ class MicroVolunteering
     INNER JOIN groups ON groups.id = messages_groups.groupid
     LEFT JOIN microactions ON microactions.msgid = messages_spatial.msgid AND microactions.userid = ?    
     LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid
-    WHERE groupid IN (" . implode(',', $groupids) . " ) 
+    WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
         AND DATE(messages.arrival) = CURDATE()
         AND approvedby IS NULL  
         AND fromuser != ?
