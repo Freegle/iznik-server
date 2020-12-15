@@ -139,10 +139,16 @@ function messages() {
                             $m = new Message($dbhr, $dbhm);
                             $msgs = $m->searchActiveInBounds($search, $messagetype, $swlat, $swlng, $nelat, $nelng, $groupid, $exactonly);
                         } else if ($searchmygroups) {
-                            $mygroups = $groupid ? [ $groupid ] : $me->getMembershipGroupIds(FALSE, $grouptype, NULL);
+                            $mygroups = [];
+
+                            if ($groupid) {
+                                $mygroups = [ $groupid ];
+                            } else if ($me) {
+                                $mygroups = $me->getMembershipGroupIds(FALSE, $grouptype, NULL);
+                            }
 
                             $m = new Message($dbhr, $dbhm);
-                            $msgs = $m->searchActiveInGroups($search, $messagetype, $exactonly, $mygroups);
+                            $msgs = count($mygroups) ? $m->searchActiveInGroups($search, $messagetype, $exactonly, $mygroups) : [];
                         } else {
                             # Search near location.
                             $m = new Message($dbhr, $dbhm);
