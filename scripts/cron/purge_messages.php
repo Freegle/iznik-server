@@ -9,23 +9,14 @@ define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 
 require_once(IZNIK_BASE . '/include/db.php');
-global $dbhr, $dbhm, $dbconfig;
+global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
 try {
-    # Bypass our usual DB class as we don't want the overhead nor to log.
-    $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
-    $dbhmold = $dbhm;
-
-    $dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
-
-    $dsn = "mysql:host={$dbconfig['host']};dbname=information_schema;charset=utf8";
-
-    $dbhschema = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
-
-    $sql = "SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'messages' AND table_schema = '" . SQLDB . "';";
-    $schema = $dbhschema->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    $sql = "use information_schema; SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'messages' AND table_schema = '" . SQLDB . "';";
+    $schema = $dbhr->preQuery($sql);
+    $sql = $dbhr->preQuery("use " . SQLDB);
 
     # Purge info about old admins which have been sent to completion.
     $start = date('Y-m-d', strtotime("midnight 90 days ago"));
@@ -38,7 +29,7 @@ try {
         do {
             $any = $dbhr->query("SELECT COUNT(*) AS count FROM admins_users WHERE adminid = {$admin['id']};");
             error_log("...left {$any[0]['count']}");
-            $dbhm->exec("DELETE FROM admins_users WHERE adminid = {$admin['id']} LIMIT 10000;");
+            $dbhm->preExec("DELETE FROM admins_users WHERE adminid = {$admin['id']} LIMIT 10000;");
         } while ($any[0]['count'] > 0);
     }
 
@@ -49,8 +40,8 @@ try {
         $sql = "SELECT * FROM users_nearby WHERE timestamp <= '$start' LIMIT 1;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
-            $dbhm->exec("DELETE FROM users_nearby WHERE userid = {$msg['userid']} AND msgid = {$msg['msgid']};");
-            #$dbhm->exec("DELETE FROM users_nearby WHERE timestamp <= '$start' LIMIT 1000;");
+            $dbhm->preExec("DELETE FROM users_nearby WHERE userid = {$msg['userid']} AND msgid = {$msg['msgid']};");
+            #$dbhm->preExec("DELETE FROM users_nearby WHERE timestamp <= '$start' LIMIT 1000;");
 
             $total ++;
 
@@ -65,7 +56,7 @@ try {
     error_log("Purge Yahoo notify messages before $start");
     $total = 0;
 
-    $m = new Message($dbhmold, $dbhmold);
+    $m = new Message($dbhr, $dbhm);
 
     do {
         $sql = "SELECT messages.id FROM messages WHERE fromaddr = 'notify@yahoogroups.com' AND date <= '$start' LIMIT 1000;";
@@ -90,7 +81,7 @@ try {
         $sql = "SELECT id FROM messages_history WHERE arrival < '$start' LIMIT 1000;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
-            $dbhm->exec("DELETE FROM messages_history WHERE id = {$msg['id']};");
+            $dbhm->preExec("DELETE FROM messages_history WHERE id = {$msg['id']};");
             $total++;
 
             if ($total % 1000 == 0) {
@@ -110,7 +101,7 @@ try {
         $sql = "SELECT msgid FROM messages_groups WHERE collection IN ('" . MessageCollection::SPAM . "', '" . MessageCollection::PENDING . "') AND arrival < '$start' LIMIT 1000;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
-            $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
+            $dbhm->preExec("DELETE FROM messages WHERE id = {$msg['msgid']};");
             $total++;
 
             if ($total % 1000 == 0) {
@@ -124,7 +115,7 @@ try {
     # Any drafts which are also on groups are not really drafts.  This must be due to a bug.
     $msgids = $dbhm->query("SELECT messages_drafts.msgid FROM messages_drafts INNER JOIN messages_groups ON messages_groups.msgid = messages_drafts.msgid");
     foreach ($msgids as $msgid) {
-        $dbhm->exec("DELETE FROM messages_drafts WHERE msgid = ?;", [
+        $dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [
             $msgid['msgid']
         ]);
     }
@@ -138,7 +129,7 @@ try {
         $sql = "SELECT msgid FROM messages_drafts WHERE timestamp < '$start' LIMIT 1000;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
-            $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
+            $dbhm->preExec("DELETE FROM messages WHERE id = {$msg['msgid']};");
             $total++;
 
             if ($total % 1000 == 0) {
@@ -158,7 +149,7 @@ try {
         $sql = "SELECT msgid FROM messages_groups INNER JOIN groups ON messages_groups.groupid = groups.id WHERE `arrival` <= '$start' AND groups.type != 'Freegle' LIMIT 1000;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
-            $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
+            $dbhm->preExec("DELETE FROM messages WHERE id = {$msg['msgid']};");
             $total++;
 
             if ($total % 1000 == 0) {
@@ -179,7 +170,7 @@ try {
         $sql = "SELECT messages.id FROM messages WHERE date >= '$end' AND deleted IS NOT NULL AND deleted <= '$start' LIMIT 1000;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
-            $dbhm->exec("DELETE FROM messages WHERE id = {$msg['id']};");
+            $dbhm->preExec("DELETE FROM messages WHERE id = {$msg['id']};");
             $total++;
 
             if ($total % 1000 == 0) {
@@ -203,8 +194,7 @@ try {
         foreach ($msgs as $msg) {
             $sql = "UPDATE messages SET htmlbody = NULL WHERE id = {$msg['id']};";
 
-            # Use dbhmold with no logging to get retrying.
-            $count = $dbhmold->exec($sql, NULL, FALSE);
+            $count = $dbhm->preExec($sql);
             $total += $count;
             if ($total % 1000 == 0) {
                 error_log("...$total");
@@ -225,7 +215,7 @@ try {
 
         foreach ($msgs as $msg) {
             $sql = "UPDATE messages SET message = NULL WHERE id = {$msg['id']};";
-            $count = $dbhmold->exec($sql, NULL, FALSE);
+            $count = $dbhm->preExec($sql);
             $total += $count;
             if ($total % 1000 == 0) {
                 error_log("...$total");
@@ -246,7 +236,7 @@ try {
         foreach ($msgs as $msg) {
             #error_log("...{$msg['id']}");
             $sql = "DELETE FROM messages WHERE id = {$msg['id']};";
-            $count = $dbhmold->exec($sql, NULL, FALSE);
+            $count = $dbhm->preExec($sql);
             $total++;
 
             if ($total % 1000 == 0) {
@@ -259,7 +249,7 @@ try {
 
     # This shouldn't happen due to delete cascading...but we've seen 7 such emails exist, and one caused future
     # problems.  So zap 'em.
-    $dbhmold->exec("DELETE FROM users_emails WHERE userid IS NULL");
+    $dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL");
 } catch (\Exception $e) {
     error_log("Failed with " . $e->getMessage());
     mail(GEEKS_ADDR, "Daily message purge failed", $e->getMessage());
