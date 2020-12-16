@@ -2937,27 +2937,25 @@ ORDER BY lastdate DESC;";
 
     public function addToSpatialIndex() {
         if ($this->lng || $this->lat) {
-//            $groups = $this->getGroups(FALSE, FALSE);
-//            foreach ($groups as $g) {
-//                $gid = $g['groupid'];
-//                $arrival = $g['arrival'];
-//
-//                $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, GeomFromText('POINT({$this->lng} {$this->lat})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$this->lng} {$this->lat})'), groupid = ?, msgtype = ?, arrival = ?;";
-//                $this->dbhm->preExec(
-//                    $sql,
-//                    [
-//                        $this->id,
-//                        $gid,
-//                        $this->getType(),
-//                        $arrival,
-//                        $gid,
-//                        $this->getType(),
-//                        $arrival,
-//                    ]
-//                );
-//            }
-            $sql = "INSERT INTO messages_spatial (msgid, point) VALUES ({$this->id}, GeomFromText('POINT({$this->lng} {$this->lat})')) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$this->lng} {$this->lat})');";
-            $this->dbhm->preExec($sql);
+            $groups = $this->getGroups(FALSE, FALSE);
+            foreach ($groups as $g) {
+                $gid = $g['groupid'];
+                $arrival = $g['arrival'];
+
+                $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, GeomFromText('POINT({$this->lng} {$this->lat})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$this->lng} {$this->lat})'), groupid = ?, msgtype = ?, arrival = ?;";
+                $this->dbhm->preExec(
+                    $sql,
+                    [
+                        $this->id,
+                        $gid,
+                        $this->getType(),
+                        $arrival,
+                        $gid,
+                        $this->getType(),
+                        $arrival,
+                    ]
+                );
+            }
         }
     }
 
@@ -4863,7 +4861,6 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         # cascaded deletes.  This is particularly true on a Percona cluster where a stream of DELETE ops tends
         # to cripple things.
         $this->dbhm->preExec("SET FOREIGN_KEY_CHECKS=0;", NULL, FALSE);
-        $this->dbhr->preQuery("USE iznik;");
 
         foreach ($schema as $table) {
             $todel = $this->dbhm->preQuery("SELECT {$table['COLUMN_NAME']} FROM {$table['TABLE_NAME']} WHERE {$table['COLUMN_NAME']} = $id", NULL, FALSE, FALSE);
@@ -4986,25 +4983,23 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
 
         # Add/update messages which are recent or have changed location or group.
         error_log("Add recent");
-        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_spatial ON messages_spatial.msgid = messages.id WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ? AND (messages_spatial.msgid IS NULL OR X(point) != messages.lng OR Y(point) != messages.lat);";
+        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_spatial ON messages_spatial.msgid = messages.id WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ? AND (messages_spatial.msgid IS NULL OR X(point) != messages.lng OR Y(point) != messages.lat OR messages_spatial.groupid IS NULL);";
         $msgs = $this->dbhr->preQuery($sql, [
             $mysqltime,
             MessageCollection::APPROVED
         ]);
 
         foreach ($msgs as $msg) {
-            $sql = "INSERT INTO messages_spatial (msgid, point) VALUES ({$msg['id']}, GeomFromText('POINT({$msg['lng']} {$msg['lat']})')) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$msg['lng']} {$msg['lat']})');";
-            $this->dbhm->preExec($sql);
-//            $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), groupid = ?, msgtype = ?, arrival = ?;";
-//            $this->dbhm->preExec($sql, [
-//                $msg['id'],
-//                $msg['groupid'],
-//                $msg['msgtype'],
-//                $msg['arrival'],
-//                $msg['groupid'],
-//                $msg['msgtype'],
-//                $msg['arrival']
-//            ]);
+            $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), groupid = ?, msgtype = ?, arrival = ?;";
+            $this->dbhm->preExec($sql, [
+                $msg['id'],
+                $msg['groupid'],
+                $msg['msgtype'],
+                $msg['arrival'],
+                $msg['groupid'],
+                $msg['msgtype'],
+                $msg['arrival']
+            ]);
         }
 
         # Update any message outcomes.
