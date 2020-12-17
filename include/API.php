@@ -135,6 +135,8 @@ class API
                 $_SESSION['modorowner'] = Utils::presdef('modorowner', $_SESSION, []);
             }
 
+            $encoded_ret = NULL;
+
             do {
                 if (Utils::presdef('type', $_REQUEST, null) != 'GET') {
                     # Check that we're not posting from a blocked country.
@@ -149,7 +151,8 @@ class API
                             $countries = $dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
                             foreach ($countries as $country) {
                                 error_log("Block post from {$country['country']} " . var_export($_REQUEST, true));
-                                echo json_encode(array('ret' => 0, 'status' => 'Success'));
+                                $encoded_ret = json_encode(array('ret' => 0, 'status' => 'Success'));
+                                echo $encoded_ret;
                                 break 2;
                             }
                         }
@@ -197,7 +200,8 @@ class API
                                     'text' => 'Duplicate request - rejected.',
                                     'data' => $_REQUEST
                                 );
-                                echo json_encode($ret);
+                                $encoded_ret = json_encode($ret);
+                                echo $encoded_ret;
                                 break 2;
                             }
 
@@ -439,9 +443,8 @@ class API
 
                             Utils::filterResult($ret);
 
-                            $str = json_encode($ret, JSON_PARTIAL_OUTPUT_ON_ERROR);
-
-                            echo $str;
+                            $encoded_ret = json_encode($ret, JSON_PARTIAL_OUTPUT_ON_ERROR);
+                            echo $encoded_ret;
 
                             if ($duration > 5000) {
                                 # Slow call.
@@ -478,7 +481,8 @@ class API
                                     'status' => 'DB operation failed after retry',
                                     'exception' => $e->getMessage()
                                 ];
-                                echo json_encode($ret);
+                                $encoded_ret = json_encode($ret);
+                                echo $encoded_ret;
                             }
                         }
                     } else {
@@ -487,7 +491,8 @@ class API
                             "Uncaught exception at " . $e->getFile() . " line " . $e->getLine() . " " . $e->getMessage()
                         );
                         $ret = ['ret' => 998, 'status' => 'Unexpected error', 'exception' => $e->getMessage()];
-                        echo json_encode($ret);
+                        $encoded_ret = json_encode($ret);
+                        echo $encoded_ret;
                         break;
                     }
 
@@ -504,7 +509,7 @@ class API
                 # Beanstalk has a limit on the size of job that it accepts; no point trying to log absurdly large
                 # API requests.
                 $req = json_encode($_REQUEST);
-                $rsp = json_encode($ret);
+                $rsp = $encoded_ret;
 
                 if (strlen($req) + strlen($rsp) > 180000) {
                     $req = substr($req, 0, 1000);
