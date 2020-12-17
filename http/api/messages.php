@@ -107,7 +107,7 @@ function messages() {
 
                         if ($me) {
                             $mygroups = $me->getMembershipGroupIds(FALSE, $grouptype, NULL);
-                            $msgs = $c->getByGroups($mygroups);
+                            $msgs = $c->getByGroups($mygroups, $ctx, $ctx ? $limit : NULL);
                         }
                         break;
                     }

@@ -532,14 +532,18 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         return $msgs;
     }
 
-    function getByGroups($groupids) {
+    function getByGroups($groupids, &$ctx, $limit) {
         $msgs = [];
+
+        $ctxq = Utils::presdef('arrival', $ctx, NULL) ? (" AND (messages_spatial.arrival < " . $this->dbhr->quote($ctx['arrival']) . " OR messages_spatial.msgid < " . intval($ctx['msgid']) . ")") : '';
+        $limitq = $limit ? (" LIMIT " . intval($limit)) : "";
+        $ctx = $ctx ? $ctx : [];
 
         if (count($groupids)) {
             $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial WHERE messages_spatial.groupid IN (" . implode(
                     ',',
                     $groupids
-                ) . ") ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC;";
+                ) . ") $ctxq ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC $limitq;";
 
             $msgs = $this->dbhr->preQuery($sql);
 
@@ -548,6 +552,8 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
                 $msg['lat'] = round($msg['lat'], User::BLUR_100M);
                 $msg['lng'] = round($msg['lng'], User::BLUR_100M);
                 $msg['arrival'] = Utils::ISODate($msg['arrival']);
+                $ctx['msgid'] = $msg['id'];
+                $ctx['arrival'] = $msg['arrival'];
             }
         }
 
