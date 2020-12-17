@@ -5919,7 +5919,7 @@ class User extends Entity
 
     public function getModGroupsByActivity() {
         $start = date('Y-m-d', strtotime("60 days ago"));
-        $sql = "SELECT COUNT(*) AS count, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid INNER JOIN logs ON logs.byuser = memberships.userid AND logs.groupid = memberships.groupid WHERE userid = ? AND logs.timestamp >= '$start' AND logs.type = 'Message' AND logs.subtype = 'Approved' AND role IN ('Owner', 'Moderator') AND groups.publish = 1 AND groups.onmap = 1 AND groups.type = 'Freegle' GROUP BY logs.groupid ORDER BY count DESC";
+        $sql = "SELECT COUNT(*) AS count, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid WHERE approvedby = ? AND arrival >= '$start' AND groups.publish = 1 AND groups.onmap = 1 AND groups.type = 'Freegle' GROUP BY groupid ORDER BY count DESC";
         return $this->dbhr->preQuery($sql, [
             $this->id
         ]);
