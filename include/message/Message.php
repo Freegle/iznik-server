@@ -2831,7 +2831,7 @@ ORDER BY lastdate DESC;";
                 # For users who we host, we leave the message unseen; that will then later generate a notification
                 # to them.  Otherwise we mail them the message and mark it as seen, because they would get
                 # confused by a mail in our notification format.
-                $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
+                $this->mailer($me, TRUE, $this->getFromname(), $to, NULL, $name, $g->getModsEmail(), $subject, $body);
 
                 # We've mailed the message out so they are up to date with this chat.
                 $r->upToDate($this->getFromuser());
