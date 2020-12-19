@@ -309,7 +309,7 @@ class User extends Entity
         $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
 
         # If we are logged in as this user and it's showing deleted then we've resurrected it; give it a new name.
-        $resurrect = Utils::presdef('id', $_SESSION, NULL) == $this->id && strpos($name, 'Deleted User') === 0;
+        $resurrect = defined('_SESSION') && Utils::presdef('id', $_SESSION, NULL) == $this->id && strpos($name, 'Deleted User') === 0;
 
         if ($default &&
             $this->id &&
