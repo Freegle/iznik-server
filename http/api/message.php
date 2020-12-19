@@ -26,7 +26,6 @@ function message() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
     $ischat = FALSE;
-    $role = '';
 
     switch ($_REQUEST['type']) {
         case 'GET':
@@ -337,7 +336,7 @@ function message() {
         case 'POST': {
             $m = new Message($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied 7 '];
-            $role = $m && $id ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
+            $role = $m && $id && $m->getId() == $id ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
             if ($id && $m->getID() == $id) {
                 # These actions don't require permission, but they do need to be logged in as they record the userid.
@@ -789,10 +788,6 @@ function message() {
                 }
             }
         }
-    }
-
-    if ($ret['ret'] == 2) {
-        error_log("Message permission issue role $role " . var_export($_REQUEST, TRUE));
     }
 
     return($ret);
