@@ -14,6 +14,8 @@ $_SERVER['HTTP_HOST'] = "ilovefreegle.org";
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
+session_start();
+
 $rl = new Relevant($dbhr, $dbhm);
 $count = 0;
 

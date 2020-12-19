@@ -213,7 +213,7 @@ class Relevant {
             return($b['id'] - $a['id']);
         });
 
-        return($ret);
+        return(array_slice($ret, 0, 10));
     }
 
     public function recordCheck($userid) {
