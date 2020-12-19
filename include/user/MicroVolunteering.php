@@ -191,7 +191,7 @@ class MicroVolunteering
 
             if ($result == self::RESULT_REJECT) {
                 # Check whether we have enough votes to make this message not visible.
-                $votes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND result = ? AND comments IS NOT NULL AND msgcategory = ?;", [
+                $votes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE msgid = ? AND result = ? AND comments IS NOT NULL AND (msgcategory IS NULL OR msgcategory = ?);", [
                     $msgid,
                     self::RESULT_REJECT,
                     self::MSGCATEGORY_SHOULDNT_BE_HERE
