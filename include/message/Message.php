@@ -4285,7 +4285,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
 
-            if (!$g->getSetting('closed', FALSE)) {
+            if (!$g->getSetting('closed', FALSE) && !$g->getPrivate('autorepostoverride')) {
                 $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
                 # We want approved messages which haven't got an outcome, aren't promised, don't have any replies and
