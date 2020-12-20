@@ -9,8 +9,7 @@ function dashboard() {
     $force = array_key_exists('force', $_REQUEST) ? filter_var($_REQUEST['force'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $allgroups = array_key_exists('allgroups', $_REQUEST) ? filter_var($_REQUEST['allgroups'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $heatmap = array_key_exists('heatmap', $_REQUEST) ? filter_var($_REQUEST['heatmap'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $groupid = Utils::presdef('group', $_REQUEST, NULL);
-    $groupid = $groupid ? intval($groupid) : NULL;
+    $groupid = Utils::presint('group', $_REQUEST, NULL);
     $type = Utils::presdef('grouptype', $_REQUEST, NULL);
     $start = Utils::presdef('start', $_REQUEST, '30 days ago');
     $end = Utils::presdef('end', $_REQUEST, 'today');

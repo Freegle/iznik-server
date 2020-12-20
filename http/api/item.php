@@ -8,7 +8,7 @@ function item() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = Utils::presdef('id', $_REQUEST, NULL);
+    $id = (Utils::presint('id', $_REQUEST, NULL));
     $typeahead = Utils::presdef('typeahead', $_REQUEST, NULL);
     $i = new Item($dbhr, $dbhm, $id);
 

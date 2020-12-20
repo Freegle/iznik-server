@@ -8,10 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
-$dbhold = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhold = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 $msgs = $dbhr->preQuery("SELECT messageid, nameshort, message FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.deleted = 1 AND messages_groups.collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid;");
 error_log("Check " . count($msgs));

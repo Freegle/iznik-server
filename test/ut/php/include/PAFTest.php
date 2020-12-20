@@ -62,10 +62,7 @@ class PAFTest extends IznikTestCase {
 
         global $dbconfig;
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([
-                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
-                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
-            ])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('preExec'))
             ->getMock();
         $mock->method('preExec')->willReturn(TRUE);

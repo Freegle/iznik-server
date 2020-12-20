@@ -6,14 +6,24 @@ function comment() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
-    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $userid = (Utils::presint('userid', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
     $user1 = $user2 = $user3 = $user4 = $user5 = $user6 = $user7 = $user8 = $user9 = $user10 = $user11 = NULL;
 
     for ($i = 1; $i <= 11; $i++) {
-        ${"user$i"} = Utils::presdef("user$i", $_REQUEST, NULL);
+        $user1 = Utils::presdef("user1", $_REQUEST, NULL);
+        $user2 = Utils::presdef("user2", $_REQUEST, NULL);
+        $user3 = Utils::presdef("user3", $_REQUEST, NULL);
+        $user4 = Utils::presdef("user4", $_REQUEST, NULL);
+        $user5 = Utils::presdef("user5", $_REQUEST, NULL);
+        $user6 = Utils::presdef("user6", $_REQUEST, NULL);
+        $user7 = Utils::presdef("user7", $_REQUEST, NULL);
+        $user8 = Utils::presdef("user8", $_REQUEST, NULL);
+        $user9 = Utils::presdef("user9", $_REQUEST, NULL);
+        $user10 = Utils::presdef("user10", $_REQUEST, NULL);
+        $user11 = Utils::presdef("user11", $_REQUEST, NULL);
     }
 
     $u = User::get($dbhr, $dbhm, $userid);

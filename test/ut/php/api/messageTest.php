@@ -1138,22 +1138,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(Message::TYPE_OFFER, $ret['message']['edits'][1]['newtype']);
         assertEquals('Hey.', $ret['message']['edits'][0]['oldtext']);
         assertEquals('Test edit', $ret['message']['edits'][0]['newtext']);
-
-        $ret = $this->call('message', 'PATCH', [
-            'id' => $id,
-            'groupid' => $this->gid,
-            'htmlbody' => 'Test edit',
-            'FOP' => 0
-        ]);
-        assertEquals(0, $ret['ret']);
-        $this->log("After HTML edit " . var_export($ret, TRUE));
-
-        $ret = $this->call('message', 'GET', [
-            'id' => $id
-        ]);
-        assertEquals('Test edit', $ret['message']['htmlbody']);
-        self::assertEquals(0, $ret['message']['FOP']);
-
     }
 
     public function testEditAsMember()

@@ -788,7 +788,7 @@ class messageTest extends IznikTestCase {
             $gid
         ]);
 
-        $m->edit(NULL, NULL, NULL, Message::TYPE_WANTED, 'test item2', 'TV13 1HH', [], TRUE, NULL);
+        $m->edit(NULL, NULL, Message::TYPE_WANTED, 'test item2', 'TV13 1HH', [], TRUE, NULL);
         self::assertEquals(strtolower('WANTED: test item2 (Tuvalu Central)'), strtolower($m->getSubject()));
 
         # Test subject twice for location caching coverage.
@@ -822,10 +822,7 @@ class messageTest extends IznikTestCase {
 
         $dsn = "mysql:host={$dbconfig['host']};dbname=information_schema;charset=utf8";
 
-        $dbhschema = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            \PDO::ATTR_EMULATE_PREPARES => FALSE
-        ));
+        $dbhschema = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
         $sql = "SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'messages' AND table_schema = '" . SQLDB . "';";
         $schema = $dbhschema->query($sql)->fetchAll(\PDO::FETCH_ASSOC);

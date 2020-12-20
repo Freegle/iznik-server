@@ -9,10 +9,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 
 $dsnfd = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
-$dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass']);
 
 # Non-Freegle groups only keep data for 31 days.
 $start = date('Y-m-d', strtotime("midnight 31 days ago"));

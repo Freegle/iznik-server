@@ -36,10 +36,7 @@ $test = FALSE;
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=Norfolk;charset=utf8";
 
-$dbhn = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhn = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 # Get the posts, including by users we're not migrating, for stats purposes.
 $posts = $dbhn->preQuery("SELECT DISTINCT ue_EmailAddress, p_Post.p_Id, p_Post.p_DatePosted, p_Post.p_DateClosed, p_Post.p_u_Id, mp_PostStatus.mp_Status, mp_PostStatus.mp_Desc,

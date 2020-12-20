@@ -575,20 +575,10 @@ class chatRoomsTest extends IznikTestCase {
 
         $r->delete();
 
-        $dbconfig = array (
-            'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
+        global $dbconfig;
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([
-                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
-                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
-            ])
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
             ->setMethods(array('preExec'))
             ->getMock();
         $mock->method('preExec')->willReturn(FALSE);

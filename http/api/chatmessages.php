@@ -4,20 +4,20 @@ namespace Freegle\Iznik;
 function chatmessages() {
     global $dbhr, $dbhm;
 
-    $roomid = intval(Utils::presdef('roomid', $_REQUEST, NULL));
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $roomid = (Utils::presint('roomid', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
     $message = Utils::presdef('message', $_REQUEST, NULL);
-    $refmsgid = Utils::presdef('refmsgid', $_REQUEST, NULL);
-    $refchatid = Utils::presdef('refchatid', $_REQUEST, NULL);
-    $imageid = Utils::presdef('imageid', $_REQUEST, NULL);
-    $addressid = Utils::presdef('addressid', $_REQUEST, NULL);
+    $refmsgid = (Utils::presint('refmsgid', $_REQUEST, NULL));
+    $refchatid = (Utils::presint('refchatid', $_REQUEST, NULL));
+    $imageid = (Utils::presint('imageid', $_REQUEST, NULL));
+    $addressid = (Utils::presint('addressid', $_REQUEST, NULL));
     $reportreason = Utils::presdef('reportreason', $_REQUEST, NULL);
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
     $ctx = (isset($ctx) && $ctx !== 'undefined') ? $ctx : NULL;
-    $limit = array_key_exists('limit', $_REQUEST) ? intval($_REQUEST['limit']) : 100;
+    $limit = Utils::presint('limit', $_REQUEST, 100);
 
     $r = new ChatRoom($dbhr, $dbhm, $roomid);
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
     $m = new ChatMessage($dbhr, $dbhm, $id);
     $me = Session::whoAmI($dbhr, $dbhm);
 
@@ -111,6 +111,12 @@ function chatmessages() {
                         ];
                     } else if ($action == ChatMessage::ACTION_RELEASE && $id) {
                         $m->release($id);
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    } else if ($action == ChatMessage::ACTION_REDACT && $id) {
+                        $m->redact($id);
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success'

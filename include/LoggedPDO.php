@@ -10,7 +10,10 @@ use \PDO;
 # retry the whole API call from scratch.
 class LoggedPDO {
 
-    public $_db;
+    public $_db = NULL;
+    private $connected = FALSE;
+    private $hosts = [];
+    private $database = NULL;
     private $inTransaction = FALSE;
     private $tries = 10;
     public  $errorLog = FALSE;
@@ -21,13 +24,11 @@ class LoggedPDO {
     private $pheanstalk = NULL;
     private $readonly;
     private $readconn;
-    private $dsn = NULL;
     private $username = NULL;
     private $password = NULL;
-    private $connected = FALSE;
     private $sqllog = SQLLOG;
+    private $preparedStatements = [];
 
-    const DUPLICATE_KEY = 1062;
     const MAX_LOG_SIZE = 100000;
     const MAX_BACKGROUND_SIZE = 100000;  # Max size of sql that we can pass to beanstalk directly; larger goes in file
 
@@ -60,12 +61,12 @@ class LoggedPDO {
         $this->pheanstalk = $pheanstalk;
     }
 
-    public function __construct($dsn, $username, $password, $options, $readonly = FALSE, \Freegle\Iznik\LoggedPDO $readconn = NULL)
+    public function __construct($hosts, $database, $username, $password, $readonly = FALSE, \Freegle\Iznik\LoggedPDO $readconn = NULL)
     {
-        $this->dsn = $dsn;
+        $this->hosts = explode(',', $hosts);
+        $this->database = $database;
         $this->username = $username;
         $this->password = $password;
-        $this->options = $options;
         $this->readonly = $readonly;
         $this->readconn = $readconn;
 
@@ -82,18 +83,33 @@ class LoggedPDO {
             $start = microtime(true);
             $gotit = FALSE;
             $count = 0;
+            $hostindex = 0;
+            $hostname = NULL;
 
             do {
                 try {
-                    $this->_db = new \PDO($this->dsn, $this->username, $this->password, [
+                    $host = $this->hosts[$hostindex];
+                    $hostname = substr($host, 0, strpos($host, ':'));
+                    $port = substr($host, strpos($host, ':') + 1);
+                    $dsn = "mysql:host=$hostname;port=$port;dbname={$this->database};charset=utf8";
+
+                    $this->_db = new \PDO($dsn, $this->username, $this->password, [
                         \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
                         \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
                     ]);
+
                     $gotit = TRUE;
                 } catch (\Exception $e) {
-                    error_log("DB connect exception " . $e->getMessage());
-                    sleep(1);
-                    $count++;
+                    error_log("DB connect exception on $hostindex = $hostname from " . json_encode($this->hosts) ." error " . $e->getMessage());
+
+                    // Try the next host.
+                    $hostindex++;
+
+                    if ($hostindex >= count($this->hosts)) {
+                        sleep(1);
+                        $count++;
+                        $hostindex = 0;
+                    }
                 }
             } while (!$gotit && $count < 30);
 
@@ -135,7 +151,10 @@ class LoggedPDO {
     }
 
     private function prex($sql, $params = NULL, $select, $log) {
-        $this->doConnect();
+        if (stripos($sql, 'SLEEP(') !== FALSE) {
+            throw new \Exception("Invalid SQL");
+        }
+
         #error_log($sql);
         $try = 0;
         $ret = NULL;
@@ -145,7 +164,13 @@ class LoggedPDO {
 
         do {
             try {
-                $sth = $this->parentPrepare($sql);
+                # We try to reuse prepared statements for performance reasons.  Although PHP is short-lived this
+                # still has some gains.
+                if (!Utils::pres($sql, $this->preparedStatements)) {
+                    $this->preparedStatements[$sql] = $this->parentPrepare($sql);
+                }
+
+                $sth = $this->preparedStatements[$sql];
                 $rc = $this->executeStatement($sth, $params);
 
                 if (!$select) {
@@ -157,14 +182,17 @@ class LoggedPDO {
                     # For selects we return all the rows found; for updates we return the return value.
                     $ret = $select ? $sth->fetchAll() : $rc;
                     $worked = true;
+
+                    # Close the statement so we can reuse it later.
+                    $sth->closeCursor();
                 } else {
                     $msg = var_export($this->getErrorInfo($sth), true);
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
                         $try++;
-                        $this->_db = NULL;
-                        $this->_db = new \PDO($this->dsn, $this->username, $this->password);
+                        $this->connected = FALSE;
+                        $this->doConnect();
                     }
                 }
 
@@ -207,8 +235,8 @@ class LoggedPDO {
                     # Try re-opening the connection.
                     $try++;
                     sleep(1);
-                    $this->_db = NULL;
-                    $this->_db = new \PDO($this->dsn, $this->username, $this->password);
+                    $this->connected = FALSE;
+                    $this->doConnect();
                 } else {
                     $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
                     error_log($msg);
@@ -219,8 +247,9 @@ class LoggedPDO {
 
         if ($worked && $try > 1) {
             error_log("prex succeeded after $try for $sql");
-        } else if (!$worked)
-            $this->giveUp($msg . " for $sql " . var_export($params, true) . " " . var_export($this->_db->errorInfo(), true));
+        } else if (!$worked) {
+            $this->giveUp($msg . " for $sql " . var_export($params, true) . " " . ($this->_db ? var_export($this->_db->errorInfo(), true) : ''));
+        }
 
         $this->dbwaittime += microtime(true) - $start;
 
@@ -263,9 +292,7 @@ class LoggedPDO {
         $start = microtime(true);
 
         # Make sure we have a connection.
-        if ($this->dsn) {
-            $this->_db = $this->_db ? $this->_db : new \PDO($this->dsn, $this->username, $this->password);
-        }
+        $this->doConnect();
 
         do {
             try {
@@ -279,8 +306,8 @@ class LoggedPDO {
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
-                        $this->_db = NULL;
-                        $this->_db = new \PDO($this->dsn, $this->username, $this->password);
+                        $this->connected = FALSE;
+                        $this->doConnect();
                     }
                 }
             } catch (\Exception $e) {
@@ -323,9 +350,7 @@ class LoggedPDO {
         $msg = '';
 
         # Make sure we have a connection.
-        if ($this->dsn) {
-            $this->_db = $this->_db ? $this->_db : new \PDO($this->dsn, $this->username, $this->password);
-        }
+        $this->doConnect();
 
         do {
             try {
@@ -339,8 +364,8 @@ class LoggedPDO {
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
-                        $this->_db = NULL;
-                        $this->_db = new \PDO($this->dsn, $this->username, $this->password);
+                        $this->connected = FALSE;
+                        $this->doConnect();
                     }
                 }
             } catch (\Exception $e) {

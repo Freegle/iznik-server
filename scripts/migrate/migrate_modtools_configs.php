@@ -14,10 +14,7 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=modtools;charset=utf8";
 # Zap any existing configs.  The old DB is the master until we migrate.
 $dbhm->preExec("DELETE FROM mod_configs;");
 
-$dbhold = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhold = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 $c = new ModConfig($dbhr, $dbhm);
 $u = User::get($dbhr, $dbhm);

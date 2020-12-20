@@ -9,7 +9,7 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 
 
-$id = Utils::presdef('id', $_REQUEST, NULL);
+$id = intval(Utils::presdef('id', $_REQUEST, NULL));
 $token = Utils::presdef('token', $_REQUEST, NULL);
 
 $fb = new \Facebook\Facebook([

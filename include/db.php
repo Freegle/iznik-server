@@ -2,9 +2,8 @@
 namespace Freegle\Iznik;
 
 $dbconfig = array (
-    'host' => SQLHOST,
-    'port_read' => SQLPORT_READ,
-    'port_mod' => SQLPORT_MOD,
+    'hosts_read' => SQLHOSTS_READ,
+    'hosts_mod' => SQLHOSTS_MOD,
     'user' => SQLUSER,
     'pass' => SQLPASSWORD,
     'database' => SQLDB
@@ -25,16 +24,6 @@ $GLOBALS['dbconfig'] = $dbconfig;
 # the SQL server, and therefore they are actually significantly slower.  Emulation is as secure as long as
 # you use a suitable charset (e.g. utf8).  See https://phpdelusions.net/pdo#emulation, which refers to
 # https://stackoverflow.com/questions/134099/are-pdo-prepared-statements-sufficient-to-prevent-sql-injection/12202218
-$dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
+$GLOBALS['dbhr'] = new LoggedPDO($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE);
+$GLOBALS['dbhm'] = new LoggedPDO($dbconfig['hosts_mod'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], FALSE, $GLOBALS['dbhr']);
 
-$GLOBALS['dbhr'] = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => TRUE
-), TRUE);
-
-$dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_mod']};dbname={$dbconfig['database']};charset=utf8";
-
-$GLOBALS['dbhm'] = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => TRUE
-), FALSE, $GLOBALS['dbhr']);

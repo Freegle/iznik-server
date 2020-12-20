@@ -369,7 +369,7 @@ function session() {
             $returnto = array_key_exists('returnto', $_REQUEST) ? $_REQUEST['returnto'] : NULL;
             $action = Utils::presdef('action', $_REQUEST, NULL);
             $host = Utils::presdef('host', $_REQUEST, NULL);
-            $keyu = intval(Utils::presdef('u', $_REQUEST, NULL));
+            $keyu = (Utils::presint('u', $_REQUEST, NULL));
             $keyk = Utils::presdef('k', $_REQUEST, NULL);
 
             $id = NULL;

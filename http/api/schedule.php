@@ -7,8 +7,8 @@ function schedule() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
-    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
-    $chatuserid = intval(Utils::presdef('chatuserid', $_REQUEST, NULL));
+    $userid = (Utils::presint('userid', $_REQUEST, NULL));
+    $chatuserid = (Utils::presint('chatuserid', $_REQUEST, NULL));
     $allowpast = array_key_exists('allowpast', $_REQUEST) ? filter_var($_REQUEST['allowpast'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];

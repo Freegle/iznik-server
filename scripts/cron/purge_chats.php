@@ -13,10 +13,7 @@ global $dbhr, $dbhm, $dbconfig;
 
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
-$dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 # Purge any spam chat messages which are more than a week old.  This gives time for us to debug any issues.
 error_log("Purge spam");

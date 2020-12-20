@@ -10,7 +10,7 @@ function request() {
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
     if ($myid) {
-        $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+        $id = (Utils::presint('id', $_REQUEST, NULL));
         $r = new Request($dbhr, $dbhm, $id);
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -18,7 +18,7 @@ function request() {
             case 'GET': {
                 $outstanding = array_key_exists('outstanding', $_REQUEST) ? filter_var($_REQUEST['outstanding'], FILTER_VALIDATE_BOOLEAN) : FALSE;
                 $recent = array_key_exists('recent', $_REQUEST) ? filter_var($_REQUEST['recent'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-                $recentid = array_key_exists('recentid', $_REQUEST) ? intval($_REQUEST['recentid']) : NULL;
+                $recentid = Utils::presint('recentid', $_REQUEST, NULL);
 
                 if ($id) {
                     $ret = ['ret' => 3, 'status' => 'Access denied'];
@@ -59,7 +59,7 @@ function request() {
             case 'PUT':
                 $id = $r->create($me->getId(),
                     Utils::presdef('reqtype', $_REQUEST, NULL),
-                    Utils::presdef('addressid', $_REQUEST, NULL),
+                    (Utils::presint('addressid', $_REQUEST, NULL)),
                     Utils::presdef('to', $_REQUEST, NULL));
 
                 $ret = [

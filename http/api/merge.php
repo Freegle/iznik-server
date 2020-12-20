@@ -11,7 +11,7 @@ function merge() {
     switch ($_REQUEST['type']) {
         case 'GET':
         {
-            $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+            $id = (Utils::presint('id', $_REQUEST, NULL));
             $uid = Utils::presdef('uid', $_REQUEST, NULL);
 
             $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
@@ -52,10 +52,10 @@ function merge() {
             break;
         }
         case 'POST': {
-            $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+            $id = (Utils::presint('id', $_REQUEST, NULL));
             $uid = Utils::presdef('uid', $_REQUEST, NULL);
-            $user1 = intval(Utils::presdef('user1', $_REQUEST, NULL));
-            $user2 = intval(Utils::presdef('user2', $_REQUEST, NULL));
+            $user1 = (Utils::presint('user1', $_REQUEST, NULL));
+            $user2 = (Utils::presint('user2', $_REQUEST, NULL));
             $action = Utils::presdef('action', $_REQUEST, NULL);
 
             $ret = [ 'ret' => 2, 'status' => 'Invalid parameters' ];
@@ -96,8 +96,8 @@ function merge() {
         }
 
         case 'PUT': {
-            $user1 = intval(Utils::presdef('user1', $_REQUEST, NULL));
-            $user2 = intval(Utils::presdef('user2', $_REQUEST, NULL));
+            $user1 = (Utils::presint('user1', $_REQUEST, NULL));
+            $user2 = (Utils::presint('user2', $_REQUEST, NULL));
             $email = array_key_exists('email', $_REQUEST) ? filter_var($_REQUEST['email'], FILTER_VALIDATE_BOOLEAN) : TRUE;
 
             $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
@@ -206,8 +206,8 @@ function merge() {
 
         case 'DELETE': {
             # Flag not to offer these users for merge.
-            $user1 = intval(Utils::presdef('user1', $_REQUEST, NULL));
-            $user2 = intval(Utils::presdef('user2', $_REQUEST, NULL));
+            $user1 = (Utils::presint('user1', $_REQUEST, NULL));
+            $user2 = (Utils::presint('user2', $_REQUEST, NULL));
 
             $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 

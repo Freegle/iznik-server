@@ -8,8 +8,8 @@ function bulkop() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = Utils::presdef('id', $_REQUEST, NULL);
-    $configid = Utils::presdef('configid', $_REQUEST, NULL);
+    $id = (Utils::presint('id', $_REQUEST, NULL));
+    $configid = (Utils::presint('configid', $_REQUEST, NULL));
     $b = new BulkOp($dbhr, $dbhm, $id);
 
     if ($id && $b->getId() || $_REQUEST['type'] == 'POST') {
@@ -75,7 +75,7 @@ function bulkop() {
                 } else {
                     $b->setAttributes($_REQUEST);
 
-                    $groupid = Utils::presdef('groupid', $_REQUEST, NULL);
+                    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
 
                     foreach (['runstarted', 'runfinished'] as $att) {
                         $val = Utils::presdef($att, $_REQUEST, NULL);

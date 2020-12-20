@@ -7,17 +7,11 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=ilovefreegle;charset=utf8";
 
-$dbhf = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhf = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
-$dbhd = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhd = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 $g = Group::get($dbhr, $dbhm);
 

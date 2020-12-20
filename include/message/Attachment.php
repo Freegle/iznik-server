@@ -386,9 +386,7 @@ class Attachment
 
     public function ocr($data = NULL, $returnfull = FALSE, $video = FALSE) {
         # Identify text in an attachment using Google Vision API.
-        error_log("OCR $video");
         $base64 = $data ? $data : base64_encode($this->getData());
-
 
         if ($video) {
 //            "videoContext": {

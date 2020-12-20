@@ -369,6 +369,22 @@ class Utils {
         }
     }
 
+    public static function presint($key, $arr, $def) {
+        if ($arr && array_key_exists($key, $arr)) {
+            return(intval($arr[$key]));
+        } else {
+            return($def);
+        }
+    }
+
+    public static function presfloat($key, $arr, $def) {
+        if ($arr && array_key_exists($key, $arr)) {
+            return(floatval($arr[$key]));
+        } else {
+            return($def);
+        }
+    }
+
     public static function ISODate($date)
     {
         if ($date) {

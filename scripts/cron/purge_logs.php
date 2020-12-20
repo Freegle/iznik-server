@@ -15,10 +15,42 @@ $lockh = Utils::lockScript(basename(__FILE__));
 
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
-$dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
+
+# Don't keep user deletion logs indefinitely - this may be useful for a while for diagnosis, but not long term.
+error_log("Purge user deletion logs");
+
+try {
+    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $total = 0;
+    do {
+        $sql = "DELETE FROM logs WHERE `type` = '" . Log::TYPE_USER . "' AND `subtype` = '" . Log::SUBTYPE_DELETED . "' AND `timestamp` < '$start' LIMIT 1000;";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$total");
+        set_time_limit(600);
+        sleep(1);
+    } while ($count > 0);
+} catch (\Exception $e) {
+    error_log("Failed to delete user-deletion logs " . $e->getMessage());
+}
+
+# Delete invalid logs with no subtype.
+error_log("Purge no subtype logs");
+
+try {
+    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $total = 0;
+    do {
+        $sql = "DELETE FROM logs WHERE (`type` = '" . Log::TYPE_USER . "' OR `type` = '" . Log::TYPE_GROUP . "') AND `subtype` = '' AND `timestamp` < '$start' LIMIT 1000;";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$total");
+        set_time_limit(600);
+    } while ($count > 0);
+} catch (\Exception $e) {
+    error_log("Failed to delete blank logs " . $e->getMessage());
+}
 
 # Delete logs for old bounces.  We get a huge number of logs over time.  This doesn't affect bounce processing
 # because we do that from bounces_emails.
@@ -102,7 +134,7 @@ try {
         set_time_limit(600);
     } while ($count > 0);
 } catch (\Exception $e) {
-    error_log("Failed to delete non-Freegle logs " . $e->getMessage());
+    error_log("Failed to delete user creation logs " . $e->getMessage());
 }
 
 error_log("Purge email logs");

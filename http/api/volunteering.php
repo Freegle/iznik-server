@@ -7,8 +7,8 @@ function volunteering() {
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
 
     if ($groupid) {
         # This might be a legacy groupid.
@@ -79,8 +79,9 @@ function volunteering() {
                     if ($title && $location && $description) {
                         $id = $c->create($me->getId(), $title, $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment);
 
-                        if (Utils::pres('groupid', $_REQUEST) && intval($_REQUEST['groupid']) > 0) {
-                            $c->addGroup(intval($_REQUEST['groupid']));
+                        $gid = Utils::presint('groupid', $_REQUEST, 0);
+                        if ($gid) {
+                            $c->addGroup($gid);
                         }
                     }
 
@@ -110,11 +111,11 @@ function volunteering() {
                     $c->setAttributes($_REQUEST);
 
                     switch (Utils::presdef('action', $_REQUEST, NULL)) {
-                        case 'AddGroup': $c->addGroup(intval(Utils::presdef('groupid', $_REQUEST, 0))); break;
-                        case 'RemoveGroup': $c->removeGroup(intval(Utils::presdef('groupid', $_REQUEST, 0))); break;
+                        case 'AddGroup': $c->addGroup((Utils::presint('groupid', $_REQUEST, 0))); break;
+                        case 'RemoveGroup': $c->removeGroup((Utils::presint('groupid', $_REQUEST, 0))); break;
                         case 'AddDate': $c->addDate(Utils::presdef('start', $_REQUEST, NULL), Utils::presdef('end', $_REQUEST, NULL), Utils::presdef('applyby', $_REQUEST, NULL)); break;
-                        case 'RemoveDate': $c->removeDate(intval(Utils::presdef('dateid', $_REQUEST, NULL))); break;
-                        case 'SetPhoto': $c->setPhoto(intval(Utils::presdef('photoid', $_REQUEST, NULL))); break;
+                        case 'RemoveDate': $c->removeDate((Utils::presint('dateid', $_REQUEST, NULL))); break;
+                        case 'SetPhoto': $c->setPhoto((Utils::presint('photoid', $_REQUEST, NULL))); break;
                         case 'Renew':
                             # Set the renewal date.  Also make sure it's not marked as expired, in case they
                             # do this after that has happened.

@@ -40,7 +40,6 @@ class Log
     const SUBTYPE_CLASSIFIED_SPAM = 'ClassifiedSpam';
     const SUBTYPE_SUSPECT = 'Suspect';
     const SUBTYPE_SENT = 'Sent';
-    const SUBTYPE_YAHOO_DELIVERY_TYPE = 'YahooDeliveryType';
     const SUBTYPE_OUR_POSTING_STATUS = 'OurPostingStatus';
     const SUBTYPE_OUR_EMAIL_FREQUENCY = 'OurEmailFrequency';
     const SUBTYPE_ROLE_CHANGE = 'RoleChange';

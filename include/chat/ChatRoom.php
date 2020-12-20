@@ -2094,7 +2094,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                             if ($firstid) {
                                 # Get the last few substantive message in the chat before this one, if any are recent.
                                 $earliest = date("Y-m-d", strtotime("Midnight 90 days ago"));
-                                $prevmsgs = $this->dbhr->preQuery("SELECT chat_messages.* FROM chat_messages WHERE chatid = ? AND id < ? AND date >= '$earliest' ORDER BY id DESC LIMIT 3;", [
+                                $prevmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id < ? AND chat_messages.date >= '$earliest' ORDER BY chat_messages.id DESC LIMIT 3;", [
                                     $chat['chatid'],
                                     $firstid
                                 ]);
@@ -2172,7 +2172,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                                 'messages' => $twigmessages,
                                                 'ismod' => $sendingto->isModerator(),
                                                 'support' => SUPPORT_ADDR,
-                                                'backcolour' => '#E8FEFB',
+                                                'backcolour' => '#FFF8DC',
                                                 'email' => $to,
                                                 'previousmessages' => $prevmsg,
                                                 'jobads' => $jobads['jobs'],

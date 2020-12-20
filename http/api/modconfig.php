@@ -9,7 +9,7 @@ function modconfig() {
     $me = Session::whoAmI($dbhr, $dbhm);
 
     # The id parameter can be an ID or a nameshort.
-    $id = Utils::presdef('id', $_REQUEST, NULL);
+    $id = (Utils::presint('id', $_REQUEST, NULL));
     $c = new ModConfig($dbhr, $dbhm, $id);
 
     if ($id && $c->getId() || $_REQUEST['type'] == 'POST') {

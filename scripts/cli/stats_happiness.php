@@ -8,10 +8,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm, $dbconfig;
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
-$dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+$dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 $stats = [];
 

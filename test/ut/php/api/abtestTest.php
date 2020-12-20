@@ -54,6 +54,8 @@ class abtestAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
+        $this->waitBackground();
+
         # Now get until we've seen both.
         $seena = FALSE;
         $seenb = FALSE;

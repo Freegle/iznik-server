@@ -24,20 +24,13 @@ $tngroups = str_replace("'", '"', $tngroups);
 $tngroups = json_decode($tngroups, TRUE);
 
 # Ensure the polyindex is set correctly.  It can get out of step if someone updates the DB manually.
-$groups = $dbhr->preQuery("SELECT id FROM groups WHERE type = ?;", [
+$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE ST_IsValid(polyindex) = 0 OR ST_IsValid(GeomFromText(poly)) = 0 OR ST_IsValid(GeomFromText(polyofficial)) = 0 AND type = ?;", [
     Group::GROUP_FREEGLE
 ]);
 
 foreach ($groups as $group) {
-    try {
-        $dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) where id = ?;", [
-            $group['id']
-        ]);
-    } catch (\Exception $e) {
-        error_log("...bad polygon in {$group['id']}");
-        $headers = 'From: geeks@ilovefreegle.org';
-        mail('geek-alerts@ilovefreegle.org', "Bad polygon in group {$group['id']}", "", $headers);
-    }
+    $headers = 'From: geeks@ilovefreegle.org';
+    mail('geek-alerts@ilovefreegle.org', "Bad polygon in group {$group['id']} {$group['nameshort']}", "", $headers);
 }
 
 $g = new Group($dbhr, $dbhm);

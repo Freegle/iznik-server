@@ -389,7 +389,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test with link http://spam.wherever ',
+            'message' => 'Test with link http://spam.wherever and email test@test.com',
             'refchatid' => $this->cid
         ]);
         $this->log("Create message " . var_export($ret, TRUE));
@@ -399,7 +399,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test with link http://ham.wherever '
+            'message' => 'Test with link http://ham.wherever'
         ]);
         $this->log("Create message with link" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
@@ -482,6 +482,18 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals($mid3, $ret['chatmessages'][2]['id']);
         assertEquals($this->groupid, $ret['chatmessages'][0]['group']['id']);
         assertEquals($this->groupid, $ret['chatmessages'][0]['groupfrom']['id']);
+
+        # Should be able to redact.
+        $ret2 = $this->call('chatmessages', 'POST', [
+            'id' => $mid1,
+            'action' => 'Redact'
+        ]);
+        assertEquals(0, $ret2['ret']);
+
+        $ret = $this->call('chatmessages', 'GET', []);
+        #$this->log("After hold " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals('Test with link http://spam.wherever and email (email removed)', $ret['chatmessages'][0]['message']);
 
         # Test hold/unhold.
         $this->log("Hold");

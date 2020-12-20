@@ -6,7 +6,7 @@ function usersearch() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    $id = Utils::presdef('id', $_REQUEST, NULL);
+    $id = (Utils::presint('id', $_REQUEST, NULL));
     $s = new UserSearch($dbhr, $dbhm, $id);
     $me = Session::whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;

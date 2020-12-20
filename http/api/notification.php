@@ -42,7 +42,7 @@ function notification() {
             }
 
             case 'POST': {
-                $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+                $id = (Utils::presint('id', $_REQUEST, NULL));
                 $action = Utils::presdef('action', $_REQUEST, NULL);
 
                 switch ($action) {

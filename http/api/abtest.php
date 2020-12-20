@@ -6,7 +6,7 @@ function abtest() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
 
     $p = new Polls($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -46,7 +46,7 @@ function abtest() {
 
             // The client can decide that an action is more valuable.  In this case we weight it, which will result in
             // it getting a higher rate, and therefore being chosen more often.
-            $score = intval(Utils::presdef('score', $_REQUEST, 1));
+            $score = (Utils::presint('score', $_REQUEST, 1));
 
             if ($uid && $variant) {
                 if ($shown !== NULL) {

@@ -208,12 +208,12 @@ class Message
         $this->dbhm->preExec("DELETE FROM messages_items WHERE msgid = ?;", [ $this->id ]);
     }
     
-    public function edit($subject, $textbody, $htmlbody, $type, $item, $location, $attachments, $checkreview = TRUE, $groupid = NULL) {
+    public function edit($subject, $textbody, $type, $item, $location, $attachments, $checkreview = TRUE, $groupid = NULL) {
         $ret = TRUE;
         $textbody = trim($textbody);
 
         # Get old values for edit history.  We put NULL if there is no edit.
-        $oldtext = ($textbody || $htmlbody) ? trim($this->getPrivate('textbody')) : NULL;
+        $oldtext = $textbody ? trim($this->getPrivate('textbody')) : NULL;
         $oldsubject = ($type || $item || $location) ? $this->getPrivate('subject') : NULL;
         $oldtype = $type ? $this->getPrivate('type') : NULL;
         $oldlocation = $location ? $this->getPrivate('locationid') : NULL;
@@ -245,22 +245,12 @@ class Message
             $oldattachments = json_encode($oldattachments);
         }
 
-        if ($htmlbody && !$textbody) {
-            # In the interests of accessibility, let's create a text version of the HTML
-            $html = new \Html2Text\Html2Text($htmlbody);
-            $textbody = trim($html->getText());
-
-            # Make sure we have a text value, otherwise we might return a missing body.
-            $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
-        }
-
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');
         $text .= ($type ? "New type $type " : '');
         $text .= ($item ? "New item $item " : '');
         $text .= ($location ? "New location $location" : '');
         $text .= "Text body changed to len " . strlen($textbody);
-        $text .= " HTML body changed to len " . strlen($htmlbody);
 
         if ($type) {
             $this->setPrivate('type', $type);
@@ -321,10 +311,6 @@ class Message
 
         if ($textbody) {
             $this->setPrivate('textbody', $textbody);
-        }
-
-        if ($htmlbody) {
-            $this->setPrivate('htmlbody', $htmlbody);
         }
 
         if ($attachments !== NULL) {
@@ -437,7 +423,6 @@ class Message
             $this->edit(
                 Utils::presdef('oldsubject', $edit, NULL),
                 Utils::presdef('oldtext', $edit, NULL),
-                NULL,
                 Utils::presdef('oldtype', $edit, NULL),
                 $item,
                 Utils::presdef('oldlocation', $edit, NULL),
@@ -513,7 +498,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'FOP', 'fromaddr', 'isdraft',
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'FOP', 'fromaddr', 'isdraft',
         'lat', 'lng', 'availableinitially', 'availablenow'
     ];
 
@@ -932,9 +917,6 @@ class Message
                     # For non-members we want to strip out any potential phone numbers or email addresses.
                     $ret['textbody'] = preg_replace('/[0-9]{4,}/', '***', $ret['textbody']);
                     $ret['textbody'] = preg_replace(Message::EMAIL_REGEXP, '***@***.com', $ret['textbody']);
-
-                    # We can't do this in HTML, so just zap it.
-                    $ret['htmlbody'] = NULL;
                 }
 
                 # We have a flag for FOP - but legacy posting methods might put it in the body.
@@ -2596,7 +2578,7 @@ ORDER BY lastdate DESC;";
 
         # Save into the messages table.
         try {
-            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
             $rc = $this->dbhm->preExec($sql, [
                 $this->date,
                 $this->source,
@@ -2614,7 +2596,6 @@ ORDER BY lastdate DESC;";
                 $this->messageid,
                 $this->tnpostid,
                 $this->textbody,
-                $this->htmlbody,
                 $this->type,
                 $this->lat,
                 $this->lng,
@@ -2850,7 +2831,7 @@ ORDER BY lastdate DESC;";
                 # For users who we host, we leave the message unseen; that will then later generate a notification
                 # to them.  Otherwise we mail them the message and mark it as seen, because they would get
                 # confused by a mail in our notification format.
-                $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
+                $this->mailer($me, TRUE, $this->getFromname(), $to, NULL, $name, $g->getModsEmail(), $subject, $body);
 
                 # We've mailed the message out so they are up to date with this chat.
                 $r->upToDate($this->getFromuser());
@@ -2956,8 +2937,25 @@ ORDER BY lastdate DESC;";
 
     public function addToSpatialIndex() {
         if ($this->lng || $this->lat) {
-            $sql = "INSERT INTO messages_spatial (msgid, point) VALUES ({$this->id}, GeomFromText('POINT({$this->lng} {$this->lat})')) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$this->lng} {$this->lat})');";
-            $this->dbhm->preExec($sql);
+            $groups = $this->getGroups(FALSE, FALSE);
+            foreach ($groups as $g) {
+                $gid = $g['groupid'];
+                $arrival = $g['arrival'];
+
+                $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, GeomFromText('POINT({$this->lng} {$this->lat})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$this->lng} {$this->lat})'), groupid = ?, msgtype = ?, arrival = ?;";
+                $this->dbhm->preExec(
+                    $sql,
+                    [
+                        $this->id,
+                        $gid,
+                        $this->getType(),
+                        $arrival,
+                        $gid,
+                        $this->getType(),
+                        $arrival,
+                    ]
+                );
+            }
         }
     }
 
@@ -3865,7 +3863,7 @@ ORDER BY lastdate DESC;";
 
             # Now we have a list of item ids which are relevant to the search and are for extant messages. Maybe
             # we need to filter by groupid.
-            $joinq = $groups ? " INNER JOIN messages_groups ON messages_groups.msgid = messages_items.msgid AND groupid IN (" . implode(',', $groups) . ")" : '';
+            $joinq = $groups ? " INNER JOIN messages_groups ON messages_groups.msgid = messages_items.msgid AND messages_groups.groupid IN (" . implode(',', $groups) . ")" : '';
             $sql = "SELECT messages_spatial.msgid AS id, messages_items.itemid FROM messages_spatial INNER JOIN
                 messages_items ON messages_items.msgid = messages_spatial.msgid
                 $joinq
@@ -4037,33 +4035,7 @@ ORDER BY lastdate DESC;";
             }
 
             $txtbody = $this->textbody;
-            $htmlbody = "<p>{$this->textbody}</p>";
-
-            $atts = $this->getAttachments();
-
-            if (count($atts) > 0) {
-                # We have attachments.  Include them as image tags.
-                $htmlbody .= "<table><tbody><tr>";
-                $count = 0;
-
-                foreach ($atts as $att) {
-                    $path = $att->getPath(FALSE);
-                    $htmlbody .= '<td><a href="' . $path . '" target="_blank"><img width="200px" src="' . $path . '" /></a></td>';
-
-                    $count++;
-
-                    $htmlbody .= ($count % 3 == 0) ? '</tr><tr>' : '';
-                }
-
-                $htmlbody .= "</tr></tbody></table>";
-            }
-
-            $htmlbody = str_replace("\r\n", "<br>", $htmlbody);
-            $htmlbody = str_replace("\r", "<br>", $htmlbody);
-            $htmlbody = str_replace("\n", "<br>", $htmlbody);
-
             $this->setPrivate('textbody', $txtbody);
-            $this->setPrivate('htmlbody', $htmlbody);
 
             # Strip possible group name.
             $subject = $this->subject;
@@ -4313,115 +4285,117 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
 
-            $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
+            if (!$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
+                $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
-            # We want approved messages which haven't got an outcome, aren't promised, don't have any replies and
-            # which we originally sent.
-            #
-            # The replies part is because we can't really rely on members to let us know what happens to a message,
-            # especially if they are not receiving emails reliably.  At least this way it avoids the case where a
-            # message gets resent repeatedly and people keep replying and not getting a response.
-            #
-            # The sending user must also still be a member of the group.
-            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr 
+                # We want approved messages which haven't got an outcome, aren't promised, don't have any replies and
+                # which we originally sent.
+                #
+                # The replies part is because we can't really rely on members to let us know what happens to a message,
+                # especially if they are not receiving emails reliably.  At least this way it avoids the case where a
+                # message gets resent repeatedly and people keep replying and not getting a response.
+                #
+                # The sending user must also still be a member of the group.
+                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr 
 FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid 
 INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid 
 LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid 
 LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id 
 LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid AND chat_messages.type != 'ModMail' 
 WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL $msgq;";
-            #error_log("$sql, $mindate, {$group['id']}");
-            $messages = $this->dbhr->preQuery($sql, [
-                $mindate,
-                $group['id']
-            ]);
+                #error_log("$sql, $mindate, {$group['id']}");
+                $messages = $this->dbhr->preQuery($sql, [
+                    $mindate,
+                    $group['id']
+                ]);
 
-            $now = time();
+                $now = time();
 
-            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-            $twig = new \Twig_Environment($loader);
+                $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+                $twig = new \Twig_Environment($loader);
 
-            foreach ($messages as $message) {
-                if (Mail::ourDomain($message['fromaddr'])) {
-                    if ($message['autoreposts'] < $reposts['max']) {
-                        # We want to send a warning 24 hours before we repost.
-                        $lastwarnago = $message['lastautopostwarning'] ? ($now - strtotime($message['lastautopostwarning'])) : NULL;
-                        $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                foreach ($messages as $message) {
+                    if (Mail::ourDomain($message['fromaddr'])) {
+                        if ($message['autoreposts'] < $reposts['max']) {
+                            # We want to send a warning 24 hours before we repost.
+                            $lastwarnago = $message['lastautopostwarning'] ? ($now - strtotime($message['lastautopostwarning'])) : NULL;
+                            $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
 
-                        # If we have messages which are older than we could have been trying for, ignore them.
-                        $maxage = $interval * ($reposts['max'] + 1);
+                            # If we have messages which are older than we could have been trying for, ignore them.
+                            $maxage = $interval * ($reposts['max'] + 1);
 
-                        error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago maxage $maxage");
+                            error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago maxage $maxage");
 
-                        if ($message['hoursago'] < $maxage * 24) {
-                            # Reposts might be turned off.
-                            if ($interval > 0 && $reposts['max'] > 0) {
-                                if ($message['hoursago'] <= $interval * 24 &&
-                                    $message['hoursago'] > ($interval - 1) * 24 &&
-                                    ($lastwarnago === NULL || $lastwarnago > 24)
-                                ) {
-                                    # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
-                                    # an old one (probably from the previous repost).
-                                    if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
-                                        # And we haven't sent a warning yet.
-                                        $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
-                                        $warncount++;
+                            if ($message['hoursago'] < $maxage * 24) {
+                                # Reposts might be turned off.
+                                if ($interval > 0 && $reposts['max'] > 0) {
+                                    if ($message['hoursago'] <= $interval * 24 &&
+                                        $message['hoursago'] > ($interval - 1) * 24 &&
+                                        ($lastwarnago === NULL || $lastwarnago > 24)
+                                    ) {
+                                        # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
+                                        # an old one (probably from the previous repost).
+                                        if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
+                                            # And we haven't sent a warning yet.
+                                            $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
+                                            $warncount++;
 
-                                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                                        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-                                        $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
-                                        $gatts = $g->getPublic();
+                                            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                            $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                                            $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
+                                            $gatts = $g->getPublic();
 
-                                        if ($u->getId()) {
-                                            $to = $u->getEmailPreferred();
-                                            $subj = $m->getSubject();
+                                            if ($u->getId()) {
+                                                $to = $u->getEmailPreferred();
+                                                $subj = $m->getSubject();
 
-                                            # Remove any group tag.
-                                            $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
+                                                # Remove any group tag.
+                                                $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                            $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_REPOST_WARNING);
-                                            $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
-                                            $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
-                                            $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
-                                            $html = $twig->render('autorepost.html', [
-                                                'subject' => $subj,
-                                                'name' => $u->getName(),
-                                                'email' => $to,
-                                                'type' => $othertype,
-                                                'completed' => $completed,
-                                                'withdraw' => $withdraw
-                                            ]);
+                                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_REPOST_WARNING);
+                                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
+                                                $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
+                                                $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
+                                                $html = $twig->render('autorepost.html', [
+                                                    'subject' => $subj,
+                                                    'name' => $u->getName(),
+                                                    'email' => $to,
+                                                    'type' => $othertype,
+                                                    'completed' => $completed,
+                                                    'withdraw' => $withdraw
+                                                ]);
 
-                                            list ($transport, $mailer) = Mail::getMailer();
+                                                list ($transport, $mailer) = Mail::getMailer();
 
-                                            if (\Swift_Validate::email($to)) {
-                                                $message = \Swift_Message::newInstance()
-                                                    ->setSubject("Re: " . $subj)
-                                                    ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
-                                                    ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
-                                                    ->setTo($to)
-                                                    ->setBody($text);
+                                                if (\Swift_Validate::email($to)) {
+                                                    $message = \Swift_Message::newInstance()
+                                                        ->setSubject("Re: " . $subj)
+                                                        ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
+                                                        ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
+                                                        ->setTo($to)
+                                                        ->setBody($text);
 
-                                                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                                                # Outlook.
-                                                $htmlPart = \Swift_MimePart::newInstance();
-                                                $htmlPart->setCharset('utf-8');
-                                                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                                                $htmlPart->setContentType('text/html');
-                                                $htmlPart->setBody($html);
-                                                $message->attach($htmlPart);
+                                                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                                    # Outlook.
+                                                    $htmlPart = \Swift_MimePart::newInstance();
+                                                    $htmlPart->setCharset('utf-8');
+                                                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                                    $htmlPart->setContentType('text/html');
+                                                    $htmlPart->setBody($html);
+                                                    $message->attach($htmlPart);
 
-                                                $mailer->send($message);
+                                                    $mailer->send($message);
+                                                }
                                             }
                                         }
-                                    }
-                                } else if ($message['hoursago'] > $interval * 24) {
-                                    # We can autorepost this one.
-                                    $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                                    error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                                    $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
+                                    } else if ($message['hoursago'] > $interval * 24) {
+                                        # We can autorepost this one.
+                                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                        error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
+                                        $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
 
-                                    $count++;
+                                        $count++;
+                                    }
                                 }
                             }
                         }
@@ -4889,7 +4863,6 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         # cascaded deletes.  This is particularly true on a Percona cluster where a stream of DELETE ops tends
         # to cripple things.
         $this->dbhm->preExec("SET FOREIGN_KEY_CHECKS=0;", NULL, FALSE);
-        $this->dbhr->preQuery("USE iznik;");
 
         foreach ($schema as $table) {
             $todel = $this->dbhm->preQuery("SELECT {$table['COLUMN_NAME']} FROM {$table['TABLE_NAME']} WHERE {$table['COLUMN_NAME']} = $id", NULL, FALSE, FALSE);
@@ -4982,24 +4955,28 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
             $gids = $m->getGroups();
 
             foreach ($gids as $gid) {
-                $joined = $u->getMembershipAtt($gid, 'added');
-                $hoursago = round((time() - strtotime($joined)) / 3600);
+                $g = new Group($this->dbhr, $this->dbhm);
 
-                error_log("{$message['msgid']} has been pending for {$message['ago']}, membership $hoursago");
+                if (!$g->getSetting('closed', FALSE) && $g->getPrivate('autofunctionoverride')) {
+                    $joined = $u->getMembershipAtt($gid, 'added');
+                    $hoursago = round((time() - strtotime($joined)) / 3600);
 
-                if ($hoursago > 48) {
-                    error_log("...approve");
-                    $m->approve($message['groupid']);
+                    error_log("{$message['msgid']} has been pending for {$message['ago']}, membership $hoursago");
 
-                    $this->log->log([
-                                'type' => Log::TYPE_MESSAGE,
-                                'subtype' => Log::SUBTYPE_AUTO_APPROVED,
-                                'groupid' => $message['groupid'],
-                                'msgid' => $message['msgid'],
-                                'user' => $m->getFromuser()
-                            ]);
+                    if ($hoursago > 48) {
+                        error_log("...approve");
+                        $m->approve($message['groupid']);
 
-                    $ret++;
+                        $this->log->log([
+                                            'type' => Log::TYPE_MESSAGE,
+                                            'subtype' => Log::SUBTYPE_AUTO_APPROVED,
+                                            'groupid' => $message['groupid'],
+                                            'msgid' => $message['msgid'],
+                                            'user' => $m->getFromuser()
+                                        ]);
+
+                        $ret++;
+                    }
                 }
             }
         }
@@ -5010,17 +4987,29 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
     public function updateSpatialIndex() {
         $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
 
-        # Add/update messages which are recent or have changed locations.
+        # Add/update messages which are recent or have changed location or group or been reposted.
         error_log("Add recent");
-        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_spatial ON messages_spatial.msgid = messages.id WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ? AND (messages_spatial.msgid IS NULL OR X(point) != messages.lng OR Y(point) != messages.lat);";
+        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype FROM messages 
+    INNER JOIN messages_groups ON messages_groups.msgid = messages.id
+    LEFT JOIN messages_spatial ON messages_spatial.msgid = messages_groups.msgid
+    WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ? AND 
+          (messages_spatial.msgid IS NULL OR X(point) != messages.lng OR Y(point) != messages.lat OR messages_spatial.groupid IS NULL OR messages_spatial.groupid != messages_groups.groupid OR messages_groups.arrival != messages_spatial.arrival);";
         $msgs = $this->dbhr->preQuery($sql, [
             $mysqltime,
             MessageCollection::APPROVED
         ]);
 
         foreach ($msgs as $msg) {
-            $sql = "INSERT INTO messages_spatial (msgid, point) VALUES ({$msg['id']}, GeomFromText('POINT({$msg['lng']} {$msg['lat']})')) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$msg['lng']} {$msg['lat']})');";
-            $this->dbhm->preExec($sql);
+            $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), groupid = ?, msgtype = ?, arrival = ?;";
+            $this->dbhm->preExec($sql, [
+                $msg['id'],
+                $msg['groupid'],
+                $msg['msgtype'],
+                $msg['arrival'],
+                $msg['groupid'],
+                $msg['msgtype'],
+                $msg['arrival']
+            ]);
         }
 
         # Update any message outcomes.

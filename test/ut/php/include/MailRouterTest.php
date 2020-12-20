@@ -32,6 +32,7 @@ class MailRouterTest extends IznikTestCase {
 
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        assertNotNull($this->gid);
         $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
         $this->group->setPrivate('onhere', 1);
 
@@ -336,7 +337,6 @@ class MailRouterTest extends IznikTestCase {
         assertEquals('from@test.com', $pend->getEnvelopefrom());
         assertEquals('to@test.com', $pend->getEnvelopeto());
         assertNotNull($pend->getTextbody());
-        assertNotNull($pend->getHtmlbody());
         assertEquals($pend->getSubject(), $pend->getHeader('subject'));
         assertEquals('testgroup@yahoogroups.com', $pend->getTo()[0]['address']);
         assertEquals('Test User', $pend->getFromname());

@@ -6,16 +6,16 @@ function user() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
     $subject = Utils::presdef('subject', $_REQUEST, NULL);
     $body = Utils::presdef('body', $_REQUEST, NULL);
     $action = Utils::presdef('action', $_REQUEST, NULL);
-    $suspectcount = array_key_exists('suspectcount', $_REQUEST) ? intval($_REQUEST['suspectcount']) : NULL;
+    $suspectcount = Utils::presint('suspectcount', $_REQUEST, NULL);
     $suspectreason = Utils::presdef('suspectreason', $_REQUEST, NULL);
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
-    $engageid = intval(Utils::presdef('engageid', $_REQUEST, NULL));
+    $engageid = (Utils::presint('engageid', $_REQUEST, NULL));
     $trustlevel = Utils::presdef('trustlevel', $_REQUEST, NULL);
 
     $email = Utils::presdef('email', $_REQUEST, NULL);
@@ -207,7 +207,8 @@ function user() {
                 } else if ($u->getId() == $me->getId() && (!$trustlevel || $trustlevel == User::TRUST_BASIC || $trustlevel == User::TRUST_DECLINED)) {
                     # Can only turn this on/off.
                     if ($trustlevel) {
-                        $u->setPrivate('trustlevel', User::TRUST_BASIC);
+                        $setu = $u->getId() == $me->getId() ? $me : $u;
+                        $setu->setPrivate('trustlevel', $trustlevel);
                     } else {
                         $u->setPrivate('trustlevel', NULL);
                     }
@@ -363,7 +364,7 @@ function user() {
                         }
                     } else if ($action == 'Rate') {
                         $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
-                        $ratee = intval(Utils::presdef('ratee', $_REQUEST, 0));
+                        $ratee = (Utils::presint('ratee', $_REQUEST, 0));
                         $rating = Utils::presdef('rating', $_REQUEST, NULL);
 
                         if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN || $rating === NULL)) {

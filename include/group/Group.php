@@ -1,8 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-use Redis;
-
 class Group extends Entity
 {
     # We have a cache of groups, because we create groups a _lot_, and this can speed things up significantly by avoiding
@@ -11,15 +9,12 @@ class Group extends Entity
     static $processCacheDeleted = [];
     const PROCESS_CACHE_SIZE = 100;
 
-    # We also cache the objects in redis, to reduce DB load.  This is shared across processes.
-    const REDIS_CACHE_EXPIRY = 600;
-
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo', 'publish',
         'onhere', 'ontn', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation',
-        'moderationstatus', 'maxagetoshow', 'nearbygroups', 'microvolunteering', 'microvolunteeringoptions');
+        'moderationstatus', 'maxagetoshow', 'nearbygroups', 'microvolunteering', 'microvolunteeringoptions', 'autofunctionoverride', 'overridemoderation');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -52,49 +47,15 @@ class Group extends Entity
             # We've been passed all the atts we need to construct the group
             $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, $atts, FALSE);
         } else {
-            # We cache groups in redis, to reduce DB load.  Because we do it at the group level, we don't use the
-            # generalised DB query caching in db.php, so we disable that by appropriate parameters to DB calls and
-            # fetch().
-            $this->cachekey = $id ? "group-$id" : NULL;
+            $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, NULL, FALSE);
 
-            # Check if this group is in redis.
-            $cached = $this->getRedis()->mget([ $this->cachekey ]);
-
-            if ($cached && $cached[0]) {
-                # We got it.  That saves us some DB ops.
-                $obj = unserialize($cached[0]);
-
-                foreach ($obj as $key => $val) {
-                    #error_log("Restore $key => " . var_export($val, TRUE));
-                    $this->$key = $val;
-                }
-
-                # We didn't serialise the PDO objects.
-                $this->dbhr = $dbhr;
-                $this->dbhm = $dbhm;
-            } else {
-                # We didn't find it in redis.
-                $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, NULL, FALSE);
-
-                if ($id && !$this->id) {
-                    # We were passed an id, but didn't find the group.  See if the id is a legacyid.
-                    #
-                    # This assumes that the legacy and current ids don't clash.  Which they don't.  So that's a good assumption.
-                    $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE legacyid = ?;", [ $id ]);
-                    foreach ($groups as $group) {
-                        $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts, NULL, FALSE);
-                    }
-                }
-
-                if ($id) {
-                    # Store object in redis for next time.
-                    $this->dbhm = NULL;
-                    $this->dbhr = NULL;
-                    $s = serialize($this);
-                    $this->dbhm = $dbhm;
-                    $this->dbhr = $dbhr;
-
-                    $this->getRedis()->setex($this->cachekey, Group::REDIS_CACHE_EXPIRY, $s);
+            if ($id && !$this->id) {
+                # We were passed an id, but didn't find the group.  See if the id is a legacyid.
+                #
+                # This assumes that the legacy and current ids don't clash.  Which they don't.  So that's a good assumption.
+                $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE legacyid = ?;", [ $id ]);
+                foreach ($groups as $group) {
+                    $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts, NULL, FALSE);
                 }
             }
         }
@@ -209,14 +170,6 @@ class Group extends Entity
         } else {
             Group::$processCache = [];
             Group::$processCacheDeleted = [];
-        }
-
-        # And redis.
-        $cache = new \Redis();
-        @$cache->pconnect(REDIS_CONNECT);
-
-        if ($cache->isConnected()) {
-            $cache->del("group-$id");
         }
     }
 
@@ -622,7 +575,7 @@ memberships.groupid IN $groupq
             }
         }
 
-        $atts['microvolunteeringoptions'] = $atts['microvolunteeringoptions'] ? json_decode($atts['microvolunteeringoptions'], TRUE) : [
+        $atts['microvolunteeringoptions'] = Utils::pres('microvolunteeringoptions', $atts) ? json_decode($atts['microvolunteeringoptions'], TRUE) : [
             'approvedmessages' => 1,
             'wordmatch' => 1
         ];
@@ -680,7 +633,7 @@ memberships.groupid IN $groupq
                 #
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
-                $collectionq = " AND (suspectcount > 0 OR memberships.userid IN (SELECT userid FROM spam_users WHERE spam_users.collection = '" . Spam::TYPE_SPAMMER . "')) ";
+                $collectionq = " AND suspectcount > 0";
                 $uq = $uq ? $uq : ' INNER JOIN users ON users.id = memberships.userid ';
             } else if ($collection) {
                 $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
@@ -719,6 +672,18 @@ memberships.groupid IN $groupq
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
 
         $members = $this->dbhr->preQuery($sql);
+
+        if ($collection == MembershipCollection::SPAM) {
+            # Also check for known spammers on groups.  We do this in a separate query because otherwise the
+            # indexing is poor.
+            $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
+            $sql = "$sqlpref WHERE $groupq AND memberships.userid IN (SELECT userid FROM spam_users WHERE spam_users.collection = '" . Spam::TYPE_SPAMMER . "') $addq $searchq $opsq $modq $bounceq";
+            $members2 = $this->dbhr->preQuery($sql);
+
+            if (count($members2)) {
+                $members = array_unique(array_merge($members, $members2));
+            }
+        }
 
         # Suspect members might be on multiple groups, so make sure we only return one.
         $uids = [];

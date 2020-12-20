@@ -48,7 +48,7 @@ function group() {
                     $ret['group']['myrole'] = $me ? $me->getRoleForGroup($id) : User::ROLE_NONMEMBER;
                     $ret['group']['mysettings'] = $me ? $me->getGroupSettings($id) : NULL;
                     $ctx = Utils::presdef('context', $_REQUEST, NULL);
-                    $limit = Utils::presdef('limit', $_REQUEST, 5);
+                    $limit = Utils::presint('limit', $_REQUEST, 5);
                     $search = Utils::presdef('search', $_REQUEST, NULL);
 
                     if ($members && $me && $me->isModOrOwner($id)) {
@@ -137,7 +137,7 @@ function group() {
 
             case 'PATCH': {
                 $settings = Utils::presdef('settings', $_REQUEST, NULL);
-                $profile = intval(Utils::presdef('profile', $_REQUEST, NULL));
+                $profile = (Utils::presint('profile', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 1,
@@ -250,8 +250,8 @@ function group() {
                         if ($me && $me->isModerator()) {
                             $name = Utils::presdef('name', $_REQUEST, NULL);
                             $type = Utils::presdef('grouptype', $_REQUEST, NULL);
-                            $lat = Utils::presdef('lat', $_REQUEST, NULL);
-                            $lng = Utils::presdef('lng', $_REQUEST, NULL);
+                            $lat = Utils::presfloat('lat', $_REQUEST, NULL);
+                            $lng = Utils::presfloat('lng', $_REQUEST, NULL);
                             $core = Utils::presdef('corearea', $_REQUEST, NULL);
                             $catchment = Utils::presdef('atchmentarea', $_REQUEST, NULL);
 
@@ -307,7 +307,7 @@ function group() {
                     }
 
                     case 'RemoveFacebook': {
-                        $uid = intval(Utils::presdef('uid', $_REQUEST, NULL));
+                        $uid = (Utils::presint('uid', $_REQUEST, NULL));
                         $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 
                         if ($uid) {

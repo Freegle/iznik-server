@@ -10,8 +10,8 @@ function address() {
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
     if ($myid) {
-        $id = intval(Utils::presdef('id', $_REQUEST, NULL));
-        $postcodeid = intval(Utils::presdef('postcodeid', $_REQUEST, NULL));
+        $id = (Utils::presint('id', $_REQUEST, NULL));
+        $postcodeid = (Utils::presint('postcodeid', $_REQUEST, NULL));
         $a = new Address($dbhr, $dbhm, $id);
         $p = new PAF($dbhr, $dbhm);
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -55,7 +55,7 @@ function address() {
 
             case 'PUT':
                 $id = $a->create($me->getId(),
-                    intval(Utils::presdef('pafid', $_REQUEST, NULL)),
+                    (Utils::presint('pafid', $_REQUEST, NULL)),
                     Utils::presdef('instructions', $_REQUEST, NULL));
 
                 $ret = [

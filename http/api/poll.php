@@ -6,7 +6,7 @@ function poll() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
 
     $p = new Polls($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];

@@ -6,9 +6,9 @@ function locations() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $id = intval(Utils::presdef('id', $_REQUEST, NULL));
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
-    $messageid = intval(Utils::presdef('messageid', $_REQUEST, NULL));
+    $id = (Utils::presint('id', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
+    $messageid = (Utils::presint('messageid', $_REQUEST, NULL));
     $action = Utils::presdef('action', $_REQUEST, NULL);
     $byname = array_key_exists('byname', $_REQUEST) ? filter_var($_REQUEST['byname'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $groupsnear = array_key_exists('groupsnear', $_REQUEST) ? filter_var($_REQUEST['groupsnear'], FILTER_VALIDATE_BOOLEAN) : TRUE;
@@ -21,14 +21,14 @@ function locations() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $lat = Utils::presdef('lat', $_REQUEST, NULL);
-            $lng = Utils::presdef('lng', $_REQUEST, NULL);
-            $swlat = Utils::presdef('swlat', $_REQUEST, NULL);
-            $swlng = Utils::presdef('swlng', $_REQUEST, NULL);
-            $nelat = Utils::presdef('nelat', $_REQUEST, NULL);
-            $nelng = Utils::presdef('nelng', $_REQUEST, NULL);
+            $lat = Utils::presfloat('lat', $_REQUEST, NULL);
+            $lng = Utils::presfloat('lng', $_REQUEST, NULL);
+            $swlat = Utils::presfloat('swlat', $_REQUEST, NULL);
+            $swlng = Utils::presfloat('swlng', $_REQUEST, NULL);
+            $nelat = Utils::presfloat('nelat', $_REQUEST, NULL);
+            $nelng = Utils::presfloat('nelng', $_REQUEST, NULL);
             $typeahead = Utils::presdef('typeahead', $_REQUEST, NULL);
-            $limit = intval(Utils::presdef('limit', $_REQUEST, 10));
+            $limit = (Utils::presint('limit', $_REQUEST, 10));
 
             if ($lat && $lng) {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'location' => $l->closestPostcode($lat, $lng) ];

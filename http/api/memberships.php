@@ -6,26 +6,25 @@ function memberships() {
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
-    $userid = intval(Utils::presdef('userid', $_REQUEST, NULL));
-    $happinessid = intval(Utils::presdef('happinessid', $_REQUEST, NULL));
+    $userid = (Utils::presint('userid', $_REQUEST, NULL));
+    $happinessid = (Utils::presint('happinessid', $_REQUEST, NULL));
 
-    $groupid = intval(Utils::presdef('groupid', $_REQUEST, NULL));
+    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
     $g = Group::get($dbhr, $dbhm, $groupid);
 
     $role = Utils::presdef('role', $_REQUEST, User::ROLE_MEMBER);
     $email = Utils::presdef('email', $_REQUEST, NULL);
-    $limit = Utils::presdef('limit', $_REQUEST, 5);
+    $limit = Utils::presint('limit', $_REQUEST, 5);
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
     $settings = Utils::presdef('settings', $_REQUEST, NULL);
-    $emailfrequency = array_key_exists('emailfrequency', $_REQUEST) ? intval($_REQUEST['emailfrequency']) : NULL;
-    $eventsallowed = array_key_exists('eventsallowed', $_REQUEST) ? intval($_REQUEST['eventsallowed']) : NULL;
-    $volunteeringallowed = array_key_exists('volunteeringallowed', $_REQUEST) ? intval($_REQUEST['volunteeringallowed']) : NULL;
+    $emailfrequency = Utils::presint('emailfrequency', $_REQUEST, NULL);
+    $eventsallowed = Utils::presint('eventsallowed', $_REQUEST, NULL);
+    $volunteeringallowed = Utils::presint('volunteeringallowed', $_REQUEST, NULL);
     $ourpostingstatus = $g->ourPS(array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL);
-    $filter = intval(Utils::presdef('filter', $_REQUEST, Group::FILTER_NONE));
+    $filter = (Utils::presint('filter', $_REQUEST, Group::FILTER_NONE));
     $message = Utils::presdef('message', $_REQUEST, NULL);
 
-    $members = Utils::presdef('members', $_REQUEST, Utils::presdef('memberspresentbutempty', $_REQUEST, 0) ? [] : NULL);
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -33,7 +32,7 @@ function memberships() {
     $collection = Utils::presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
     $subject = Utils::presdef('subject', $_REQUEST, NULL);
     $body = Utils::presdef('body', $_REQUEST, NULL);
-    $stdmsgid = Utils::presdef('stdmsgid', $_REQUEST, NULL);
+    $stdmsgid = (Utils::presint('stdmsgid', $_REQUEST, NULL));
     $action = Utils::presdef('action', $_REQUEST, NULL);
     $yps = Utils::presdef('yahooPostingStatus', $_REQUEST, NULL);
     $ydt = Utils::presdef('yahooDeliveryType', $_REQUEST, NULL);
