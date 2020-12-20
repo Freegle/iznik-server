@@ -4285,7 +4285,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
 
-            if (!$g->getSetting('closed', FALSE) && !$g->getPrivate('autorepostoverride')) {
+            if (!$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
                 $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
                 # We want approved messages which haven't got an outcome, aren't promised, don't have any replies and
@@ -4955,24 +4955,28 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
             $gids = $m->getGroups();
 
             foreach ($gids as $gid) {
-                $joined = $u->getMembershipAtt($gid, 'added');
-                $hoursago = round((time() - strtotime($joined)) / 3600);
+                $g = new Group($this->dbhr, $this->dbhm);
 
-                error_log("{$message['msgid']} has been pending for {$message['ago']}, membership $hoursago");
+                if (!$g->getSetting('closed', FALSE) && $g->getPrivate('autofunctionoverride')) {
+                    $joined = $u->getMembershipAtt($gid, 'added');
+                    $hoursago = round((time() - strtotime($joined)) / 3600);
 
-                if ($hoursago > 48) {
-                    error_log("...approve");
-                    $m->approve($message['groupid']);
+                    error_log("{$message['msgid']} has been pending for {$message['ago']}, membership $hoursago");
 
-                    $this->log->log([
-                                'type' => Log::TYPE_MESSAGE,
-                                'subtype' => Log::SUBTYPE_AUTO_APPROVED,
-                                'groupid' => $message['groupid'],
-                                'msgid' => $message['msgid'],
-                                'user' => $m->getFromuser()
-                            ]);
+                    if ($hoursago > 48) {
+                        error_log("...approve");
+                        $m->approve($message['groupid']);
 
-                    $ret++;
+                        $this->log->log([
+                                            'type' => Log::TYPE_MESSAGE,
+                                            'subtype' => Log::SUBTYPE_AUTO_APPROVED,
+                                            'groupid' => $message['groupid'],
+                                            'msgid' => $message['msgid'],
+                                            'user' => $m->getFromuser()
+                                        ]);
+
+                        $ret++;
+                    }
                 }
             }
         }
