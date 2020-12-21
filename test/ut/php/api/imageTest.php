@@ -195,6 +195,26 @@ class imageAPITest extends IznikAPITestCase
         assertTrue(TRUE);
     }
 
+    public function testObjects() {
+        if (GOOGLE_VISION_KEY != ' GOOGLE_VISION_KEY') {
+            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/multiple1.jpg');
+            file_put_contents("/tmp/multiple1.jpg", $data);
+
+            $ret = $this->call('image', 'POST', [
+                'photo' => [
+                    'tmp_name' => '/tmp/multiple1.jpg',
+                    'type' => 'image/jpeg'
+                ],
+                'objects' => TRUE
+            ]);
+
+            error_log("Returned " . var_export($ret, TRUE));
+            assertEquals(10, count($ret['objects']['responses'][0]['localizedObjectAnnotations']));
+        }
+
+        assertTrue(TRUE);
+    }
+
     public function testHEIC()
     {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/image1.heic');
