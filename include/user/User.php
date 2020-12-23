@@ -2891,6 +2891,8 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE users_replytime SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE messages_promises SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE messages_by SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE trysts SET user1 = $id1 WHERE user1 = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE trysts SET user2 = $id1 WHERE user2 = $id2;");
 
                         # Merge chat rooms.  There might have be two separate rooms already, which means that we need
                         # to make sure that messages from both end up in the same one.
