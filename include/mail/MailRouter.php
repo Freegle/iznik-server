@@ -697,7 +697,7 @@ class MailRouter
 
                             if ($closed) {
                                 if ($log) { error_log("Reply to message on closed group"); }
-                                $this->mail(NOREPLY_ADDR, $this->msg->getFromaddr(), "This community is currently closed", "This Freegle community is currently closed due to COVID-19.  Your local volunteers have made this difficult decision to try to keep you safe.  Please respect it, and we hope you'll come back when the situation changes.\r\n\r\nThis is an automated message - please do not reply.");
+                                $this->mail($this->msg->getFromaddr(), NOREPLY_ADDR,  "This community is currently closed", "This Freegle community is currently closed due to COVID-19.  Your local volunteers have made this difficult decision to try to keep you safe.  Please respect it, and we hope you'll come back when the situation changes.\r\n\r\nThis is an automated message - please do not reply.");
                                 $ret = MailRouter::TO_SYSTEM;
                             } else {
                                 $u = User::get($this->dbhr, $this->dbhm, $fromid);
