@@ -309,7 +309,7 @@ class User extends Entity
         $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
 
         # If we are logged in as this user and it's showing deleted then we've resurrected it; give it a new name.
-        $resurrect = defined('_SESSION') && Utils::presdef('id', $_SESSION, NULL) == $this->id && strpos($name, 'Deleted User') === 0;
+        $resurrect = isset($_SESSION) && Utils::presdef('id', $_SESSION, NULL) == $this->id && strpos($name, 'Deleted User') === 0;
 
         if ($default &&
             $this->id &&
@@ -5317,7 +5317,7 @@ class User extends Entity
         #     polls_users
         # - Covered by data that we do return from other tables
         #     messages_drafts, messages_history, messages_groups, messages_outcomes,
-        #     messages_promises, users_modmails, modnotifs, users_chatlists_index, users_dashboard,
+        #     messages_promises, users_modmails, modnotifs, users_dashboard,
         #     users_nudges
         # - Transient logging data
         #     logs_emails, logs_sql, logs_api, logs_errors, logs_src

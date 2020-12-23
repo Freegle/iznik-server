@@ -4957,7 +4957,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
             foreach ($gids as $gid) {
                 $g = new Group($this->dbhr, $this->dbhm);
 
-                if (!$g->getSetting('closed', FALSE) && $g->getPrivate('autofunctionoverride')) {
+                if (!$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
                     $joined = $u->getMembershipAtt($gid, 'added');
                     $hoursago = round((time() - strtotime($joined)) / 3600);
 

@@ -391,6 +391,9 @@ class API
                         case 'team':
                             $ret = team();
                             break;
+                        case 'tryst':
+                            $ret = tryst();
+                            break;
                         case 'src':
                             $ret = src();
                             break;
