@@ -103,7 +103,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
-        $u->addMembership($gid);
+        $u->addMembership($gid, User::ROLE_MODERATOR);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
@@ -135,6 +135,13 @@ class microvolunteeringAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(0, $ret['ret']);
+
+        # Check the logging.
+        $ret = $this->call('microvolunteering', 'GET', [
+            'list' => TRUE
+        ]);
+
+        assertEquals(3, count($ret['microvolunteerings']));
     }
 
     public function testFacebook() {

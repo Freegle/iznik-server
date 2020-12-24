@@ -36,6 +36,65 @@ class MicroVolunteering
         $this->dbhm = $dbhm;
     }
 
+    public function list(&$ctx, $groupids, $limit = 10) {
+        $groupq = implode(',', $groupids);
+        $ctxq = $ctx ? (" AND microactions.id < " .intval($ctx['id'])) : '';
+
+        $items = $this->dbhr->preQuery("SELECT microactions.* FROM microactions INNER JOIN memberships ON memberships.userid = microactions.userid WHERE memberships.groupid IN ($groupq) $ctxq ORDER BY id DESC LIMIT " . intval($limit));
+
+        if (count($items)){
+            $u = new User($this->dbhr, $this->dbhm);
+            $a = new Attachment($this->dbhr, $this->dbhm);
+
+            $ctx2 = NULL;
+            $users = $u->getPublicsById(array_filter(array_column($items, 'userid')), NULL, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE);
+            $msgids = array_filter(array_column($items, 'msgid'));
+            $msgs = count($msgids) ? $this->dbhr->preQuery("SELECT id, subject FROM messages WHERE id IN (" . implode(',', $msgids) . ")") : [];
+
+            $itemids = array_filter(array_merge(array_column($items, 'item1'), array_column($items, 'item2')));
+            $is = count($itemids) ? $this->dbhr->preQuery("SELECT id, name FROM items WHERE id IN (" . implode(',', $itemids) . ")") : [];
+            
+            for ($itemind = 0; $itemind < count($items); $itemind++) {
+                $items[$itemind]['timestamp'] = Utils::ISODate($items[$itemind]['timestamp']);
+                
+                $items[$itemind]['user'] = $users[$items[$itemind]['userid']];
+                unset($items[$itemind]['userid']);
+                
+                if (Utils::pres('msgid', $items[$itemind])) {
+                    foreach ($msgs as $msg) {
+                        if ($msg['id'] = $items[$itemind]['msgid']) {
+                            $items[$itemind]['msg'] = $msg;
+                            unset($items[$itemind]['msgid']);
+                        }
+                    }
+                }
+
+                if (Utils::pres('item1', $items[$itemind]) && Utils::pres('item2', $items[$itemind])) {
+                    foreach ($is as $i) {
+                        if (Utils::pres('item1', $items[$itemind]) && gettype($items[$itemind]['item1']) == 'integer' && $i['id'] == $items[$itemind]['item1']) {
+                            $items[$itemind]['item1'] = $i;
+                            unset($items[$itemind]['item1']);
+                        }
+
+                        if (Utils::pres('item2', $items[$itemind]) && gettype($items[$itemind]['item2']) == 'integer' && $i['id'] == $items[$itemind]['item2']) {
+                            $items[$itemind]['item2'] = $i;
+                            unset($items[$itemind]['item2']);
+                        }
+                    }
+                }
+
+                if ($items[$itemind]['rotatedimage']) {
+                    $items[$itemind]['rotatedimage'] = [
+                        'id' => $items[$itemind]['rotatedimage'],
+                        'thumb' => $a->getPath(TRUE, $items[$itemind]['rotatedimage'])
+                    ];
+                }
+            }         
+        }
+
+        return $items;
+    }
+
     public function challenge($userid, $groupid = NULL, $types) {
         $ret = NULL;
         $today = date('Y-m-d');

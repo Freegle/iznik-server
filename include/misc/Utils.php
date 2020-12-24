@@ -385,6 +385,10 @@ class Utils {
         }
     }
 
+    public static function presbool($key, $arr, $def) {
+        return array_key_exists($key, $arr) ? filter_var($_REQUEST[$key], FILTER_VALIDATE_BOOLEAN) : $def;
+    }
+
     public static function ISODate($date)
     {
         if ($date) {

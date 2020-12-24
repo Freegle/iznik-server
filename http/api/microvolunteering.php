@@ -14,19 +14,34 @@ function microvolunteering() {
 
         switch ($_REQUEST['type']) {
             case 'GET': {
-                $v = new MicroVolunteering($dbhr, $dbhm);
                 $groupid = (Utils::presint('groupid', $_REQUEST, 0));
-                $types = Utils::presdef('types', $_REQUEST, [
-                    MicroVolunteering::CHALLENGE_SEARCH_TERM,
-                    MicroVolunteering::CHALLENGE_CHECK_MESSAGE,
-                    MicroVolunteering::CHALLENGE_PHOTO_ROTATE
-                ]);
+                $list = Utils::presbool('list', $_REQUEST, FALSE);
+                $ctx = Utils::presdef('context', $_REQUEST, NULL);
 
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'microvolunteering' => $v->challenge($myid, $groupid, $types)
-                ];
+                $v = new MicroVolunteering($dbhr, $dbhm);
+
+                if ($me && $me->isModerator() && $list) {
+                    $items = $v->list($ctx, $groupid ? [ $groupid ] : $me->getModeratorships());
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'microvolunteerings' => $items,
+                        'context' => $ctx
+                    ];
+                } else {
+                    $types = Utils::presdef('types', $_REQUEST, [
+                        MicroVolunteering::CHALLENGE_SEARCH_TERM,
+                        MicroVolunteering::CHALLENGE_CHECK_MESSAGE,
+                        MicroVolunteering::CHALLENGE_PHOTO_ROTATE
+                    ]);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'microvolunteering' => $v->challenge($myid, $groupid, $types)
+                    ];
+                }
+
                 break;
             }
 
