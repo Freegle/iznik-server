@@ -16,7 +16,7 @@ class Tryst extends Entity
     public function create($user1, $user2, $arrangedfor) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO trysts (user1, user2, arrangedfor) VALUES (?,?,?);", [
+        $rc = $this->dbhm->preExec("INSERT INTO trysts (user1, user2, arrangedfor) VALUES (?,?,?) ON DUPLICATE KEY update arrangedat = NOW();", [
             $user1,
             $user2,
             $arrangedfor
