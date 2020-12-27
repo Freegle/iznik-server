@@ -39,7 +39,6 @@ class MicroVolunteering
     public function list(&$ctx, $groupids, $limit = 10) {
         $groupq = implode(',', $groupids);
         $ctxq = $ctx ? (" AND microactions.id < " .intval($ctx['id'])) : '';
-        $ctx = $ctx ? $ctx : [];
 
         $items = $this->dbhr->preQuery("SELECT microactions.* FROM microactions INNER JOIN memberships ON memberships.userid = microactions.userid WHERE memberships.groupid IN ($groupq) $ctxq ORDER BY id DESC LIMIT " . intval($limit));
 
@@ -51,8 +50,6 @@ class MicroVolunteering
             $users = $u->getPublicsById(array_filter(array_column($items, 'userid')), NULL, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE);
             $msgids = array_filter(array_column($items, 'msgid'));
             $msgs = count($msgids) ? $this->dbhr->preQuery("SELECT id, subject FROM messages WHERE id IN (" . implode(',', $msgids) . ")") : [];
-            $imageids = array_filter(array_column($items, 'rotatedimage'));
-            $imagemsgs = count($imageids) ? $this->dbhr->preQuery("SELECT msgid, id FROM messages_attachments WHERE id IN (" . implode(',', $imageids) . ")") : [];
 
             $itemids = array_filter(array_merge(array_column($items, 'item1'), array_column($items, 'item2')));
             $is = count($itemids) ? $this->dbhr->preQuery("SELECT id, name FROM items WHERE id IN (" . implode(',', $itemids) . ")") : [];
@@ -66,7 +63,7 @@ class MicroVolunteering
                 if (Utils::pres('msgid', $items[$itemind])) {
                     foreach ($msgs as $msg) {
                         if ($msg['id'] = $items[$itemind]['msgid']) {
-                            $items[$itemind]['message'] = $msg;
+                            $items[$itemind]['msg'] = $msg;
                             unset($items[$itemind]['msgid']);
                         }
                     }
@@ -74,12 +71,14 @@ class MicroVolunteering
 
                 if (Utils::pres('item1', $items[$itemind]) && Utils::pres('item2', $items[$itemind])) {
                     foreach ($is as $i) {
-                        if (Utils::pres('item1', $items[$itemind]) && gettype($items[$itemind]['item1']) != 'object' && $i['id'] == $items[$itemind]['item1']) {
+                        if (Utils::pres('item1', $items[$itemind]) && gettype($items[$itemind]['item1']) == 'integer' && $i['id'] == $items[$itemind]['item1']) {
                             $items[$itemind]['item1'] = $i;
+                            unset($items[$itemind]['item1']);
                         }
 
-                        if (Utils::pres('item2', $items[$itemind]) && gettype($items[$itemind]['item2']) != 'object' && $i['id'] == $items[$itemind]['item2']) {
+                        if (Utils::pres('item2', $items[$itemind]) && gettype($items[$itemind]['item2']) == 'integer' && $i['id'] == $items[$itemind]['item2']) {
                             $items[$itemind]['item2'] = $i;
+                            unset($items[$itemind]['item2']);
                         }
                     }
                 }
@@ -89,15 +88,7 @@ class MicroVolunteering
                         'id' => $items[$itemind]['rotatedimage'],
                         'thumb' => $a->getPath(TRUE, $items[$itemind]['rotatedimage'])
                     ];
-
-                    foreach ($imagemsgs as $imagemsg) {
-                        if ($imagemsg['id'] == $items[$itemind]['rotatedimage']['id'] ) {
-                            $items[$itemind]['rotatedimage']['msgid'] = $imagemsg['msgid'];
-                        }
-                    }
                 }
-
-                $ctx['id'] = $items[$itemind]['id'];
             }         
         }
 
