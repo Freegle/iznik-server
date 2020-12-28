@@ -82,7 +82,7 @@ class Tryst extends Entity
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $rid = $r->createConversation($this->getPrivate('user1'), $this->getPrivate('user2'));
 
-        $title = 'Freegle Handover: ' . $u1->getName() . " and " . $u2->getName();
+        $title = 'Please add to calendar - Freegle Handover: ' . $u1->getName() . " and " . $u2->getName();
 
         // Create a VCALENDAR.  No point creating an alarm as Google ignores them unless they were generated
         // itself.
