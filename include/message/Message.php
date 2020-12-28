@@ -878,8 +878,7 @@ class Message
 
             if ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER) {
                 // Blur lat/lng slightly for privacy.
-                $ret['lat'] = round($ret['lat'], User::BLUR_100M);
-                $ret['lng'] = round($ret['lng'], User::BLUR_100M);
+                list ($ret['lat'], $ret['lng']) = Message::blur($ret['lat'], $ret['lng']);
             }
 
             # URL people can follow to get to the message on our site.
@@ -927,6 +926,12 @@ class Message
         }
 
         return($rets);
+    }
+
+    public static function blur($lat, $lng) {
+        $lat = round($lat / 2, User::BLUR_100M) * 2;
+        $lng = round($lng / 2, User::BLUR_100M) * 2;
+        return [ $lat, $lng ];
     }
 
     private function getThisAsArray() {

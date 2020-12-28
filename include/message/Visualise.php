@@ -174,6 +174,7 @@ class Visualise extends Entity
             $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
             $u->ensureAvatar($atts);
             list ($lat, $lng) = $u->getLatLng(FALSE, FALSE, User::BLUR_100M);
+            list ($lat, $lng) = Message::blur($lat, $lng);
 
             if ($lat || $lng) {
                 $ret['others'][] = [
