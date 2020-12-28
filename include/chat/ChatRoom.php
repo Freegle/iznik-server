@@ -1086,7 +1086,7 @@ WHERE chat_rooms.id IN $idlist;";
         # We have a unique key, and an update on current timestamp.
         #
         # Don't want to log these - lots of them.
-        error_log("updateRoster: Add $userid into {$this->id}");
+        #error_log("updateRoster: Add $userid into {$this->id}");
         $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?, status = ?;",
             [
                 $this->id,

@@ -1,6 +1,10 @@
 <?php
 namespace Freegle\Iznik;
 
+use Eluceo\iCal\Component\Calendar;
+use Eluceo\iCal\Component\Event;
+use Eluceo\iCal\Property\Event\Organizer;
+use PhpMimeMailParser\Exception;
 
 class Tryst extends Entity
 {
@@ -67,5 +71,70 @@ class Tryst extends Entity
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM trysts WHERE id = ?;", [ $this->id ]);
         return($rc);
+    }
+
+    public function sendCalendar($userid) {
+        $event = new Event();
+        $u1 = User::get($this->dbhr, $this->dbhm, $userid);
+        $email = $u1->getEmailPreferred();
+
+        $u2 = User::get($this->dbhr, $this->dbhm, $userid == $this->getPrivate('user1') ? $this->getPrivate('user2') : $this->getPrivate('user1'));
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($this->getPrivate('user1'), $this->getPrivate('user2'));
+
+        $title = 'Freegle Handover: ' . $u1->getName() . " and " . $u2->getName();
+
+        // Create a VCALENDAR.  No point creating an alarm as Google ignores them unless they were generated
+        // itself.
+        $event->setSummary($title);
+        $event->setDescription("Please add this to your calendar to help things go smoothly.\r\n\r\nIf anything changes please let them know through Chat - click https://www.ilovefreegle.org/chat/" . $rid);
+        $event->setDtStart(new \DateTime(Utils::ISODate($this->getPrivate('arrangedfor'))));
+        $event->setDuration(new \DateInterval('PT15M'));
+        $event->setOrganizer(new Organizer("MAILTO:" . NOREPLY_ADDR, [ 'CN' => SITE_NAME ]));
+        $event->addAttendee('MAILTO:' . $u1->getEmailPreferred(), [ 'ROLE' => 'REQ-PARTICIPANT', 'PARTSTAT' => 'ACCEPTED', 'CN' => $u1->getName()]);
+        $event->addAttendee('MAILTO:' . $u2->getOurEmail(), [ 'ROLE' => 'REQ-PARTICIPANT', 'PARTSTAT' => 'ACCEPTED', 'CN' => $u2->getName()]);
+        $event->setUseTimezone(true);
+        $event->setTimezoneString('Europe/London');
+
+        $calendar = new Calendar([$event]);
+        $calendar->addComponent($event);
+        $calendar->setMethod('REQUEST');
+
+        list ($transport, $mailer) = Mail::getMailer();
+
+        try {
+            $message = \Swift_Message::newInstance()
+                ->setSubject($title)
+                ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                ->setTo($email)
+                ->setContentType('text/calendar')
+                ->setBody($calendar->render());
+
+            $this->sendIt($mailer, $message);
+        } catch (Exception $e) {
+            error_log("Failed to send calendar invite $rid " . $e->getMessage());
+        }
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function sendCalendarsDue($id = NULL) {
+        $idq = $id ? (" AND id = " . intval($id)) : '';
+
+        # Don't send them if the arrangement is for the same day.  They're less likely to forget and it'll just be
+        # annoying.
+        $mysqltime = (new \DateTime())->setTime(0,0)->add(new \DateInterval('P1D'))->format('Y-m-d');
+        $dues = $this->dbhr->preQuery("SELECT id, arrangedfor FROM trysts WHERE icssent = 0 AND arrangedfor >= ? AND arrangedfor NOT LIKE '% 00:00:00' $idq;", [
+            $mysqltime
+        ]);
+
+        foreach ($dues as $due) {
+            $t = new Tryst($this->dbhr, $this->dbhm, $due['id']);
+            $t->sendCalendar($t->getPrivate('user1'));
+            $t->sendCalendar($t->getPrivate('user2'));
+            $t->setPrivate('icssent', 1);
+        }
     }
 }

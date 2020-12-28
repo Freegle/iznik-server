@@ -40,7 +40,8 @@
     "violet/streaming-json-encoder": "^1.1",
     "facebook/graph-sdk": "^5.7",
     "griffinledingham/php-apple-signin": "^1.1",
-    "phpoffice/phpspreadsheet": "^1.14"
+    "phpoffice/phpspreadsheet": "^1.14",
+    "eluceo/ical": "^0.16.1"
   },
   "repositories": [
     {
