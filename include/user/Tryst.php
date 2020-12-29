@@ -12,6 +12,10 @@ class Tryst extends Entity
     var $publicatts = [ 'id', 'user1', 'user2', 'arrangedat', 'arrangedfor' ];
     var $settableatts = [ 'user1', 'user2', 'arrangedfor' ];
 
+    const ACCEPTED = 'Accepted';
+    const DECLINED = 'Declined';
+    const OTHER = 'Other';
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'trysts', 'tryst', $this->publicatts);
@@ -74,6 +78,7 @@ class Tryst extends Entity
     }
 
     public function sendCalendar($userid) {
+        $ret = NULL;
         $event = new Event();
         $u1 = User::get($this->dbhr, $this->dbhm, $userid);
         $email = $u1->getEmailPreferred();
@@ -90,7 +95,7 @@ class Tryst extends Entity
         $event->setDescription("Please add this to your calendar to help things go smoothly.\r\n\r\nIf anything changes please let them know through Chat - click https://www.ilovefreegle.org/chat/" . $rid);
         $event->setDtStart(new \DateTime(Utils::ISODate($this->getPrivate('arrangedfor'))));
         $event->setDuration(new \DateInterval('PT15M'));
-        $event->setOrganizer(new Organizer("MAILTO:" . NOREPLY_ADDR, [ 'CN' => SITE_NAME ]));
+        $event->setOrganizer(new Organizer("MAILTO:handover-" . $this->id . '-' . $userid . "@" . USER_DOMAIN, [ 'CN' => SITE_NAME ]));
         $event->addAttendee('MAILTO:' . $u1->getEmailPreferred(), [ 'ROLE' => 'REQ-PARTICIPANT', 'PARTSTAT' => 'ACCEPTED', 'CN' => $u1->getName()]);
         $event->addAttendee('MAILTO:' . $u2->getOurEmail(), [ 'ROLE' => 'REQ-PARTICIPANT', 'PARTSTAT' => 'ACCEPTED', 'CN' => $u2->getName()]);
         $event->setUseTimezone(true);
@@ -99,6 +104,8 @@ class Tryst extends Entity
         $calendar = new Calendar([$event]);
         $calendar->addComponent($event);
         $calendar->setMethod('REQUEST');
+        $op = $calendar->render();
+        $op = str_replace("ATTENDEE;", "ATTENDEE;RSVP=TRUE:", $op);
 
         list ($transport, $mailer) = Mail::getMailer();
 
@@ -108,12 +115,16 @@ class Tryst extends Entity
                 ->setFrom([NOREPLY_ADDR => SITE_NAME])
                 ->setTo($email)
                 ->setContentType('text/calendar')
-                ->setBody($calendar->render());
+                ->setBody($op);
 
             $this->sendIt($mailer, $message);
+
+            $ret = $event->getUniqueId();
         } catch (Exception $e) {
             error_log("Failed to send calendar invite $rid " . $e->getMessage());
         }
+
+        return $ret;
     }
 
     public function sendIt($mailer, $message) {
@@ -121,6 +132,8 @@ class Tryst extends Entity
     }
 
     public function sendCalendarsDue($id = NULL) {
+        $ret = 0;
+
         $idq = $id ? (" AND id = " . intval($id)) : '';
 
         # Don't send them if the arrangement is for the same day.  They're less likely to forget and it'll just be
@@ -132,9 +145,24 @@ class Tryst extends Entity
 
         foreach ($dues as $due) {
             $t = new Tryst($this->dbhr, $this->dbhm, $due['id']);
-            $t->sendCalendar($t->getPrivate('user1'));
-            $t->sendCalendar($t->getPrivate('user2'));
-            $t->setPrivate('icssent', 1);
+            $uid1 = $t->sendCalendar($t->getPrivate('user1'));
+            $uid2 = $t->sendCalendar($t->getPrivate('user2'));
+            $this->dbhm->preExec("UPDATE trysts SET icssent = 1, ics1uid = ?, ics2uid = ? WHERE id = ?;", [
+                $uid1,
+                $uid2,
+                $this->id
+            ]);
+            $ret++;
+        }
+
+        return $ret;
+    }
+
+    public function response($userid, $rsp) {
+        if ($userid == $this->getPrivate('user1')) {
+            $this->setPrivate('user1response', $rsp);
+        } else if ($userid == $this->getPrivate('user2')) {
+            $this->setPrivate('user2response', $rsp);
         }
     }
 }

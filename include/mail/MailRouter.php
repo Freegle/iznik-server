@@ -46,6 +46,7 @@ class MailRouter
     const TO_USER = "ToUser";
     const TO_SYSTEM ='ToSystem';
     const RECEIPT = 'ReadReceipt';
+    const TRYST = 'Tryst';
     const DROPPED ='Dropped';
     const TO_VOLUNTEERS = "ToVolunteers";
 
@@ -73,7 +74,7 @@ class MailRouter
         # a current group name.
         $ret = NULL;
         $rc = $this->msg->parse($source, $from, $to, $msg, $groupid);
-        
+
         if ($rc) {
             $ret = $this->msg->save($log);
         }
@@ -203,7 +204,6 @@ class MailRouter
             $userid = intval($matches[2]);
             $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $userid;");
             $msgid = intval($matches[3]);
-            error_log("Read receipt $chatid, $userid, $msgid");
 
             # The receipt has seen this message, and the message has been seen by all people in the chat (because
             # we only generate these for user 2 user.
@@ -214,6 +214,27 @@ class MailRouter
             }
 
             $ret = MailRouter::RECEIPT;
+        } else if (preg_match('/handover-(.*)-(.*)@/', $to, $matches) == 1) {
+            # Calendar response
+            $trystid = intval($matches[1]);
+            $userid = intval($matches[2]);
+            $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $userid;");
+
+            # The responses don't have a very well-defined format.  They're supposed to include the VCALENDAR,
+            # modified.  But that's a pain to parse and I don't believe that they always will.  We'll use the
+            # subject line.
+            $t = new Tryst($this->dbhr, $this->dbhm, $trystid);
+            $rsp = Tryst::OTHER;
+
+            if (stripos($this->msg->getSubject(), 'accepted') !== FALSE) {
+                $rsp = Tryst::ACCEPTED;
+            } else if  (stripos($this->msg->getSubject(), 'declined') !== FALSE) {
+                $rsp = Tryst::DECLINED;
+            }
+
+            $t->response($userid, $rsp);
+
+            $ret = MailRouter::TRYST;
         } else if (preg_match('/eventsoff-(.*)-(.*)@/', $to, $matches) == 1) {
             # Request to turn events email off.
             $uid = intval($matches[1]);

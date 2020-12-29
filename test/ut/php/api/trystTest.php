@@ -31,9 +31,13 @@ class trystTest extends IznikAPITestCase {
         $u1id = $u->create('Test','User', 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u1 = User::get($this->dbhr, $this->dbhm, $u1id);
+        $email1 = 'test-' . rand() . '@blackhole.io';
+        $u1->addEmail($email1);
         $u2id = $u->create('Test','User', 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u2 = User::get($this->dbhr, $this->dbhm, $u2id);
+        $email2 = 'test-' . rand() . '@blackhole.io';
+        $u2->addEmail($email2);
         $u3id = $u->create('Test','User', 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u3 = User::get($this->dbhr, $this->dbhm, $u3id);
@@ -110,6 +114,51 @@ class trystTest extends IznikAPITestCase {
         ]);
 
         assertEquals(2, $ret['ret']);
+
+        # Send the invites, mocking out the mail.
+        $t = $this->getMockBuilder('Freegle\Iznik\Tryst')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $t->method('sendIt')->willReturn(false);
+        assertEquals(1, $t->sendCalendarsDue($id));
+
+        # Send an accept
+        $t = new Tryst($this->dbhr, $this->dbhm, $id);
+        assertNull($t->getPrivate('user1response'));
+        assertNull($t->getPrivate('user2response'));
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/trystaccept'));
+        $msg = str_replace('<email1>', $email1, $msg);
+        $msg = str_replace('<email2>', $u2->getOurEmail(), $msg);
+        $msg = str_replace('<handoverid>', $id, $msg);
+        $msg = str_replace('<uid1>', $u1id, $msg);
+        $msg = str_replace('<uid2>', $u2id, $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::EMAIL, $email1, "handover-$id-$u1id@" . USER_DOMAIN, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TRYST, $rc);
+
+        $t = new Tryst($this->dbhr, $this->dbhm, $id);
+        assertEquals(Tryst::ACCEPTED, $t->getPrivate('user1response'));
+        assertNull($t->getPrivate('user2response'));
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/trystdecline'));
+        $msg = str_replace('<email1>', $email1, $msg);
+        $msg = str_replace('<email2>', $u2->getOurEmail(), $msg);
+        $msg = str_replace('<handoverid>', $id, $msg);
+        $msg = str_replace('<uid1>', $u1id, $msg);
+        $msg = str_replace('<uid2>', $u2id, $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::EMAIL, $email1, "handover-$id-$u1id@" . USER_DOMAIN, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TRYST, $rc);
+
+        $t = new Tryst($this->dbhr, $this->dbhm, $id);
+        assertEquals(Tryst::DECLINED, $t->getPrivate('user1response'));
+        assertNull($t->getPrivate('user2response'));
 
         # Delete it.
         assertTrue($u1->login('testpw'));

@@ -1,0 +1,64 @@
+From <email1> to <email2> Message
+From <email1> Tue Dec 29 10:15:28 2020
+Return-path: <<email1>>
+Envelope-to: <email2>
+From: "Edward Hibbert" <<email1>>
+To: <email2>
+Subject: Declined invitation for "Please add to calendar - Freegle Handover: Edward
+ Hibbert and Test Test"
+Message-Id: <em0858cf14-5c91-466e-ac24-e715aeb9cfaf@desktop-890t9k5>
+Reply-To: "Edward Hibbert" <edward@ehibbert.org.uk>
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="------=_MB9A40ED48-509B-4DB3-AA35-B4E1F03F7D4A"
+
+--------=_MB9A40ED48-509B-4DB3-AA35-B4E1F03F7D4A
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+
+--------=_MB9A40ED48-509B-4DB3-AA35-B4E1F03F7D4A
+Content-Type: text/calendar; charset=utf-8; method=REPLY
+Content-Transfer-Encoding: quoted-printable
+
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:BEGIN:VEVENT\nUID:5feb01a0a3acb\nDTSTART\;TZID=3DEurope/London:20201=
+23
+ 0T180000\nSEQUENCE:0\nTRANSP:OPAQUE\nDURATION:P0DT0H15M0S\nSUMMARY:Please=
+=20
+ add to calendar - Freegle Handover: Edward Hibbert and Test \n Test\nATTEN
+ DEE\;ROLE=3DREQ-PARTICIPANT\;PARTSTAT=3DACCEPTED\;CN=3DEdward Hibbert:MAIL=
+TO:\
+ <email1>\nATTENDEE\;ROLE=3DREQ-PARTICIPANT\;PARTSTAT=3DACCEP=
+TED\
+ ;CN=3DTest Test:MAILTO:<email2>\nCLASS:=
+PU
+ BLIC\nDESCRIPTION:Please add this to your calendar to help things go smoot
+ hly.\\n\\\n nIf anything changes please let them know through Chat - click
+  https://www\n .ilovefreegle.org/chat/<chatid>\nORGANIZER\;CN=3DFreegle:MAI=
+LT
+ O:handover-<handoverid>-<uid1>@users.ilovefreegle.org\nDTSTAMP:20201229T101456Z\nEND:VEVEN
+ T
+METHOD:REPLY
+BEGIN:VEVENT
+UID:<uid>
+DTSTART;TZID=3DEurope/London:20201230T180000
+SEQUENCE:0
+TRANSP:OPAQUE
+DURATION:PT15M
+SUMMARY:Please add to calendar - Freegle Handover: Edward Hibbert and Test=
+=20
+ Test
+CLASS:PUBLIC
+DESCRIPTION:Please add this to your calendar to help things go smoothly.\n\
+ nIf anything changes please let them know through Chat - click https://www
+ .ilovefreegle.org/chat/<chatid>
+ORGANIZER;CN=3DFreegle:mailto:handover-<handoverid>-<uid1>@users.ilovefreegle.org
+DTSTAMP:20201229T101456Z
+ATTENDEE;CN=3DEdward Hibbert;PARTSTAT=3DACCEPTED:mailto:<email1>
+END:VEVENT
+END:VCALENDAR
+
+--------=_MB9A40ED48-509B-4DB3-AA35-B4E1F03F7D4A--
+
