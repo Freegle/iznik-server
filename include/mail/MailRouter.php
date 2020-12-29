@@ -220,16 +220,31 @@ class MailRouter
             $userid = intval($matches[2]);
             $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $userid;");
 
-            # The responses don't have a very well-defined format.  They're supposed to include the VCALENDAR,
-            # modified.  But that's a pain to parse and I don't believe that they always will.  We'll use the
-            # subject line.
+            # Scan for a VCALENDAR attachment.
             $t = new Tryst($this->dbhr, $this->dbhm, $trystid);
             $rsp = Tryst::OTHER;
 
-            if (stripos($this->msg->getSubject(), 'accepted') !== FALSE) {
-                $rsp = Tryst::ACCEPTED;
-            } else if  (stripos($this->msg->getSubject(), 'declined') !== FALSE) {
-                $rsp = Tryst::DECLINED;
+            foreach ($this->msg->getParsedAttachments() as $att) {
+                $ct = $att->getContentType();
+
+                if (strcmp('text/calendar', strtolower($ct)) === 0) {
+                    # We don't do a proper parse
+                    $vcal = strtolower($att->getContent());
+                    if (strpos($vcal, 'status:confirmed') !== FALSE || strpos($vcal, 'status:tentative') !== FALSE) {
+                        $rsp = Tryst::ACCEPTED;
+                    } else if (strpos($vcal, 'status:cancelled') !== FALSE) {
+                        $rsp = Tryst::DECLINED;
+                    }
+                }
+            }
+
+            if ($rsp == Tryst::OTHER) {
+                # Maybe they didn't put the VCALENDAR in.
+                if (stripos($this->msg->getSubject(), 'accepted') !== FALSE) {
+                    $rsp = Tryst::ACCEPTED;
+                } else if  (stripos($this->msg->getSubject(), 'declined') !== FALSE) {
+                    $rsp = Tryst::DECLINED;
+                }
             }
 
             $t->response($userid, $rsp);

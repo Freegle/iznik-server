@@ -144,6 +144,23 @@ class trystTest extends IznikAPITestCase {
         assertEquals(Tryst::ACCEPTED, $t->getPrivate('user1response'));
         assertNull($t->getPrivate('user2response'));
 
+        error_log("No subj");
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/trystnosubj'));
+        $msg = str_replace('<email1>', $email1, $msg);
+        $msg = str_replace('<email2>', $u2->getOurEmail(), $msg);
+        $msg = str_replace('<handoverid>', $id, $msg);
+        $msg = str_replace('<uid1>', $u1id, $msg);
+        $msg = str_replace('<uid2>', $u2id, $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::EMAIL, $email1, "handover-$id-$u1id@" . USER_DOMAIN, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TRYST, $rc);
+
+        $t = new Tryst($this->dbhr, $this->dbhm, $id);
+        assertEquals(Tryst::ACCEPTED, $t->getPrivate('user1response'));
+        assertNull($t->getPrivate('user2response'));
+
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/trystdecline'));
         $msg = str_replace('<email1>', $email1, $msg);
         $msg = str_replace('<email2>', $u2->getOurEmail(), $msg);

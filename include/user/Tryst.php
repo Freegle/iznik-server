@@ -85,6 +85,7 @@ class Tryst extends Entity
 
         $u2 = User::get($this->dbhr, $this->dbhm, $userid == $this->getPrivate('user1') ? $this->getPrivate('user2') : $this->getPrivate('user1'));
         $r = new ChatRoom($this->dbhr, $this->dbhm);
+
         $rid = $r->createConversation($this->getPrivate('user1'), $this->getPrivate('user2'));
 
         $title = 'Please add to calendar - Freegle Handover: ' . $u1->getName() . " and " . $u2->getName();
@@ -145,14 +146,17 @@ class Tryst extends Entity
 
         foreach ($dues as $due) {
             $t = new Tryst($this->dbhr, $this->dbhm, $due['id']);
-            $uid1 = $t->sendCalendar($t->getPrivate('user1'));
-            $uid2 = $t->sendCalendar($t->getPrivate('user2'));
-            $this->dbhm->preExec("UPDATE trysts SET icssent = 1, ics1uid = ?, ics2uid = ? WHERE id = ?;", [
-                $uid1,
-                $uid2,
-                $this->id
-            ]);
-            $ret++;
+
+            if ($t->getPrivate('user1') && $t->getPrivate('user2')) {
+                $uid1 = $t->sendCalendar($t->getPrivate('user1'));
+                $uid2 = $t->sendCalendar($t->getPrivate('user2'));
+                $this->dbhm->preExec("UPDATE trysts SET icssent = 1, ics1uid = ?, ics2uid = ? WHERE id = ?;", [
+                    $uid1,
+                    $uid2,
+                    $due['id']
+                ]);
+                $ret++;
+            }
         }
 
         return $ret;
