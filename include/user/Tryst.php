@@ -88,12 +88,12 @@ class Tryst extends Entity
 
         $rid = $r->createConversation($this->getPrivate('user1'), $this->getPrivate('user2'));
 
-        $title = 'Please add to calendar - Freegle Handover: ' . $u1->getName() . " and " . $u2->getName();
+        $title = 'Freegle Handover: ' . $u1->getName() . " and " . $u2->getName();
 
         // Create a VCALENDAR.  No point creating an alarm as Google ignores them unless they were generated
         // itself.
         $event->setSummary($title);
-        $event->setDescription("Please add this to your calendar to help things go smoothly.\r\n\r\nIf anything changes please let them know through Chat - click https://www.ilovefreegle.org/chat/" . $rid);
+        $event->setDescription("If anything changes please let them know through Chat - click https://www.ilovefreegle.org/chat/" . $rid);
         $event->setDtStart(new \DateTime(Utils::ISODate($this->getPrivate('arrangedfor'))));
         $event->setDuration(new \DateInterval('PT15M'));
         $event->setOrganizer(new Organizer("MAILTO:handover-" . $this->id . '-' . $userid . "@" . USER_DOMAIN, [ 'CN' => SITE_NAME ]));
@@ -112,11 +112,11 @@ class Tryst extends Entity
 
         try {
             $message = \Swift_Message::newInstance()
-                ->setSubject($title)
+                ->setSubject("Please add to your calendar - $title")
                 ->setFrom([NOREPLY_ADDR => SITE_NAME])
                 ->setTo($email)
-                ->setContentType('text/calendar')
-                ->setBody($op);
+                ->setBody('You\'ve arranged a Freegle handover.  Please add this to your calendar to help things go smoothly.')
+                ->addPart($op, 'text/calendar');
 
             $this->sendIt($mailer, $message);
 
