@@ -2116,7 +2116,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 }
                             }
 
-                            $url = $sendingto->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
+                            $url = $sendingto->loginLink($site, $member['userid'], '/chats/' . $chat['chatid'], User::SRC_CHATNOTIF);
                             $to = $sendingto->getEmailPreferred();
 
                             #$to = 'log@ehibbert.org.uk';
@@ -2163,7 +2163,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                                             $sendname = $g->getName() . ' volunteers';
                                         } else {
-                                            $url = $sendingto->loginLink($site, $member['userid'], '/modtools/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
+                                            $url = $sendingto->loginLink($site, $member['userid'], '/modtools/chats/' . $chat['chatid'], User::SRC_CHATNOTIF);
                                             $html = $twig->render('chat_notify.html', [
                                                 'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
                                                 'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
@@ -2252,7 +2252,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                                             if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
                                                 # Send any SMS, but not if we're only mailing our own messages
-                                                $sendingto->sms('You have a new message.', 'https://' . $site . '/chat/' . $chat['chatid'] . '?src=sms');
+                                                $sendingto->sms('You have a new message.', 'https://' . $site . '/chats/' . $chat['chatid'] . '?src=sms');
                                             }
 
                                             $notified++;
@@ -2364,7 +2364,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 $notreplied[$groupid] = [];
 
                                 # Construct a message.
-                                $url = 'https://' . MOD_SITE . '/modtools/chat/' . $chat['id'];
+                                $url = 'https://' . MOD_SITE . '/modtools/chats/' . $chat['id'];
                                 $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $u->getName() . " (" . $u->getEmailPreferred() . ")";
                                 $fromname = $u->getName();
 

@@ -93,7 +93,7 @@ class Tryst extends Entity
         // Create a VCALENDAR.  No point creating an alarm as Google ignores them unless they were generated
         // itself.
         $event->setSummary($title);
-        $event->setDescription("If anything changes please let them know through Chat - click https://www.ilovefreegle.org/chat/" . $rid);
+        $event->setDescription("If anything changes please let them know through Chat - click https://www.ilovefreegle.org/chats/" . $rid);
         $event->setDtStart(new \DateTime(Utils::ISODate($this->getPrivate('arrangedfor'))));
         $event->setDuration(new \DateInterval('PT15M'));
         $event->setOrganizer(new Organizer("MAILTO:handover-" . $this->id . '-' . $userid . "@" . USER_DOMAIN, [ 'CN' => SITE_NAME ]));

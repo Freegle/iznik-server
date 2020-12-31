@@ -4045,7 +4045,7 @@ class User extends Entity
                     $message = strlen($message) > 256 ? (substr($message, 0, 256) . "...") : $message;
                 }
 
-                $route = "/chat/" . $unseen[0]['chatid'];
+                $route = "/chats/" . $unseen[0]['chatid'];
 
                 if ($notifcount) {
                     $total += $notifcount;
