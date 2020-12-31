@@ -458,8 +458,13 @@ class Spam {
         $reason = NULL;
 
         # Check whether they have applied to a suspicious number of groups, but exclude whitelisted members.
-        $sql = "SELECT COUNT(DISTINCT(groupid)) AS count FROM memberships LEFT JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.collection = 'Whitelisted' WHERE memberships.userid = ? AND spam_users.userid IS NULL;";
-        $counts = $this->dbhr->preQuery($sql, [ $userid ]);
+        $sql = "SELECT COUNT(DISTINCT(groupid)) AS count FROM logs LEFT JOIN spam_users ON spam_users.userid = logs.user AND spam_users.collection = ? WHERE logs.user = ? AND logs.type = ? AND logs.subtype = ? AND spam_users.userid IS NULL;";
+        $counts = $this->dbhr->preQuery($sql, [
+            Spam::TYPE_WHITELIST,
+            $userid,
+            Log::TYPE_GROUP,
+            Log::SUBTYPE_JOINED
+        ]);
 
         if ($counts[0]['count'] > Spam::SEEN_THRESHOLD) {
             $suspect = TRUE;

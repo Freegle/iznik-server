@@ -616,11 +616,14 @@ class MailRouterTest extends IznikTestCase {
     public function testMultipleGroups() {
         $g = Group::get($this->dbhr, $this->dbhm);
 
+        # Remove a membership but will still count for spam checking.
         $this->user->removeMembership($this->gid);
 
         for ($i = 0; $i < Spam::GROUP_THRESHOLD + 2; $i++) {
             $this->log("Group $i");
             $gid = $g->create("testgroup$i", Group::GROUP_OTHER);
+
+            $this->waitBackground();
 
             $this->user->addMembership($gid);
             $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -637,7 +640,7 @@ class MailRouterTest extends IznikTestCase {
             $rc = $r->route();
 
             # The user will get marked as suspect.
-            if ($i < Spam::SEEN_THRESHOLD) {
+            if ($i < Spam::SEEN_THRESHOLD - 1) {
                 $work = $g->getWorkCounts([
                     $gid => [
                         'active' => TRUE
@@ -647,7 +650,6 @@ class MailRouterTest extends IznikTestCase {
                 assertEquals(0, $work[$gid]['spammembers']);
                 assertEquals(0, $work[$gid]['spammembersother']);
             } else {
-
                 $work = $g->getWorkCounts([
                     $gid => [
                         'active' => TRUE
