@@ -2489,10 +2489,13 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                 $time = (count($delays) > 0) ? Utils::calculate_median($delays) : NULL;
 
-                $this->dbhm->preExec("REPLACE INTO users_replytime (userid, replytime) VALUES (?, ?);", [
-                    $userid,
-                    $time
-                ]);
+                # We might have an invalid user id here which will case an error.
+                try {
+                    $this->dbhm->preExec("REPLACE INTO users_replytime (userid, replytime) VALUES (?, ?);", [
+                        $userid,
+                        $time
+                    ]);
+                } catch (\Exception $e) {}
 
                 $ret[$userid] = $time;
             }

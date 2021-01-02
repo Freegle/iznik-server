@@ -686,6 +686,21 @@ memberships.groupid IN $groupq
             }
         }
 
+        # Get the infos in a single go.
+        $uids = array_filter(array_column($members, 'id'));
+        $infousers = [];
+
+        if (count($uids)) {
+            foreach ($uids as $uid) {
+                $infousers[$uid] = [
+                    'id' => $uid
+                ];
+            }
+
+            $u = new User($this->dbhr, $this->dbhm);
+            $u->getInfos($infousers);
+        }
+
         # Suspect members might be on multiple groups, so make sure we only return one.
         $uids = [];
 
@@ -768,6 +783,8 @@ memberships.groupid IN $groupq
                     # drifted off.  Getting the correct value is too timeconsuming.
                     $thisone['lastmoderated'] = Utils::ISODate($u->getPrivate('lastaccess'));
                 }
+
+                $thisone['info'] = $infousers[$thisone['id']]['info'];
 
                 $ret[] = $thisone;
             }
