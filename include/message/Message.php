@@ -4960,7 +4960,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
             $gids = $m->getGroups();
 
             foreach ($gids as $gid) {
-                $g = new Group($this->dbhr, $this->dbhm);
+                $g = new Group($this->dbhr, $this->dbhm, $gid);
 
                 if (!$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
                     $joined = $u->getMembershipAtt($gid, 'added');
