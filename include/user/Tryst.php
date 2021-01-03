@@ -41,11 +41,19 @@ class Tryst extends Entity
         return($id);
     }
 
-    public function getPublic($getaddress = TRUE)
+    public function getPublic($getaddress = TRUE, $userid = NULL)
     {
         $ret = parent::getPublic();
         $ret['arrangedat'] = Utils::ISODate($ret['arrangedat']);
         $ret['arrangedfor'] = Utils::ISODate($ret['arrangedfor']);
+
+        if ($userid) {
+            $u1 = User::get($this->dbhr, $this->dbhm, $userid);
+            $u2 = User::get($this->dbhr, $this->dbhm, $userid == $this->getPrivate('user1') ? $this->getPrivate('user2') : $this->getPrivate('user1'));
+            list ($ics, $id, $title) = $this->createICS($userid, $u1, $u2);
+            $ret['ics'] = $ics;
+        }
+
         return($ret);
     }
 
@@ -62,7 +70,7 @@ class Tryst extends Entity
 
         foreach ($trysts as $tryst) {
             $r = new Tryst($this->dbhr, $this->dbhm, $tryst['id']);
-            $ret[] = $r->getPublic(FALSE);
+            $ret[] = $r->getPublic(FALSE, $userid);
         }
 
         return($ret);
@@ -77,18 +85,12 @@ class Tryst extends Entity
         return($rc);
     }
 
-    public function sendCalendar($userid) {
-        $ret = NULL;
-        $event = new Event();
-        $u1 = User::get($this->dbhr, $this->dbhm, $userid);
-        $email = $u1->getEmailPreferred();
-
-        $u2 = User::get($this->dbhr, $this->dbhm, $userid == $this->getPrivate('user1') ? $this->getPrivate('user2') : $this->getPrivate('user1'));
+    public function createICS($userid, $u1, $u2) {
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-
         $rid = $r->createConversation($this->getPrivate('user1'), $this->getPrivate('user2'));
-
         $title = 'Freegle Handover: ' . $u1->getName() . " and " . $u2->getName();
+
+        $event = new Event();
 
         // Create a VCALENDAR.  No point creating an alarm as Google ignores them unless they were generated
         // itself.
@@ -108,21 +110,33 @@ class Tryst extends Entity
         $op = $calendar->render();
         $op = str_replace("ATTENDEE;", "ATTENDEE;RSVP=TRUE:", $op);
 
+        $id = $event->getUniqueId();
+
+        return [ $op, $id, $title ];
+    }
+
+    public function sendCalendar($userid) {
+        $ret = NULL;
+        $u1 = User::get($this->dbhr, $this->dbhm, $userid);
+        $email = $u1->getEmailPreferred();
+
+        $u2 = User::get($this->dbhr, $this->dbhm, $userid == $this->getPrivate('user1') ? $this->getPrivate('user2') : $this->getPrivate('user1'));
+
         list ($transport, $mailer) = Mail::getMailer();
 
         try {
+            list ($ics, $ret, $title) = $this->createICS($userid, $u1, $u2);
+
             $message = \Swift_Message::newInstance()
                 ->setSubject("Please add to your calendar - $title")
                 ->setFrom([NOREPLY_ADDR => SITE_NAME])
                 ->setTo($email)
                 ->setBody('You\'ve arranged a Freegle handover.  Please add this to your calendar to help things go smoothly.')
-                ->addPart($op, 'text/calendar');
+                ->addPart($ics, 'text/calendar');
 
             $this->sendIt($mailer, $message);
-
-            $ret = $event->getUniqueId();
         } catch (Exception $e) {
-            error_log("Failed to send calendar invite $rid " . $e->getMessage());
+            error_log("Failed to send calendar invite for {$this->id}" . $e->getMessage());
         }
 
         return $ret;
