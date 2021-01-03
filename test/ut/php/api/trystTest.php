@@ -144,7 +144,6 @@ class trystTest extends IznikAPITestCase {
         assertEquals(Tryst::ACCEPTED, $t->getPrivate('user1response'));
         assertNull($t->getPrivate('user2response'));
 
-        error_log("No subj");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/trystnosubj'));
         $msg = str_replace('<email1>', $email1, $msg);
         $msg = str_replace('<email2>', $u2->getOurEmail(), $msg);
@@ -184,6 +183,64 @@ class trystTest extends IznikAPITestCase {
         ]);
 
         assertEquals(0, $ret['ret']);
+    }
+
+    public function testReminder() {
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $u1id = $u->create('Test','User', 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u1 = User::get($this->dbhr, $this->dbhm, $u1id);
+        $email1 = 'test-' . rand() . '@blackhole.io';
+        $u2id = $u->create('Test','User', 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u2 = User::get($this->dbhr, $this->dbhm, $u2id);
+        $email2 = 'test-' . rand() . '@blackhole.io';
+
+        assertTrue($u1->login('testpw'));
+        $ret = $this->call('tryst', 'PUT', [
+            'user1' => $u1id,
+            'user2' => $u2id,
+            'arrangedfor' => Utils::ISODate('2038-01-19 03:14:06'),
+            'dup' => 1
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        assertNotNull($id);
+
+        # No reminders - too far in advance.
+        $t = new Tryst($this->dbhr, $this->dbhm, $id);
+        assertEquals(0, $t->sendRemindersDue($id));
+
+        # No reminder - was arranged today.
+        $t->setPrivate('arrangedat', (new \DateTime())->format('Y-m-d H:i:s'));
+        $t->setPrivate('arrangedfor', (new \DateTime())->add(new \DateInterval('PT1H'))->format('Y-m-d H:i:s'));
+        assertEquals(0, $t->sendRemindersDue($id));
+
+        # No reminder - no phone or email.
+        $t->setPrivate('arrangedat', (new \DateTime())->sub(new \DateInterval('P1D'))->format('Y-m-d H:i:s'));
+        $t->setPrivate('arrangedfor', (new \DateTime())->add(new \DateInterval('PT1H'))->format('Y-m-d H:i:s'));
+        assertEquals(0, $t->sendRemindersDue($id));
+
+        # Reminder - phone.
+        $u1->addPhone('123');
+        assertEquals(1, $t->sendRemindersDue($id));
+
+        $ret = $this->call('tryst', 'POST', [
+            'id' => $id,
+            'confirmed' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('tryst', 'POST', [
+            'id' => $id,
+            'declined' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # No reminder - already sent.
+        assertEquals(0, $t->sendRemindersDue($id));
     }
 }
 

@@ -5616,7 +5616,7 @@ class User extends Entity
         return ($num);
     }
 
-    public function sms($msg, $url, $from = TWILIO_FROM, $sid = TWILIO_SID, $auth = TWILIO_AUTH)
+    public function sms($msg, $url, $from = TWILIO_FROM, $sid = TWILIO_SID, $auth = TWILIO_AUTH, $forcemsg = NULL)
     {
         $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1;", [
             $this->id
@@ -5628,10 +5628,10 @@ class User extends Entity
                 $last = $last ? strtotime($last) : NULL;
 
                 # Only send one SMS per day.  This keeps the cost down.
-                if (!$last || (time() - $last > 24 * 60 * 60)) {
+                if ($forcemsg || !$last || (time() - $last > 24 * 60 * 60)) {
                     $client = new Client($sid, $auth);
 
-                    $text = "$msg Click $url Don't reply to this text.  No more texts sent today.";
+                    $text = $forcemsg ? $forcemsg : "$msg Click $url Don't reply to this text.  No more texts sent today.";
                     $rsp = $client->messages->create(
                         $this->formatPhone($phone['number']),
                         array(

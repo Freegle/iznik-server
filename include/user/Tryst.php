@@ -95,7 +95,7 @@ class Tryst extends Entity
         // Create a VCALENDAR.  No point creating an alarm as Google ignores them unless they were generated
         // itself.
         $event->setSummary($title);
-        $event->setDescription("If anything changes please let them know through Chat - click https://www.ilovefreegle.org/chats/" . $rid);
+        $event->setDescription("If anything changes please let them know through Chat - click https://" . USER_SITE . "/chats/" . $rid);
         $event->setDtStart(new \DateTime(Utils::ISODate($this->getPrivate('arrangedfor'))));
         $event->setDuration(new \DateInterval('PT15M'));
         $event->setOrganizer(new Organizer("MAILTO:handover-" . $this->id . '-' . $userid . "@" . USER_DOMAIN, [ 'CN' => SITE_NAME ]));
@@ -176,11 +176,80 @@ class Tryst extends Entity
         return $ret;
     }
 
+    public function sendRemindersDue($id = NULL) {
+        $ret = 0;
+
+        $idq = $id ? (" AND id = " . intval($id)) : '';
+
+        # Send reminders for any handovers arranged before today and where the handover is due to happen between
+        # 30 minutes and 4 hours from now.  That gives them time to notice the reminder.
+        $arrangedat = (new \DateTime())->setTime(0,0)->format('Y-m-d');
+        $arrangedfor1 = (new \DateTime())->add(new \DateInterval('PT30M'))->format('Y-m-d H:i:s');
+        $arrangedfor2 = (new \DateTime())->add(new \DateInterval('PT4H'))->format('Y-m-d H:i:s');
+        $sql = "SELECT id, arrangedfor FROM trysts WHERE remindersent IS NULL AND arrangedat < '$arrangedat' AND arrangedfor BETWEEN '$arrangedfor1' AND '$arrangedfor2' $idq;";
+        $dues = $this->dbhr->preQuery($sql);
+
+        foreach ($dues as $due) {
+            $t = new Tryst($this->dbhr, $this->dbhm, $due['id']);
+
+            $u1id = $t->getPrivate('user1');
+            $u2id = $t->getPrivate('user2');
+
+            if ($u1id && $u2id) {
+                $u1 = User::get($this->dbhr, $this->dbhm, $u1id);
+                $u2 = User::get($this->dbhr, $this->dbhm, $u2id);
+
+                $u1phone = $u1->getPhone();
+                $u2phone = $u2->getPhone();
+                $time = date('h:i A', strtotime($this->getPrivate('arrangedfor')));
+                $r = new ChatRoom($this->dbhr, $this->dbhm);
+                $rid = $r->createConversation($u1id, $u2id);
+                $url = "https://" . USER_SITE . "/handover/" . $due['id'];
+
+                if ($u1phone) {
+                    $u1->sms(NULL, NULL, TWILIO_FROM, TWILIO_SID, TWILIO_AUTH, "Reminder: handover with " . $u2->getName() . " at $time.  Click $url to let us know if it's still ok.");
+                    $ret++;
+                }
+
+                if ($u2phone) {
+                    $u1->sms(NULL, NULL, TWILIO_FROM, TWILIO_SID, TWILIO_AUTH, "Reminder: handover with " . $u1->getName() . " on $time.  Click $url to let us know if it's still ok.");
+                    $ret++;
+                }
+
+                if ($u1phone || $u2phone) {
+                    $this->dbhm->preExec("UPDATE trysts SET remindersent = NOW() WHERE id = ?;", [
+                        $due['id']
+                    ]);
+                }
+            }
+        }
+
+        return $ret;
+    }
+
     public function response($userid, $rsp) {
         if ($userid == $this->getPrivate('user1')) {
             $this->setPrivate('user1response', $rsp);
         } else if ($userid == $this->getPrivate('user2')) {
             $this->setPrivate('user2response', $rsp);
         }
+    }
+
+    public function confirm() {
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+        $att = ($this->getPrivate('user1') == $myid) ? 'user1confirmed' : 'user2confirmed';
+        $this->dbhm->preExec("UPDATE trysts SET $att = NOW() WHERE id = ?", [
+            $this->id
+        ]);
+    }
+
+    public function decline() {
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+        $att = ($this->getPrivate('user1') == $myid) ? 'user1declined' : 'user2declined';
+        $this->dbhm->preExec("UPDATE trysts SET $att = NOW() WHERE id = ?", [
+            $this->id
+        ]);
     }
 }

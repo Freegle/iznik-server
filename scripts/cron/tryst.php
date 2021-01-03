@@ -17,5 +17,6 @@ $lockh = Utils::lockScript(basename(__FILE__));
 
 $t = new Tryst($dbhr, $dbhm);
 $t->sendCalendarsDue();
+$t->sendRemindersDue();
 
 Utils::unlockScript($lockh);

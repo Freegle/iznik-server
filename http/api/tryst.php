@@ -78,6 +78,32 @@ function tryst() {
             break;
         }
 
+        case 'POST': {
+            $ret = ['ret' => 1, 'status' => 'Not logged in'];
+
+            if ($me) {
+                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
+                if ($t->canSee($me->getId())) {
+                    $confirm = Utils::presbool('confirm', $_REQUEST, FALSE);
+                    $decline = Utils::presbool('decline', $_REQUEST, FALSE);
+
+                    if ($confirm) {
+                        $t->confirm();
+                    } else if ($decline) {
+                        $t->decline();
+                    }
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                }
+            }
+
+            break;
+        }
+
         case 'DELETE': {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
