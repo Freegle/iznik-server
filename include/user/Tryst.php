@@ -201,7 +201,7 @@ class Tryst extends Entity
 
                 $u1phone = $u1->getPhone();
                 $u2phone = $u2->getPhone();
-                $time = date('h:i A', strtotime($this->getPrivate('arrangedfor')));
+                $time = date('h:i A', strtotime($t->getPrivate('arrangedfor')));
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
                 $rid = $r->createConversation($u1id, $u2id);
                 $url = "https://" . USER_SITE . "/handover/" . $due['id'];
