@@ -5606,6 +5606,7 @@ class User extends Entity
         $num = str_replace(' ', '', $num);
         $num = str_replace('+44', '', $num);
         $num = str_replace('+', '', $num);
+        $num = preg_replace('/^44/', '', $num);
 
         if (substr($num, 0, 1) === '0') {
             $num = substr($num, 1);
