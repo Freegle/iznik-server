@@ -371,13 +371,28 @@ function session() {
             $host = Utils::presdef('host', $_REQUEST, NULL);
             $keyu = (Utils::presint('u', $_REQUEST, NULL));
             $keyk = Utils::presdef('k', $_REQUEST, NULL);
+            $covidconfirmed = Utils::presdef('covidconfirmed', $_REQUEST, NULL);
 
             $id = NULL;
             $user = User::get($dbhr, $dbhm);
             $f = NULL;
             $ret = array('ret' => 1, 'status' => 'Invalid login details', 'req' => $_REQUEST);
 
-            if ($keyu && $keyk) {
+            if ($me && $covidconfirmed) {
+//                $msgid = Utils::presint('msgid', $_REQUEST, NULL);
+                $dbhm->preExec("UPDATE users SET covidconfirmed = NOW() WHERE id = ?;", [
+                    $me->getId()
+                ]);
+
+//                if ($msgid) {
+//                    # Dispatch the message on its way.
+//                    $r = new MailRouter($dbhr, $dbhm);
+//                    $m = new Message($dbhr, $dbhm, $msgid);
+//                    $r->route($m);
+//                }
+
+                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+            } else if ($keyu && $keyk) {
                 # uid and key login, used in email links and impersonation.
                 $u = new User($dbhr, $dbhm, $keyu);
 
