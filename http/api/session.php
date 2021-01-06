@@ -379,17 +379,17 @@ function session() {
             $ret = array('ret' => 1, 'status' => 'Invalid login details', 'req' => $_REQUEST);
 
             if ($me && $covidconfirmed) {
-//                $msgid = Utils::presint('msgid', $_REQUEST, NULL);
+                $msgid = Utils::presint('msgid', $_REQUEST, NULL);
                 $dbhm->preExec("UPDATE users SET covidconfirmed = NOW() WHERE id = ?;", [
                     $me->getId()
                 ]);
 
-//                if ($msgid) {
-//                    # Dispatch the message on its way.
-//                    $r = new MailRouter($dbhr, $dbhm);
-//                    $m = new Message($dbhr, $dbhm, $msgid);
-//                    $r->route($m);
-//                }
+                if ($msgid) {
+                    # Dispatch the message on its way.
+                    $r = new MailRouter($dbhr, $dbhm);
+                    $m = new Message($dbhr, $dbhm, $msgid);
+                    $r->route($m);
+                }
 
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
             } else if ($keyu && $keyk) {

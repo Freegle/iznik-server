@@ -6240,4 +6240,15 @@ memberships.groupid IN $groupq
 
         return $ret;
     }
+
+    public function hasCovidConfirmed() {
+        $covid = $this->getPrivate('covidconfirmed');
+
+        # We want most of the UT to work without doing this.
+        return (getenv('UT') && !getenv('UTTESTCOVIDCONFIRM')) || $covid;
+    }
+
+    public function covidConfirm() {
+        # Mail the user and ask them to complete the COVID checklist, which they haven't done yet.
+    }
 }

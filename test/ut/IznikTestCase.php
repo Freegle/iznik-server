@@ -62,6 +62,8 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
         $this->log(__METHOD__);
 
+        putenv('UT=1');
+
         if (file_exists(IZNIK_BASE . '/standalone')) {
             # Probably in Docket
             putenv('STANDALONE=1');

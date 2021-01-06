@@ -3,8 +3,6 @@ namespace Freegle\Iznik;
 
 use spamc;
 
-
-
 if (!class_exists('spamc')) {
     require_once(IZNIK_BASE . '/lib/spamc.php');
 }
@@ -639,7 +637,10 @@ class MailRouter
                                 foreach ($groups as $group) {
                                     $appmemb = $u->isApprovedMember($group['groupid']);
 
-                                    if ($appmemb && $worry) {
+                                    if (!$u->hasCovidConfirmed()) {
+                                        $u->covidConfirm();
+                                        $ret = MailRouter::TO_SYSTEM;
+                                    } else if ($appmemb && $worry) {
                                         if ($log) { error_log("Worrying => pending"); }
                                         if ($this->markPending($notspam)) {
                                             $ret = MailRouter::PENDING;
@@ -739,7 +740,10 @@ class MailRouter
                                 $u = User::get($this->dbhr, $this->dbhm, $fromid);
                                 $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $fromid;");
 
-                                if ($m->getID() && $u->getId() && $m->getFromuser()) {
+                                if (!$u->hasCovidConfirmed()) {
+                                    $u->covidConfirm();
+                                    $ret = MailRouter::TO_SYSTEM;
+                                } else if ($m->getID() && $u->getId() && $m->getFromuser()) {
                                     # The email address that we replied from might not currently be attached to the
                                     # other user, for example if someone has email forwarding set up.  So make sure we
                                     # have it.
@@ -812,7 +816,10 @@ class MailRouter
                             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
                             $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-                            if ($r->getId()) {
+                            if (!$u->hasCovidConfirmed()) {
+                                $u->covidConfirm();
+                                $ret = MailRouter::TO_SYSTEM;
+                            } else if ($r->getId()) {
                                 # It's a valid chat.
                                 if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid || $u->isModerator()) {
                                     # ...and the user we're replying to is part of it or a mod.
