@@ -11,19 +11,21 @@ global $dbhr, $dbhm;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-$opts = getopt('i:o:');
+$opts = getopt('i:q:');
 
 if (count($opts) < 1) {
-    echo "Usage: php authority_stats -i <authority IDs in a CSL>\n";
+    echo "Usage: php authority_stats -i <authority IDs in a CSL> (-q \"quarter start\" \n";
 } else {
     $ids = explode(',', $opts['i']);
+    $quarter = Utils::presdef('q', $opts, '3 months ago');
+
     $q = ceil(date("n") / 3);
 
     foreach ($ids as $id) {
         $months = [];
 
         # Find start of last full quarter
-        $start_date = strtotime('3 months ago');
+        $start_date = strtotime($quarter);
         $start_quarter = ceil(date('m', $start_date) / 3);
         $start_month = ($start_quarter * 3) - 2;
         $start_year = date('Y', $start_date);
