@@ -444,6 +444,11 @@ function message() {
                                 $nears = [ $draft['groupid'] ];
                             }
 
+                            // COVID Lockdown 2 - override to closest group.
+                            $l = new Location($dbhr, $dbhm, $m->getPrivate('locationid'));
+                            $nears2 = $l->groupsNear(200);
+                            $nears = count($nears2) ? $nears2 : $nears;
+
                             // @codeCoverageIgnoreStart
                             if (defined('USER_GROUP_OVERRIDE') && !Utils::pres('ignoregroupoverride', $_REQUEST)) {
                                 # We're in testing mode
