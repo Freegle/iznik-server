@@ -16,7 +16,7 @@
       <mj-class name="chatimage" border-radius="5px" height="250px"></mj-class>
       <mj-class name="footer" background-color="#E0E0E0"></mj-class>
       <mj-divider border-color="#61AE24" padding="0px"></mj-divider>
-      <mj-preview>{{ textbody }}</mj-preview>
+      <mj-preview>Action needed to process your message</mj-preview>
       <mj-section background-color="#F9F7EC"></mj-section>
       <mj-all font-family="'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"></mj-all>
     </mj-attributes>
@@ -29,7 +29,7 @@
       <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
         <mj-group>
           <mj-column vertical-align="middle" width="66%">
-            <mj-text color="#61AE24" font-size="18px" line-height="1.25">{{ subject }}</mj-text>
+            <mj-text color="#61AE24" font-size="24px" line-height="1.25" font-weight="bold">COVID-19 - Action required</mj-text>
           </mj-column>
           <mj-column vertical-align="middle" width="34%">
             <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"></mj-image>
@@ -38,29 +38,12 @@
       </mj-section>
       <mj-section padding="10px">
         <mj-column>
-          <mj-text>Dear&nbsp;{{ name }},</mj-text>
-          <mj-text>Please click one of the following buttons to let us know what happened to your message <b><i>{{ subject }}</i></b>:</mj-text>
+          <mj-text>Because of current COVID-19 restrictions you must complete our COVID Checklist before we can process your message.</mj-text>
         </mj-column>
       </mj-section>
       <mj-section padding="10px">
         <mj-column width="185px">
-          <mj-button align="center" href="{{ repost }}" mj-class="secondary">Repost please!</mj-button>
-        </mj-column>
-        <mj-column width="185px">
-          <mj-button align="center" href="{{ completed }}" mj-class="tertiary">Mark as&nbsp;{{ type }}</mj-button>
-        </mj-column>
-        <mj-column width="185px">
-          <mj-button align="center" href="{{ withdraw }}" mj-class="quadrenary">Withdraw</mj-button>
-        </mj-column>
-      </mj-section>
-      <mj-section padding="10px">
-        <mj-column>
-          <mj-text>If it's an OFFER which hasn't been collected yet, please use the <em>Promise</em> button in <a href="https://www.ilovefreegle.org/chats">Chats</a> or <a href="https://www.ilovefreegle.org/myposts">My Posts</a>.</mj-text>
-        </mj-column>
-      </mj-section>
-      <mj-section padding="10px">
-        <mj-column>
-          <mj-text>This helps us decide whether to keep showing it, and to measure how much freegling happens so that we can persuade councils to support Freegle more.</mj-text>
+          <mj-button align="center" href="{{ repost }}" mj-class="secondary">Click here</mj-button>
         </mj-column>
       </mj-section>
       <mj-section background-color="#E0E0E0" padding="10px">

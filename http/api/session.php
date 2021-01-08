@@ -380,14 +380,13 @@ function session() {
 
             if ($me && $covidconfirmed) {
                 $msgid = Utils::presint('msgid', $_REQUEST, NULL);
-                $dbhm->preExec("UPDATE users SET covidconfirmed = NOW() WHERE id = ?;", [
-                    $me->getId()
-                ]);
+                $me->setPrivate('covidconfirmed', date("Y-m-d H:i:s"));
 
                 if ($msgid) {
                     # Dispatch the message on its way.
                     $r = new MailRouter($dbhr, $dbhm);
                     $m = new Message($dbhr, $dbhm, $msgid);
+
                     $r->route($m);
                 }
 

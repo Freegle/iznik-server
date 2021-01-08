@@ -145,6 +145,7 @@ class MailRouter
     public function route($msg = NULL, $notspam = FALSE) {
         $ret = NULL;
         $log = TRUE;
+        $keepgroups = FALSE;
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
@@ -638,8 +639,9 @@ class MailRouter
                                     $appmemb = $u->isApprovedMember($group['groupid']);
 
                                     if (!$u->hasCovidConfirmed()) {
-                                        $u->covidConfirm();
+                                        $u->covidConfirm($this->msg->getID());
                                         $ret = MailRouter::TO_SYSTEM;
+                                        $keepgroups = TRUE;
                                     } else if ($appmemb && $worry) {
                                         if ($log) { error_log("Worrying => pending"); }
                                         if ($this->markPending($notspam)) {
@@ -741,8 +743,9 @@ class MailRouter
                                 $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $fromid;");
 
                                 if (!$u->hasCovidConfirmed()) {
-                                    $u->covidConfirm();
+                                    $u->covidConfirm($this->msg->getID());
                                     $ret = MailRouter::TO_SYSTEM;
+                                    $keepgroups = TRUE;
                                 } else if ($m->getID() && $u->getId() && $m->getFromuser()) {
                                     # The email address that we replied from might not currently be attached to the
                                     # other user, for example if someone has email forwarding set up.  So make sure we
@@ -817,8 +820,9 @@ class MailRouter
                             $u = User::get($this->dbhr, $this->dbhm, $userid);
 
                             if (!$u->hasCovidConfirmed()) {
-                                $u->covidConfirm();
+                                $u->covidConfirm($this->msg->getID());
                                 $ret = MailRouter::TO_SYSTEM;
+                                $keepgroups = TRUE;
                             } else if ($r->getId()) {
                                 # It's a valid chat.
                                 if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid || $u->isModerator()) {
@@ -872,8 +876,13 @@ class MailRouter
                         # See if it's a direct reply.  Auto-replies (that we can identify) we just drop.
                         $uid = $u->findByEmail($to);
                         if ($log) { error_log("Find reply $to = $uid"); }
+                        $fromu = User::get($this->dbhr, $this->dbhm, $this->msg->getFromuser());
 
-                        if ($uid && $this->msg->getFromuser() && strtolower($to) != strtolower(MODERATOR_EMAIL)) {
+                        if ($this->msg->getFromuser() && !$fromu->hasCovidConfirmed()) {
+                            $fromu->covidConfirm($this->msg->getID());
+                            $ret = MailRouter::TO_SYSTEM;
+                            $keepgroups = true;
+                        } else if ($uid && $this->msg->getFromuser() && strtolower($to) != strtolower(MODERATOR_EMAIL)) {
                             # This is to one of our users.  We try to pair it as best we can with one of the posts.
                             #
                             # We don't want to process replies to ModTools user.  This can happen if MT is a member
@@ -945,7 +954,7 @@ class MailRouter
             }
         }
 
-        if ($ret != MailRouter::FAILURE) {
+        if ($ret != MailRouter::FAILURE && !$keepgroups) {
             # Ensure no message is stuck in incoming.
             $this->dbhm->preExec("DELETE FROM messages_groups WHERE msgid = ? AND collection = ?;", [
                 $this->msg->getID(),
