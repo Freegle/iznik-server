@@ -4966,7 +4966,6 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
 
                 if (!$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
                     error_log("will do it");
-                    continue;
                     $joined = $u->getMembershipAtt($gid, 'added');
                     $hoursago = round((time() - strtotime($joined)) / 3600);
 
