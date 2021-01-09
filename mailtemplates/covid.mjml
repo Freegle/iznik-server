@@ -43,7 +43,7 @@
       </mj-section>
       <mj-section padding="10px">
         <mj-column width="185px">
-          <mj-button align="center" href="{{ repost }}" mj-class="secondary">Click here</mj-button>
+          <mj-button align="center" href="{{ url }}" mj-class="secondary">Click here</mj-button>
         </mj-column>
       </mj-section>
       <mj-section background-color="#E0E0E0" padding="10px">

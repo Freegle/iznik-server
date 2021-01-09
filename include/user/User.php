@@ -6260,7 +6260,8 @@ memberships.groupid IN $groupq
         $url = $this->loginLink(USER_SITE, $this->id, "/covidchecklist?msgid=$msgid$tn", NULL, TRUE);
 
         $html = $twig->render('covid.html', [
-            'email' => $email
+            'email' => $email,
+            'url' => $url
         ]);
 
         list ($transport, $mailer) = Mail::getMailer();
