@@ -660,32 +660,36 @@ class MailRouter
                                             # this has been requested by volunteers.
                                             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
 
-                                            if ($log) { error_log("Check big switch " . $g->getPrivate('overridemoderation')); }
-                                            if ($g->getPrivate('overridemoderation') == Group::OVERRIDE_MODERATION_ALL) {
-                                                # The Big Switch is in operation.
-                                                $ps = Group::POSTING_MODERATED;
-                                            } else {
-                                                $ps = ($u->isModOrOwner($group['groupid']) || $g->getSetting('moderated', 0)) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
-                                                $ps = $ps ? $ps : Group::POSTING_MODERATED;
-                                                if ($log) { error_log("Member of {$group['groupid']}, Our PS is $ps"); }
-                                            }
+                                            $ourPS = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
 
-                                            if ($ps == Group::POSTING_PROHIBITED) {
+                                            if ($ourPS == Group::POSTING_PROHIBITED) {
                                                 if ($log) { error_log("Prohibited, drop"); }
                                                 $ret = MailRouter::DROPPED;
-                                            } else if ($ps == Group::POSTING_MODERATED) {
-                                                if ($log) {
-                                                    error_log("Mark as pending");
-                                                }
-                                                if ($this->markPending($notspam)) {
-                                                    $ret = MailRouter::PENDING;
-                                                }
                                             } else {
-                                                if ($log) { error_log("Mark as approved"); }
-                                                $ret = MailRouter::FAILURE;
+                                                if ($log) { error_log("Check big switch " . $g->getPrivate('overridemoderation')); }
+                                                if ($g->getPrivate('overridemoderation') == Group::OVERRIDE_MODERATION_ALL) {
+                                                    # The Big Switch is in operation.
+                                                    $ps = Group::POSTING_MODERATED;
+                                                } else {
+                                                    $ps = ($u->isModOrOwner($group['groupid']) || $g->getSetting('moderated', 0)) ? Group::POSTING_MODERATED : $ourPS;
+                                                    $ps = $ps ? $ps : Group::POSTING_MODERATED;
+                                                    if ($log) { error_log("Member of {$group['groupid']}, Our PS is $ps"); }
+                                                }
 
-                                                if ($this->markApproved()) {
-                                                    $ret = MailRouter::APPROVED;
+                                                if ($ps == Group::POSTING_MODERATED) {
+                                                    if ($log) {
+                                                        error_log("Mark as pending");
+                                                    }
+                                                    if ($this->markPending($notspam)) {
+                                                        $ret = MailRouter::PENDING;
+                                                    }
+                                                } else {
+                                                    if ($log) { error_log("Mark as approved"); }
+                                                    $ret = MailRouter::FAILURE;
+
+                                                    if ($this->markApproved()) {
+                                                        $ret = MailRouter::APPROVED;
+                                                    }
                                                 }
                                             }
                                         } else {
