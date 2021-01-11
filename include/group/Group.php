@@ -687,7 +687,7 @@ memberships.groupid IN $groupq
         }
 
         # Get the infos in a single go.
-        $uids = array_filter(array_column($members, 'id'));
+        $uids = array_filter(array_column($members, 'userid'));
         $infousers = [];
 
         if (count($uids)) {
@@ -699,6 +699,7 @@ memberships.groupid IN $groupq
 
             $u = new User($this->dbhr, $this->dbhm);
             $u->getInfos($infousers);
+            $u->getPublicLocations($infousers);
         }
 
         # Suspect members might be on multiple groups, so make sure we only return one.
@@ -784,7 +785,8 @@ memberships.groupid IN $groupq
                     $thisone['lastmoderated'] = Utils::ISODate($u->getPrivate('lastaccess'));
                 }
 
-                $thisone['info'] = $infousers[$thisone['id']]['info'];
+                # Pick up the info we fetched above.
+                $thisone['info'] = $infousers[$thisone['userid']]['info'];
 
                 $ret[] = $thisone;
             }

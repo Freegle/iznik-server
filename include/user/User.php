@@ -1609,24 +1609,24 @@ class User extends Entity
                 $latlngs = $this->getLatLngs($users);
 
                 foreach ($latlngs as $userid => $latlng) {
-                    $users[$userid]['milesaway'] = $this->getDistanceBetween($mylat, $mylng, $latlng['lat'], $latlng['lng']);
+                    $users[$userid]['info']['milesaway'] = $this->getDistanceBetween($mylat, $mylng, $latlng['lat'], $latlng['lng']);
                 }
             }
 
-            $ret['publiclocation'] = $this->getPublicLocations($users);
+            $this->getPublicLocations($users);
         }
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $replytimes = $r->replyTimes($uids);
 
-        foreach ($replytimes as $uid => &$replytime) {
-            $users[$uid]['replytime'] = $replytime;
+        foreach ($replytimes as $uid => $replytime) {
+            $users[$uid]['info']['replytime'] = $replytime;
         }
 
         $nudges = $r->nudgeCounts($uids);
 
         foreach ($nudges as $uid => $nudgecount) {
-            $users[$uid]['nudges'] = $nudgecount;
+            $users[$uid]['info']['nudges'] = $nudgecount;
         }
 
         $ratings = $this->getRatings($uids);
@@ -1819,7 +1819,7 @@ class User extends Entity
 
         $this->getLatLngs($users);
         $this->getPublicLocations($users);
-        return($users[$this->id]['publiclocation']);
+        return($users[$this->id]['info']['publiclocation']);
     }
 
     public function ensureAvatar(&$atts)
@@ -3948,7 +3948,7 @@ class User extends Entity
             }
 
             # Add the public location and best guess lat/lng
-            $thisone['publiclocation'] = $u->getPublicLocation();
+            $thisone['info']['publiclocation'] = $u->getPublicLocation();
             $latlng = $u->getLatLng();
             $thisone['privateposition'] = [
                 'lat' => $latlng[0],
@@ -4321,7 +4321,7 @@ class User extends Entity
                 $lng = NULL;
 
                 # Default to nowhere.
-                $users[$att['id']]['publiclocation'] = [
+                $users[$att['id']]['info']['publiclocation'] = [
                     'display' => '',
                     'location' => NULL,
                     'groupname' => NULL
@@ -4396,7 +4396,7 @@ class User extends Entity
                 if ($loc) {
                     $display = $loc ? ($loc . ($grp ? ", $grp" : "")) : ($grp ? $grp : '');
 
-                    $users[$att['id']]['publiclocation'] = [
+                    $users[$att['id']]['info']['publiclocation'] = [
                         'display' => $display,
                         'location' => $loc,
                         'groupname' => $grp
@@ -4424,7 +4424,7 @@ class User extends Entity
                             $grp = trim($matches[3]);
                             #error_log("Found $grp from post");
 
-                            $users[$userid]['publiclocation'] = [
+                            $users[$userid]['info']['publiclocation'] = [
                                 'display' => $grp,
                                 'location' => NULL,
                                 'groupname' => $grp
@@ -4454,7 +4454,7 @@ class User extends Entity
                                 $grp = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
                                 #error_log("Found $grp from membership");
 
-                                $users[$userid]['publiclocation'] = [
+                                $users[$userid]['info']['publiclocation'] = [
                                     'display' => $grp,
                                     'location' => NULL,
                                     'groupname' => $grp
