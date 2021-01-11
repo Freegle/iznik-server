@@ -386,8 +386,19 @@ function session() {
                     # Dispatch the message on its way.
                     $r = new MailRouter($dbhr, $dbhm);
                     $m = new Message($dbhr, $dbhm, $msgid);
+                    $mgroups = $m->getGroups(TRUE, FALSE);
 
-                    $r->route($m);
+                    if (count($mgroups) == 0) {
+                        # Will be a chat.
+                        $r->route($m);
+                    } else {
+                        # Will be for a group.
+                        foreach ($mgroups as $mgroup) {
+                            if ($mgroup['collection'] == MessageCollection::INCOMING) {
+                                $r->route($m);
+                            }
+                        }
+                    }
                 }
 
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];

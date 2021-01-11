@@ -639,6 +639,7 @@ class MailRouter
                                     $appmemb = $u->isApprovedMember($group['groupid']);
 
                                     if (!$u->hasCovidConfirmed()) {
+                                        if ($log) { error_log("COVID Checklist required for $uid"); }
                                         $u->covidConfirm($this->msg->getID());
                                         $ret = MailRouter::TO_SYSTEM;
                                         $keepgroups = TRUE;
