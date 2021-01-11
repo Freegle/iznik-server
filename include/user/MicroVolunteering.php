@@ -193,7 +193,7 @@ class MicroVolunteering
     FROM messages_groups 
     INNER JOIN messages_attachments ON messages_attachments.msgid = messages_groups.msgid
     LEFT JOIN microactions ON microactions.rotatedimage = messages_attachments.id AND userid = ?
-    INNER JOIN groups ON groups.id = messages_groups.groupid AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.photorotate') = 1)
+    INNER JOIN groups ON groups.id = messages_groups.groupid AND microvolunteering = 1 AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.photorotate') = 1)
     WHERE arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") AND microactions.id IS NULL
     HAVING reviewcount < ?
     ORDER BY RAND() LIMIT 9;", [
