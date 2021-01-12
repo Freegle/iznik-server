@@ -449,7 +449,7 @@ class Spam {
         $this->dbhm->preExec($sql, [ $subj ]);
     }
 
-    public function checkUser($userid, $lat = NULL, $lng = NULL) {
+    public function checkUser($userid, $lat = NULL, $lng = NULL, $checkmemberships = TRUE) {
         # Called when something has happened to a user which makes them more likely to be a spammer, and therefore
         # needs rechecking.
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
@@ -457,19 +457,23 @@ class Spam {
         $suspect = FALSE;
         $reason = NULL;
 
-        # Check whether they have applied to a suspicious number of groups, but exclude whitelisted members.
-        $sql = "SELECT COUNT(DISTINCT(groupid)) AS count FROM logs LEFT JOIN spam_users ON spam_users.userid = logs.user AND spam_users.collection = ? WHERE logs.user = ? AND logs.type = ? AND logs.subtype = ? AND spam_users.userid IS NULL;";
-        $counts = $this->dbhr->preQuery($sql, [
-            Spam::TYPE_WHITELIST,
-            $userid,
-            Log::TYPE_GROUP,
-            Log::SUBTYPE_JOINED
-        ]);
+        if ($checkmemberships) {
+            # Check whether they have applied to a suspicious number of groups, but exclude whitelisted members.
+            $sql = "SELECT COUNT(DISTINCT(groupid)) AS count FROM logs LEFT JOIN spam_users ON spam_users.userid = logs.user AND spam_users.collection = ? WHERE logs.user = ? AND logs.type = ? AND logs.subtype = ? AND spam_users.userid IS NULL;";
+            $counts = $this->dbhr->preQuery($sql, [
+                Spam::TYPE_WHITELIST,
+                $userid,
+                Log::TYPE_GROUP,
+                Log::SUBTYPE_JOINED
+            ]);
 
-        if ($counts[0]['count'] > Spam::SEEN_THRESHOLD) {
-            $suspect = TRUE;
-            $reason = "Seen on many groups";
-        } else {
+            if ($counts[0]['count'] > Spam::SEEN_THRESHOLD) {
+                $suspect = true;
+                $reason = "Seen on many groups";
+            }
+        }
+
+        if (!$suspect) {
             # Check if they've replied to multiple posts across a wide area recently.  Ignore any messages outside
             # a bounding box for the UK, because then it's those messages that are suspicious, and this member the
             # poor sucker who they are trying to scam.

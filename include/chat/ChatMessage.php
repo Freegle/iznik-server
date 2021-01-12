@@ -199,7 +199,9 @@ class ChatMessage extends Entity
 
                             foreach ($msg as $m) {
                                 $s = new Spam($this->dbhr, $this->dbhm);
-                                $review = $s->checkUser($userid, $m['lat'], $m['lng']);
+
+                                # Don't check memberships otherwise they might show up repeatedly.
+                                $review = $s->checkUser($userid, $m['lat'], $m['lng'], FALSE);
                             }
                         }
                     }
