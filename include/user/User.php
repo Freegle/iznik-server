@@ -4464,6 +4464,12 @@ class User extends Entity
                     }
                 }
             }
+
+            // TODO Remove after 2021-03-01
+            foreach ($users as $user) {
+                $userid = $user['id'];
+                $users[$userid]['publiclocation'] = Utils::presdef('publiclocation', $users[$userid]['info'], NULL);
+            }
         }
     }
 
